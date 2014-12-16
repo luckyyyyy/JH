@@ -2130,13 +2130,14 @@ _GKP.Record = function(tab,item,bEnter)
 		record:Fetch("btn_Close").self.userdata = true
 	else
 		text:Text(_L["Select Member"]):Color(255,255,255)
-		text.dwForceID = nil
+		text.self.dwForceID = nil
 		Source:Text(_L["Add Manually"]):Enable(false)
 		Name:Text(""):Enable(true)
 		Money:Text("")
 	end	
 	if tab and type(item) == "number" then -- 编辑
 		text:Text(tab.szPlayer):Color(JH.GetForceColor(tab.dwForceID))
+		text.self.dwForceID = tab.dwForceID
 		Name:Text(tab.szName or Table_GetItemName(tab.nUiId)):Enable(true)
 		Source:Text(tab.szNpcName):Enable(true)
 		Money:Text(tab.nMoney)

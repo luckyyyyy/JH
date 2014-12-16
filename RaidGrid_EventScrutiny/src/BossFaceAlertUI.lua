@@ -22,15 +22,15 @@ _FA.GetFrame = function()
 	return Station.Lookup("Normal/FA")
 end
 _FA.OpenPanel = function()
-	_FA.GetFrame():Show()
 	_FA.GetFrame():BringToTop()
+	_FA.GetFrame():Show()
 end
 _FA.ClosePanel = function()
 	_FA.GetFrame():Hide()
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 end
 _FA.TogglePanel = function()
-	if _FA.GetFrame():IsVisible() then
+	if _FA.GetFrame() and _FA.GetFrame():IsVisible() then
 		_FA.ClosePanel()
 	else
 		_FA.OpenPanel()
@@ -116,10 +116,6 @@ function FA.OnFrameCreate()
 	ui:Append("WndCheckBox", "Chk_ShowName", { x = 216, y = 90, txt = "显示名字" })
 	ui:Append("WndCheckBox", "Chk_ShowTarget", { x = 216, y = 115, txt = "监控目标" })
 	ui:Point():Title(_FA.szTitle)
-end
-
-_FA.Init = function()
-	_FA.GetFrame():Hide()
 	_FA.LoadDataPanel(false)
 end
 
@@ -167,15 +163,9 @@ end
 function FA.OnItemRButtonClick()
 	local nID = this.nID
 	local tab,data,szType
-	if _FA.bPosition then
-		data = BossFaceAlert.tDefinedPoint
-		tab = BossFaceAlert.PointClassNameInfo
-		szType = "tDefinedPoint"
-	else
-		data = BossFaceAlert.DrawFaceLineNames
-		tab = BossFaceAlert.FaceClassNameInfo
-		szType = "DrawFaceLineNames"
-	end
+	data = BossFaceAlert.DrawFaceLineNames
+	tab = BossFaceAlert.FaceClassNameInfo
+	szType = "DrawFaceLineNames"
 
 	if this.szType == "Class" and this.nID > 0 then
 		local r,g,b = 255,255,255
@@ -190,7 +180,7 @@ function FA.OnItemRButtonClick()
 							return
 						end
 						tab[nID].szName = szText
-						_FA.LoadDataPanel(_FA.bPosition,nil,true)
+						_FA.LoadDataPanel(false, nil, true)
 					end
 					GetUserInput("输入新名字：", fcAction, nil,nil, nil, tab[nID].szName)
 				end,
@@ -199,7 +189,7 @@ function FA.OnItemRButtonClick()
 					tab[nID].tMenuColor.r = r
 					tab[nID].tMenuColor.g = g
 					tab[nID].tMenuColor.b = b
-					_FA.LoadDataPanel(_FA.bPosition,nil,true)
+					_FA.LoadDataPanel(false, nil, true)
 				end,
 			},
 			{bDevide = true},
@@ -214,7 +204,7 @@ function FA.OnItemRButtonClick()
 						end
 					end
 					tab[nID], tab[nID - 1] = tab[nID - 1], tab[nID]
-					_FA.LoadDataPanel(_FA.bPosition,nil,true)
+					_FA.LoadDataPanel(false, nil, true)
 				end,
 			},
 			{szOption = "下移此分类", bDisable = not tab[nID + 1], fnAction = function()
@@ -228,7 +218,7 @@ function FA.OnItemRButtonClick()
 						end
 					end
 					tab[nID], tab[nID + 1] = tab[nID + 1], tab[nID]
-					_FA.LoadDataPanel(_FA.bPosition,nil,true)
+					_FA.LoadDataPanel(false, nil, true)
 				end,
 			},
 			
@@ -250,9 +240,9 @@ function FA.OnItemRButtonClick()
 						if _FA.tData.nFaceClass == nID then
 							_FA.ClearPanel()
 						elseif _FA.nClass == nID then
-							_FA.LoadDataPanel(_FA.bPosition,-2,true)
+							_FA.LoadDataPanel(false, -2, true)
 						else
-							_FA.LoadDataPanel(_FA.bPosition,nil,true)
+							_FA.LoadDataPanel(false , nil, true)
 						end
 						BFA.Init()
 					end)
@@ -307,12 +297,8 @@ function FA.OnItemLButtonUp()
 			if _FA.tDrag.nNewClass == 0 then
 				_FA.tDrag.nNewClass = nil
 			end
-			if _FA.bPosition then
-				BossFaceAlert.tDefinedPoint[_FA.tDrag.nIndex].nFaceClass = _FA.tDrag.nNewClass
-			else
-				BossFaceAlert.DrawFaceLineNames[_FA.tDrag.nIndex].nFaceClass = _FA.tDrag.nNewClass
-			end
-			_FA.LoadDataPanel(_FA.bPosition,_FA.nClass,true)
+			BossFaceAlert.DrawFaceLineNames[_FA.tDrag.nIndex].nFaceClass = _FA.tDrag.nNewClass
+			_FA.LoadDataPanel(false , _FA.nClass, true)
 		end
 		_FA.tDrag = {}
 	end
@@ -334,9 +320,6 @@ end
 _FA.Search = function()
 	if this:GetText() ~= "" then
 		local data = BossFaceAlert.DrawFaceLineNames
-		if _FA.bPosition then
-			data = BossFaceAlert.tDefinedPoint
-		end
 		_FA.tSearchTemp = { nIndex = 1,tTemp = {},data = data }
 		-- 首先返回名字
 		for i = 1, #data, 1 do
@@ -435,9 +418,6 @@ function FA.OnItemMouseEnter()
 	end
 	if this.szType == "Data" then
 		local data =  BossFaceAlert.DrawFaceLineNames
-		if _FA.bPosition then
-			data = BossFaceAlert.tDefinedPoint
-		end
 		local txt = "Key："..data[this.nID].szName
 		if data[this.nID].szDescription then
 			txt = txt .. "\n描述："..data[this.nID].szDescription
@@ -454,9 +434,6 @@ function FA.OnItemMouseEnter()
 	if this.szType == "Class" then
 		if this.nID > 0 then
 			local data =  BossFaceAlert.DrawFaceLineNames
-			if _FA.bPosition then
-				data = BossFaceAlert.tDefinedPoint
-			end
 			local _ = 0
 			for i = 1 , #data do
 				if data[i].nFaceClass == this.nID then
@@ -563,7 +540,6 @@ end
 ----------------------------------------------
 _FA.ClearPanel = function(bNotClear)
 	local aFrame = _FA.GetFrame()
-	_FA.SwitchPanel()
 	_FA.nIndex = -1
 	_FA.tData = {}
 	_FA.ReadColor("Shadow_AngleColor",{0,0,0})
@@ -586,26 +562,21 @@ _FA.ClearPanel = function(bNotClear)
 	aFrame:Lookup("","Text_Index"):SetText("0")
 	_FA.ReadTitle("名称")
 	if not bNotClear then
-		_FA.LoadDataPanel(_FA.bPosition or false,-2)
+		_FA.LoadDataPanel(false, -2)
 	end
 end
 ----------------------------------------------
 -- 按钮点击 添加新分类
 ----------------------------------------------
 _FA.Button_AddClass = function()
-	local tab
-	if _FA.bPosition then
-		tab = BossFaceAlert.PointClassNameInfo
-	else
-		tab = BossFaceAlert.FaceClassNameInfo
-	end
+	local tab = BossFaceAlert.FaceClassNameInfo
 
 	GetUserInput("输入分类名称：", function(szText)
 		if not szText or szText == "" then
 			return
 		end
 		table.insert(tab,{szName = szText, bOn = true})
-		_FA.LoadDataPanel(_FA.bPosition,nil,true)
+		_FA.LoadDataPanel(false, nil, true)
 	end)
 end
 
@@ -954,11 +925,6 @@ _FA.LoadAndSaveData = function(tData,bSave,nIndex)
 		_FA.nIndex = nIndex
 	end
 	_FA.tData = tData
-	local bPosition = false
-	if tData.tPosition then
-		bPosition = true
-	end
-	_FA.SwitchPanel(bPosition)
 	_FA.OpenPanel()
 	_FA.ReadTitle(tData.szName,tData.szDescription)
 	_FA.ReadIndex()
@@ -970,23 +936,15 @@ _FA.LoadAndSaveData = function(tData,bSave,nIndex)
 		_FA.ReadWndEdit("Edt_aAlpha",tData.tColor.a or 255)
 		_FA.ReadColor("Shadow_AngleColor",{tData.tColor.r,tData.tColor.g,tData.tColor.b} or {255,255,0})
 
-		if not bPosition then
-			_FA.ReadWndEdit("Edt_cAngle",tData.nAngle2 or 120)
-			_FA.ReadWndEdit("Edt_cRadius",tData.nLength2 or 5)
-			_FA.ReadWndEdit("Edt_cAlpha",tData.tColor2.a or 255)
-			_FA.ReadColor("Shadow_CircleColor",{tData.tColor2.r,tData.tColor2.g,tData.tColor2.b} or {255,255,0})
-			_FA.ReadCheckBox("Chk_Enable",not tData.bAllDisable or false)
-			_FA.ReadCheckBox("Chk_ShowAngle",tData.bOn or false)
-			_FA.ReadCheckBox("Chk_ShowCircle",tData.bDistanceCircleOn or false)
-			_FA.ReadCheckBox("Chk_ShowTarget",not tData.bNotShowTargetName or false)
-			_FA.ReadCheckBox("Chk_ShowName",tData.bShowNPCSelfName or false)
-		else
-			_FA.ReadCheckBox("Chk_ShowTarget",not tData.bNotMapMatchNeed or false)
-			_FA.ReadCheckBox("Chk_Enable",tData.bOn or false)
-			_FA.ReadWndEdit("Edt_cAngle",tData.nAngleToAdd or 0)
-			_FA.ReadWndEdit("Edt_cRadius",tData.tPosition.nZ or 0)
-			_FA.ReadCheckBox("Chk_ShowName",tData.bShowPointName or false)			
-		end
+		_FA.ReadWndEdit("Edt_cAngle",tData.nAngle2 or 120)
+		_FA.ReadWndEdit("Edt_cRadius",tData.nLength2 or 5)
+		_FA.ReadWndEdit("Edt_cAlpha",tData.tColor2.a or 255)
+		_FA.ReadColor("Shadow_CircleColor",{tData.tColor2.r,tData.tColor2.g,tData.tColor2.b} or {255,255,0})
+		_FA.ReadCheckBox("Chk_Enable",not tData.bAllDisable or false)
+		_FA.ReadCheckBox("Chk_ShowAngle",tData.bOn or false)
+		_FA.ReadCheckBox("Chk_ShowCircle",tData.bDistanceCircleOn or false)
+		_FA.ReadCheckBox("Chk_ShowTarget",not tData.bNotShowTargetName or false)
+		_FA.ReadCheckBox("Chk_ShowName",tData.bShowNPCSelfName or false)	
 		_FA.LoadData = false
 	else -- Save
 		local ToNumber = function(num)
@@ -1029,24 +987,17 @@ _FA.LoadAndSaveData = function(tData,bSave,nIndex)
 		local r,g,b = unpack(_FA.ReadColor("Shadow_AngleColor"))
 		_FA.tData.tColor.r,_FA.tData.tColor.g,_FA.tData.tColor.b = tonumber(r),tonumber(g),tonumber(b)
 		
-		if not bPosition then
-			_FA.tData.nAngle2 = GetAngle(_FA.ReadWndEdit("Edt_cAngle"))
-			_FA.tData.nLength2 = GetRadius(_FA.ReadWndEdit("Edt_cRadius"))
-			_FA.tData.tColor2.a = GetAlpha(_FA.ReadWndEdit("Edt_cAlpha"))
-			local r,g,b = unpack(_FA.ReadColor("Shadow_CircleColor"))
-			_FA.tData.tColor2.r,_FA.tData.tColor2.g,_FA.tData.tColor2.b = tonumber(r),tonumber(g),tonumber(b)
-			_FA.tData.bAllDisable = not _FA.ReadCheckBox("Chk_Enable")
-			_FA.tData.bOn = _FA.ReadCheckBox("Chk_ShowAngle")
-			_FA.tData.bDistanceCircleOn = _FA.ReadCheckBox("Chk_ShowCircle")
-			_FA.tData.bNotShowTargetName = not _FA.ReadCheckBox("Chk_ShowTarget")
-			_FA.tData.bShowNPCSelfName = _FA.ReadCheckBox("Chk_ShowName")
-		else
-			_FA.tData.bOn = _FA.ReadCheckBox("Chk_Enable")
-			_FA.tData.nAngleToAdd = tonumber(_FA.ReadWndEdit("Edt_cAngle"))
-			_FA.tData.tPosition.nZ = tonumber(_FA.ReadWndEdit("Edt_cRadius"))
-			_FA.tData.bShowPointName = _FA.ReadCheckBox("Chk_ShowName")
-			_FA.tData.bNotMapMatchNeed = not _FA.ReadCheckBox("Chk_ShowTarget")
-		end
+		_FA.tData.nAngle2 = GetAngle(_FA.ReadWndEdit("Edt_cAngle"))
+		_FA.tData.nLength2 = GetRadius(_FA.ReadWndEdit("Edt_cRadius"))
+		_FA.tData.tColor2.a = GetAlpha(_FA.ReadWndEdit("Edt_cAlpha"))
+		local r,g,b = unpack(_FA.ReadColor("Shadow_CircleColor"))
+		_FA.tData.tColor2.r,_FA.tData.tColor2.g,_FA.tData.tColor2.b = tonumber(r),tonumber(g),tonumber(b)
+		_FA.tData.bAllDisable = not _FA.ReadCheckBox("Chk_Enable")
+		_FA.tData.bOn = _FA.ReadCheckBox("Chk_ShowAngle")
+		_FA.tData.bDistanceCircleOn = _FA.ReadCheckBox("Chk_ShowCircle")
+		_FA.tData.bNotShowTargetName = not _FA.ReadCheckBox("Chk_ShowTarget")
+		_FA.tData.bShowNPCSelfName = _FA.ReadCheckBox("Chk_ShowName")
+
 	end
 	
 	
@@ -1057,8 +1008,8 @@ _FA.LoadAndSaveData = function(tData,bSave,nIndex)
 		nIndex = tonumber(_FA.tLastIten["Item"]["Data"]:match("Handle_Item_Data_(%d+)"))
 	end
 
-	if bPosition ~= _FA.bPosition or _FA.nClass ~= nClass or nIndex ~= _FA.nIndex then
-		_FA.LoadDataPanel(bPosition,nClass)
+	if _FA.nClass ~= nClass or nIndex ~= _FA.nIndex then
+		_FA.LoadDataPanel(false, nClass)
 		-- 高亮当前数据
 		local t = {
 			["Class"] = nClass,
@@ -1092,31 +1043,6 @@ _FA.LoadAndSaveData = function(tData,bSave,nIndex)
 				
 			end
 		end
-		
-	end
-	
-end
-
-
-_FA.SwitchPanel = function(bPosition)
-	local aFrame = _FA.GetFrame()
-	if bPosition then
-		aFrame:Lookup("","Shadow_CircleColor"):Hide()
-		aFrame:Lookup("Edt_cAlpha"):Hide()
-		aFrame:Lookup("Chk_ShowTarget","Text_Default"):SetText("匹配地图")
-		aFrame:Lookup("Chk_ShowAngle"):Hide()
-		aFrame:Lookup("Chk_ShowCircle"):Hide()
-		aFrame:Lookup("","Text_Title"):SetFontColor(0,255,0)
-		_FA.szTitle = "自定义圈配置"
-	else
-		aFrame:Lookup("","Shadow_CircleColor"):Show()
-		aFrame:Lookup("Edt_cAlpha"):Show()
-		aFrame:Lookup("Chk_ShowTarget","Text_Default"):SetText("监控目标")
-		aFrame:Lookup("Chk_ShowAngle"):Show()
-		aFrame:Lookup("Chk_ShowCircle"):Show()
-		_FA.szTitle = "面向配置"
-		aFrame:Lookup("","Text_Title"):SetText(_FA.szTitle)
-		aFrame:Lookup("","Text_Title"):SetFontColor(255,255,0)
 	end
 end
 
@@ -1181,28 +1107,14 @@ _FA.LoadDataPanel = function(bPosition,nClass,bLastSelect)
 	if type(bPosition) == "boolean" then
 		local handle = _FA.GetFrame():Lookup("","Handle_Main"):Lookup("Handle_List_Class")
 		handle:Clear()
-		if bPosition then
-			_FA.AppendItem(-1,5,0,"切换面向圈分类",nil,"Class",{255,255,0})
-			_FA.AppendItem(0,5,25,"未分类数据",nil,"Class")
-			for i = 1,#BossFaceAlert.PointClassNameInfo do
-				local v = BossFaceAlert.PointClassNameInfo[i]
-				local r,g,b = 255,255,255
-				if v.tMenuColor then
-					r,g,b = v.tMenuColor.r,v.tMenuColor.g,v.tMenuColor.b
-				end
-				_FA.AppendItem(i,5,(i + 1)* 25,v.szName,v.bOn,"Class",{r,g,b})
+		_FA.AppendItem(0,5,0,"未分类数据",nil,"Class")
+		for i = 1,#BossFaceAlert.FaceClassNameInfo do
+			local v = BossFaceAlert.FaceClassNameInfo[i]
+			local r,g,b = 255,255,255
+			if v.tMenuColor then
+				r,g,b = v.tMenuColor.r,v.tMenuColor.g,v.tMenuColor.b
 			end
-		else
-			-- _FA.AppendItem(-1,5,0,"切换自定义圈分类",nil,"Class",{255,0,0})
-			_FA.AppendItem(0,5,0,"未分类数据",nil,"Class")
-			for i = 1,#BossFaceAlert.FaceClassNameInfo do
-				local v = BossFaceAlert.FaceClassNameInfo[i]
-				local r,g,b = 255,255,255
-				if v.tMenuColor then
-					r,g,b = v.tMenuColor.r,v.tMenuColor.g,v.tMenuColor.b
-				end
-				_FA.AppendItem(i,5,(i + 0 --[[ 1 ]]) * 25,v.szName,v.bOn,"Class",{r,g,b})
-			end
+			_FA.AppendItem(i,5,(i + 0 --[[ 1 ]]) * 25,v.szName,v.bOn,"Class",{r,g,b})
 		end
 		_FA.tLastIten["Handle"]["Class"] = handle
 		if bLastSelect and _FA.tLastIten["Item"]["Class"] then
@@ -1216,7 +1128,6 @@ _FA.LoadDataPanel = function(bPosition,nClass,bLastSelect)
 		else
 			_FA.tLastIten["Item"]["Class"] = nil
 		end
-		_FA.bPosition = bPosition
 		_FA.UpdateScrollInfo(handle)
 	end
 	if type(nClass) == "number" then
@@ -1231,34 +1142,13 @@ _FA.LoadDataPanel = function(bPosition,nClass,bLastSelect)
 			_FA.nClass = nil
 			return
 		end
-		if nClass == -1 then
-			if _FA.bPosition then
-				_FA.LoadDataPanel(false,-2)
-			else
-				_FA.LoadDataPanel(true,-2)
-			end
-			_FA.UpdateScrollInfo(handle)
-			return
-		end
 		handle:Clear()
-		local bPosition = bPosition or _FA.bPosition
-		if bPosition then
-			local _ = 0
-			for i = 1,#BossFaceAlert.tDefinedPoint do
-				local v = BossFaceAlert.tDefinedPoint[i]
-				if v.nFaceClass == nClassFix then
-					_FA.AppendItem(i,5,_* 25,v.szName,v.bOn,"Data")
-					_ = _ +1
-				end
-			end
-		else
-			local _ = 0
-			for i = 1,#BossFaceAlert.DrawFaceLineNames do
-				local v = BossFaceAlert.DrawFaceLineNames[i]
-				if v.nFaceClass == nClassFix then
-					_FA.AppendItem(i,5,_* 25,v.szDescription or v.szName,not v.bAllDisable,"Data")
-					_ = _ +1
-				end
+		local _ = 0
+		for i = 1,#BossFaceAlert.DrawFaceLineNames do
+			local v = BossFaceAlert.DrawFaceLineNames[i]
+			if v.nFaceClass == nClassFix then
+				_FA.AppendItem(i,5,_* 25,v.szDescription or v.szName,not v.bAllDisable,"Data")
+				_ = _ +1
 			end
 		end
 		_FA.tLastIten["Handle"]["Data"] = handle
@@ -1284,9 +1174,6 @@ end
 _FA.Click_Handle_Item = function()	
 	if this.szType == "Data" then
 		local tab = BossFaceAlert.DrawFaceLineNames
-		if _FA.bPosition then
-			tab = BossFaceAlert.tDefinedPoint
-		end
 		_FA.nIndex = this.nID
 		_FA.tData = tab[_FA.nIndex]
 		_FA.LoadAndSaveData(_FA.tData)
@@ -1331,59 +1218,36 @@ _FA.Apply_Click_Check = function(self,bCheck)
 
 	
 	if this:GetParent().szType == "Data" then
-		local bPosition = false
-		if _FA.tData.tPosition then
-			bPosition = true
-		end
-		if _FA.bPosition == bPosition and _FA.nIndex == nID then -- 如果在面板上
+		if _FA.nIndex == nID then -- 如果在面板上
 			_FA.ReadCheckBox("Chk_Enable",bCheck)
 			_FA.LoadAndSaveData(_FA.tData,true)
 		else -- 其他情况直接改
-			if _FA.bPosition then
-				BossFaceAlert.tDefinedPoint[nID].bOn = bCheck
-			else
-				BossFaceAlert.DrawFaceLineNames[nID].bAllDisable = not bCheck
-			end
+			BossFaceAlert.DrawFaceLineNames[nID].bAllDisable = not bCheck
 		end
 	end
 
 	if this:GetParent().szType == "Class" then
-		if _FA.bPosition then -- 改变分类
-			BossFaceAlert.PointClassNameInfo[nID].bOn = bCheck
-		else
-			BossFaceAlert.FaceClassNameInfo[nID].bOn = bCheck
-		end
+		BossFaceAlert.FaceClassNameInfo[nID].bOn = bCheck
 		if _FA.nClass == nID then -- 在面板上模拟直接全部点一下
 			local handle = _FA.GetFrame():Lookup("","Handle_Main"):Lookup("Handle_List_Data")
 			for i = handle:GetItemCount() - 1, 0, -1 do
 				fnAction(handle:Lookup(i):Lookup(szItem))
 			end
 		else -- 否则就获取下分类数据挨个干掉 
-			if _FA.bPosition then
-				for i = 1,#BossFaceAlert.tDefinedPoint do
-				local v = BossFaceAlert.tDefinedPoint[i]
-					if v.nFaceClass == nID then
-						v.bOn = bCheck
-					end
-				end
-			else
-				for i = 1,#BossFaceAlert.DrawFaceLineNames do
-				local v = BossFaceAlert.DrawFaceLineNames[i]
-					if v.nFaceClass == nID then
-						v.bAllDisable = not bCheck
-					end
+			for i = 1,#BossFaceAlert.DrawFaceLineNames do
+			local v = BossFaceAlert.DrawFaceLineNames[i]
+				if v.nFaceClass == nID then
+					v.bAllDisable = not bCheck
 				end
 			end
 		end
 	end
 	BossFaceAlert.ClearAllItem()
 end
-----------------------------------------------
--- Init
-----------------------------------------------
-Wnd.OpenWindow("Interface\\JH\\RaidGrid_EventScrutiny\\ui\\xCirclesOption.ini", "FA")
-RegisterEvent("LOGIN_GAME", _FA.Init)
 
+RegisterEvent("LOGIN_GAME",function() 
+	Wnd.OpenWindow("Interface/JH/RaidGrid_EventScrutiny/ui/xCirclesOption.ini", "FA"):Hide()
+end)
 ----------------------------------------------------
 -- 直接添加或者给出 Exist
 ----------------------------------------------------
@@ -1393,11 +1257,7 @@ _FA.InsertTarget = function(bConfirm,bDelete)
 	local Target = JH.GetTarget(dwType,dwID)
 	local key,dwTemplateID = Target.szName,0
 	if dwType == TARGET.PLAYER then
-		if dwID == GetClientPlayer().dwID then
-			key = "Self"
-		else
-			key = Target.dwID
-		end
+		key = Target.dwID
 	elseif dwType == TARGET.NPC then
 		key = JH.GetTemplateName(Target)
 		dwTemplateID = Target.dwTemplateID
@@ -1424,8 +1284,6 @@ _FA.InsertTarget = function(bConfirm,bDelete)
 	if not bConfirm then
 		if dwType == TARGET.NPC then
 			BFA.AddScrutiny(key,dwType)
-		elseif key == "Self" then
-			BFA.AddScrutiny(key)
 		else
 			BFA.AddScrutiny(key,dwType,Target.szName)
 		end

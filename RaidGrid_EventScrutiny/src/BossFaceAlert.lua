@@ -53,7 +53,7 @@ BossFaceAlert.bSendWhisperMsg = false;		RegisterCustomData("BossFaceAlert.bSendW
 BossFaceAlert.StepAngleBase = 10;			RegisterCustomData("BossFaceAlert.StepAngleBase")
 BossFaceAlert.BorderThickBase = 5;  	  	--RegisterCustomData("BossFaceAlert.BorderThickBase")
 BossFaceAlert.BorderAlphaBase = 180;    	--RegisterCustomData("BossFaceAlert.BorderAlphaBase")
-BossFaceAlert.bBorder = true; 				RegisterCustomData("BossFaceAlert.bBorder")
+BossFaceAlert.bBorder = false; 				RegisterCustomData("BossFaceAlert.bBorder")
 
 BossFaceAlert.tFlashColor =
 {
