@@ -895,7 +895,7 @@ end
 JH.JsonToTable = function(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
-		JH.Sysmsg2(err)
+		JH.Debug(err)
 		return JH.Alert("json_decode Error")
 	end
 	if type(result) ~= "table" then
