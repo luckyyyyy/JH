@@ -1,0 +1,12 @@
+.git\
+.gitignore
+7zip.bat
+7zipignore.txt
+7z.exe
+releases\
+CombatTime\
+@Data\
+Dev_*\
+About.ini
+Team\
+AutoTeam\
