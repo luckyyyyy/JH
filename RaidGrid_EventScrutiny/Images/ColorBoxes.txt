@@ -1,0 +1,7 @@
+Farme	Left	Top	Width	High	File
+0	96	0	46	46	E:\Games\SO3\bin\zhcn\Interface\Slasher\Box_Blue.tga
+1	48	0	46	46	E:\Games\SO3\bin\zhcn\Interface\Slasher\Box_Green.tga
+2	192	0	46	46	E:\Games\SO3\bin\zhcn\Interface\Slasher\Box_Purple.tga
+3	0	0	46	46	E:\Games\SO3\bin\zhcn\Interface\Slasher\Box_Red.tga
+4	240	0	46	46	E:\Games\SO3\bin\zhcn\Interface\Slasher\Box_White.tga
+5	144	0	46	46	E:\Games\SO3\bin\zhcn\Interface\Slasher\Box_Yellow.tga
