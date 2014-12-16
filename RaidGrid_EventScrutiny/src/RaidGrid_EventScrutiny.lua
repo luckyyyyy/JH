@@ -1403,7 +1403,6 @@ RaidGrid_EventScrutiny.wnd = nil
 RaidGrid_EventScrutiny.handleMain = nil
 RaidGrid_EventScrutiny.handleRecords = nil
 
-RaidGrid_EventScrutiny.bAddToHead = true;															RegisterCustomData("RaidGrid_EventScrutiny.bAddToHead")
 RaidGrid_EventScrutiny.szListIndex = "Scrutiny";													RegisterCustomData("RaidGrid_EventScrutiny.szListIndex")
 RaidGrid_EventScrutiny.tListPage = {Buff = 1, Debuff = 1, Npc = 1, Casting = 1, Scrutiny = 1};		RegisterCustomData("RaidGrid_EventScrutiny.tListPage")
 RaidGrid_EventScrutiny.tRecords = {
@@ -1701,7 +1700,7 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 end
 
 function RaidGrid_EventScrutiny.RedrawAllBuffBox()
-	if not RaidGrid_EventScrutiny.bBuffShowTime or not RaidGrid_CTM_Edition or not RaidGrid_Party or not RaidGrid_CTM_Edition.IsOpened() or not RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
+	if not RaidGrid_CTM_Edition or not RaidGrid_Party or not RaidGrid_CTM_Edition.IsOpened() or not RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
 		return
 	end
 	
@@ -1773,7 +1772,7 @@ function RaidGrid_EventScrutiny.RefreshCTMBuffHandle(handleRole, dwBuffID, bIsRe
 			end
 		end
 		
-		if RaidGrid_EventScrutiny.bScreenHeadMonitor and box.tInfo and not tRecord and box.tInfo.bScreenHead then
+		if box.tInfo and not tRecord and box.tInfo.bScreenHead then
 			if type(ScreenHead) ~= "nil" then
 				ScreenHead(handleRole.dwMemberID,{ type = box.tInfo.szType, dwID = box.tInfo.dwID, szName = box.tInfo.szName })
 			end
@@ -1813,45 +1812,15 @@ function RaidGrid_EventScrutiny.UpdateCTMBuffAlertOrg(tRecord, dwMemberID, bIsRe
 		tEmptyBox.box.tInfo = nil
 		tEmptyBox.box.nEndFrame = nil
 	else
-		if RaidGrid_EventScrutiny.bBuffShowTime then
-			tEmptyBox.text:Show()
-		else
-			tEmptyBox.text:Hide()
-		end
-		if RaidGrid_EventScrutiny.bBuffShowIcon then
-			--if RaidGrid_Party.fScaleX ~= RaidGrid_Party.fScaleY then
-				local szBoxSize = 20
-				--if RaidGrid_Party.fScaleX > RaidGrid_Party.fScaleY then
-				--	szBoxSize = szBoxSize * RaidGrid_Party.fScaleY
-				--	tEmptyBox.box:SetSize(szBoxSize, szBoxSize)
-				--else
-				--	szBoxSize = szBoxSize * RaidGrid_Party.fScaleX
-				--	tEmptyBox.box:SetSize(szBoxSize, szBoxSize)
-				--end
-					szBoxSize = szBoxSize * RaidGrid_Party.fScaleIcon
-					tEmptyBox.box:SetSize(szBoxSize, szBoxSize)				
-			--end
-			tEmptyBox.box:Show()
-		else
-			tEmptyBox.box:Hide()
-		end
-		if RaidGrid_EventScrutiny.bBuffShowShadow then
-			--if RaidGrid_Party.fScaleX ~= RaidGrid_Party.fScaleY then
-				local shadowX, shadowY = 29,37
-				--if RaidGrid_Party.fScaleX > RaidGrid_Party.fScaleY then
-				--	shadowX, shadowY = shadowX * RaidGrid_Party.fScaleY, shadowY * RaidGrid_Party.fScaleY
-				--	tEmptyBox.shadow:SetSize(shadowX, shadowY)
-				--else
-				--	shadowX, shadowY = shadowX * RaidGrid_Party.fScaleX, shadowY * RaidGrid_Party.fScaleX
-				--	tEmptyBox.shadow:SetSize(shadowX, shadowY)
-				--end
-					shadowX, shadowY = shadowX * RaidGrid_Party.fScaleShadowX, shadowY * RaidGrid_Party.fScaleShadowY
-					tEmptyBox.shadow:SetSize(shadowX, shadowY)
-			--end
-			tEmptyBox.shadow:Show()
-		else
-			tEmptyBox.shadow:Hide()
-		end
+		tEmptyBox.text:Show()
+		local szBoxSize = 20
+		szBoxSize = szBoxSize * RaidGrid_Party.fScaleIcon
+		tEmptyBox.box:SetSize(szBoxSize, szBoxSize)				
+		tEmptyBox.box:Show()
+		local shadowX, shadowY = 29,37
+		shadowX, shadowY = shadowX * RaidGrid_Party.fScaleShadowX, shadowY * RaidGrid_Party.fScaleShadowY
+		tEmptyBox.shadow:SetSize(shadowX, shadowY)
+		tEmptyBox.shadow:Show()
 
 		--tRecord.nEndFrame = nEndFrame
 		--tRecord.nLevel = nLevel
@@ -2044,7 +2013,7 @@ function RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwTargetID, tRecord, msg
 		return
 	end
 	
-	if not bNotSelect and RaidGrid_EventScrutiny.bAutoSelectEnable and tRecord.tRGAutoSelect then
+	if not bNotSelect and tRecord.tRGAutoSelect then
 		RaidGrid_Base.SetTargetOrg(dwTargetID)
 	end
 
@@ -2090,10 +2059,6 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 	end
 	
 	if not RaidGrid_EventScrutiny.bEnable then
-		return
-	end
-
-	if not RaidGrid_EventScrutiny.bBuffScrutinyEnable then
 		return
 	end
 
@@ -2240,7 +2205,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 						RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
 					end
 				end
-				if RaidGrid_EventScrutiny.bScreenHeadMonitor and tTab[i].bScreenHead then
+				if tTab[i].bScreenHead then
 					if type(ScreenHead) ~= "nil" then
 						ScreenHead(dwMemberID, { type = tTab[i].szType, dwID = tTab[i].dwID, szName = tTab[i].szName, col = tTab[i].tRGBuffColor })
 					end
@@ -2458,9 +2423,6 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 		return
 	end
 
-	if not RaidGrid_EventScrutiny.bCastingScrutinyEnable then
-		return
-	end
 	if not RaidGrid_EventScrutiny.bCastingScrutinyAllEnable and not JH.IsInDungeon2() then
 		return
 	end
@@ -2649,19 +2611,12 @@ end
 
 
 function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
-	if not RaidGrid_EventScrutiny.bLinkNpcFightState then
-		return
-	end
-
-	if RaidGrid_EventScrutiny.bLinkNpcFightStateInDun and not JH.IsInDungeon2() then
-		return
-	end
 
 	for dwTemplateID, tInfos in pairs(RaidGrid_EventCache.tSyncCharFightState) do
 		local npcinfo = GetNpcTemplate(dwTemplateID)
 		local nIntensity = RaidGrid_Base.ToGetNpcIntensity(npcinfo)
 		local bChangeFSFlag = nil
-		if not RaidGrid_EventScrutiny.bLinkBOSSFightState or nIntensity >= 4 then
+		if nIntensity >= 4 then
 			for dwID, bFightStateOld in pairs(tInfos) do
 				local npc = GetNpc(dwID)
 				local bFightState = false
@@ -2936,7 +2891,6 @@ end
 RaidGrid_EventScrutiny.tSkillTimerName = {
 	bSkillTimer2Enable  = "中央倒计时二",
 	bAddToSkillTimer = "中央倒计时",
-	bManyCastID = "已无效 建议删除",
 	tTimerSet = "分段倒计时",
 }
 
@@ -3057,7 +3011,7 @@ function RaidGrid_EventScrutiny.AddRecordToList(tRecord, szListIndex)
 	
 	tRecord.nEventAlertTime = tRecord.nEventAlertTime or math.floor(tRecord.fKeepTime or 1200)
 
-	if RaidGrid_EventScrutiny.bAddToHead or szListIndex ~= "Scrutiny" then
+	if szListIndex ~= "Scrutiny" then
 		table.insert(tListTable, 1, tRecord)
 	else
 		table.insert(tListTable, tRecord)
@@ -3327,13 +3281,6 @@ function RaidGrid_EventScrutiny.OpenPanel()
 	frame:Show()
 end
 
-function RaidGrid_EventScrutiny.IsOpened()
-	local frame = Station.Lookup("Normal/RaidGrid_EventScrutiny")
-	if frame then
-		return frame:IsVisible()
-	end
-end
-
 function RaidGrid_EventScrutiny.ClosePanel()
 	local frame = Station.Lookup("Normal/RaidGrid_EventScrutiny")
 	if frame then
@@ -3462,7 +3409,7 @@ function RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tRecord)
 	
 	local bFExist,szSoundFileCommon = RaidGrid_EventScrutiny.SoundFileCommon(tRecord)
 	
-	if (szSoundFile and szSoundFile ~= "" or bFExist) and RaidGrid_EventScrutiny.bSoundAlertEnable then
+	if szSoundFile and szSoundFile ~= "" or bFExist then
 		local fLogicTime = JH.GetLogicTime()
 		if __RaidGrid_Sound[tRecord.dwID] and __RaidGrid_Sound[tRecord.dwID] + 2 > fLogicTime then
 			return
@@ -4290,7 +4237,7 @@ end
 ----RaidGrid_BossCallAlert.lua----
 ----------------------------------------------------------------
 
-RaidGrid_BossCallAlert = RaidGrid_BossCallAlert or {}
+RaidGrid_BossCallAlert = {}
 
 RaidGrid_BossCallAlert.TalkMonitor = true
 RaidGrid_BossCallAlert.bWarningMessageMonitor = true
@@ -4356,7 +4303,7 @@ function RaidGrid_BossCallAlert.CallProcess(bossname, saydata)
 	
 	if string.find(saydata,Clientplayer.szName) then
 		RaidGrid_BossCallAlert.ChannelSay(Clientplayer.szName, bossname)
-		if RaidGrid_EventScrutiny.bScreenHeadMonitor and RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
+		if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
 			if type(ScreenHead) ~= "nil" then
 				ScreenHead(Clientplayer.dwID,{ txt = _L("%s Call Name",bossname)})
 			end
@@ -4376,7 +4323,7 @@ function RaidGrid_BossCallAlert.CallProcess(bossname, saydata)
 						if string.find(saydata,player.szName) then
 							if player.szName ~= Clientplayer.szName then
 								RaidGrid_BossCallAlert.ChannelSay(player.szName, bossname)
-								if RaidGrid_EventScrutiny.bScreenHeadMonitor and RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
+								if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
 									if type(ScreenHead) ~= "nil" then
 										ScreenHead(dwID,{ txt = _L("%s Call Name",bossname)})
 									end
@@ -4543,7 +4490,7 @@ function RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
 
 	if string.find(saydata,Clientplayer.szName) then
 		RaidGrid_BossCallAlert.WarningMessageAlarm(Clientplayer.szName, saydata)
-		if RaidGrid_EventScrutiny.bScreenHeadMonitor and RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
+		if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
 			if type(ScreenHead) ~= "nil" then
 				ScreenHead(Clientplayer.dwID)
 			end
@@ -4562,7 +4509,7 @@ function RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
 						if string.find(saydata,player.szName) then
 							if player.szName ~= Clientplayer.szName then
 								RaidGrid_BossCallAlert.WarningMessageAlarm(player.szName, saydata)
-								if RaidGrid_EventScrutiny.bScreenHeadMonitor and RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
+								if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
 									if type(ScreenHead) ~= "nil" then
 										ScreenHead(dwID)
 									end
@@ -4845,43 +4792,28 @@ RaidGrid_EventScrutiny.bEnable = true;						RegisterCustomData("RaidGrid_EventSc
 RaidGrid_EventScrutiny.bCacheEnable = false;				RegisterCustomData("RaidGrid_EventScrutiny.bCacheEnable")
 RaidGrid_EventScrutiny.bNotCheckLevel = true;
 RaidGrid_EventScrutiny.tAnchor = {};						RegisterCustomData("RaidGrid_EventScrutiny.tAnchor")
-RaidGrid_EventScrutiny.bBuffCacheEnable = true;				RegisterCustomData("RaidGrid_EventScrutiny.bBuffCacheEnable")
-RaidGrid_EventScrutiny.bBuffScrutinyEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bBuffScrutinyEnable")
-RaidGrid_EventScrutiny.bEnemyBuffScrutinyEnable = true;		RegisterCustomData("RaidGrid_EventScrutiny.bEnemyBuffScrutinyEnable")
 RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable = true;		RegisterCustomData("RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable")
 RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable = true;	RegisterCustomData("RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable")
 RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2 = false;   RegisterCustomData("RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2")
 RaidGrid_EventScrutiny.bBuffChatAlertEnable = false;			RegisterCustomData("RaidGrid_EventScrutiny.bBuffChatAlertEnable")
-RaidGrid_EventScrutiny.bScreenHeadMonitor = true;			--RegisterCustomData("RaidGrid_EventScrutiny.bScreenHeadMonitor")
-RaidGrid_EventScrutiny.bBuffShowIcon = true;				RegisterCustomData("RaidGrid_EventScrutiny.bBuffShowIcon")
-RaidGrid_EventScrutiny.bBuffShowTime = true;				RegisterCustomData("RaidGrid_EventScrutiny.bBuffShowTime")
-RaidGrid_EventScrutiny.bBuffShowShadow = true;				RegisterCustomData("RaidGrid_EventScrutiny.bBuffShowShadow")
 RaidGrid_EventScrutiny.nBuffShowShadowAlpha = 0.6;			RegisterCustomData("RaidGrid_EventScrutiny.nBuffShowShadowAlpha")
 RaidGrid_EventScrutiny.nBuffAutoRemoveCachePage = 50;		RegisterCustomData("RaidGrid_EventScrutiny.nBuffAutoRemoveCachePage")
 
-RaidGrid_EventScrutiny.bCastingCacheEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bCastingCacheEnable")
-RaidGrid_EventScrutiny.bCastingScrutinyEnable = true;		RegisterCustomData("RaidGrid_EventScrutiny.bCastingScrutinyEnable")
 RaidGrid_EventScrutiny.bCastingChatAlertEnable = false;		RegisterCustomData("RaidGrid_EventScrutiny.bCastingChatAlertEnable")
-RaidGrid_EventScrutiny.bCastingEnemyEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bCastingEnemyEnable")
-RaidGrid_EventScrutiny.bCastingNeutralEnable = true;		RegisterCustomData("RaidGrid_EventScrutiny.bCastingNeutralEnable")
-RaidGrid_EventScrutiny.bCastingAllyEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bCastingAllyEnable")
 RaidGrid_EventScrutiny.bCastingReadingBar = true;			RegisterCustomData("RaidGrid_EventScrutiny.bCastingReadingBar")
 RaidGrid_EventScrutiny.nCastingAutoRemoveCachePage = 50;	RegisterCustomData("RaidGrid_EventScrutiny.nCastingAutoRemoveCachePage")
 RaidGrid_EventScrutiny.bCastingScrutinyAllEnable = false;	RegisterCustomData("RaidGrid_EventScrutiny.bCastingScrutinyAllEnable")
 RaidGrid_EventScrutiny.bCastingTargetScrutinyEnable = false;RegisterCustomData("RaidGrid_EventScrutiny.bCastingTargetScrutinyEnable")
 RaidGrid_EventScrutiny.bCastTargetChatAlertEnable = true;	RegisterCustomData("RaidGrid_EventScrutiny.bCastTargetChatAlertEnable")
 
-RaidGrid_EventScrutiny.bNpcCacheEnable = true;				RegisterCustomData("RaidGrid_EventScrutiny.bNpcCacheEnable")
 RaidGrid_EventScrutiny.bNpcChatAlertEnable = false;			RegisterCustomData("RaidGrid_EventScrutiny.bNpcChatAlertEnable")
 RaidGrid_EventScrutiny.nNpcAutoRemoveCachePage = 50;		RegisterCustomData("RaidGrid_EventScrutiny.nNpcAutoRemoveCachePage")
 
 RaidGrid_EventScrutiny.bBuffListExEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bBuffListExEnable")
-RaidGrid_EventScrutiny.bSoundAlertEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bSoundAlertEnable")
 RaidGrid_EventScrutiny.bColorAlertEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bColorAlertEnable")
 
 RaidGrid_EventScrutiny.bRedAlarmEnable = false;				RegisterCustomData("RaidGrid_EventScrutiny.bRedAlarmEnable")
 RaidGrid_EventScrutiny.bCenterAlarmEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bCenterAlarmEnable")
-RaidGrid_EventScrutiny.bAutoSelectEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bAutoSelectEnable")
 RaidGrid_EventScrutiny.bAutoMarkEnable = true;				RegisterCustomData("RaidGrid_EventScrutiny.bAutoMarkEnable")
 
 RaidGrid_EventScrutiny.bCtrlandAltMove = true;				RegisterCustomData("RaidGrid_EventScrutiny.bCtrlandAltMove")
@@ -4893,9 +4825,6 @@ RaidGrid_EventScrutiny.nSkillTimerCountdown = 5;			RegisterCustomData("RaidGrid_
 RaidGrid_EventScrutiny.nSayChannel = PLAYER_TALK_CHANNEL.RAID; RegisterCustomData("RaidGrid_EventScrutiny.nSayChannel")
 
 RaidGrid_EventScrutiny.nSoundChannel = SOUND.FRESHER_TIP;
-RaidGrid_EventScrutiny.bLinkNpcFightStateInDun = true;		RegisterCustomData("RaidGrid_EventScrutiny.bLinkNpcFightStateInDun")
-RaidGrid_EventScrutiny.bLinkNpcFightState = true;			RegisterCustomData("RaidGrid_EventScrutiny.bLinkNpcFightState")
-RaidGrid_EventScrutiny.bLinkBOSSFightState = true;			RegisterCustomData("RaidGrid_EventScrutiny.bLinkBOSSFightState")
 RaidGrid_EventScrutiny.bCalledTimerHeadEnable = true;		RegisterCustomData("RaidGrid_EventScrutiny.bCalledTimerHeadEnable")
 RaidGrid_EventScrutiny.bOutputEventCacheRecords = false;	RegisterCustomData("RaidGrid_EventScrutiny.bOutputEventCacheRecords")
 RaidGrid_EventScrutiny.bOutputBossCallAlertRecords = true;	RegisterCustomData("RaidGrid_EventScrutiny.bOutputBossCallAlertRecords")
