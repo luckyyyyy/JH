@@ -16,10 +16,10 @@ local _LargeText = {
 }
 
 function LargeText.OnFrameCreate()
-    this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
+	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
 	this:RegisterEvent("UI_SCALED")
-    _LargeText.UpdateAnchor(this)
+	_LargeText.UpdateAnchor(this)
 	_LargeText.frame = this
 	_LargeText.txt = this:Lookup("","Text_Total")
 end
