@@ -106,6 +106,7 @@ local _JH = {
 		[8]  = {214, 249, 93},
 		[9]  = {205,133,63},
 		[10] = {240, 70, 96},
+		[21] = {180, 60, 0}
 	},
 }
 
@@ -188,7 +189,7 @@ JH.GetAddonInfo = function()
 		szName = _L["JH plugins"],
 		szVersion = JH.GetVersion(),
 		szRootPath = ADDON_PATH,
-		szAuthor = _L['JH @ Double Dream Town'],
+		-- szAuthor = _L['JH @ Double Dream Town'],
 		szShadowIni = SHADOW_PATH,
 		szDataPath = DATA_PATH,
 	}
@@ -1059,7 +1060,7 @@ JH.GetBuffTimeString = function(nTime,limit)
 		nTime = limit
 	end
 	if nTime > 60 then
-		return string.format("%d'%d\"",nTime / 60,nTime % 60)
+		return string.format("%d'%d\"", nTime / 60, nTime % 60)
 	else
 		return floor(nTime) .. "\""
 	end

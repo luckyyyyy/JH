@@ -1094,31 +1094,7 @@ function RaidGridEx.GetCharacterColor(dwCharacterID, dwForceID)
 			return 168, 168, 168
 		end
 	end
-
-	if dwForceID == 0 then		-- 侠
-		return 255, 255, 255
-	elseif dwForceID == 1 then	-- 少林
-		return 255,178,95
-	elseif dwForceID == 2 then	-- 万花
-		return 196, 152, 255
-	elseif dwForceID == 3 then	-- 天策
-		return 255, 111, 83
-	elseif dwForceID == 4 then	-- 纯阳
-		return 89,224,232
-	elseif dwForceID == 5 then	-- 七秀
-		return 255,129,176
-	elseif dwForceID == 6 then	-- 五毒
-		return 55,147,255
-	elseif dwForceID == 7 then	-- 唐门
-		return 121,183,54
-	elseif dwForceID == 8 then	-- 藏剑
-		return 214,249,93
-	elseif dwForceID == 9 then
-		return 205,133,63
-	elseif dwForceID == 10 then
-		return 240,70,96
-	end
-	return 168, 168, 168
+	return JH.GetForceColor(dwForceID)
 end
 
 function RaidGridEx.GetKungfuByID(dwMemberID)
@@ -1144,8 +1120,8 @@ function RaidGridEx.GetKungfuByID(dwMemberID)
 	elseif dwKungfuID == 10242 then return {"焚",240,70,96,dwKungfuID}
 	elseif dwKungfuID == 10243 then return {"尊",240,70,96,dwKungfuID}
 	elseif dwKungfuID == 10268 then return {"丐",205,133,63,dwKungfuID}
-	elseif dwKungfuID == 10390 then return {"分",128,128,128,dwKungfuID}
-	elseif dwKungfuID == 10389 then return {"衣",255,255,255,dwKungfuID}
+	elseif dwKungfuID == 10390 then return {"分",180,60,0,dwKungfuID}
+	elseif dwKungfuID == 10389 then return {"衣",180,60,0,dwKungfuID}
 	else return {"unknown",255,255,255,dwKungfuID}
 	end
 end

@@ -1040,7 +1040,6 @@ function RaidGrid_Party.GetCharacterColor(dwCharacterID, dwForceID) --获得成员颜
 			return 168, 168, 168, 0
 		end
 	end
-
 	if dwForceID == 0 then		-- 侠
 		return 255, 255, 255, dwForceID
 	elseif dwForceID == 1 then	-- 少林
@@ -1062,7 +1061,9 @@ function RaidGrid_Party.GetCharacterColor(dwCharacterID, dwForceID) --获得成员颜
 	elseif dwForceID == 9 then	-- 丐帮
 		return 185, 125, 60, dwForceID	
 	elseif dwForceID == 10 then	-- 明教
-		return 240, 50	, 200, dwForceID
+		return 240, 50, 200, dwForceID
+	elseif dwForceID == 21 then
+		return 180, 60, 0, dwForceID
 	end
 	return 168, 168, 168, 0
 end
