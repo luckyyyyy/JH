@@ -39,7 +39,7 @@ _WebSyncData.Search = function()
 			end
 			_WebSyncData.Container:FormatAllContentPos()
 		else
-			JH.Sysmsg2("没有搜索结果。")
+			JH.Alert("没有搜索结果。")
 		end
 	end)	
 end

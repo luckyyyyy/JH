@@ -180,13 +180,13 @@ _ScreenHead.Create = function(obj,info,nIndex)
 	Arrow:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	Arrow:SetD3DPT(D3DPT.TRIANGLEFAN)
 	Arrow:ClearTriangleFanPoint()
-	Arrow:AppendCharacterID(dwID,true,r,g,b,cA,{0,0,0,cX * value - fX, cY * value - fY})
+	Arrow:AppendCharacterID(dwID, true, r, g, b, cA, {0, 0, 0, cX * value - fX, cY * value - fY})
 	for k,v in ipairs(_ScreenHead.tPoint) do
-		local x,y,a = unpack(v)
-		Arrow:AppendCharacterID(dwID,true,r,g,b,a,{0,0,0,x * value - fX,y * value - fY})
+		local x, y, a = unpack(v)
+		Arrow:AppendCharacterID(dwID, true, r, g, b, a, {0, 0, 0, x * value - fX, y * value - fY})
 	end
-	local x,y,a = unpack(_ScreenHead.tPoint[1])
-	Arrow:AppendCharacterID(dwID,true,r,g,b,a,{0,0,0,x * value - fX,y * value - fY})
+	local x, y, a = unpack(_ScreenHead.tPoint[1])
+	Arrow:AppendCharacterID(dwID, true, r, g, b, a, {0, 0, 0, x * value - fX, y * value - fY})
 	---
 	
 	Text:SetTriangleFan(GEOMETRY_TYPE.TEXT)

@@ -733,7 +733,6 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MPœ‡πÿ
 			textLife:SetText(math.floor(nLifePercentage * 100) .. "%")
 		end
 	end
-	
 	-- ¿∂œ‘ æ
 	local textMana = handleRole:Lookup("Handle_Common/Text_Mana")
 	if not RaidGrid_CTM_Edition.nShowMP then
