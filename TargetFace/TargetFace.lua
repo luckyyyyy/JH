@@ -77,14 +77,15 @@ _TargetFace.DrawShape = function(tar, sha, nDegree, nRadius, nAlpha, col)
 		dwRad1 = dwRad1 - math.pi - math.pi
 	end
 	local dwRad2 = dwRad1 + (nDegree / 180 * math.pi)
-	local nAlpha2 = nAlpha / 10
+	-- local nAlpha2 = nAlpha / 10
 	local nStep = 18
 	if nDegree == 360 then
-		nAlpha, nAlpha2 = nAlpha, nAlpha
+		-- nAlpha, nAlpha2 = nAlpha, nAlpha
 		dwRad2 = dwRad2 + math.pi / 20
 	end
 	if nDegree <= 45 then nStep = 180 end
-	nAlpha, nAlpha2 = nAlpha / 2.5, nAlpha2 / 2.5
+	-- nAlpha, nAlpha2 = nAlpha / 2.5, nAlpha2 / 2.5
+	nAlpha = nAlpha / 2.5
 	local r, g, b = unpack(col)
 	-- orgina point
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
@@ -96,7 +97,7 @@ _TargetFace.DrawShape = function(tar, sha, nDegree, nRadius, nAlpha, col)
 	local sX, sZ = Scene_PlaneGameWorldPosToScene(tar.nX, tar.nY)
 	repeat
 		local sX_, sZ_ = Scene_PlaneGameWorldPosToScene(tar.nX + math.cos(dwRad1) * nRadius, tar.nY + math.sin(dwRad1) * nRadius)
-		sha:AppendCharacterID(tar.dwID, false, r, g, b, nAlpha2, { sX_ - sX, 0, sZ_ - sZ })
+		sha:AppendCharacterID(tar.dwID, false, r, g, b, nAlpha --[[nAlpha2]], { sX_ - sX, 0, sZ_ - sZ })
 		dwRad1 = dwRad1 + math.pi / nStep
 	until dwRad1 >= dwRad2
 end
@@ -216,11 +217,9 @@ function Direction.OnFrameCreate()
 end
 
 function Direction.OnEvent(szEvent)
-	if szEvent == "ON_ENTER_CUSTOM_UI_MODE" then
-		UpdateCustomModeWindow(this, _L["Direction"], true)
-	elseif szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
-		UpdateCustomModeWindow(this, _L["Direction"], true)
-	elseif event == "UI_SCALED" then
+	if szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
+		UpdateCustomModeWindow(this, _L["Direction"])
+	elseif szEvent == "UI_SCALED" then
 		_Direction.UpdateAnchor(this)
 	end
 end
@@ -237,6 +236,7 @@ _Direction.UpdateAnchor = function(frame)
 	else
 		frame:SetPoint("CENTER", 0, 0, "CENTER", 250, 100)
 	end
+	frame:CorrectPos()
 end
 
 _Direction.UpdateGPS = function(tar)
@@ -260,7 +260,6 @@ _Direction.UpdateGPS = function(tar)
 		_Direction.txt:SetText(_L("%.1f feet", JH.GetDistance(tar)))
 	end
 end
-local PS = {}
 
 local PS = {}
 PS.OnPanelActive = function(frame)
@@ -426,7 +425,6 @@ JH.RegisterInit("TargetFace",
 	{ "LOADING_END", function() _TargetFace.bReRender = true end }
 )
 GUI.RegisterPanel(_L["TargetFace"], 3565, _L["General"], PS)
-
 local function GetTargetID()
 	return _TargetFace.tCache.dwTargetID
 end
