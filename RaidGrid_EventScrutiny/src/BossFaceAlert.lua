@@ -417,7 +417,7 @@ _BFA.UpdateScrutiny = function(me,class,cTab,aTab)
 							
 
 							
-							if RaidGrid_EventScrutiny.bScreenHeadMonitor and data.bTimerHeadEnable then
+							if data.bTimerHeadEnable then
 								if ScreenHead then
 									ScreenHead(target.dwID,{ txt = _L("Staring %s",szName)})
 								end
