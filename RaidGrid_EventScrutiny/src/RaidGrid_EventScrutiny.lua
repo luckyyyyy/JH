@@ -79,6 +79,7 @@ RaidGrid_EventScrutiny.UpdateAnchor = function(frame)
 	else
 		frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 	end
+	this:CorrectPos()
 end
 
 function RaidGrid_EventScrutiny.OnEvent(szEvent)
@@ -284,6 +285,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 	local tTab3 = RaidGrid_EventScrutiny.tRecords["Buff"]
 	for i = 1, #tTab3 do
 		tTab3[i].buff = nil
+		tTab3[i].bIsDebuff = nil
 		tTab3[i].bChatAlertCDEnd = nil
 		tTab3[i].bChatAlertCDEnd2 = nil
 		tTab3[i].bChatAlertCDEnd3 = nil
@@ -292,6 +294,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 	local tTab4 = RaidGrid_EventScrutiny.tRecords["Debuff"]
 	for i = 1, #tTab4 do
 		tTab4[i].buff = nil
+		tTab4[i].bIsDebuff = nil
 		tTab4[i].bChatAlertCDEnd = nil
 		tTab4[i].bChatAlertCDEnd2 = nil
 		tTab4[i].bChatAlertCDEnd3 = nil
@@ -1112,9 +1115,8 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 		szBuffName = "ÎÞÃû" .. tostring(dwBuffID)
 	end
 	local _,buff = JH.HasBuff(dwBuffID,playerMember)
-	local bIsDebuff = not Arg3
 	local tTab = RaidGrid_EventCache.tRecords.Buff
-	if bIsDebuff then
+	if not Arg3 then
 		tTab = RaidGrid_EventCache.tRecords.Debuff
 	end
 	if tTab.Hash2[dwBuffID] and tTab.Hash2[dwBuffID][nLevel] then
@@ -1123,11 +1125,10 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	
 	local tRecord = {}
 	tRecord.szType = "Buff"
-	if bIsDebuff then
+	if not Arg3 then
 		tRecord.szType = "Debuff"
 	end
 	
-	tRecord.bIsDebuff = bIsDebuff
 	-- tRecord.buff = buff
 	tRecord.dwID = dwBuffID
 	tRecord.nLevel = nLevel
@@ -1296,9 +1297,9 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 		handleRecord:Lookup("Image_Scrutiny"):Hide()
 	end
 	
-	if tRecord.bIsDebuff == true and handleRecord.imageGrid.nFrame ~= 1 then
+	if tRecord.szType == "Debuff" and handleRecord.imageGrid.nFrame ~= 1 then
 		handleRecord.imageGrid:SetFrame(1)
-	elseif tRecord.bIsDebuff == false and handleRecord.imageGrid.nFrame ~= 13 then
+	elseif tRecord.szType == "Buff" and handleRecord.imageGrid.nFrame ~= 13 then
 		handleRecord.imageGrid:SetFrame(13)
 	elseif handleRecord.imageGrid.nFrame ~= 14 then
 		handleRecord.imageGrid:SetFrame(14)
@@ -2980,6 +2981,9 @@ function RaidGrid_EventScrutiny.Macro(tRecord,szListIndex)
 		return JH.Alert(_L(" * import data %s (%s)",szListIndex,tRecord.szName))
 	else
 		local t = RaidGrid_EventScrutiny.tRecords[szListIndex]
+		if not t then
+			return JH.Alert("data is invalid")
+		end
 		for i = 1, #t do
 			if t[i].dwID == tRecord.dwID and (not tRecord.nLevel or (t[i].nLevel == tRecord.nLevel)) then
 				t[i] = tRecord
@@ -3201,9 +3205,9 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 		handleRecord.text:SetFontColor(255, 255, 255)
 	end
 	
-	if tRecord.bIsDebuff == true and handleRecord.imageGrid.nFrame ~= 1 then
+	if tRecord.szType == "Debuff" and handleRecord.imageGrid.nFrame ~= 1 then
 		handleRecord.imageGrid:SetFrame(1)
-	elseif tRecord.bIsDebuff == false and handleRecord.imageGrid.nFrame ~= 13 then
+	elseif tRecord.szType == "Buff" and handleRecord.imageGrid.nFrame ~= 13 then
 		handleRecord.imageGrid:SetFrame(13)
 	elseif handleRecord.imageGrid.nFrame ~= 14 then
 		handleRecord.imageGrid:SetFrame(14)
@@ -3490,7 +3494,7 @@ function RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tRecord, dwMemberID, bIsR
 		handleBoxEmpty.textBuffName:SetText(tRecord.szName)
 	end
 
-	if tRecord.bIsDebuff then
+	if tRecord.szType == "Debuff" then
 		handleBoxEmpty.textBuffName:SetFontColor(255, 64, 64)
 		handleBoxEmpty.text:SetFontColor(255, 64, 64)
 	else
