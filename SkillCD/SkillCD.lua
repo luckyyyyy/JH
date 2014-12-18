@@ -386,7 +386,9 @@ PS.OnPanelActive = function(frame)
 	nX,nY = ui:Append("WndCheckBox", "bSelf", { x = 25, y = nY, checked = SkillCD.bSelf })
 	:Enable(SkillCD.bEnable):Text(_L["only Monitor self"]):Click(function(bChecked)
 		SkillCD.bSelf = bChecked
-		_SkillCD.UpdateCount()
+		if _SkillCD.IsPanelOpened() then
+			_SkillCD.UpdateCount()
+		end
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = SkillCD.bInDungeon })
 	:Enable(SkillCD.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
