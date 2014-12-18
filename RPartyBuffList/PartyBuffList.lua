@@ -119,12 +119,9 @@ _PartyBuffList.UpdateFrame = function()
 			ui:Append("Image",{ x = 2, y = 2, w = 34, h = 34, icon = Table_GetSkillIconID(info.dwMountKungfuID) or 1435 })
 			ui:Hover(function()
 				if not PartyBuffList.bHoverSelect then return end
-				if IsEmpty(_PartyBuffList.tTempTarget) and Target_GetTargetData() then
-					_PartyBuffList.tTempTarget = { Target_GetTargetData() }
-				end
-				SetTarget(TARGET.PLAYER,v.dwID)
+				SetTarget(TARGET.PLAYER, v.dwID)
 			end).self.OnLButtonDown = function()
-				SetTarget(TARGET.PLAYER,v.dwID)
+				SetTarget(TARGET.PLAYER, v.dwID)
 			end
 			ui:Append("Box",{ x = 165, y = 6, w = 28, h = 28,icon = Table_GetBuffIconID(v.dwBuffID,v.nLevel) }):Staring(true)
 			ui:Append("Text",{ x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
@@ -209,7 +206,7 @@ setmetatable(PartyBuffList,{ __call = function(me,dwID,dwBuffID,nLevel)
 			return
 		end
 	end
-	table.insert(_PartyBuffList.tList,{ dwID = dwID,dwBuffID = dwBuffID,nLevel = nLevel })
+	table.insert(_PartyBuffList.tList, { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel })
 	pcall(_PartyBuffList.UpdateFrame)
 end})
 local PS = {}
