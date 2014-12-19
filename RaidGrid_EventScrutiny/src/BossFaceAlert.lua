@@ -69,148 +69,54 @@ BossFaceAlert.nLineWidth = 2
 BossFaceAlert.DrawFaceLineNames = {}
 BossFaceAlert.FaceClassNameInfo = {}
 BossFaceAlert.tDefaultSetForAdd = {
-						szName = "默认设置",--Npc名字或者ID
-						bAllDisable = false,--关闭此项监控，默认false为开启，修改为true则关闭
-						--nFaceClass = nil,--分类设置
-						--szDescription = nil,----------注释说明
-						bShowDescriptionName = true,----◆以注释代替该项监控的名字
-						bAutoAddOn = true,--出现时自动添加，已作废，默认即可（现在总是自动添加了）
-						
-						--面向圈
-						bOn = true,--------开启面向圈
-						nAngle = 120,------◆角度设置
-						nLength = 5,------◆半径设置
-						tColor = {
-							r = 240,
-							g = 55,
-							b = 25,
-							a = 100
-						},-----------------◆颜色设置
-						nAngleToAdd = 0,---◆偏移角度
-						nTopToAdd = 0,
-						--额外距离圈
-						bDistanceCircleOn = false,--开启距离圈
-						nAngle2 = 360,--------------◆角度设置
-						nLength2 = 3,---------------◆半径设置
-						tColor2 = {
-							r = 255,
-							g = 0,
-							b = 0,
-							a = 200
-						},--------------------------◆颜色设置
-						nAngleToAdd2 = 0,-----------◆偏移角度
-						
-						bNotShowTargetName = false,---不进行注视目标提示
-						bNotTargetLine = true,------◆注视非自己时不画追踪线
-						bNotSendWhisperMsg = true,--◆注视不密聊报警
-						bNotSendRaidMsg = true,-----◆注视不团队报警
-						bNotFlashRedAlarm = true,---◆注视不全屏泛光提示
-						bNotOtherFlash = true,------◆注视不中央文字提示
-						bTimerHeadEnable = false,----◆注视队友头顶特效报警
-						
-						bShowNPCSelfName = false,--显示目标自身的名字
-						bShowNPCDistance = false,--◆显示距离自己的尺数						
-					}
-BossFaceAlert.tDefaultSetForAddClone = clone(BossFaceAlert.tDefaultSetForAdd)
+	szName = "默认设置",--Npc名字或者ID
+	bAllDisable = false,--关闭此项监控，默认false为开启，修改为true则关闭
+	--nFaceClass = nil,--分类设置
+	--szDescription = nil,----------注释说明
+	bShowDescriptionName = true,----◆以注释代替该项监控的名字
+	bAutoAddOn = true,--出现时自动添加，已作废，默认即可（现在总是自动添加了）
+	
+	--面向圈
+	bOn = true,--------开启面向圈
+	nAngle = 120,------◆角度设置
+	nLength = 5,------◆半径设置
+	tColor = {
+		r = 240,
+		g = 55,
+		b = 25,
+		a = 100
+	},-----------------◆颜色设置
+	nAngleToAdd = 0,---◆偏移角度
+	nTopToAdd = 0,
+	--额外距离圈
+	bDistanceCircleOn = false,--开启距离圈
+	nAngle2 = 360,--------------◆角度设置
+	nLength2 = 3,---------------◆半径设置
+	tColor2 = {
+		r = 255,
+		g = 0,
+		b = 0,
+		a = 200
+	},--------------------------◆颜色设置
+	nAngleToAdd2 = 0,-----------◆偏移角度
+	
+	bNotShowTargetName = false,---不进行注视目标提示
+	bNotTargetLine = true,------◆注视非自己时不画追踪线
+	bNotSendWhisperMsg = true,--◆注视不密聊报警
+	bNotSendRaidMsg = true,-----◆注视不团队报警
+	bNotFlashRedAlarm = true,---◆注视不全屏泛光提示
+	bNotOtherFlash = true,------◆注视不中央文字提示
+	bTimerHeadEnable = false,----◆注视队友头顶特效报警
+	
+	bShowNPCSelfName = false,--显示目标自身的名字
+	bShowNPCDistance = false,--◆显示距离自己的尺数	
+}
 RegisterCustomData("BossFaceAlert.tDefaultSetForAdd")
 
 BossFaceAlert.bFlashRedAlarm = true
 RegisterCustomData("BossFaceAlert.bFlashRedAlarm")
 BossFaceAlert.bOtherFlash = true
 RegisterCustomData("BossFaceAlert.bOtherFlash")
-
-
-function BossFaceAlert.LoadSettingsFileNew(szName, bOverride)
-	
-	if not szName or szName == "" then
-		szName = "BossFaceAlert_Default.dat"
-	end
-	
-	local szFullName = "\\Interface\\JH\\RaidGrid_EventScrutiny\\alldat\\" .. szName
-	
-	local BossFaceAlert_DrawFaceLineNames_New = {}	
-	BossFaceAlert_DrawFaceLineNames_New = LoadLUAData(szFullName)
-	
-	if not BossFaceAlert_DrawFaceLineNames_New or next(BossFaceAlert_DrawFaceLineNames_New) == nil then
-		szFullName = "\\Interface\\JH\\RaidGrid_EventScrutiny\\" .. szName
-		BossFaceAlert_DrawFaceLineNames_New = LoadLUAData(szFullName)
-		if not BossFaceAlert_DrawFaceLineNames_New or next(BossFaceAlert_DrawFaceLineNames_New) == nil then
-			JH.Sysmsg("面向数据文件有问题或者未找到相应路径下的文件：" .. szFullName)
-			return
-		end
-	end
-	
-	if bOverride then
-		if not BossFaceAlert_DrawFaceLineNames_New.DrawFaceLineNames or not BossFaceAlert_DrawFaceLineNames_New.FaceClassNameInfo then
-			BossFaceAlert.DrawFaceLineNames = BossFaceAlert_DrawFaceLineNames_New
-		else
-			BossFaceAlert.DrawFaceLineNames = BossFaceAlert_DrawFaceLineNames_New.DrawFaceLineNames
-			BossFaceAlert.FaceClassNameInfo = BossFaceAlert_DrawFaceLineNames_New.FaceClassNameInfo
-
-		end
-	else
-		local BossFaceAlert_DrawFaceLineNames_New2 = {}
-		if not BossFaceAlert_DrawFaceLineNames_New.DrawFaceLineNames then
-			BossFaceAlert_DrawFaceLineNames_New2 = BossFaceAlert_DrawFaceLineNames_New
-		else
-			BossFaceAlert_DrawFaceLineNames_New2 = BossFaceAlert_DrawFaceLineNames_New.DrawFaceLineNames
-		end
-		
-		local FaceClassNameInfo = BossFaceAlert_DrawFaceLineNames_New.FaceClassNameInfo
-		
-		if not FaceClassNameInfo then
-			for i = 1,#BossFaceAlert_DrawFaceLineNames_New2,1 do
-				BossFaceAlert_DrawFaceLineNames_New2[i].nFaceClass = nil
-				BossFaceAlert.AddListByCopy(BossFaceAlert_DrawFaceLineNames_New2[i], BossFaceAlert_DrawFaceLineNames_New2[i].szName)
-			end
-		else
-			local oClassNum = tonumber(table.getn(BossFaceAlert.FaceClassNameInfo)) or 0 -- 老的分类有几个
-			
-			for i = 1,#FaceClassNameInfo,1 do
-				table.insert(BossFaceAlert.FaceClassNameInfo, FaceClassNameInfo[i])
-			end
-			
-			for i = 1,#BossFaceAlert_DrawFaceLineNames_New2,1 do
-				if BossFaceAlert_DrawFaceLineNames_New2[i].nFaceClass then
-					BossFaceAlert_DrawFaceLineNames_New2[i].nFaceClass = BossFaceAlert_DrawFaceLineNames_New2[i].nFaceClass + oClassNum
-				end
-				BossFaceAlert.AddListByCopy(BossFaceAlert_DrawFaceLineNames_New2[i], BossFaceAlert_DrawFaceLineNames_New2[i].szName)
-			end
-		end
-		
-		JH.Sysmsg("已合并导入面向监控数据。")
-		
-	end
-	
-	JH.Sysmsg("加载完毕：" ..GetRootPath() .. szFullName)
-	BFA.Init()
-	FA.ClearPanel()
-end
-
-function BossFaceAlert.AddList(szName, bPlayerdwID, szPlayerName)
-	if not szName or szName == "" then
-		return
-	end
-	for i = 1, #BossFaceAlert.DrawFaceLineNames, 1 do
-		if tostring(BossFaceAlert.DrawFaceLineNames[i].szName) == tostring(szName) then
-			OutputMessage("MSG_SYS", "面向监控设置["..szName.."]已存在！".."\n")
-			return
-		end
-	end
-	if not BossFaceAlert.tDefaultSetForAdd.nAngleToAdd2 then
-		BossFaceAlert.tDefaultSetForAdd = clone(BossFaceAlert.tDefaultSetForAddClone)
-	end
-	local tNewRecord = clone(BossFaceAlert.tDefaultSetForAdd)
-	tNewRecord.szName = tostring(szName)
-	if bPlayerdwID then
-		tNewRecord.bPlayer = bPlayerdwID
-		tNewRecord.szDescription = "（玩家ID）" .. tostring(szPlayerName or "")
-	end
-	table.insert(BossFaceAlert.DrawFaceLineNames, tNewRecord)
-	--table.insert(BossFaceAlert.DrawFaceLineNames, {szName = szName,	bOn = true, nAngle = 180, nLength = 20, tColor = {r = 100, g = 0, b = 255, a = 200}, nAngleToAdd = 0})
-	FA.LoadLastData(BossFaceAlert.DrawFaceLineNames)
-end
-
 
 function BossFaceAlert.AddListByCopy(handleRecord, szNewName)
 	if not handleRecord then
@@ -279,18 +185,6 @@ function BossFaceAlert.GetMenuList()
 		JH.OpenPanel("面向目标监控")
 	end
 end
-
-
-function BossFaceAlert.SetAllClass(jClass,TojClass,Class,Data)
-	for i = #Data, 1, -1 do
-		if Data[i].nFaceClass then
-			if Data[i].nFaceClass == jClass then
-				Data[i].nFaceClass = TojClass
-			end
-		end
-	end
-end
-
 
 ---------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------
@@ -571,9 +465,6 @@ BFA.AddScrutiny = function(szName,dwType,szPlayerName)
 			return
 		end
 	end
-	if not BossFaceAlert.tDefaultSetForAdd.nAngleToAdd2 then
-		BossFaceAlert.tDefaultSetForAdd = clone(BossFaceAlert.tDefaultSetForAddClone)
-	end
 	local tNewRecord = clone(BossFaceAlert.tDefaultSetForAdd)
 	tNewRecord.szName = tonumber(szName) or tostring(szName)
 	if dwType == TARGET.PLAYER then
@@ -586,7 +477,6 @@ BFA.AddScrutiny = function(szName,dwType,szPlayerName)
 	table.insert(BossFaceAlert.DrawFaceLineNames, tNewRecord)
 	BFA.Init()
 	FA.LoadLastData(BossFaceAlert.DrawFaceLineNames)
-	-- FA.LoadDataPanel(false,0,true)
 end
 
 JH.BreatheCall("BossFaceAlert",function()
@@ -599,20 +489,9 @@ JH.BreatheCall("BossFaceAlert",function()
 		return
 	end
 	-- pcall UpdateScrutiny 
-	local res, err = pcall(_BFA.UpdateScrutiny,me,TARGET.NPC,_BFA.tScrutinyNpc,_BFA.tNpcFace)
-	if not res and JH.Debug then
-		JH.Sysmsg("UpdateScrutiny#NPC ERROR: " .. err)
-	end
-	
-	local res, err = pcall(_BFA.UpdateScrutiny,me,TARGET.PLAYER,_BFA.tScrutinyPlayer,_BFA.tPlayerFace)
-	if not res and JH.Debug then
-		JH.Sysmsg("UpdateScrutiny#Player ERROR: " .. err)
-	end
-	
-	local res, err = pcall(_BFA.UpdateScrutiny,me,TARGET.DOODAD,_BFA.tScrutinyDoodad,_BFA.tDoodadFace)
-	if not res and JH.Debug then
-		JH.Sysmsg("UpdateScrutiny#Doodad ERROR: " .. err)
-	end
+	_BFA.UpdateScrutiny(me, TARGET.NPC, _BFA.tScrutinyNpc, _BFA.tNpcFace)
+	_BFA.UpdateScrutiny(me, TARGET.PLAYER, _BFA.tScrutinyPlayer, _BFA.tPlayerFace)
+	_BFA.UpdateScrutiny(me, TARGET.DOODAD, _BFA.tScrutinyDoodad, _BFA.tDoodadFace)
 	BossFaceAlert.UpdateAlertName()
 end)
 
@@ -698,15 +577,10 @@ function BossFaceAlert.GetExtensionPos(character,nFanAngle,nLineLength)
 	return tEndPos
 end
 
-function BossFaceAlert.GetExtensionPosLine(nX,nY,nX1,nY1,bAdjustToOriginalPos)
+function BossFaceAlert.GetExtensionPosLine(nX,nY,nX1,nY1)
 	local tStartPos,tEndPos = {},{}
-	if bAdjustToOriginalPos then
-		tStartPos.nX, tStartPos.nY = BossFaceAlert.AdjustToOriginalPos(nX, nY)
-		tEndPos.nX, tEndPos.nY = BossFaceAlert.AdjustToOriginalPos(nX1,nY1)	
-	else
-		tStartPos.nX, tStartPos.nY = nX,nY
-		tEndPos.nX, tEndPos.nY = nX1,nY1
-	end
+	tStartPos.nX, tStartPos.nY = nX,nY
+	tEndPos.nX, tEndPos.nY = nX1,nY1
 	local nW = BossFaceAlert.nLineWidth or 1
 	local nWt = nW
 	local nDifX, nDifY = tEndPos.nX - tStartPos.nX, tEndPos.nY - tStartPos.nY
@@ -725,30 +599,6 @@ function BossFaceAlert.GetExtensionPosLine(nX,nY,nX1,nY1,bAdjustToOriginalPos)
 	end
 	return nAX,nAY,nBX,nBY,nCX,nCY,nDX,nDY
 end
-
-function BossFaceAlert.AdjustToOriginalPos(xScreen, yScreen)
-	if Station then
-		if Station.AdjustToOriginalPos then
-			return Station.AdjustToOriginalPos(xScreen, yScreen)
-		elseif Station.GetUIScale then
-			local nUIScale = Station.GetUIScale()
-			return xScreen/nUIScale, yScreen/nUIScale
-		end
-	end
-	return xScreen, yScreen
-end
-
-
-function BossFaceAlert.GetCharacter(dwID)
-	if not dwID or dwID <= 0 then
-		return
-	elseif IsPlayer(dwID) then
-		return GetPlayer(dwID)
-	else
-		return GetNpc(dwID)
-	end
-end
-
 
 -- RemoveAllItem
 function BossFaceAlert.ClearAllItem()
@@ -857,8 +707,6 @@ function BossFaceAlert.UpdateAlertLineCall(CachedwID,CacheClass,t,shadow,tEndPos
 	end
 end
 
-
-
 -- 缓存的ID 类别三种 圈1 圈2 自定义圈3 所以名字冲突也无所谓
 function BossFaceAlert.UpdateAlertCircle(CachedwID,CacheClass,target,table,dwType)
 
@@ -937,7 +785,7 @@ function BossFaceAlert.UpdateAlertCircleCall(CachedwID,CacheClass,t,shadow,KGobj
 	if nAngle < 2 then
 		shadow:SetTriangleFan(GEOMETRY_TYPE.LINE,4)
 		local tEndPos = BossFaceAlert.GetExtensionPos(target, nAngleToAdd, nLength)
-		local nAX,nAY,nBX,nBY,nCX,nCY,nDX,nDY = BossFaceAlert.GetExtensionPosLine(target.nX, target.nY , tEndPos.nX, tEndPos.nY , false)
+		local nAX,nAY,nBX,nBY,nCX,nCY,nDX,nDY = BossFaceAlert.GetExtensionPosLine(target.nX, target.nY , tEndPos.nX, tEndPos.nY)
 		if target.dwID then
 			if dwType and dwType == TARGET.DOODAD then
 				shadow:AppendDoodadID(target.dwID,tColor.r, tColor.g, tColor.b, tColor.a or 220)
