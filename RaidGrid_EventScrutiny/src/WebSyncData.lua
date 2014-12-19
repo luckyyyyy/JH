@@ -127,6 +127,7 @@ end
 _WebSyncData.OpenPanel = function( ... )
 	local f = Station.Lookup("Normal/WebSyncData") or Wnd.OpenWindow("Interface/JH/RaidGrid_EventScrutiny/ui/WebSyncData.ini", "WebSyncData")
 	f:BringToTop()
+	Station.SetActiveFrame(f)
 	_WebSyncData.RefreshList( ... )
 end
 

@@ -1299,10 +1299,10 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 	end
 	
 	if RaidGrid_EventScrutiny.IsRecordInList(tRecord, RaidGrid_EventCache.szListIndex) then
-		handleRecord:Lookup("Image_Scrutiny"):Show()
 		handleRecord.text:SetFontColor(155,155,155)
+		handleRecord.box:IconToGray()
 	else
-		handleRecord:Lookup("Image_Scrutiny"):Hide()
+		handleRecord.box:IconToNormal()
 	end
 	
 	if tRecord.szType == "Debuff" and handleRecord.imageGrid.nFrame ~= 1 then
