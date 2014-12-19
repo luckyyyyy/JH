@@ -72,7 +72,6 @@ BossFaceAlert.tDefaultSetForAdd = {
 						szName = "默认设置",--Npc名字或者ID
 						bAllDisable = false,--关闭此项监控，默认false为开启，修改为true则关闭
 						--nFaceClass = nil,--分类设置
-						--bShowEnemyCircleOnly = false,--仅显示敌对目标的面向（Target特殊设置）
 						--szDescription = nil,----------注释说明
 						bShowDescriptionName = true,----◆以注释代替该项监控的名字
 						bAutoAddOn = true,--出现时自动添加，已作废，默认即可（现在总是自动添加了）
@@ -231,37 +230,6 @@ function BossFaceAlert.AddListByCopy(handleRecord, szNewName)
 	table.insert(BossFaceAlert.DrawFaceLineNames, tNewRecord)
 end
 
-function BossFaceAlert.SetMapName(handleRecord)
-	if not handleRecord then
-		return
-	end
-	local Recall = function(szText)
-		handleRecord.szMapName = nil
-		if not szText or szText == "" then
-			return
-		end
-		handleRecord.szMapName = szText
-		BossFaceAlert.ClearAllItem()
-	end
-	GetUserInput(handleRecord.szName.."（所在地图设置）", Recall, nil, function() end, nil, handleRecord.szMapName, 310)
-end
-
-
-
-function BossFaceAlert.SetNewName(handleRecord)
-	if not handleRecord then
-		return
-	end
-	local Recall = function(szText)
-		if not szText or szText == "" then
-			return
-		end
-		handleRecord.szName = szText
-		BossFaceAlert.ClearAllItem()
-	end
-	GetUserInput("输入新名字：", Recall, nil, function() end, nil, handleRecord.szName, 31)
-end
-
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
@@ -308,7 +276,7 @@ function BossFaceAlert.GetMenuList()
 	if JH.IsPanelOpened() then
 		JH.ClosePanel()
 	else
-		JH.OpenPanel("面向圈和线")
+		JH.OpenPanel("面向目标监控")
 	end
 end
 
