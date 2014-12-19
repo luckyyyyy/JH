@@ -7,7 +7,7 @@ local _RE = {
 	tRequest = {},
 	szDataPath = "RGES/",
 	szName = "NONE",
-	szIniPath = "Interface/JH/RaidGrid_EventScrutiny/ui/",
+	szIniPath = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/",
 }
 
 RaidGrid_EventScrutiny.OnFrameCreate = function()
