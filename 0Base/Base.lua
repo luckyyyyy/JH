@@ -1106,10 +1106,8 @@ JH.SaveLUAData = function(szPath, data)
 end
 
 JH.LoadLUAData = function(szPath)
-	local data = LoadLUAData(DATA_PATH .. szPath)
-	collectgarbage("collect")
 	JH.Debug3(_L["LoadLUAData # "] ..  DATA_PATH .. szPath)
-	return data
+	return LoadLUAData(DATA_PATH .. szPath)
 end
 
 JH.AddHotKey = function(szName, szTitle, fnAction)
