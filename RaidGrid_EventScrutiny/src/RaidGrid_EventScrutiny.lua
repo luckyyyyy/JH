@@ -5,6 +5,8 @@ local RaidGrid_EventScrutiny = RaidGrid_EventScrutiny
 local _RE = {
 	tNpcLife = {},
 	tRequest = {},
+	szDataPath = "RGES/",
+	szName = "NONE",
 	szIniPath = "Interface/JH/RaidGrid_EventScrutiny/ui/",
 }
 
@@ -256,15 +258,6 @@ function RaidGrid_Base.GetNpcTeamMarkName(Tid)
 	return Tid
 end
 
-function RaidGrid_Base.VersionUpdate()
-	if RaidGrid_Base.version == 2 then return end
-	if RaidGrid_Base.version == 1 then
-		RaidGrid_Base.version = 2
-		RaidGrid_Base.Message("Welcome! Init Data...")
-		local _, _, szLang = GetVersion()
-		RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
-	end
-end
 
 function RaidGrid_Base.ResetChatAlertCD()
 	local tTab = RaidGrid_EventScrutiny.tRecords["Npc"]
@@ -570,6 +563,12 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 	if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 		data.EventCacheRecords = RaidGrid_EventCache.tRecords
 	end
+	-- local dat = clone(data)
+	-- for k,v in ipairs({"Buff","Debuff","Casting","Npc"}) do
+		-- dat.EventScrutinyRecords[v].Hash = nil
+		-- dat.EventScrutinyRecords[v].Hash2 = nil
+	-- end
+	-- SaveLUAData(szFullName, JH.JsonEncode(dat))
 	SaveLUAData(szFullName, data)
 	JH.Alert(_L("Export complete\nPath:%s",GetRootPath().. szFullName))
 end
@@ -720,14 +719,7 @@ RaidGrid_EventCache.tRecords = {
 	Debuff = {Hash = {},Hash2 = {}},
 	Npc = {Hash = {},Hash2 = {}},
 	Casting = {Hash = {},Hash2 = {}},
-};																					RegisterCustomData("RaidGrid_EventCache.tRecords")
-
-RaidGrid_EventCache.tAddByName = {
-	Buff = {szToAddNameList = "",},
-	Debuff = {szToAddNameList = "",},
-	Npc = {szToAddNameList = "",},
-	Casting = {szToAddNameList = "",},
-};																					RegisterCustomData("RaidGrid_EventCache.tAddByName")
+}
 
 function RaidGrid_EventCache.OnFrameCreate()
 	this:RegisterEvent("RENDER_FRAME_UPDATE")
@@ -737,10 +729,6 @@ function RaidGrid_EventCache.OnFrameCreate()
 	this:RegisterEvent("DO_SKILL_CAST")
 	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("PLAYER_ENTER_SCENE")
-	if not RaidGrid_EventCache.tRecords.Buff.Hash2 then RaidGrid_EventCache.tRecords.Buff.Hash2 = {} end
-	if not RaidGrid_EventCache.tRecords.Debuff.Hash2 then RaidGrid_EventCache.tRecords.Debuff.Hash2 = {} end
-	if not RaidGrid_EventCache.tRecords.Npc.Hash2 then RaidGrid_EventCache.tRecords.Npc.Hash2 = {} end
-	if not RaidGrid_EventCache.tRecords.Casting.Hash2 then RaidGrid_EventCache.tRecords.Casting.Hash2 = {} end
 end
 
 function RaidGrid_EventCache.OnEvent(szEvent)
@@ -1292,7 +1280,7 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 	
 	if RaidGrid_EventScrutiny.IsRecordInList(tRecord, RaidGrid_EventCache.szListIndex) then
 		handleRecord:Lookup("Image_Scrutiny"):Show()
-		handleRecord.text:SetFontColor(255,0,0)
+		handleRecord.text:SetFontColor(155,155,155)
 	else
 		handleRecord:Lookup("Image_Scrutiny"):Hide()
 	end
@@ -1413,7 +1401,6 @@ RaidGrid_EventScrutiny.tRecords = {
 	Casting = {Hash = {},Hash2 = {}},
 	Scrutiny = {Hash = {},Hash2 = {}},
 };
-RegisterCustomData("RaidGrid_EventScrutiny.tRecords")
 RaidGrid_EventScrutiny.nRemoveDelayTime = 10;														RegisterCustomData("RaidGrid_EventScrutiny.nRemoveDelayTime")
 
 function RaidGrid_EventScrutiny._SetItemUI(szName,obj,boolean)
@@ -4559,9 +4546,6 @@ RaidGrid_BossCallAlert.tRecords = {
 	tWarningMessages = {},
 	tBossCall = {},
 }
-RegisterCustomData("RaidGrid_BossCallAlert.tRecords")
-
-
 RaidGrid_BossCallAlert.tDefaultSetForAdd = {
 		["bRAID"] = false,
 		["bWHISPER"] = false,
@@ -5772,8 +5756,6 @@ function RaidGrid_EventScrutiny.OnCustomDataLoaded()
 	if arg0 ~= "Role" then
 		return
 	end
-	RaidGrid_Base.VersionUpdate()
-	RaidGrid_Base.ResetChatAlertCD()
 	RaidGrid_EventScrutiny.tRecords.Scrutiny = {Hash = {},Hash2 = {}}
 	RaidGrid_EventCache.OpenPanel()
 	RaidGrid_EventCache.ClosePanel()
@@ -5833,4 +5815,100 @@ _RE.Raid_MonitorBuffs = function()
 	Raid_MonitorBuffs(tBuffs)
 end
 
-JH.BreatheCall("Raid_MonitorBuffs",_RE.Raid_MonitorBuffs,10000)
+JH.BreatheCall("Raid_MonitorBuffs", _RE.Raid_MonitorBuffs, 10000)
+------------------------------------------------------------------
+
+JH.RegisterEvent("FIRST_LOADING_END",function()
+	local szName = GetClientPlayer().szName
+	_RE.szName = szName:gsub("@.*", "")
+	
+	if RaidGrid_Base.version == 1 then
+		local _, _, szLang = GetVersion()
+		RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
+		RaidGrid_Base.version = 2
+	end
+	
+	local HashChange = function(tRecords)
+		local Hash = {}
+		local Hash2 = {}
+		for k,v in ipairs(tRecords) do
+			if v.dwID then
+				Hash[v.dwID] = true
+			end
+			if v.nLevel then
+				Hash2[v.dwID] = Hash2[v.dwID] or {}
+				Hash2[v.dwID][v.nLevel] = true
+			end
+		end
+		tRecords.Hash = Hash
+		tRecords.Hash2 = Hash2
+	end
+	
+	local path = _RE.szDataPath .. _RE.szName .. "/"
+	for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+		local data = JH.LoadLUAData(path .. v)
+		if data then
+			RaidGrid_EventScrutiny.tRecords[v] = JH.JsonDecode(data)
+			HashChange(RaidGrid_EventScrutiny.tRecords[v])
+		end
+	end
+	RaidGrid_Base.ResetChatAlertCD()
+	JH.DelayCall(1000, function()
+		for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
+			local data = JH.LoadLUAData(path .. v)
+			if data then
+				RaidGrid_BossCallAlert.tRecords[v] = JH.JsonDecode(data)
+			end
+		end
+	end)
+	JH.DelayCall(2000, function()
+		for k, v in ipairs({"DrawFaceLineNames", "FaceClassNameInfo"}) do
+			local data = JH.LoadLUAData(path .. v)
+			if data then
+				BossFaceAlert[v] = JH.JsonDecode(data)
+			end
+		end
+		BFA.Init()
+		FA.ClearPanel()
+	end)
+	JH.DelayCall(2500, function()
+		if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+			for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+				local data = JH.LoadLUAData(path .. "cache/" .. v)
+				if data then
+					RaidGrid_EventCache.tRecords[v] = JH.JsonDecode(data)
+					HashChange(RaidGrid_EventCache.tRecords[v])
+				end
+			end
+		end
+	end)
+end)
+
+local SaveRGESData = function()
+	RaidGrid_Base.ResetChatAlertCD()
+	local path = _RE.szDataPath .. _RE.szName .. "/"
+	for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+		RaidGrid_EventScrutiny.tRecords[v].Hash = nil
+		RaidGrid_EventScrutiny.tRecords[v].Hash2 = nil
+		JH.SaveLUAData(path .. v, JH.JsonEncode(RaidGrid_EventScrutiny.tRecords[v]))
+	end
+	for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
+		JH.SaveLUAData(path .. v, JH.JsonEncode(RaidGrid_BossCallAlert.tRecords[v]))
+	end	
+	for k, v in ipairs({"DrawFaceLineNames", "FaceClassNameInfo"}) do
+		JH.SaveLUAData(path .. v, JH.JsonEncode(BossFaceAlert[v]))
+	end
+	if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+		for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+			RaidGrid_EventCache.tRecords[v].Hash = nil
+			RaidGrid_EventCache.tRecords[v].Hash2 = nil
+			JH.SaveLUAData(path .. "cache/" .. v, JH.JsonEncode(RaidGrid_EventCache.tRecords[v]))
+		end
+	end
+	
+end
+
+
+JH.RegisterEvent("GAME_EXIT", SaveRGESData)
+JH.RegisterEvent("PLAYER_EXIT_GAME", SaveRGESData)
+
