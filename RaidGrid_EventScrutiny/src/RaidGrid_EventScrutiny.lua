@@ -170,45 +170,18 @@ RaidGrid_Base = {}
 RaidGrid_Base.version = 1
 RegisterCustomData("RaidGrid_Base.version")
 
-RaidGrid_Base.tMarkName = { _L["Cloud"], _L["Sword"], _L["Ax"], _L["Hook"], _L["Drum"], _L["Shear"], _L["Stick"], _L["Jade"], _L["Dart"], _L["Fan"] }
-
-function RaidGrid_Base.TeamMarkOrg(Tid, Marktype)
-	local player = GetClientPlayer()
-	if player.IsInParty() then
-		local hTeam = GetClientTeam()
-		if player.dwID == hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) then -- Party Mark
-			local tPartyMark = hTeam.GetTeamMark()
-			if tPartyMark[Tid] ~= nil and tPartyMark[Tid] ~= 0 then
-				return
+function RaidGrid_Base.TeamMarkOrg(dwID, nMark)
+	local me = GetClientPlayer()
+	if me.IsInParty() then
+		local team = GetClientTeam()
+		if me.dwID == team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) then -- Party Mark
+			local tPartyMark = team.GetTeamMark()
+			if not tPartyMark[dwID] or tPartyMark[dwID] == 0 then
+				team.SetTeamMark(nMark, dwID)
 			end
-			hTeam.SetTeamMark(Marktype, Tid)
 		end
 	end
 end
-
-
-function RaidGrid_Base.ToGetNpcIntensity(npc)
-	if GetNpcIntensity then
-		return GetNpcIntensity(npc)
-	else
-		if not npc then
-			return 1
-		end
-		local n = npc.nIntensity
-		if not n then
-			return 4
-		end
-		if n == 2 or n == 6 then --领袖
-			return 4
-		elseif n == 5 then --头目
-			return 3
-		elseif n == 4 then -- 高手
-			return 2
-		end
-		return 1 --普通
-	end
-end
-
 
 function RaidGrid_Base.SetTargetOrg(dwTargetID)
 	local player = GetClientPlayer()
@@ -232,30 +205,6 @@ function RaidGrid_Base.SetTargetOrg(dwTargetID)
 		-- SelectTarget(nType, dwTargetID)
 	end
 
-end
-
-function RaidGrid_Base.GetNpcTeamMarkName(Tid)
-	local player = GetClientPlayer()
-	if not player then
-		return Tid
-	end
-	if player.IsInParty() then
-		local hTeam = GetClientTeam()
-		if not hTeam then
-			return Tid
-		end
-		local tPartyMark = hTeam.GetTeamMark()
-		if not tPartyMark then
-			return Tid
-		end
-		local nMarkID = tPartyMark[Tid]
-		if nMarkID and nMarkID ~= 0 then
-			if nMarkID > 0 and nMarkID < 11 then
-				return RaidGrid_Base.tMarkName[nMarkID]
-			end
-		end
-	end
-	return Tid
 end
 
 
@@ -294,8 +243,6 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab4[i].nEventScrutinyCDEnd = nil
 	end
 end
-
-
 
 -- 发送数据给全团
 function RaidGrid_Base.SendDataToTeam(data,szDataType,szClientName)
@@ -437,24 +384,6 @@ function RaidGrid_Base.LowAverage(tNumbers)
 	return nAvg
 end
 
-
-function RaidGrid_Base.GetCurrentMapName()
-	local player = GetClientPlayer()
-	if not player then
-		return _L["Unknown"]
-	end
-	local scene = player.GetScene()
-	if not scene then
-		return _L["Unknown"]
-	end
-	local dwSceneID = scene.dwMapID
-	if not dwSceneID then
-		return _L["Unknown"]
-	end
-	local szMapName = Table_GetMapName(dwSceneID)
-	return szMapName or _L["Unknown"]
-end
-
 function RaidGrid_Base.GetNameAndTypeFromId(dwID)
 	local playerMember
 	local szType = _L["Unknown"]
@@ -529,9 +458,7 @@ end
 
 function RaidGrid_Base.OutputSettingsFileNew(szName)
 	local szFullName = "\\Interface\\JH\\RaidGrid_EventScrutiny\\alldat\\" .. szName
-	local data = {}
-	
-	
+	local data = {}	
 	-- fix table.insert
 	local tab, dat = {}, {}
 	for k,v in ipairs(RaidGrid_BossCallAlert.tRecords.tWarningMessages) do
@@ -727,8 +654,6 @@ RaidGrid_EventCache.wnd = nil
 RaidGrid_EventCache.handleMain = nil
 RaidGrid_EventCache.handleRecords = nil
 
-RaidGrid_EventCache.szCurrentMapName = ""
-
 RaidGrid_EventCache.tSyncEnemyChar = {}
 RaidGrid_EventCache.tSyncCharFightState = {}
 
@@ -791,9 +716,6 @@ function RaidGrid_EventCache.OnEvent(szEvent)
 		local player = GetClientPlayer()
 		if not player then
 			return
-		end
-		if arg0 == player.dwID then
-			RaidGrid_EventCache.szCurrentMapName = RaidGrid_Base.GetCurrentMapName()
 		end
 	end
 end
@@ -992,7 +914,7 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 				if tRecord.nIconID <= 0 then
 					tRecord.nIconID = 332
 				end
-				tRecord.szMapName = RaidGrid_EventCache.szCurrentMapName or _L["Unknown"]
+				tRecord.szMapName = Table_GetMapName(player.GetMapID()) or _L["Unknown"]
 				tRecord.szCasterName = target.szName or _L["Unknown"]
 				
 				RaidGrid_EventCache.tRecords.Casting.Hash[dwSkillID] = true
@@ -1064,8 +986,8 @@ function RaidGrid_EventCache.CheckEnemyNpcCreationOrg(npc)
 		tRecord.bEnemy = false
 	end
 	
-	tRecord.szMapName = RaidGrid_EventCache.szCurrentMapName or _L["Unknown"]
-	if RaidGrid_Base.ToGetNpcIntensity(npc) >= 4 then
+	tRecord.szMapName = Table_GetMapName(player.GetMapID()) or _L["Unknown"]
+	if GetNpcIntensity(npc) >= 4 then
 		tRecord.bBossIntensity = true
 	end
 	
@@ -1151,7 +1073,7 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	nEndFrame = nEndFrame or nLogicFrame
 	tRecord.fKeepTime = ((nEndFrame - nLogicFrame) / GLOBAL.GAME_FPS) or 0
 	
-	tRecord.szMapName = RaidGrid_EventCache.szCurrentMapName or _L["Unknown"]
+	tRecord.szMapName = Table_GetMapName(player.GetMapID()) or _L["Unknown"]
 	
 	if buff.dwSkillSrcID and buff.dwSkillSrcID>0 then
 		local szSkillSrcType = ""
@@ -1666,7 +1588,7 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 					function()
 						local szBoss = "（计时）"
 						local npcinfo = GetNpcTemplate(tRecord.dwID)
-						local nIntensity = RaidGrid_Base.ToGetNpcIntensity(npcinfo)
+						local nIntensity = GetNpcIntensity(npcinfo)
 						if nIntensity >= 4 then
 							szBoss = szBoss .. "★"
 						end
@@ -1697,7 +1619,7 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 		tRecord.nEventAlertTime = 1200
 		tRecord.bNotAppearScrutiny = true
 	end
-	if RaidGrid_Base.ToGetNpcIntensity(target) >= 4 then
+	if GetNpcIntensity(target) >= 4 then
 		szBoss = szBoss .. "★"
 	end
 	
@@ -2622,7 +2544,7 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 
 	for dwTemplateID, tInfos in pairs(RaidGrid_EventCache.tSyncCharFightState) do
 		local npcinfo = GetNpcTemplate(dwTemplateID)
-		local nIntensity = RaidGrid_Base.ToGetNpcIntensity(npcinfo)
+		local nIntensity = GetNpcIntensity(npcinfo)
 		local bChangeFSFlag = nil
 		if nIntensity >= 4 then
 			for dwID, bFightStateOld in pairs(tInfos) do
@@ -4388,7 +4310,7 @@ function RaidGrid_BossCallAlert.BossCall(event)
 			local npc=GetNpc(arg1)
 			if not npc then return end
 			if RaidGrid_BossCallAlert.bDungeonOnly and not JH.IsInDungeon2() then return end
-			if RaidGrid_BossCallAlert.bBossOnly and RaidGrid_Base.ToGetNpcIntensity(npc)<4 then return end
+			if RaidGrid_BossCallAlert.bBossOnly and GetNpcIntensity(npc)<4 then return end
 			local bossname = JH.GetTemplateName(npc) or tostring(arg3)
 			local saydata = arg0
 			RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
