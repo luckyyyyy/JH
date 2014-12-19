@@ -147,7 +147,7 @@ end
 
 _GKP.GKP_Save = function()
 	local me = GetClientPlayer()
-	local szPath = me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()) .. ".gkp"	
+	local szPath = "GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()) .. ".gkp"	
 	JH.SaveLUAData(szPath,{ GKP_Record = GKP("GKP_Record") , GKP_Account = GKP("GKP_Account") })
 end
 _GKP.GKP_LoadData = function(szFile)
@@ -202,7 +202,7 @@ _GKP.Init = function()
 		_GKP.nNowMoney = me.GetMoney().nGold
 		_GKP.bInit = true
 		JH.DelayCall(50,function() -- Init延后 避免和进入副本冲突
-			_GKP.GKP_LoadData(me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()))				
+			_GKP.GKP_LoadData("GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()))				
 		end)
 	end
 end
@@ -1467,13 +1467,13 @@ _GKP.GKP_Recovery = function()
 	})
 	for i = 0 , 19 do
 		local nTime = GetCurrentTime() - i * 86400		
-		local szPath = JH.GetAddonInfo().szDataPath .. _GKP.szName .. "/" .. FormatTime("%Y-%m-%d",nTime) .. ".gkp"
+		local szPath = JH.GetAddonInfo().szDataPath .. "GKP/" .. _GKP.szName .. "/" .. FormatTime("%Y-%m-%d",nTime) .. ".gkp"
 		table.insert(menu,{
 			szOption = FormatTime("%Y-%m-%d",nTime) .. ".gkp",
 			bDisable = not IsFileExist(szPath .. ".jx3dat"),
 			fnAction = function()
 				JH.Confirm(_L["Are you sure to cover the current information with the last record data?"],function()
-					_GKP.GKP_LoadData(_GKP.szName .. "/" .. FormatTime("%Y-%m-%d",nTime))
+					_GKP.GKP_LoadData("GKP/" .. _GKP.szName .. "/" .. FormatTime("%Y-%m-%d",nTime))
 					JH.Alert(_L["Reocrd Recovered."])
 				end)
 			end,
