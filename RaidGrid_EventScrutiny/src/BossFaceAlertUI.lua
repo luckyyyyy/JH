@@ -594,9 +594,6 @@ _FA.Button_Sync = function()
 	if _FA.nIndex > 0 then
 		if GetClientPlayer().IsInParty() then
 			local szType = "DrawFaceLineNames"
-			if _FA.tData.tPosition then
-				szType = "tDefinedPoint"
-			end
 			PopupMenu(RaidGrid_EventScrutiny.SyncOptions(_FA.tData,szType))
 		else
 			JH.Sysmsg("不在队伍中")
@@ -631,9 +628,6 @@ end
 _FA.Button_ReName = function()
 	if _FA.nIndex > 0 then
 		local tab = BossFaceAlert.DrawFaceLineNames
-		if _FA.tData.tPosition then
-			tab = BossFaceAlert.tDefinedPoint
-		end
 		local t = {szOption = "PopupMenu",
 			{szOption = "修改名称或ID", fnAction = function()
 				GetUserInput("请输入新的监控名称或模板ID", function(szText)
@@ -668,9 +662,6 @@ end
 _FA.Button_Delete = function()
 	if _FA.nIndex > 0 then
 		local tab = BossFaceAlert.DrawFaceLineNames
-		if _FA.tData.tPosition then
-			tab = BossFaceAlert.tDefinedPoint
-		end
 		local fnAction = function()
 			table.remove(tab, _FA.nIndex)
 			if #tab == 0 then
@@ -698,9 +689,6 @@ end
 _FA.Button_Pre = function(bReload)
 	if _FA.nIndex > 0 then
 		local tab = BossFaceAlert.DrawFaceLineNames
-		if _FA.tData.tPosition then
-			tab = BossFaceAlert.tDefinedPoint
-		end
 		if bReload then
 			_FA.tData = tab[_FA.nIndex]
 			_FA.LoadAndSaveData(_FA.tData)
@@ -719,9 +707,6 @@ end
 _FA.Button_Next = function()
 	if _FA.nIndex > 0 then
 		local tab = BossFaceAlert.DrawFaceLineNames
-		if _FA.tData.tPosition then
-			tab = BossFaceAlert.tDefinedPoint
-		end
 		if _FA.nIndex + 1 > #tab then
 			JH.Sysmsg("已经到最后一项了。")
 		else
@@ -735,9 +720,6 @@ end
 _FA.Button_Up = function()
 	if _FA.nIndex > 0 then
 		local tab = BossFaceAlert.DrawFaceLineNames
-		if _FA.tData.tPosition then
-			tab = BossFaceAlert.tDefinedPoint
-		end
 		local nCount = 1
 		if IsAltKeyDown() then
 			nCount = 10
@@ -758,9 +740,6 @@ end
 _FA.Button_Down = function()
 	if _FA.nIndex > 0 then
 		local tab = BossFaceAlert.DrawFaceLineNames
-		if _FA.tData.tPosition then
-			tab = BossFaceAlert.tDefinedPoint
-		end
 		local nCount = 1
 		if IsAltKeyDown() then
 			nCount = 10
@@ -784,12 +763,7 @@ end
 ----------------------------------------------
 _FA.Button_Option = function()
 	if _FA.nIndex >= 0 then
-		local tOptions
-		if not _FA.tData.tPosition then
-			tOptions = _FA.GetRecordMenuList()
-		else
-			tOptions = _FA.GetRecordMenuList2()
-		end
+		local tOptions = _FA.GetRecordMenuList()
 		local nX, nY = Cursor.GetPos(true)
 		tOptions.x, tOptions.y = nX + 15, nY + 15
 		PopupMenu(tOptions)
@@ -844,22 +818,6 @@ _FA.GetRecordMenuList = function()
 	
 	return tMenu
 end
-
-_FA.GetRecordMenuList2 = function()
-	local tMenu = {
-		{szOption = "所在地图（" .. _FA.tData.szMapName .. "）",fnAction = function() BossFaceAlert.SetMapName(_FA.tData) end,},
-		{bDevide = true},
-		{szOption = "显示距离自己的尺数",	bCheck = true,bChecked = _FA.tData.bShowNPCDistance or false,fnAction = function()
-			_FA.tData.bShowNPCDistance = not _FA.tData.bShowNPCDistance
-		end},
-		{bDevide = true},
-		{szOption = "导出信息", fnAction = function()
-			RaidGrid_Base.OutputRecord(_FA.tData,"tDefinedPoint")
-		end}
-	}
-	return tMenu
-end
-
 
 ----------------------------------------------
 -- 按钮点击 面向圈颜色
