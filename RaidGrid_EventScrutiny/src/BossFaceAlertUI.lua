@@ -13,7 +13,6 @@ local _FA = {
 	nIndex = -1,
 	tData = {},
 	tSearchTemp = {},
-	bPosition = false,
 }
 ----------------------------------------------
 -- 打开关闭面板
@@ -24,6 +23,7 @@ end
 _FA.OpenPanel = function()
 	_FA.GetFrame():BringToTop()
 	_FA.GetFrame():Show()
+	Station.SetActiveFrame(_FA.GetFrame())
 end
 _FA.ClosePanel = function()
 	_FA.GetFrame():Hide()
@@ -1053,13 +1053,6 @@ _FA.UpdateScrollInfo = function(handle)
 		scroll:SetScrollPos(nStep)
 	end
 end
-
-----------------------------------------------
--- 构建 Item bPosition nClass bLastSelect 
--- bPosition [boolean] 面向或自定义圈分类 nil不更新
--- nClass [number] 更新分类 nil不更新  0 未分类 -1 更换分类 -2 清空 
--- bLastSelect [boolean] 高亮上次选择
-----------------------------------------------
 
 _FA.LoadDataPanel = function(bPosition,nClass,bLastSelect)
 	if type(bPosition) == "boolean" then

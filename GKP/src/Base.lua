@@ -165,6 +165,7 @@ _GKP.OpenPanel = function(bDisableSound)
 	local frame = Station.Lookup("Normal/GKP") or Wnd.OpenWindow(_GKP.szIniFile, "GKP")
 	frame:Show()
 	frame:BringToTop()
+	Station.SetActiveFrame(frame)
 	pcall(_GKP.Draw_GKP_Buff)
 	if not bDisableSound then
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
@@ -758,6 +759,7 @@ _GKP.PS = {}
 _GKP.PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["Preference Setting"], font = 27 })
+	ui:Append("WndButton3", { x = 350, y = 0 }):Text(_L["Open Panel"]):Click(_GKP.OpenPanel)
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = GKP.Config.bDisplayEmptyRecords })
 	:Text(_L["Clause with 0 Gold as Record"]):Click(function(bChecked)
 		GKP.Config.bDisplayEmptyRecords = bChecked
