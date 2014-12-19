@@ -67,11 +67,7 @@ RegisterCustomData("BossFaceAlert.tFlashColor")
 BossFaceAlert.nLineWidth = 2
 
 BossFaceAlert.DrawFaceLineNames = {}
-RegisterCustomData("BossFaceAlert.DrawFaceLineNames")
-
 BossFaceAlert.FaceClassNameInfo = {}
-RegisterCustomData("BossFaceAlert.FaceClassNameInfo")
-
 BossFaceAlert.tDefaultSetForAdd = {
 						szName = "默认设置",--Npc名字或者ID
 						bAllDisable = false,--关闭此项监控，默认false为开启，修改为true则关闭
@@ -146,7 +142,6 @@ function BossFaceAlert.LoadSettingsFileNew(szName, bOverride)
 	end
 	
 	if bOverride then
-		--BossFaceAlert.DrawFaceLineNames = BossFaceAlert_DrawFaceLineNames_New
 		if not BossFaceAlert_DrawFaceLineNames_New.DrawFaceLineNames or not BossFaceAlert_DrawFaceLineNames_New.FaceClassNameInfo then
 			BossFaceAlert.DrawFaceLineNames = BossFaceAlert_DrawFaceLineNames_New
 		else
@@ -155,7 +150,7 @@ function BossFaceAlert.LoadSettingsFileNew(szName, bOverride)
 
 		end
 	else
-		BossFaceAlert_DrawFaceLineNames_New2 = {}
+		local BossFaceAlert_DrawFaceLineNames_New2 = {}
 		if not BossFaceAlert_DrawFaceLineNames_New.DrawFaceLineNames then
 			BossFaceAlert_DrawFaceLineNames_New2 = BossFaceAlert_DrawFaceLineNames_New
 		else
@@ -173,7 +168,6 @@ function BossFaceAlert.LoadSettingsFileNew(szName, bOverride)
 			local oClassNum = tonumber(table.getn(BossFaceAlert.FaceClassNameInfo)) or 0 -- 老的分类有几个
 			
 			for i = 1,#FaceClassNameInfo,1 do
-				--FaceClassNameInfo[i].szName = "新合并分类" .. i + oClassNum
 				table.insert(BossFaceAlert.FaceClassNameInfo, FaceClassNameInfo[i])
 			end
 			
@@ -418,8 +412,8 @@ _BFA.UpdateScrutiny = function(me,class,cTab,aTab)
 
 							
 							if data.bTimerHeadEnable then
-								if ScreenHead then
-									ScreenHead(target.dwID,{ txt = _L("Staring %s",szName)})
+								if type(ScreenHead) ~= "nil" then
+									ScreenHead(target.dwID, { txt = _L("Staring %s",szName)})
 								end
 							end
 							
@@ -1142,7 +1136,6 @@ JH.RegisterEvent("LOGIN_GAME", function()
 	_BFA.tHandle.handleShadowBorder = JH.GetShadowHandle("Handle_Shadow_Border")
 	_BFA.tHandle.handleShadowName = JH.GetShadowHandle("Handle_Shadow_Name"):AppendItemFromIni(_BFA.szItemIni, "shadow", "BFA_NAME")
 	_BFA.tHandle.handleShadowName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
-	BFA.Init()
 end)
 
 ---------------------------------------------------------------------------------------------------------
