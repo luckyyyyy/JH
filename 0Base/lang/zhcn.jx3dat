@@ -448,4 +448,7 @@ data = {
 	[" Text Scale"] = " 文字缩放",
 	["JH @ Double Dream Town"] = "",
 	["OnlyPlane direction"] = "只计算平面距离",
+	["Show Target Hatred"] = "显示目标仇恨",
+	["Lock Panel"] = "锁定位置",
+	["Show Background"] = "显示背景图片",
 }

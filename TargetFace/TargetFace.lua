@@ -21,13 +21,21 @@ TargetFace = {
 	bDirection = false,
 	tAnchor = {},
 	bOnlyPlane = false,
+	-- ³ðºÞÏÔÊ¾
+	bHatred = false,
+	tHatredAnchor = { nX = -86, nY = -18},
+	bHatredLockPanel = false,
+	bHatredShowBG = true,
 }
 JH.RegisterCustomData("TargetFace")
-Direction = {}
-local Direction = Direction
-local TargetFace = TargetFace
+Direction, Hatred = {}, {}
+local Direction, Hatred, TargetFace = Direction, Hatred, TargetFace
 local _Direction = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Direction.ini"
+}
+local _Hatred = {
+	dwTarget = 0,
+	szIniFile = JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Hatred.ini"
 }
 local _TargetFace = {
 	szItemIni = JH.GetAddonInfo().szShadowIni,
@@ -260,6 +268,103 @@ _Direction.UpdateGPS = function(tar)
 		_Direction.txt:SetText(_L("%.1f feet", JH.GetDistance(tar)))
 	end
 end
+-- ³ðºÞ
+
+_Hatred.OpenPanel = function()
+	local frame = _Hatred.frame or Wnd.OpenWindow(_Hatred.szIniFile,"Hatred")
+	return frame
+end
+
+_Hatred.ClosePanel = function()
+	Wnd.CloseWindow(_Hatred.frame)
+	JH.BreatheCall("Hatred")
+	_Hatred.dwTarget = 0
+	_Hatred.text = nil
+	_Hatred.frame = nil
+end
+
+function Hatred.OnFrameCreate()
+	this:RegisterEvent("UPDATE_SELECT_TARGET")
+	this:RegisterEvent("CHARACTER_THREAT_RANKLIST")
+	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
+	this:EnableDrag(not TargetFace.bHatredLockPanel)
+	this:SetMousePenetrable(TargetFace.bHatredLockPanel)
+	if TargetFace.bHatredShowBG then
+		this:Lookup("", "Image_Bg"):Show()
+	else
+		this:Lookup("", "Image_Bg"):Hide()
+	end
+	_Hatred.frame = this
+	_Hatred.text = this:Lookup("", "Text_Label")
+	Hatred.OnEvent("UPDATE_SELECT_TARGET")
+end
+
+function Hatred.OnEvent(szEvent)
+	if szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
+		_Hatred.UpdateAnchor(this)
+	elseif szEvent == "UPDATE_SELECT_TARGET" then
+		_Hatred.UpdateAnchor(this)
+		if Target_GetTargetData() then
+			local dwID, dwType = Target_GetTargetData()
+			if dwType == TARGET.NPC then
+				_Hatred.dwTarget = dwID
+				JH.BreatheCall("Hatred", function() ApplyCharacterThreatRankList(dwID) end)
+			else
+				_Hatred.dwTarget = 0
+				this:Hide()
+				JH.BreatheCall("Hatred")
+			end
+		else
+			_Hatred.dwTarget = 0
+			this:Hide()
+			JH.BreatheCall("Hatred")
+		end
+	elseif szEvent == "CHARACTER_THREAT_RANKLIST" then
+		if arg0 == _Hatred.dwTarget then
+			if arg2 and arg1[arg2] then
+				this:Show()
+				local dwTargetRank = arg1[arg2]
+				if dwTargetRank == 0 then
+					dwTargetRank = 65535
+				end
+				local myRank = arg1[UI_GetClientPlayerID()] or 0
+				local fP = myRank / dwTargetRank * 100
+				local r, g, b = 255, 255, 255
+				if fP > 85 and fP < 100 then
+					r, g, b = 255, 255, 0
+				elseif fP > 100 then
+					r, g, b = 255, 128, 0
+				elseif fP == 100 then
+					r, g, b = 255, 0, 0
+				end
+				_Hatred.text:SetText(FixFloat(fP, 1) .. "%")
+				_Hatred.text:SetFontColor(r, g, b)
+			elseif IsEmpty(arg1) then
+				this:Hide()
+			end
+		end
+	end
+end
+
+function Hatred.OnFrameDragEnd()
+	local target = Station.Lookup("Normal/Target")
+	if target then
+		local tX,tY = target:GetRelPos()
+		local mX,mY = this:GetRelPos()
+		TargetFace.tHatredAnchor.nX = tX - mX
+		TargetFace.tHatredAnchor.nY = tY - mY
+	end
+	_Hatred.UpdateAnchor(this)
+end
+
+_Hatred.UpdateAnchor = function(frame)
+	local target = Station.Lookup("Normal/Target")
+	if target then
+		local tX,tY = target:GetRelPos()
+		local mX,mY = tX - TargetFace.tHatredAnchor.nX, tY - TargetFace.tHatredAnchor.nY
+		frame:SetRelPos(mX, mY)
+	end
+end
 
 local PS = {}
 PS.OnPanelActive = function(frame)
@@ -409,6 +514,37 @@ PS.OnPanelActive = function(frame)
 		TargetFace.fScale = nVal / 10
 		_TargetFace.bReRender = true
 	end):Pos_()	
+	
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY, checked = TargetFace.bHatred })
+	:Text(_L["Show Target Hatred"]):Click(function(bChecked)
+		TargetFace.bHatred = bChecked
+		ui:Fetch("bHatredLockPanel"):Enable(bChecked)
+		ui:Fetch("bHatredShowBG"):Enable(bChecked)
+		if bChecked then
+			_Hatred.OpenPanel()
+		else
+			_Hatred.ClosePanel()
+		end
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bHatredLockPanel", { x = nX + 5, y = nY, checked = TargetFace.bHatredLockPanel })
+	:Enable(TargetFace.bHatred):Text(_L["Lock Panel"]):Click(function(bChecked)
+		TargetFace.bHatredLockPanel = bChecked
+		if _Hatred.frame then
+			_Hatred.frame:EnableDrag(not bChecked)
+			_Hatred.frame:SetMousePenetrable(bChecked)
+		end
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", "bHatredShowBG", { x = nX + 5, y = nY, checked = TargetFace.bHatredShowBG })
+	:Enable(TargetFace.bHatred):Text(_L["Show Background"]):Click(function(bChecked)
+		TargetFace.bHatredShowBG = bChecked
+		if _Hatred.frame then
+			if bChecked then
+				_Hatred.frame:Lookup("", "Image_Bg"):Show()
+			else
+				_Hatred.frame:Lookup("", "Image_Bg"):Hide()
+			end
+		end
+	end):Pos_()	
 	nX,nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
 end
@@ -419,6 +555,9 @@ JH.RegisterInit("TargetFace",
 		_TargetFace.Init()
 		if TargetFace.bDirection then
 			_Direction.OpenPanel()
+		end
+		if TargetFace.bHatred then
+			_Hatred.OpenPanel()
 		end
 	end },
 	{ "UPDATE_SELECT_TARGET", function() _TargetFace.bReRender = true end },
