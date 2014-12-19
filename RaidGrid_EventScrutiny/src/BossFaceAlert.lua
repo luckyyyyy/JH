@@ -140,8 +140,8 @@ local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX,nY = ui:Append("Text", { x = 0, y = 0, txt = "面向目标监控", font = 27 }):Pos_()
-	nX = ui:Append("WndButton2", { x = nX + 15, y = 0 })
-	:Text("打开面板"):Click(FA.OpenPanel):Pos_()
+	nX = ui:Append("WndButton3", { x = 350, y = 0 })
+	:Text("数据设置面板"):Click(FA.OpenPanel):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = BossFaceAlert.bBorder })
 	:Text("边框模式（强烈建议开启,但略微影响性能）"):Click(function(bChecked)
 		BossFaceAlert.bBorder = bChecked
@@ -176,7 +176,7 @@ PS.OnPanelActive = function(frame)
 	nX = ui:Append("WndButton2", { x = 10, y = nY + 5 })
 	:Text("默认面向"):Click(function() FA.LoadAndSaveData(nil,false) end):Pos_()
 end
-GUI.RegisterPanel("面向圈和线", 194, _L["RGES"],PS)
+GUI.RegisterPanel("面向目标监控", 194, _L["RGES"],PS)
 
 function BossFaceAlert.GetMenuList()
 	if JH.IsPanelOpened() then

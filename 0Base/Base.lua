@@ -224,6 +224,7 @@ JH.OpenPanel = function(szTitle)
 			end
 		end
 	end
+	Station.SetActiveFrame(_JH.frame)
 end
 
 -- open
