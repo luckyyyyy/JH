@@ -296,7 +296,7 @@ function Hatred.OnFrameCreate()
 	end
 	_Hatred.frame = this
 	_Hatred.text = this:Lookup("", "Text_Label")
-	Hatred.OnEvent("UPDATE_SELECT_TARGET")
+	this:Hide()
 end
 
 function Hatred.OnEvent(szEvent)
