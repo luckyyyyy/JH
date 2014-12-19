@@ -639,7 +639,27 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 		RaidGrid_Base.Message(_L("Merge %s data done","RGES"))
 		
 		if RaidGrid_EventScrutiny.bOutputBossFaceData then -- 合并面向的数据
-			BossFaceAlert.LoadSettingsFileNew(szName,bOverride)
+			local FaceClassNameInfo = data.FaceClassNameInfo
+			if not FaceClassNameInfo then
+				for i = 1,#data.DrawFaceLineNames do
+					data.DrawFaceLineNames[i].nFaceClass = nil
+					BossFaceAlert.AddListByCopy(data.DrawFaceLineNames[i], data.DrawFaceLineNames[i].szName)
+				end
+			else
+				local oClassNum = #BossFaceAlert.FaceClassNameInfo or 0 -- 老的分类有几个
+				for i = 1,#FaceClassNameInfo,1 do
+					table.insert(BossFaceAlert.FaceClassNameInfo, FaceClassNameInfo[i])
+				end
+				for i = 1, #data.DrawFaceLineNames do
+					if data.DrawFaceLineNames[i].nFaceClass then
+						data.DrawFaceLineNames[i].nFaceClass = data.DrawFaceLineNames[i].nFaceClass + oClassNum
+					end
+					BossFaceAlert.AddListByCopy(data.DrawFaceLineNames[i], data.DrawFaceLineNames[i].szName)
+				end
+			end
+			RaidGrid_Base.Message(_L("Merge %s data done", "BossFaceAlert"))
+			BFA.Init()
+			FA.ClearPanel()
 		end
 		
 		if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then -- 合并喊话数据
@@ -5157,7 +5177,7 @@ function RaidGrid_EventCache.PopRBOptions(handle)
 			bDevide = true
 		},
 		{
-			szOption = szOption, rgb = rgb ,bCheck = false, bChecked = false, bDisable = (not BossFaceAlert) or (not BossFaceAlert.AddList) or handle.tRecord.szType ~= "Npc", fnAction = function(UserData, bCheck)
+			szOption = szOption, rgb = rgb ,bCheck = false, bChecked = false, bDisable = handle.tRecord.szType ~= "Npc", fnAction = function(UserData, bCheck)
 				if IsAltKeyDown() then
 					RaidGrid_EventScrutiny.AddIdToBossFaceAlert(handle.tRecord)
 				else
