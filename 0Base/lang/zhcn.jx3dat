@@ -465,4 +465,5 @@ data = {
 	["Style %d"] = "风格 %d",
 	["Max Count"] = "最大显示数量",
 	["Style folder:"] = "风格文件夹：",
+	["Special Self"] = "自己的颜色特殊化显示",
 }

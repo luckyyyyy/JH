@@ -1,0 +1,44 @@
+-- 请注意 这个文件用于控制风格的图片和文字
+data = {
+	{
+		-- FromUITex szImage, nFrame 
+		-- [1] = > 0.01 * 1.2
+		-- [2] = > 0.30 * 1.2
+		-- [3] = > 0.54 * 1.2
+		-- [4] = > 0.83 * 1.2
+		-- [5] = me
+		-- [6] = name, value FontScheme
+		{ "ui/Image/TargetPanel/Target.UITex", 73 },
+		{ "ui/Image/TargetPanel/Target.UITex", 87 },
+		{ "ui/Image/TargetPanel/Target.UITex", 38 },
+		{ "ui/Image/TargetPanel/Target.UITex", 40 },
+		{ "ui/Image/TargetPanel/Target.UITex", 37 },
+		{ 168, 40 }
+	},
+	{
+		{ "ui/Image/Common/Money.uitex", 210 },
+		{ "ui/Image/Common/Money.uitex", 207 },
+		{ "ui/Image/Common/Money.uitex", 168 },
+		{ "ui/Image/Common/Money.uitex", 26 },
+		{ "ui/Image/Common/Money.uitex", 208 },
+		{ 234, 40 }
+	},
+	{
+		{ "ui/Image/Common/Money.uitex", 217 },
+		{ "ui/Image/Common/Money.uitex", 214 },
+		{ "ui/Image/Common/Money.uitex", 216 },
+		{ "ui/Image/Common/Money.uitex", 215 },
+		{ "ui/Image/Common/Money.uitex", 213 },
+		{ 40, 40 }
+	},
+	{
+		{ "ui/Image/UICommon/RaidTotal.UITex", 59 },
+		{ "ui/Image/UICommon/RaidTotal.UITex", 58 },
+		{ "ui/Image/UICommon/RaidTotal.UITex", 60 },
+		{ "ui/Image/UICommon/RaidTotal.UITex", 54 },
+		{ "ui/Image/UICommon/RaidTotal.UITex", 57 },
+		{ 168, 40 }
+	},
+	
+	
+}
