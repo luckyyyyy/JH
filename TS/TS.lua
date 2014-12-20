@@ -18,7 +18,7 @@ JH.RegisterCustomData("TS")
 local TS = TS
 local ipairs, pairs = ipairs, pairs
 local GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList
-
+local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local _TS = {
 	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TS/ui/TS.ini",
@@ -68,6 +68,7 @@ function TS.OnFrameCreate()
 			_TS.dwLockTargetID = 0
 			if not dwID then
 				_TS.frame:Hide()
+				JH.UnBreatheCall("TS")
 			end
 		end
 	end)
@@ -90,7 +91,7 @@ function TS.OnEvent(szEvent)
 			end
 			local p = GetNpc(_TS.dwTargetID)
 			-- _TS.txt:SetText(JH.GetTemplateName(p))
-			_TS.txt:SetFontColor(GetHeadTextForceFontColor(p.dwID, UI_GetClientPlayerID()))
+			-- _TS.txt:SetFontColor(GetHeadTextForceFontColor(p.dwID, UI_GetClientPlayerID()))
 			JH.BreatheCall("TS", _TS.OnBreathe)
 			this:Show()
 		else
@@ -123,6 +124,8 @@ _TS.OnBreathe = function()
 			_TS.CastBar:Hide()
 			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper))
 		end
+	else
+		this:Hide()
 	end
 end
 
@@ -138,6 +141,7 @@ end
 
 _TS.UpdateThreatBars = function(dwTargetID, tList)
 	local me = GetClientPlayer()
+	local team = GetClientTeam()
 	local tar = GetNpc(dwTargetID)
 	local _, ttarID = 0, 0
 	if tar then
@@ -197,7 +201,12 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 			item:Lookup("Text_ThreatName"):SetFontScheme(dat[6][1])
 			item:Lookup("Text_ThreatName"):SetFontColor(r, g, b)
 			if TS.bForceIcon then
-				item:Lookup("Image_Icon"):FromUITex(GetForceImage(dwForceID))
+				if JH.IsParty(v.id) and IsPlayer(v.id) then
+					local dwMountKungfuID =	team.GetMemberInfo(v.id).dwMountKungfuID
+					item:Lookup("Image_Icon"):FromIconID(Table_GetSkillIconID(dwMountKungfuID, 1))
+				else
+					item:Lookup("Image_Icon"):FromUITex(GetForceImage(dwForceID))
+				end
 				item:Lookup("Text_ThreatName"):SetRelPos(21, 4)
 				item:FormatAllItemPos()
 			end
@@ -216,7 +225,7 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 			end
 			if nThreatPercentage >= 0.83 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
-				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --红色的 无论如何都显示白了 要看不清
+				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --红色的 无论如何都显示白了 否则看不清
 			elseif nThreatPercentage >= 0.54 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[3]))
 			elseif nThreatPercentage >= 0.30 then
@@ -298,7 +307,7 @@ PS.OnPanelActive = function(frame)
 		end
 	end):Pos_()	
 	
-	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceIcon, txt = _L["Force Icon"] })
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY - 2, checked = TS.bForceIcon, txt = _L["Force Icon"] })
 	:Click(function(bChecked)
 		TS.bForceIcon = bChecked
 	end):Pos_()
