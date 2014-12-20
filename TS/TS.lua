@@ -7,17 +7,19 @@ TS = {
 	szThreatPercentAccuracy = "%.0f%%", --显示几个小数点 没啥意义 不让更改了
 	nMaxBarCount = 5, -- 最大列表
 	bForceColor = true, --根据门派着色
-	nOTAlertLevel = 1, -- OT提醒 必须判断< 1.2 不然强制注视也算OT了
+	nOTAlertLevel = 1, -- OT提醒
 	bOTAlertSound = true, -- OT 播放声音
+	bSpecialSelf = true, -- 特殊颜色显示自己
 	tAnchor = {},
 	nStyle = 1,
 }
-
+JH.RegisterCustomData("TS")
 local TS = TS
 local ipairs, pairs = ipairs, pairs
 local GetPlayer, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, IsPlayer, ApplyCharacterThreatRankList
 
 local _TS = {
+	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style/style.jx3dat"),
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TS/ui/TS.ini",
 	dwTargetID = 0,
 	dwLockTargetID = 0,
@@ -86,7 +88,7 @@ function TS.OnEvent(szEvent)
 				_TS.dwTargetID = dwID
 			end
 			local p = GetNpc(_TS.dwTargetID)
-			_TS.txt:SetText(JH.GetTemplateName(p))
+			-- _TS.txt:SetText(JH.GetTemplateName(p))
 			_TS.txt:SetFontColor(GetHeadTextForceFontColor(p.dwID, UI_GetClientPlayerID()))
 			JH.BreatheCall("TS", _TS.OnBreathe)
 			this:Show()
@@ -116,8 +118,9 @@ _TS.OnBreathe = function()
 			_TS.CastBar:SetPercentage(per)
 			_TS.txt:SetText(JH.GetSkillName(dwSkillID, dwSkillLevel))
 		else
+			local lifeper = p.nCurrentLife / p.nMaxLife * 100
 			_TS.CastBar:Hide()
-			_TS.txt:SetText(JH.GetTemplateName(p))
+			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper))
 		end
 	end
 end
@@ -159,13 +162,15 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 			table.sort(tThreat, function(a, b) return a.val > b.val end)
 			table.insert(tThreat, 1, _t)
 		end
+		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
 		for k, v in ipairs(tThreat) do
 			if k > TS.nMaxBarCount then
 				break
 			end
-			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/style/" .. TS.nStyle .. ".ini", "Handle_ThreatBar", k)
+			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			if v.val > 0.01 and tThreat[1].val > 0.01 then
 				item:Lookup("Text_ThreatValue"):SetText((TS.szThreatPercentAccuracy):format(100 * v.val / tThreat[1].val))
+				item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
 			end
 			local r, g, b = 162, 162, 162
 			local szName = v.id
@@ -186,8 +191,8 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 				end
 			end
 			item:Lookup("Text_ThreatName"):SetText(szName)
+			item:Lookup("Text_ThreatName"):SetFontScheme(dat[6][1])
 			item:Lookup("Text_ThreatName"):SetFontColor(r, g, b)
-			
 			local nThreatPercentage = v.val / tThreat[1].val * (100 / 124)
 			
 			if me.dwID == v.id then
@@ -201,19 +206,20 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 				end
 				_TS.bSelfTreatRank = v.val / tThreat[1].val
 			end
+			
 			if nThreatPercentage >= 0.83 then
-				item:Lookup("Image_Treat_Bar_Red"):Show()
-				item:Lookup("Image_Treat_Bar_Red"):SetPercentage(nThreatPercentage)
+				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
 			elseif nThreatPercentage >= 0.54 then
-				item:Lookup("Image_Treat_Bar_Yellow"):Show()
-				item:Lookup("Image_Treat_Bar_Yellow"):SetPercentage(nThreatPercentage)
+				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[3]))
 			elseif nThreatPercentage >= 0.30 then
-				item:Lookup("Image_Treat_Bar_Green"):Show()
-				item:Lookup("Image_Treat_Bar_Green"):SetPercentage(nThreatPercentage)
+				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[2]))
 			elseif nThreatPercentage >= 0.01 then
-				item:Lookup("Image_Treat_Bar_White"):Show()
-				item:Lookup("Image_Treat_Bar_White"):SetPercentage(nThreatPercentage)
+				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[1]))
 			end
+			if TS.bSpecialSelf and v.id == UI_GetClientPlayerID() then
+				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[5]))
+			end
+			item:Lookup("Image_Treat_Bar"):SetPercentage(nThreatPercentage)
 			item:Show()
 		end
 		_TS.handle:FormatAllItemPos()
@@ -283,6 +289,11 @@ PS.OnPanelActive = function(frame)
 			_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
 		end
 	end):Pos_()	
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bSpecialSelf, txt = _L["Special Self"] })
+	:Click(function(bChecked)
+		TS.bSpecialSelf = bChecked
+	end):Pos_()
+	
 	nX = ui:Append("WndComboBox", { x = 10, y = nY, txt = _L["Style Select"] })
 	:Menu(function()
 		local t = {}
@@ -291,7 +302,7 @@ PS.OnPanelActive = function(frame)
 				szOption = _L("Style %d", i),
 				bMCheck = true,
 				bChecked = TS.nStyle == i,
-				bDisable = not IsFileExist(JH.GetAddonInfo().szRootPath .. "TS/ui/style/" .. i .. ".ini"),
+				bDisable = not _TS.tStyle[i],
 				fnAction = function()
 					TS.nStyle = i
 				end,				
@@ -328,6 +339,8 @@ JH.RegisterEvent("LOADING_END", function()
 		else
 			_TS.ClosePanel()
 		end
+	else
+		_TS.OpenPanel()
 	end
 	_TS.dwLockTargetID = 0
 	_TS.dwTargetID = 0
