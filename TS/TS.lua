@@ -6,20 +6,21 @@ TS = {
 	nBGAlpha = 30, -- 背景透明度
 	szThreatPercentAccuracy = "%.0f%%", --显示几个小数点 没啥意义 不让更改了
 	nMaxBarCount = 5, -- 最大列表
-	bForceColor = true, --根据门派着色
+	bForceColor = false, --根据门派着色
+	bForceIcon = true,
 	nOTAlertLevel = 1, -- OT提醒
 	bOTAlertSound = true, -- OT 播放声音
 	bSpecialSelf = true, -- 特殊颜色显示自己
 	tAnchor = {},
-	nStyle = 1,
+	nStyle = 2,
 }
 JH.RegisterCustomData("TS")
 local TS = TS
 local ipairs, pairs = ipairs, pairs
-local GetPlayer, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, IsPlayer, ApplyCharacterThreatRankList
+local GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList
 
 local _TS = {
-	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style/style.jx3dat"),
+	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TS/ui/TS.ini",
 	dwTargetID = 0,
 	dwLockTargetID = 0,
@@ -173,7 +174,7 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 				item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
 			end
 			local r, g, b = 162, 162, 162
-			local szName = v.id
+			local szName, dwForceID = v.id, 0
 			if IsPlayer(v.id) then
 				local p = GetPlayer(v.id)
 				if p then
@@ -182,19 +183,26 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 					else
 						r, g, b = 255, 255, 255
 					end
+					dwForceID = p.dwForceID
 					szName = p.szName
 				end
 			else
 				local p = GetNpc(v.id)
 				if p then
 					szName = p.szName
+					-- dwForceID = p.dwForceID -- NPC有势力吗???
 				end
 			end
 			item:Lookup("Text_ThreatName"):SetText(szName)
 			item:Lookup("Text_ThreatName"):SetFontScheme(dat[6][1])
 			item:Lookup("Text_ThreatName"):SetFontColor(r, g, b)
-			local nThreatPercentage = v.val / tThreat[1].val * (100 / 124)
+			if TS.bForceIcon then
+				item:Lookup("Image_Icon"):FromUITex(GetForceImage(dwForceID))
+				item:Lookup("Text_ThreatName"):SetRelPos(21, 4)
+				item:FormatAllItemPos()
+			end
 			
+			local nThreatPercentage = v.val / tThreat[1].val * (100 / 124)
 			if me.dwID == v.id then
 				if TS.nOTAlertLevel > 0 then
 					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / tThreat[1].val >= TS.nOTAlertLevel then
@@ -206,9 +214,9 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 				end
 				_TS.bSelfTreatRank = v.val / tThreat[1].val
 			end
-			
 			if nThreatPercentage >= 0.83 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
+				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --红色的 无论如何都显示白了 要看不清
 			elseif nThreatPercentage >= 0.54 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[3]))
 			elseif nThreatPercentage >= 0.30 then
@@ -289,6 +297,12 @@ PS.OnPanelActive = function(frame)
 			_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
 		end
 	end):Pos_()	
+	
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceIcon, txt = _L["Force Icon"] })
+	:Click(function(bChecked)
+		TS.bForceIcon = bChecked
+	end):Pos_()
+	
 	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bSpecialSelf, txt = _L["Special Self"] })
 	:Click(function(bChecked)
 		TS.bSpecialSelf = bChecked
@@ -326,7 +340,7 @@ PS.OnPanelActive = function(frame)
 		return t
 	end):Pos_()
 	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Style folder:"] .. JH.GetAddonInfo().szRootPath .. "TS/ui/style/" }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Style folder:"] .. JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat" }):Pos_()
 end
 
 GUI.RegisterPanel(_L["ThreatScrutiny"], 2047, _L["General"], PS)
