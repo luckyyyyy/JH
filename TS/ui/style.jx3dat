@@ -18,10 +18,10 @@ data = {
 	{
 		{ "ui/Image/Common/Money.uitex", 210 },
 		{ "ui/Image/Common/Money.uitex", 207 },
-		{ "ui/Image/Common/Money.uitex", 168 },
+		{ "ui/Image/Common/Money.uitex", 232 },
 		{ "ui/Image/Common/Money.uitex", 26 },
 		{ "ui/Image/Common/Money.uitex", 208 },
-		{ 234, 40 }
+		{ 168, 40 }
 	},
 	{
 		{ "ui/Image/Common/Money.uitex", 217 },
@@ -29,7 +29,7 @@ data = {
 		{ "ui/Image/Common/Money.uitex", 216 },
 		{ "ui/Image/Common/Money.uitex", 215 },
 		{ "ui/Image/Common/Money.uitex", 213 },
-		{ 40, 40 }
+		{ 168, 40 }
 	},
 	{
 		{ "ui/Image/UICommon/RaidTotal.UITex", 59 },
