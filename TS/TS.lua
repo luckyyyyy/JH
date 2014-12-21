@@ -105,7 +105,7 @@ function TS.OnEvent(szEvent)
 		end
 	elseif szEvent == "CHARACTER_THREAT_RANKLIST" then
 		if arg0 == _TS.dwTargetID then
-			_TS.UpdateThreatBars(arg1, arg2)
+			_TS.UpdateThreatBars(arg1, arg2, arg0)
 		end
 	end
 end
@@ -123,7 +123,8 @@ _TS.OnBreathe = function()
 		if bIsPrepare then
 			_TS.CastBar:Show()
 			_TS.CastBar:SetPercentage(per)
-			_TS.txt:SetText(JH.GetSkillName(dwSkillID, dwSkillLevel))
+			local szName = JH.GetSkillName(dwSkillID, dwSkillLevel)
+			_TS.txt:SetText(szName)
 		else
 			local lifeper = p.nCurrentLife / p.nMaxLife
 			_TS.CastBar:Hide()
@@ -155,23 +156,45 @@ _TS.UpdateAnchor = function(frame)
 	this:CorrectPos()
 end
 
-_TS.UpdateThreatBars = function(tList, dwTargetID)
+-- 有几个问题
+-- 1) 当前目标 结果反馈的是0仇恨 BUG了 fixed
+-- 2) 反馈的目标是错误的 也BUG了 fixed
+-- 3) 他选中自己 等于当前目标丢失了
+-- 4) 反馈的列表中不存在当前目标 我也是醉了 无能为力
+_TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
 	local tThreat, nTopRank, nMyRank = {}, 65535, 0
-	for dwID, nThreatRank in pairs(tList) do
-		if dwTargetID == dwID then
-			table.insert(tThreat, 1, { id = dwID, val = nThreatRank })
-			if nThreatRank ~= 0 then
-				nTopRank = nThreatRank
+	
+	-- 修复arg2反馈不准。。。
+	local dwID, dwType = Target_GetTargetData()
+	if dwID == dwApplyID and dwType == TARGET.NPC then
+		local p = GetNpc(dwApplyID)
+		if p then
+			local _, tdwID = p.GetTarget()
+			if tdwID ~= dwTargetID and tList[tdwID] then
+				-- 额这种情况 还是让仇恨高的放前面吧
+				if tList[tdwID] > tList[dwTargetID] then
+					dwTargetID = tdwID
+				end
 			end
-		else
-			table.insert(tThreat, { id = dwID, val = nThreatRank })
-		end
-		if dwID == UI_GetClientPlayerID() then
-			nMyRank = nThreatRank
 		end
 	end
+	
+	for k, v in pairs(tList) do
+		if dwTargetID == k then
+			if v > 0.01 then -- 1仇永远不能是0
+				nTopRank = v
+			end
+			table.insert(tThreat, 1, { id = k, val = nTopRank })
+		else
+			table.insert(tThreat, { id = k, val = v })
+		end
+		if k == UI_GetClientPlayerID() then
+			nMyRank = v
+		end
+	end
+	
 	_TS.bg:SetSize(208, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:SetSize(208, 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
@@ -210,7 +233,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID)
 			end
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			local nThreatPercentage = 0
-			if v.val > 0.01 and nTopRank > 0.01 then
+			if v.val > 0.01 then
 				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * v.val / nTopRank) .. "%")
 				nThreatPercentage = v.val / nTopRank * (100 / 124)
 			else
