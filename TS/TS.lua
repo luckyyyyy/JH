@@ -67,7 +67,9 @@ function TS.OnFrameCreate()
 			_TS.dwLockTargetID = _TS.dwTargetID
 		else
 			_TS.dwLockTargetID = 0
-			if not dwID then
+			if dwID then
+				_TS.dwTargetID = dwID
+			else
 				_TS.UnBreathe()
 			end
 		end
@@ -159,28 +161,24 @@ end
 -- 有几个问题
 -- 1) 当前目标 结果反馈的是0仇恨 BUG了 fixed
 -- 2) 反馈的目标是错误的 也BUG了 fixed
--- 3) 他选中自己 等于当前目标丢失了
--- 4) 反馈的列表中不存在当前目标 我也是醉了 无能为力
+-- 3) 因为是异步 反馈时目标已经更新 也需要同时更新 fixed
+-- 4) 反馈的列表中不存在当前目标 fixed
 _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
-	local me = GetClientPlayer()
 	local team = GetClientTeam()
 	local tThreat, nTopRank, nMyRank = {}, 65535, 0
 	
-	-- 修复arg2反馈不准。。。
+	-- 修复arg2反馈不准 当前目标才修复 非当前目标也不准。。
 	local dwID, dwType = Target_GetTargetData()
 	if dwID == dwApplyID and dwType == TARGET.NPC then
 		local p = GetNpc(dwApplyID)
 		if p then
 			local _, tdwID = p.GetTarget()
-			if tdwID ~= dwTargetID and tList[tdwID] then
-				-- 额这种情况 还是让仇恨高的放前面吧
-				if tList[tdwID] > tList[dwTargetID] then
-					dwTargetID = tdwID
-				end
+			if tdwID and tdwID ~= 0 and tdwID ~= dwTargetID and tList[tdwID] then -- 原来是0 搞半天。。
+				dwTargetID = tdwID
 			end
 		end
 	end
-	
+	-- 重构用于排序
 	for k, v in pairs(tList) do
 		if dwTargetID == k then
 			if v > 0.01 then -- 1仇永远不能是0
@@ -201,7 +199,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 	if #tThreat > 0 then
 		this:Show()
 		if #tThreat >= 2 then
-			if TS.bTopTarget then
+			if TS.bTopTarget and tList[dwTargetID] then
 				local _t = tThreat[1]
 				table.remove(tThreat, 1)
 				table.sort(tThreat, function(a, b) return a.val > b.val end)
@@ -210,13 +208,14 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				table.sort(tThreat, function(a, b) return a.val > b.val end)
 			end
 		end
+		-- 我就说 这坑爹的 血战测出来的bug
+		if not tList[dwTargetID] then
+			nTopRank = tThreat[1].val
+		end
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
 		local show = false
 		for k, v in ipairs(tThreat) do
-			if k > TS.nMaxBarCount then
-				break
-			end
-
+			if k > TS.nMaxBarCount then	break end
 			if UI_GetClientPlayerID() == v.id then
 				if TS.nOTAlertLevel > 0 then
 					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
@@ -231,6 +230,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- 始终显示自己的
 				v.id, v.val = UI_GetClientPlayerID(), nMyRank
 			end
+			
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			local nThreatPercentage = 0
 			if v.val > 0.01 then
