@@ -41,6 +41,7 @@ _TS.ClosePanel = function()
 	_TS.handle = nil
 	_TS.txt = nil
 	_TS.CastBar = nil
+	_TS.Life = nil
 	_TS.dwLockTargetID = 0
 	_TS.dwTargetID = 0
 	_TS.bSelfTreatRank = 0
@@ -57,18 +58,16 @@ function TS.OnFrameCreate()
 	_TS.handle = this:Lookup("", "Handle_List")
 	_TS.txt = this:Lookup("","Handle_TargetInfo"):Lookup("Text_Name")
 	_TS.CastBar = this:Lookup("","Handle_TargetInfo"):Lookup("Image_Cast_Bar")
+	_TS.Life = this:Lookup("","Handle_TargetInfo"):Lookup("Image_Life")
 	local ui = GUI(this)
 	ui:Title(_L["ThreatScrutiny"]):Fetch("CheckBox_ScrutinyLock"):Click(function(bChecked)
 		local dwID, dwType = Target_GetTargetData()
 		if bChecked then
-			if dwType == TARGET.NPC then
-				_TS.dwLockTargetID = dwID
-			end
+			_TS.dwLockTargetID = _TS.dwTargetID
 		else
 			_TS.dwLockTargetID = 0
 			if not dwID then
-				_TS.frame:Hide()
-				JH.UnBreatheCall("TS")
+				_TS.UnBreathe()
 			end
 		end
 	end)
@@ -89,20 +88,23 @@ function TS.OnEvent(szEvent)
 			else
 				_TS.dwTargetID = dwID
 			end
-			local p = GetNpc(_TS.dwTargetID)
-			-- _TS.txt:SetText(JH.GetTemplateName(p))
-			-- _TS.txt:SetFontColor(GetHeadTextForceFontColor(p.dwID, UI_GetClientPlayerID()))
 			JH.BreatheCall("TS", _TS.OnBreathe)
 			this:Show()
+		elseif dwType == TARGET.PLAYER and GetPlayer(dwID) then
+			local tdwTpye, tdwID = GetPlayer(dwID).GetTarget()
+			if tdwTpye == TARGET.NPC then
+				_TS.dwTargetID = tdwID
+				JH.BreatheCall("TS", _TS.OnBreathe)
+				this:Show()
+			else
+				_TS.UnBreathe()
+			end
 		else
-			JH.UnBreatheCall("TS")
-			_TS.dwTargetID = 0
-			this:Hide()
-			_TS.handle:Clear()
+			_TS.UnBreathe()
 		end
 	elseif szEvent == "CHARACTER_THREAT_RANKLIST" then
 		if arg0 == _TS.dwTargetID then
-			_TS.UpdateThreatBars(arg0, arg1)
+			_TS.UpdateThreatBars(arg1, arg2)
 		end
 	end
 end
@@ -118,16 +120,28 @@ _TS.OnBreathe = function()
 		ApplyCharacterThreatRankList(_TS.dwTargetID)
 		local bIsPrepare, dwSkillID, dwSkillLevel, per = p.GetSkillPrepareState()
 		if bIsPrepare then
+			_TS.CastBar:Show()
 			_TS.CastBar:SetPercentage(per)
 			_TS.txt:SetText(JH.GetSkillName(dwSkillID, dwSkillLevel))
 		else
-			local lifeper = p.nCurrentLife / p.nMaxLife * 100
+			local lifeper = p.nCurrentLife / p.nMaxLife
 			_TS.CastBar:Hide()
-			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper))
+			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
+			_TS.Life:SetPercentage(lifeper)
 		end
 	else
 		this:Hide()
 	end
+end
+
+_TS.UnBreathe = function()
+	JH.UnBreatheCall("TS")
+	this:Hide()
+	_TS.dwTargetID = 0
+	_TS.handle:Clear()
+	_TS.bg:SetSize(208, 55)
+	_TS.txt:SetText(_L["Loading..."])
+	_TS.Life:SetPercentage(0)
 end
 
 _TS.UpdateAnchor = function(frame)
@@ -140,26 +154,21 @@ _TS.UpdateAnchor = function(frame)
 	this:CorrectPos()
 end
 
-_TS.UpdateThreatBars = function(dwTargetID, tList)
+_TS.UpdateThreatBars = function(tList, dwTargetID)
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
-	local tar = GetNpc(dwTargetID)
-	local _, ttarID = 0, 0
-	if tar then
-		_, ttarID = tar.GetTarget()
-	end
-	
 	local tThreat, nMyRank = {}, 0
-	for dwThreatID, nThreatRank in pairs(tList) do
-		if ttarID == dwThreatID then
-			table.insert(tThreat, 1, { id = dwThreatID, val = nThreatRank })
+	for dwID, nThreatRank in pairs(tList) do
+		if dwTargetID == dwID then
+			table.insert(tThreat, 1, { id = dwID, val = nThreatRank })
 		else
-			table.insert(tThreat, { id = dwThreatID, val = nThreatRank })
+			table.insert(tThreat, { id = dwID, val = nThreatRank })
 		end
-		if dwThreatID == UI_GetClientPlayerID() then
+		if dwID == UI_GetClientPlayerID() then
 			nMyRank = nThreatRank
 		end
 	end
+	-- if not dwTargetID then end 厄 没有目标则仇恨会怎么样？不得而知啊
 	_TS.bg:SetSize(208, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:SetSize(208, 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
@@ -171,6 +180,8 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 			table.sort(tThreat, function(a, b) return a.val > b.val end)
 			table.insert(tThreat, 1, _t)
 		end
+		-- fixed 目标是他，但是反馈的又是0 这样就造成仇恨列表BUG 修复掉
+		if tThreat[1].val == 0 then tThreat[1].val = 65535 end
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
 		local show = false
 		for k, v in ipairs(tThreat) do
@@ -189,10 +200,9 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 				end
 				_TS.bSelfTreatRank = v.val / tThreat[1].val
 				show = true
-			elseif k == TS.nMaxBarCount and not show and tList[v.id] then -- 始终显示自己的
+			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- 始终显示自己的
 				v.id, v.val = UI_GetClientPlayerID(), nMyRank
 			end
-
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			local nThreatPercentage = 0
 			if v.val > 0.01 and tThreat[1].val > 0.01 then
@@ -229,8 +239,10 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 				if JH.IsParty(v.id) and IsPlayer(v.id) then
 					local dwMountKungfuID =	team.GetMemberInfo(v.id).dwMountKungfuID
 					item:Lookup("Image_Icon"):FromIconID(Table_GetSkillIconID(dwMountKungfuID, 1))
-				else
+				elseif IsPlayer(v.id) then
 					item:Lookup("Image_Icon"):FromUITex(GetForceImage(dwForceID))
+				else
+					item:Lookup("Image_Icon"):FromUITex("ui/Image/TargetPanel/Target.uitex", 57)
 				end
 				item:Lookup("Text_ThreatName"):SetRelPos(21, 4)
 				item:FormatAllItemPos()
