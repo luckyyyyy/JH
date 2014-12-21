@@ -177,15 +177,27 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 			if k > TS.nMaxBarCount then
 				break
 			end
-			-- 始终显示自己的
-			if v.id == UI_GetClientPlayerID() then
+
+			if UI_GetClientPlayerID() == v.id then
+				if TS.nOTAlertLevel > 0 then
+					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / tThreat[1].val >= TS.nOTAlertLevel then
+						OutputMessage("MSG_ANNOUNCE_YELLOW", _L("** You Threat more than %.1f, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
+						if TS.bOTAlertSound then
+							PlaySound(SOUND.UI_SOUND, _L["SOUND_nat_view2"])
+						end
+					end
+				end
+				_TS.bSelfTreatRank = v.val / tThreat[1].val
 				show = true
-			elseif k == TS.nMaxBarCount and not show and me.bFightState then
+			elseif k == TS.nMaxBarCount and not show and tList[v.id] then -- 始终显示自己的
 				v.id, v.val = UI_GetClientPlayerID(), nMyRank
 			end
+
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
+			local nThreatPercentage = 0
 			if v.val > 0.01 and tThreat[1].val > 0.01 then
 				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * v.val / tThreat[1].val) .. "%")
+				nThreatPercentage = v.val / tThreat[1].val * (100 / 124)
 			else
 				item:Lookup("Text_ThreatValue"):SetText("0%")
 			end
@@ -223,19 +235,8 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 				item:Lookup("Text_ThreatName"):SetRelPos(21, 4)
 				item:FormatAllItemPos()
 			end
-			
-			local nThreatPercentage = v.val / tThreat[1].val * (100 / 124)
-			if me.dwID == v.id then
-				if TS.nOTAlertLevel > 0 then
-					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / tThreat[1].val >= TS.nOTAlertLevel then
-						OutputMessage("MSG_ANNOUNCE_YELLOW", _L("** You Threat more than %.1f, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
-						if TS.bOTAlertSound then
-							PlaySound(SOUND.UI_SOUND, _L["SOUND_nat_view2"])
-						end
-					end
-				end
-				_TS.bSelfTreatRank = v.val / tThreat[1].val
-			end
+
+
 			if nThreatPercentage >= 0.83 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
 				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --红色的 无论如何都显示白了 否则看不清
