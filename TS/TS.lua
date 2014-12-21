@@ -10,6 +10,7 @@ TS = {
 	nOTAlertLevel = 1, -- OT提醒
 	bOTAlertSound = true, -- OT 播放声音
 	bSpecialSelf = true, -- 特殊颜色显示自己
+	bTopTarget = true, -- 置顶当前目标
 	tAnchor = {},
 	nStyle = 2,
 }
@@ -157,10 +158,13 @@ end
 _TS.UpdateThreatBars = function(tList, dwTargetID)
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
-	local tThreat, nMyRank = {}, 0
+	local tThreat, nTopRank, nMyRank = {}, 65535, 0
 	for dwID, nThreatRank in pairs(tList) do
 		if dwTargetID == dwID then
 			table.insert(tThreat, 1, { id = dwID, val = nThreatRank })
+			if nThreatRank ~= 0 then
+				nTopRank = nThreatRank
+			end
 		else
 			table.insert(tThreat, { id = dwID, val = nThreatRank })
 		end
@@ -168,20 +172,21 @@ _TS.UpdateThreatBars = function(tList, dwTargetID)
 			nMyRank = nThreatRank
 		end
 	end
-	-- if not dwTargetID then end 厄 没有目标则仇恨会怎么样？不得而知啊
 	_TS.bg:SetSize(208, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:SetSize(208, 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
 	if #tThreat > 0 then
 		this:Show()
 		if #tThreat >= 2 then
-			local _t = tThreat[1]
-			table.remove(tThreat, 1)
-			table.sort(tThreat, function(a, b) return a.val > b.val end)
-			table.insert(tThreat, 1, _t)
+			if TS.bTopTarget then
+				local _t = tThreat[1]
+				table.remove(tThreat, 1)
+				table.sort(tThreat, function(a, b) return a.val > b.val end)
+				table.insert(tThreat, 1, _t)
+			else
+				table.sort(tThreat, function(a, b) return a.val > b.val end)
+			end
 		end
-		-- fixed 目标是他，但是反馈的又是0 这样就造成仇恨列表BUG 修复掉
-		if tThreat[1].val == 0 then tThreat[1].val = 65535 end
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
 		local show = false
 		for k, v in ipairs(tThreat) do
@@ -191,23 +196,23 @@ _TS.UpdateThreatBars = function(tList, dwTargetID)
 
 			if UI_GetClientPlayerID() == v.id then
 				if TS.nOTAlertLevel > 0 then
-					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / tThreat[1].val >= TS.nOTAlertLevel then
+					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
 						OutputMessage("MSG_ANNOUNCE_YELLOW", _L("** You Threat more than %.1f, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
 						if TS.bOTAlertSound then
 							PlaySound(SOUND.UI_SOUND, _L["SOUND_nat_view2"])
 						end
 					end
 				end
-				_TS.bSelfTreatRank = v.val / tThreat[1].val
+				_TS.bSelfTreatRank = v.val / nTopRank
 				show = true
 			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- 始终显示自己的
 				v.id, v.val = UI_GetClientPlayerID(), nMyRank
 			end
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			local nThreatPercentage = 0
-			if v.val > 0.01 and tThreat[1].val > 0.01 then
-				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * v.val / tThreat[1].val) .. "%")
-				nThreatPercentage = v.val / tThreat[1].val * (100 / 124)
+			if v.val > 0.01 and nTopRank > 0.01 then
+				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * v.val / nTopRank) .. "%")
+				nThreatPercentage = v.val / nTopRank * (100 / 124)
 			else
 				item:Lookup("Text_ThreatValue"):SetText("0%")
 			end
@@ -318,22 +323,18 @@ PS.OnPanelActive = function(frame)
 		TS.bOTAlertSound = bChecked
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Style Setting"], font = 27 }):Pos_()
+
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY + 10, checked = TS.bTopTarget, txt = _L["Top Target"] })
+	:Click(function(bChecked)
+		TS.bTopTarget = bChecked
+	end):Pos_()
 	
-	nX = ui:Append("WndCheckBox", { x = 10 , y = nY + 10, checked = TS.bForceColor, txt = _L["Force Color"] })
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceColor, txt = _L["Force Color"] })
 	:Click(function(bChecked)
 		TS.bForceColor = bChecked
 	end):Pos_()
 	
-	nX = ui:Append("Text", { x = nX + 10, y = nY + 9, txt = _L["Background Alpha"] }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 11, txt = _L[" alpha"] })
-	:Range(0, 100, 100):Value(TS.nBGAlpha):Change(function(nVal)
-		TS.nBGAlpha = nVal
-		if _TS.frame then
-			_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
-		end
-	end):Pos_()	
-	
-	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY - 2, checked = TS.bForceIcon, txt = _L["Force Icon"] })
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceIcon, txt = _L["Force Icon"] })
 	:Click(function(bChecked)
 		TS.bForceIcon = bChecked
 	end):Pos_()
@@ -374,6 +375,15 @@ PS.OnPanelActive = function(frame)
 		end
 		return t
 	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["Background Alpha"] }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L[" alpha"] })
+	:Range(0, 100, 100):Value(TS.nBGAlpha):Change(function(nVal)
+		TS.nBGAlpha = nVal
+		if _TS.frame then
+			_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
+		end
+	end):Pos_()	
+	
 	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Style folder:"] .. JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat" }):Pos_()
 end
