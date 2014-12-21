@@ -4,7 +4,6 @@ TS = {
 	bEnable = true, -- 开启
 	bInDungeon = true, -- 只有副本内才开启
 	nBGAlpha = 30, -- 背景透明度
-	szThreatPercentAccuracy = "%.0f%%", --显示几个小数点 没啥意义 不让更改了
 	nMaxBarCount = 5, -- 最大列表
 	bForceColor = false, --根据门派着色
 	bForceIcon = true,
@@ -19,6 +18,7 @@ local TS = TS
 local ipairs, pairs = ipairs, pairs
 local GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+local UI_GetClientPlayerID = UI_GetClientPlayerID
 local _TS = {
 	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TS/ui/TS.ini",
@@ -98,6 +98,7 @@ function TS.OnEvent(szEvent)
 			JH.UnBreatheCall("TS")
 			_TS.dwTargetID = 0
 			this:Hide()
+			_TS.handle:Clear()
 		end
 	elseif szEvent == "CHARACTER_THREAT_RANKLIST" then
 		if arg0 == _TS.dwTargetID then
@@ -148,12 +149,15 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 		_, ttarID = tar.GetTarget()
 	end
 	
-	local tThreat = {}
+	local tThreat, nMyRank = {}, 0
 	for dwThreatID, nThreatRank in pairs(tList) do
 		if ttarID == dwThreatID then
 			table.insert(tThreat, 1, { id = dwThreatID, val = nThreatRank })
 		else
 			table.insert(tThreat, { id = dwThreatID, val = nThreatRank })
+		end
+		if dwThreatID == UI_GetClientPlayerID() then
+			nMyRank = nThreatRank
 		end
 	end
 	_TS.bg:SetSize(208, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
@@ -168,15 +172,24 @@ _TS.UpdateThreatBars = function(dwTargetID, tList)
 			table.insert(tThreat, 1, _t)
 		end
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
+		local show = false
 		for k, v in ipairs(tThreat) do
 			if k > TS.nMaxBarCount then
 				break
 			end
+			-- 始终显示自己的
+			if v.id == UI_GetClientPlayerID() then
+				show = true
+			elseif k == TS.nMaxBarCount and not show and me.bFightState then
+				v.id, v.val = UI_GetClientPlayerID(), nMyRank
+			end
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			if v.val > 0.01 and tThreat[1].val > 0.01 then
-				item:Lookup("Text_ThreatValue"):SetText((TS.szThreatPercentAccuracy):format(100 * v.val / tThreat[1].val))
-				item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
+				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * v.val / tThreat[1].val) .. "%")
+			else
+				item:Lookup("Text_ThreatValue"):SetText("0%")
 			end
+			item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
 			local r, g, b = 162, 162, 162
 			local szName, dwForceID = v.id, 0
 			if IsPlayer(v.id) then
@@ -320,17 +333,17 @@ PS.OnPanelActive = function(frame)
 	nX = ui:Append("WndComboBox", { x = 10, y = nY, txt = _L["Style Select"] })
 	:Menu(function()
 		local t = {}
-		for i = 1, 10 do
+		for k, v in ipairs(_TS.tStyle) do
 			table.insert(t, {
-				szOption = _L("Style %d", i),
+				szOption = _L("Style %d", k),
 				bMCheck = true,
-				bChecked = TS.nStyle == i,
-				bDisable = not _TS.tStyle[i],
+				bChecked = TS.nStyle == k,
 				fnAction = function()
-					TS.nStyle = i
+					TS.nStyle = k
 				end,				
 			})
 		end
+
 		return t
 	end):Pos_()
 	nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY, txt = _L["Max Count"] })
