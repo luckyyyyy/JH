@@ -18,7 +18,7 @@ data = {
 	{
 		{ "ui/Image/Common/Money.uitex", 210 },
 		{ "ui/Image/Common/Money.uitex", 207 },
-		{ "ui/Image/Common/Money.uitex", 232 },
+		{ "ui/Image/Common/Money.uitex", 203 },
 		{ "ui/Image/Common/Money.uitex", 26 },
 		{ "ui/Image/Common/Money.uitex", 208 },
 		{ 168, 40 }
