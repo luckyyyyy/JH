@@ -134,7 +134,7 @@ _TS.OnBreathe = function()
 			_TS.Life:SetPercentage(lifeper)
 		end
 	else
-		this:Hide()
+		_TS.frame:Hide()
 	end
 end
 
