@@ -140,7 +140,7 @@ end
 
 _TS.UnBreathe = function()
 	JH.UnBreatheCall("TS")
-	this:Hide()
+	_TS.frame:Hide()
 	_TS.dwTargetID = 0
 	_TS.handle:Clear()
 	_TS.bg:SetSize(208, 55)
@@ -215,7 +215,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
 		local show = false
 		for k, v in ipairs(tThreat) do
-			if k > TS.nMaxBarCount then	break end
+			if k > TS.nMaxBarCount then break end
 			if UI_GetClientPlayerID() == v.id then
 				if TS.nOTAlertLevel > 0 then
 					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
@@ -241,7 +241,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			end
 			item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
 			local r, g, b = 162, 162, 162
-			local szName, dwForceID = v.id, 0
+			local szName, dwForceID = _L["Loading..."], 0
 			if IsPlayer(v.id) then
 				local p = GetPlayer(v.id)
 				if p then
@@ -276,11 +276,10 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				item:FormatAllItemPos()
 			end
 
-
 			if nThreatPercentage >= 0.83 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
 				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --红色的 无论如何都显示白了 否则看不清
-			elseif nThreatPercentage >= 0.54 then
+			elseif nThreatPercentage >= 0.65 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[3]))
 			elseif nThreatPercentage >= 0.30 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[2]))
