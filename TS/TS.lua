@@ -2,11 +2,11 @@ local _L = JH.LoadLangPack
 
 TS = {
 	bEnable = true, -- 开启
-	bInDungeon = true, -- 只有副本内才开启
+	bInDungeon = false, -- 只有副本内才开启
 	nBGAlpha = 30, -- 背景透明度
-	nMaxBarCount = 5, -- 最大列表
+	nMaxBarCount = 7, -- 最大列表
 	bForceColor = false, --根据门派着色
-	bForceIcon = true,
+	bForceIcon = true, -- 显示门派图标 团队时显示心法
 	nOTAlertLevel = 1, -- OT提醒
 	bOTAlertSound = true, -- OT 播放声音
 	bSpecialSelf = true, -- 特殊颜色显示自己
@@ -29,7 +29,10 @@ local _TS = {
 }
 _TS.OpenPanel = function()
 	local frame = _TS.frame or Wnd.OpenWindow(_TS.szIniFile, "TS")
-	frame:Hide()
+	local dwID, dwType = Target_GetTargetData()
+	if dwType ~= TARGET.NPC then
+		frame:Hide()
+	end
 	return frame
 end
 
@@ -166,7 +169,6 @@ end
 _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 	local team = GetClientTeam()
 	local tThreat, nTopRank, nMyRank = {}, 65535, 0
-	
 	-- 修复arg2反馈不准 当前目标才修复 非当前目标也不准。。
 	local dwID, dwType = Target_GetTargetData()
 	if dwID == dwApplyID and dwType == TARGET.NPC then
@@ -196,7 +198,8 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 	_TS.bg:SetSize(208, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:SetSize(208, 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
-	if #tThreat > 0 then
+	local KGnpc = GetNpc(dwApplyID)
+	if #tThreat > 0 and KGnpc then
 		this:Show()
 		if #tThreat >= 2 then
 			if TS.bTopTarget and tList[dwTargetID] then
@@ -217,7 +220,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 		for k, v in ipairs(tThreat) do
 			if k > TS.nMaxBarCount then break end
 			if UI_GetClientPlayerID() == v.id then
-				if TS.nOTAlertLevel > 0 and GetNpcIntensity(GetNpc(dwApplyID)) > 2 then
+				if TS.nOTAlertLevel > 0 and GetNpcIntensity(KGnpc) > 2 then
 					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
 						OutputMessage("MSG_ANNOUNCE_YELLOW", _L("** You Threat more than %.1f, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
 						if TS.bOTAlertSound then
@@ -242,6 +245,9 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
 			
 			if v.id == dwTargetID then
+				if dwTargetID == UI_GetClientPlayerID() then
+					item:Lookup("Image_Target"):SetFrame(10)
+				end
 				item:Lookup("Image_Target"):Show()
 			end
 			
@@ -261,8 +267,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			else
 				local p = GetNpc(v.id)
 				if p then
-					szName = p.szName
-					-- dwForceID = p.dwForceID -- NPC有势力吗???
+					szName = JH.GetTemplateName(p)
 				end
 			end
 			item:Lookup("Text_ThreatName"):SetText(szName)
@@ -284,7 +289,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			if nThreatPercentage >= 0.83 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
 				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --红色的 无论如何都显示白了 否则看不清
-			elseif nThreatPercentage >= 0.65 then
+			elseif nThreatPercentage >= 0.60 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[3]))
 			elseif nThreatPercentage >= 0.30 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[2]))
@@ -390,7 +395,7 @@ PS.OnPanelActive = function(frame)
 	nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY, txt = _L["Max Count"] })
 	:Menu(function()
 		local t = {}
-		for k, v in ipairs({5, 10, 15, 20, 25, 30}) do
+		for k, v in ipairs({2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50}) do -- 其实服务器最大反馈不到50个
 			table.insert(t, {
 				szOption = v,
 				bMCheck = true,
