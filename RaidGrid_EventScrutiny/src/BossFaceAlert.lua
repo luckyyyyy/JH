@@ -1,4 +1,5 @@
 local _L = JH.LoadLangPack
+local HEXIE_ALPHA = 3.5
 BossFaceAlert =  {	
 	Setting = {
 	-- 头顶那个方块
@@ -52,7 +53,7 @@ BossFaceAlert.bSendWhisperMsg = false;		RegisterCustomData("BossFaceAlert.bSendW
 --------------------------------------------
 BossFaceAlert.StepAngleBase = 10;			RegisterCustomData("BossFaceAlert.StepAngleBase")
 BossFaceAlert.BorderThickBase = 5;  	  	--RegisterCustomData("BossFaceAlert.BorderThickBase")
-BossFaceAlert.BorderAlphaBase = 180;    	--RegisterCustomData("BossFaceAlert.BorderAlphaBase")
+BossFaceAlert.BorderAlphaBase = 150;    	--RegisterCustomData("BossFaceAlert.BorderAlphaBase")
 BossFaceAlert.bBorder = false; 				RegisterCustomData("BossFaceAlert.bBorder")
 
 BossFaceAlert.tFlashColor =
@@ -821,8 +822,8 @@ function BossFaceAlert.UpdateAlertCircleCall(CachedwID,CacheClass,t,shadow,KGobj
 			end
 		end
 		
-		nAlphaI = nAlphaI / 3
-		nAlphaO = nAlphaO / 3
+		nAlphaI = nAlphaI / HEXIE_ALPHA
+		nAlphaO = nAlphaO / HEXIE_ALPHA
 		
 		local nFace = math.ceil(128 * nAngle / 360)
 		local dwRad1 = math.pi * (target.nFaceDirection - nFace + (128 * nAngleToAdd / 180)) / 128

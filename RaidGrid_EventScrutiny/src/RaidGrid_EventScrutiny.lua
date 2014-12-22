@@ -3787,9 +3787,9 @@ RaidGrid_SkillTimer = {
 }
 
 function RaidGrid_SkillTimer.init(frame)
-	frame:SetAlpha(255)
 	local image = frame:Lookup("",""):Lookup("Image")
-	image:SetFrame(213)
+	image:SetAlpha(180)
+	image:SetFrame(208)
 	local text = frame:Lookup("",""):Lookup("SkillName")
 	text:SetFontColor(255,255,0)
 	text = frame:Lookup("",""):Lookup("TimeLeft")
@@ -3801,11 +3801,11 @@ end
 function RaidGrid_SkillTimer.FlashFrame(frame, alpha)
 	local text = frame:Lookup("",""):Lookup("TimeLeft")
 	local image = frame:Lookup("",""):Lookup("Image")
-	image:SetFrame(248)
+	image:SetFrame(26)
 	text:SetFontColor(255, 255, 255)
 	text = frame:Lookup("",""):Lookup("SkillName")
 	text:SetFontColor(255, 255, 255)
-	frame:SetAlpha(alpha)
+	image:SetAlpha(alpha)
 end
 
 function RaidGrid_SkillTimer.OnFrameRender()
