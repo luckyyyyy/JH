@@ -490,17 +490,13 @@ end)
 
 JH.AddonMenu(function()
 	return {
-		szOption = _L["SkillCD"], bCheck = true, bChecked = SkillCD.bEnable, fnAction = function()
-			SkillCD.bEnable = not SkillCD.bEnable
-			if SkillCD.bEnable then
-				if SkillCD.bInDungeon then
-					if JH.IsInDungeon2() then
-						_SkillCD.OpenPanel()
-					end
-				else
-					_SkillCD.OpenPanel()
-				end
+		szOption = _L["SkillCD"], bCheck = true, bChecked = type(_SkillCD.frame) ~= "nil", fnAction = function()
+			SkillCD.bInDungeon = false
+			if  type(_SkillCD.frame) == "nil" then
+				SkillCD.bEnable = true
+				_SkillCD.OpenPanel()
 			else
+				SkillCD.bEnable = false
 				_SkillCD.ClosePanel()
 			end
 		end

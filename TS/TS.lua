@@ -435,17 +435,13 @@ end)
 
 JH.AddonMenu(function()
 	return {
-		szOption = _L["ThreatScrutiny"], bCheck = true, bChecked = TS.bEnable, fnAction = function()
-			TS.bEnable = not TS.bEnable
-			if TS.bEnable then
-				if TS.bInDungeon then
-					if JH.IsInDungeon2() then
-						_TS.OpenPanel()
-					end
-				else
-					_TS.OpenPanel()
-				end
+		szOption = _L["ThreatScrutiny"], bCheck = true, bChecked = type(_TS.frame) ~= "nil", fnAction = function()
+			TS.bInDungeon = false
+			if type(_TS.frame) == "nil" then -- 这样才对嘛  按按钮应该强制开启和关闭
+				TS.bEnable = true
+				_TS.OpenPanel()
 			else
+				TS.bEnable = false
 				_TS.ClosePanel()
 			end
 		end
