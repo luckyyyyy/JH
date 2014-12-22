@@ -1445,7 +1445,7 @@ _GKP.OnMsg = function()
 				end
 			end
 			pcall(_GKP.Draw_GKP_Record)
-			JH.Debug("Sync Success")
+			JH.Debug("#GKP# Sync Success")
 		end
 	end
 end
