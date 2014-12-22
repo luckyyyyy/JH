@@ -254,3 +254,16 @@ JH.RegisterInit("PartyBuffList",
 )
 
 GUI.RegisterPanel(_L["PartyBuffList"], 1453, _L["RGES"], PS)
+
+JH.AddonMenu(function()
+	return {
+		szOption = _L["PartyBuffList"], bCheck = true, bChecked = PartyBuffList.bEnable, fnAction = function()
+			if not PartyBuffList.bEnable then
+				PartyBuffList.bEnable = true
+			else
+				PartyBuffList.bEnable = false
+				_PartyBuffList.ClosePanel()
+			end
+		end
+	}
+end)
