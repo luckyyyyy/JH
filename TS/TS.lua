@@ -235,10 +235,11 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			end
 			
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
-			local nThreatPercentage = 0
+			local nThreatPercentage, fDiff = 0, 0
 			if v.val > 0.01 then
-				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * v.val / nTopRank) .. "%")
-				nThreatPercentage = v.val / nTopRank * (100 / 124)
+				fDiff = v.val / nTopRank
+				nThreatPercentage = fDiff * (100 / 124)
+				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * fDiff) .. "%")
 			else
 				item:Lookup("Text_ThreatValue"):SetText("0%")
 			end
@@ -251,7 +252,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				item:Lookup("Image_Target"):Show()
 			end
 			
-			local r, g, b = 162, 162, 162
+			local r, g, b = 188, 188, 188
 			local szName, dwForceID = _L["Loading..."], 0
 			if IsPlayer(v.id) then
 				local p = GetPlayer(v.id)
@@ -285,15 +286,14 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				item:Lookup("Text_ThreatName"):SetRelPos(21, 4)
 				item:FormatAllItemPos()
 			end
-
-			if nThreatPercentage >= 0.83 then
+			if fDiff > 1 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
 				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --红色的 无论如何都显示白了 否则看不清
-			elseif nThreatPercentage >= 0.60 then
+			elseif fDiff >= 0.80 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[3]))
-			elseif nThreatPercentage >= 0.30 then
+			elseif fDiff >= 0.50 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[2]))
-			elseif nThreatPercentage >= 0.01 then
+			elseif fDiff >= 0.01 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[1]))
 			end
 			if TS.bSpecialSelf and v.id == UI_GetClientPlayerID() then
