@@ -217,7 +217,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 		for k, v in ipairs(tThreat) do
 			if k > TS.nMaxBarCount then break end
 			if UI_GetClientPlayerID() == v.id then
-				if TS.nOTAlertLevel > 0 then
+				if TS.nOTAlertLevel > 0 and GetNpcIntensity(GetNpc(dwApplyID)) > 2 then
 					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
 						OutputMessage("MSG_ANNOUNCE_YELLOW", _L("** You Threat more than %.1f, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
 						if TS.bOTAlertSound then
@@ -240,6 +240,11 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				item:Lookup("Text_ThreatValue"):SetText("0%")
 			end
 			item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
+			
+			if v.id == dwTargetID then
+				item:Lookup("Image_Target"):Show()
+			end
+			
 			local r, g, b = 162, 162, 162
 			local szName, dwForceID = _L["Loading..."], 0
 			if IsPlayer(v.id) then
