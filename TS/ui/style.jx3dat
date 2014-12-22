@@ -3,9 +3,9 @@ data = {
 	{
 		-- FromUITex szImage, nFrame 
 		-- [1] = > 0.01
-		-- [2] = > 0.30
-		-- [3] = > 0.60
-		-- [4] = > 0.83
+		-- [2] = > 0.50
+		-- [3] = > 0.80
+		-- [4] = > 1.00
 		-- [5] = me
 		-- [6] = name, value FontScheme
 		{ "ui/Image/TargetPanel/Target.UITex", 73 },
