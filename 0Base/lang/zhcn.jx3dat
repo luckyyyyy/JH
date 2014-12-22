@@ -460,12 +460,9 @@ data = {
 	["OT Alert Sound"] = "播放声音",
 	["Style Setting"] = "风格设置",
 	["Background Alpha"] = "背景透明度",
-	["Force Color"] = "名字门派着色",
 	["Style Select"] = "风格选择",
 	["Style %d"] = "风格 %d",
-	["Max Count"] = "最大显示数量",
-	["Style folder:"] = "风格文件夹：",
+	["Style folder:"] = "风格文件：",
 	["Special Self"] = "自己的颜色特殊化显示",
-	["Force Icon"] = "显示门派图标",
 	["Top Target"] = "置顶目标",
 }
