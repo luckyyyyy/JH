@@ -64,7 +64,7 @@ function TS.OnFrameCreate()
 	_TS.CastBar = this:Lookup("","Handle_TargetInfo"):Lookup("Image_Cast_Bar")
 	_TS.Life = this:Lookup("","Handle_TargetInfo"):Lookup("Image_Life")
 	local ui = GUI(this)
-	ui:Title(_L["ThreatScrutiny"]):Fetch("CheckBox_ScrutinyLock"):Click(function(bChecked)
+	ui:Title(g_tStrings.HATRED_COLLECT):Fetch("CheckBox_ScrutinyLock"):Click(function(bChecked)
 		local dwID, dwType = Target_GetTargetData()
 		if bChecked then
 			_TS.dwLockTargetID = _TS.dwTargetID
@@ -78,7 +78,7 @@ function TS.OnFrameCreate()
 		end
 	end)
 	ui:Fetch("Btn_Setting"):Click(function()
-		JH.OpenPanel(_L["ThreatScrutiny"])
+		JH.OpenPanel(g_tStrings.HATRED_COLLECT)
 	end)
 	TS.OnEvent("UPDATE_SELECT_TARGET")
 end
@@ -311,7 +311,7 @@ end
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["ThreatScrutiny"], font = 27 }):Pos_()
+	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.HATRED_COLLECT, font = 27 }):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = TS.bEnable, txt = _L["Enable ThreatScrutiny"] }):Click(function(bChecked)
 		TS.bEnable = bChecked
 		ui:Fetch("bInDungeon"):Enable(bChecked)
@@ -326,7 +326,7 @@ PS.OnPanelActive = function(frame)
 		else
 			_TS.ClosePanel()
 		end
-		JH.OpenPanel(_L["ThreatScrutiny"])
+		JH.OpenPanel(g_tStrings.HATRED_COLLECT)
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = TS.bInDungeon })
 	:Enable(TS.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
@@ -361,12 +361,12 @@ PS.OnPanelActive = function(frame)
 		TS.bTopTarget = bChecked
 	end):Pos_()
 	
-	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceColor, txt = _L["Force Color"] })
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceColor, txt = g_tStrings.STR_RAID_COLOR_NAME_SCHOOL })
 	:Click(function(bChecked)
 		TS.bForceColor = bChecked
 	end):Pos_()
 	
-	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceIcon, txt = _L["Force Icon"] })
+	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceIcon, txt = g_tStrings.STR_SHOW_KUNGFU })
 	:Click(function(bChecked)
 		TS.bForceIcon = bChecked
 	end):Pos_()
@@ -392,7 +392,7 @@ PS.OnPanelActive = function(frame)
 
 		return t
 	end):Pos_()
-	nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY, txt = _L["Max Count"] })
+	nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY, txt = g_tStrings.STR_SHOW_HATRE_COUNTS })
 	:Menu(function()
 		local t = {}
 		for k, v in ipairs({2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50}) do -- 其实服务器最大反馈不到50个
@@ -407,7 +407,7 @@ PS.OnPanelActive = function(frame)
 		end
 		return t
 	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["Background Alpha"] }):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_RAID_MENU_BG_ALPHA }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L[" alpha"] })
 	:Range(0, 100, 100):Value(TS.nBGAlpha):Change(function(nVal)
 		TS.nBGAlpha = nVal
@@ -420,7 +420,7 @@ PS.OnPanelActive = function(frame)
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Style folder:"] .. JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat" }):Pos_()
 end
 
-GUI.RegisterPanel(_L["ThreatScrutiny"], 2047, _L["General"], PS)
+GUI.RegisterPanel(g_tStrings.HATRED_COLLECT, 2047, _L["General"], PS)
 
 JH.RegisterEvent("LOADING_END", function()
 	if not TS.bEnable then return end
@@ -440,7 +440,7 @@ end)
 
 JH.AddonMenu(function()
 	return {
-		szOption = _L["ThreatScrutiny"], bCheck = true, bChecked = type(_TS.frame) ~= "nil", fnAction = function()
+		szOption = g_tStrings.HATRED_COLLECT, bCheck = true, bChecked = type(_TS.frame) ~= "nil", fnAction = function()
 			TS.bInDungeon = false
 			if type(_TS.frame) == "nil" then -- 这样才对嘛  按按钮应该强制开启和关闭
 				TS.bEnable = true

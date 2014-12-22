@@ -1036,14 +1036,22 @@ JH.HasBuff = function(dwBuffID, bCanCancel, me)
 		me, bCanCancel = bCanCancel, me
 	end
 	me = me or GetClientPlayer()
+	local tBuff = {}
+	if type(dwBuffID) == "number" then
+		tBuff[dwBuffID] = true
+	elseif type(dwBuffID) == "table" then
+		for k, v in ipairs(dwBuffID) do
+			tBuff[v] = true
+		end
+	end
 	if me then
 		local nCount = me.GetBuffCount()
 		for i = 1, nCount do
 			local _dwID, _nLevel, _bCanCancel = me.GetBuff(i - 1)
 			if bCanCancel == nil or bCanCancel == _bCanCancel then
-				if dwBuffID == _dwID or (type(dwBuffID) == "string" and dwBuffID == JH.GetBuffName(_dwID, _nLevel)) then
+				if tBuff[_dwID] then
 					local dwID, nLevel, bCanCancel, nEndFrame, nIndex, nStackNum, dwSkillSrcID, bValid = me.GetBuff(i - 1)
-					return true,{
+					return true, {
 						dwID = dwID, nLevel = nLevel, bCanCancel = bCanCancel, nEndFrame = nEndFrame,
 						nIndex = nIndex, nStackNum = nStackNum, dwSkillSrcID = dwSkillSrcID, bValid = bValid,
 					}
