@@ -98,14 +98,14 @@ _ScreenHead.Create = function(obj,info,nIndex)
 			end
 			if data.type == "Life" then
 				if lifeper > ScreenHead.nTeamHp then
-					return _ScreenHead.Remove(dwID,nIndex)
+					return _ScreenHead.Remove(dwID, nIndex)
 				end
-				txt = _L["Life Shortage"] .. string.format("(%d/%d)",info.nCurrentLife,info.nMaxLife)
+				txt = g_tStrings.STR_SKILL_H_LIFE_COST .. string.format("(%d/%d)", info.nCurrentLife, info.nMaxLife)
 			elseif data.type == "Mana" then
 				if manaper > ScreenHead.nTeamMp then
-					return _ScreenHead.Remove(dwID,nIndex)
+					return _ScreenHead.Remove(dwID, nIndex)
 				end
-				txt = _L["Mana Shortage"] .. string.format("(%d/%d)",info.nCurrentMana,info.nMaxMana)
+				txt = g_tStrings.STR_SKILL_H_MANA_COST .. string.format("(%d/%d)", info.nCurrentMana, info.nMaxMana)
 			end
 		elseif data.type == "Skill" then
 			tManaCol = { 255,128,0 }

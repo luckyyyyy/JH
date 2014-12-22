@@ -183,7 +183,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 	-- 重构用于排序
 	for k, v in pairs(tList) do
 		if dwTargetID == k then
-			if v > 0.01 then -- 1仇永远不能是0
+			if v ~= 0 then -- 1仇永远不能是0
 				nTopRank = v
 			end
 			table.insert(tThreat, 1, { id = k, val = nTopRank })
@@ -236,7 +236,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			local nThreatPercentage, fDiff = 0, 0
-			if v.val > 0.01 then
+			if v.val ~= 0 then
 				fDiff = v.val / nTopRank
 				nThreatPercentage = fDiff * (100 / 124)
 				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * fDiff) .. "%")
