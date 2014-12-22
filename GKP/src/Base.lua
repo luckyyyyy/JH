@@ -84,6 +84,7 @@ local _GKP = {
 			[_L["TianWai Meteoric Iron"]] = true,
 			[_L["ShuYu Stone"]] = true,
 			[_L["BiXi Fragment"]] = true,
+			[_L["BingYong CanZhi"]] = true,
 		},
 	}
 }
@@ -491,15 +492,15 @@ function GKP.OnFrameCreate()
 		end
 		pcall(_GKP.Record)
 	end)
-	PageSet:Append("WndButton3",{x = 840,y = 570,txt = _L["Wage Calculation"]}):Click(_GKP.GKP_Calculation)
-	PageSet:Append("WndButton3",{x = 840,y = 610,txt = _L["Consumption"]}):Click(_GKP.GKP_SpendingList)
+	PageSet:Append("WndButton3",{x = 840,y = 570,txt = g_tStrings.GOLD_TEAM_SYLARY_LIST}):Click(_GKP.GKP_Calculation)
+	PageSet:Append("WndButton3",{x = 840,y = 610,txt = g_tStrings.GOLD_TEAM_BID_LIST}):Click(_GKP.GKP_SpendingList)
 	PageSet:Append("WndButton3",{x = 690,y = 610,txt = _L["Debt Issued"]}):Click(_GKP.GKP_OweList)
 	PageSet:Append("WndButton3",{x = 540,y = 610,txt = _L["Wipe Record"]}):Click(_GKP.GKP_Clear)
 	PageSet:Append("WndButton3",{x = 390,y = 610,txt = _L["Loading Record"]}):Click(_GKP.GKP_Recovery)
 	PageSet:Append("WndButton3",{x = 240,y = 610,txt = _L["Manual SYNC"]}):Click(_GKP.GKP_Sync)
 
-	PageSet:Fetch("WndCheck_GKP_Record"):Fetch("Text_GKP_Record"):Text(_L["Item Record"])
-	PageSet:Fetch("WndCheck_GKP_Account"):Fetch("Text_GKP_Account"):Text(_L["Money Rocord"])
+	PageSet:Fetch("WndCheck_GKP_Record"):Fetch("Text_GKP_Record"):Text(g_tStrings.GOLD_BID_RECORD_STATIC_TITLE)
+	PageSet:Fetch("WndCheck_GKP_Account"):Fetch("Text_GKP_Account"):Text(g_tStrings.GOLD_BID_RPAY_STATIC_TITLE)
 	PageSet:Fetch("WndCheck_GKP_Buff"):Fetch("Text_GKP_Buff"):Text(_L["Team Profile"])
 	
 	record:Title(_L["GKP Golden Team Record"]):Point():Close(function()
@@ -518,7 +519,7 @@ function GKP.OnFrameCreate()
 	record:Append("Text",{x = 60,y = 184,font = 65,txt = _L["Auction Price:"]})
 	record:Append("WndCheckBox",{x = 20,y = 300,font = 65,txt = _L["Equiptment Boss"]}):Name("WndCheckBox")
 	record:Append("WndButton3",{x = 115,y = 300,txt = g_tStrings.STR_HOTKEY_SURE}):Name("btn_ok")
-	record:Append("WndComboBox",{x = 135,y = 53,txt = _L["Select Member"]}):Name("TeamList"):Menu(GKP.GetTeamList)
+	record:Append("WndComboBox",{x = 135,y = 53,txt = g_tStrings.PLAYER_NOT_EMPTY}):Name("TeamList"):Menu(GKP.GetTeamList)
 	record:Append("WndEdit",{x = 135,y = 155,w = 185,h = 25}):Name("Source")
 	
 	
@@ -2109,7 +2110,7 @@ _GKP.Record = function(tab,item,bEnter)
 	local auto = 0
 	record:Fetch("WndCheckBox"):Check(false)
 	if record:IsVisible() and record:Fetch("btn_Close").self.userdata then -- 上次是userdata并且没关闭
-		if text:Text() ~= _L["Select Member"] and Name:Text() ~= "" then 
+		if text:Text() ~= g_tStrings.PLAYER_NOT_EMPTY and Name:Text() ~= "" then 
 			Money:Text(0)
 			record:Fetch("btn_ok"):Click()
 		end
@@ -2131,7 +2132,7 @@ _GKP.Record = function(tab,item,bEnter)
 		end
 		record:Fetch("btn_Close").self.userdata = true
 	else
-		text:Text(_L["Select Member"]):Color(255,255,255)
+		text:Text(g_tStrings.PLAYER_NOT_EMPTY):Color(255,255,255)
 		text.self.dwForceID = nil
 		Source:Text(_L["Add Manually"]):Enable(false)
 		Name:Text(""):Enable(true)
@@ -2213,7 +2214,7 @@ _GKP.Record = function(tab,item,bEnter)
 		if Name:Text() == "" then
 			return JH.Alert(_L["Please entry the name of the item"])
 		end
-		if szPlayer == _L["Select Member"] then
+		if szPlayer == g_tStrings.PLAYER_NOT_EMPTY then
 			return JH.Alert(_L["Select a member who is in charge of account and put money in his account."])
 		end
 
