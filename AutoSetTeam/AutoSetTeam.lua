@@ -440,7 +440,7 @@ _RequestList.UpdateFrame = function()
 	container:Clear()
 	local cover = "ui/Image/Common/CoverShadow.UITex"
 	for k,v in ipairs(_RequestList.tRequestList) do
-		local wnd = container:AppendContentFromIni(_RequestList.szIniFile,"WndWindow_Item",k)
+		local wnd = container:AppendContentFromIni(_RequestList.szIniFile, "WndWindow_Item", k)
 		local ui = GUI(wnd)
 		local dat = _RequestList.tDetails[v.szName]
 		if dat then
@@ -464,6 +464,13 @@ _RequestList.UpdateFrame = function()
 		end
 		ui:Append("Text",{ x = 47, y = 8, txt = v.szName, font = 15  })
 		ui:Append("Text",{ x = 5, y = 25, txt = v.nLevel, font = 215 })
+		wnd.OnLButtonDown = function()
+			if IsCtrlKeyDown() then
+				local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
+				edit:InsertObj("[" .. v.szName .. "]",{ type = "name" , name = v.szName , text = v.szName})
+				Station.SetFocusWindow(edit)
+			end
+		end
 		ui:Append("WndButton2",{ x = 240, y = 10,w = 60, h = 34, txt = _L["Accept"] }):Click(function()
 			v.fnAction()
 			table.remove(_RequestList.tRequestList,k)
