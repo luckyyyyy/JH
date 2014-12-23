@@ -147,7 +147,7 @@ _TS.OnBreathe = function()
 			local me = GetClientPlayer()
 			if not me.bFightState then return end
 			_TS.dwDropTargetPlayerID = -1
-			JH.DelayCall(2500, function()
+			JH.DelayCall(1000, function()
 				if not me.IsInParty() then return end
 				if p and p.dwDropTargetPlayerID and p.dwDropTargetPlayerID ~= 0 then
 					if IsParty(me.dwID, p.dwDropTargetPlayerID) or me.dwID == p.dwDropTargetPlayerID then

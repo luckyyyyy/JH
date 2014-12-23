@@ -1012,7 +1012,7 @@ end
 _FA.AppendItem = function(szName,x,y,szText,bCheck,szType,col)
 	local handle = _FA.GetFrame():Lookup("","Handle_Main"):Lookup("Handle_List_"..szType)
 	-- AppendItemFromIni
-	local item = handle:AppendItemFromIni("Interface\\JH\\RaidGrid_EventScrutiny\\ui\\Data_CheckItem.ini","Handle_Item","Handle_Item_"..szType.."_"..szName)
+	local item = handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/Data_CheckItem.ini","Handle_Item","Handle_Item_"..szType.."_"..szName)
 	if item then
 		item:SetRelPos(x,y)
 		item:Lookup("Title_Text"):SetText(szText)
@@ -1197,7 +1197,7 @@ _FA.Apply_Click_Check = function(self,bCheck)
 end
 
 RegisterEvent("LOGIN_GAME",function() 
-	Wnd.OpenWindow("Interface/JH/RaidGrid_EventScrutiny/ui/xCirclesOption.ini", "FA"):Hide()
+	Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/xCirclesOption.ini", "FA"):Hide()
 end)
 ----------------------------------------------------
 -- 直接添加或者给出 Exist

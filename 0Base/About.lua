@@ -112,7 +112,7 @@ end
 JH.RegisterEvent("ON_BG_CHANNEL_MSG", _JH_About.OnBgTalk)
 _JH_About.PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File("interface/JH/0Base/background.tga"):Pos_()
+	nX,nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File(JH.GetAddonInfo().szRootPath .. "0Base/background.tga"):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["About"], font = 27 }):Pos_()
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 45, w = 500 , h = 0,multi = true, txt = _L["ABOUT_TIPS"] }):Pos_()
 	nY = 295
