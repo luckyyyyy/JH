@@ -1,5 +1,5 @@
 local _L = JH.LoadLangPack
-local HEXIE_ALPHA = 3.5
+local HEXIE_ALPHA = 5
 BossFaceAlert =  {	
 	Setting = {
 	-- 头顶那个方块
@@ -53,7 +53,7 @@ BossFaceAlert.bSendWhisperMsg = false;		RegisterCustomData("BossFaceAlert.bSendW
 --------------------------------------------
 BossFaceAlert.StepAngleBase = 10;			RegisterCustomData("BossFaceAlert.StepAngleBase")
 BossFaceAlert.BorderThickBase = 5;  	  	--RegisterCustomData("BossFaceAlert.BorderThickBase")
-BossFaceAlert.BorderAlphaBase = 150;    	--RegisterCustomData("BossFaceAlert.BorderAlphaBase")
+BossFaceAlert.BorderAlphaBase = 130;    	--RegisterCustomData("BossFaceAlert.BorderAlphaBase")
 BossFaceAlert.bBorder = false; 				RegisterCustomData("BossFaceAlert.bBorder")
 
 BossFaceAlert.tFlashColor =

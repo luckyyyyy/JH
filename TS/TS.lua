@@ -19,13 +19,14 @@ local TS = TS
 local ipairs, pairs = ipairs, pairs
 local GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
-local UI_GetClientPlayerID = UI_GetClientPlayerID
+local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
 local _TS = {
 	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TS/ui/TS.ini",
 	dwTargetID = 0,
 	dwLockTargetID = 0,
 	bSelfTreatRank = 0,
+	dwDropTargetPlayerID = 0,
 }
 _TS.OpenPanel = function()
 	local frame = _TS.frame or Wnd.OpenWindow(_TS.szIniFile, "TS")
@@ -49,12 +50,14 @@ _TS.ClosePanel = function()
 	_TS.dwLockTargetID = 0
 	_TS.dwTargetID = 0
 	_TS.bSelfTreatRank = 0
+	_TS.dwDropTargetPlayerID = 0
 end
 
 function TS.OnFrameCreate()
 	this:RegisterEvent("CHARACTER_THREAT_RANKLIST")
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("UPDATE_SELECT_TARGET")
+	this:RegisterEvent("FIGHT_HINT")
 	_TS.UpdateAnchor(this)
 	_TS.frame = this
 	_TS.bg = this:Lookup("", "Image_Background")
@@ -112,6 +115,10 @@ function TS.OnEvent(szEvent)
 		if arg0 == _TS.dwTargetID then
 			_TS.UpdateThreatBars(arg1, arg2, arg0)
 		end
+	elseif szEvent == "FIGHT_HINT" then
+		if not arg0 then
+			_TS.dwDropTargetPlayerID = GetTime()
+		end
 	end
 end
 
@@ -135,6 +142,23 @@ _TS.OnBreathe = function()
 			_TS.CastBar:Hide()
 			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
 			_TS.Life:SetPercentage(lifeper)
+		end
+		if _TS.dwDropTargetPlayerID >= 0 and GetTime() - _TS.dwDropTargetPlayerID > 1000 * 7 and GetNpcIntensity(p) > 2 then
+			local me = GetClientPlayer()
+			if not me.bFightState then return end
+			_TS.dwDropTargetPlayerID = -1
+			JH.DelayCall(2500, function()
+				if not me.IsInParty() then return end
+				if p and p.dwDropTargetPlayerID and p.dwDropTargetPlayerID ~= 0 then
+					if IsParty(me.dwID, p.dwDropTargetPlayerID) or me.dwID == p.dwDropTargetPlayerID then
+						local team = GetClientTeam()
+						local szMember = team.GetClientTeamMemberName(p.dwDropTargetPlayerID)
+						local nGroup = team.GetMemberGroupIndex(p.dwDropTargetPlayerID) + 1
+						local name = JH.GetTemplateName(p)
+						JH.Sysmsg2(_L("Well done! %s in %d group first to attack %s!!", nGroup, szMember, name), g_tStrings.HATRED_COLLECT, { 150, 250, 230 })
+					end
+				end
+			end)
 		end
 	else
 		_TS.frame:Hide()
@@ -436,6 +460,7 @@ JH.RegisterEvent("LOADING_END", function()
 	_TS.dwLockTargetID = 0
 	_TS.dwTargetID = 0
 	_TS.bSelfTreatRank = 0
+	_TS.dwDropTargetPlayerID = 0
 end)
 
 JH.AddonMenu(function()

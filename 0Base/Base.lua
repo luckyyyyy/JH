@@ -931,7 +931,6 @@ end
 JH.Sysmsg = function(szMsg, szHead, szType)
 	szHead = szHead or _JH.szShort
 	szType = szType or "MSG_SYS"
-	-- local szXml = GetFormatImage("ui/Image/UICommon/PlugIn.UITex", 5, 16, 16)
 	local szXml = GetFormatText(" [" .. szHead .. "] " .. szMsg .. "\n", 10, 255, 255, 0)
 	OutputMessage(szType, szXml, true)
 end
@@ -940,8 +939,7 @@ JH.Sysmsg2 = function(szMsg, szHead, col)
 	szHead = szHead or _JH.szShort
 	local r, g, b = 255, 0, 0
 	if col then r, g, b = unpack(col) end
-	-- local szXml = GetFormatImage("ui/Image/UICommon/PlugIn.UITex", 5, 16, 16)
-	local szXml = GetFormatText(" [" .. szHead .. "] " .. szMsg .. "\n", 10, 255, 0, 0)
+	local szXml = GetFormatText(" [" .. szHead .. "] " .. szMsg .. "\n", 10, r, g, b)
 	OutputMessage("MSG_SYS", szXml, true)
 end
 
