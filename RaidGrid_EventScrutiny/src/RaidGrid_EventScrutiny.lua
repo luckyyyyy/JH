@@ -3788,7 +3788,7 @@ RaidGrid_SkillTimer = {
 
 function RaidGrid_SkillTimer.init(frame)
 	local image = frame:Lookup("",""):Lookup("Image")
-	image:SetAlpha(180)
+	image:SetAlpha(160)
 	image:SetFrame(208)
 	local text = frame:Lookup("",""):Lookup("SkillName")
 	text:SetFontColor(255,255,0)
