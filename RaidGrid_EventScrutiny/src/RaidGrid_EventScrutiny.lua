@@ -148,7 +148,6 @@ _RE.AutoEnable = function(bEnable)
 			RaidGrid_EventScrutiny.bEnable = true
 			BossFaceAlert.bEnable = true
 			RaidGrid_EventScrutiny.OpenPanel()
-			RaidGrid_Base.Message("插件功能模块已开启")
 		end
 	else
 		if RaidGrid_EventScrutiny.bEnable then
@@ -157,7 +156,6 @@ _RE.AutoEnable = function(bEnable)
 			BossFaceAlert.ClearAllItem()
 			RaidGrid_SkillTimer.RemoveAllTimer()
 			RaidGrid_EventScrutiny.ClosePanel()
-			RaidGrid_Base.Message("插件功能模块已关闭")
 		end
 	end
 end
@@ -216,6 +214,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab[i].bChatAlertCDEnd2 = nil
 		tTab[i].bChatAlertCDEnd3 = nil
 		tTab[i].nEventScrutinyCDEnd = nil
+		tTab[i].szDescription = nil
 	end
 	local tTab2 = RaidGrid_EventScrutiny.tRecords["Casting"]
 	for i = 1, #tTab2 do
@@ -223,6 +222,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab2[i].bChatAlertCDEnd2 = nil
 		tTab2[i].bChatAlertCDEnd3 = nil
 		tTab2[i].nEventScrutinyCDEnd = nil
+		tTab2[i].szDescription = nil
 	end
 	local tTab3 = RaidGrid_EventScrutiny.tRecords["Buff"]
 	for i = 1, #tTab3 do
@@ -232,6 +232,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab3[i].bChatAlertCDEnd2 = nil
 		tTab3[i].bChatAlertCDEnd3 = nil
 		tTab3[i].nEventScrutinyCDEnd = nil
+		tTab3[i].szDescription = nil
 	end
 	local tTab4 = RaidGrid_EventScrutiny.tRecords["Debuff"]
 	for i = 1, #tTab4 do
@@ -241,6 +242,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab4[i].bChatAlertCDEnd2 = nil
 		tTab4[i].bChatAlertCDEnd3 = nil
 		tTab4[i].nEventScrutinyCDEnd = nil
+		tTab4[i].szDescription = nil
 	end
 end
 
@@ -278,21 +280,6 @@ function RaidGrid_Base.Message(szMessage)
 end
 function RaidGrid_Base.MessageWarning(szMessage)
 	JH.Sysmsg2(szMessage, _L["RaidGrid_EventScrutiny"]  .." Warning")
-end
-
-function RaidGrid_Base.GetEventAddDescription(handleRecord)
-	if not handleRecord then
-		return
-	end
-	local Recall = function(szText)
-		handleRecord.tRecord.szDescription = nil
-		if not szText or szText == "" or szText == " " then
-			return
-		end
-		handleRecord.tRecord.szDescription = szText
-		RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
-	end
-	GetUserInput(handleRecord.tRecord.szName.."（注释信息设置）", Recall, nil, function() end, nil, handleRecord.tRecord.szDescription or "", 310)
 end
 
 
@@ -490,12 +477,6 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 	if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 		data.EventCacheRecords = RaidGrid_EventCache.tRecords
 	end
-	-- local dat = clone(data)
-	-- for k,v in ipairs({"Buff","Debuff","Casting","Npc"}) do
-		-- dat.EventScrutinyRecords[v].Hash = nil
-		-- dat.EventScrutinyRecords[v].Hash2 = nil
-	-- end
-	-- SaveLUAData(szFullName, JH.JsonEncode(dat))
 	SaveLUAData(szFullName, data)
 	JH.Alert(_L("Export complete\nPath:%s",GetRootPath().. szFullName))
 end
@@ -1042,7 +1023,7 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	if not bIsVisible then return end --和谐
 	local szBuffName = Table_GetBuffName(dwBuffID, nLevel)
 	if not szBuffName or szBuffName == "" then
-		szBuffName = "无名" .. tostring(dwBuffID)
+		szBuffName = _L["NONE"] .. tostring(dwBuffID)
 	end
 	local _,buff = JH.HasBuff(dwBuffID,playerMember)
 	local tTab = RaidGrid_EventCache.tRecords.Buff
@@ -1079,7 +1060,7 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 		local szSkillSrcType = ""
 		tRecord.szCasterName, szSkillSrcType = RaidGrid_Base.GetNameAndTypeFromId(buff.dwSkillSrcID)
 		if szSkillSrcType == "Player" then
-			tRecord.szCasterName = "（玩家）" .. tRecord.szCasterName
+			tRecord.szCasterName = _L["(player)"] .. tRecord.szCasterName
 		end
 	end
 	
@@ -1204,9 +1185,9 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 	
 	local szName = tRecord.szName
 	if not tRecord.bIsVisible then
-		szName = szName .. "·隐"
+		szName = szName .. _L["`hide"]
 	elseif tRecord.bIsBuffDispel then
-		szName = szName .. "·驱"
+		szName = szName .. _L["`dispel"]
 	end
 	handleRecord.text:SetText(szName)
 	
@@ -1370,13 +1351,13 @@ tRaidGrid_EventScrutinyTextUI = {
 		"Text_TBox",{120,120,120},{64,128,255},"bChatAlertT",nil,_L["RaidAlert"]
 	},
 	Image_SBox = {	
-		"Text_SBox",{120,120,120},{250,100,15},"bBigFontAlarm",nil,"特大文字提示"
+		"Text_SBox",{120,120,120},{250,100,15},"bBigFontAlarm",nil,_L["LargeText"]
 	},
 	Image_TSBox = {	
 		"Text_TSBox",{120,120,120},{250,100,15},"tRGAutoSelect",nil,"该功能已无效"
 	},
 	Image_ABox = {	
-		"Text_ABox",{120,120,120},{250,100,15},"tRGCenterAlarm",nil,"中文字提示"
+		"Text_ABox",{120,120,120},{250,100,15},"tRGCenterAlarm",nil,_L["CenterAlarm"]
 	},
 	Image_ASBox = {	
 		"Text_ASBox",{120,120,120},{250,100,15},"tRGAlertColor",function(szName,obj,tRecord)
@@ -1387,10 +1368,10 @@ tRaidGrid_EventScrutinyTextUI = {
 			{szOption = _L["Yellow []"], bCheck = false, bChecked = false, r = 255, g = 255, b = 0, fnAction = function() tRecord.tRGAlertColor = {255, 255, 0, 5}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
 			{szOption = _L["Purple []"], bCheck = false, bChecked = false, r = 255, g = 0, b = 255, fnAction = function() tRecord.tRGAlertColor = {255, 0, 255, 2}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
 			{szOption = _L["White []"], bCheck = false, bChecked = false, r = 255, g = 255, b = 255, fnAction = function() tRecord.tRGAlertColor = {255, 255, 255, 4}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
-			{szOption = "关 闭", bCheck = false, bChecked = false, r = 210, g = 210, b = 210, fnAction = function() tRecord.tRGAlertColor = nil; RaidGrid_EventScrutiny._SetItemUI(szName,obj,false) end},
+			{szOption = g_tStrings.STR_CLOSE, bCheck = false, bChecked = false, r = 210, g = 210, b = 210, fnAction = function() tRecord.tRGAlertColor = nil; RaidGrid_EventScrutiny._SetItemUI(szName,obj,false) end},
 		})
 		end
-	,"全屏泛光提示"},
+	,_L["FlashAlert"]},
 }
 
 function RaidGrid_EventScrutiny.OnItemMouseEnter()
@@ -2240,8 +2221,6 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					tTab[i].nEventScrutinyCDEnd = fLogicTime + tonumber(tTab[i].nMinEventScrutinyCD or 7)
 				end
 
-				--RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tTab[i])
-
 				local szNpcName = JH.GetTemplateName(npc)
 
 				if ((tTab[i].bChatAlertCDEnd2 or 0) <= fLogicTime) then
@@ -2254,7 +2233,6 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
 				end
 				if (tTab[i].bChatAlertCDEnd or 0) <= fLogicTime then
-					-- RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tTab[i])
 					
 					if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
 						local msg = _L("* [%s] enter %s",szNpcName,tTab[i].tAlarmAddInfo or "")
@@ -2845,9 +2823,9 @@ function RaidGrid_EventScrutiny.SwitchPageType(szListIndex)
 		end
 	end
 	
-	local tTitle = {Buff = "Buff监控配置", Debuff = "Debuff监控配置", Casting = "技能监控配置", Npc = "Npc监控配置", Scrutiny = "事件监控中……"}
+	local tTitle = {Buff = _L["Buff"], Debuff = _L["DeBuff"], Casting = _L["Casting"], Npc = _L["Npc"], Scrutiny = _L["RaidGrid_EventScrutiny"]}
 	local textTitle = RaidGrid_EventScrutiny.handleMain:Lookup("Text_Title")
-	textTitle:SetText(tTitle[szListIndex] or "事件监控")
+	textTitle:SetText(tTitle[szListIndex] or _L["RGES"])
 	
 	RaidGrid_EventScrutiny.UpdateRecordList(szListIndex)
 	RaidGrid_EventScrutiny.RefreshEventHandle()
@@ -3408,8 +3386,6 @@ function RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tRecord, dwMemberID, bIsR
 		return
 	end
 
-	--tRecord.nEndFrame = nEndFrame
-	--tRecord.nLevel = nLevel
 	handleBoxEmpty.tInfo = tRecord
 	handleBoxEmpty.nEndFrame = nEndFrame
 
@@ -3605,8 +3581,7 @@ function RaidGrid_CenterAlarm.OnEvent(event)
 	if event=="UI_SCALED" or (event=="CUSTOM_DATA_LOADED" and arg0=="Role") then
 		RaidGrid_CenterAlarm.UpdateAnchor(this)
 	elseif event == "ON_ENTER_CUSTOM_UI_MODE" or event == "ON_LEAVE_CUSTOM_UI_MODE" then
-		-- Output("RaidGrid_CenterAlarm")
-		UpdateCustomModeWindow(this,"中央文字提示（团队事件监控）",true)
+		UpdateCustomModeWindow(this, _L["CenterAlarm"], true)
 	end
 end
 
@@ -5428,7 +5403,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 				ui:Fetch("tRGAlertColor"):Color(r,g,b)
 			end
 			return {
-				{szOption = "关 闭", bCheck = false, bChecked = tRGAlertColor[4] == nil, r = 210, g = 210, b = 210, fnAction = function() data.tRGAlertColor = nil;SetColor(255,255,255);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
+				{szOption = g_tStrings.STR_CLOSE, bCheck = false, bChecked = tRGAlertColor[4] == nil, r = 210, g = 210, b = 210, fnAction = function() data.tRGAlertColor = nil;SetColor(255,255,255);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
 				{szOption = _L["Red []"], bMCheck = true, bChecked = tRGAlertColor[4] == 3, r = 255, g = 0, b = 0, fnAction = function() data.tRGAlertColor = {255, 0, 0, 3};SetColor(255,0,0);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
 				{szOption = _L["Green []"], bMCheck = true, bChecked = tRGAlertColor[4] == 1, r = 0, g = 255, b = 0, fnAction = function() data.tRGAlertColor = {0, 255, 0, 1};SetColor(0,255,0);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
 				{szOption = _L["Blue []"], bMCheck = true, bChecked = tRGAlertColor[4] == 0, r = 0, g = 0, b = 255, fnAction = function() data.tRGAlertColor = {0, 0, 255, 0};SetColor(0,0,255);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
@@ -5636,25 +5611,17 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 	
 	table.insert(tOptions, {bDevide = true})
 	table.insert(tOptions, {
-		szOption = "　来源地图:"  .. (tTab[nStartIndex].szMapName or "（未知）"), bCheck = false, bChecked = false, bDisable = true,
+		szOption = "　来源地图:"  .. (tTab[nStartIndex].szMapName or _L["Unknown"]), bCheck = false, bChecked = false, bDisable = true,
 	})
 	if tTab[nStartIndex].szCasterName then
 		table.insert(tOptions, {
-			szOption = "　技能释放者:"  .. (tTab[nStartIndex].szCasterName or "（暂无此项）"), bCheck = false, bChecked = false, bDisable = true,
+			szOption = "　技能释放者:"  .. (tTab[nStartIndex].szCasterName or _L["Unknown"]), bCheck = false, bChecked = false, bDisable = true,
 		})
 	end
 	table.insert(tOptions, {
 		bDevide = true
 	})
 	table.insert(tOptions,RaidGrid_EventScrutiny.SyncOptions(tTab[nStartIndex],nil))
-	table.insert(tOptions, {
-		bDevide = true
-	})
-	table.insert(tOptions, {
-		szOption = "　说明："  .. (tTab[nStartIndex].szDescription or "（添加注释）"), bCheck = false, bChecked = false, rgb = {210,210,210}, fnAction = function(UserData, bCheck)
-			RaidGrid_Base.GetEventAddDescription(handle)
-		end,
-	})
 	table.insert(tOptions, {bDevide = true})
 	table.insert(tOptions, {
 		szOption = "　删除此条目",rgb = {255,0,0}, bCheck = false, bChecked = false, fnAction = function(UserData, bCheck)

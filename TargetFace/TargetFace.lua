@@ -217,6 +217,8 @@ end
 function Direction.OnFrameCreate()
 	_Direction.frame = this
 	_Direction.Arrow = this:Lookup("","Handle_Main/Image_Player")
+	_Direction.Arrow:FromUITex(JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Direction.uitex", 1)
+	this:Lookup("","Handle_Main/Image_Arrow"):FromUITex(JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Direction.uitex", 0)
 	_Direction.txt = this:Lookup("","Handle_Main/Text_Distance")
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")

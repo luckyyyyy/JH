@@ -609,7 +609,7 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 	local nManaShow = 0
 	local nPercentage = nil
 	local r, g, b = 255, 255, 255
-	if playerMember and playerMember.dwForceID == 8 and playerMember.nCurrentRage and playerMember.nMaxRage then --剑气绘图
+	if playerMember and (playerMember.dwForceID == 8 or playerMember.dwForceID == 21) and playerMember.nCurrentRage and playerMember.nMaxRage then --剑气绘图
 		local nCurrentRage = playerMember.nCurrentRage
 		local nMaxRage = playerMember.nMaxRage
 		local nRagePercentage = nCurrentRage / nMaxRage
@@ -620,19 +620,6 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 		end
 		nPercentage = nRagePercentage
 		nManaShow = nCurrentRage
-		--[[
-	elseif playerMember and playerMember.dwForceID == 10 and playerMember.nCurrentSunEnergy and playerMember.nMaxSunEnergy and playerMember.nCurrentSunEnergy > 0 then --剑气绘图
-		local nCurrentSunEnergy = playerMember.nCurrentSunEnergy
-		local nMaxSunEnergy = playerMember.nMaxSunEnergy
-		local nRagePercentage = nCurrentSunEnergy / nMaxSunEnergy
-		if nMaxSunEnergy <= 100 then
-			r, g, b = 255, 110, 0
-		else
-			r, g, b = 255, 170, 0
-		end
-		nPercentage = nRagePercentage
-		nManaShow = nCurrentSunEnergy
-		--]]
 	elseif playerMember and playerMember.dwForceID == 7 and playerMember.nCurrentEnergy and playerMember.nMaxEnergy and playerMember.nCurrentEnergy > 0 then --神机值绘图
 		local nCurrentEnergy = playerMember.nCurrentEnergy
 		local nMaxEnergy = playerMember.nMaxEnergy
