@@ -458,4 +458,5 @@ data = {
 	["Style folder:"] = "风格文件：",
 	["Special Self"] = "自己的颜色特殊化显示",
 	["Top Target"] = "置顶目标",
+	["Well done! %s in %d group first to attack %s!!"] = "%d 小队的 %s 率先攻击了 %s！",
 }

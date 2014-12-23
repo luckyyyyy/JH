@@ -4,7 +4,7 @@ SkillCD = {
 	bEnable = true,
 	bSelf = false,
 	bMini = true,
-	bInDungeon = false,
+	bInDungeon = true,
 	tAnchor = {},
 	tMonitor = {
 		[371] = true,
@@ -64,7 +64,7 @@ _SkillCD.UpdateAnchor = function(frame)
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 	else
-		frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+		frame:SetPoint("CENTER", 450, -150, "CENTER", 0, 0)
 	end
 end
 _SkillCD.SwitchPanel = function(bMini)
