@@ -143,6 +143,18 @@ _TS.OnBreathe = function()
 			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
 			_TS.Life:SetPercentage(lifeper)
 		end
+		-- 无威胁提醒
+		local bExist, tBuff = JH.HasBuff({ 917, 4487, 926, 775, 4101, 8422 })
+		if bExist then
+			local szName = JH.GetBuffName(tBuff.dwID, tBuff.nLevel)
+			_TS.frame:Lookup("", "Text_Title"):SetText(string.format("%s (%ds)", szName, math.floor(JH.GetEndTime(tBuff.nEndFrame))))
+			_TS.frame:Lookup("", "Text_Title"):SetFontColor(0, 255, 0)
+		else
+			_TS.frame:Lookup("", "Text_Title"):SetText(g_tStrings.HATRED_COLLECT)
+			_TS.frame:Lookup("", "Text_Title"):SetFontColor(255, 255, 255)
+		end
+		
+		-- 开怪提醒
 		if _TS.dwDropTargetPlayerID >= 0 and GetTime() - _TS.dwDropTargetPlayerID > 1000 * 7 and GetNpcIntensity(p) > 2 then
 			local me = GetClientPlayer()
 			if not me.bFightState then return end
@@ -240,7 +252,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			nTopRank = tThreat[1].val
 		end
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
-		local show = false
+		local show = false		
 		for k, v in ipairs(tThreat) do
 			if k > TS.nMaxBarCount then break end
 			if UI_GetClientPlayerID() == v.id then

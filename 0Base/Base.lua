@@ -1057,10 +1057,10 @@ JH.HasBuff = function(dwBuffID, bCanCancel, me)
 			end
 		end
 	end
-	return false,{}
+	return false, {}
 end
 
-JH.GetBuffTimeString = function(nTime,limit)
+JH.GetBuffTimeString = function(nTime, limit)
 	limit = limit or 5999
 	nTime = tonumber(nTime) or 0
 	if nTime > limit then
