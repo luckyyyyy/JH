@@ -215,6 +215,12 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab[i].bChatAlertCDEnd3 = nil
 		tTab[i].nEventScrutinyCDEnd = nil
 		tTab[i].szDescription = nil
+		tTab[i].nRemoveDelayTime = nil
+		tTab[i].szSoundFile = nil
+		tTab[i].fLastNpcAppearTime = nil
+		tTab[i].fEventTimeStart = nil
+		tTab[i].fEventTimeEnd = nil
+		tTab[i].fMinTime = nil
 	end
 	local tTab2 = RaidGrid_EventScrutiny.tRecords["Casting"]
 	for i = 1, #tTab2 do
@@ -223,6 +229,12 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab2[i].bChatAlertCDEnd3 = nil
 		tTab2[i].nEventScrutinyCDEnd = nil
 		tTab2[i].szDescription = nil
+		tTab2[i].nRemoveDelayTime = nil
+		tTab2[i].szSoundFile = nil
+		tTab2[i].fLastSkillAppearTime = nil
+		tTab2[i].fEventTimeStart = nil
+		tTab2[i].fEventTimeEnd = nil
+		tTab2[i].fMinTime = nil
 	end
 	local tTab3 = RaidGrid_EventScrutiny.tRecords["Buff"]
 	for i = 1, #tTab3 do
@@ -233,6 +245,11 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab3[i].bChatAlertCDEnd3 = nil
 		tTab3[i].nEventScrutinyCDEnd = nil
 		tTab3[i].szDescription = nil
+		tTab3[i].nRemoveDelayTime = nil
+		tTab3[i].szSoundFile = nil
+		tTab3[i].fKeepTime = nil
+		tTab3[i].fEventTimeStart = nil
+		tTab3[i].fEventTimeEnd = nil
 	end
 	local tTab4 = RaidGrid_EventScrutiny.tRecords["Debuff"]
 	for i = 1, #tTab4 do
@@ -243,6 +260,11 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab4[i].bChatAlertCDEnd3 = nil
 		tTab4[i].nEventScrutinyCDEnd = nil
 		tTab4[i].szDescription = nil
+		tTab4[i].nRemoveDelayTime = nil
+		tTab4[i].szSoundFile = nil
+		tTab4[i].fKeepTime = nil
+		tTab4[i].fEventTimeStart = nil
+		tTab4[i].fEventTimeEnd = nil
 	end
 end
 
@@ -1324,7 +1346,6 @@ RaidGrid_EventScrutiny.tRecords = {
 	Casting = {Hash = {},Hash2 = {}},
 	Scrutiny = {Hash = {},Hash2 = {}},
 };
-RaidGrid_EventScrutiny.nRemoveDelayTime = 10;														RegisterCustomData("RaidGrid_EventScrutiny.nRemoveDelayTime")
 
 function RaidGrid_EventScrutiny._SetItemUI(szName,obj,boolean)
 	local _U = tRaidGrid_EventScrutinyTextUI	
@@ -2670,7 +2691,7 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 		local tRecord = tTab[i]
 		local szType = tRecord.szType
 		if szType == "Npc" or szType == "Casting" then
-			if RaidGrid_Base.IsOutOfEventTime(tRecord, tRecord.nRemoveDelayTime or RaidGrid_EventScrutiny.nRemoveDelayTime) then
+			if RaidGrid_Base.IsOutOfEventTime(tRecord, 0) then
 				tRecord.fEventTimeStart = nil
 				tRecord.fEventTimeEnd = nil
 				if tTab.Hash2[tRecord.dwID] and tRecord.nLevel then
@@ -2683,7 +2704,7 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 				table.insert(tRemoveList, 1, i)
 			end
 		elseif szType == "Buff" or szType == "Debuff" then
-			if RaidGrid_Base.IsOutOfEventTime(tRecord, tRecord.nRemoveDelayTime or 0) then
+			if RaidGrid_Base.IsOutOfEventTime(tRecord, 0) then
 				tRecord.fEventTimeStart = nil
 				tRecord.fEventTimeEnd = nil
 				if tTab.Hash2[tRecord.dwID] and tRecord.nLevel then
@@ -5511,7 +5532,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 				end):Pos_()
 			end
 			nY = nY + 25
-			nX,nY = ui:Append("Text",{ x = 0, y = nY, txt = "倒计时时间设置(事件/中央/多目标)", font = 27}):Pos_()
+			nX,nY = ui:Append("Text",{ x = 0, y = nY, txt = "倒计时时间设置(事件/中央)", font = 27}):Pos_()
 			nX = ui:Append("WndCheckBox",{ x = 10, y = nY + 10, checked = data.nAutoEventTimeMode == AUTO_EVENTTIME_MODE.AVG or false })
 			:Text("自动设置最近10次平均值"):Click(function(bChecked)
 				if bChecked then

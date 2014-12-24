@@ -1574,8 +1574,8 @@ function _GUI.Frm:ctor(szName, bEmpty)
 	end
 	self.self, self.type = frm, "WndFrame"
 end
-
-function _GUI.Frm:Close(fnAction, bButton, bKeyDown)
+-- 注册关闭自身 和wnd有差异 不需要传fnAction
+function _GUI.Frm:Close(bButton, bKeyDown)
 	local wnd = self.self
 	if not bKeyDown then
 		wnd.OnFrameKeyDown = function()
@@ -1592,7 +1592,7 @@ function _GUI.Frm:Close(fnAction, bButton, bKeyDown)
 	end
 	return self
 end
-
+-- 关闭自身
 function _GUI.Frm:CloseFrame(fnAction)
 	local frm = self.self
 	if frm.bClose then
