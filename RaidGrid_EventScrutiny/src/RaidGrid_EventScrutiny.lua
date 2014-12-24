@@ -2727,19 +2727,6 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 						elseif fP >= 0.5 then
 							nFrame = 31
 						end
-						
-						local fRemainCamp = handleRecord.tRecord.nEventCountdownTime or 10
-						if player.IsInParty() and fRemainCamp > 0 and fTimeRemain <= fRemainCamp then
-							if (handleRecord.tRecord.szType == "Npc" and RaidGrid_EventScrutiny.bNpcChatAlertEnable and handleRecord.tRecord.bChatAlertT) or
-							(handleRecord.tRecord.szType == "Casting" and RaidGrid_EventScrutiny.bCastingChatAlertEnable and handleRecord.tRecord.bChatAlertT) then
-								local fTimeRemainfloor = math.floor(fTimeRemain)
-								if handleRecord.tRecord.nLastSecond and fTimeRemainfloor < handleRecord.tRecord.nLastSecond then
-									local tInfo = 	{{type = "text", text = "¡ï [" .. (handleRecord.tRecord.szName or "????") .. "]¼´½«³öÏÖ£º" .. fTimeRemainfloor .. "Ãë¡£"},}
-									JH.Talk(tInfo)
-								end
-								handleRecord.tRecord.nLastSecond = fTimeRemainfloor
-							end
-						end
 						if handleRecord.tRecord.tTimerSet and ((handleRecord.tRecord.bChatAlertCDEnd3 or 0) <= fLogicTime) then
 							local tTimerSetTemp = handleRecord.tRecord.tTimerSet
 							for nTimerIndex = 1, #tTimerSetTemp do
@@ -3808,7 +3795,7 @@ function RaidGrid_SkillTimer.OnFrameRender()
 			if nS < RaidGrid_EventScrutiny.nSkillTimerCountdown then
 				if this.nLS and nS < this.nLS then
 					if this.bSayTimer then
-						JH.Talk(this.nChannel,{{type="text",text="¡ô["..this.szSkillName.."]Ê£Óà "..this.nLS.."Ãë£¡ "}})
+						JH.Talk(this.nChannel,{{type="text",text="¡ô["..this.szSkillName.."]Ê£Óà ".. this.nLS - 1 .."Ãë£¡ "}})
 					end
 				end
 				RaidGrid_SkillTimer.FlashFrame(this, alpha)
@@ -4834,7 +4821,7 @@ PS.OnPanelActive = function(frame)
 		end
 	end):Pos_()	
 end
-GUI.RegisterPanel(_L["Enable/Data"], 22, _L["RGES"],PS)
+GUI.RegisterPanel(_L["RaidGrid_EventScrutiny"], 22, _L["RGES"],PS)
 local PS2 = {}
 PS2.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
@@ -4996,7 +4983,7 @@ function RaidGrid_EventScrutiny.PopMainOptions()
 	if JH.IsPanelOpened() then
 		JH.ClosePanel()
 	else
-		JH.OpenPanel(_L["Enable/Data"])
+		JH.OpenPanel(_L["RaidGrid_EventScrutiny"])
 	end
 end
 
