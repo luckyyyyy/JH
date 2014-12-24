@@ -162,6 +162,31 @@ _GKP.GKP_LoadData = function(szFile)
 	pcall(_GKP.Draw_GKP_Record)
 	pcall(_GKP.Draw_GKP_Account)
 end
+_GKP.OpenLootPanel = function()
+	if not Station.Lookup("Normal/GKP_Loot") then
+		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot")
+		loot:Hide()
+		GUI(loot):Title(GKP.Config.szLootListTitle or "Loot List, By GKP Plugin"):Point():Close(_GKP.CloseLootWindow)
+		loot:Lookup("Btn_Style").OnLButtonClick = function()
+			if IsCtrlKeyDown() then
+				if #_GKP.aDistributeList > 0 then
+					local t = {}
+					for k,v in ipairs(_GKP.aDistributeList) do
+						table.insert(t,GKP.GetFormatLink(v))
+					end
+					table.insert(t,{type = "text", text = _L["Expression"]})
+					JH.Talk(t)
+				end
+				return 
+			end
+			GKP.Config.bLootStyle = not GKP.Config.bLootStyle
+			if _GKP.dwOpenID then
+				_GKP.OnOpenDoodad(_GKP.dwOpenID)
+			end
+		end
+	end
+	return Station.Lookup("Normal/GKP_Loot")
+end
 _GKP.OpenPanel = function(bDisableSound)
 	local frame = Station.Lookup("Normal/GKP") or Wnd.OpenWindow(_GKP.szIniFile, "GKP")
 	frame:Show()
@@ -197,8 +222,6 @@ end
 _GKP.Init = function()
 	if not _GKP.bInit then
 		local me = GetClientPlayer()
-		Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot"):Hide()
-		Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Chat.ini","GKP_Chat"):Hide()
 		Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Record.ini","GKP_Record"):Hide()
 		_GKP.OpenPanel(true):Hide()
 		_GKP.nNowMoney = me.GetMoney().nGold
@@ -211,6 +234,7 @@ end
 RegisterEvent("LOADING_END",_GKP.Init) -- LOADING_END 主要是为了获取名字 所以压到最后加载
 -- OnMsgArrive
 _GKP.OnMsgArrive = function(szMsg)
+	if not Station.Lookup("Normal/GKP_Chat") then return end
 	local me = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat")
 	local h = me:Lookup("","")
 	szMsg = string.gsub(szMsg,_L["[Team]"],"")
@@ -313,8 +337,15 @@ GKP.DistributionItem = function()
 	MessageBox(msg)
 end
 
-_GKP.SetChatWindow = function(item,ui)
+_GKP.SetChatWindow = function(item, ui)
 	local me = Station.Lookup("Normal/GKP_Chat")
+	if not me then
+		me = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Chat.ini","GKP_Chat")
+		GUI(me):Point():Close(_GKP.CloseChatWindow):Append("WndButton2",{x = 380, y = 38,txt = _L["Stop Bidding"]}):Click(function()
+			JH.Talk(_L["--- Stop Bidding ---"])
+			JH.DelayCall(1000,function() UnRegisterMsgMonitor(_GKP.OnMsgArrive) end)
+		end)
+	end
 	local box = me:Lookup("","Box") or me:Lookup("","iteminfolink") or me:Lookup("","booklink") -- fix setname
 	local txt = me:Lookup("","Text")
 	txt:SetText(GetItemNameByItem(item))
@@ -333,7 +364,7 @@ end
 
 _GKP.CloseChatWindow = function(bCheck)
 	local me = Station.Lookup("Normal/GKP_Chat")
-	if not me:IsVisible() then return end
+	if not me then return end
 	if type(bCheck) == "userdata" then
 		local box = me:Lookup("","Box") or me:Lookup("","iteminfolink") or me:Lookup("","booklink") -- fix setname
 		local _,nUiId,dwID,nVersion,dwTabType,dwIndex = box:GetObject()
@@ -342,16 +373,18 @@ _GKP.CloseChatWindow = function(bCheck)
 		end
 	end
 	UnRegisterMsgMonitor(_GKP.OnMsgArrive)
-	Station.Lookup("Normal/GKP_Chat"):Hide()
+	Wnd.CloseWindow(Station.Lookup("Normal/GKP_Chat"))
 end
 
 _GKP.CloseLootWindow = function()
-	Station.Lookup("Normal/GKP_Loot"):Hide()
+	Wnd.CloseWindow(Station.Lookup("Normal/GKP_Loot"))
 	_GKP.dwOpenID = nil
 	_GKP.CloseChatWindow(true)
 end
 _GKP.SetLootTitle = function()
-	Station.Lookup("Normal/GKP_Loot"):Lookup("","Text_Title"):SetText(GKP.Config.szLootListTitle)
+	if Station.Lookup("Normal/GKP_Loot") then
+		Station.Lookup("Normal/GKP_Loot"):Lookup("","Text_Title"):SetText(GKP.Config.szLootListTitle)
+	end
 end
 ---------------------------------------------------------------------->
 -- 常用函数
@@ -361,24 +394,20 @@ GKP.Random = function() -- 生成一个随机字符串 这还能重复我吃翔
 	local t = {}
 	for i = 1, 64 do
 		local n = math.random(1,string.len(a))
-		table.insert(t,string.sub(a,n,n))
+		table.insert(t, string.sub(a, n ,n))
 	end
-	return table.concat(t,"")
+	return table.concat(t, "")
 end
-
-
-
 
 GKP.Sysmsg = function(szMsg)
 	JH.Sysmsg(szMsg,"[GKP]")
 end
 
-
-GKP.GetTimeString = function(nTime,year)
+GKP.GetTimeString = function(nTime, year)
 	if year then
-		return FormatTime("%H:%M:%S",nTime)
+		return FormatTime("%H:%M:%S", nTime)
 	else
-		return FormatTime("%Y-%m-%d %H:%M:%S",nTime)
+		return FormatTime("%Y-%m-%d %H:%M:%S", nTime)
 	end
 end
 
@@ -477,7 +506,6 @@ function GKP.OnFrameCreate()
 	_GKP.GKP_Record_Container = this:Lookup("PageSet_Menu/Page_GKP_Record/WndScroll_GKP_Record/WndContainer_Record_List")
 	_GKP.GKP_Account_Container = this:Lookup("PageSet_Menu/Page_GKP_Account/WndScroll_GKP_Account/WndContainer_Account_List")
 	_GKP.GKP_Buff_Container = this:Lookup("PageSet_Menu/Page_GKP_Buff/WndScroll_GKP_Buff/WndContainer_Buff_List")
-
 	local frm = Station.Lookup("Normal1/GKP_Record")
 	local ui = GUI(this)
 	local PageSet = ui:Fetch("PageSet_Menu")
@@ -727,37 +755,12 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	local loot = Station.Lookup("Normal/GKP_Loot")
-	GUI(loot):Title(GKP.Config.szLootListTitle or "Loot List, By GKP Plugin"):Point():Close(_GKP.CloseLootWindow)
-	loot:Lookup("Btn_Style").OnLButtonClick = function()
-		if IsCtrlKeyDown() then
-			if #_GKP.aDistributeList > 0 then
-				local t = {}
-				for k,v in ipairs(_GKP.aDistributeList) do
-					table.insert(t,GKP.GetFormatLink(v))
-				end
-				table.insert(t,{type = "text", text = _L["Expression"]})
-				JH.Talk(t)
-			end
-			return 
-		end
-		GKP.Config.bLootStyle = not GKP.Config.bLootStyle
-		if _GKP.dwOpenID then
-			_GKP.OnOpenDoodad(_GKP.dwOpenID)
-		end
-	end
-
-	local chat = Station.Lookup("Normal/GKP_Chat")
-	GUI(chat):Point():Close(_GKP.CloseChatWindow):Append("WndButton2",{x = 380, y = 38,txt = _L["Stop Bidding"]}):Click(function()
-		JH.Talk(_L["--- Stop Bidding ---"])
-		JH.DelayCall(1000,function() UnRegisterMsgMonitor(_GKP.OnMsgArrive) end)
-	end)
 end
 ---------------------------------------------------------------------->
 -- 获取设置菜单
 ----------------------------------------------------------------------<
-_GKP.PS = {}
-_GKP.PS.OnPanelActive = function(frame)
+local PS = {}
+PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["Preference Setting"], font = 27 })
 	ui:Append("WndButton3", { x = 350, y = 0 }):Text(_L["Open Panel"]):Click(_GKP.OpenPanel)
@@ -832,7 +835,7 @@ _GKP.PS.OnPanelActive = function(frame)
 		end)
 	end
 end
-GUI.RegisterPanel(_L["GKP Golden Team Record"], 95, _L["General"],_GKP.PS)
+GUI.RegisterPanel(_L["GKP Golden Team Record"], 95, _L["General"], PS)
 
 
 _GKP.GetSettingMenu = function()
@@ -1700,7 +1703,7 @@ end
 -- UpdateDistributeList
 ----------------------------------------------------------------------<
 _GKP.CheckDialog = function()
-	if Station.Lookup("Normal/GKP_Loot"):IsVisible() then
+	if Station.Lookup("Normal/GKP_Loot") and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
 		if type(GetDoodad(_GKP.dwOpenID)) == "userdata" then
 			JH.DelayCall(200,_GKP.CheckDialog)
 		else
@@ -1710,7 +1713,7 @@ _GKP.CheckDialog = function()
 end
 
 _GKP.DrawDistributeList = function(doodad)
-	local frame = Station.Lookup("Normal/GKP_Loot")
+	local frame = _GKP.OpenLootPanel()
 	local me = GetClientPlayer()
 	if #_GKP.aDistributeList == 0 or (not me.IsInParty() and not JH.bDebug) then
 		return _GKP.CloseLootWindow()
@@ -2403,10 +2406,10 @@ RegisterEvent("GKP_DISTRIBUTE_ITEM", function()
 end)
 
 RegisterEvent("SYNC_LOOT_LIST", function()
-	if _GKP.dwOpenID == arg0 and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
+	if _GKP.dwOpenID == arg0 and Station.Lookup("Normal/GKP_Loot") and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
 		_GKP.OpenDoodad(arg0)
 	end	
-	if JH.IsInDungeon() and JH_About.CheckNameEx() and GKP.Config.bDebug2 and not _GKP.aDoodadCache[arg0] and not Station.Lookup("Normal/GKP_Loot"):IsVisible() then
+	if JH.IsInDungeon() and JH_About.CheckNameEx() and GKP.Config.bDebug2 and not _GKP.aDoodadCache[arg0] and not Station.Lookup("Normal/GKP_Loot") then
 		_GKP.OpenDoodad(arg0)
 	end
 	_GKP._OpenDoodad(arg0)

@@ -906,7 +906,7 @@ if not HM_Love then
 	JH.BreatheCall("JH_Love", _JH_Love.OnBreathe)
 end
 JH.RegisterEvent("PLAYER_FELLOWSHIP_UPDATE", _JH_Love.OnFellowUpdate)
-GUI.RegisterPanel(JH_Love.szTitle, 329, _L["Other"], _JH_Love.PS)
+GUI.RegisterPanel(JH_Love.szTitle, 329, _L["Recreation"], _JH_Love.PS)
 
 -- view other lover by dwID
 function JH_Love.PeekOther(dwID)
