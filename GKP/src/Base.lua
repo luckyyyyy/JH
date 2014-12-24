@@ -510,7 +510,8 @@ function GKP.OnFrameCreate()
 	local ui = GUI(this)
 	local PageSet = ui:Fetch("PageSet_Menu")
 	local record = GUI(frm)
-	ui:Title(_L["GKP Golden Team Record"]):Point():Close(_GKP.ClosePanel):Append("WndComboBox",{x = 805,y = 52,txt = _L["Setting"]}):Click(_GKP.GetSettingMenu)
+	ui:Title(_L["GKP Golden Team Record"]):Point():Close(_GKP.ClosePanel)
+	:Append("WndComboBox",{x = 805,y = 52,txt = _L["Setting"]}):Click(_GKP.GetSettingMenu)
 	PageSet:Append("WndButton3",{x = 15,y = 610,txt = _L["Add Manually"]}):Click(function()
 		if IsCtrlKeyDown() and JH_About.CheckNameEx() then -- 和谐自用
 			return _GKP.GKP_Bidding()
@@ -520,9 +521,17 @@ function GKP.OnFrameCreate()
 		end
 		pcall(_GKP.Record)
 	end)
-	PageSet:Append("WndButton3",{x = 840,y = 570,txt = g_tStrings.GOLD_TEAM_SYLARY_LIST}):Click(_GKP.GKP_Calculation)
-	PageSet:Append("WndButton3",{x = 840,y = 610,txt = g_tStrings.GOLD_TEAM_BID_LIST}):Click(_GKP.GKP_SpendingList)
-	PageSet:Append("WndButton3",{x = 690,y = 610,txt = _L["Debt Issued"]}):Click(_GKP.GKP_OweList)
+	PageSet:Append("WndButton3", {x = 840,y = 570,txt = g_tStrings.GOLD_TEAM_SYLARY_LIST}):Click(_GKP.GKP_Calculation)
+	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840,y = 610,txt = g_tStrings.GOLD_TEAM_BID_LIST}):Click(function()
+		_GKP.GKP_SpendingList()
+		PageSet:Fetch("Debt"):Enable(false)
+		PageSet:Fetch("GOLD_TEAM_BID_LIST"):Enable(false)
+	end)
+	PageSet:Append("WndButton3", "Debt", {x = 690,y = 610,txt = _L["Debt Issued"]}):Click(function()
+		_GKP.GKP_OweList()
+		PageSet:Fetch("Debt"):Enable(false)
+		PageSet:Fetch("GOLD_TEAM_BID_LIST"):Enable(false)
+	end)
 	PageSet:Append("WndButton3",{x = 540,y = 610,txt = _L["Wipe Record"]}):Click(_GKP.GKP_Clear)
 	PageSet:Append("WndButton3",{x = 390,y = 610,txt = _L["Loading Record"]}):Click(_GKP.GKP_Recovery)
 	PageSet:Append("WndButton3",{x = 240,y = 610,txt = _L["Manual SYNC"]}):Click(_GKP.GKP_Sync)
@@ -910,20 +919,7 @@ _GKP.GetSchemeMenu = function()
 	
 	return menu
 end
----------------------------------------------------------------------->
--- 获取玩家身上Buff列表
-----------------------------------------------------------------------<
-_GKP.GetBuffList = function(obj)
-	local aBuffTable = {}
-	local nCount = obj.GetBuffCount()
-	for i=1,nCount,1 do
-		local dwID, nLevel, bCanCancel, nEndFrame, nIndex, nStackNum, dwSkillSrcID, bValid = obj.GetBuff(i - 1)
-		if dwID then
-			table.insert(aBuffTable,{dwID = dwID, nLevel = nLevel, bCanCancel = bCanCancel, nEndFrame = nEndFrame, nIndex = nIndex, nStackNum = nStackNum, dwSkillSrcID = dwSkillSrcID, bValid = bValid})
-		end
-	end
-	return aBuffTable
-end
+
 ---------------------------------------------------------------------->
 -- 绘制团队概况
 ----------------------------------------------------------------------<
@@ -965,7 +961,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 			bFightState = 2,
 		}
 		if player then
-			for _, tBuff in ipairs(_GKP.GetBuffList(player)) do
+			for _, tBuff in ipairs(JH.GetBuffList(player)) do
 				local nType = GetBuffInfo(tBuff.dwID,tBuff.nLevel,{}).nDetachType or 0
 				if tType[nType] then
 					table.insert(t.Box1,tBuff)
@@ -1449,6 +1445,116 @@ _GKP.OnMsg = function()
 			end
 			pcall(_GKP.Draw_GKP_Record)
 			JH.Debug("#GKP# Sync Success")
+		end		
+	end
+	local data2 = JH.BgHear("GKP", true)
+	if data2 then
+		if data2[1] == "GKP_INFO" then
+			if data2[2] == "Start" then
+				if Station.Lookup("Normal/GKP_info") then
+					Wnd.CloseWindow(Station.Lookup("Normal/GKP_info"))
+					_GKP.info = nil
+				end
+				_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP"] }):Point():Close()
+				_GKP.info:Append("Text", { w = 690, h = 30, txt = _L[data2[3]], align = 1, font = 40, color = { 255, 128, 0 } })
+			end
+			if data2[2] == "Info" then
+				local frm = Station.Lookup("Normal/GKP_info")
+				if frm then
+					if not frm.n then frm.n = 0 end
+					local n = frm.n
+					local ui = GUI(frm)
+					if n % 2 == 0 then
+						ui:Append("Image", { w = 760, h = 30, x = 0, y = 120 + 30 * n }):File("ui/Image/button/ShopButton.UITex", 75)
+					end
+					local dwForceID, tBox = -1, {}
+					if me.IsInParty() then
+						for k, v in ipairs(team.GetTeamMemberList()) do
+							if team.GetClientTeamMemberName(v) == data2[3] then
+								dwForceID = team.GetMemberInfo().dwForceID
+							end
+						end
+					end
+					for k, v in ipairs(GKP("GKP_Record")) do
+						if v.szPlayer == data2[3] then
+							if dwForceID == -1 then
+								dwForceID = v.dwForceID
+							end
+							table.insert(tBox, v)
+						end
+					end
+					if dwForceID ~= -1 then
+						ui:Append("Image", { w = 28, h = 28, x = 30, y = 121 + 30 * n }):File(GetForceImage(dwForceID))
+					end
+					ui:Append("Text", { w = 180, h = 30, x = 60, y = 120 + 30 * n, txt = data2[3], color = { JH.GetForceColor(dwForceID) } })
+					local r, g, b = GKP.GetMoneyCol(data2[4])
+					if tonumber(data2[4]) < 0 then
+						r, g, b = GKP.GetMoneyCol(tonumber(data2[4]) * - 1)
+					end
+					ui:Append("Text", { w = 80, h = 30, x = 240, y = 120 + 30 * n, txt = data2[4], align = 2, color = { r, g, b } })
+					ui:Append("Image", { w = 28, h = 28, x = 323, y = 121 + 30 * n }):File("ui/image/LootPanel/LootPanel.UITex", 11)
+					for k, v in ipairs(tBox) do
+						if k > 10 then
+							ui:Append("Text", { x = 345 + k * 32 + 5, y = 121 + 30 * n, w = 28, h = 28, txt = ".....", font = 23 })
+							break
+						end
+						local box = ui:Append("Box", { x = 345 + k * 32, y = 121 + 30 * n, w = 28, h = 28, icon = 13 }).self
+						box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
+						local icon = 95
+						if v.nUiId ~= 0 then
+							icon = Table_GetItemIconID(v.nUiId)
+						end
+						box:SetObjectIcon(icon)
+						box:RegisterEvent(786)
+						if v.nStackNum then
+							box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+							box:SetOverTextFontScheme(0,15)
+							box:SetOverText(0, v.nStackNum .. " ")
+						end
+						box.OnItemMouseEnter = function()
+							this:SetObjectMouseOver(true)
+							local x, y = this:GetAbsPos()
+							local w, h = this:GetSize()
+							if v.nBookID then
+								local dwBookID, dwSubID = GlobelRecipeID2BookID(v.nBookID)
+								OutputBookTipByID(dwBookID, dwSubID,{x, y, w, h})
+							else
+								local _,dwTabType,dwIndex = this:GetObjectData()
+								if dwTabType == 0 and dwIndex == 0 then
+									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. _L["Gold."],136,255,255,0), 250, { x, y, w, h })
+								else
+									OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
+								end
+							end
+						end
+						box.OnItemMouseLeave = function()
+							this:SetObjectMouseOver(false)
+							HideTip()
+						end
+						box.OnItemLButtonClick = function()
+							if IsCtrlKeyDown() or IsAltKeyDown() then
+								return GKP.OnItemLinkDown(v,this)
+							end
+						end
+					end
+					if frm.n > 5 then
+						_GKP.info:Size(760, 30 * frm.n + 200)
+					end
+					frm.n = frm.n + 1
+				end
+			end
+			if data2[2] == "End" then
+				local frm = Station.Lookup("Normal/GKP_info")
+				if frm then
+					local ui = GUI(frm)
+					ui:Append("Text", { w = 121, h = 30, x = 30, y = 120 + 30 * frm.n + 1, txt = data2[3], color = { 255, 255, 0 } })
+					if data2[4] then
+						ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * frm.n + 1, txt = string.format("%d / %d = %d", tonumber(data2[4]), team.GetTeamSize(), math.floor(tonumber(data2[4]) / team.GetTeamSize())), color = { 255, 255, 0 }, align = 2 })
+					end
+				end
+				GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("GOLD_TEAM_BID_LIST"):Enable(true)
+				GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("Debt"):Enable(true)
+			end
 		end
 	end
 end
@@ -1516,7 +1622,9 @@ _GKP.GKP_OweList = function()
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	
+	if not GKP.IsDistributer() and not JH.bDebug then
+		return JH.Alert(_L["You are not the distrubutor."])
+	end	
 	for k,v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if tonumber(v.nMoney) > 0 then
@@ -1545,11 +1653,14 @@ _GKP.GKP_OweList = function()
 	end
 	table.sort(tMember2,function(a,b) return a.nGold < b.nGold end)
 	JH.Talk(_L["Information on Debt"])
+	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "Information on Debt")
 	for k,v in pairs(tMember2) do
 		if v.nGold < 0 then
 			JH.Talk({{type = "name" , name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]}})
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "-")
 		else
 			JH.Talk({{type = "name" , name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. _L["Gold."]}})
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "+")
 		end
 	end
 	local nGold,nGold2 = 0,0
@@ -1570,6 +1681,7 @@ _GKP.GKP_OweList = function()
 	if nGold2 ~= 0 then
 		JH.Talk(_L("Spending: %d Gold.",nGold))
 	end
+	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Received: %d Gold.",nGold))
 end
 ---------------------------------------------------------------------->
 -- 获取工资总额
@@ -1601,11 +1713,12 @@ _GKP.GKP_SpendingList = function()
 	local me = GetClientPlayer()
 	if not me.IsInParty() and not JH.bDebug then return JH.Alert(_L["You are not in the team."]) end
 	local tMember = {}
-	
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	
+	if not GKP.IsDistributer() and not JH.bDebug then
+		return JH.Alert(_L["You are not the distrubutor."])
+	end	
 	for k,v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if not tMember[v.szPlayer] then
@@ -1617,6 +1730,7 @@ _GKP.GKP_SpendingList = function()
 		end
 	end
 	JH.Talk(_L["--- Consumption ---"])
+	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "--- Consumption ---")
 	local sort = {}
 	for k,v in pairs(tMember) do
 		if v > 0 then
@@ -1626,9 +1740,11 @@ _GKP.GKP_SpendingList = function()
 
 	table.sort(sort,function(a,b) return a.nGold < b.nGold end)
 	for k,v in ipairs(sort) do
-		JH.Talk({{type = "name" , name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]}})
+		JH.Talk({{type = "name" , name = v.szName , text = "" },{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]}})
+		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold)
 	end
 	JH.Talk(_L("Toal Auction: %d Gold.",_GKP.GetRecordSum()))
+	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Toal Auction: %d Gold.",_GKP.GetRecordSum()), _GKP.GetRecordSum())
 end
 ---------------------------------------------------------------------->
 -- 结算工资按钮
