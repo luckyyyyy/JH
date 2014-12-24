@@ -252,7 +252,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			nTopRank = tThreat[1].val
 		end
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
-		local show = false		
+		local show = false
 		for k, v in ipairs(tThreat) do
 			if k > TS.nMaxBarCount then break end
 			if UI_GetClientPlayerID() == v.id then
