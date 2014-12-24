@@ -1408,12 +1408,12 @@ function _GUI.Base:IsVisible()
 	return self.self:IsVisible()
 end
 
-function _GUI.Base:Point(...)
+function _GUI.Base:Point( ... )
 	local t = { ... }
 	if IsEmpty(t) then
 		self.self:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 	else
-		self.self:SetPoint(...)
+		self.self:SetPoint( ... )
 	end
 	return self
 end
@@ -1565,11 +1565,7 @@ function _GUI.Frm:ctor(szName, bEmpty)
 	if not bEmpty then
 		frm:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 		frm:Lookup("Btn_Close").OnLButtonClick = function()
-			if frm.bClose then
-				Wnd.CloseWindow(frm)
-			else
-				frm:Hide()
-			end
+			self:CloseFrame()
 		end
 		self.wnd = frm:Lookup("Window_Main")
 		self.handle = self.wnd:Lookup("", "")
@@ -1579,6 +1575,35 @@ function _GUI.Frm:ctor(szName, bEmpty)
 	self.self, self.type = frm, "WndFrame"
 end
 
+function _GUI.Frm:Close(fnAction, bButton, bKeyDown)
+	local wnd = self.self
+	if not bKeyDown then
+		wnd.OnFrameKeyDown = function()
+			if GetKeyName(Station.GetMessageKey()) == "Esc" then
+				self:CloseFrame()
+				return 1
+			end
+		end
+	end
+	if not bButton then
+		wnd:Lookup("Btn_Close").OnLButtonClick = function()
+			self:CloseFrame()
+		end
+	end
+	return self
+end
+
+function _GUI.Frm:CloseFrame(fnAction)
+	local frm = self.self
+	if frm.bClose then
+		Wnd.CloseWindow(frm)
+	else
+		frm:Hide()
+	end
+	if fnAction then
+		fnAction()
+	end
+end
 -- (number, number) Instance:Size()						-- 取得窗体宽和高
 -- (self) Instance:Size(number nW, number nH)	-- 设置窗体的宽和高
 -- 特别注意：窗体最小高度为 200，宽度自动按接近取  234/380/770 中的一个

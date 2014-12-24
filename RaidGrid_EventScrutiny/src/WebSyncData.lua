@@ -8,6 +8,7 @@ local _WebSyncData = {
 	tResult = {},
 	key = {},
 	tList = {},
+	tData = {},
 	tUnused = nil,
 	bSyncWebPage = false,
 	tUrl = { -- 暂时先这样配置 请不要修改
@@ -55,7 +56,6 @@ _WebSyncData.GetData = function()
 					_WebSyncData.SyncTip(true)
 					return JH.Sysmsg2(err)
 				else
-				-- c 418524171f9f757d9dde6a40aef60e85
 					_WebSyncData.SyncTip(true)
 					table.insert(_WebSyncData.key,result)
 					_WebSyncData.RefreshList()
@@ -104,10 +104,16 @@ WebSyncData.OnFrameCreate = function()
 	local ui = GUI(this)
 	ui:Append("WndButton3", { x = 30, y = 630, txt = "同步给全团" })
 	:Click(_WebSyncData.SyncTeam)
-	ui:Append("WndButton3", { x = 180, y = 630, txt = "推荐数据" })
-	:Click(_WebSyncData.RefreshList)
-	ui:Append("WndButton3", { x = 330, y = 630, txt = "其他数据" })
+	ui:Append("WndButton3","btn1", { x = 180, y = 630, txt = "推荐数据" }):Enable(false)
 	:Click(function()
+		ui:Fetch("btn1"):Enable(false)
+		ui:Fetch("btn2"):Enable(true)
+		_WebSyncData.RefreshList()
+	end)
+	ui:Append("WndButton3","btn2", { x = 330, y = 630, txt = "其他数据" })
+	:Click(function()
+		ui:Fetch("btn1"):Enable(true)
+		ui:Fetch("btn2"):Enable(false)
 		_WebSyncData.RefreshList(true)
 	end)
 	ui:Append("WndButton3", { x = 480, y = 630, txt = "关闭更新通知" })
@@ -132,40 +138,39 @@ _WebSyncData.OpenPanel = function( ... )
 end
 
 _WebSyncData.RefreshList = function(aid, title, author, dateline, md5)
-	-- if not _WebSyncData.bSyncWebPage then
-		_WebSyncData.tUnused = nil
-		local nTime = GetCurrentTime()
-		local t = TimeToDate(nTime)
-		local szDate = t.year .. t.month .. t.day .. t.hour .. t.minute
-		_WebSyncData.Container:Clear()
-		_WebSyncData.tList = {}
-		if aid and title and author and dateline and md5 then
-			_WebSyncData.tResult = { aid = aid,title = JH.AscIIDecode(title),author = JH.AscIIDecode(author),dateline = dateline ,md5 = JH.AscIIDecode(md5)}
+	local nTime = GetCurrentTime()
+	local t = TimeToDate(nTime)
+	local szDate = t.year .. t.month .. t.day .. t.hour .. t.minute
+	_WebSyncData.Container:Clear()
+	_WebSyncData.tList = {}
+	if aid and title and author and dateline and md5 then
+		_WebSyncData.tResult = { aid = aid,title = JH.AscIIDecode(title),author = JH.AscIIDecode(author),dateline = dateline ,md5 = JH.AscIIDecode(md5)}
+	else
+		_WebSyncData.tResult = {}
+	end
+	_WebSyncData.SyncTip(_L["Loading..."], { 255, 255, 0 })
+	local url = _WebSyncData.tUrl.szConfigList
+	if type(aid) == "boolean" then
+		url = _WebSyncData.tUrl.szConfigList2
+	end
+	JH.RemoteRequest(url .. "?_" .. szDate,function(szTitle,szDoc)
+		local result,err = JH.JsonDecode(JH.UrlDecode(szDoc))
+		if err then
+			JH.Sysmsg2(err)
 		else
-			_WebSyncData.tResult = {}
-		end
-		_WebSyncData.SyncTip(_L["Loading..."], { 255, 255, 0 })
-		local url = _WebSyncData.tUrl.szConfigList
-		if type(aid) == "boolean" then
-			url = _WebSyncData.tUrl.szConfigList2
-		end
-		JH.RemoteRequest(url .. "?_" .. szDate,function(szTitle,szDoc)
-			local result,err = JH.JsonDecode(JH.UrlDecode(szDoc))
-			if err then
-				JH.Sysmsg2(err)
-			else
-				_WebSyncData.LoadData(result)
-				if not IsEmpty(_WebSyncData.tResult) then
-					_WebSyncData.ItemRButtonClick(_WebSyncData.tResult, true)
-				end
+			_WebSyncData.tData = result
+			_WebSyncData.LoadData(_WebSyncData.tData)
+			if not IsEmpty(_WebSyncData.tResult) then
+				_WebSyncData.ItemRButtonClick(_WebSyncData.tResult, true)
 			end
-		end)
-	-- end
+		end
+	end)
 end
-
 _WebSyncData.ClosePanel = function()
 	Wnd.CloseWindow(Station.Lookup("Normal/WebSyncData"))
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+	_WebSyncData.tData = {}
+	_WebSyncData.tList = {}
 end
 
 -- format time
@@ -259,17 +264,16 @@ _WebSyncData.AppendItem = function(tData,aid,k)
 			else
 				btn:Lookup("","Text_Default"):SetText("有更新")
 				btn:Lookup("","Text_Default"):SetFontColor(255,255,0)
-				JH.Confirm("《剑网3》团队事件监控 数据更新提示\n检查到当前使用的数据有更新 是否更新？\n新数据："..tData.title .. "\n这是数据作者（" .. tData.author .."）推送的更新,如果不想接收请点击关闭更新。",function()
-					_WebSyncData.ItemRButtonClick(tData, true)
-				end)
 			end
 		end
 		
 	end
 end
 
-
 _WebSyncData.LoadData = function(result)
+	if not Station.Lookup("Normal/WebSyncData") then return end
+	_WebSyncData.Container:Clear()
+	_WebSyncData.tUnused = nil
 	local k = 1
 	if #_WebSyncData.key > 0 then
 		for i = 1 , #_WebSyncData.key do
@@ -311,27 +315,23 @@ _WebSyncData.ItemRButtonClick = function(tData, bSync)
 	local me = GetClientPlayer()
 	if self.aid then
 		local fnAction = function(tData)
-			local szText = GetFormatText("      《剑网3》团队事件监控 数据更新提示\n",167,255,255,255)
-			szText = szText..GetFormatText("      数据：".. tData.title .."\n",16)
-			local msg = {
-				szMessage = szText,
-				bRichText = true,
-				szName = "RaidGrid_Base_tRecordsClearNew",
-				{szOption = "覆盖导入", fnAction = function()
-					WebSyncData.tData = tData
-					RaidGrid_Base.LoadSettingsFileNew("sync_data_" .. tData.aid, true)
-					if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean","Load",tData.title) end
-					_WebSyncData.RefreshList()
-				end},
-				{szOption = "合并导入", fnAction = function()
-					WebSyncData.tData = tData
-					RaidGrid_Base.LoadSettingsFileNew("sync_data_"..tData.aid, false)
-					if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean","Load",tData.title) end
-					_WebSyncData.RefreshList()
-				end},
-				{szOption = "取消"},
-			}
-			MessageBox(msg)
+			local wnd = GUI.CreateFrame("RGES_Data",{ w = 770,h = 300,title = "《剑网3》团队事件监控 数据更新提示" ,drag = true,close = true }):Close()
+			wnd:Append("Text", { w = 685, h = 60, x = 0, y = 0, txt = tData.title, font = 40, multi = true, align = 1, color = { "0x" .. string.sub(tData.color,0,2),"0x" .. string.sub(tData.color,2,4),"0x" .. string.sub(tData.color,4,6) } })
+			wnd:Append("Text", { w = 685, h = 30, x = 0, y = 65, txt = "作者：" .. tData.author, font = 40, align = 1 })
+			wnd:Append("WndButton3", { x = 145, y = 120, txt = "覆盖导入" }):Click(function()
+				WebSyncData.tData = tData
+				RaidGrid_Base.LoadSettingsFileNew("sync_data_" .. tData.aid, true)
+				if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean","Load",tData.title) end
+				_WebSyncData.LoadData(_WebSyncData.tData)
+				wnd:CloseFrame()
+			end)
+			wnd:Append("WndButton3", { x = 400, y = 120, txt = "合并导入" }):Click(function()
+				WebSyncData.tData = {}
+				RaidGrid_Base.LoadSettingsFileNew("sync_data_" .. tData.aid, false)
+				if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean","Load",tData.title) end
+				_WebSyncData.LoadData(_WebSyncData.tData)
+				wnd:CloseFrame()
+			end)			
 			_WebSyncData.SyncTip(true)
 		end
 		local fnSync = function()
