@@ -522,16 +522,8 @@ function GKP.OnFrameCreate()
 		pcall(_GKP.Record)
 	end)
 	PageSet:Append("WndButton3", {x = 840,y = 570,txt = g_tStrings.GOLD_TEAM_SYLARY_LIST}):Click(_GKP.GKP_Calculation)
-	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840,y = 610,txt = g_tStrings.GOLD_TEAM_BID_LIST}):Click(function()
-		_GKP.GKP_SpendingList()
-		PageSet:Fetch("Debt"):Enable(false)
-		PageSet:Fetch("GOLD_TEAM_BID_LIST"):Enable(false)
-	end)
-	PageSet:Append("WndButton3", "Debt", {x = 690,y = 610,txt = _L["Debt Issued"]}):Click(function()
-		_GKP.GKP_OweList()
-		PageSet:Fetch("Debt"):Enable(false)
-		PageSet:Fetch("GOLD_TEAM_BID_LIST"):Enable(false)
-	end)
+	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840,y = 610,txt = g_tStrings.GOLD_TEAM_BID_LIST}):Click(_GKP.GKP_SpendingList)
+	PageSet:Append("WndButton3", "Debt", {x = 690,y = 610,txt = _L["Debt Issued"]}):Click(_GKP.GKP_OweList)
 	PageSet:Append("WndButton3",{x = 540,y = 610,txt = _L["Wipe Record"]}):Click(_GKP.GKP_Clear)
 	PageSet:Append("WndButton3",{x = 390,y = 610,txt = _L["Loading Record"]}):Click(_GKP.GKP_Recovery)
 	PageSet:Append("WndButton3",{x = 240,y = 610,txt = _L["Manual SYNC"]}):Click(_GKP.GKP_Sync)
@@ -1551,15 +1543,19 @@ _GKP.OnMsg = function()
 					if data2[4] then
 						ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * frm.n + 1, txt = string.format("%d / %d = %d", tonumber(data2[4]), team.GetTeamSize(), math.floor(tonumber(data2[4]) / team.GetTeamSize())), color = { 255, 255, 0 }, align = 2 })
 					end
+					_GKP.SetButton(true)
 				end
-				GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("GOLD_TEAM_BID_LIST"):Enable(true)
-				GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("Debt"):Enable(true)
 			end
 		end
 	end
 end
 
 RegisterEvent("ON_BG_CHANNEL_MSG",_GKP.OnMsg)
+
+_GKP.SetButton = function(bEnable)
+	GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("GOLD_TEAM_BID_LIST"):Enable(bEnable)
+	GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("Debt"):Enable(bEnable)
+end
 
 ---------------------------------------------------------------------->
 -- 恢复记录按钮
@@ -1625,6 +1621,7 @@ _GKP.GKP_OweList = function()
 	if not GKP.IsDistributer() and not JH.bDebug then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end	
+	_GKP.SetButton(false)	
 	for k,v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if tonumber(v.nMoney) > 0 then
@@ -1718,7 +1715,8 @@ _GKP.GKP_SpendingList = function()
 	end
 	if not GKP.IsDistributer() and not JH.bDebug then
 		return JH.Alert(_L["You are not the distrubutor."])
-	end	
+	end
+	_GKP.SetButton(false)
 	for k,v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if not tMember[v.szPlayer] then
