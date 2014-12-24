@@ -342,8 +342,6 @@ _FA.Search = function()
 		if not IsEmpty(_FA.tSearchTemp.tTemp) then
 			_FA.nIndex = _FA.tSearchTemp.tTemp[1]
 			_FA.tData = data[_FA.nIndex]
-			-- local txt = FormatString("Among all the searching results, there are <D0> records in total containing the <D1>. You can switch the serching results with the Up Arrow and Down Arrow keys on the keyboard. ...",#_FA.tSearchTemp.tTemp,this:GetText())
-			-- _FA.GetFrame():Lookup("","Handle_Text"):Lookup("Text_AD2"):SetText(txt)
 			return _FA.LoadAndSaveData(_FA.tData)
 		else
 			_FA.tSearchTemp ={}
@@ -420,7 +418,7 @@ function FA.OnItemMouseEnter()
 		local data =  BossFaceAlert.DrawFaceLineNames
 		local txt = "Key："..data[this.nID].szName
 		if data[this.nID].szDescription then
-			txt = txt .. "\n描述："..data[this.nID].szDescription
+			txt = txt .. "\n备注："..data[this.nID].szDescription
 		end
 		_FA.MenuTip(this,true,txt)
 	---------------------拖拽部分---------------------------
@@ -615,10 +613,6 @@ _FA.Button_More = function()
 				BFA.AddScrutiny(szText,TARGET.DOODAD)
 			end)
 		end},
-		-- {bDevide = true},
-		-- {szOption = "当前位置添加自定义圈", fnAction = function()
-			-- GetUserInput("自定义圈名字：", function(szText) BossFaceAlert.AddPoint(szText) end, nil, nil,nil,GetCurrentTime())
-		-- end},
 	}
 	PopupMenu(t)
 end
@@ -643,8 +637,8 @@ _FA.Button_ReName = function()
 				end,nil,nil,nil,_FA.tData.szName)
 			end},
 			{bDevide = true},
-			{szOption = "修改描述信息", fnAction = function()
-				GetUserInput("请输入新的描述信息", function(szText)
+			{szOption = "修改备注信息", fnAction = function()
+				GetUserInput("请输入新的备注信息", function(szText)
 					_FA.tData.szDescription = szText
 					if szText == "" then
 						_FA.tData.szDescription = nil
