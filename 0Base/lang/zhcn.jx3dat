@@ -14,6 +14,7 @@ data = {
 	["Boss"] = "老板",
 	["Operator:%s"] = "操作员：%s",
 	["Print Time:%s"] = "打印时间：%s",
+	["Print Ticket"] = "打印小票",
 	["FuTu Meteoric Iron"] = "浮屠陨铁",
 	["WuJin Meteoric Iron"] = "乌金陨铁",
 	["TianWai Meteoric Iron"] = "天外陨铁",
@@ -464,4 +465,5 @@ data = {
 	["(player)"] = "（玩家）",
 	["`hide"] = "·隐",
 	["`dispel"] = "·驱",
+	["Shot screen succeed, file saved as %s ."] = "屏幕截图成功，小票保存路径：%s",
 }
