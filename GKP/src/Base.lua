@@ -1195,7 +1195,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				box:SetOverTextFontScheme(0,15)
 				box:SetOverText(0, v.nStackNum .. " ")
 			end
-			if v.dwTabType == 0 and v.dwIndex == 0 then box:SetObjectIcon(95) end
+			if v.dwTabType == 0 and v.dwIndex == 0 then box:SetObjectIcon(2490) end
 			item:Lookup("Text_ItemName"):RegisterEvent(786)
 			box:RegisterEvent(786)
 			local OnItemMouseEnter = function()
@@ -1368,182 +1368,197 @@ _GKP.GKP_Sync = function()
 	PopupMenu(menu)
 end
 _GKP.OnMsg = function()
-	local data = JH.BgHear("GKP")
+	local data = JH.BgHear("GKP", true)
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
 	if team and data then
-		if data[1] == "GKP_Sync" and data[2] == me.szName then
-			local tab = {
-				GKP_Record = GKP("GKP_Record"),
-				GKP_Account = GKP("GKP_Account"),
-			}
-			local str = JH.AscIIEncode(JH.JsonEncode(tab))
-			local nMax = 150
-			local nTotle = math.ceil(#str / nMax)
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Start",arg3)
-			for i = 1 , nTotle do
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Content",arg3,string.sub(str ,(i-1) * nMax + 1 , i * nMax))
+		if arg3 ~= me.szName then
+			if data[1] == "GKP_Sync" and data[2] == me.szName then
+				local tab = {
+					GKP_Record = GKP("GKP_Record"),
+					GKP_Account = GKP("GKP_Account"),
+				}
+				local str = JH.AscIIEncode(JH.JsonEncode(tab))
+				local nMax = 150
+				local nTotle = math.ceil(#str / nMax)
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Start",arg3)
+				for i = 1 , nTotle do
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Content",arg3,string.sub(str ,(i-1) * nMax + 1 , i * nMax))
+				end
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Stop",arg3)
 			end
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Stop",arg3)
-		end
-		
-		if data[1] == "GKP_Sync_Start" and data[2] == me.szName then
-			_GKP.bSync = true
-			JH.Alert(_L["Start Sychoronizing..."])
-		end
-		if data[1] == "GKP_Sync_Content" and data[2] == me.szName and _GKP.bSync then
-			table.insert(_GKP.tSyncQueue,data[3])
-			if #_GKP.tSyncQueue % 10 == 0 then
-				JH.Alert(_L("Sychoronizing data please wait %d loaded.",#_GKP.tSyncQueue))
+			
+			if data[1] == "GKP_Sync_Start" and data[2] == me.szName then
+				_GKP.bSync = true
+				JH.Alert(_L["Start Sychoronizing..."])
 			end
-		end
-		
-		if data[1] == "GKP_Sync_Stop" and data[2] == me.szName then
-			local str = ""
-			for i = 1, #_GKP.tSyncQueue do
-				str = str .. _GKP.tSyncQueue[i]
-			end
-			_GKP.tSyncQueue = {}
-			_GKP.bSync = false
-			JH.Alert(_L["Sychoronization Complete"])
-			local tData,err = JH.JsonDecode(JH.AscIIDecode(str))
-			if err then
-				return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
-			end
-			JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s",#tData.GKP_Record,#tData.GKP_Account) ,function()
-				_GKP.GKP_Record = tData.GKP_Record
-				_GKP.GKP_Account = tData.GKP_Account
-				pcall(_GKP.Draw_GKP_Record)
-				pcall(_GKP.Draw_GKP_Account)
-				pcall(_GKP.GKP_Save)
-			end)
-		end
-		
-		if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.Config.bAutoSync and arg3 ~= me.szName then
-			local tData,err = JH.JsonDecode(JH.AscIIDecode(data[2]))
-			if err then
-				return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
-			end
-			tData.bSync = true
-			if data[1] == "add" then
-				pcall(GKP,"GKP_Record",tData)
-			else
-				for k,v in ipairs(GKP("GKP_Record")) do
-					if v.key == tData.key then
-						pcall(GKP,"GKP_Record",k,tData)
-						break
-					end
+			if data[1] == "GKP_Sync_Content" and data[2] == me.szName and _GKP.bSync then
+				table.insert(_GKP.tSyncQueue,data[3])
+				if #_GKP.tSyncQueue % 10 == 0 then
+					JH.Alert(_L("Sychoronizing data please wait %d loaded.",#_GKP.tSyncQueue))
 				end
 			end
-			pcall(_GKP.Draw_GKP_Record)
-			JH.Debug("#GKP# Sync Success")
-		end		
-	end
-	local data2 = JH.BgHear("GKP", true)
-	if data2 then
-		if data2[1] == "GKP_INFO" then
-			if data2[2] == "Start" then
-				if Station.Lookup("Normal/GKP_info") then
-					Wnd.CloseWindow(Station.Lookup("Normal/GKP_info"))
-					_GKP.info = nil
+			
+			if data[1] == "GKP_Sync_Stop" and data[2] == me.szName then
+				local str = ""
+				for i = 1, #_GKP.tSyncQueue do
+					str = str .. _GKP.tSyncQueue[i]
 				end
-				_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP"] }):Point():Close()
-				_GKP.info:Append("Text", { w = 690, h = 30, txt = _L[data2[3]], align = 1, font = 40, color = { 255, 128, 0 } })
+				_GKP.tSyncQueue = {}
+				_GKP.bSync = false
+				JH.Alert(_L["Sychoronization Complete"])
+				local tData,err = JH.JsonDecode(JH.AscIIDecode(str))
+				if err then
+					return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
+				end
+				JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s",#tData.GKP_Record,#tData.GKP_Account) ,function()
+					_GKP.GKP_Record = tData.GKP_Record
+					_GKP.GKP_Account = tData.GKP_Account
+					pcall(_GKP.Draw_GKP_Record)
+					pcall(_GKP.Draw_GKP_Account)
+					pcall(_GKP.GKP_Save)
+				end)
 			end
-			if data2[2] == "Info" then
-				local frm = Station.Lookup("Normal/GKP_info")
-				if frm then
-					if not frm.n then frm.n = 0 end
-					local n = frm.n
-					local ui = GUI(frm)
-					if n % 2 == 0 then
-						ui:Append("Image", { w = 760, h = 30, x = 0, y = 120 + 30 * n }):File("ui/Image/button/ShopButton.UITex", 75)
-					end
-					local dwForceID, tBox = -1, {}
-					if me.IsInParty() then
-						for k, v in ipairs(team.GetTeamMemberList()) do
-							if team.GetClientTeamMemberName(v) == data2[3] then
-								dwForceID = team.GetMemberInfo().dwForceID
-							end
-						end
-					end
-					for k, v in ipairs(GKP("GKP_Record")) do
-						if v.szPlayer == data2[3] then
-							if dwForceID == -1 then
-								dwForceID = v.dwForceID
-							end
-							table.insert(tBox, v)
-						end
-					end
-					if dwForceID ~= -1 then
-						ui:Append("Image", { w = 28, h = 28, x = 30, y = 121 + 30 * n }):File(GetForceImage(dwForceID))
-					end
-					ui:Append("Text", { w = 180, h = 30, x = 60, y = 120 + 30 * n, txt = data2[3], color = { JH.GetForceColor(dwForceID) } })
-					local r, g, b = GKP.GetMoneyCol(data2[4])
-					if tonumber(data2[4]) < 0 then
-						r, g, b = GKP.GetMoneyCol(tonumber(data2[4]) * - 1)
-					end
-					ui:Append("Text", { w = 80, h = 30, x = 240, y = 120 + 30 * n, txt = data2[4], align = 2, color = { r, g, b } })
-					ui:Append("Image", { w = 28, h = 28, x = 323, y = 121 + 30 * n }):File("ui/image/LootPanel/LootPanel.UITex", 11)
-					for k, v in ipairs(tBox) do
-						if k > 10 then
-							ui:Append("Text", { x = 345 + k * 32 + 5, y = 121 + 30 * n, w = 28, h = 28, txt = ".....", font = 23 })
+			
+			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.Config.bAutoSync and arg3 ~= me.szName then
+				local tData,err = JH.JsonDecode(JH.AscIIDecode(data[2]))
+				if err then
+					return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
+				end
+				tData.bSync = true
+				if data[1] == "add" then
+					pcall(GKP,"GKP_Record",tData)
+				else
+					for k,v in ipairs(GKP("GKP_Record")) do
+						if v.key == tData.key then
+							pcall(GKP,"GKP_Record",k,tData)
 							break
 						end
-						local box = ui:Append("Box", { x = 345 + k * 32, y = 121 + 30 * n, w = 28, h = 28, icon = 13 }).self
-						box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
-						local icon = 95
-						if v.nUiId ~= 0 then
-							icon = Table_GetItemIconID(v.nUiId)
+					end
+				end
+				pcall(_GKP.Draw_GKP_Record)
+				JH.Debug("#GKP# Sync Success")
+			end
+		else
+			if data[1] == "GKP_INFO" then -- 这他妈做成收据了。。。。。。。hhhhhhhhhhhhhhhhh
+				if data[2] == "Start" then
+					if Station.Lookup("Normal/GKP_info") then
+						Wnd.CloseWindow(Station.Lookup("Normal/GKP_info"))
+						_GKP.info = nil
+					end
+					_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP Golden Team Record"] }):Point():Close()
+					_GKP.info:Append("Text", { w = 683, h = 30, txt = _L[data[3]], align = 1, font = 236 })
+					_GKP.info:Append("Text", { w = 120, h = 30, x = 0, y = 30, txt = _L("Operator:%s", arg3), font = 41, color = { 255, 128, 0 } })
+					_GKP.info:Append("Text", { w = 120, h = 30, x = 560, y = 30, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2, color = { 255, 128, 0 } })
+				end
+				if data[2] == "Info" then
+					local frm = Station.Lookup("Normal/GKP_info")
+					if frm then
+						if not frm.n then frm.n = 0 end
+						local n = frm.n
+						local ui = GUI(frm)
+						if n % 2 == 0 then
+							ui:Append("Image", { w = 760, h = 30, x = 0, y = 120 + 30 * n }):File("ui/Image/button/ShopButton.UITex", 75)
 						end
-						box:SetObjectIcon(icon)
-						box:RegisterEvent(786)
-						if v.nStackNum then
-							box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-							box:SetOverTextFontScheme(0,15)
-							box:SetOverText(0, v.nStackNum .. " ")
-						end
-						box.OnItemMouseEnter = function()
-							this:SetObjectMouseOver(true)
-							local x, y = this:GetAbsPos()
-							local w, h = this:GetSize()
-							if v.nBookID then
-								local dwBookID, dwSubID = GlobelRecipeID2BookID(v.nBookID)
-								OutputBookTipByID(dwBookID, dwSubID,{x, y, w, h})
-							else
-								local _,dwTabType,dwIndex = this:GetObjectData()
-								if dwTabType == 0 and dwIndex == 0 then
-									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. _L["Gold."],136,255,255,0), 250, { x, y, w, h })
-								else
-									OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
+						local dwForceID, tBox = -1, {}
+						if me.IsInParty() then
+							for k, v in ipairs(team.GetTeamMemberList()) do
+								if team.GetClientTeamMemberName(v) == data[3] then
+									dwForceID = team.GetMemberInfo().dwForceID
 								end
 							end
 						end
-						box.OnItemMouseLeave = function()
-							this:SetObjectMouseOver(false)
-							HideTip()
-						end
-						box.OnItemLButtonClick = function()
-							if IsCtrlKeyDown() or IsAltKeyDown() then
-								return GKP.OnItemLinkDown(v,this)
+						for k, v in ipairs(GKP("GKP_Record")) do
+							if v.szPlayer == data[3] then
+								if dwForceID == -1 then
+									dwForceID = v.dwForceID
+								end
+								if not v.bDelete then
+									table.insert(tBox, v)
+								end
 							end
 						end
+						if dwForceID ~= -1 then
+							ui:Append("Image", { w = 28, h = 28, x = 30, y = 121 + 30 * n }):File(GetForceImage(dwForceID))
+						end
+						ui:Append("Text", { w = 140, h = 30, x = 60, y = 120 + 30 * n, txt = data[3], color = { JH.GetForceColor(dwForceID) } })
+						local r, g, b = GKP.GetMoneyCol(data[4])
+						if tonumber(data[4]) < 0 then
+							r, g, b = GKP.GetMoneyCol(tonumber(data[4]) * - 1) -- 就算是欠债 也要抓颜色
+						end
+						ui:Append("Text", { w = 80, h = 30, x = 200, y = 120 + 30 * n, txt = data[4], align = 2, color = { r, g, b } })
+						ui:Append("Image", { w = 28, h = 28, x = 283, y = 121 + 30 * n }):File("ui/image/LootPanel/LootPanel.UITex", 11)
+						for k, v in ipairs(tBox) do
+							if k > 12 then
+								ui:Append("Text", { x = 290 + k * 32 + 5, y = 121 + 30 * n, w = 28, h = 28, txt = ".....", font = 23 })
+								break
+							end
+							local box = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28 }).self
+							if _GKP.tQualityImage[v.nQuality] then
+								if v.nQuality < 5 then
+									ui:Append("Image", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28 })
+									:File("ui/Image/Common/Box.UITex", _GKP.tQualityImage[v.nQuality])
+								else
+									ui:Append("Animate", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28 })
+									:Animate("ui/Image/Common/Box.UITex", 17, -1)
+								end
+							end
+							
+							box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
+							local icon = 2490
+							if v.nUiId ~= 0 then
+								icon = Table_GetItemIconID(v.nUiId)
+							end
+							box:SetObjectIcon(icon)
+							box:RegisterEvent(786)
+							if v.nStackNum then
+								box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+								box:SetOverTextFontScheme(0,15)
+								box:SetOverText(0, v.nStackNum .. " ")
+							end
+							box.OnItemMouseEnter = function()
+								this:SetObjectMouseOver(true)
+								local x, y = this:GetAbsPos()
+								local w, h = this:GetSize()
+								if v.nBookID then
+									local dwBookID, dwSubID = GlobelRecipeID2BookID(v.nBookID)
+									OutputBookTipByID(dwBookID, dwSubID,{x, y, w, h})
+								else
+									local _,dwTabType,dwIndex = this:GetObjectData()
+									if dwTabType == 0 and dwIndex == 0 then
+										OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. _L["Gold."],136,255,255,0), 250, { x, y, w, h })
+									else
+										OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
+									end
+								end
+							end
+							box.OnItemMouseLeave = function()
+								this:SetObjectMouseOver(false)
+								HideTip()
+							end
+							box.OnItemLButtonClick = function()
+								if IsCtrlKeyDown() or IsAltKeyDown() then
+									return GKP.OnItemLinkDown(v,this)
+								end
+							end
+						end
+						if frm.n > 5 then
+							_GKP.info:Size(760, 30 * frm.n + 200)
+						end
+						frm.n = frm.n + 1
 					end
-					if frm.n > 5 then
-						_GKP.info:Size(760, 30 * frm.n + 200)
-					end
-					frm.n = frm.n + 1
 				end
-			end
-			if data2[2] == "End" then
-				local frm = Station.Lookup("Normal/GKP_info")
-				if frm then
-					local ui = GUI(frm)
-					ui:Append("Text", { w = 121, h = 30, x = 30, y = 120 + 30 * frm.n + 1, txt = data2[3], color = { 255, 255, 0 } })
-					if data2[4] then
-						ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * frm.n + 1, txt = string.format("%d / %d = %d", tonumber(data2[4]), team.GetTeamSize(), math.floor(tonumber(data2[4]) / team.GetTeamSize())), color = { 255, 255, 0 }, align = 2 })
+				if data[2] == "End" then
+					local frm = Station.Lookup("Normal/GKP_info")
+					if frm then
+						local ui = GUI(frm)
+						local n = frm.n or 0
+						ui:Append("Text", { w = 121, h = 30, x = 30, y = 120 + 30 * n + 1, txt = data[3], color = { 255, 255, 0 } })
+						if data[4] then
+							ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * n + 1, txt = string.format("%d / %d = %d", tonumber(data[4]), team.GetTeamSize(), math.floor(tonumber(data[4]) / team.GetTeamSize())), color = { 255, 255, 0 }, align = 2 })
+						end
+						_GKP.SetButton(true)
 					end
-					_GKP.SetButton(true)
 				end
 			end
 		end
