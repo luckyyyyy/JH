@@ -47,7 +47,7 @@ function SkillCD.OnFrameCreate()
 	_SkillCD.Init()
 	_SkillCD.UpdateCount()
 end
--- Handle_Lister
+
 function SkillCD.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		_SkillCD.UpdateAnchor(this)
@@ -120,12 +120,9 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 	local p = GetPlayer(dwCaster)
 	if not p then return end
 	local szName, dwIconID = JH.GetSkillName(dwSkillID, dwLevel)
-	-- if not szName or szName == "" or dwIconID == 13 then
-		-- return
-	-- end
-	
+
 	-- JH.Debug3("#" .. dwCaster .. "#" .. szEvent .. " (" .. szName .. "#" .. dwSkillID .. ", Lv" .. dwLevel .. ")")
-	
+
 	if not _SkillCD.tCD[dwCaster] then
 		_SkillCD.tCD[dwCaster] = {}
 	end

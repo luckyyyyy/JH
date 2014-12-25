@@ -17,16 +17,13 @@ GKP = {
 		bAutoSync = true, -- 自动接收分配者的同步信息
 		bLootStyle = true,
 		szLootListTitle = "Loot List, By GKP Plugin",
-		-- bOpenChatWindow = true,
 	}
 }
 JH.RegisterCustomData("GKP.Config")
--- GKP.Config.bOpenChatWindow = true
 ---------------------------------------------------------------------->
 -- 本地函数与变量
 ----------------------------------------------------------------------<
 local _GKP = {
-	szVersion = "v1.0.1",
 	szIniFile = PATH_ROOT .. "ui/GKP.ini",
 	aDoodadCache = {}, -- 拾取列表cache
 	aDistributeList = {}, -- 当前拾取列表
@@ -48,7 +45,7 @@ local _GKP = {
 		{szName = "test user 9", dwForceID = 6, dwForce = 6, bOnlineFlag = true, dwID = 9},
 		{szName = "test user 10 ban", dwForceID = 5, dwForce = 5, bOnlineFlag = false, dwID = 10},
 	},
-	tQualityImage = {nil,13,12,14,11}, -- Frame
+	tQualityImage = { nil, 13, 12, 14, 11 }, -- Frame
 	tSyncQueue = {},
 	bSync = {},
 	GKP_Record = {},
@@ -670,12 +667,12 @@ function GKP.OnFrameCreate()
 	}
 	for k ,v in ipairs(t) do
 		if v[2] then
-			local txt = page:Lookup("","Text_Record_Break"..k)
+			local txt = page:Lookup("", "Text_Record_Break" ..k)
 			txt:RegisterEvent(786)
 			txt:SetText(v[2])
 			txt.OnItemLButtonClick = function()
 				local sort = txt.sort or "asc"
-				pcall(_GKP.Draw_GKP_Record,v[1],sort)
+				pcall(_GKP.Draw_GKP_Record, v[1], sort)
 				if sort == "asc" then
 					txt.sort = "desc"
 				else
@@ -683,10 +680,10 @@ function GKP.OnFrameCreate()
 				end
 			end
 			txt.OnItemMouseEnter = function()
-				this:SetFontColor(255,128,0)
+				this:SetFontColor(255, 128, 0)
 			end
 			txt.OnItemMouseLeave = function()
-				this:SetFontColor(255,255,255)
+				this:SetFontColor(255, 255, 255)
 			end
 		end
 	end
@@ -1485,7 +1482,7 @@ _GKP.OnMsg = function()
 					if me.IsInParty() then
 						for k, v in ipairs(team.GetTeamMemberList()) do
 							if team.GetClientTeamMemberName(v) == data[3] then
-								dwForceID = team.GetMemberInfo().dwForceID
+								dwForceID = team.GetMemberInfo(v).dwForceID
 							end
 						end
 					end
