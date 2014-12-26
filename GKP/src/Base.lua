@@ -1457,14 +1457,14 @@ _GKP.OnMsg = function()
 				end
 				_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP Golden Team Record"] }):Point():Close()
 				_GKP.info:Append("Text", { w = 683, h = 30, txt = _L[data[3]], align = 1, font = 236 })
-				_GKP.info:Append("WndButton2", { x = 580, y = -10, txt = _L["Print Ticket"], font = 41 }):Click(function()
+				_GKP.info:Append("WndButton2", "ScreenShot", { x = 580, y = -10, txt = _L["Print Ticket"], font = 41 })
+				:Enable(false):Click(function()
 					local scale = Station.GetUIScale()
 					local left, top = _GKP.info:Pos()
 					local right, bottom = _GKP.info:Pos_()
 					local path = GetRootPath() .. string.format("\\ScreenShot\\GKP_Ticket_%s.png", FormatTime("%Y-%m-%d_%H.%M.%S", GetCurrentTime()))
 					ScreenShot(path, 100, scale * left, scale * top, scale * right, scale * bottom)
 					JH.Sysmsg(_L("Shot screen succeed, file saved as %s .", path))
-
 				end)
 				_GKP.info:Append("Text", { w = 120, h = 30, x = 0, y = 30, txt = _L("Operator:%s", arg3), font = 41 })
 				_GKP.info:Append("Text", { w = 120, h = 30, x = 560, y = 30, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
@@ -1575,10 +1575,14 @@ _GKP.OnMsg = function()
 					local n = frm.n or 0
 					ui:Append("Text", { w = 121, h = 30, x = 30, y = 120 + 30 * n + 1, txt = data[3], color = { 255, 255, 0 } })
 					if data[4] then
-						ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * n + 1, txt = string.format("%d / %d = %d", tonumber(data[4]), team.GetTeamSize(), math.floor(tonumber(data[4]) / team.GetTeamSize())), color = { 255, 255, 0 }, align = 2 })
+						ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * n + 1, txt = string.format("%d/%d = %d", tonumber(data[4]), team.GetTeamSize(), math.floor(tonumber(data[4]) / team.GetTeamSize())), color = { GKP.GetMoneyCol(data[4]) }, align = 2 })
+						_GKP.info:Fetch("ScreenShot"):Enable(true)
+						if n >= 4 then
+							ui:Append("Image", { x = 640, y = n * 30 + 10, w = 100, h = 107.5 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/zhcn_img.uitex", 0)
+						end
 					end
-					_GKP.SetButton(true)
 				end
+				_GKP.SetButton(true)
 			end
 		end
 	end
