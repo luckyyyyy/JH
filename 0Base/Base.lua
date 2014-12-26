@@ -60,7 +60,7 @@ do
 end
 
 local _JH = {
-	dwVersion = 0x0070200,
+	dwVersion = 0x0070500,
 	szTitle = _L["JH"],
 	tHotkey = {},
 	tDelayCall = {},
@@ -2455,6 +2455,22 @@ function _GUI.Item:Icon(dwIcon)
 	elseif self.type == "Box" then
 		self.self:SetObject(UI_OBJECT_ITEM)
 		self.self:SetObjectIcon(dwIcon)
+	end
+	return self
+end
+
+function _GUI.Item:OverText(nPos, szText, nOverTextIndex, nFontScheme)
+	if self.type == "Box" then
+		if nPos and szText then
+			nOverTextIndex = nOverTextIndex or 0
+			nFontScheme = nFontScheme or 15
+			self.self:SetOverTextPosition(nOverTextIndex, nPos)
+			self.self:SetOverTextFontScheme(nOverTextIndex, nFontScheme)
+			self.self:SetOverText(nOverTextIndex, szText)
+		else
+			nPos = nPos or 0
+			return self.self:GetOverText(nPos)
+		end
 	end
 	return self
 end
