@@ -3840,6 +3840,7 @@ function RaidGrid_SkillTimer.CopyFrame(pre, post)
 	RaidGrid_SkillTimer.init(pre)
 	pre:Show()
 	pre:SetAlpha(post:GetAlpha())
+	pre:Lookup("",""):Lookup("Image"):SetAlpha(160)
 end
 
 function RaidGrid_SkillTimer.RemoveTimer(index)
