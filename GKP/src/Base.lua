@@ -1130,12 +1130,16 @@ RegisterEvent("PEEK_OTHER_PLAYER", function()
 	if arg0 ~= 1 then return end
 	if _GKP.tViewInvite[arg1] then
 		_GKP.tViewInvite[arg1] = nil
-		for k,v in pairs(_GKP.tViewInvite) do
-			return ViewInviteToPlayer(k)
+		if IsEmpty(_GKP.tViewInvite) then
+			JH.DelayCall(250, function()
+				Station.Lookup("Normal/PlayerView"):Hide()
+			end)
+		else
+			for k,v in pairs(_GKP.tViewInvite) do
+				Station.Lookup("Normal/PlayerView"):Hide()
+				return ViewInviteToPlayer(k)
+			end
 		end
-		JH.DelayCall(200,function()
-			Station.Lookup("Normal/PlayerView"):Hide()
-		end)
 	end
 end)
 ---------------------------------------------------------------------->
