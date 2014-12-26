@@ -123,13 +123,13 @@ _PartyBuffList.UpdateFrame = function()
 			end).self.OnLButtonDown = function()
 				SetTarget(TARGET.PLAYER, v.dwID)
 			end
-			ui:Append("Box",{ x = 165, y = 6, w = 28, h = 28,icon = Table_GetBuffIconID(v.dwBuffID,v.nLevel) }):Staring(true)
+			ui:Append("Box", "Box", { x = 165, y = 6, w = 28, h = 28,icon = Table_GetBuffIconID(v.dwBuffID,v.nLevel) }):Staring(true)
 			ui:Append("Text",{ x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
 			ui:Append("Animate","Animate",{ x = -50, y = 2, w = 300, h = 36}):Animate("ui/Image/Common/Box.UITex",17,-1):Toggle(dwID == v.dwID)
 			v.k = k
 			ui.self.tab = v
 		else
-			table.remove(data,k)
+			table.remove(data, k)
 			return pcall(_PartyBuffList.UpdateFrame)
 		end
 	end
@@ -168,8 +168,8 @@ _PartyBuffList.OnBreathe = function()
 			p = GetPlayer(v.dwID)
 			info = team.GetMemberInfo(v.dwID)
 		end
-		local buff = JH.HasBuff(v.dwBuffID,p)
-		if p and info and buff then
+		local bExist, tBuff = JH.HasBuff(v.dwBuffID, p)
+		if p and info and bExist then
 			local ui = GUI(wnd)
 			local nMaxLife = info.nMaxLife
 			if nMaxLife == 0 then nMaxLife = 1 end -- fix bug
@@ -179,6 +179,10 @@ _PartyBuffList.OnBreathe = function()
 				ui:Fetch("Life"):Alpha(120)
 			else
 				ui:Fetch("Life"):Alpha(255)
+			end
+			local nSec = JH.GetEndTime(tBuff.nEndFrame)
+			if nSec < 60 then
+				ui:Fetch("Box"):OverText(ITEM_POSITION.RIGHT_BOTTOM, math.floor(nSec) .. "\"", 0, 8)
 			end
 		else
 			table.remove(_PartyBuffList.tList,v.k)
