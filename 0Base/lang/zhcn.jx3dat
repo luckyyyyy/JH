@@ -466,4 +466,18 @@ data = {
 	["`hide"] = "·隐",
 	["`dispel"] = "·驱",
 	["Shot screen succeed, file saved as %s ."] = "屏幕截图成功，小票保存路径：%s",
+	["Key:"] = "名字/模板ID:",
+	["Map:"] = "生效地图:",
+	["Data already exists, whether editor?"] = "数据已经存在，是否编辑？",
+	["%s Unable to add more data"] = "你无法在%s添加更多的数据了",
+	["The map does not exist"] = "这个地图不存在",
+	["Please enter key"] = "输入名字",
+	["Add Face"] = "添加面向",
+	["Edit Face"] = "编辑面向",
+	["Save success.\n Path:%s"] = "保存成功\n路径：%s",
+	["content errors."] = "内容错误",
+	["File does not exist, or content errors."] = "文件不存在或内容错误",
+	["Circle loaded."] = "圈圈加载完成",
+	
+	
 }
