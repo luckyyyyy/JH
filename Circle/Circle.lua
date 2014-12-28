@@ -1,15 +1,15 @@
 local _L = JH.LoadLangPack
--- ��������������
--- 1) ��ͨ��Ҹ��ݸ������ض�Ӧ���ݣ�ÿһ����������ͼ��������15�����ݣ�4Сʱ����������һ�����ݣ��粻������û�д����ơ�
--- 2) �����ֶ����Ӻ�ɾ�����ݣ���ÿ������ͼ����������Ҳ������15�������Ը���BOSS����ÿ��BOSS �����ݡ�
--- 3) ����һ��Ȧ������alphaΪ50�����ݰ뾶�𲽽���alpha�������߿�alphaΪ140��
--- 4) �����ṩ�Ƕ�Ϊ1��Ŀ���ߣ������ṩĿ�����ֻ��ƹ��ܣ������ṩĿ���Ŀ��ע��ʱ�䵹��ʱ��
--- 5) ���Լ����Լ���Ŀ���⣬��ֹ��������һ�����Ȧ��
--- 6) ���е�׷����ͳһΪ140 alpha��
--- 7) �����ⲻ�����ƣ�����ץ���ץ����
--- 8) ���鿪�Ų��ָ�����������������Ѫս��ߵȡ�
--- 9) ȥ���������ݵĹ��ܡ�
--- ����һ�н���������ż಻��Ӱ�졣
+-- 面向插件调整方案
+-- 1) 普通玩家根据副本加载对应数据，每一个副本（地图）不超过15条数据，4小时仅允许更换一次数据，如不加载则没有此限制。
+-- 2) 允许手动添加和删除数据，但每个（地图）的总条数也不超过15条，可以根据BOSS调整每个BOSS 的数据。
+-- 3) 对于一个圈，限制alpha为50，根据半径逐步降低alpha，开启边框alpha为140。
+-- 4) 不再提供角度为1的目标线，不再提供目标名字绘制功能，不再提供目标的目标注视时间倒计时。
+-- 5) 除自己和自己的目标外，禁止给其他玩家画面向圈。
+-- 6) 所有的追踪线统一为140 alpha。
+-- 7) 副本外不受限制，例如抓宠和抓马。
+-- 8) 酌情开放部分副本的总条数，例如血战天策等。
+-- 9) 去除共享数据的功能。
+-- 以上一切仅针对面向，团监不受影响。
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -17,24 +17,23 @@ local reverse, type = string.reverse, type
 local AscIIEncode, AscIIDecode = JH.AscIIEncode, JH.AscIIDecode
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
--- ȫ�ֳ��� ������󲿷ֲ��ܴ�����
-local GLOBAL_MAX_COUNT = 15 -- Ĭ�ϸ������������
-local GLOBAL_CHANGE_TIME = 7200 -- �������ݺ� �ٴμ������ݵ�ʱ�� 2Сʱ ����һ��BOSSһ������
-local GLOBAL_CIRCLE_ALPHA = 50 -- ����͸���� ���ݰ뾶�𲽽��� 
-local GLOBAL_MAX_RADIUS = 15 -- ���İ뾶
-local GLOBAL_LINE_ALPHA = 120 -- �ߺͱ߿����͸����
-local GLOBAL_RESERT_DRAW = false
-local GLOBAL_CONFUSE_ID
+-- 全局常量 副本外大部分不受此限制
+local GLOBAL_MAX_COUNT = 15 -- 默认副本最大数据量
+local GLOBAL_CHANGE_TIME = 7200 -- 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
+local GLOBAL_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
+local GLOBAL_MAX_RADIUS = 15 -- 最大的半径
+local GLOBAL_LINE_ALPHA = 150 -- 线和边框最大透明度
+local GLOBAL_RESERT_DRAW = false -- 全局重绘
 local GLOBAL_DEFAULT_DATA = { nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
-local GLOBAL_MAP_FIX = { -- ���ָ�����ͼ��������
-	[165] = 30, -- Ӣ�۴�����
-	[164] = 30, -- ������
-	[160] = 20, -- ��е��
-	[171] = 20, -- Ӣ�۾�е��
-	[175] = 35, -- Ѫս���
-	[176] = 35, -- Ӣ��Ѫս���
+local GLOBAL_MAP_COUNT = { -- 部分副本地图数量补偿
+	[165] = 30, -- 英雄大明宫
+	[164] = 30, -- 大明宫
+	[160] = 20, -- 军械库
+	[171] = 20, -- 英雄军械库
+	[175] = 35, -- 血战天策
+	[176] = 35, -- 英雄血战天策
 }
-setmetatable(GLOBAL_MAP_FIX, { __index = function()	return GLOBAL_MAX_COUNT end })
+setmetatable(GLOBAL_MAP_COUNT, { __index = function() return GLOBAL_MAX_COUNT end })
 
 local function Confuse(tCode)
 	if type(tCode) == "table" then
@@ -47,12 +46,11 @@ local function GetPlayerID()
 	if IsRemotePlayer(UI_GetClientPlayerID()) then
 		return AscIIEncode(reverse(99800014 % 1.3677 ^ 57.247))
 	else
-		GLOBAL_CONFUSE_ID = AscIIEncode(reverse(UI_GetClientPlayerID() % 1.3677 ^ 57.247))
-		return GLOBAL_CONFUSE_ID
+		return AscIIEncode(reverse(UI_GetClientPlayerID() % 1.3677 ^ 57.247))
 	end
 end
 
--- ��ȡ����·��
+-- 获取数据路径
 local function GetDataPath()
 	local me, szName = GetClientPlayer(), "NONE"
 	if me then
@@ -67,13 +65,14 @@ Circle = {
 	bEnable = true,
 	bInDungeon = false,
 	nLimit = 0,
-	bTeamChat = false, -- ����ȫ�ֵ��Ŷ�Ƶ��
-	bWhisperChat = false, -- ����ȫ�ֵ�����Ƶ��
+	bTeamChat = false, -- 控制全局的团队频道
+	bWhisperChat = false, -- 控制全局的密聊频道
 }
 JH.RegisterCustomData("Circle")
 
 local C = {
 	tData = {},
+	tDrawText = {},
 	tCache = {
 		[TARGET.NPC] = {},
 		[TARGET.DOODAD] = {},
@@ -119,7 +118,7 @@ C.SaveFile = function(szFullPath, bMsg)
 	end
 end
 
--- ���ر����ļ�ʹ��
+-- 加载本地文件使用
 C.LoadFile = function(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
@@ -139,8 +138,8 @@ C.LoadFile = function(szFullPath, bMsg)
 	end
 end
 
--- �������ݻ���ʹ��ͬһ������
--- �ϸ��ж����� ��table
+-- 导入数据基本使用同一个函数
+-- 严格判断数量 传table
 C.LoadCircleData = function(tData, bMsg)
 	local data = {}
 	if not bMsg then
@@ -156,7 +155,7 @@ C.LoadCircleData = function(tData, bMsg)
 	for k, v in pairs(tData.Circle) do
 		local map = C.tMapList[tonumber(k)]
 		if map and map.bDungeon then
-			if #v < GLOBAL_MAP_FIX[tonumber(k)] then
+			if #v < GLOBAL_MAP_COUNT[tonumber(k)] then
 				data[tonumber(k)] = v
 			else
 				JH.Debug2(_L["Length limit. # "] .. k)
@@ -189,7 +188,7 @@ C.Release = function()
 		[TARGET.NPC] = {},
 		[TARGET.DOODAD] = {},
 	}
-	-- ȡ������
+	-- 取得容器
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
 	C.shCircle:Clear()
 	C.shLine = JH.GetShadowHandle("Handle_Shadow_Line")
@@ -203,9 +202,7 @@ C.CreateData = function()
 	local mapid = C.GetMapID()
 	for k, v in ipairs(C.tData[mapid] or {}) do
 		C.tList[v.dwType][v.key] = {}
-		setmetatable(C.tList[v.dwType][v.key], { __call = function()
-			return C.tData[mapid][k]
-		end })
+		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	for k, v in pairs(JH.GetAllNpc()) do
 		local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(v)]
@@ -219,6 +216,18 @@ C.CreateData = function()
 			C.tScrutiny[TARGET.DOODAD][v.dwID] = t
 		end
 	end
+end
+
+-- 第一个绘制的目标ID或者坐标 第二个注视的ID 3 text 4 col 5 bCharacterTop 6 字号 7 缩放 8 fTopDelta
+C.DrawText = function()
+	local sha = C.shName
+	sha:ClearTriangleFanPoint()
+	for _ ,v in ipairs(C.tDrawText) do
+-- if not TargetFace or (TargetFace and (not TargetFace.bTTName or TargetFace.bTTName and TargetFace.GetTargetID() ~= v[1])) then
+		local r, g, b = unpack(v[3])
+		sha:AppendCharacterID(v[1], false, r, g, b, 255, 50, 40,v[2], 1, 1)
+	end
+	C.tDrawText = {}
 end
 
 C.DrawLine = function(tar, ttar, sha, col, dwType)
@@ -358,7 +367,7 @@ C.OnDoodadLeave = function()
 end
 
 C.OnBreathe = function()
-	-- NPC�������
+	-- NPC面向绘制
 	local me = GetClientPlayer()
 	if not me then return end
 	for k, v in pairs(C.tScrutiny[TARGET.NPC]) do
@@ -375,7 +384,7 @@ C.OnBreathe = function()
 			if not sha[kk] then
 				sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 			end
-			if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or GLOBAL_RESERT_DRAW then -- ���򲻶� �ػ�
+			if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
 				sha[kk].nFaceDirection = KGNpc.nFaceDirection
 				C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 			end
@@ -384,19 +393,18 @@ C.OnBreathe = function()
 				if not sha[key] then
 					sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 				end
-				if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or GLOBAL_RESERT_DRAW then -- ���򲻶� �ػ�
+				if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
 					sha[key].nFaceDirection = KGNpc.nFaceDirection
 					C.DrawBorderCall(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 				end
 			end
-			-- 
 		end
-		data.bTarget = true
-		data.bDrawLine = true
+		-- data.bTarget = true
+		-- data.bDrawLine = true
+		-- data.bTargetName = true
 		if data.bTarget then
 			local sha = C.tCache[TARGET.NPC][k].Line
 			local dwType, dwID = KGNpc.GetTarget()
-			Output(sha)
 			if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and not sha.item and sha.dwID ~= dwID and JH.GetTarget(dwType, dwID) then
 				sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
 				sha.dwID = dwID
@@ -409,10 +417,16 @@ C.OnBreathe = function()
 				C.shLine:RemoveItem(sha.item)
 				C.tCache[TARGET.NPC][k].Line = {}
 			end			
+			if data.bTargetName and dwID ~= 0 and dwType == TARGET.PLAYER then
+				local col = { 255, 255, 0 }
+				if dwID == me.dwID then
+					col = { 255, 0, 128 }
+				end
+				table.insert(C.tDrawText, { KGNpc.dwID, JH.GetTarget(dwType, dwID).szName, col })
+			end
 		end
-		
 	end
-	-- DOODAD�������
+	-- DOODAD面向绘制
 	for k, v in pairs(C.tScrutiny[TARGET.DOODAD]) do
 		local data = v()
 		local KGDoodad = GetDoodad(k)
@@ -427,7 +441,7 @@ C.OnBreathe = function()
 			if not sha[kk] then
 				sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 			end
-			if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or GLOBAL_RESERT_DRAW then -- ���򲻶� �ػ�
+			if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
 				sha[kk].nFaceDirection = KGDoodad.nFaceDirection
 				C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 			end
@@ -436,7 +450,7 @@ C.OnBreathe = function()
 				if not sha[key] then
 					sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 				end
-				if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or GLOBAL_RESERT_DRAW then -- ���򲻶� �ػ�
+				if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
 					sha[key].nFaceDirection = KGDoodad.nFaceDirection
 					C.DrawBorderCall(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 				end
@@ -451,6 +465,7 @@ C.OnBreathe = function()
 			C.tCache[TARGET.DOODAD][k].Line = {}
 		end
 	end
+	pcall(C.DrawText)
 	GLOBAL_RESERT_DRAW = false
 end
 
@@ -472,7 +487,7 @@ C.UnInit = function()
 	Circle.bEnable = false
 end
 
--- ע��ͷ���Ҽ��˵�
+-- 注册头像右键菜单
 Target_AppendAddonMenu({function(dwID, dwType)
 	if dwType == TARGET.NPC then
 		local p = GetNpc(dwID)
@@ -555,7 +570,7 @@ C.OpenAddPanel = function(szName, dwType)
 				if C.tData[map.id] then
 					n = #C.tData[map.id]
 				end
-				if n < GLOBAL_MAP_FIX[map.id] then
+				if n < GLOBAL_MAP_COUNT[map.id] then
 					pcall(fnAction)
 				else
 					JH.Alert(_L("%s Unable to add more data", ui:Fetch("Map"):Text()))
@@ -576,8 +591,8 @@ end)
 JH.RegisterEvent("GAME_EXIT", C.SaveFile)
 JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
 JH.RegisterEvent("FIRST_LOADING_END", C.LoadFile)
--- public
 
+-- public
 local ui = {
 	OpenAddPanel = C.OpenAddPanel,
 	LoadFile = C.LoadFile,
