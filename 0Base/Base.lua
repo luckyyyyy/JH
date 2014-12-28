@@ -1818,12 +1818,18 @@ function _GUI.Wnd:Enable(bEnable)
 		return self.enable ~= false
 	end
 	if bEnable then
+		if self.type == "WndTrackBar" then
+			wnd:Lookup("Scroll_Track/Btn_Track"):Enable(1)
+		end
 		wnd:Enable(1)
 		if txt and self.font then
 			txt:SetFontScheme(self.font)
 		end
 		self.enable = true
 	else
+		if self.type == "WndTrackBar" then
+			wnd:Lookup("Scroll_Track/Btn_Track"):Enable(0)
+		end
 		wnd:Enable(0)
 		if txt and self.enable ~= false then
 			self.font = txt:GetFontScheme()
