@@ -73,6 +73,7 @@ JH.RegisterCustomData("Circle")
 local C = {
 	tData = {},
 	tDrawText = {},
+	tTarget = {},
 	tCache = {
 		[TARGET.NPC] = {},
 		[TARGET.DOODAD] = {},
@@ -188,6 +189,7 @@ C.Release = function()
 		[TARGET.NPC] = {},
 		[TARGET.DOODAD] = {},
 	}
+	C.tTarget = {} -- clear
 	-- 取得容器
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
 	C.shCircle:Clear()
@@ -405,15 +407,16 @@ C.OnBreathe = function()
 		if data.bTarget then
 			local sha = C.tCache[TARGET.NPC][k].Line
 			local dwType, dwID = KGNpc.GetTarget()
-			if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and not sha.item and sha.dwID ~= dwID and JH.GetTarget(dwType, dwID) then
+			local tar = JH.GetTarget(dwType, dwID)
+			if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and not sha.item and sha.dwID ~= dwID and tar then
 				sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
 				sha.dwID = dwID
 				local col = { 255, 255, 0 }
 				if dwID == me.dwID then
 					col = { 255, 0, 128 }
 				end
-				C.DrawLine(KGNpc, JH.GetTarget(dwType, dwID), sha.item, col, data.dwType)
-			elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not JH.GetTarget(dwType, dwID)) and sha.item then
+				C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
+			elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
 				C.shLine:RemoveItem(sha.item)
 				C.tCache[TARGET.NPC][k].Line = {}
 			end			
@@ -422,7 +425,30 @@ C.OnBreathe = function()
 				if dwID == me.dwID then
 					col = { 255, 0, 128 }
 				end
-				table.insert(C.tDrawText, { KGNpc.dwID, JH.GetTarget(dwType, dwID).szName, col })
+				table.insert(C.tDrawText, { KGNpc.dwID, tar.szName, col })
+			end
+			if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
+				local szName = tar.szName
+				C.tTarget[KGNpc.dwID] = dwID
+				if data.bScreenHead and type(ScreenHead) ~= "nil" then
+					ScreenHead(target.dwID, { txt = _L("Staring %s", szName)})
+				end
+				if me.IsInRaid() then
+					if Circle.bWhisperChat and data.bWhisperChat then
+						JH.Talk(szName, _L("Warning: %s staring at you", data.szNote or data.key))
+					end
+					if Circle.bTeamChat and data.bTeamChat then
+						JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, szName))
+					end
+				end
+				-- RaidGrid_RedAlarm这个还没重构 先这样 
+				if data.bFlash and RaidGrid_RedAlarm then
+					if me.dwID == dwID then
+						RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at you", data.szNote or data.key), true, true, 255, 0, 0)
+					else
+						RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at %s", data.szNote or data.key, szName), false, true, 255, 0, 0)
+					end
+				end
 			end
 		end
 	end

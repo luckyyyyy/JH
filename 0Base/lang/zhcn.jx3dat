@@ -478,5 +478,9 @@ data = {
 	["content errors."] = "内容错误",
 	["File does not exist, or content errors."] = "文件不存在或内容错误",
 	["Circle loaded."] = "圈圈加载完成",
-	["Too frequent load file"] = "圈圈数据加载太频繁",	
+	["Too frequent load file"] = "圈圈数据加载太频繁",
+	["Warning: %s staring at you"] = "警告:【%s】正在注视【你】。",
+	["Warning: %s staring at %s"] = "警告:【%s】正在注视【%s】。",
+	["Warning: %s staring at you"] = "【%s】正在注视【你】。",
+	["Warning: %s staring at %s"] = "【%s】正在注视【%s】。",
 }
