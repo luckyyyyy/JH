@@ -2117,7 +2117,27 @@ function _GUI.Wnd:Click(fnAction)
 				end
 				fnAction(true)
 			end
-			wnd.OnCheckBoxUncheck = function() fnAction(false) end
+			wnd.OnCheckBoxUncheck = function()
+				if wnd.group then
+					local uis = this:GetParent().___uis or {}
+					local bIsCheckBoxChecked = false
+					for _, ui in pairs(uis) do
+						if ui:Group() == this.group and ui:Name() ~= this:GetName() then
+							if ui:Check() then
+								bIsCheckBoxChecked = true
+								break
+							end
+						end
+					end
+					if bIsCheckBoxChecked then
+						fnAction(false)
+					else
+						wnd:Check(true)
+					end
+				else
+					fnAction(false)
+				end
+			end
 		end
 	else
 		if not fnAction then
