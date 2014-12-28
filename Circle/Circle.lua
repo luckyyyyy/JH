@@ -218,14 +218,14 @@ C.CreateData = function()
 	end
 end
 
--- 第一个绘制的目标ID或者坐标 第二个注视的ID 3 text 4 col 5 bCharacterTop 6 字号 7 缩放 8 fTopDelta
 C.DrawText = function()
 	local sha = C.shName
 	sha:ClearTriangleFanPoint()
 	for _ ,v in ipairs(C.tDrawText) do
--- if not TargetFace or (TargetFace and (not TargetFace.bTTName or TargetFace.bTTName and TargetFace.GetTargetID() ~= v[1])) then
-		local r, g, b = unpack(v[3])
-		sha:AppendCharacterID(v[1], false, r, g, b, 255, 50, 40,v[2], 1, 1)
+		if not TargetFace or (TargetFace and (not TargetFace.bTTName or TargetFace.bTTName and TargetFace.GetTargetID() ~= v[1])) then
+			local r, g, b = unpack(v[3])
+			sha:AppendCharacterID(v[1], false, r, g, b, 255, 50, 40,v[2], 1, 1)
+		end
 	end
 	C.tDrawText = {}
 end
