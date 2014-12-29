@@ -1408,11 +1408,13 @@ function _GUI.Base:IsVisible()
 end
 
 function _GUI.Base:Point( ... )
-	local t = { ... }
-	if IsEmpty(t) then
-		self.self:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
-	else
-		self.self:SetPoint( ... )
+	if self.type == "WndFrame" or self.type == "WndWindow" then
+		local t = { ... }
+		if IsEmpty(t) then
+			self.self:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+		else
+			self.self:SetPoint( ... )
+		end
 	end
 	return self
 end
@@ -1573,10 +1575,11 @@ function _GUI.Frm:ctor(szName, bEmpty)
 	end
 	self.self, self.type = frm, "WndFrame"
 end
--- 注册关闭自身 和wnd有差异 不需要传fnAction
-function _GUI.Frm:Close(bButton, bKeyDown)
+
+-- (self) Instance:RegisterClose(boolean bNotButton, boolean bNotKeyDown)		-- 注册Esc和Btn_Close关闭自身
+function _GUI.Frm:RegisterClose(bNotButton, bNotKeyDown)
 	local wnd = self.self
-	if not bKeyDown then
+	if not bNotKeyDown then
 		wnd.OnFrameKeyDown = function()
 			if GetKeyName(Station.GetMessageKey()) == "Esc" then
 				self:CloseFrame()
@@ -1584,14 +1587,14 @@ function _GUI.Frm:Close(bButton, bKeyDown)
 			end
 		end
 	end
-	if not bButton then
+	if not bNotButton then
 		wnd:Lookup("Btn_Close").OnLButtonClick = function()
 			self:CloseFrame()
 		end
 	end
 	return self
 end
--- 关闭自身
+-- (void) Instance:CloseFrame(func fnAction)		-- 关闭自身
 function _GUI.Frm:CloseFrame(fnAction)
 	local frm = self.self
 	if frm.bClose then
@@ -2076,9 +2079,9 @@ function _GUI.Wnd:Menu(menu)
 	return self
 end
 
-function _GUI.Wnd:Close(fnAction, bButton, bKeyDown)
+function _GUI.Wnd:RegisterClose(fnAction, bNotButton, bNotKeyDown)
 	local wnd = self.self
-	if not bKeyDown then
+	if not bNotKeyDown then
 		wnd.OnFrameKeyDown = function()
 			if GetKeyName(Station.GetMessageKey()) == "Esc" then
 				fnAction()
@@ -2086,7 +2089,7 @@ function _GUI.Wnd:Close(fnAction, bButton, bKeyDown)
 			end
 		end
 	end
-	if not bButton then
+	if not bNotButton then
 		wnd:Lookup("Btn_Close").OnLButtonClick = function()
 			fnAction()
 		end
@@ -2184,7 +2187,7 @@ _GUI.tItemXML = {
 	["Text"] = "<text>w=150 h=30 valign=1 font=162 eventid=257 </text>",
 	["Image"] = "<image>w=100 h=100 </image>",
 	["Animate"] = "<Animate>w=100 h=100 </Animate>",
-	["Box"] = "<box>w=48 h=48 eventid=786 </text>",
+	["Box"] = "<box>w=48 h=48 eventid=525311 </text>",
 	["Shadow"] = "<shadow>w=15 h=15 eventid=277 </shadow>",
 	["Handle"] = "<handle>w=10 h=10</handle>",
 	["Label"] = "<handle>w=150 h=30 eventid=257 <text>name=\"Text_Label\" w=150 h=30 font=162 valign=1 </text></handle>",
@@ -2617,7 +2620,7 @@ GUI.CreateFrame = function(szName, tArg)
 	if tArg.fnCreate then tArg.fnCreate(ui:Raw()) end
 	if tArg.fnDestroy then ui.fnDestroy = tArg.fnDestroy end
 	if tArg.parent then ui:Relation(tArg.parent) end
-	ui:Point()
+	ui:Point() -- fix Size
 	return ui
 end
 

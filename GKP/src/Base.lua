@@ -163,7 +163,7 @@ _GKP.OpenLootPanel = function()
 	if not Station.Lookup("Normal/GKP_Loot") then
 		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot")
 		loot:Hide()
-		GUI(loot):Title(GKP.Config.szLootListTitle or "Loot List, By GKP Plugin"):Point():Close(_GKP.CloseLootWindow)
+		GUI(loot):Title(GKP.Config.szLootListTitle or "Loot List, By GKP Plugin"):Point():RegisterClose(_GKP.CloseLootWindow)
 		loot:Lookup("Btn_Style").OnLButtonClick = function()
 			if IsCtrlKeyDown() then
 				if #_GKP.aDistributeList > 0 then
@@ -338,7 +338,7 @@ _GKP.SetChatWindow = function(item, ui)
 	local me = Station.Lookup("Normal/GKP_Chat")
 	if not me then
 		me = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Chat.ini","GKP_Chat")
-		GUI(me):Point():Close(_GKP.CloseChatWindow):Append("WndButton2",{x = 380, y = 38,txt = _L["Stop Bidding"]}):Click(function()
+		GUI(me):Point():RegisterClose(_GKP.CloseChatWindow):Append("WndButton2",{x = 380, y = 38,txt = _L["Stop Bidding"]}):Click(function()
 			JH.Talk(_L["--- Stop Bidding ---"])
 			JH.DelayCall(1000,function() UnRegisterMsgMonitor(_GKP.OnMsgArrive) end)
 		end)
@@ -507,7 +507,7 @@ function GKP.OnFrameCreate()
 	local ui = GUI(this)
 	local PageSet = ui:Fetch("PageSet_Menu")
 	local record = GUI(frm)
-	ui:Title(_L["GKP Golden Team Record"]):Point():Close(_GKP.ClosePanel)
+	ui:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(_GKP.ClosePanel)
 	:Append("WndComboBox",{x = 805,y = 52,txt = _L["Setting"]}):Click(_GKP.GetSettingMenu)
 	PageSet:Append("WndButton3",{x = 15,y = 610,txt = _L["Add Manually"]}):Click(function()
 		if IsCtrlKeyDown() and JH_About.CheckNameEx() then -- 和谐自用
@@ -532,7 +532,7 @@ function GKP.OnFrameCreate()
 	PageSet:Fetch("WndCheck_GKP_Account"):Fetch("Text_GKP_Account"):Text(g_tStrings.GOLD_BID_RPAY_STATIC_TITLE)
 	PageSet:Fetch("WndCheck_GKP_Buff"):Fetch("Text_GKP_Buff"):Text(_L["Team Profile"])
 	
-	record:Title(_L["GKP Golden Team Record"]):Point():Close(function()
+	record:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(function()
 		if this.userdata then
 			record:Fetch("Money"):Text(0)
 			return record:Fetch("btn_ok"):Click()
@@ -1459,7 +1459,7 @@ _GKP.OnMsg = function()
 					Wnd.CloseWindow(Station.Lookup("Normal/GKP_info"))
 					_GKP.info = nil
 				end
-				_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP Golden Team Record"] }):Point():Close()
+				_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP Golden Team Record"] }):Point():RegisterClose()
 				_GKP.info:Append("Text", { w = 679, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
 				_GKP.info:Append("WndButton2", "ScreenShot", { x = 580, y = -10, txt = _L["Print Ticket"], font = 41 })
 				:Enable(false):Click(function()

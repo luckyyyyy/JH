@@ -371,7 +371,7 @@ function RequestList.OnFrameCreate()
 	_RequestList.frame = this
 	_RequestList.bg = this:Lookup("", "Image_Bg")
 	local ui = GUI(this)
-	ui:Point():Title(_L["RequestList"]):Close(_RequestList.ClosePanel, false, true)
+	ui:Point():Title(_L["RequestList"]):RegisterClose(_RequestList.ClosePanel, false, true)
 end
 _RequestList.OpenPanel = function()
 	local frame = _RequestList.frame or Wnd.OpenWindow(_RequestList.szIniFile,"RequestList")

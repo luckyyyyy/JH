@@ -540,7 +540,7 @@ C.OpenAddPanel = function(szName, dwType)
 		Wnd.CloseWindow(Station.Lookup("Normal/C_NewFace"))
 	end
 	dwType = dwType or TARGET.NPC
-	GUI.CreateFrame("C_NewFace", { w = 380, h = 250, title = _L["Add Face"], close = true }):Close()
+	GUI.CreateFrame("C_NewFace", { w = 380, h = 250, title = _L["Add Face"], close = true }):RegisterClose()
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_NewFace"))
 	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 200, w = 380, h = 30, x = 0, y = 50, align = 1 })
