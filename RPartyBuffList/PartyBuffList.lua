@@ -19,7 +19,7 @@ function PartyBuffList.OnFrameCreate()
 	_PartyBuffList.frame = this
 	_PartyBuffList.bg = this:Lookup("", "Image_Bg")
 	local ui = GUI(this)
-	ui:Title(_L["PartyBuffList"]):Close(_PartyBuffList.ClosePanel, false, true)
+	ui:Title(_L["PartyBuffList"]):RegisterClose(_PartyBuffList.ClosePanel, false, true)
 	_PartyBuffList.UpdateAnchor(this)
 	ui:Fetch("Btn_Style"):Click(function()
 		JH.OpenPanel(_L["PartyBuffList"])

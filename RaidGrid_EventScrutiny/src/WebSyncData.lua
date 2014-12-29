@@ -126,7 +126,7 @@ WebSyncData.OnFrameCreate = function()
 	:Click(_WebSyncData.Search)
 	ui:Append("WndButton3", { x = 780, y = 630, txt = "获取私密数据" })
 	:Click(_WebSyncData.GetData)
-	ui:Point():Close(_WebSyncData.ClosePanel)
+	ui:Point():RegisterClose(_WebSyncData.ClosePanel)
 	_WebSyncData.Container = this:Lookup("PageSet_Menu/Page_FileDownload/WndScroll_FileDownload/WndContainer_FileDownload_List")
 end
 
@@ -315,7 +315,7 @@ _WebSyncData.ItemRButtonClick = function(tData, bSync)
 	local me = GetClientPlayer()
 	if self.aid then
 		local fnAction = function(tData)
-			local wnd = GUI.CreateFrame("RGES_Data",{ w = 770,h = 300,title = "《剑网3》团队事件监控 数据更新提示" ,drag = true,close = true }):Close()
+			local wnd = GUI.CreateFrame("RGES_Data",{ w = 770,h = 300,title = "《剑网3》团队事件监控 数据更新提示" ,drag = true,close = true }):RegisterClose()
 			wnd:Append("Text", { w = 685, h = 60, x = 0, y = 0, txt = tData.title, font = 40, multi = true, align = 1, color = { "0x" .. string.sub(tData.color,0,2),"0x" .. string.sub(tData.color,2,4),"0x" .. string.sub(tData.color,4,6) } })
 			wnd:Append("Text", { w = 685, h = 30, x = 0, y = 65, txt = "作者：" .. tData.author, font = 40, align = 1 })
 			wnd:Append("WndButton3", { x = 145, y = 120, txt = "覆盖导入" }):Click(function()
