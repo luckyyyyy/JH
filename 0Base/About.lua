@@ -106,7 +106,7 @@ _JH_About.OnBgTalk = function()
 end
 
 _JH_About.GetMemory = function()
-	return string.format("Memory:%.1f",collectgarbage("count") / 1024) .. "MB"
+	return string.format("Memory:%.1fMB", collectgarbage("count") / 1024)
 end
 
 JH.RegisterEvent("ON_BG_CHANNEL_MSG", _JH_About.OnBgTalk)
@@ -126,7 +126,7 @@ _JH_About.PS.OnPanelActive = function(frame)
 	end):Pos_()
 	nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 12 })
 	:Text(_L["Check Install"]):Click(_JH_About.CheckInstall):Pos_()
-	if RaidGrid_Base then
+	if type(RaidGrid_Base) ~= "nil" then
 		nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 12 })
 		:Text(_L["Input Json"]):Click(RaidGrid_Base.OutputRecord)
 	end
