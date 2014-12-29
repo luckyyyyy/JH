@@ -43,7 +43,7 @@ _JH_About.ShowInfo = function(dat)
 	local ini = "interface/JH/0Base/About.ini"
 	local frame = Wnd.OpenWindow(ini,"JH_ABOUT")
 	if not frame then return end
-	GUI(frame):Point():Close(function() Wnd.CloseWindow(frame) end)
+	GUI(frame):Point():RegisterClose(function() Wnd.CloseWindow(frame) end)
 	local list = GetClientTeam().GetTeamMemberList()
 	local h = frame:Lookup("WndScroll"):Lookup("","Handle_List")
 	local _ = "--"
