@@ -510,7 +510,7 @@ PS.OnPanelActive = function(frame)
 	:Text(_L["Show TTarget Name"]):Click(function(bChecked)
 		TargetFace.bTTName = bChecked
 		_TargetFace.bReRender = true
-		ui:Fetch("fScale"):Enable(TargetFace.bTTName)
+		ui:Fetch("fScale"):Enable(bChecked)
 	end):Pos_()
 	nX, nY = ui:Append("WndTrackBar", "fScale", { x = nX + 5, y = nY + 2, txt = _L[" Text Scale"] })
 	:Enable(TargetFace.bTTName):Range(1, 50, 49):Value(TargetFace.fScale * 10):Change(function(nVal)

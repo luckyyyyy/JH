@@ -21,7 +21,7 @@ local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerI
 local GLOBAL_MAX_COUNT = 15 -- 默认副本最大数据量
 local GLOBAL_CHANGE_TIME = 7200 -- 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
 local GLOBAL_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
-local GLOBAL_MAX_RADIUS = 15 -- 最大的半径
+local GLOBAL_MAX_RADIUS = 30 -- 最大的半径
 local GLOBAL_LINE_ALPHA = 150 -- 线和边框最大透明度
 local GLOBAL_RESERT_DRAW = false -- 全局重绘
 local GLOBAL_DEFAULT_DATA = { nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
@@ -43,11 +43,7 @@ local function Confuse(tCode)
 	end
 end
 local function GetPlayerID()
-	if IsRemotePlayer(UI_GetClientPlayerID()) then
-		return AscIIEncode(reverse(99800014 % 1.3677 ^ 57.247))
-	else
-		return AscIIEncode(reverse(UI_GetClientPlayerID() % 1.3677 ^ 57.247))
-	end
+	return JH.MD5(UI_GetClientPlayerID() .. "Circle")
 end
 
 -- 获取数据路径
@@ -119,7 +115,7 @@ C.SaveFile = function(szFullPath, bMsg)
 	end
 end
 
--- 加载本地文件使用
+-- 加载本地文件使用 bMsg相当于不需要效验
 C.LoadFile = function(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
@@ -258,7 +254,12 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 		dwRad2 = dwRad2 + math.pi / 20
 	end
 	if nAngle <= 45 then nStep = 180 end
-	local nAlpha = GLOBAL_CIRCLE_ALPHA - 2.5 * (nRadius / 64)
+	local nAlpha = GLOBAL_CIRCLE_ALPHA
+	if 2.5 * (nRadius / 64) > 40 then
+		nAlpha = 10
+	else
+		nAlpha = nAlpha - 2.5 * (nRadius / 64)
+	end
 	local r, g, b = unpack(col)
 	-- orgina point
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
