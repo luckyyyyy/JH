@@ -32,7 +32,7 @@ function PartyBuffList.OnEvent(event)
 end
 function PartyBuffList.OnFrameDragEnd()
 	this:CorrectPos()
-	PartyBuffList.tAnchor = GetFrameAnchor(this)
+	PartyBuffList.tAnchor = GetFrameAnchor(this, "TOPCENTER")
 end
 _PartyBuffList.OpenPanel = function()
 	local frame = _PartyBuffList.frame or Wnd.OpenWindow(_PartyBuffList.szIniFile,"PartyBuffList")
