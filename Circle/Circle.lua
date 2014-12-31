@@ -11,12 +11,6 @@ local _L = JH.LoadLangPack
 -- 9) 去除共享数据的功能。
 -- 以上一切仅针对面向，团监不受影响。
 
--- these global functions are accessed all the time by the event handler
--- so caching them is worth the effort
-local reverse, type = string.reverse, type
-local AscIIEncode, AscIIDecode = JH.AscIIEncode, JH.AscIIDecode
-local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
-local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 -- 全局常量 副本外大部分不受此限制
 local GLOBAL_MAX_COUNT = 15 -- 默认副本最大数据量
 local GLOBAL_CHANGE_TIME = 7200 -- 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
@@ -65,6 +59,17 @@ Circle = {
 	bWhisperChat = false, -- 控制全局的密聊频道
 }
 JH.RegisterCustomData("Circle")
+
+-- these global functions are accessed all the time by the event handler
+-- so caching them is worth the effort
+local Circle = Circle
+local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
+local setmetatable = setmetatable
+local tostring, tonumber = tostring, tonumber
+local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
+local AscIIEncode, AscIIDecode = JH.AscIIEncode, JH.AscIIDecode
+local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
+local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 
 local C = {
 	tData = {},
@@ -248,15 +253,15 @@ end
 
 C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	nRadius = nRadius * 64
-	local nFace = math.ceil(128 * nAngle / 360)
-	local dwRad1 = math.pi * (tar.nFaceDirection - nFace) / 128
+	local nFace = ceil(128 * nAngle / 360)
+	local dwRad1 = pi * (tar.nFaceDirection - nFace) / 128
 	if tar.nFaceDirection > (256 - nFace) then
-		dwRad1 = dwRad1 - math.pi - math.pi
+		dwRad1 = dwRad1 - pi - pi
 	end
-	local dwRad2 = dwRad1 + (nAngle / 180 * math.pi)
+	local dwRad2 = dwRad1 + (nAngle / 180 * pi)
 	local nStep = 18
 	if nAngle == 360 then
-		dwRad2 = dwRad2 + math.pi / 20
+		dwRad2 = dwRad2 + pi / 20
 	end
 	if nAngle <= 45 then nStep = 180 end
 	local nAlpha = GLOBAL_CIRCLE_ALPHA
@@ -279,24 +284,24 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	-- relative points
 	local sX, sZ = Scene_PlaneGameWorldPosToScene(tar.nX, tar.nY)
 	repeat
-		local sX_, sZ_ = Scene_PlaneGameWorldPosToScene(tar.nX + math.cos(dwRad1) * nRadius, tar.nY + math.sin(dwRad1) * nRadius)
+		local sX_, sZ_ = Scene_PlaneGameWorldPosToScene(tar.nX + cos(dwRad1) * nRadius, tar.nY + sin(dwRad1) * nRadius)
 		if dwType == TARGET.DOODAD then
 			sha:AppendDoodadID(tar.dwID, r, g, b, nAlpha, { sX_ - sX, 0, sZ_ - sZ })
 		else
 			sha:AppendCharacterID(tar.dwID, false, r, g, b, nAlpha, { sX_ - sX, 0, sZ_ - sZ })
 		end
-		dwRad1 = dwRad1 + math.pi / nStep
+		dwRad1 = dwRad1 + pi / nStep
 	until dwRad1 > dwRad2
 end
 
 C.DrawBorderCall = function(tar, sha, nAngle, nRadius, col, dwType)
 	nRadius = nRadius * 64
 	local nThick = 1 + (5 * nRadius / 64 / 20)
-	local dwMaxRad = nAngle / 180 * math.pi
-	local nFace = math.ceil(128 * nAngle / 360)
-	local dwRad1 = math.pi * (tar.nFaceDirection - nFace) / 128
+	local dwMaxRad = nAngle / 180 * pi
+	local nFace = ceil(128 * nAngle / 360)
+	local dwRad1 = pi * (tar.nFaceDirection - nFace) / 128
 	if tar.nFaceDirection > (256 - nFace) then
-		dwRad1 = dwRad1 - math.pi - math.pi
+		dwRad1 = dwRad1 - pi - pi
 	end	
 	local dwStepRadBase = nRadius / 128
 	if dwStepRadBase < 2 then
@@ -314,8 +319,8 @@ C.DrawBorderCall = function(tar, sha, nAngle, nRadius, col, dwType)
 		tRad[1] = { nRadius, dwCurRad }
 		tRad[2] = { nRadius - nThick, dwCurRad }
 		for _, v in ipairs(tRad) do
-			local nX = tar.nX + math.cos((v[2] + dwRad1)) * v[1]
-			local nY = tar.nY + math.sin((v[2] + dwRad1)) * v[1]
+			local nX = tar.nX + cos((v[2] + dwRad1)) * v[1]
+			local nY = tar.nY + sin((v[2] + dwRad1)) * v[1]
 			local sX_,sZ_ = Scene_PlaneGameWorldPosToScene(nX ,nY)
 			if dwType == TARGET.DOODAD then
 				sha:AppendDoodadID(tar.dwID, r, g, b, GLOBAL_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })

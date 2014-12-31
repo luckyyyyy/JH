@@ -13,13 +13,14 @@ SkillCD = {
 		[2234] = true,
 	}
 }
-
 JH.RegisterCustomData("SkillCD")
+
 local SkillCD = SkillCD
 local ipairs, pairs = ipairs, pairs
 local tinsert, tsort, tremove = table.insert, table.sort, table.remove
 local floor, min = math.floor, math.min
 local GetPlayer, IsPlayer, UI_GetClientPlayerID = GetPlayer, IsPlayer, UI_GetClientPlayerID
+local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 
 local _SkillCD = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "SkillCD/ui/SkillCD.ini",

@@ -8,6 +8,11 @@ PartyBuffList = {
 }
 JH.RegisterCustomData("PartyBuffList")
 
+local PartyBuffList = PartyBuffList
+local ipairs, pairs = ipairs, pairs
+local GetPlayer = GetPlayer
+local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+
 local _PartyBuffList = {
 	tList = {},
 	tTempTarget = {},
