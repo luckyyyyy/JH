@@ -1493,7 +1493,7 @@ _GKP.OnMsg = function()
 							end
 						end
 					end
-					if me.szName == data[3] then frm:Toggle(true) end
+					if me.szName == data[3] then ui:Toggle(true) end
 					for k, v in ipairs(GKP("GKP_Record")) do -- 依赖于本地记录 反正也不可能差异到哪去
 						if v.szPlayer == data[3] then
 							if dwForceID == -1 then
