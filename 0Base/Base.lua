@@ -50,8 +50,10 @@ setmetatable(g_sound, {
 ---------------------------------------------------------------------
 JH = {
 	bDebug = false,
+	nChannel = PLAYER_TALK_CHANNEL.RAID,
 }
-
+-- RegisterCustomData("JH.bDebug")
+RegisterCustomData("JH.nChannel") -- 方便debug切到TONG
 do
 	local exp = { GetVersion() }
 	if exp and exp[4] == "exp" then
@@ -636,11 +638,11 @@ JH.Talk = function(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 	local szTarget, me = "", GetClientPlayer()
 	-- channel
 	if not nChannel then
-		nChannel = PLAYER_TALK_CHANNEL.RAID
+		nChannel = JH.nChannel
 	elseif type(nChannel) == "string" then
 		if not szText then
 			szText = nChannel
-			nChannel = PLAYER_TALK_CHANNEL.RAID
+			nChannel = JH.nChannel
 		elseif type(szText) == "number" then
 			szText, nChannel = nChannel, szText
 		else
@@ -651,7 +653,7 @@ JH.Talk = function(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 		nChannel = PLAYER_TALK_CHANNEL.BATTLE_FIELD
 	elseif type(nChannel) == "table" then
 		szText = nChannel
-		nChannel = PLAYER_TALK_CHANNEL.RAID
+		nChannel = JH.nChannel
 	end
 	-- say body
 	local tSay = nil

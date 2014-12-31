@@ -123,7 +123,7 @@ _PartyBuffList.UpdateFrame = function()
 			end).self.OnLButtonDown = function()
 				SetTarget(TARGET.PLAYER, v.dwID)
 			end
-			ui:Append("Box", "Box", { x = 165, y = 6, w = 28, h = 28,icon = Table_GetBuffIconID(v.dwBuffID,v.nLevel) }):Staring(true)
+			ui:Append("Box", "Box", { x = 165, y = 4, w = 30, h = 30,icon = Table_GetBuffIconID(v.dwBuffID,v.nLevel) }):Staring(true)
 			ui:Append("Text",{ x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
 			ui:Append("Animate","Animate",{ x = -50, y = 2, w = 300, h = 36}):Animate("ui/Image/Common/Box.UITex",17,-1):Toggle(dwID == v.dwID)
 			v.k = k
