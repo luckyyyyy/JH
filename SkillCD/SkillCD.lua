@@ -275,16 +275,15 @@ _SkillCD.UpdateCount = function()
 					if v.info.bDeathFlag then
 						table.insert(tSay, { type = "text", text = " (" .. _L["Death"] .. ")" })
 					end
-
 					if v.nSec == 0 then
-						table.insert(tSay, { type = "text", text = "\t" .. _L["ready"] })
+						table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. _L["ready"] })
 					else
 						local szSec = math.floor(JH.GetEndTime(v.nSec))
 						local txt = szSec .. _L["s"]
 						if szSec > 60 then
-							txt = _L("%dm%ds",szSec / 60, szSec % 60)
+							txt = _L("%dm%ds", szSec / 60, szSec % 60)
 						end
-						table.insert(tSay, { type = "text", text = "\t" .. txt })
+						table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE ..txt })
 					end
 					JH.Talk(tSay)
 				end
