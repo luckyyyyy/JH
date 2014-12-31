@@ -1472,6 +1472,9 @@ _GKP.OnMsg = function()
 				end)
 				_GKP.info:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", arg3), font = 41 })
 				_GKP.info:Append("Text", { w = 120, h = 30, x = 560, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
+				if data[3] == "Information on Debt" then
+					_GKP.info:Toggle(false)
+				end
 			end
 			if data[2] == "Info" then
 				local frm = Station.Lookup("Normal/GKP_info")
@@ -1490,6 +1493,7 @@ _GKP.OnMsg = function()
 							end
 						end
 					end
+					if me.szName == data[3] then frm:Toggle(true) end
 					for k, v in ipairs(GKP("GKP_Record")) do -- 依赖于本地记录 反正也不可能差异到哪去
 						if v.szPlayer == data[3] then
 							if dwForceID == -1 then

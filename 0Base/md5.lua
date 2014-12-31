@@ -5,7 +5,7 @@ local md5 = {
 	_LICENSE		 = [[
 		MIT LICENSE
 
-		Copyright (c) 2013 Enrique García Cota + Adam Baldwin + hanzao + Equi 4 Software
+		Copyright (c) 2013 Enrique Garc铆a Cota + Adam Baldwin + hanzao + Equi 4 Software
 
 		Permission is hereby granted, free of charge, to any person obtaining a
 		copy of this software and associated documentation files (the
@@ -374,6 +374,6 @@ function md5.sumhexa(s)
 
 	return format("%08x%08x%08x%08x",swap(a),swap(b),swap(c),swap(d))
 end
--- 性能代价很大
+-- 鎬ц兘浠ｄ环寰堝ぇ
 JH.MD5 = {}
 setmetatable(JH.MD5, { __call = function(me, ...) return md5.sumhexa( ... ) end, __metatable = true, __newindex = function() end } )
