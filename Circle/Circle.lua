@@ -84,12 +84,15 @@ local C = {
 	},
 	tMapList  = {},
 }
-for k, v in ipairs(GetMapList()) do
-	local szName = Table_GetMapName(v)
-	C.tMapList[szName] = { id = v }
-	local a = g_tTable.DungeonInfo:Search(v)
-	if a and a.dwClassID == 3 then
-		C.tMapList[szName]["bDungeon"] = true
+
+do
+	for k, v in ipairs(GetMapList()) do
+		local szName = Table_GetMapName(v)
+		C.tMapList[szName] = { id = v }
+		local a = g_tTable.DungeonInfo:Search(v)
+		if a and a.dwClassID == 3 then
+			C.tMapList[szName]["bDungeon"] = true
+		end
 	end
 end
 
@@ -147,6 +150,8 @@ C.LoadCircleData = function(tData, bMsg)
 	else
 		if GetCurrentTime() - Circle.nLimit < GLOBAL_CHANGE_TIME then
 			return JH.Sysmsg2(_L["Too frequent load file"])
+		else
+			Circle.nLimit = GetCurrentTime()
 		end
 	end
 	for k, v in pairs(tData.Circle) do

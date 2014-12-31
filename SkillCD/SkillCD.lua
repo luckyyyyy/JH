@@ -268,24 +268,26 @@ _SkillCD.UpdateCount = function()
 		end
 		item.OnItemLButtonClick = function()
 			if #v.tList > 0 then
-				JH.Talk(_L("Team %s info", _L["["] .. szName .. _L["]"]))
-				for k, v in ipairs(v.tList) do
-					local tSay = {}
-					table.insert(tSay, { type = "name", name = v.info.szName })
-					if v.info.bDeathFlag then
-						table.insert(tSay, { type = "text", text = " (" .. _L["Death"] .. ")" })
-					end
-					if v.nSec == 0 then
-						table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. _L["ready"] })
-					else
-						local szSec = math.floor(JH.GetEndTime(v.nSec))
-						local txt = szSec .. _L["s"]
-						if szSec > 60 then
-							txt = _L("%dm%ds", szSec / 60, szSec % 60)
+				if me.IsInParty() then
+					JH.Talk(_L("Team %s info", _L["["] .. szName .. _L["]"]))
+					for k, v in ipairs(v.tList) do
+						local tSay = {}
+						table.insert(tSay, { type = "name", name = v.info.szName })
+						if v.info.bDeathFlag then
+							table.insert(tSay, { type = "text", text = " (" .. _L["Death"] .. ")" })
 						end
-						table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE ..txt })
+						if v.nSec == 0 then
+							table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. _L["ready"] })
+						else
+							local szSec = math.floor(JH.GetEndTime(v.nSec))
+							local txt = szSec .. _L["s"]
+							if szSec > 60 then
+								txt = _L("%dm%ds", szSec / 60, szSec % 60)
+							end
+							table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE ..txt })
+						end
+						JH.Talk(tSay)
 					end
-					JH.Talk(tSay)
 				end
 			end
 		end
