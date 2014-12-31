@@ -28,6 +28,7 @@ TargetFace = {
 	bHatredShowBG = true,
 }
 JH.RegisterCustomData("TargetFace")
+
 Direction, Hatred = {}, {}
 local Direction, Hatred, TargetFace = Direction, Hatred, TargetFace
 local _Direction = {

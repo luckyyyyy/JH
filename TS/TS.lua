@@ -15,11 +15,13 @@ TS = {
 	nStyle = 2,
 }
 JH.RegisterCustomData("TS")
+
 local TS = TS
 local ipairs, pairs = ipairs, pairs
 local GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
+
 local _TS = {
 	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TS/ui/TS.ini",

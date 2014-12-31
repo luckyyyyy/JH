@@ -13,6 +13,11 @@ ScreenHead = {
 }
 JH.RegisterCustomData("ScreenHead")
 
+local ScreenHead = ScreenHead
+local ipairs, pairs = ipairs, pairs
+local GetPlayer = GetPlayer
+local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+
 local _ScreenHead = {
 	tList = {},
 	tCache = {
