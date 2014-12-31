@@ -17,20 +17,20 @@ SkillCD = {
 JH.RegisterCustomData("SkillCD")
 local SkillCD = SkillCD
 local ipairs, pairs = ipairs, pairs
+local tinsert, tsort, tremove = table.insert, table.sort, table.remove
+local floor, min = math.floor, math.min
 local GetPlayer, IsPlayer, UI_GetClientPlayerID = GetPlayer, IsPlayer, UI_GetClientPlayerID
 
 local _SkillCD = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "SkillCD/ui/SkillCD.ini",
 	tCD = {},
 }
-local dat = LoadLUAData(JH.GetAddonInfo().szRootPath .. "SkillCD/Skill.jx3dat")
-_SkillCD.tSkill = dat["tSkill"]
-if JH.bDebug then
-	_SkillCD.tSkill[17] = 15
+do
+	local dat = LoadLUAData(JH.GetAddonInfo().szRootPath .. "SkillCD/Skill.jx3dat")
+	_SkillCD.tSkill = dat["tSkill"]
+	_SkillCD.tBuffEx = dat["tBuffEx"]
+	_SkillCD.tKungfu = dat["tKungfu"]
 end
-_SkillCD.tBuffEx = dat["tBuffEx"]
-_SkillCD.tKungfu = dat["tKungfu"]
-
 -- setmetatable(_SkillCD.tSkill,{ __index = function() return 60 end })
 function SkillCD.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
@@ -112,7 +112,6 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 		return
 	end
 
-
 	if SkillCD.bSelf and dwCaster ~= UI_GetClientPlayerID() then
 		return
 	end
@@ -120,8 +119,6 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 	local p = GetPlayer(dwCaster)
 	if not p then return end
 	local szName, dwIconID = JH.GetSkillName(dwSkillID, dwLevel)
-
-	-- JH.Debug3("#" .. dwCaster .. "#" .. szEvent .. " (" .. szName .. "#" .. dwSkillID .. ", Lv" .. dwLevel .. ")")
 
 	if not _SkillCD.tCD[dwCaster] then
 		_SkillCD.tCD[dwCaster] = {}
@@ -144,7 +141,7 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 		end
 	end
 	if not find then
-		table.insert(_SkillCD.tCD[dwCaster], data)
+		tinsert(_SkillCD.tCD[dwCaster], data)
 	end
 	_SkillCD.UpdateFrame()
 	_SkillCD.UpdateCount()
@@ -160,7 +157,7 @@ _SkillCD.UpdateMonitorCache = function()
 					if not kungfu[kk] then
 						kungfu[kk] = {}
 					end
-					table.insert(kungfu[kk],k)
+					tinsert(kungfu[kk],k)
 					break
 				end
 			end
@@ -181,7 +178,7 @@ _SkillCD.UpdateCount = function()
 	if me.IsInParty() and not SkillCD.bSelf then
 		member = team.GetTeamMemberList()
 	else
-		table.insert(member,me.dwID)
+		tinsert(member,me.dwID)
 	end
 	-- 获取 id -> 心法 对应表
 	for k, v in ipairs(member) do
@@ -214,13 +211,13 @@ _SkillCD.UpdateCount = function()
 					end
 					if not find then
 						tCount[vv].nCount = tCount[vv].nCount + 1
-						table.insert(tCount[vv].tList, { nSec = 0, info = v })
+						tinsert(tCount[vv].tList, { nSec = 0, info = v })
 					else
-						table.insert(tCount[vv].tList, { nSec = nEnd, info = v })
+						tinsert(tCount[vv].tList, { nSec = nEnd, info = v })
 					end
 				else -- 无条件
 					tCount[vv].nCount = tCount[vv].nCount + 1
-					table.insert(tCount[vv].tList, { nSec = 0, info = v  })
+					tinsert(tCount[vv].tList, { nSec = 0, info = v  })
 				end
 			end
 		end
@@ -231,7 +228,7 @@ _SkillCD.UpdateCount = function()
 		local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_CLister", k)
 		local szName, dwIconID = JH.GetSkillName(k)
 		local box = item:Lookup("Box_Icon")
-		table.sort(v.tList, function(a,b)
+		tsort(v.tList, function(a,b)
 			if a.nSec == b.nSec then
 				return a.info.szName < a.info.szName
 			else
@@ -254,7 +251,7 @@ _SkillCD.UpdateCount = function()
 						if v.nSec == 0 then
 							szXml = szXml .. GetFormatText("\t" .. _L["ready"], 24, 0, 255, 0)
 						else
-							local szSec = math.floor(JH.GetEndTime(v.nSec))
+							local szSec = floor(JH.GetEndTime(v.nSec))
 							local txt = szSec .. _L["s"]
 							if szSec > 60 then
 								txt = _L("%dm%ds",szSec / 60, szSec % 60)
@@ -272,19 +269,19 @@ _SkillCD.UpdateCount = function()
 					JH.Talk(_L("Team %s info", _L["["] .. szName .. _L["]"]))
 					for k, v in ipairs(v.tList) do
 						local tSay = {}
-						table.insert(tSay, { type = "name", name = v.info.szName })
+						tinsert(tSay, { type = "name", name = v.info.szName })
 						if v.info.bDeathFlag then
-							table.insert(tSay, { type = "text", text = " (" .. _L["Death"] .. ")" })
+							tinsert(tSay, { type = "text", text = " (" .. _L["Death"] .. ")" })
 						end
 						if v.nSec == 0 then
-							table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. _L["ready"] })
+							tinsert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. _L["ready"] })
 						else
-							local szSec = math.floor(JH.GetEndTime(v.nSec))
+							local szSec = floor(JH.GetEndTime(v.nSec))
 							local txt = szSec .. _L["s"]
 							if szSec > 60 then
 								txt = _L("%dm%ds", szSec / 60, szSec % 60)
 							end
-							table.insert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE ..txt })
+							tinsert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE ..txt })
 						end
 						JH.Talk(tSay)
 					end
@@ -327,22 +324,22 @@ _SkillCD.UpdateFrame = function()
 	for k,v in pairs(_SkillCD.tCD) do
 		for kk,vv in ipairs(v) do
 			local nSec = _SkillCD.tSkill[vv.dwSkillID]
-			local pre = math.min(1, JH.GetEndTime(vv.nEnd) / nSec)
+			local pre = min(1, JH.GetEndTime(vv.nEnd) / nSec)
 			if pre > 0 then
 				vv.pre = pre
-				table.insert(data, vv)
+				tinsert(data, vv)
 			else
-				table.remove(_SkillCD.tCD[k], kk)
+				tremove(_SkillCD.tCD[k], kk)
 				_SkillCD.UpdateCount()
 			end
 		end
 	end
-	table.sort(data, function(a,b) return a.nEnd < b.nEnd end)
+	tsort(data, function(a,b) return a.nEnd < b.nEnd end)
 	for k,v in ipairs(data) do
 		local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", k)
 		local nSec = _SkillCD.tSkill[v.dwSkillID]
-		local fP = math.min(1, JH.GetEndTime(v.nEnd) / nSec)
-		local szSec = math.floor(JH.GetEndTime(v.nEnd))
+		local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
+		local szSec = floor(JH.GetEndTime(v.nEnd))
 		if fP < 0.15 then
 			item:Lookup("Image_LPlayer"):FromUITex("ui/Image/Common/money.uitex",215)
 		end
@@ -408,7 +405,7 @@ PS.OnPanelActive = function(frame)
 	for k,v in pairs(_SkillCD.tSkill) do
 		local a = 100
 		if SkillCD.tMonitor[k] then a = 255 end
-		ui:Append("Box", { x = (i % 9) * 56, y = nY + math.floor(i / 9 ) * 55 + 15, alpha = a } ):Icon(Table_GetSkillIconID(k))
+		ui:Append("Box", { x = (i % 9) * 56, y = nY + floor(i / 9 ) * 55 + 15, alpha = a } ):Icon(Table_GetSkillIconID(k))
 		:ToGray(not _SkillCD.IsPanelOpened()):Staring(SkillCD.tMonitor[k] or false):Hover(function()
 			local x, y = this:GetAbsPos()
 			local w, h = this:GetSize()
