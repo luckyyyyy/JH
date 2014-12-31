@@ -37,9 +37,9 @@ setmetatable(GLOBAL_MAP_COUNT, { __index = function() return GLOBAL_MAX_COUNT en
 
 local function Confuse(tCode)
 	if type(tCode) == "table" then
-		return reverse(AscIIEncode(JsonEncode(tCode)))
+		return JsonEncode(tCode)
 	else
-		return JsonDecode(AscIIDecode(reverse(tCode)))
+		return JsonDecode(tCode)
 	end
 end
 local function GetPlayerID()
