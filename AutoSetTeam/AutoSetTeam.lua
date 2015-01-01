@@ -259,13 +259,13 @@ AutoSetTeam.Restore2 = function(n)
 	JH.Sysmsg(_L["Team list restored"])
 end
 
-
-
-for k,v in ipairs(AutoSetTeam.tMarkName) do
-	JH.AddHotKey("AutoSetTeam" .. k,_L["Mark"] .. " [" .. v .. "]",function()
-		local dwID,_ = Target_GetTargetData()
-		GetClientTeam().SetTeamMark(k,dwID) 
-	end)
+do
+	for k,v in ipairs(AutoSetTeam.tMarkName) do
+		JH.AddHotKey("AutoSetTeam" .. k,_L["Mark"] .. " [" .. v .. "]",function()
+			local dwID,_ = Target_GetTargetData()
+			GetClientTeam().SetTeamMark(k,dwID) 
+		end)
+	end
 end
 
 local AppendMark = function()
