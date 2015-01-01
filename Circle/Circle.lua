@@ -67,7 +67,6 @@ local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
 local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
-local AscIIEncode, AscIIDecode = JH.AscIIEncode, JH.AscIIDecode
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 
@@ -315,9 +314,10 @@ C.DrawBorderCall = function(tar, sha, nAngle, nRadius, col, dwType)
 	sha:SetD3DPT(D3DPT.TRIANGLESTRIP)
 	sha:ClearTriangleFanPoint()
 	repeat
-		local tRad = {}
-		tRad[1] = { nRadius, dwCurRad }
-		tRad[2] = { nRadius - nThick, dwCurRad }
+		local tRad = {
+			{ nRadius, dwCurRad },
+			{ nRadius - nThick, dwCurRad }
+		}
 		for _, v in ipairs(tRad) do
 			local nX = tar.nX + cos((v[2] + dwRad1)) * v[1]
 			local nY = tar.nY + sin((v[2] + dwRad1)) * v[1]
