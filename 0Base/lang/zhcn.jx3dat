@@ -484,4 +484,5 @@ data = {
 	["Warning: %s staring at you"] = "【%s】正在注视【你】。",
 	["Warning: %s staring at %s"] = "【%s】正在注视【%s】。",
 	["All Map"] = "全地图",
+	["delete [%s]?"] = "确定删除【%s】？",
 }
