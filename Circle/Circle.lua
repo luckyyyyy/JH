@@ -11,15 +11,28 @@ local _L = JH.LoadLangPack
 -- 9) 去除共享数据的功能。
 -- 以上一切仅针对面向，团监不受影响。
 
+
+-- these global functions are accessed all the time by the event handler
+-- so caching them is worth the effort
+local Circle = Circle
+local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
+local setmetatable = setmetatable
+local tostring, tonumber = tostring, tonumber
+local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
+local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
+local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
+
 -- 全局常量 副本外大部分不受此限制
+local SHADOW = JH.GetAddonInfo().szShadowIni
 local GLOBAL_MAX_COUNT = 15 -- 默认副本最大数据量
-local GLOBAL_CHANGE_TIME = 7200 -- 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
+local GLOBAL_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
 local GLOBAL_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
 local GLOBAL_MAX_RADIUS = 30 -- 最大的半径
 local GLOBAL_LINE_ALPHA = 150 -- 线和边框最大透明度
 local GLOBAL_RESERT_DRAW = false -- 全局重绘
 local GLOBAL_DEFAULT_DATA = { nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
 local GLOBAL_MAP_COUNT = { -- 部分副本地图数量补偿
+	[-1] = 50, -- 全地图生效的东西
 	[165] = 30, -- 英雄大明宫
 	[164] = 30, -- 大明宫
 	[160] = 20, -- 军械库
@@ -27,7 +40,8 @@ local GLOBAL_MAP_COUNT = { -- 部分副本地图数量补偿
 	[175] = 35, -- 血战天策
 	[176] = 35, -- 英雄血战天策
 }
-setmetatable(GLOBAL_MAP_COUNT, { __index = function() return GLOBAL_MAX_COUNT end })
+-- 除上述外 其他一律 = 15
+setmetatable(GLOBAL_MAP_COUNT, { __index = function() return GLOBAL_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
 local function Confuse(tCode)
 	if type(tCode) == "table" then
@@ -36,6 +50,7 @@ local function Confuse(tCode)
 		return JsonDecode(tCode)
 	end
 end
+
 local function GetPlayerID()
 	return JH.MD5(UI_GetClientPlayerID() .. "Circle")
 end
@@ -49,8 +64,6 @@ local function GetDataPath()
 	return JH.GetAddonInfo().szDataPath .. "Circle/" .. szName .. "/Circle.jx3dat"
 end
 
-local SHADOW = JH.GetAddonInfo().szShadowIni
-
 Circle = {
 	bEnable = true,
 	bInDungeon = false,
@@ -59,16 +72,6 @@ Circle = {
 	bWhisperChat = false, -- 控制全局的密聊频道
 }
 JH.RegisterCustomData("Circle")
-
--- these global functions are accessed all the time by the event handler
--- so caching them is worth the effort
-local Circle = Circle
-local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
-local setmetatable = setmetatable
-local tostring, tonumber = tostring, tonumber
-local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
-local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
-local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 
 local C = {
 	tData = {},
@@ -86,16 +89,18 @@ local C = {
 		[TARGET.NPC] = {},
 		[TARGET.DOODAD] = {},
 	},
-	tMapList  = {},
+	tMapList  = {
+		[_L["All Map"]] = { id = -1, bDungeon = true },
+	},
 }
 
 do
 	for k, v in ipairs(GetMapList()) do
 		local szName = Table_GetMapName(v)
-		C.tMapList[szName] = { id = v }
 		local a = g_tTable.DungeonInfo:Search(v)
+		C.tMapList[szName] = { id = v }
 		if a and a.dwClassID == 3 then
-			C.tMapList[szName]["bDungeon"] = true
+			C.tMapList[szName].bDungeon = true
 		end
 	end
 end
@@ -208,9 +213,17 @@ C.CreateData = function()
 	pcall(C.Release)
 	local mapid = C.GetMapID()
 	for k, v in ipairs(C.tData[mapid] or {}) do
-		C.tList[v.dwType][v.key] = {}
+		C.tList[v.dwType][v.key] = { id = mapid, index = k	}
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
+	-- 全地图数据
+	if C.tData[-1] and C.tMapList[Table_GetMapName(mapid)] and not C.tMapList[Table_GetMapName(mapid)].bDungeon then
+		for k, v in ipairs(C.tData[-1]) do
+			C.tList[v.dwType][v.key] = { id = -1, index = k	}
+			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
+		end
+	end
+	
 	for k, v in pairs(JH.GetAllNpc()) do
 		local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(v)]
 		if t then
