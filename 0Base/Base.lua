@@ -52,7 +52,7 @@ JH = {
 	bDebug = false,
 	nChannel = PLAYER_TALK_CHANNEL.RAID,
 }
--- RegisterCustomData("JH.bDebug")
+RegisterCustomData("JH.bDebug")
 RegisterCustomData("JH.nChannel") -- 方便debug切到TONG
 do
 	local exp = { GetVersion() }
@@ -101,14 +101,14 @@ local _JH = {
 		[1]  = {255, 178, 95},
 		[2]  = {196, 152, 255},
 		[3]  = {255, 111, 83},
-		[4]  = {89, 224, 232},
+		[4]  = {89,  224, 232},
 		[5]  = {255, 129, 176},
-		[6]  = {55, 147, 255},
+		[6]  = {55,  147, 255},
 		[7]  = {121, 183, 54},
 		[8]  = {214, 249, 93},
-		[9]  = {205,133,63},
-		[10] = {240, 70, 96},
-		[21] = {180, 60, 0}
+		[9]  = {205, 133, 63},
+		[10] = {240, 70,  96},
+		[21] = {180, 60,  0}
 	},
 }
 
@@ -122,7 +122,6 @@ local type, tonumber = type, tonumber
 local GetTime, GetLogicFrameCount = GetTime, GetLogicFrameCount
 local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
 local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam
-
 -- parse faceicon in talking message
 _JH.ParseFaceIcon = function(t)
 	if not _JH.tFaceIcon then
@@ -171,9 +170,11 @@ _JH.ParseFaceIcon = function(t)
 	end
 	return t2
 end
+
 JH.SetHotKey = function(szGroup)
 	HotkeyPanel_Open(szGroup or _JH.szTitle)
 end
+
 JH.GetVersion = function()
 	local v = _JH.dwVersion
 	local szVersion = string.format("%d.%d.%d", v/0x1000000,
@@ -191,7 +192,7 @@ JH.GetAddonInfo = function()
 		szName = _L["JH plugins"],
 		szVersion = JH.GetVersion(),
 		szRootPath = ADDON_PATH,
-		-- szAuthor = _L['JH @ Double Dream Town'],
+		szAuthor = _L['JH @ Double Dream Town'],
 		szShadowIni = SHADOW_PATH,
 		szDataPath = DATA_PATH,
 	}
@@ -1725,7 +1726,7 @@ function _GUI.Wnd:ctor(pFrame, szType, szName)
 		Wnd.CloseWindow(frame)
 	end
 	if wnd then
-		if string.find(szType,"WndButton") then
+		if string.find(szType, "WndButton") then
 			szType = "WndButton"
 		end
 		self.type = szType

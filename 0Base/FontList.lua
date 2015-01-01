@@ -49,4 +49,7 @@ _JH_FontList.OnPanelActive = function(frame)
 		end
 	end)
 end
-JH_FontList = _JH_FontList
+
+if JH.bDebug then
+	GUI.RegisterPanel(_L["Font"], 581, _L["Dev"], _JH_FontList)
+end
