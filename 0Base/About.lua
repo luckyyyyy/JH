@@ -133,9 +133,6 @@ _JH_About.PS.OnPanelActive = function(frame)
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 50, w = 500 , h = 40,font = 109,multi = true, txt = _L["Author"] }):Pos_()
 	ui:Append("WndCheckBox","DEBUG", { x = 420, y = 170, checked = JH.bDebug })
 	:Text(_L["DEBUG"]):Click(function(bChecked)
-		if IsAltKeyDown() and IsCtrlKeyDown() then
-			return ReloadUIAddon()
-		end
 		if not JH.bDebug then
 			JH.Confirm(_L["Warning: plugin will ignore the authority when the debugging mode is on, showing action can not be operate when cross the authorit, but none of this coud be accept by the server,do not select if you are not the developer, avoid making misunderstanding, please do not try it when set up a team, this may creat problem like messing up the record."],function()
 				JH.bDebug = not JH.bDebug
@@ -213,6 +210,7 @@ local function LoginGame()
 end
 
 JH.RegisterEvent("FIRST_LOADING_END",LoginGame)
+
 JH.RegisterEvent("CALL_LUA_ERROR", function()
 	if JH.bDebug then
 		OutputMessage("MSG_SYS", arg0)
