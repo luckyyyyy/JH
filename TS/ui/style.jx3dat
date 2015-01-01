@@ -39,6 +39,13 @@ data = {
 		{ "ui/Image/UICommon/RaidTotal.UITex", 57 },
 		{ 168, 40 }
 	},
-	
+	{
+		{ "ui/Image/UICommon/ShopEntry.UITex", 5 },
+		{ "ui/Image/UICommon/ShopEntry.UITex", 2 },
+		{ "ui/Image/UICommon/ShopEntry.UITex", 3 },
+		{ "ui/Image/UICommon/ShopEntry.UITex", 1 },
+		{ "ui/Image/UICommon/ShopEntry.UITex", 0 },
+		{ 168, 40 }
+	},
 	
 }

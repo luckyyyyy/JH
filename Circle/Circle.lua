@@ -208,22 +208,21 @@ C.Release = function()
 	C.shName = JH.GetShadowHandle("Handle_Shadow_Name"):AppendItemFromIni(SHADOW, "shadow", "Circle_NAME")
 	C.shName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 end
-
+-- 构建data table
 C.CreateData = function()
 	pcall(C.Release)
 	local mapid = C.GetMapID()
 	for k, v in ipairs(C.tData[mapid] or {}) do
-		C.tList[v.dwType][v.key] = { id = mapid, index = k	}
+		C.tList[v.dwType][v.key] = { id = mapid, index = k }
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	-- 全地图数据
 	if C.tData[-1] and C.tMapList[Table_GetMapName(mapid)] and not C.tMapList[Table_GetMapName(mapid)].bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
-			C.tList[v.dwType][v.key] = { id = -1, index = k	}
+			C.tList[v.dwType][v.key] = { id = -1, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
 		end
 	end
-	
 	for k, v in pairs(JH.GetAllNpc()) do
 		local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(v)]
 		if t then
@@ -236,6 +235,19 @@ C.CreateData = function()
 			C.tScrutiny[TARGET.DOODAD][v.dwID] = t
 		end
 	end
+end
+
+C.RemoveData = function(mapid, index, bConfirm)
+	if C.tData[mapid] and C.tData[mapid][index] then
+		local fnAction = function() table.remove(C.tData[mapid], index) end
+		if bConfirm then
+			JH.Confirm(_L("delete [%s]?", C.tData[mapid][index].key), fnAction)
+		else
+			fnAction()
+		end
+		
+	end
+	pcall(C.CreateData)
 end
 
 C.DrawText = function()
@@ -543,7 +555,18 @@ Target_AppendAddonMenu({function(dwID, dwType)
 		local p = GetNpc(dwID)
 		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(p)]
 		if data then
-			return {{ szOption = _L["Edit Face"], rgb = { 255, 128, 0 }, fnAction = function() end }}
+			return {{ 
+				szOption = _L["Edit Face"],
+				rgb = { 255, 128, 0 }, 
+				szLayer = "ICON_RIGHT",
+				szIcon = "ui/Image/UICommon/CommonPanel4.uitex",
+				nFrame = 72,
+				fnClickIcon = function()
+					C.RemoveData(data.id, data.index, not IsCtrlKeyDown())
+				end,
+				fnAction = function()
+				end 
+			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
 				if IsAltKeyDown() then
