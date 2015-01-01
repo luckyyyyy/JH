@@ -14,7 +14,6 @@ local _L = JH.LoadLangPack
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
-local Circle = Circle
 local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
 local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
@@ -70,9 +69,10 @@ Circle = {
 	nLimit = 0,
 	bTeamChat = false, -- 控制全局的团队频道
 	bWhisperChat = false, -- 控制全局的密聊频道
+	bBorder = true, -- 全局的边框模式 边框会造成卡
 }
 JH.RegisterCustomData("Circle")
-
+local Circle = Circle
 local C = {
 	tData = {},
 	tDrawText = {},
@@ -256,7 +256,11 @@ C.DrawText = function()
 	for _ ,v in ipairs(C.tDrawText) do
 		if not TargetFace or (TargetFace and (not TargetFace.bTTName or TargetFace.bTTName and TargetFace.GetTargetID() ~= v[1])) then
 			local r, g, b = unpack(v[3])
-			sha:AppendCharacterID(v[1], false, r, g, b, 255, 50, 40,v[2], 1, 1)
+			if v[4] ~= TARGET.DOODAD then
+				sha:AppendCharacterID(v[1], false, r, g, b, 255, 50, 40,v[2], 1, 1)
+			else
+				sha:AppendDoodadID(v[1], r, g, b, 255, 50, 40,v[2], 1, 1)
+			end
 		end
 	end
 	C.tDrawText = {}
@@ -426,7 +430,7 @@ C.OnBreathe = function()
 				sha[kk].nFaceDirection = KGNpc.nFaceDirection
 				C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 			end
-			if vv.bBorder then
+			if Circle.bBorder and vv.bBorder then
 				local key = "B" .. kk
 				if not sha[key] then
 					sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
@@ -437,9 +441,9 @@ C.OnBreathe = function()
 				end
 			end
 		end
-		-- data.bTarget = true
-		-- data.bDrawLine = true
-		-- data.bTargetName = true
+		if data.bDrawName then
+			table.insert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 } })
+		end
 		if data.bTarget then
 			local sha = C.tCache[TARGET.NPC][k].Line
 			local dwType, dwID = KGNpc.GetTarget()
@@ -507,7 +511,7 @@ C.OnBreathe = function()
 				sha[kk].nFaceDirection = KGDoodad.nFaceDirection
 				C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 			end
-			if vv.bBorder then
+			if Circle.bBorder and vv.bBorder then
 				local key = "B" .. kk
 				if not sha[key] then
 					sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
@@ -521,10 +525,13 @@ C.OnBreathe = function()
 		local sha = C.tsha[TARGET.DOODAD][k].Line
 		if data.bDrawLine and not sha.item then
 			sha.item = sha.item or C.shCircle:AppendItemFromIni(SHADOW, "shadow", k)
-			C.DrawLine(KGNpc, me, sha.item, { 255, 128, 0 }, data.dwType)
+			C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
 		elseif not data.bDrawLine and sha.item then
 			C.shLine:RemoveItem(sha.item)
 			C.tCache[TARGET.DOODAD][k].Line = {}
+		end
+		if data.bDrawName then
+			table.insert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.DOODAD })
 		end
 	end
 	pcall(C.DrawText)
