@@ -1,7 +1,7 @@
 local _L = JH.LoadLangPack
 local _JH_IconList = {
 	nCur = 0,
-	nMax = 6000,
+	nMax = 6500,
 }
 
 _JH_IconList.OnPanelActive = function(frame)
@@ -49,4 +49,6 @@ _JH_IconList.OnPanelActive = function(frame)
 		end
 	end)
 end
-JH_IconList = _JH_IconList
+if JH.bDebug then
+	GUI.RegisterPanel(_L["Icon"], 591, _L["Dev"], _JH_IconList)
+end

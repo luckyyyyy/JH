@@ -139,8 +139,6 @@ _JH_About.PS.OnPanelActive = function(frame)
 		if not JH.bDebug then
 			JH.Confirm(_L["Warning: plugin will ignore the authority when the debugging mode is on, showing action can not be operate when cross the authorit, but none of this coud be accept by the server,do not select if you are not the developer, avoid making misunderstanding, please do not try it when set up a team, this may creat problem like messing up the record."],function()
 				JH.bDebug = not JH.bDebug
-				GUI.RegisterPanel(_L["Icon"], 591, _L["Dev"], JH_IconList)
-				GUI.RegisterPanel(_L["Font"], 581, _L["Dev"], JH_FontList)
 			end,function()
 				ui:Fetch("DEBUG"):Check(JH.bDebug)
 			end)
