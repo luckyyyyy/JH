@@ -116,6 +116,10 @@ do
 	end
 end
 
+C.GetData = function()
+	return C.tData
+end
+
 C.SaveFile = function(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local data = {
@@ -187,7 +191,8 @@ C.LoadCircleData = function(tData, bMsg)
 		end
 	end
 	C.tData = data
-	pcall(C.CreateData)
+	FireEvent("CIRCLE_CLEAR")
+	FireEvent("CIRCLE_DRAW_UI")
 	if bMsg then
 		JH.Sysmsg2(_L["Circle loaded."])
 	end
@@ -285,8 +290,10 @@ C.DrawLine = function(tar, ttar, sha, col, dwType)
 	local r, g, b = unpack(col)
 	if dwType == TARGET.DOODAD then
 		sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA)
-	else
+	elseif dwType == TARGET.NPC then
 		sha:AppendCharacterID(tar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
+	elseif dwType == "Point" then -- 可能需要用到
+		sha:AppendTriangleFan3DPoint(tar.nX, tar.nY, tar.nZ, r, g, b, CIRCLE_LINE_ALPHA)
 	end
 	sha:AppendCharacterID(ttar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
 	sha:Show()
@@ -335,7 +342,7 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	until dwRad1 > dwRad2
 end
 
-C.DrawBorderCall = function(tar, sha, nAngle, nRadius, col, dwType)
+C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	nRadius = nRadius * 64
 	local nThick = 1 + (5 * nRadius / 64 / 20)
 	local dwMaxRad = nAngle / 180 * pi
@@ -534,7 +541,7 @@ C.OnBreathe = function()
 						end
 						if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
 							sha[key].nFaceDirection = KGNpc.nFaceDirection
-							C.DrawBorderCall(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+							C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
 					end
 				end
@@ -568,8 +575,8 @@ C.OnBreathe = function()
 				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
 					local szName = tar.szName
 					C.tTarget[KGNpc.dwID] = dwID
-					if data.bScreenHead and type(ScreenHead) ~= "nil" then
-						ScreenHead(target.dwID, { txt = _L("Staring %s", szName)})
+					if data.bScreenHead then
+						FireEvent("JH_SCREENHEAD", target.dwID, { txt = _L("Staring %s", szName)})
 					end
 					if me.IsInRaid() then
 						if Circle.bWhisperChat and data.bWhisperChat then
@@ -619,7 +626,7 @@ C.OnBreathe = function()
 						end
 						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
 							sha[key].nFaceDirection = KGDoodad.nFaceDirection
-							C.DrawBorderCall(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+							C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
 					end
 				end
@@ -867,6 +874,6 @@ local ui = {
 	OpenAddPanel = C.OpenAddPanel,
 	LoadFile = C.LoadFile,
 	SaveFile = C.SaveFile,
+	GetData = C.GetData,
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )
-

@@ -146,14 +146,11 @@ _RE.AutoEnable = function(bEnable)
 	if enable then
 		if not RaidGrid_EventScrutiny.bEnable then
 			RaidGrid_EventScrutiny.bEnable = true
-			BossFaceAlert.bEnable = true
 			RaidGrid_EventScrutiny.OpenPanel()
 		end
 	else
 		if RaidGrid_EventScrutiny.bEnable then
 			RaidGrid_EventScrutiny.bEnable = false
-			BossFaceAlert.bEnable = false
-			BossFaceAlert.ClearAllItem()
 			RaidGrid_SkillTimer.RemoveAllTimer()
 			RaidGrid_EventScrutiny.ClosePanel()
 		end
@@ -489,9 +486,8 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 	
 	
 	data.EventScrutinyRecords = RaidGrid_EventScrutiny.tRecords
-	if RaidGrid_EventScrutiny.bOutputBossFaceData then
-		data.DrawFaceLineNames = BossFaceAlert.DrawFaceLineNames
-		data.FaceClassNameInfo = BossFaceAlert.FaceClassNameInfo
+	if RaidGrid_EventScrutiny.bOutputBossFaceData and type(Circle ~= "nil") then
+		data.Circle = Circle.GetData()
 	end
 	if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then
 		data.BossCallAlertRecords = RaidGrid_BossCallAlert.tRecords
@@ -522,13 +518,9 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 			end
 		else
 			if RaidGrid_EventScrutiny.bOutputBossFaceData then
-				if data.DrawFaceLineNames and data.FaceClassNameInfo then
-					BossFaceAlert.DrawFaceLineNames = data.DrawFaceLineNames
-					BossFaceAlert.FaceClassNameInfo = data.FaceClassNameInfo
-					RaidGrid_Base.Message(_L("Override %s data done","BossFaceAlert"))
-				end				
-				BFA.Init()
-				FA.ClearPanel()
+				if data.Circle then
+					Circle.LoadCircleData(data.Circle, true)
+				end
 			end
 			if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then
 				if data.BossCallAlertRecords then
@@ -567,31 +559,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 			end
 		end
 		RaidGrid_Base.Message(_L("Merge %s data done","RGES"))
-		
-		if RaidGrid_EventScrutiny.bOutputBossFaceData then -- 合并面向的数据
-			local FaceClassNameInfo = data.FaceClassNameInfo
-			if not FaceClassNameInfo then
-				for i = 1,#data.DrawFaceLineNames do
-					data.DrawFaceLineNames[i].nFaceClass = nil
-					BossFaceAlert.AddListByCopy(data.DrawFaceLineNames[i], data.DrawFaceLineNames[i].szName)
-				end
-			else
-				local oClassNum = #BossFaceAlert.FaceClassNameInfo or 0 -- 老的分类有几个
-				for i = 1,#FaceClassNameInfo,1 do
-					table.insert(BossFaceAlert.FaceClassNameInfo, FaceClassNameInfo[i])
-				end
-				for i = 1, #data.DrawFaceLineNames do
-					if data.DrawFaceLineNames[i].nFaceClass then
-						data.DrawFaceLineNames[i].nFaceClass = data.DrawFaceLineNames[i].nFaceClass + oClassNum
-					end
-					BossFaceAlert.AddListByCopy(data.DrawFaceLineNames[i], data.DrawFaceLineNames[i].szName)
-				end
-			end
-			RaidGrid_Base.Message(_L("Merge %s data done", "BossFaceAlert"))
-			BFA.Init()
-			FA.ClearPanel()
-		end
-		
+				
 		if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then -- 合并喊话数据
 			if data.BossCallAlertRecords then
 				for _,tInfo in pairs(data.BossCallAlertRecords.tBossCall) do
@@ -1535,10 +1503,6 @@ function RaidGrid_EventScrutiny.OnCheckBoxCheck()
 		RaidGrid_EventScrutiny.bNpcChatAlertEnable = true
 		RaidGrid_BossCallAlert.bChatAlertEnable = true
 		RaidGrid_EventScrutiny.bSkillTimerSay = true
-		if not (not BossFaceAlert) then
-			BossFaceAlert.bSendRaidMsg = true
-			BossFaceAlert.bSendWhisperMsg = true
-		end
 	end
 end
 
@@ -1553,10 +1517,6 @@ function RaidGrid_EventScrutiny.OnCheckBoxUncheck()
 		RaidGrid_EventScrutiny.bNpcChatAlertEnable = false
 		RaidGrid_BossCallAlert.bChatAlertEnable = false
 		RaidGrid_EventScrutiny.bSkillTimerSay = false
-		if not (not BossFaceAlert) then
-			BossFaceAlert.bSendRaidMsg = false
-			BossFaceAlert.bSendWhisperMsg = false
-		end
 	end
 end
 
@@ -1705,9 +1665,7 @@ function RaidGrid_EventScrutiny.RefreshCTMBuffHandle(handleRole, dwBuffID, bIsRe
 		end
 		
 		if box.tInfo and not tRecord and box.tInfo.bScreenHead then
-			if type(ScreenHead) ~= "nil" then
-				ScreenHead(handleRole.dwMemberID,{ type = box.tInfo.szType, dwID = box.tInfo.dwID, szName = box.tInfo.szName })
-			end
+			FireEvent("JH_SCREENHEAD", handleRole.dwMemberID, { type = box.tInfo.szType, dwID = box.tInfo.dwID, szName = box.tInfo.szName })
 		end
 
 		if (not tEmptyBox and not box.tInfo) or (box.tInfo and box.tInfo.dwID == dwBuffID) then
@@ -2116,17 +2074,13 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					if tTab[i].tAlarmAddInfo then
 						msg = tTab[i].tAlarmAddInfo
 					end
-					if type(LargeText) ~= "nil" then
-						LargeText(msg,{GetHeadTextForceFontColor(dwMemberID,player.dwID)},player.dwID == dwMemberID)
-					end
+					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
 				end
 				if RaidGrid_EventScrutiny.bAutoMarkEnable and tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
 					RaidGrid_Base.TeamMarkOrg(dwMemberID, tTab[i].tAutoTeamMark)
 				end
 				if IsPlayer(dwMemberID) and tTab[i].bPartyBuffList and (GetClientPlayer().IsPlayerInMyParty(dwMemberID) or dwMemberID == player.dwID) then
-					if type(PartyBuffList) ~= "nil" and PartyBuffList.bEnableRGES then
-						PartyBuffList(dwMemberID, tTab[i].dwID, tTab[i].nLevel)
-					end
+					FireEvent("JH_PARTYBUFFLIST", dwMemberID, tTab[i].dwID, tTab[i].nLevel)
 				end
 				
 				if not tTab[i].bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
@@ -2138,9 +2092,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					end
 				end
 				if tTab[i].bScreenHead then
-					if type(ScreenHead) ~= "nil" then
-						ScreenHead(dwMemberID, { type = tTab[i].szType, dwID = tTab[i].dwID, szName = tTab[i].szName, col = tTab[i].tRGBuffColor })
-					end
+					FireEvent("JH_SCREENHEAD", dwMemberID, { type = tTab[i].szType, dwID = tTab[i].dwID, szName = tTab[i].szName, col = tTab[i].tRGBuffColor })
 				end
 			end
 			return
@@ -2202,8 +2154,8 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 				end
 			end
 			
-			if tTab[i].bScreenHead and type(ScreenHead) ~= "nil" then
-				ScreenHead(npc.dwID,{ type = "Object", txt = tTab[i].tAlarmAddInfo, col = tTab[i].tRGBuffColor })
+			if tTab[i].bScreenHead then
+				FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = tTab[i].tAlarmAddInfo, col = tTab[i].tRGBuffColor })
 			end
 			if bEventCanFire and tTab[i].nEventAlertTime and tTab[i].nEventAlertTime > 0 then
 				-- 记录平均数
@@ -2266,8 +2218,8 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					end
 					local msg = _L("[%s] enter %s",szNpcName,tTab[i].tAlarmAddInfo or "")
 					RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, tTab[i], msg)
-					if tTab[i].bBigFontAlarm and type(LargeText) ~= "nil" then
-						LargeText(msg,{GetHeadTextForceFontColor(npc.dwID,player.dwID)},true)
+					if tTab[i].bBigFontAlarm then
+						FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID) }, true)
 					end
 					if not tTab[i].bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable and tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
 						RaidGrid_Base.TeamMarkOrg(npc.dwID, tTab[i].tAutoTeamMark)
@@ -2331,8 +2283,8 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 				end
 				local msg = _L("[%s] leave",szNpcName)
 				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, tTab[i], msg, true)
-				if tTab[i].bBigFontAlarm and type(LargeText) ~= "nil" then
-					LargeText(msg,{GetHeadTextForceFontColor(npc.dwID,player.dwID)},true)
+				if tTab[i].bBigFontAlarm then
+					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID ) }, true)
 				end
 			end
 			return
@@ -2518,15 +2470,15 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 
 							local msg = "[" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (tTab[i].tAlarmAddInfo or "")
 							RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwID, tTab[i], msg)
-							if tTab[i].bBigFontAlarm and type(LargeText) ~= "nil" then
-								LargeText(msg,{GetHeadTextForceFontColor(dwID,player.dwID)},true)
+							if tTab[i].bBigFontAlarm then
+								FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
 							end
 							tTab[i].bChatAlertCDEnd = fLogicTime + tonumber(tTab[i].nMinChatAlertCD or 7)
 							
 						end
 					end
-					if sarg0 == "UI_OME_SKILL_CAST_LOG" and tTab[i].bScreenHead and type(ScreenHead) ~= "nil" then
-						ScreenHead(target.dwID,{ type = "Skill", txt = tTab[i].szName, col = tTab[i].tRGBuffColor })
+					if sarg0 == "UI_OME_SKILL_CAST_LOG" and tTab[i].bScreenHead then
+						FireEvent("JH_SCREENHEAD", target.dwID, { type = "Skill", txt = tTab[i].szName, col = tTab[i].tRGBuffColor })
 					end
 					if RaidGrid_EventScrutiny.bCastingReadingBar and sarg0 == "UI_OME_SKILL_CAST_LOG" and not tTab[i].bNotReadingBar then
 						RaidGrid_ReadingBar.putOrg(target)
@@ -2641,9 +2593,7 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 						for k , v in pairs(tTab[i].tNpcLife) do
 							if nPercentLife < v[1] and not _RE.tNpcLife[dwTemplateID][v[1]] then
 								RaidGrid_RedAlarm.FlashOrg(3,v[2], false, true, 255, 0, 0)
-								if type(LargeText) ~= "nil" then
-									LargeText(v[2])
-								end
+								FireEvent("JH_LARGETEXT", v[2], true)
 								if v[3] then
 									RaidGrid_SkillTimer.StartNewSkillTimerOrg(v[2],12,1,v[3] * 16,false,RaidGrid_EventScrutiny.nSayChannel,false)
 								end
@@ -2761,9 +2711,7 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 												local r,g,b = unpack(handleRecord.tRecord.tRGAlertColor)
 												col = {r,g,b}
 											end
-											if type(LargeText) ~= "nil" then
-												LargeText(tTimerSetTemp[nTimerIndex].szAlert,col,true)
-											end
+											FireEvent("JH_LARGETEXT", tTimerSetTemp[nTimerIndex].szAlert, col, true)
 										end
 										RaidGrid_SkillTimer.StartNewSkillTimerOrg(tTimerSetTemp[nTimerIndex].szTimerName,254,1,nTimeLeftTemp*16,RaidGrid_EventScrutiny.bSkillTimerSay and handleRecord.tRecord.bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
 										handleRecord.tRecord.bChatAlertCDEnd3 = fLogicTime + 5
@@ -2879,31 +2827,14 @@ function RaidGrid_EventScrutiny.Macro(tRecord,szListIndex)
 	szListIndex = szListIndex or tRecord.szType
 	if not szListIndex then return end
 	GUI.UnRegisterPanel(_L["Set Data"])
-	
-	if szListIndex == "DrawFaceLineNames" then
-		for i = 1, #BossFaceAlert.DrawFaceLineNames, 1 do
-			if tostring(BossFaceAlert.DrawFaceLineNames[i].szName) == tostring(tRecord.szName) then
-				BossFaceAlert.DrawFaceLineNames[i] = tRecord
-				FA.ClearPanel()
-				BFA.Init()
-				return JH.Alert(_L(" * cover data %s (%s)",szListIndex,tRecord.szName))
-			end
-		end
-		tRecord.nFaceClass = nil;
-		BossFaceAlert.AddListByCopy(tRecord,tRecord.szName);
-		FA.ClearPanel()
-		BFA.Init()
-		return JH.Alert(_L(" * import data %s (%s)",szListIndex,tRecord.szName))
-	else
-		local t = RaidGrid_EventScrutiny.tRecords[szListIndex]
-		if not t then
-			return JH.Alert("data is invalid")
-		end
-		for i = 1, #t do
-			if t[i].dwID == tRecord.dwID and (not tRecord.nLevel or (t[i].nLevel == tRecord.nLevel)) then
-				t[i] = tRecord
-				return JH.Alert(_L(" * cover data %s (%s)",szListIndex,tRecord.szName))
-			end
+	local t = RaidGrid_EventScrutiny.tRecords[szListIndex]
+	if not t then
+		return JH.Alert("data is invalid")
+	end
+	for i = 1, #t do
+		if t[i].dwID == tRecord.dwID and (not tRecord.nLevel or (t[i].nLevel == tRecord.nLevel)) then
+			t[i] = tRecord
+			return JH.Alert(_L(" * cover data %s (%s)",szListIndex,tRecord.szName))
 		end
 	end
 	RaidGrid_EventScrutiny.AddRecordToList(tRecord,tRecord.szType)
@@ -4221,9 +4152,7 @@ function RaidGrid_BossCallAlert.CallProcess(bossname, saydata)
 	if string.find(saydata,Clientplayer.szName) then
 		RaidGrid_BossCallAlert.ChannelSay(Clientplayer.szName, bossname)
 		if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
-			if type(ScreenHead) ~= "nil" then
-				ScreenHead(Clientplayer.dwID,{ txt = _L("%s Call Name",bossname)})
-			end
+			FireEvent("JH_SCREENHEAD", Clientplayer.dwID, { txt = _L("%s Call Name",bossname)})
 		end
 		--return
 	end
@@ -4241,9 +4170,7 @@ function RaidGrid_BossCallAlert.CallProcess(bossname, saydata)
 							if player.szName ~= Clientplayer.szName then
 								RaidGrid_BossCallAlert.ChannelSay(player.szName, bossname)
 								if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
-									if type(ScreenHead) ~= "nil" then
-										ScreenHead(dwID,{ txt = _L("%s Call Name",bossname)})
-									end
+									FireEvent("JH_SCREENHEAD", dwID, { txt = _L("%s Call Name",bossname)})
 								end
 								--return
 							end
@@ -4408,9 +4335,7 @@ function RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
 	if string.find(saydata,Clientplayer.szName) then
 		RaidGrid_BossCallAlert.WarningMessageAlarm(Clientplayer.szName, saydata)
 		if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
-			if type(ScreenHead) ~= "nil" then
-				ScreenHead(Clientplayer.dwID)
-			end
+			FireEvent("JH_SCREENHEAD", Clientplayer.dwID, nil)
 		end
 	end
 
@@ -4427,9 +4352,7 @@ function RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
 							if player.szName ~= Clientplayer.szName then
 								RaidGrid_BossCallAlert.WarningMessageAlarm(player.szName, saydata)
 								if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
-									if type(ScreenHead) ~= "nil" then
-										ScreenHead(dwID)
-									end
+									FireEvent("JH_SCREENHEAD", dwID, nil)
 								end
 							end
 						end
@@ -4984,10 +4907,6 @@ PS3.OnPanelActive = function(frame)
 		RaidGrid_EventScrutiny.bNpcChatAlertEnable = bChecked
 		RaidGrid_BossCallAlert.bChatAlertEnable = bChecked
 		RaidGrid_EventScrutiny.bSkillTimerSay = bChecked
-		if not (not BossFaceAlert) then
-			BossFaceAlert.bSendRaidMsg = bChecked
-			BossFaceAlert.bSendWhisperMsg = bChecked
-		end
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox" ,{ x = 10, y = nY, checked = TimeToFight.bShow })
 	:Text("战斗计时面板"):Click(function(bChecked)
@@ -5009,24 +4928,6 @@ function RaidGrid_EventScrutiny.PopMainOptions()
 	end
 end
 
-
-function RaidGrid_EventScrutiny.AddIdToBossFaceAlert(tRecord)
-	if (not BossFaceAlert) or (not BossFaceAlert.tDefaultSetForAdd) or (not BossFaceAlert.tDefaultSetForAdd.nAngleToAdd2) or (not BossFaceAlert.AddListByCopy) then
-		return
-	end
-	if not tRecord or tRecord.szType ~= "Npc" then
-		return
-	end
-	local tNewRecord = clone(BossFaceAlert.tDefaultSetForAdd)
-	tNewRecord.szName = tostring(tRecord.dwID)
-	tNewRecord.szDescription = tostring(tRecord.szName)
-	tNewRecord.bShowDescriptionName = true
-	BossFaceAlert.AddListByCopy(tNewRecord, tNewRecord.szName)
-	BFA.Init()
-	FA.LoadLastData(BossFaceAlert.DrawFaceLineNames)
-
-end
-
 ----------------------------------------------------------------------------------------------------------------------------------
 function RaidGrid_EventCache.PopRBOptions(handle)
 	if not handle then
@@ -5043,27 +4944,6 @@ function RaidGrid_EventCache.PopRBOptions(handle)
 	if not dwID then
 		return
 	end
-	
-	local szName = handle.tRecord.szName or ""
-	local rgb = {255,255,0}
-	local szOption = "　添加到面向监控 - " .. szName
-
-	local handleIndex = nil
-	for i = 1, #BossFaceAlert.DrawFaceLineNames, 1 do
-		if tostring(BossFaceAlert.DrawFaceLineNames[i].szName) == tostring(szName) then
-			handleIndex = i
-			rgb = {255,0,255}
-			szOption = "　修改面向 - " .. szName
-			break
-		end
-	end
-
-	local fnAction = function()
-		if handleIndex then
-			FA.LoadAndSaveData(BossFaceAlert.DrawFaceLineNames[handleIndex],false,handleIndex)
-		end
-	end	
-	
 	
 	local tOptions = {
 		{
@@ -5083,13 +4963,12 @@ function RaidGrid_EventCache.PopRBOptions(handle)
 			bDevide = true
 		},
 		{
-			szOption = szOption, rgb = rgb ,bCheck = false, bChecked = false, bDisable = handle.tRecord.szType ~= "Npc", fnAction = function(UserData, bCheck)
+			szOption = _L["Add Face"], rgb = { 255, 255, 0 } ,bCheck = false, bChecked = false, bDisable = handle.tRecord.szType ~= "Npc" or type(Circle) == "nil" , fnAction = function(UserData, bCheck)
 				if IsAltKeyDown() then
-					RaidGrid_EventScrutiny.AddIdToBossFaceAlert(handle.tRecord)
+					Circle.OpenAddPanel(handle.tRecord.dwID, TARGET.NPC)
 				else
-					BFA.AddScrutiny(szName)
+					Circle.OpenAddPanel(handle.tRecord.szName, TARGET.NPC)
 				end
-				fnAction()
 			end,
 		},
 		{
@@ -5578,11 +5457,11 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 		end):Pos_()
 		if szType == "Npc" then
 			nX = ui:Append("WndButton2",{ x = nX + 10, y = nY + 10 })
-			:Text("添加到面向"):Click(function(bChecked)
+			:Enable(type(Circle) ~= "nil"):Text("添加到面向"):Click(function(bChecked)
 				if IsAltKeyDown() then
-					RaidGrid_EventScrutiny.AddIdToBossFaceAlert(data)
+					Circle.OpenAddPanel(data.dwID, TARGET.NPC)
 				else
-					BFA.AddScrutiny(tTab[nStartIndex].szName or "")
+					Circle.OpenAddPanel(data.szName, TARGET.NPC)
 				end
 			end):Pos_()
 		end
@@ -5779,16 +5658,6 @@ JH.RegisterEvent("FIRST_LOADING_END",function()
 			end
 		end
 	end)
-	JH.DelayCall(2000, function()
-		for k, v in ipairs({"DrawFaceLineNames", "FaceClassNameInfo"}) do
-			local data = JH.LoadLUAData(path .. v)
-			if data then
-				BossFaceAlert[v] = JH.JsonDecode(data)
-			end
-		end
-		BFA.Init()
-		FA.ClearPanel()
-	end)
 	JH.DelayCall(2500, function()
 		if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 			for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
@@ -5813,9 +5682,7 @@ local SaveRGESData = function()
 	for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
 		JH.SaveLUAData(path .. v, JH.JsonEncode(RaidGrid_BossCallAlert.tRecords[v]))
 	end	
-	for k, v in ipairs({"DrawFaceLineNames", "FaceClassNameInfo"}) do
-		JH.SaveLUAData(path .. v, JH.JsonEncode(BossFaceAlert[v]))
-	end
+
 	if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 		for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 			RaidGrid_EventCache.tRecords[v].Hash = nil

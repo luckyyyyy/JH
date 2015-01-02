@@ -343,7 +343,7 @@ _ScreenHead.RegisterFight = function(bEnable)
 	end
 end
 
-_ScreenHead.RegisterHead = function(dwID,tab)
+_ScreenHead.RegisterHead = function(dwID, tab)
 	if not ScreenHead.bEnable then return end
 	if not _ScreenHead.tList[dwID] then
 		_ScreenHead.tList[dwID] = {}
@@ -382,11 +382,6 @@ _ScreenHead.OnNpcUpdate = function()
 		_ScreenHead.RegisterHead(arg0,{ type = "Object", txt = _L["aim"] })
 	end
 end
--- public api
-setmetatable(ScreenHead,{ __call = function(me,...)
-	if not ScreenHead.bEnableRGES then return end
-	_ScreenHead.RegisterHead( ... )
-end})
 
 local PS = {}
 PS.OnPanelActive = function(frame)
@@ -458,7 +453,11 @@ JH.RegisterInit("ScreenHead",
 	{ "FIGHT_HINT", _ScreenHead.RegisterFight },
 	{ "LOGIN_GAME", _ScreenHead.Init },
 	{ "BUFF_UPDATE", _ScreenHead.OnBuffUpdate },
-	{ "NPC_ENTER_SCENE", _ScreenHead.OnNpcUpdate }
+	{ "NPC_ENTER_SCENE", _ScreenHead.OnNpcUpdate },
+	{ "JH_SCREENHEAD", function()
+		if not ScreenHead.bEnableRGES then return end
+		_ScreenHead.RegisterHead(arg0, arg1)
+	end }
 )
 
 GUI.RegisterPanel(_L["HeadAlert"], 2789, _L["RGES"], PS)
