@@ -484,7 +484,6 @@ data = {
 	["Warning: %s staring at you"] = "【%s】正在注视【你】。",
 	["Warning: %s staring at %s"] = "【%s】正在注视【%s】。",
 	["All Map"] = "全地图",
-	["delete [%s]?"] = "确定删除【%s】？",
 	["Circle"] = "圈圈和注视",
 	["Circle Enable"] = "启用圈圈和注视",
 	["Circle Border"] = "画出圈圈的边框",
