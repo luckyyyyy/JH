@@ -492,4 +492,10 @@ data = {
 	["None Data"] = "没有数据",
 	["All Circle"] = "全部的数据",
 	["Please enter NPC name or Template ID."] = "请输入NPC名称或模板ID",
+	["Target Staring"] = "目标注释相关",
+	["Draw Border"] = "画出边框",
+	["Draw Line"] = "画出连线",
+	["Draw Line Only Self"] = "是自己才画",
+	["Mon Target"] = "监控目标",
+	["Add Circle"] = "添加圈圈",
 }
