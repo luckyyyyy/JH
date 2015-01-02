@@ -749,7 +749,7 @@ C.OpenAddPanel = function(szName, dwType)
 					key = key, 
 					dwType = dwType,
 					bEnable = true,
-					tCircles = { CIRCLE_DEFAULT_DATA }
+					tCircles = { clone(CIRCLE_DEFAULT_DATA) }
 				}
 				if not C.tData[map.id] then
 					C.tData[map.id] = {}
@@ -884,7 +884,7 @@ C.OpenDataPanel = function(data)
 	end):Pos_()
 	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(#data.tCircles < 2)
 	:Click(function()
-		table.insert(data.tCircles, CIRCLE_DEFAULT_DATA)
+		table.insert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		C.OpenDataPanel(data)
 	end)
 	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
