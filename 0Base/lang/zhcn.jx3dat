@@ -491,4 +491,5 @@ data = {
 	["Circle Data"] = "圈圈数据",
 	["None Data"] = "没有数据",
 	["All Circle"] = "全部的数据",
+	["Please enter NPC name or Template ID."] = "请输入NPC名称或模板ID",
 }
