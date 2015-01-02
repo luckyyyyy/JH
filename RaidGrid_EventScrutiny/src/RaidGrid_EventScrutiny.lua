@@ -2076,6 +2076,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					end
 					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
 				end
+				
 				if RaidGrid_EventScrutiny.bAutoMarkEnable and tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
 					RaidGrid_Base.TeamMarkOrg(dwMemberID, tTab[i].tAutoTeamMark)
 				end
@@ -2593,7 +2594,7 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 						for k , v in pairs(tTab[i].tNpcLife) do
 							if nPercentLife < v[1] and not _RE.tNpcLife[dwTemplateID][v[1]] then
 								RaidGrid_RedAlarm.FlashOrg(3,v[2], false, true, 255, 0, 0)
-								FireEvent("JH_LARGETEXT", v[2], true)
+								FireEvent("JH_LARGETEXT", v[2], { 255, 128, 0 }, true)
 								if v[3] then
 									RaidGrid_SkillTimer.StartNewSkillTimerOrg(v[2],12,1,v[3] * 16,false,RaidGrid_EventScrutiny.nSayChannel,false)
 								end
