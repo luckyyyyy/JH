@@ -10,4 +10,3 @@ Dev_*\
 About.ini
 Team\
 AutoTeam\
-Circle\
