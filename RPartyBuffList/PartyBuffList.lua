@@ -208,16 +208,7 @@ _PartyBuffList.OnBuffUpdate = function()
 		PartyBuffList(arg0,arg4,arg8)
 	end
 end
--- public api
-setmetatable(PartyBuffList,{ __call = function(me,dwID,dwBuffID,nLevel)
-	for k,v in ipairs(_PartyBuffList.tList) do
-		if v.dwID == dwID and v.dwBuffID == dwBuffID and v.nLevel == nLevel then
-			return
-		end
-	end
-	table.insert(_PartyBuffList.tList, { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel })
-	pcall(_PartyBuffList.UpdateFrame)
-end})
+
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
@@ -259,7 +250,17 @@ JH.RegisterInit("PartyBuffList",
 	{ "ON_LEAVE_CUSTOM_UI_MODE" , function() _PartyBuffList.UiMode("ON_LEAVE_CUSTOM_UI_MODE") end },
 	{ "BUFF_UPDATE" , _PartyBuffList.OnBuffUpdate },
 	{ "UPDATE_SELECT_TARGET" , _PartyBuffList.UpdateFrame },
-	{ "Breathe" , _PartyBuffList.OnBreathe }
+	{ "Breathe" , _PartyBuffList.OnBreathe },
+	{ "JH_PARTYBUFFLIST", function()
+		if not PartyBuffList.bEnableRGES then return end
+		for k,v in ipairs(_PartyBuffList.tList) do
+			if v.dwID == arg0 and v.dwBuffID == arg1 and v.nLevel == arg2 then
+				return
+			end
+		end
+		table.insert(_PartyBuffList.tList, { dwID = arg0, dwBuffID = arg1, nLevel = arg2 })
+		pcall(_PartyBuffList.UpdateFrame)
+	end }
 )
 
 GUI.RegisterPanel(_L["PartyBuffList"], 1453, _L["RGES"], PS)

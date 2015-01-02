@@ -19,6 +19,7 @@ function LargeText.OnFrameCreate()
 	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
 	this:RegisterEvent("UI_SCALED")
+	this:RegisterEvent("JH_LARGETEXT")
 	_LargeText.UpdateAnchor(this)
 	_LargeText.frame = this
 	_LargeText.txt = this:Lookup("","Text_Total")
@@ -36,6 +37,13 @@ function LargeText.OnEvent(szEvent)
 		UpdateCustomModeWindow(this,_L["LargeText"],true)
 	elseif szEvent == "UI_SCALED" then
 		_LargeText.UpdateAnchor(this)
+	elseif szEvent == "JH_LARGETEXT" then
+		if not LargeText.bEnable then return end
+		if not col then
+			col = { 255, 128, 0 }
+			bMe = true
+		end
+		_LargeText.UpdateText(arg0, arg1, arg2)
 	end
 end
 
@@ -58,7 +66,7 @@ _LargeText.OpenPanel = function()
 	return frame
 end
 
-_LargeText.UpdateText = function(txt,col,bMe)
+_LargeText.UpdateText = function(txt, col, bMe)
 	if not bMe and LargeText.bIsMe then
 		return
 	end
@@ -81,15 +89,6 @@ _LargeText.OnBreathe = function()
 		JH.BreatheCall("LargeText")
 	end
 end
-
-setmetatable(LargeText,{ __call = function(me,txt,col,bMe)
-	if not LargeText.bEnable then return end
-	if not col then
-		col = { 255, 128, 0 }
-		bMe = true
-	end
-	_LargeText.UpdateText(txt,col,bMe)
-end})
 
 local PS = {}
 PS.OnPanelActive = function(frame)
