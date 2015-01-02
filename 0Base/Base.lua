@@ -881,6 +881,9 @@ end
 
 -- scrolls
 JH.OnScrollBarPosChanged = function()
+	if this:GetName() ~= "Scroll_List" then -- 界面里面的也连带滚动了
+		return
+	end
 	local handle, frame = _JH.hList, this:GetParent()
 	local nPos = this:GetScrollPos()
 	if nPos == 0 then
@@ -2542,7 +2545,7 @@ function _GUI.Item:Click(fnAction, bSound, bSelect)
 			local _this = this
 			this = hnd
 			hnd.OnItemLButtonDown()
-			_this = this
+			this = _this
 		end
 	elseif self.type == "BoxButton" or self.type == "TxtButton" then
 		hnd.OnItemLButtonDown = function()
