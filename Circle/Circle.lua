@@ -8,7 +8,7 @@ local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
 local tinsert = table.insert
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
-
+local GetClientPlayer = GetClientPlayer
 -- 常量 副本外大部分不受此限制
 local SHADOW = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
@@ -375,7 +375,7 @@ C.DrawTable = function()
 		if mapid == _L["All Circle"] then
 			for k, v in pairs(C.tData) do
 				for kk, vv in ipairs(v) do
-					table.insert(tab, { key = vv.szNote or vv.key, id = k, index = kk, bEnable = vv.bEnable })
+					tinsert(tab, { key = vv.szNote or vv.key, id = k, index = kk, bEnable = vv.bEnable })
 				end
 			end
 		else
@@ -536,7 +536,7 @@ C.OnBreathe = function()
 				end
 			end
 			if data.bDrawName then
-				table.insert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 0, 255, 0 }, TARGET.NPC, true })
+				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 0, 255, 0 }, TARGET.NPC, true })
 			end
 			if data.bTarget then
 				local sha = C.tCache[TARGET.NPC][k].Line
@@ -564,13 +564,13 @@ C.OnBreathe = function()
 					if dwID == me.dwID then
 						col = { 255, 0, 128 }
 					end
-					table.insert(C.tDrawText, { KGNpc.dwID, JH.GetTemplateName(tar), col })
+					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetTemplateName(tar), col })
 				end
 				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
 					local szName = JH.GetTemplateName(tar)
 					C.tTarget[KGNpc.dwID] = dwID
 					if data.bScreenHead then
-						FireEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", szName)})
+						FireEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
 					end
 					if me.IsInRaid() then
 						if Circle.bWhisperChat and data.bWhisperChat then
@@ -635,7 +635,7 @@ C.OnBreathe = function()
 				C.tCache[TARGET.DOODAD][k].Line = {}
 			end
 			if data.bDrawName then
-				table.insert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
+				tinsert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
 			end
 		end
 	end
@@ -742,7 +742,7 @@ C.OpenAddPanel = function(szName, dwType)
 				if not C.tData[map.id] then
 					C.tData[map.id] = {}
 				end
-				table.insert(C.tData[map.id], data)
+				tinsert(C.tData[map.id], data)
 				FireEvent("CIRCLE_CLEAR")
 				FireEvent("CIRCLE_DRAW_UI")
 				C.OpenDataPanel(C.tData[map.id][#C.tData[map.id]], map.id, #C.tData[map.id])
@@ -910,7 +910,7 @@ C.OpenDataPanel = function(data, id, index)
 	end)
 	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(#data.tCircles < 2)
 	:Click(function()
-		table.insert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
+		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		data.tCircles[2].nAngle = 360
 		C.OpenDataPanel(data, id, index)
 	end)
@@ -959,7 +959,7 @@ PS.OnPanelActive = function(frame)
 			{ bDevide = true }
 		}
 		for k, v in pairs(C.tData) do
-			table.insert(menu, { szOption = C_Table_GetMapName(k), fnAction = function() 
+			tinsert(menu, { szOption = C_Table_GetMapName(k), fnAction = function() 
 				C.dwSelMapID = k
 				FireEvent("CIRCLE_DRAW_UI")
 				ui:Fetch("Select"):Text(C_Table_GetMapName(k))
@@ -971,7 +971,7 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 		if #menu == 0 then
-			table.insert(menu, { szOption = _L["None Data"], bDisable = true })
+			tinsert(menu, { szOption = _L["None Data"], bDisable = true })
 		end
 		return menu
 	end):Pos_()
