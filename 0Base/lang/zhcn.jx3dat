@@ -498,4 +498,8 @@ data = {
 	["Draw Line Only Self"] = "是自己才画",
 	["Mon Target"] = "监控目标",
 	["Add Circle"] = "添加圈圈",
+	["Face Circle"] = "面向圈",
+	["Open Circle Panel"] = "打开圈圈设置面板",
+	["Draw Self Name"] = "绘出自身名称",
+	["Draw Doodad Line"] = "绘出Doodad连线",
 }

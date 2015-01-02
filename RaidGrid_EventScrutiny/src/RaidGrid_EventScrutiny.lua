@@ -4909,15 +4909,6 @@ PS3.OnPanelActive = function(frame)
 		RaidGrid_BossCallAlert.bChatAlertEnable = bChecked
 		RaidGrid_EventScrutiny.bSkillTimerSay = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox" ,{ x = 10, y = nY, checked = TimeToFight.bShow })
-	:Text("战斗计时面板"):Click(function(bChecked)
-		TimeToFight.bShow = bChecked
-		if bChecked then
-			TimeToFight.OpenPanel()
-		else
-			TimeToFight.ClosePanel()
-		end
-	end):Pos_()	
 end
 GUI.RegisterPanel(_L["Scrutiny Setting"], 1904, _L["RGES"],PS3)
 

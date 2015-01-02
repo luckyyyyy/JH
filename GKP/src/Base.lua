@@ -2743,7 +2743,7 @@ RegisterEvent("MONEY_UPDATE",function() --金钱变动
 	_GKP.MoneyUpdate(arg0,arg1,arg2)
 end)
 
-JH.PlayerAddonMenu({szOption = _L["GKP Golden Team Record"],rgb = {255,255,128} , fnAction = _GKP.OpenPanel})
+JH.PlayerAddonMenu({ szOption = _L["GKP Golden Team Record"], fnAction = _GKP.OpenPanel })
 JH.AddHotKey("JH_GKP",_L["Open/Close Golden Team Record"],_GKP.TogglePanel)
 
 
