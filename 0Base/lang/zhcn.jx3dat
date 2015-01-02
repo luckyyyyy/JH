@@ -485,4 +485,10 @@ data = {
 	["Warning: %s staring at %s"] = "【%s】正在注视【%s】。",
 	["All Map"] = "全地图",
 	["delete [%s]?"] = "确定删除【%s】？",
+	["Circle"] = "圈圈和注视",
+	["Circle Enable"] = "启用圈圈和注视",
+	["Circle Border"] = "画出圈圈的边框",
+	["Circle Data"] = "圈圈数据",
+	["None Data"] = "没有数据",
+	["All Circle"] = "全部的数据",
 }

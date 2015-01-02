@@ -18,19 +18,20 @@ local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
 local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
+local tinsert = table.insert
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 
--- 全局常量 副本外大部分不受此限制
+-- 常量 副本外大部分不受此限制
 local SHADOW = JH.GetAddonInfo().szShadowIni
-local GLOBAL_MAX_COUNT = 15 -- 默认副本最大数据量
-local GLOBAL_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local GLOBAL_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
-local GLOBAL_MAX_RADIUS = 30 -- 最大的半径
-local GLOBAL_LINE_ALPHA = 150 -- 线和边框最大透明度
-local GLOBAL_RESERT_DRAW = false -- 全局重绘
-local GLOBAL_DEFAULT_DATA = { nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
-local GLOBAL_MAP_COUNT = { -- 部分副本地图数量补偿
+local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
+local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
+local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
+local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
+local CIRCLE_LINE_ALPHA = 150 -- 线和边框最大透明度
+local CIRCLE_RESERT_DRAW = false -- 全局重绘
+local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
+local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[-1] = 50, -- 全地图生效的东西
 	[165] = 30, -- 英雄大明宫
 	[164] = 30, -- 大明宫
@@ -40,7 +41,20 @@ local GLOBAL_MAP_COUNT = { -- 部分副本地图数量补偿
 	[176] = 35, -- 英雄血战天策
 }
 -- 除上述外 其他一律 = 15
-setmetatable(GLOBAL_MAP_COUNT, { __index = function() return GLOBAL_MAX_COUNT end, __metatable = true, __newindex = function() end })
+setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
+
+local _GetMapName = Table_GetMapName
+local function C_Table_GetMapName(mapid)
+	if mapid == -1 then
+		return _L["All Map"]
+	end
+	local szMap = _GetMapName(mapid)
+	if szMap == "" then
+		return tostring(mapid)
+	else
+		return szMap
+	end
+end
 
 local function Confuse(tCode)
 	if type(tCode) == "table" then
@@ -65,7 +79,6 @@ end
 
 Circle = {
 	bEnable = true,
-	bInDungeon = false,
 	nLimit = 0,
 	bTeamChat = false, -- 控制全局的团队频道
 	bWhisperChat = false, -- 控制全局的密聊频道
@@ -74,6 +87,7 @@ Circle = {
 JH.RegisterCustomData("Circle")
 local Circle = Circle
 local C = {
+	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
 	tData = {},
 	tDrawText = {},
 	tTarget = {},
@@ -96,7 +110,7 @@ local C = {
 
 do
 	for k, v in ipairs(GetMapList()) do
-		local szName = Table_GetMapName(v)
+		local szName = C_Table_GetMapName(v)
 		local a = g_tTable.DungeonInfo:Search(v)
 		C.tMapList[szName] = { id = v }
 		if a and a.dwClassID == 3 then
@@ -157,7 +171,7 @@ C.LoadCircleData = function(tData, bMsg)
 		end
 		JH.UnRegisterEvent("LOADING_END.LoadCircleData")
 	else
-		if GetCurrentTime() - Circle.nLimit < GLOBAL_CHANGE_TIME then
+		if GetCurrentTime() - Circle.nLimit < CIRCLE_CHANGE_TIME then
 			return JH.Sysmsg2(_L["Too frequent load file"])
 		else
 			Circle.nLimit = GetCurrentTime()
@@ -166,7 +180,7 @@ C.LoadCircleData = function(tData, bMsg)
 	for k, v in pairs(tData.Circle) do
 		local map = C.tMapList[tonumber(k)]
 		if map and map.bDungeon then
-			if #v < GLOBAL_MAP_COUNT[tonumber(k)] then
+			if #v < CIRCLE_MAP_COUNT[tonumber(k)] then
 				data[tonumber(k)] = v
 			else
 				JH.Debug2(_L["Length limit. # "] .. k)
@@ -202,11 +216,11 @@ C.Release = function()
 	C.tTarget = {} -- clear
 	-- 取得容器
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
-	C.shCircle:Clear()
 	C.shLine = JH.GetShadowHandle("Handle_Shadow_Line")
-	C.shLine:Clear()
 	C.shName = JH.GetShadowHandle("Handle_Shadow_Name"):AppendItemFromIni(SHADOW, "shadow", "Circle_NAME")
 	C.shName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
+	C.shCircle:Clear()
+	C.shLine:Clear()
 end
 -- 构建data table
 C.CreateData = function()
@@ -217,7 +231,7 @@ C.CreateData = function()
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	-- 全地图数据
-	if C.tData[-1] and C.tMapList[Table_GetMapName(mapid)] and not C.tMapList[Table_GetMapName(mapid)].bDungeon then
+	if C.tData[-1] and C.tMapList[C_Table_GetMapName(mapid)] and not C.tMapList[C_Table_GetMapName(mapid)].bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
@@ -247,7 +261,7 @@ C.RemoveData = function(mapid, index, bConfirm)
 		end
 		
 	end
-	pcall(C.CreateData)
+	FireEvent("CIRCLE_CLEAR_DRAW")
 end
 
 C.DrawText = function()
@@ -271,11 +285,11 @@ C.DrawLine = function(tar, ttar, sha, col, dwType)
 	sha:ClearTriangleFanPoint()
 	local r, g, b = unpack(col)
 	if dwType == TARGET.DOODAD then
-		sha:AppendDoodadID(tar.dwID, r, g, b, GLOBAL_LINE_ALPHA)
+		sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA)
 	else
-		sha:AppendCharacterID(tar.dwID, true, r, g, b, GLOBAL_LINE_ALPHA)
+		sha:AppendCharacterID(tar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
 	end
-	sha:AppendCharacterID(ttar.dwID, true, r, g, b, GLOBAL_LINE_ALPHA)
+	sha:AppendCharacterID(ttar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
 	sha:Show()
 end
 
@@ -292,7 +306,7 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 		dwRad2 = dwRad2 + pi / 20
 	end
 	if nAngle <= 45 then nStep = 180 end
-	local nAlpha = GLOBAL_CIRCLE_ALPHA
+	local nAlpha = CIRCLE_CIRCLE_ALPHA
 	if 2.5 * (nRadius / 64) > 40 then
 		nAlpha = 10
 	else
@@ -352,15 +366,81 @@ C.DrawBorderCall = function(tar, sha, nAngle, nRadius, col, dwType)
 			local nY = tar.nY + sin((v[2] + dwRad1)) * v[1]
 			local sX_,sZ_ = Scene_PlaneGameWorldPosToScene(nX ,nY)
 			if dwType == TARGET.DOODAD then
-				sha:AppendDoodadID(tar.dwID, r, g, b, GLOBAL_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
+				sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
 			else
-				sha:AppendCharacterID(tar.dwID, false, r, g, b, GLOBAL_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
+				sha:AppendCharacterID(tar.dwID, false, r, g, b, CIRCLE_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
 			end
 		end
 		dwCurRad = dwCurRad + dwStepRad
 	until dwMaxRad <= dwCurRad
 end
 
+-- 绘制设置UI表格
+C.DrawTable = function()
+	if C.hTable and C.hTable:IsValid() then
+		local h, tab = C.hTable:Lookup("", "Handle_List"), {}
+		local mapid = C.dwSelMapID or C.GetMapID()
+		if mapid == "ALL" then
+			for k, v in pairs(C.tData) do
+				for kk, vv in ipairs(v) do
+					table.insert(tab, { key = vv.szNote or vv.key, id = k, index = kk, bEnable = vv.bEnable })
+				end
+			end
+		else
+			tab = C.tData[mapid] or tab
+		end
+		h:Clear()
+		for k, v in ipairs(tab) do
+			local item = h:AppendItemFromIni(C.szIniFile, "Handle_Item", k)
+			if k % 2 == 0 then
+				item:Lookup("Image_Line"):Hide()
+			end
+			item:Lookup("Text_I_Name"):SetText(v.szNote or v.key)
+			local szMapName = C_Table_GetMapName(mapid)
+			if v.id then
+				szMapName = C_Table_GetMapName(v.id)
+			end
+			item:Lookup("Text_I_Map"):SetText(szMapName)
+			item.OnItemMouseEnter = function()
+				this:Lookup("Image_Light"):Show()
+			end
+			item.OnItemMouseLeave = function()
+				this:Lookup("Image_Light"):Hide()
+			end
+			if not v.bEnable then
+				item:Lookup("Image_Btn"):SetFrame(5)
+			end
+			item:Lookup("Image_Btn").OnItemMouseEnter = function()
+				local nFrame = this:GetFrame()
+				if nFrame == 6 then
+					this:SetFrame(7)
+				else
+					this:SetFrame(3)
+				end
+			end
+			item:Lookup("Image_Btn").OnItemMouseLeave = function()
+				local nFrame = this:GetFrame()
+				if nFrame == 7 then
+					this:SetFrame(6)
+				else
+					this:SetFrame(5)
+				end
+			end
+			item:Lookup("Image_Btn").OnItemLButtonClick = function()
+				local nFrame = this:GetFrame()
+				if nFrame == 7 then
+					C.tData[v.id or mapid][v.index or k].bEnable = false
+				else
+					C.tData[v.id or mapid][v.index or k].bEnable = true
+				end
+				FireEvent("CIRCLE_CLEAR_DRAW")
+				FireEvent("CIRCLE_DRAW_UI")
+			end
+			item:Show()
+		end
+		h:FormatAllItemPos()
+	end
+end
 
 C.OnNpcEnter = function(szEvent)
 	local v = GetNpc(arg0)
@@ -414,79 +494,83 @@ C.OnBreathe = function()
 	if not me then return end
 	for k, v in pairs(C.tScrutiny[TARGET.NPC]) do
 		local data = v()
-		local KGNpc = GetNpc(k)
-		if not C.tCache[TARGET.NPC][k] then
-			C.tCache[TARGET.NPC][k] = {
-				Circle = {},
-				Line = {},
-			}
-		end
-		for kk, vv in ipairs(data.tCircles) do
-			local sha = C.tCache[TARGET.NPC][k].Circle
-			if not sha[kk] then
-				sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
+		if data.bEnable then
+			local KGNpc = GetNpc(k)
+			if not C.tCache[TARGET.NPC][k] then
+				C.tCache[TARGET.NPC][k] = {
+					Circle = {},
+					Line = {},
+				}
 			end
-			if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
-				sha[kk].nFaceDirection = KGNpc.nFaceDirection
-				C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-			end
-			if Circle.bBorder and vv.bBorder then
-				local key = "B" .. kk
-				if not sha[key] then
-					sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
-				end
-				if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
-					sha[key].nFaceDirection = KGNpc.nFaceDirection
-					C.DrawBorderCall(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-				end
-			end
-		end
-		if data.bDrawName then
-			table.insert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 } })
-		end
-		if data.bTarget then
-			local sha = C.tCache[TARGET.NPC][k].Line
-			local dwType, dwID = KGNpc.GetTarget()
-			local tar = JH.GetTarget(dwType, dwID)
-			if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and not sha.item and sha.dwID ~= dwID and tar then
-				sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-				sha.dwID = dwID
-				local col = { 255, 255, 0 }
-				if dwID == me.dwID then
-					col = { 255, 0, 128 }
-				end
-				C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
-			elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
-				C.shLine:RemoveItem(sha.item)
-				C.tCache[TARGET.NPC][k].Line = {}
-			end			
-			if data.bTargetName and dwID ~= 0 and dwType == TARGET.PLAYER then
-				local col = { 255, 255, 0 }
-				if dwID == me.dwID then
-					col = { 255, 0, 128 }
-				end
-				table.insert(C.tDrawText, { KGNpc.dwID, tar.szName, col })
-			end
-			if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
-				local szName = tar.szName
-				C.tTarget[KGNpc.dwID] = dwID
-				if data.bScreenHead and type(ScreenHead) ~= "nil" then
-					ScreenHead(target.dwID, { txt = _L("Staring %s", szName)})
-				end
-				if me.IsInRaid() then
-					if Circle.bWhisperChat and data.bWhisperChat then
-						JH.Talk(szName, _L("Warning: %s staring at you", data.szNote or data.key))
+			for kk, vv in ipairs(data.tCircles) do
+				if vv.bEnable then
+					local sha = C.tCache[TARGET.NPC][k].Circle
+					if not sha[kk] then
+						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 					end
-					if Circle.bTeamChat and data.bTeamChat then
-						JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, szName))
+					if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+						sha[kk].nFaceDirection = KGNpc.nFaceDirection
+						C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+					end
+					if Circle.bBorder and vv.bBorder then
+						local key = "B" .. kk
+						if not sha[key] then
+							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
+						end
+						if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							sha[key].nFaceDirection = KGNpc.nFaceDirection
+							C.DrawBorderCall(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+						end
 					end
 				end
-				-- RaidGrid_RedAlarm这个还没重构 先这样 
-				if data.bFlash and RaidGrid_RedAlarm then
-					if me.dwID == dwID then
-						RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at you", data.szNote or data.key), true, true, 255, 0, 0)
-					else
-						RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at %s", data.szNote or data.key, szName), false, true, 255, 0, 0)
+			end
+			if data.bDrawName then
+				table.insert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 } })
+			end
+			if data.bTarget then
+				local sha = C.tCache[TARGET.NPC][k].Line
+				local dwType, dwID = KGNpc.GetTarget()
+				local tar = JH.GetTarget(dwType, dwID)
+				if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and not sha.item and sha.dwID ~= dwID and tar then
+					sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
+					sha.dwID = dwID
+					local col = { 255, 255, 0 }
+					if dwID == me.dwID then
+						col = { 255, 0, 128 }
+					end
+					C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
+				elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
+					C.shLine:RemoveItem(sha.item)
+					C.tCache[TARGET.NPC][k].Line = {}
+				end			
+				if data.bTargetName and dwID ~= 0 and dwType == TARGET.PLAYER then
+					local col = { 255, 255, 0 }
+					if dwID == me.dwID then
+						col = { 255, 0, 128 }
+					end
+					table.insert(C.tDrawText, { KGNpc.dwID, tar.szName, col })
+				end
+				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
+					local szName = tar.szName
+					C.tTarget[KGNpc.dwID] = dwID
+					if data.bScreenHead and type(ScreenHead) ~= "nil" then
+						ScreenHead(target.dwID, { txt = _L("Staring %s", szName)})
+					end
+					if me.IsInRaid() then
+						if Circle.bWhisperChat and data.bWhisperChat then
+							JH.Talk(szName, _L("Warning: %s staring at you", data.szNote or data.key))
+						end
+						if Circle.bTeamChat and data.bTeamChat then
+							JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, szName))
+						end
+					end
+					-- RaidGrid_RedAlarm这个还没重构 先这样 
+					if data.bFlash and RaidGrid_RedAlarm then
+						if me.dwID == dwID then
+							RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at you", data.szNote or data.key), true, true, 255, 0, 0)
+						else
+							RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at %s", data.szNote or data.key, szName), false, true, 255, 0, 0)
+						end
 					end
 				end
 			end
@@ -495,47 +579,51 @@ C.OnBreathe = function()
 	-- DOODAD面向绘制
 	for k, v in pairs(C.tScrutiny[TARGET.DOODAD]) do
 		local data = v()
-		local KGDoodad = GetDoodad(k)
-		if not C.tsha[TARGET.DOODAD][k] then
-			C.tsha[TARGET.DOODAD][k] = {
-				Circle = {},
-				Line = {},
-			}
-		end
-		for kk, vv in ipairs(data.tCircles) do
-			local sha = C.tsha[TARGET.DOODAD][k].Circle
-			if not sha[kk] then
-				sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
+		if data.bEnable then
+			local KGDoodad = GetDoodad(k)
+			if not C.tsha[TARGET.DOODAD][k] then
+				C.tsha[TARGET.DOODAD][k] = {
+					Circle = {},
+					Line = {},
+				}
 			end
-			if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
-				sha[kk].nFaceDirection = KGDoodad.nFaceDirection
-				C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-			end
-			if Circle.bBorder and vv.bBorder then
-				local key = "B" .. kk
-				if not sha[key] then
-					sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
+			for kk, vv in ipairs(data.tCircles) do
+				if vv.bEnable then
+					local sha = C.tsha[TARGET.DOODAD][k].Circle
+					if not sha[kk] then
+						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
+					end
+					if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+						sha[kk].nFaceDirection = KGDoodad.nFaceDirection
+						C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+					end
+					if Circle.bBorder and vv.bBorder then
+						local key = "B" .. kk
+						if not sha[key] then
+							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
+						end
+						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							sha[key].nFaceDirection = KGDoodad.nFaceDirection
+							C.DrawBorderCall(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+						end
+					end
 				end
-				if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or GLOBAL_RESERT_DRAW then -- 面向不对 重绘
-					sha[key].nFaceDirection = KGDoodad.nFaceDirection
-					C.DrawBorderCall(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-				end
 			end
-		end
-		local sha = C.tsha[TARGET.DOODAD][k].Line
-		if data.bDrawLine and not sha.item then
-			sha.item = sha.item or C.shCircle:AppendItemFromIni(SHADOW, "shadow", k)
-			C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
-		elseif not data.bDrawLine and sha.item then
-			C.shLine:RemoveItem(sha.item)
-			C.tCache[TARGET.DOODAD][k].Line = {}
-		end
-		if data.bDrawName then
-			table.insert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.DOODAD })
+			local sha = C.tsha[TARGET.DOODAD][k].Line
+			if data.bDrawLine and not sha.item then
+				sha.item = sha.item or C.shCircle:AppendItemFromIni(SHADOW, "shadow", k)
+				C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
+			elseif not data.bDrawLine and sha.item then
+				C.shLine:RemoveItem(sha.item)
+				C.tCache[TARGET.DOODAD][k].Line = {}
+			end
+			if data.bDrawName then
+				table.insert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.DOODAD })
+			end
 		end
 	end
 	pcall(C.DrawText)
-	GLOBAL_RESERT_DRAW = false
+	CIRCLE_RESERT_DRAW = false
 end
 
 C.Init = function()
@@ -545,7 +633,11 @@ C.Init = function()
 		{ "NPC_LEAVE_SCENE", C.OnNpcLeave },
 		{ "DOODAD_ENTER_SCENE", C.OnDoodadEnter },
 		{ "DOODAD_LEAVE_SCENE", C.OnDoodadLeave },
-		{ "LOADING_END", C.CreateData }
+		{ "LOADING_END", C.CreateData },
+		{ "CIRCLE_CLEAR_DRAW", C.CreateData },
+		{ "CIRCLE_RESERT_DRAW", function()
+			CIRCLE_RESERT_DRAW = true
+		end }
 	)
 	Circle.bEnable = true
 end
@@ -588,7 +680,6 @@ Target_AppendAddonMenu({function(dwID, dwType)
 	end
 end })
 
--- ReloadUIAddon()
 C.OpenAddPanel = function(szName, dwType)
 	if Station.Lookup("Normal/C_NewFace") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_NewFace"))
@@ -604,7 +695,7 @@ C.OpenAddPanel = function(szName, dwType)
 		ui:Fetch("Name"):Text(szText)
 	end)
 	ui:Append("Text", { txt = _L["Map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
-	ui:Append("WndEdit", "Map", { txt = Table_GetMapName(C.GetMapID()), x = 115, y = 113, limit = 20 })
+	ui:Append("WndEdit", "Map", { txt = C_Table_GetMapName(C.GetMapID()), x = 115, y = 113, limit = 20 })
 	
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
 	:Enable(szName == nil):Click(function()
@@ -627,13 +718,15 @@ C.OpenAddPanel = function(szName, dwType)
 				local data = {
 					key = key, 
 					dwType = dwType,
-					tCircles = { GLOBAL_DEFAULT_DATA }
+					bEnable = true,
+					tCircles = { CIRCLE_DEFAULT_DATA }
 				}
 				if not C.tData[map.id] then
 					C.tData[map.id] = {}
 				end
 				table.insert(C.tData[map.id], data)
-				C.CreateData()
+				FireEvent("CIRCLE_CLEAR_DRAW")
+				FireEvent("CIRCLE_DRAW_UI")
 				ui:Fetch("Btn_Close"):Click()
 			end
 			if C.tData[map.id] then
@@ -650,7 +743,7 @@ C.OpenAddPanel = function(szName, dwType)
 				if C.tData[map.id] then
 					n = #C.tData[map.id]
 				end
-				if n < GLOBAL_MAP_COUNT[map.id] then
+				if n < CIRCLE_MAP_COUNT[map.id] then
 					pcall(fnAction)
 				else
 					JH.Alert(_L("%s Unable to add more data", ui:Fetch("Map"):Text()))
@@ -664,13 +757,80 @@ C.OpenAddPanel = function(szName, dwType)
 	end)
 end
 
+local PS = {}
+PS.OnPanelActive = function(frame)
+	local ui, nX, nY = GUI(frame), 10, 0
+	nX,nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Circle"], font = 27 }):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = Circle.bEnable, txt = _L["Circle Enable"] }):Click(function(bChecked)
+		Circle.bEnable = bChecked
+		if bChecked then
+			C.Init()
+		else
+			C.UnInit()
+		end
+		ui:Fetch("bTeamChat"):Enable(bChecked)
+		ui:Fetch("bWhisperChat"):Enable(bChecked)
+		ui:Fetch("bBorder"):Enable(bChecked)
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bTeamChat", { x = nX + 5, y = nY + 10, checked = Circle.bTeamChat, txt = _L["RaidAlert"] }):Enable(Circle.bEnable):Click(function(bChecked)
+		Circle.bTeamChat = bChecked
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY + 10, checked = Circle.bWhisperChat, txt = _L["WhisperAlert"] }):Enable(Circle.bEnable):Click(function(bChecked)
+		Circle.bWhisperChat = bChecked
+	end):Pos_()
+	
+	nX,nY = ui:Append("WndCheckBox", "bBorder", { x = nX + 5, y = nY + 10, checked = Circle.bEnable, txt = _L["Circle Border"] }):Enable(Circle.bEnable):Click(function(bChecked)
+		Circle.bBorder = bChecked
+		FireEvent("CIRCLE_CLEAR_DRAW")
+	end):Pos_()
+	local mapid = C.dwSelMapID or C.GetMapID()
+	ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_Table_GetMapName(mapid) }):Menu(function()
+		local menu = {
+			{ szOption =  _L["All Circle"], fnAction = function()
+				C.dwSelMapID = "ALL"
+				FireEvent("CIRCLE_DRAW_UI")
+				ui:Fetch("Select"):Text(_L["All Circle"])
+			end },
+			{ bDevide = true }
+		}
+		for k, v in pairs(C.tData) do
+			table.insert(menu, { szOption = C_Table_GetMapName(k), fnAction = function() 
+				C.dwSelMapID = k
+				FireEvent("CIRCLE_DRAW_UI")
+				ui:Fetch("Select"):Text(C_Table_GetMapName(k))
+			end })
+			if k == C.GetMapID() then
+				menu[#menu].szIcon = "ui/Image/Minimap/Minimap.uitex"
+				menu[#menu].szLayer = "ICON_RIGHT"
+				menu[#menu].nFrame = 10
+			end
+		end
+		if #menu == 0 then
+			table.insert(menu, { szOption = _L["None Data"], bDisable = true })
+		end
+		return menu
+	end)
+	
+	local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
+	local win = fx:Lookup("WndScroll")
+	win:ChangeRelation(frame, true, true)
+	Wnd.CloseWindow(fx)
+	win:SetRelPos(0, 80)
+	C.hTable = win
+	FireEvent("CIRCLE_DRAW_UI")
+end
+
+GUI.RegisterPanel(_L["Circle"], 2402, _L["RGES"], PS)
+
 JH.RegisterEvent("LOGIN_GAME", function()
 	if not Circle.bEnable then return end
 	C.Init()
 end)
+
 JH.RegisterEvent("GAME_EXIT", C.SaveFile)
 JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
 JH.RegisterEvent("FIRST_LOADING_END", C.LoadFile)
+JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
 
 -- public
 local ui = {
