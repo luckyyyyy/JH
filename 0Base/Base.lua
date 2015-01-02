@@ -62,7 +62,7 @@ do
 end
 
 local _JH = {
-	dwVersion = 0x008000f,
+	dwVersion = 0x0080013,
 	szTitle = _L["JH"],
 	tHotkey = {},
 	tDelayCall = {},
