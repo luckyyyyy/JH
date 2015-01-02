@@ -1,17 +1,4 @@
 local _L = JH.LoadLangPack
--- 面向插件调整方案
--- 1) 普通玩家根据副本加载对应数据，每一个副本（地图）不超过15条数据，4小时仅允许更换一次数据，如不加载则没有此限制。
--- 2) 允许手动添加和删除数据，但每个（地图）的总条数也不超过15条，可以根据BOSS调整每个BOSS 的数据。
--- 3) 对于一个圈，限制alpha为50，根据半径逐步降低alpha，开启边框alpha为140。
--- 4) 不再提供角度为1的目标线，不再提供目标名字绘制功能，不再提供目标的目标注视时间倒计时。
--- 5) 除自己和自己的目标外，禁止给其他玩家画面向圈。
--- 6) 所有的追踪线统一为140 alpha。
--- 7) 副本外不受限制，例如抓宠和抓马。
--- 8) 酌情开放部分副本的总条数，例如血战天策等。
--- 9) 去除共享数据的功能。
--- 以上一切仅针对面向，团监不受影响。
-
-
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
 local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
@@ -26,12 +13,12 @@ local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerI
 local SHADOW = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
 local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
+local CIRCLE_CIRCLE_ALPHA = 60 -- 最大的透明度 根据半径逐步降低 
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 150 -- 线和边框最大透明度
 local CIRCLE_RESERT_DRAW = false -- 全局重绘
 local CIRCLE_PLAYER_NAME = "NONE"
-local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
+local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[-1] = 100, -- 全地图生效的东西
 	[165] = 30, -- 英雄大明宫
@@ -219,10 +206,12 @@ C.Release = function()
 	-- 取得容器
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
 	C.shLine = JH.GetShadowHandle("Handle_Shadow_Line")
-	C.shName = JH.GetShadowHandle("Handle_Shadow_Name"):AppendItemFromIni(SHADOW, "shadow", "Circle_NAME")
-	C.shName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
+	C.shName = JH.GetShadowHandle("Handle_Shadow_Name")
 	C.shCircle:Clear()
 	C.shLine:Clear()
+	C.shName:Clear()
+	C.shName = C.shName:AppendItemFromIni(SHADOW, "shadow", "Circle_NAME")
+	C.shName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 end
 -- 构建data table
 C.CreateData = function()
@@ -383,6 +372,9 @@ end
 
 -- 绘制设置UI表格
 C.DrawTable = function()
+	if Station.Lookup("Normal/C_Data") then
+		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
+	end
 	if C.hTable and C.hTable:IsValid() then
 		local h, tab = C.hTable:Lookup("", "Handle_List"), {}
 		local mapid = C.dwSelMapID or C.GetMapID()
@@ -445,7 +437,7 @@ C.DrawTable = function()
 					FireEvent("CIRCLE_DRAW_UI")
 				end
 				item.OnItemLButtonClick = function()
-					C.OpenDataPanel(C.tData[v.id or mapid][v.index or k])
+					C.OpenDataPanel(C.tData[v.id or mapid][v.index or k], v.id or mapid, v.index or k)
 				end
 				item.OnItemRButtonClick = function()
 					local szNote = v.szNote or g_tStrings.STR_NONE
@@ -454,7 +446,7 @@ C.DrawTable = function()
 						{ szOption = g_tStrings.CYCLOPAEDIA_NOTE_TEXT .. szNote, bDisable = true },
 						{ bDevide = true },
 						{ szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
-							C.RemoveData(v.id or mapid, v.index or k, true)
+							C.RemoveData(v.id or mapid, v.index or k, not IsAltKeyDown())
 						end }
 					}
 					PopupMenu(menu)
@@ -610,15 +602,15 @@ C.OnBreathe = function()
 		local data = v()
 		if data.bEnable then
 			local KGDoodad = GetDoodad(k)
-			if not C.tsha[TARGET.DOODAD][k] then
-				C.tsha[TARGET.DOODAD][k] = {
+			if not C.tCache[TARGET.DOODAD][k] then
+				C.tCache[TARGET.DOODAD][k] = {
 					Circle = {},
 					Line = {},
 				}
 			end
 			for kk, vv in ipairs(data.tCircles) do
 				if vv.bEnable then
-					local sha = C.tsha[TARGET.DOODAD][k].Circle
+					local sha = C.tCache[TARGET.DOODAD][k].Circle
 					if not sha[kk] then
 						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 					end
@@ -638,11 +630,11 @@ C.OnBreathe = function()
 					end
 				end
 			end
-			local sha = C.tsha[TARGET.DOODAD][k].Line
-			if data.bDrawLine and not sha.item then
+			local sha = C.tCache[TARGET.DOODAD][k].Line
+			if data.bDoodadLine and not sha.item then
 				sha.item = sha.item or C.shCircle:AppendItemFromIni(SHADOW, "shadow", k)
 				C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
-			elseif not data.bDrawLine and sha.item then
+			elseif not data.bDoodadLine and sha.item then
 				C.shLine:RemoveItem(sha.item)
 				C.tCache[TARGET.DOODAD][k].Line = {}
 			end
@@ -693,7 +685,7 @@ Target_AppendAddonMenu({function(dwID, dwType)
 					C.RemoveData(data.id, data.index, not IsCtrlKeyDown())
 				end,
 				fnAction = function()
-					C.OpenDataPanel(C.tData[data.id][data.index])
+					C.OpenDataPanel(C.tData[data.id][data.index], data.id, data.index)
 				end 
 			}}
 		else
@@ -755,9 +747,9 @@ C.OpenAddPanel = function(szName, dwType)
 					C.tData[map.id] = {}
 				end
 				table.insert(C.tData[map.id], data)
-				C.OpenDataPanel(C.tData[map.id][#C.tData[map.id]])
 				FireEvent("CIRCLE_CLEAR")
 				FireEvent("CIRCLE_DRAW_UI")
+				C.OpenDataPanel(C.tData[map.id][#C.tData[map.id]], map.id, #C.tData[map.id])
 				ui:Fetch("Btn_Close"):Click()
 			end
 			if C.tData[map.id] then
@@ -788,34 +780,34 @@ C.OpenAddPanel = function(szName, dwType)
 	end)
 end
 
-C.OpenDataPanel = function(data)
+C.OpenDataPanel = function(data, id, index)
 	if Station.Lookup("Normal/C_Data") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
 	end
 	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true }):RegisterClose()
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_Data"))
-	local nX, nY = ui:Append("Text", "Name", { txt = data.szNote or data.key, font = 28, w = 380, h = 30, x = 0, y = 35, align = 1 }):Pos_()
+	local nX, nY = ui:Append("Text", "Name", { txt = data.szNote or data.key, font = 200, w = 380, h = 30, x = 0, y = 40, align = 1 }):Pos_()
 	ui:Append("WndRadioBox", { x = 100, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC })
 	:Click(function()
 		data.dwType = TARGET.NPC
-		C.OpenDataPanel(data)
+		C.OpenDataPanel(data, id, index)
 		FireEvent("CIRCLE_CLEAR")
 	end)
 	local nX, nY = ui:Append("WndRadioBox", { x = 180, y = nY + 5, txt = _L["DOODAD"], group = "type", checked = data.dwType == TARGET.DOODAD })
 	:Click(function()
 		data.dwType = TARGET.DOODAD
-		C.OpenDataPanel(data)
+		C.OpenDataPanel(data, id, index)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	for k, v in ipairs(data.tCircles) do
-		nX = ui:Append("WndCheckBox", { x = 20, y = nY, txt = _L("Circle %d", k), font = 27, checked = v.bEnable })
+		nX = ui:Append("WndCheckBox", { x = 20, y = nY, txt = _L["Face Circle"], font = 27, checked = v.bEnable })
 		:Click(function(bChecked)
 			v.bEnable = bChecked
 			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY - 18 + 20, w = 35, h = 25 })
-		:Text(v.nAngle):Change(function(nVal)
+		:Enable(k ~= 2):Text(v.nAngle):Change(function(nVal)
 			nVal = tonumber(nVal) or 30
 			if nVal < 2 or nVal > 360 then
 				nVal = 30
@@ -840,8 +832,17 @@ C.OpenDataPanel = function(data)
 				ui:Fetch("Color_" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				FireEvent("CIRCLE_RESERT_DRAW")
-			end)
-		end):Pos_()
+			end,nil,nil,{
+				{ r = 0, g = 255, b = 0},
+				{ r = 0, g = 255, b = 255},
+				{ r = 255, g = 0, b = 0},
+				{ r = 40, g = 140, b = 218},
+				{ r = 211, g = 229, b = 37},
+				{ r = 65, g = 50, b = 160},
+				{ r = 170, g = 65, b = 180},
+				{ r = 255, g = 255, b = 255},
+			})
+			end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 2, y = nY - 19 + 20, txt = _L["Draw Border"], checked = v.bBorder })
 		:Click(function(bChecked)
 			v.bBorder = bChecked
@@ -877,18 +878,34 @@ C.OpenDataPanel = function(data)
 	nX = ui:Append("WndCheckBox", "bDrawLine", { x = nX + 5, y = nY, checked = data.bDrawLine, txt = _L["Draw Line"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bDrawLine = bChecked
+		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
+	nX, nY = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bDrawLineSelf = bChecked
+		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Other"], font = 27 }):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
+	:Click(function(bChecked)
+		data.bDrawName = bChecked
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bDoodadLine, txt = _L["Draw Doodad Line"] })
+	:Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
+		data.bDoodadLine = bChecked
+	end):Pos_()
+	
+	
+	
 	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(#data.tCircles < 2)
 	:Click(function()
 		table.insert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
-		C.OpenDataPanel(data)
+		data.tCircles[2].nAngle = 360
+		C.OpenDataPanel(data, id, index)
 	end)
 	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
 	:Click(function()
+		C.RemoveData(id, index, not IsAltKeyDown())
 	end)
 	
 end
@@ -899,6 +916,7 @@ local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX,nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Circle"], font = 27 }):Pos_()
+	ui:Append("WndButton2", { x = 420, y = 0, txt = _L["New Face"] }):Click(C.OpenAddPanel)
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = Circle.bEnable, txt = _L["Circle Enable"] }):Click(function(bChecked)
 		Circle.bEnable = bChecked
 		if bChecked then
@@ -949,7 +967,7 @@ PS.OnPanelActive = function(frame)
 		return menu
 	end):Pos_()
 	
-	nX = ui:Append("WndEdit", "Search", { x = nX + 5, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
+	ui:Append("WndEdit", "Search", { x = 330, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
 		if ui:Fetch("Search"):Text() == g_tStrings.SEARCH then
 			ui:Fetch("Search"):Text("")
 		end
@@ -958,7 +976,7 @@ PS.OnPanelActive = function(frame)
 		C.szSearch = szText
 		FireEvent("CIRCLE_DRAW_UI")
 	end):Pos_()
-	ui:Append("WndButton2", { x = nX + 5, y = nY + 2, txt = _L["New Face"] }):Click(C.OpenAddPanel)
+	
 	local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
 	local win = fx:Lookup("WndScroll")
 	win:ChangeRelation(frame, true, true)
@@ -984,7 +1002,9 @@ JH.RegisterEvent("FIRST_LOADING_END", function()
 	C.LoadFile()
 end)
 JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
-
+JH.PlayerAddonMenu({ szOption = _L["Open Circle Panel"], fnAction = function()
+	JH.OpenPanel(_L["Circle"])
+end })
 -- public
 local ui = {
 	OpenAddPanel = C.OpenAddPanel,
