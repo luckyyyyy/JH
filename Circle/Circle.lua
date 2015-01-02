@@ -13,7 +13,7 @@ local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerI
 local SHADOW = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
 local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local CIRCLE_CIRCLE_ALPHA = 60 -- 最大的透明度 根据半径逐步降低 
+local CIRCLE_CIRCLE_ALPHA = 55 -- 最大的透明度 根据半径逐步降低 
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 150 -- 线和边框最大透明度
 local CIRCLE_RESERT_DRAW = false -- 全局重绘
@@ -264,7 +264,7 @@ C.DrawText = function()
 		if not TargetFace or (TargetFace and (not TargetFace.bTTName or TargetFace.bTTName and TargetFace.GetTargetID() ~= v[1])) then
 			local r, g, b = unpack(v[3])
 			if v[4] ~= TARGET.DOODAD then
-				sha:AppendCharacterID(v[1], false, r, g, b, 255, 50, 40,v[2], 1, 1)
+				sha:AppendCharacterID(v[1], v[5] or false, r, g, b, 255, 50, 40,v[2], 1, 1)
 			else
 				sha:AppendDoodadID(v[1], r, g, b, 255, 50, 40,v[2], 1, 1)
 			end
@@ -518,7 +518,8 @@ C.OnBreathe = function()
 					Line = {},
 				}
 			end
-			for kk, vv in ipairs(data.tCircles) do
+			for i = #data.tCircles, 1, -1 do
+				local kk, vv = i, data.tCircles[i]
 				if vv.bEnable then
 					local sha = C.tCache[TARGET.NPC][k].Circle
 					if not sha[kk] then
@@ -541,7 +542,7 @@ C.OnBreathe = function()
 				end
 			end
 			if data.bDrawName then
-				table.insert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 } })
+				table.insert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 0, 255, 0 }, TARGET.NPC, true })
 			end
 			if data.bTarget then
 				local sha = C.tCache[TARGET.NPC][k].Line
@@ -608,7 +609,8 @@ C.OnBreathe = function()
 					Line = {},
 				}
 			end
-			for kk, vv in ipairs(data.tCircles) do
+			for i = #data.tCircles, 1, -1 do
+				local kk, vv = i, data.tCircles[i]
 				if vv.bEnable then
 					local sha = C.tCache[TARGET.DOODAD][k].Circle
 					if not sha[kk] then
@@ -639,7 +641,7 @@ C.OnBreathe = function()
 				C.tCache[TARGET.DOODAD][k].Line = {}
 			end
 			if data.bDrawName then
-				table.insert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.DOODAD })
+				table.insert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
 			end
 		end
 	end
@@ -894,9 +896,20 @@ C.OpenDataPanel = function(data, id, index)
 	:Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
 		data.bDoodadLine = bChecked
 	end):Pos_()
-	
-	
-	
+	ui:Append("WndEdit", { x = 30, y = nY + 10, w = 310, h = 26 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK })
+	:Focus(function()
+		if this:GetText() == g_tStrings.STR_FRIEND_REMARK then
+			this:SetText("")
+		end
+	end):Change(function(szText)
+		if JH.Trim(szText) ~= "" then
+			data.szNote = szText
+			ui:Fetch("Name"):Text(szText)
+		else
+			ui:Fetch("Name"):Text(data.key)
+			data.szNote = nil
+		end
+	end)
 	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(#data.tCircles < 2)
 	:Click(function()
 		table.insert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
