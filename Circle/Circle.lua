@@ -628,7 +628,7 @@ C.OnBreathe = function()
 			end
 			local sha = C.tCache[TARGET.DOODAD][k].Line
 			if data.bDoodadLine and not sha.item then
-				sha.item = sha.item or C.shCircle:AppendItemFromIni(SHADOW, "shadow", k)
+				sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
 				C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
 			elseif not data.bDoodadLine and sha.item then
 				C.shLine:RemoveItem(sha.item)
@@ -708,12 +708,12 @@ C.OpenAddPanel = function(szName, dwType)
 	local ui = GUI(Station.Lookup("Normal/C_NewFace"))
 	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 200, w = 380, h = 30, x = 0, y = 50, align = 1 })
 	ui:Append("Text", { txt = _L["Key:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
-	ui:Append("WndEdit", "Key", { txt = szName, x = 115, y = 83, enable = szName == nil, limit = 20 })
+	ui:Append("WndEdit", "Key", { txt = szName, x = 115, y = 83, enable = szName == nil })
 	:Change(function(szText)
 		ui:Fetch("Name"):Text(szText)
 	end)
 	ui:Append("Text", { txt = _L["Map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
-	ui:Append("WndEdit", "Map", { txt = C_Table_GetMapName(C.GetMapID()), x = 115, y = 113, limit = 20 })
+	ui:Append("WndEdit", "Map", { txt = C_Table_GetMapName(C.GetMapID()), x = 115, y = 113 })
 	
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
 	:Enable(szName == nil):Click(function()
