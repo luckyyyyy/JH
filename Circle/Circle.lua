@@ -255,13 +255,13 @@ C.RemoveData = function(mapid, index, bConfirm)
 	if C.tData[mapid] and C.tData[mapid][index] then
 		local fnAction = function() table.remove(C.tData[mapid], index) end
 		if bConfirm then
-			JH.Confirm(_L("delete [%s]?", C.tData[mapid][index].key), fnAction)
+			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
 		else
 			fnAction()
 		end
-		
 	end
-	FireEvent("CIRCLE_CLEAR_DRAW")
+	FireEvent("CIRCLE_CLEAR")
+	FireEvent("CIRCLE_DRAW_UI")
 end
 
 C.DrawText = function()
@@ -380,7 +380,7 @@ C.DrawTable = function()
 	if C.hTable and C.hTable:IsValid() then
 		local h, tab = C.hTable:Lookup("", "Handle_List"), {}
 		local mapid = C.dwSelMapID or C.GetMapID()
-		if mapid == "ALL" then
+		if mapid == _L["All Circle"] then
 			for k, v in pairs(C.tData) do
 				for kk, vv in ipairs(v) do
 					table.insert(tab, { key = vv.szNote or vv.key, id = k, index = kk, bEnable = vv.bEnable })
@@ -433,7 +433,7 @@ C.DrawTable = function()
 				else
 					C.tData[v.id or mapid][v.index or k].bEnable = true
 				end
-				FireEvent("CIRCLE_CLEAR_DRAW")
+				FireEvent("CIRCLE_CLEAR")
 				FireEvent("CIRCLE_DRAW_UI")
 			end
 			item:Show()
@@ -634,7 +634,7 @@ C.Init = function()
 		{ "DOODAD_ENTER_SCENE", C.OnDoodadEnter },
 		{ "DOODAD_LEAVE_SCENE", C.OnDoodadLeave },
 		{ "LOADING_END", C.CreateData },
-		{ "CIRCLE_CLEAR_DRAW", C.CreateData },
+		{ "CIRCLE_CLEAR", C.CreateData },
 		{ "CIRCLE_RESERT_DRAW", function()
 			CIRCLE_RESERT_DRAW = true
 		end }
@@ -725,7 +725,7 @@ C.OpenAddPanel = function(szName, dwType)
 					C.tData[map.id] = {}
 				end
 				table.insert(C.tData[map.id], data)
-				FireEvent("CIRCLE_CLEAR_DRAW")
+				FireEvent("CIRCLE_CLEAR")
 				FireEvent("CIRCLE_DRAW_UI")
 				ui:Fetch("Btn_Close"):Click()
 			end
@@ -781,13 +781,13 @@ PS.OnPanelActive = function(frame)
 	
 	nX,nY = ui:Append("WndCheckBox", "bBorder", { x = nX + 5, y = nY + 10, checked = Circle.bEnable, txt = _L["Circle Border"] }):Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bBorder = bChecked
-		FireEvent("CIRCLE_CLEAR_DRAW")
+		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	local mapid = C.dwSelMapID or C.GetMapID()
 	ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_Table_GetMapName(mapid) }):Menu(function()
 		local menu = {
 			{ szOption =  _L["All Circle"], fnAction = function()
-				C.dwSelMapID = "ALL"
+				C.dwSelMapID = _L["All Circle"]
 				FireEvent("CIRCLE_DRAW_UI")
 				ui:Fetch("Select"):Text(_L["All Circle"])
 			end },
