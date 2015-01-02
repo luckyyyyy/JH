@@ -52,10 +52,6 @@ local function Confuse(tCode)
 	end
 end
 
-local function GetPlayerID()
-	return JH.MD5(UI_GetClientPlayerID() .. "Circle")
-end
-
 -- 获取数据路径
 local function GetDataPath()
 	return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
@@ -118,8 +114,6 @@ C.SaveFile = function(szFullPath, bMsg)
 	if not bMsg then
 		if IsRemotePlayer(UI_GetClientPlayerID()) then
 			return
-		else
-			data.code = GetPlayerID()
 		end
 	end
 	local code = Confuse(data)
@@ -154,7 +148,7 @@ end
 C.LoadCircleData = function(tData, bMsg)
 	local data = {}
 	if not bMsg then
-		if IsRemotePlayer(UI_GetClientPlayerID()) or tData.code ~= GetPlayerID() then
+		if IsRemotePlayer(UI_GetClientPlayerID()) then
 			return JH.RegisterEvent("LOADING_END.LoadCircleData", C.LoadFile)
 		end
 		JH.UnRegisterEvent("LOADING_END.LoadCircleData")
@@ -181,7 +175,7 @@ C.LoadCircleData = function(tData, bMsg)
 	FireEvent("CIRCLE_CLEAR")
 	FireEvent("CIRCLE_DRAW_UI")
 	if bMsg then
-		JH.Sysmsg2(_L["Circle loaded."])
+		JH.Sysmsg(_L["Circle loaded."])
 	end
 end
 
@@ -758,6 +752,8 @@ C.OpenAddPanel = function(szName, dwType)
 				for k, v in ipairs(C.tData[map.id]) do
 					if v.key == key and v.dwType == dwType then
 						JH.Confirm(_L["Data already exists, whether editor?"], function()
+							C.OpenDataPanel(C.tData[map.id][k], map.id, k)
+							ui:Fetch("Btn_Close"):Click()
 						end)
 						return
 					end
@@ -813,6 +809,7 @@ C.OpenDataPanel = function(data, id, index)
 			nVal = tonumber(nVal) or 30
 			if nVal < 2 or nVal > 360 then
 				nVal = 30
+				JH.Sysmsg2(_L["nVal Limit 2, "] .. 360)
 			end
 			v.nAngle = nVal
 			FireEvent("CIRCLE_RESERT_DRAW")
@@ -823,6 +820,7 @@ C.OpenDataPanel = function(data, id, index)
 			nVal = tonumber(nVal) or 1
 			if nVal < 0 or nVal > CIRCLE_MAX_RADIUS then
 				nVal = 1
+				JH.Sysmsg2(_L["nVal Limit 0, "] .. CIRCLE_MAX_RADIUS)
 			end
 			v.nRadius = nVal
 			FireEvent("CIRCLE_RESERT_DRAW")
@@ -923,8 +921,6 @@ C.OpenDataPanel = function(data, id, index)
 	
 end
 
--- bTargetName
-
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
@@ -1021,7 +1017,7 @@ end })
 -- public
 local ui = {
 	OpenAddPanel = C.OpenAddPanel,
-	LoadFile = C.LoadFile,
+	LoadCircleData = C.LoadCircleData,
 	SaveFile = C.SaveFile,
 	GetData = C.GetData,
 }

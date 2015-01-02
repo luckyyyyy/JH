@@ -519,7 +519,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 		else
 			if RaidGrid_EventScrutiny.bOutputBossFaceData then
 				if data.Circle then
-					Circle.LoadCircleData(data.Circle, true)
+					Circle.LoadCircleData(data, true)
 				end
 			end
 			if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then
@@ -4955,7 +4955,7 @@ function RaidGrid_EventCache.PopRBOptions(handle)
 			bDevide = true
 		},
 		{
-			szOption = _L["Add Face"], rgb = { 255, 255, 0 } ,bCheck = false, bChecked = false, bDisable = handle.tRecord.szType ~= "Npc" or type(Circle) == "nil" , fnAction = function(UserData, bCheck)
+			szOption = "¡¡¡ï" .. _L["Add Face"], rgb = { 255, 255, 0 } ,bCheck = false, bChecked = false, bDisable = handle.tRecord.szType ~= "Npc" or type(Circle) == "nil" , fnAction = function(UserData, bCheck)
 				if IsAltKeyDown() then
 					Circle.OpenAddPanel(handle.tRecord.dwID, TARGET.NPC)
 				else
