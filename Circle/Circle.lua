@@ -1,15 +1,15 @@
 local _L = JH.LoadLangPack
--- é¢å‘æ’ä»¶è°ƒæ•´æ–¹æ¡ˆ
--- 1) æ™®é€šç©å®¶æ ¹æ®å‰¯æœ¬åŠ è½½å¯¹åº”æ•°æ®ï¼Œæ¯ä¸€ä¸ªå‰¯æœ¬ï¼ˆåœ°å›¾ï¼‰ä¸è¶…è¿‡15æ¡æ•°æ®ï¼Œ4å°æ—¶ä»…å…è®¸æ›´æ¢ä¸€æ¬¡æ•°æ®ï¼Œå¦‚ä¸åŠ è½½åˆ™æ²¡æœ‰æ­¤é™åˆ¶ã€‚
--- 2) å…è®¸æ‰‹åŠ¨æ·»åŠ å’Œåˆ é™¤æ•°æ®ï¼Œä½†æ¯ä¸ªï¼ˆåœ°å›¾ï¼‰çš„æ€»æ¡æ•°ä¹Ÿä¸è¶…è¿‡15æ¡ï¼Œå¯ä»¥æ ¹æ®BOSSè°ƒæ•´æ¯ä¸ªBOSS çš„æ•°æ®ã€‚
--- 3) å¯¹äºä¸€ä¸ªåœˆï¼Œé™åˆ¶alphaä¸º50ï¼Œæ ¹æ®åŠå¾„é€æ­¥é™ä½alphaï¼Œå¼€å¯è¾¹æ¡†alphaä¸º140ã€‚
--- 4) ä¸å†æä¾›è§’åº¦ä¸º1çš„ç›®æ ‡çº¿ï¼Œä¸å†æä¾›ç›®æ ‡åå­—ç»˜åˆ¶åŠŸèƒ½ï¼Œä¸å†æä¾›ç›®æ ‡çš„ç›®æ ‡æ³¨è§†æ—¶é—´å€’è®¡æ—¶ã€‚
--- 5) é™¤è‡ªå·±å’Œè‡ªå·±çš„ç›®æ ‡å¤–ï¼Œç¦æ­¢ç»™å…¶ä»–ç©å®¶ç”»é¢å‘åœˆã€‚
--- 6) æ‰€æœ‰çš„è¿½è¸ªçº¿ç»Ÿä¸€ä¸º140 alphaã€‚
--- 7) å‰¯æœ¬å¤–ä¸å—é™åˆ¶ï¼Œä¾‹å¦‚æŠ“å® å’ŒæŠ“é©¬ã€‚
--- 8) é…Œæƒ…å¼€æ”¾éƒ¨åˆ†å‰¯æœ¬çš„æ€»æ¡æ•°ï¼Œä¾‹å¦‚è¡€æˆ˜å¤©ç­–ç­‰ã€‚
--- 9) å»é™¤å…±äº«æ•°æ®çš„åŠŸèƒ½ã€‚
--- ä»¥ä¸Šä¸€åˆ‡ä»…é’ˆå¯¹é¢å‘ï¼Œå›¢ç›‘ä¸å—å½±å“ã€‚
+-- ÃæÏò²å¼şµ÷Õû·½°¸
+-- 1) ÆÕÍ¨Íæ¼Ò¸ù¾İ¸±±¾¼ÓÔØ¶ÔÓ¦Êı¾İ£¬Ã¿Ò»¸ö¸±±¾£¨µØÍ¼£©²»³¬¹ı15ÌõÊı¾İ£¬4Ğ¡Ê±½öÔÊĞí¸ü»»Ò»´ÎÊı¾İ£¬Èç²»¼ÓÔØÔòÃ»ÓĞ´ËÏŞÖÆ¡£
+-- 2) ÔÊĞíÊÖ¶¯Ìí¼ÓºÍÉ¾³ıÊı¾İ£¬µ«Ã¿¸ö£¨µØÍ¼£©µÄ×ÜÌõÊıÒ²²»³¬¹ı15Ìõ£¬¿ÉÒÔ¸ù¾İBOSSµ÷ÕûÃ¿¸öBOSS µÄÊı¾İ¡£
+-- 3) ¶ÔÓÚÒ»¸öÈ¦£¬ÏŞÖÆalphaÎª50£¬¸ù¾İ°ë¾¶Öğ²½½µµÍalpha£¬¿ªÆô±ß¿òalphaÎª140¡£
+-- 4) ²»ÔÙÌá¹©½Ç¶ÈÎª1µÄÄ¿±êÏß£¬²»ÔÙÌá¹©Ä¿±êÃû×Ö»æÖÆ¹¦ÄÜ£¬²»ÔÙÌá¹©Ä¿±êµÄÄ¿±ê×¢ÊÓÊ±¼äµ¹¼ÆÊ±¡£
+-- 5) ³ı×Ô¼ººÍ×Ô¼ºµÄÄ¿±êÍâ£¬½ûÖ¹¸øÆäËûÍæ¼Ò»­ÃæÏòÈ¦¡£
+-- 6) ËùÓĞµÄ×·×ÙÏßÍ³Ò»Îª140 alpha¡£
+-- 7) ¸±±¾Íâ²»ÊÜÏŞÖÆ£¬ÀıÈç×¥³èºÍ×¥Âí¡£
+-- 8) ×ÃÇé¿ª·Å²¿·Ö¸±±¾µÄ×ÜÌõÊı£¬ÀıÈçÑªÕ½Ìì²ßµÈ¡£
+-- 9) È¥³ı¹²ÏíÊı¾İµÄ¹¦ÄÜ¡£
+-- ÒÔÉÏÒ»ÇĞ½öÕë¶ÔÃæÏò£¬ÍÅ¼à²»ÊÜÓ°Ïì¡£
 
 
 -- these global functions are accessed all the time by the event handler
@@ -22,26 +22,26 @@ local tinsert = table.insert
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 
--- å¸¸é‡ å‰¯æœ¬å¤–å¤§éƒ¨åˆ†ä¸å—æ­¤é™åˆ¶
+-- ³£Á¿ ¸±±¾Íâ´ó²¿·Ö²»ÊÜ´ËÏŞÖÆ
 local SHADOW = JH.GetAddonInfo().szShadowIni
-local CIRCLE_MAX_COUNT = 15 -- é»˜è®¤å‰¯æœ¬æœ€å¤§æ•°æ®é‡
-local CIRCLE_CHANGE_TIME = 0 --7200 -- æš‚ä¸é™åˆ¶ åŠ è½½æ•°æ®å å†æ¬¡åŠ è½½æ•°æ®çš„æ—¶é—´ 2å°æ—¶ é¿å…ä¸€ä¸ªBOSSä¸€å¥—æ•°æ®
-local CIRCLE_CIRCLE_ALPHA = 50 -- æœ€å¤§çš„é€æ˜åº¦ æ ¹æ®åŠå¾„é€æ­¥é™ä½ 
-local CIRCLE_MAX_RADIUS = 30 -- æœ€å¤§çš„åŠå¾„
-local CIRCLE_LINE_ALPHA = 150 -- çº¿å’Œè¾¹æ¡†æœ€å¤§é€æ˜åº¦
-local CIRCLE_RESERT_DRAW = false -- å…¨å±€é‡ç»˜
+local CIRCLE_MAX_COUNT = 15 -- Ä¬ÈÏ¸±±¾×î´óÊı¾İÁ¿
+local CIRCLE_CHANGE_TIME = 0 --7200 -- Ôİ²»ÏŞÖÆ ¼ÓÔØÊı¾İºó ÔÙ´Î¼ÓÔØÊı¾İµÄÊ±¼ä 2Ğ¡Ê± ±ÜÃâÒ»¸öBOSSÒ»Ì×Êı¾İ
+local CIRCLE_CIRCLE_ALPHA = 50 -- ×î´óµÄÍ¸Ã÷¶È ¸ù¾İ°ë¾¶Öğ²½½µµÍ 
+local CIRCLE_MAX_RADIUS = 30 -- ×î´óµÄ°ë¾¶
+local CIRCLE_LINE_ALPHA = 150 -- ÏßºÍ±ß¿ò×î´óÍ¸Ã÷¶È
+local CIRCLE_RESERT_DRAW = false -- È«¾ÖÖØ»æ
 local CIRCLE_PLAYER_NAME = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
-local CIRCLE_MAP_COUNT = { -- éƒ¨åˆ†å‰¯æœ¬åœ°å›¾æ•°é‡è¡¥å¿
-	[-1] = 50, -- å…¨åœ°å›¾ç”Ÿæ•ˆçš„ä¸œè¥¿
-	[165] = 30, -- è‹±é›„å¤§æ˜å®«
-	[164] = 30, -- å¤§æ˜å®«
-	[160] = 20, -- å†›æ¢°åº“
-	[171] = 20, -- è‹±é›„å†›æ¢°åº“
-	[175] = 35, -- è¡€æˆ˜å¤©ç­–
-	[176] = 35, -- è‹±é›„è¡€æˆ˜å¤©ç­–
+local CIRCLE_MAP_COUNT = { -- ²¿·Ö¸±±¾µØÍ¼ÊıÁ¿²¹³¥
+	[-1] = 100, -- È«µØÍ¼ÉúĞ§µÄ¶«Î÷
+	[165] = 30, -- Ó¢ĞÛ´óÃ÷¹¬
+	[164] = 30, -- ´óÃ÷¹¬
+	[160] = 20, -- ¾üĞµ¿â
+	[171] = 20, -- Ó¢ĞÛ¾üĞµ¿â
+	[175] = 35, -- ÑªÕ½Ìì²ß
+	[176] = 35, -- Ó¢ĞÛÑªÕ½Ìì²ß
 }
--- é™¤ä¸Šè¿°å¤– å…¶ä»–ä¸€å¾‹ = 15
+-- ³ıÉÏÊöÍâ ÆäËûÒ»ÂÉ = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
 local _GetMapName = Table_GetMapName
@@ -69,7 +69,7 @@ local function GetPlayerID()
 	return JH.MD5(UI_GetClientPlayerID() .. "Circle")
 end
 
--- è·å–æ•°æ®è·¯å¾„
+-- »ñÈ¡Êı¾İÂ·¾¶
 local function GetDataPath()
 	return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
 end
@@ -77,9 +77,9 @@ end
 Circle = {
 	bEnable = true,
 	nLimit = 0,
-	bTeamChat = false, -- æ§åˆ¶å…¨å±€çš„å›¢é˜Ÿé¢‘é“
-	bWhisperChat = false, -- æ§åˆ¶å…¨å±€çš„å¯†èŠé¢‘é“
-	bBorder = true, -- å…¨å±€çš„è¾¹æ¡†æ¨¡å¼ è¾¹æ¡†ä¼šé€ æˆå¡
+	bTeamChat = false, -- ¿ØÖÆÈ«¾ÖµÄÍÅ¶ÓÆµµÀ
+	bWhisperChat = false, -- ¿ØÖÆÈ«¾ÖµÄÃÜÁÄÆµµÀ
+	bBorder = true, -- È«¾ÖµÄ±ß¿òÄ£Ê½ ±ß¿ò»áÔì³É¿¨
 }
 JH.RegisterCustomData("Circle")
 local Circle = Circle
@@ -142,7 +142,7 @@ C.SaveFile = function(szFullPath, bMsg)
 	end
 end
 
--- åŠ è½½æœ¬åœ°æ–‡ä»¶ä½¿ç”¨ bMsgç›¸å½“äºä¸éœ€è¦æ•ˆéªŒ
+-- ¼ÓÔØ±¾µØÎÄ¼şÊ¹ÓÃ bMsgÏàµ±ÓÚ²»ĞèÒªĞ§Ñé
 C.LoadFile = function(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
@@ -162,8 +162,8 @@ C.LoadFile = function(szFullPath, bMsg)
 	end
 end
 
--- å¯¼å…¥æ•°æ®åŸºæœ¬ä½¿ç”¨åŒä¸€ä¸ªå‡½æ•°
--- ä¸¥æ ¼åˆ¤æ–­æ•°é‡ ä¼ table
+-- µ¼ÈëÊı¾İ»ù±¾Ê¹ÓÃÍ¬Ò»¸öº¯Êı
+-- ÑÏ¸ñÅĞ¶ÏÊıÁ¿ ´«table
 C.LoadCircleData = function(tData, bMsg)
 	local data = {}
 	if not bMsg then
@@ -216,7 +216,7 @@ C.Release = function()
 		[TARGET.DOODAD] = {},
 	}
 	C.tTarget = {} -- clear
-	-- å–å¾—å®¹å™¨
+	-- È¡µÃÈİÆ÷
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
 	C.shLine = JH.GetShadowHandle("Handle_Shadow_Line")
 	C.shName = JH.GetShadowHandle("Handle_Shadow_Name"):AppendItemFromIni(SHADOW, "shadow", "Circle_NAME")
@@ -224,7 +224,7 @@ C.Release = function()
 	C.shCircle:Clear()
 	C.shLine:Clear()
 end
--- æ„å»ºdata table
+-- ¹¹½¨data table
 C.CreateData = function()
 	pcall(C.Release)
 	local mapid = C.GetMapID()
@@ -232,7 +232,7 @@ C.CreateData = function()
 		C.tList[v.dwType][v.key] = { id = mapid, index = k }
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
-	-- å…¨åœ°å›¾æ•°æ®
+	-- È«µØÍ¼Êı¾İ
 	if C.tData[-1] and C.tMapList[C_Table_GetMapName(mapid)] and not C.tMapList[C_Table_GetMapName(mapid)].bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
@@ -292,7 +292,7 @@ C.DrawLine = function(tar, ttar, sha, col, dwType)
 		sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA)
 	elseif dwType == TARGET.NPC then
 		sha:AppendCharacterID(tar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
-	elseif dwType == "Point" then -- å¯èƒ½éœ€è¦ç”¨åˆ°
+	elseif dwType == "Point" then -- ¿ÉÄÜĞèÒªÓÃµ½
 		sha:AppendTriangleFan3DPoint(tar.nX, tar.nY, tar.nZ, r, g, b, CIRCLE_LINE_ALPHA)
 	end
 	sha:AppendCharacterID(ttar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
@@ -381,7 +381,7 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	until dwMaxRad <= dwCurRad
 end
 
--- ç»˜åˆ¶è®¾ç½®UIè¡¨æ ¼
+-- »æÖÆÉèÖÃUI±í¸ñ
 C.DrawTable = function()
 	if C.hTable and C.hTable:IsValid() then
 		local h, tab = C.hTable:Lookup("", "Handle_List"), {}
@@ -444,7 +444,9 @@ C.DrawTable = function()
 					FireEvent("CIRCLE_CLEAR")
 					FireEvent("CIRCLE_DRAW_UI")
 				end
-				item.OnItemLButtonClick = function() end
+				item.OnItemLButtonClick = function()
+					C.OpenDataPanel(C.tData[v.id or mapid][v.index or k])
+				end
 				item.OnItemRButtonClick = function()
 					local szNote = v.szNote or g_tStrings.STR_NONE
 					local menu = {
@@ -511,7 +513,7 @@ C.OnDoodadLeave = function()
 end
 
 C.OnBreathe = function()
-	-- NPCé¢å‘ç»˜åˆ¶
+	-- NPCÃæÏò»æÖÆ
 	local me = GetClientPlayer()
 	if not me then return end
 	for k, v in pairs(C.tScrutiny[TARGET.NPC]) do
@@ -530,7 +532,7 @@ C.OnBreathe = function()
 					if not sha[kk] then
 						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 					end
-					if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+					if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 						sha[kk].nFaceDirection = KGNpc.nFaceDirection
 						C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 					end
@@ -539,7 +541,7 @@ C.OnBreathe = function()
 						if not sha[key] then
 							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 						end
-						if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+						if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 							sha[key].nFaceDirection = KGNpc.nFaceDirection
 							C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
@@ -554,13 +556,18 @@ C.OnBreathe = function()
 				local dwType, dwID = KGNpc.GetTarget()
 				local tar = JH.GetTarget(dwType, dwID)
 				if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and not sha.item and sha.dwID ~= dwID and tar then
-					sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-					sha.dwID = dwID
-					local col = { 255, 255, 0 }
-					if dwID == me.dwID then
-						col = { 255, 0, 128 }
+					if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
+						sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
+						sha.dwID = dwID
+						local col = { 255, 255, 0 }
+						if dwID == me.dwID then
+							col = { 255, 0, 128 }
+						end
+						C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
+					elseif sha.item then
+						C.shLine:RemoveItem(sha.item)
+						C.tCache[TARGET.NPC][k].Line = {}
 					end
-					C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
 				elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
 					C.shLine:RemoveItem(sha.item)
 					C.tCache[TARGET.NPC][k].Line = {}
@@ -576,7 +583,7 @@ C.OnBreathe = function()
 					local szName = tar.szName
 					C.tTarget[KGNpc.dwID] = dwID
 					if data.bScreenHead then
-						FireEvent("JH_SCREENHEAD", target.dwID, { txt = _L("Staring %s", szName)})
+						FireEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", szName)})
 					end
 					if me.IsInRaid() then
 						if Circle.bWhisperChat and data.bWhisperChat then
@@ -586,7 +593,7 @@ C.OnBreathe = function()
 							JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, szName))
 						end
 					end
-					-- RaidGrid_RedAlarmè¿™ä¸ªè¿˜æ²¡é‡æ„ å…ˆè¿™æ · 
+					-- RaidGrid_RedAlarmÕâ¸ö»¹Ã»ÖØ¹¹ ÏÈÕâÑù 
 					if data.bFlash and RaidGrid_RedAlarm then
 						if me.dwID == dwID then
 							RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at you", data.szNote or data.key), true, true, 255, 0, 0)
@@ -598,7 +605,7 @@ C.OnBreathe = function()
 			end
 		end
 	end
-	-- DOODADé¢å‘ç»˜åˆ¶
+	-- DOODADÃæÏò»æÖÆ
 	for k, v in pairs(C.tScrutiny[TARGET.DOODAD]) do
 		local data = v()
 		if data.bEnable then
@@ -615,7 +622,7 @@ C.OnBreathe = function()
 					if not sha[kk] then
 						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 					end
-					if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+					if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 						sha[kk].nFaceDirection = KGDoodad.nFaceDirection
 						C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 					end
@@ -624,7 +631,7 @@ C.OnBreathe = function()
 						if not sha[key] then
 							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 						end
-						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 							sha[key].nFaceDirection = KGDoodad.nFaceDirection
 							C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
@@ -670,7 +677,7 @@ C.UnInit = function()
 	Circle.bEnable = false
 end
 
--- æ³¨å†Œå¤´åƒå³é”®èœå•
+-- ×¢²áÍ·ÏñÓÒ¼ü²Ëµ¥
 Target_AppendAddonMenu({function(dwID, dwType)
 	if dwType == TARGET.NPC then
 		local p = GetNpc(dwID)
@@ -686,6 +693,7 @@ Target_AppendAddonMenu({function(dwID, dwType)
 					C.RemoveData(data.id, data.index, not IsCtrlKeyDown())
 				end,
 				fnAction = function()
+					C.OpenDataPanel(C.tData[data.id][data.index])
 				end 
 			}}
 		else
@@ -747,6 +755,7 @@ C.OpenAddPanel = function(szName, dwType)
 					C.tData[map.id] = {}
 				end
 				table.insert(C.tData[map.id], data)
+				C.OpenDataPanel(C.tData[map.id][#C.tData[map.id]])
 				FireEvent("CIRCLE_CLEAR")
 				FireEvent("CIRCLE_DRAW_UI")
 				ui:Fetch("Btn_Close"):Click()
@@ -778,6 +787,113 @@ C.OpenAddPanel = function(szName, dwType)
 		end
 	end)
 end
+
+C.OpenDataPanel = function(data)
+	if Station.Lookup("Normal/C_Data") then
+		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
+	end
+	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true }):RegisterClose()
+	-- update ui = wnd
+	local ui = GUI(Station.Lookup("Normal/C_Data"))
+	local nX, nY = ui:Append("Text", "Name", { txt = data.szNote or data.key, font = 28, w = 380, h = 30, x = 0, y = 35, align = 1 }):Pos_()
+	ui:Append("WndRadioBox", { x = 100, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC })
+	:Click(function()
+		data.dwType = TARGET.NPC
+		C.OpenDataPanel(data)
+		FireEvent("CIRCLE_CLEAR")
+	end)
+	local nX, nY = ui:Append("WndRadioBox", { x = 180, y = nY + 5, txt = _L["DOODAD"], group = "type", checked = data.dwType == TARGET.DOODAD })
+	:Click(function()
+		data.dwType = TARGET.DOODAD
+		C.OpenDataPanel(data)
+		FireEvent("CIRCLE_CLEAR")
+	end):Pos_()
+	for k, v in ipairs(data.tCircles) do
+		nX = ui:Append("WndCheckBox", { x = 20, y = nY, txt = _L("Circle %d", k), font = 27, checked = v.bEnable })
+		:Click(function(bChecked)
+			v.bEnable = bChecked
+			FireEvent("CIRCLE_CLEAR")
+		end):Pos_()
+		nX = ui:Append("WndEdit", { x = nX + 2, y = nY - 18 + 20, w = 35, h = 25 })
+		:Text(v.nAngle):Change(function(nVal)
+			nVal = tonumber(nVal) or 30
+			if nVal < 2 or nVal > 360 then
+				nVal = 30
+			end
+			v.nAngle = nVal
+			FireEvent("CIRCLE_RESERT_DRAW")
+		end):Pos_()
+		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" degree"] }):Pos_()
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20, w = 35, h = 25 })
+		:Text(v.nRadius):Change(function(nVal)
+			nVal = tonumber(nVal) or 1
+			if nVal < 0 or nVal > CIRCLE_MAX_RADIUS then
+				nVal = 1
+			end
+			v.nRadius = nVal
+			FireEvent("CIRCLE_RESERT_DRAW")
+		end):Pos_()
+		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" feet"] }):Pos_()
+		nX = ui:Append("Shadow", "Color_" .. k, { x = nX + 5, y = nY - 18 + 20, color = v.col, w = 23, h = 23 })
+		:Click(function()
+			OpenColorTablePanel(function(r, g, b)
+				ui:Fetch("Color_" .. k):Color(r, g, b)
+				v.col = { r, g, b }
+				FireEvent("CIRCLE_RESERT_DRAW")
+			end)
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 2, y = nY - 19 + 20, txt = _L["Draw Border"], checked = v.bBorder })
+		:Click(function(bChecked)
+			v.bBorder = bChecked
+			FireEvent("CIRCLE_CLEAR")
+		end):Pos_()
+	end
+	nX, nY = ui:Append("WndCheckBox", { x = 20, y = nY + 10, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
+	:Enable(data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bTarget = bChecked
+		ui:Fetch("bTeamChat"):Enable(bChecked)
+		ui:Fetch("bWhisperChat"):Enable(bChecked)
+		ui:Fetch("bScreenHead"):Enable(bChecked)
+		ui:Fetch("bFlash"):Enable(bChecked)
+		ui:Fetch("bDrawLine"):Enable(bChecked)
+		ui:Fetch("bDrawLineSelf"):Enable(bChecked)
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 30, y = nY, checked = data.bTeamChat, txt = _L["RaidAlert"] })
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bTeamChat = bChecked
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY, checked = data.bWhisperChat, txt = _L["WhisperAlert"] })
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bWhisperChat = bChecked
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", "bScreenHead", { x = nX + 5, y = nY, checked = data.bScreenHead, txt = _L["HeadAlert"] })
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bScreenHead = bChecked
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bFlash", { x = 30, y = nY, checked = data.bFlash, txt = _L["CenterAlarm"] })
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bFlash = bChecked
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bDrawLine", { x = nX + 5, y = nY, checked = data.bDrawLine, txt = _L["Draw Line"] })
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bDrawLine = bChecked
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bDrawLineSelf = bChecked
+	end):Pos_()
+	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(#data.tCircles < 2)
+	:Click(function()
+		table.insert(data.tCircles, CIRCLE_DEFAULT_DATA)
+		C.OpenDataPanel(data)
+	end)
+	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
+	:Click(function()
+	end)
+	
+end
+
+-- bTargetName
 
 local PS = {}
 PS.OnPanelActive = function(frame)
@@ -864,7 +980,7 @@ JH.RegisterEvent("GAME_EXIT", C.SaveFile)
 JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
 JH.RegisterEvent("FIRST_LOADING_END", function()
 	local me = GetClientPlayer()
-	CIRCLE_PLAYER_NAME = me.szName -- é˜²æ­¢æµ‹è¯•reloadæ¯äº†æ‰€æœ‰æ•°æ®
+	CIRCLE_PLAYER_NAME = me.szName -- ·ÀÖ¹²âÊÔreload»ÙÁËËùÓĞÊı¾İ
 	C.LoadFile()
 end)
 JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
