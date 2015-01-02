@@ -253,15 +253,17 @@ end
 
 C.RemoveData = function(mapid, index, bConfirm)
 	if C.tData[mapid] and C.tData[mapid][index] then
-		local fnAction = function() table.remove(C.tData[mapid], index) end
+		local fnAction = function() 
+			table.remove(C.tData[mapid], index)
+			FireEvent("CIRCLE_CLEAR")
+			FireEvent("CIRCLE_DRAW_UI")
+		end
 		if bConfirm then
 			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
 		else
 			fnAction()
 		end
 	end
-	FireEvent("CIRCLE_CLEAR")
-	FireEvent("CIRCLE_DRAW_UI")
 end
 
 C.DrawText = function()
@@ -391,52 +393,68 @@ C.DrawTable = function()
 		end
 		h:Clear()
 		for k, v in ipairs(tab) do
-			local item = h:AppendItemFromIni(C.szIniFile, "Handle_Item", k)
-			if k % 2 == 0 then
-				item:Lookup("Image_Line"):Hide()
-			end
-			item:Lookup("Text_I_Name"):SetText(v.szNote or v.key)
-			local szMapName = C_Table_GetMapName(mapid)
-			if v.id then
-				szMapName = C_Table_GetMapName(v.id)
-			end
-			item:Lookup("Text_I_Map"):SetText(szMapName)
-			item.OnItemMouseEnter = function()
-				this:Lookup("Image_Light"):Show()
-			end
-			item.OnItemMouseLeave = function()
-				this:Lookup("Image_Light"):Hide()
-			end
-			if not v.bEnable then
-				item:Lookup("Image_Btn"):SetFrame(5)
-			end
-			item:Lookup("Image_Btn").OnItemMouseEnter = function()
-				local nFrame = this:GetFrame()
-				if nFrame == 6 then
-					this:SetFrame(7)
-				else
-					this:SetFrame(3)
+			local szName = v.szNote or v.key
+			if not C.szSearch or C.szSearch and tostring(szName):match(C.szSearch) or tostring(v.key):match(C.szSearch) then
+				local item = h:AppendItemFromIni(C.szIniFile, "Handle_Item", k)
+				if k % 2 == 0 then
+					item:Lookup("Image_Line"):Hide()
 				end
-			end
-			item:Lookup("Image_Btn").OnItemMouseLeave = function()
-				local nFrame = this:GetFrame()
-				if nFrame == 7 then
-					this:SetFrame(6)
-				else
-					this:SetFrame(5)
+				item:Lookup("Text_I_Name"):SetText(v.szNote or v.key)
+				local szMapName = C_Table_GetMapName(mapid)
+				if v.id then
+					szMapName = C_Table_GetMapName(v.id)
 				end
-			end
-			item:Lookup("Image_Btn").OnItemLButtonClick = function()
-				local nFrame = this:GetFrame()
-				if nFrame == 7 then
-					C.tData[v.id or mapid][v.index or k].bEnable = false
-				else
-					C.tData[v.id or mapid][v.index or k].bEnable = true
+				item:Lookup("Text_I_Map"):SetText(szMapName)
+				item.OnItemMouseEnter = function()
+					this:Lookup("Image_Light"):Show()
 				end
-				FireEvent("CIRCLE_CLEAR")
-				FireEvent("CIRCLE_DRAW_UI")
+				item.OnItemMouseLeave = function()
+					this:Lookup("Image_Light"):Hide()
+				end
+				if not v.bEnable then
+					item:Lookup("Image_Btn"):SetFrame(5)
+				end
+				item:Lookup("Image_Btn").OnItemMouseEnter = function()
+					local nFrame = this:GetFrame()
+					if nFrame == 6 then
+						this:SetFrame(7)
+					else
+						this:SetFrame(3)
+					end
+				end
+				item:Lookup("Image_Btn").OnItemMouseLeave = function()
+					local nFrame = this:GetFrame()
+					if nFrame == 7 then
+						this:SetFrame(6)
+					else
+						this:SetFrame(5)
+					end
+				end
+				item:Lookup("Image_Btn").OnItemLButtonClick = function()
+					local nFrame = this:GetFrame()
+					if nFrame == 7 then
+						C.tData[v.id or mapid][v.index or k].bEnable = false
+					else
+						C.tData[v.id or mapid][v.index or k].bEnable = true
+					end
+					FireEvent("CIRCLE_CLEAR")
+					FireEvent("CIRCLE_DRAW_UI")
+				end
+				item.OnItemLButtonClick = function() end
+				item.OnItemRButtonClick = function()
+					local menu = {
+						{ szOption = "key:" .. v.key, bDisable = true },
+						{ szOption = "note:" .. v.szNote, bDisable = true },
+						{ szOption = "type:" .. v.dwType, bDisable = true },
+						{ bDevide = true },
+						{ szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
+							C.RemoveData(v.id or mapid, v.index or k, true)
+						end }
+					}
+					PopupMenu(menu)
+				end
+				item:Show()
 			end
-			item:Show()
 		end
 		h:FormatAllItemPos()
 	end
@@ -784,7 +802,7 @@ PS.OnPanelActive = function(frame)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	local mapid = C.dwSelMapID or C.GetMapID()
-	ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_Table_GetMapName(mapid) }):Menu(function()
+	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_Table_GetMapName(mapid) }):Menu(function()
 		local menu = {
 			{ szOption =  _L["All Circle"], fnAction = function()
 				C.dwSelMapID = _L["All Circle"]
@@ -809,14 +827,25 @@ PS.OnPanelActive = function(frame)
 			table.insert(menu, { szOption = _L["None Data"], bDisable = true })
 		end
 		return menu
-	end)
+	end):Pos_()
 	
+	nX = ui:Append("WndEdit", "Search", { x = nX + 5, y = nY + 2, txt = "Search..." }):Focus(function()
+		if ui:Fetch("Search"):Text() == "Search..." then
+			ui:Fetch("Search"):Text("")
+		end
+	end):Change(function(szText)
+		if JH.Trim(szText) == "" then szText = nil end
+		C.szSearch = szText
+		FireEvent("CIRCLE_DRAW_UI")
+	end):Pos_()
+	ui:Append("WndButton2", { x = nX + 5, y = nY + 2, txt = _L["New Face"] }):Click(C.OpenAddPanel)
 	local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
 	local win = fx:Lookup("WndScroll")
 	win:ChangeRelation(frame, true, true)
 	Wnd.CloseWindow(fx)
 	win:SetRelPos(0, 80)
 	C.hTable = win
+	C.szSearch = nil
 	FireEvent("CIRCLE_DRAW_UI")
 end
 
