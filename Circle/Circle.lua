@@ -30,6 +30,7 @@ local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 150 -- 线和边框最大透明度
 local CIRCLE_RESERT_DRAW = false -- 全局重绘
+local CIRCLE_PLAYER_NAME = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 255, 128, 0 }, bBorder = true }
 local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[-1] = 50, -- 全地图生效的东西
@@ -70,11 +71,7 @@ end
 
 -- 获取数据路径
 local function GetDataPath()
-	local me, szName = GetClientPlayer(), "NONE"
-	if me then
-		szName = me.szName
-	end
-	return JH.GetAddonInfo().szDataPath .. "Circle/" .. szName .. "/Circle.jx3dat"
+	return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
 end
 
 Circle = {
@@ -442,10 +439,10 @@ C.DrawTable = function()
 				end
 				item.OnItemLButtonClick = function() end
 				item.OnItemRButtonClick = function()
+					local szNote = v.szNote or g_tStrings.STR_NONE
 					local menu = {
-						{ szOption = "key:" .. v.key, bDisable = true },
-						{ szOption = "note:" .. v.szNote, bDisable = true },
-						{ szOption = "type:" .. v.dwType, bDisable = true },
+						{ szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. v.key, bDisable = true },
+						{ szOption = g_tStrings.CYCLOPAEDIA_NOTE_TEXT .. szNote, bDisable = true },
 						{ bDevide = true },
 						{ szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
 							C.RemoveData(v.id or mapid, v.index or k, true)
@@ -708,7 +705,7 @@ C.OpenAddPanel = function(szName, dwType)
 	local ui = GUI(Station.Lookup("Normal/C_NewFace"))
 	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 200, w = 380, h = 30, x = 0, y = 50, align = 1 })
 	ui:Append("Text", { txt = _L["Key:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
-	ui:Append("WndEdit", "Key", { txt = szName or _L["Please enter key"], x = 115, y = 83, enable = szName == nil, limit = 20 })
+	ui:Append("WndEdit", "Key", { txt = szName, x = 115, y = 83, enable = szName == nil, limit = 20 })
 	:Change(function(szText)
 		ui:Fetch("Name"):Text(szText)
 	end)
@@ -729,7 +726,7 @@ C.OpenAddPanel = function(szName, dwType)
 		local map = C.tMapList[ui:Fetch("Map"):Text()]
 		local key = tonumber(ui:Fetch("Key"):Text()) or ui:Fetch("Key"):Text()
 		if JH.Trim(key) == "" then
-			return 
+			return  JH.Alert(_L["Please enter NPC name or Template ID."])
 		end
 		if map then
 			local fnAction = function()
@@ -829,8 +826,8 @@ PS.OnPanelActive = function(frame)
 		return menu
 	end):Pos_()
 	
-	nX = ui:Append("WndEdit", "Search", { x = nX + 5, y = nY + 2, txt = "Search..." }):Focus(function()
-		if ui:Fetch("Search"):Text() == "Search..." then
+	nX = ui:Append("WndEdit", "Search", { x = nX + 5, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
+		if ui:Fetch("Search"):Text() == g_tStrings.SEARCH then
 			ui:Fetch("Search"):Text("")
 		end
 	end):Change(function(szText)
@@ -858,7 +855,11 @@ end)
 
 JH.RegisterEvent("GAME_EXIT", C.SaveFile)
 JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
-JH.RegisterEvent("FIRST_LOADING_END", C.LoadFile)
+JH.RegisterEvent("FIRST_LOADING_END", function()
+	local me = GetClientPlayer()
+	CIRCLE_PLAYER_NAME = me.szName -- 防止测试reload毁了所有数据
+	C.LoadFile()
+end)
 JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
 
 -- public
