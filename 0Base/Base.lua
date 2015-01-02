@@ -2617,6 +2617,7 @@ GUI.CreateFrame = function(szName, tArg)
 	end
 	tArg = tArg or {}
 	local ui = _GUI.Frm.new(szName, tArg.empty == true)
+	Station.SetFocusWindow(ui.self)
 	-- apply init setting
 	if tArg.w and tArg.h then ui:Size(tArg.w, tArg.h) end
 	if tArg.x and tArg.y then ui:Pos(tArg.x, tArg.y) end
