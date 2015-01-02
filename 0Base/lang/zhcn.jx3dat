@@ -473,6 +473,7 @@ data = {
 	["The map does not exist"] = "这个地图不存在",
 	["Please enter key"] = "输入名字",
 	["Add Face"] = "添加面向",
+	["New Face"] = "新建面向",
 	["Edit Face"] = "编辑面向",
 	["Save success.\n Path:%s"] = "保存成功\n路径：%s",
 	["content errors."] = "内容错误",
