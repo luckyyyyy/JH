@@ -20,7 +20,8 @@ local CIRCLE_RESERT_DRAW = false -- 全局重绘
 local CIRCLE_PLAYER_NAME = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
-	[-1] = 100, -- 全地图生效的东西
+	[-1] = 100, -- 全地图生效的东西 副本除外
+	[-2] = 3,
 	[165] = 30, -- 英雄大明宫
 	[164] = 30, -- 大明宫
 	[160] = 20, -- 军械库
@@ -35,6 +36,9 @@ local _GetMapName = Table_GetMapName
 local function C_Table_GetMapName(mapid)
 	if mapid == -1 then
 		return _L["All Map"]
+	end
+	if mapid == -2 then
+		return _L["Global Map"]
 	end
 	local szMap = _GetMapName(mapid)
 	if szMap == "" then
@@ -69,7 +73,7 @@ local Circle = Circle
 local C = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
 	tData = {
-		[-1] = {
+		[-2] = {
 			{ key = 4982, bEnable = true, szNote = "this is god", dwType = TARGET.NPC, tCircles = {
 					{ bEnable = true, nAngle = 360, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 				}
@@ -91,6 +95,7 @@ local C = {
 		[TARGET.DOODAD] = {},
 	},
 	tMapList  = {
+		[_L["Global Map"]] = { id = -2, bDungeon = true },
 		[_L["All Map"]] = { id = -1, bDungeon = true },
 	},
 }
@@ -226,6 +231,13 @@ C.CreateData = function()
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
+		end
+	end
+	-- 全地图数据
+	if C.tData[-2] and C.tMapList[C_Table_GetMapName(mapid)] then
+		for k, v in ipairs(C.tData[-2]) do
+			C.tList[v.dwType][v.key] = { id = -2, index = k }
+			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-2][k] end })
 		end
 	end
 	for k, v in pairs(JH.GetAllNpc()) do
@@ -788,25 +800,25 @@ C.OpenDataPanel = function(data, id, index)
 			v.bEnable = bChecked
 			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 2, y = nY - 18 + 20, w = 35, h = 25 })
+		nX = ui:Append("WndEdit", { x = nX + 2, y = nY - 18 + 20, w = 35, h = 25, limit = 3 })
 		:Enable(k ~= 2):Text(v.nAngle):Change(function(nVal)
-			nVal = tonumber(nVal) or 30
-			if nVal < 2 or nVal > 360 then
-				nVal = 30
-				JH.Sysmsg2(_L["nVal Limit 2, "] .. 360)
+			local n = tonumber(nVal) or 30
+			if n < 2 or n > 360 then
+				n = 30
+				JH.Sysmsg2(_L["Val Limit 2, "] .. 360)
 			end
-			v.nAngle = nVal
+			v.nAngle = n
 			FireEvent("CIRCLE_RESERT_DRAW")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" degree"] }):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20, w = 35, h = 25 })
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20, w = 35, h = 25, limit = 2 })
 		:Text(v.nRadius):Change(function(nVal)
-			nVal = tonumber(nVal) or 1
-			if nVal < 0 or nVal > CIRCLE_MAX_RADIUS then
-				nVal = 1
-				JH.Sysmsg2(_L["nVal Limit 0, "] .. CIRCLE_MAX_RADIUS)
+			local n = tonumber(nVal) or 1
+			if n < 0 or n > CIRCLE_MAX_RADIUS then
+				n = 1
+				JH.Sysmsg2(_L["Val Limit 0, "] .. CIRCLE_MAX_RADIUS)
 			end
-			v.nRadius = nVal
+			v.nRadius = n
 			FireEvent("CIRCLE_RESERT_DRAW")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" feet"] }):Pos_()
