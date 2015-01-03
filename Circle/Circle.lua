@@ -712,7 +712,7 @@ C.OpenAddPanel = function(szName, dwType)
 	GUI.CreateFrame("C_NewFace", { w = 380, h = 250, title = _L["Add Face"], close = true }):RegisterClose()
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_NewFace"))
-	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 200, w = 380, h = 30, x = 0, y = 45, align = 1 })
+	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 48, w = 380, h = 30, x = 0, y = 45, align = 1 })
 	ui:Append("Text", { txt = _L["Key:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
 	ui:Append("WndEdit", "Key", { txt = szName, x = 115, y = 83, enable = szName == nil })
 	:Change(function(szText)
@@ -785,19 +785,24 @@ C.OpenAddPanel = function(szName, dwType)
 end
 
 C.OpenDataPanel = function(data, id, index)
+	local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 	if Station.Lookup("Normal/C_Data") then
+		a = GetFrameAnchor(Station.Lookup("Normal/C_Data"))
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
 	end
-	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true }):RegisterClose()
+	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_Data"))
+	local file = "ui/Image/UICommon/Feedanimials.uitex"
+	--58
 	local title
 	if data.szNote then
 		title = string.format("%s(%s)", data.key, data.szNote)
 	else
 		title = data.key
 	end
-	local nX, nY = ui:Append("Text", "Name", { txt = title, font = 200, w = 380, h = 30, x = 0, y = 40, align = 1 }):Pos_()
+	ui:Append("Image", { x = 59.5, y = 45, w = 261, h = 25, alpha = 180}):File(file, 58)
+	local nX, nY = ui:Append("Text", "Name", { txt = title, font = 48, w = 380, h = 30, x = 0, y = 40, align = 1 }):Pos_()
 	ui:Append("WndRadioBox", { x = 100, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC })
 	:Click(function()
 		data.dwType = TARGET.NPC
@@ -811,21 +816,12 @@ C.OpenDataPanel = function(data, id, index)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	for k, v in ipairs(data.tCircles or {}) do
-		nX = ui:Append("WndCheckBox", { x = 20, y = nY, txt = _L["Face Circle"], font = 27, checked = v.bEnable })
+		nX = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Face Circle"], font = 27, checked = v.bEnable })
 		:Click(function(bChecked)
-			if IsAltKeyDown() then -- 按住alt 删除
-				if #data.tCircles == 1 then
-					data.tCircles = nil
-				else
-					table.remove(data.tCircles, k)
-				end
-				C.OpenDataPanel(data, id, index)
-			else
-				v.bEnable = bChecked
-			end
+			v.bEnable = bChecked
 			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 2, y = nY - 18 + 20, w = 35, h = 25, limit = 3 })
+		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 2, w = 35, h = 25, limit = 3 })
 		:Enable(k ~= 2):Text(v.nAngle):Change(function(nVal)
 			local n = tonumber(nVal) or 30
 			if n < 2 or n > 360 then
@@ -836,7 +832,7 @@ C.OpenDataPanel = function(data, id, index)
 			FireEvent("CIRCLE_RESERT_DRAW")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" degree"] }):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20, w = 35, h = 25, limit = 2 })
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY + 2, w = 35, h = 25, limit = 2 })
 		:Text(v.nRadius):Change(function(nVal)
 			local n = tonumber(nVal) or 1
 			if n < 0 or n > CIRCLE_MAX_RADIUS then
@@ -847,7 +843,7 @@ C.OpenDataPanel = function(data, id, index)
 			FireEvent("CIRCLE_RESERT_DRAW")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" feet"] }):Pos_()
-		nX = ui:Append("Shadow", "Color_" .. k, { x = nX + 5, y = nY - 18 + 20, color = v.col, w = 23, h = 23 })
+		nX = ui:Append("Shadow", "Color_" .. k, { x = nX + 5, y = nY + 2, color = v.col, w = 23, h = 23 })
 		:Click(function()
 			OpenColorTablePanel(function(r, g, b)
 				ui:Fetch("Color_" .. k):Color(r, g, b)
@@ -864,13 +860,23 @@ C.OpenDataPanel = function(data, id, index)
 				{ r = 255, g = 255, b = 255},
 			})
 			end):Pos_()
-		nX, nY = ui:Append("WndCheckBox", { x = nX + 2, y = nY - 19 + 20, txt = _L["Draw Border"], checked = v.bBorder })
+		nX = ui:Append("WndCheckBox", { x = nX + 2, y = nY + 1, txt = _L["Draw Border"], checked = v.bBorder })
 		:Click(function(bChecked)
 			v.bBorder = bChecked
 			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
+		nX, nY = ui:Append("Image", { x = nX + 5, y = nY + 1, w = 26, h = 26 }):File(file, 86):Event(525311)
+		:Hover(function() this:SetFrame(87) end, function() this:SetFrame(86) end):Click(function()
+			if #data.tCircles == 1 then
+				data.tCircles = nil
+			else
+				table.remove(data.tCircles, k)
+			end
+			C.OpenDataPanel(data, id, index)
+			FireEvent("CIRCLE_CLEAR")
+		end):Pos_()
 	end
-	nX, nY = ui:Append("WndCheckBox", { x = 20, y = nY + 5, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
+	nX, nY = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
 	:Enable(data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bTarget = bChecked
 		ui:Fetch("bTeamChat"):Enable(bChecked)
@@ -881,7 +887,7 @@ C.OpenDataPanel = function(data, id, index)
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 30, y = nY, checked = data.bTeamChat, txt = _L["RaidAlert"], color = GetMsgFontColor("MSG_TEAM", true) })
+	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 25, y = nY, checked = data.bTeamChat, txt = _L["RaidAlert"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bTeamChat = bChecked
 	end):Pos_()
@@ -893,7 +899,7 @@ C.OpenDataPanel = function(data, id, index)
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bScreenHead = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bFlash", { x = 30, y = nY, checked = data.bFlash, txt = _L["CenterAlarm"] })
+	nX = ui:Append("WndCheckBox", "bFlash", { x = 25, y = nY, checked = data.bFlash, txt = _L["CenterAlarm"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bFlash = bChecked
 	end):Pos_()
@@ -908,8 +914,8 @@ C.OpenDataPanel = function(data, id, index)
 		data.bDrawLineSelf = bChecked
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Other"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
+	nX, nY = ui:Append("Text", { x = 15, y = nY, txt = _L["Other"], font = 27 }):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 25, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
 	:Click(function(bChecked)
 		data.bDrawName = bChecked
 	end):Pos_()
@@ -917,7 +923,7 @@ C.OpenDataPanel = function(data, id, index)
 	:Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
 		data.bDoodadLine = bChecked
 	end):Pos_()
-	ui:Append("WndEdit", { x = 30, y = nY + 10, w = 310, h = 26 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK })
+	ui:Append("WndEdit", { x = 25, y = nY + 10, w = 310, h = 26 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK })
 	:Focus(function()
 		if this:GetText() == g_tStrings.STR_FRIEND_REMARK then
 			this:SetText("")
@@ -933,7 +939,7 @@ C.OpenDataPanel = function(data, id, index)
 	end)
 	local n = 0
 	if data.tCircles then n = #data.tCircles end
-	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(n < 2)
+	ui:Append("WndButton2", { x = 260, y = 330, txt = _L["Add Circle"] }):Enable(n < 2)
 	:Click(function()
 		if not data.tCircles then data.tCircles = {} end
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
