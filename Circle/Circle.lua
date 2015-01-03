@@ -74,7 +74,7 @@ local C = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
 	tData = {
 		[-2] = {
-			{ key = 4982, bEnable = true, szNote = "this is god", dwType = TARGET.NPC, tCircles = {
+			{ key = 4982, bEnable = true, szNote = _L["this is god"], dwType = TARGET.NPC, tCircles = {
 					{ bEnable = true, nAngle = 360, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 				}
 			}
@@ -709,7 +709,7 @@ C.OpenAddPanel = function(szName, dwType)
 	GUI.CreateFrame("C_NewFace", { w = 380, h = 250, title = _L["Add Face"], close = true }):RegisterClose()
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_NewFace"))
-	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 200, w = 380, h = 30, x = 0, y = 50, align = 1 })
+	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 200, w = 380, h = 30, x = 0, y = 45, align = 1 })
 	ui:Append("Text", { txt = _L["Key:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
 	ui:Append("WndEdit", "Key", { txt = szName, x = 115, y = 83, enable = szName == nil })
 	:Change(function(szText)
@@ -827,7 +827,7 @@ C.OpenDataPanel = function(data, id, index)
 			local n = tonumber(nVal) or 30
 			if n < 2 or n > 360 then
 				n = 30
-				JH.Sysmsg2(_L["Val Limit 2, "] .. 360)
+				JH.Alert(_L["Limit 2, "] .. 360)
 			end
 			v.nAngle = n
 			FireEvent("CIRCLE_RESERT_DRAW")
@@ -838,7 +838,7 @@ C.OpenDataPanel = function(data, id, index)
 			local n = tonumber(nVal) or 1
 			if n < 0 or n > CIRCLE_MAX_RADIUS then
 				n = 1
-				JH.Sysmsg2(_L["Val Limit 0, "] .. CIRCLE_MAX_RADIUS)
+				JH.Alert(_L["Limit 0, "] .. CIRCLE_MAX_RADIUS)
 			end
 			v.nRadius = n
 			FireEvent("CIRCLE_RESERT_DRAW")
@@ -875,13 +875,13 @@ C.OpenDataPanel = function(data, id, index)
 		ui:Fetch("bScreenHead"):Enable(bChecked)
 		ui:Fetch("bFlash"):Enable(bChecked)
 		ui:Fetch("bDrawLine"):Enable(bChecked)
-		ui:Fetch("bDrawLineSelf"):Enable(bChecked)
+		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 30, y = nY, checked = data.bTeamChat, txt = _L["RaidAlert"] })
+	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 30, y = nY, checked = data.bTeamChat, txt = _L["RaidAlert"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bTeamChat = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY, checked = data.bWhisperChat, txt = _L["WhisperAlert"] })
+	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY, checked = data.bWhisperChat, txt = _L["WhisperAlert"], color = GetMsgFontColor("MSG_WHISPER", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bWhisperChat = bChecked
 	end):Pos_()
@@ -897,9 +897,10 @@ C.OpenDataPanel = function(data, id, index)
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bDrawLine = bChecked
 		FireEvent("CIRCLE_CLEAR")
+		ui:Fetch("bDrawLineSelf"):Enable(bChecked)
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
-	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC and data.bDrawLine):Click(function(bChecked)
 		data.bDrawLineSelf = bChecked
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
@@ -960,10 +961,12 @@ PS.OnPanelActive = function(frame)
 		ui:Fetch("bWhisperChat"):Enable(bChecked)
 		ui:Fetch("bBorder"):Enable(bChecked)
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bTeamChat", { x = nX + 5, y = nY + 10, checked = Circle.bTeamChat, txt = _L["RaidAlert"] }):Enable(Circle.bEnable):Click(function(bChecked)
+	nX = ui:Append("WndCheckBox", "bTeamChat", { x = nX + 5, y = nY + 10, checked = Circle.bTeamChat, txt = _L["RaidAlert"], color = GetMsgFontColor("MSG_TEAM", true) })
+	:Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bTeamChat = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY + 10, checked = Circle.bWhisperChat, txt = _L["WhisperAlert"] }):Enable(Circle.bEnable):Click(function(bChecked)
+	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY + 10, checked = Circle.bWhisperChat, txt = _L["WhisperAlert"], color = GetMsgFontColor("MSG_WHISPER", true) })
+	:Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bWhisperChat = bChecked
 	end):Pos_()
 	

@@ -512,4 +512,5 @@ data = {
 	["Open Circle Panel"] = "打开圈圈设置面板",
 	["Draw Self Name"] = "绘出自身名称",
 	["Draw Doodad Line"] = "绘出Doodad连线",
+	["this is god"] = "镇山河",
 }
