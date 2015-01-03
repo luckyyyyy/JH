@@ -1530,6 +1530,7 @@ function _GUI.Base:Color(nRed, nGreen, nBlue)
 				return txt:GetFontColor()
 			end
 			txt:SetFontColor(nRed, nGreen, nBlue)
+			txt.col = { nRed, nGreen, nBlue }
 		end
 	end
 	return self
@@ -1831,8 +1832,13 @@ function _GUI.Wnd:Enable(bEnable)
 			wnd:Lookup("Scroll_Track/Btn_Track"):Enable(1)
 		end
 		wnd:Enable(1)
-		if txt and self.font then
-			txt:SetFontScheme(self.font)
+		if txt then
+			if self.font then
+				txt:SetFontScheme(self.font)
+			end
+			if txt.col then
+				txt:SetFontColor(unpack(txt.col))
+			end
 		end
 		self.enable = true
 	else
