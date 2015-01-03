@@ -21,7 +21,7 @@ local CIRCLE_PLAYER_NAME = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[-1] = 100, -- 全地图生效的东西 副本除外
-	[-2] = 3,
+	[-2] = 3, -- 副本内也生效 镇山河 只放等
 	[165] = 30, -- 英雄大明宫
 	[164] = 30, -- 大明宫
 	[160] = 20, -- 军械库
@@ -78,6 +78,9 @@ local C = {
 					{ bEnable = true, nAngle = 360, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 				}
 			}
+		},
+		[-1] = {
+			{ key = "Example", bEnable = true, szNote = "Example", dwType = TARGET.NPC, }
 		}
 	},
 	tDrawText = {},
@@ -530,25 +533,27 @@ C.OnBreathe = function()
 					Line = {},
 				}
 			end
-			for i = #data.tCircles, 1, -1 do
-				local kk, vv = i, data.tCircles[i]
-				if vv.bEnable then
-					local sha = C.tCache[TARGET.NPC][k].Circle
-					if not sha[kk] then
-						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
-					end
-					if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-						sha[kk].nFaceDirection = KGNpc.nFaceDirection
-						C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-					end
-					if Circle.bBorder and vv.bBorder then
-						local key = "B" .. kk
-						if not sha[key] then
-							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
+			if data.tCircles then
+				for i = #data.tCircles, 1, -1 do
+					local kk, vv = i, data.tCircles[i]
+					if vv.bEnable then
+						local sha = C.tCache[TARGET.NPC][k].Circle
+						if not sha[kk] then
+							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 						end
-						if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-							sha[key].nFaceDirection = KGNpc.nFaceDirection
-							C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							sha[kk].nFaceDirection = KGNpc.nFaceDirection
+							C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+						end
+						if Circle.bBorder and vv.bBorder then
+							local key = "B" .. kk
+							if not sha[key] then
+								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
+							end
+							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+								sha[key].nFaceDirection = KGNpc.nFaceDirection
+								C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+							end
 						end
 					end
 				end
@@ -621,25 +626,27 @@ C.OnBreathe = function()
 					Line = {},
 				}
 			end
-			for i = #data.tCircles, 1, -1 do
-				local kk, vv = i, data.tCircles[i]
-				if vv.bEnable then
-					local sha = C.tCache[TARGET.DOODAD][k].Circle
-					if not sha[kk] then
-						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
-					end
-					if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-						sha[kk].nFaceDirection = KGDoodad.nFaceDirection
-						C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-					end
-					if Circle.bBorder and vv.bBorder then
-						local key = "B" .. kk
-						if not sha[key] then
-							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
+			if data.tCircles then
+				for i = #data.tCircles, 1, -1 do
+					local kk, vv = i, data.tCircles[i]
+					if vv.bEnable then
+						local sha = C.tCache[TARGET.DOODAD][k].Circle
+						if not sha[kk] then
+							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 						end
-						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-							sha[key].nFaceDirection = KGDoodad.nFaceDirection
-							C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							sha[kk].nFaceDirection = KGDoodad.nFaceDirection
+							C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+						end
+						if Circle.bBorder and vv.bBorder then
+							local key = "B" .. kk
+							if not sha[key] then
+								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
+							end
+							if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+								sha[key].nFaceDirection = KGDoodad.nFaceDirection
+								C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+							end
 						end
 					end
 				end
@@ -781,7 +788,13 @@ C.OpenDataPanel = function(data, id, index)
 	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true }):RegisterClose()
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_Data"))
-	local nX, nY = ui:Append("Text", "Name", { txt = data.szNote or data.key, font = 200, w = 380, h = 30, x = 0, y = 40, align = 1 }):Pos_()
+	local title
+	if data.szNote then
+		title = string.format("%s(%s)", data.key, data.szNote)
+	else
+		title = data.key
+	end
+	local nX, nY = ui:Append("Text", "Name", { txt = title, font = 200, w = 380, h = 30, x = 0, y = 40, align = 1 }):Pos_()
 	ui:Append("WndRadioBox", { x = 100, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC })
 	:Click(function()
 		data.dwType = TARGET.NPC
@@ -794,10 +807,19 @@ C.OpenDataPanel = function(data, id, index)
 		C.OpenDataPanel(data, id, index)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	for k, v in ipairs(data.tCircles) do
+	for k, v in ipairs(data.tCircles or {}) do
 		nX = ui:Append("WndCheckBox", { x = 20, y = nY, txt = _L["Face Circle"], font = 27, checked = v.bEnable })
 		:Click(function(bChecked)
-			v.bEnable = bChecked
+			if IsAltKeyDown() then -- 按住alt 删除
+				if #data.tCircles == 1 then
+					data.tCircles = nil
+				else
+					table.remove(data.tCircles, k)
+				end
+				C.OpenDataPanel(data, id, index)
+			else
+				v.bEnable = bChecked
+			end
 			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY - 18 + 20, w = 35, h = 25, limit = 3 })
@@ -898,16 +920,19 @@ C.OpenDataPanel = function(data, id, index)
 	end):Change(function(szText)
 		if JH.Trim(szText) ~= "" then
 			data.szNote = szText
-			ui:Fetch("Name"):Text(szText)
+			ui:Fetch("Name"):Text(string.format("%s(%s)", data.key, data.szNote))
 		else
 			ui:Fetch("Name"):Text(data.key)
 			data.szNote = nil
 		end
 	end)
-	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(#data.tCircles < 2)
+	local n = 0
+	if data.tCircles then n = #data.tCircles end
+	ui:Append("WndButton2", { x = 250, y = 330, txt = _L["Add Circle"] }):Enable(n < 2)
 	:Click(function()
+		if not data.tCircles then data.tCircles = {} end
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
-		data.tCircles[2].nAngle = 360
+		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
 		C.OpenDataPanel(data, id, index)
 	end)
 	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
