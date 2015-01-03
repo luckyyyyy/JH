@@ -28,6 +28,8 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[171] = 20, -- 英雄军械库
 	[175] = 35, -- 血战天策
 	[176] = 35, -- 英雄血战天策
+	[199] = 20, -- 逐虎驱狼
+	[192] = 20, -- 逐虎驱狼
 }
 -- 除上述外 其他一律 = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
@@ -74,7 +76,7 @@ local C = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
 	tData = {
 		[-2] = {
-			{ key = 4982, bEnable = true, szNote = _L["this is god"], dwType = TARGET.NPC, tCircles = {
+			{ key = 4982, bEnable = true, szNote = _L["this is god"], bDrawName = true, dwType = TARGET.NPC, tCircles = {
 					{ bEnable = true, nAngle = 360, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 				}
 			}
@@ -877,6 +879,7 @@ C.OpenDataPanel = function(data, id, index)
 		ui:Fetch("bFlash"):Enable(bChecked)
 		ui:Fetch("bDrawLine"):Enable(bChecked)
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
+		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 30, y = nY, checked = data.bTeamChat, txt = _L["RaidAlert"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
