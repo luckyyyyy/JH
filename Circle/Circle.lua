@@ -900,7 +900,7 @@ C.OpenDataPanel = function(data, id, index)
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked)
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
-	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC and data.bDrawLine):Click(function(bChecked)
+	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC and data.bDrawLine == true):Click(function(bChecked)
 		data.bDrawLineSelf = bChecked
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
