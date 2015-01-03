@@ -2539,7 +2539,14 @@ function _GUI.Item:Percentage(fPercentage)
 	end
 	return self
 end
-
+function _GUI.Item:Event(dwEventID)
+	if dwEventID then
+		self.self:RegisterEvent(dwEventID)
+	else
+		self.self:ClearEvent()
+	end
+	return self
+end
 -- (self) Instance:Click()
 -- (self) Instance:Click(func fnAction[, boolean bSound[, boolean bSelect]])	-- 登记鼠标点击处理函数
 -- (self) Instance:Click(func fnAction[, table tLinkColor[, tHoverColor]])		-- 同上，只对文本
