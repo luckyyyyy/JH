@@ -678,8 +678,9 @@ Target_AppendAddonMenu({function(dwID, dwType)
 				szOption = _L["Edit Face"],
 				rgb = { 255, 128, 0 }, 
 				szLayer = "ICON_RIGHT",
-				szIcon = "ui/Image/UICommon/CommonPanel4.uitex",
-				nFrame = 72,
+				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+				nFrame = 86,
+				nMouseOverFrame = 87,
 				fnClickIcon = function()
 					C.RemoveData(data.id, data.index, not IsCtrlKeyDown())
 				end,
