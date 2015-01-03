@@ -301,49 +301,6 @@ function RaidGrid_Base.MessageWarning(szMessage)
 	JH.Sysmsg2(szMessage, _L["RaidGrid_EventScrutiny"]  .." Warning")
 end
 
-
-function RaidGrid_Base.GetMinEventCD(handleRecord)
-	if not handleRecord then
-		return
-	end
-	local Recall = function(szText)
-		if not szText or szText == "" then
-			return
-		end
-		local nStackNum = tonumber(szText)
-		if not nStackNum then
-			return
-		end
-		handleRecord.tRecord.nMinEventCD = nil
-		if nStackNum >= 0 then
-			handleRecord.tRecord.nMinEventCD = nStackNum
-		end
-		RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
-	end
-	GetUserInput(handleRecord.tRecord.szName.."（最小中央倒计时触发时间间隔设置）", Recall, nil, function() end, nil, handleRecord.tRecord.nMinEventCD or 10, 5)
-end
-
-function RaidGrid_Base.GetMinEventScrutinyCD(handleRecord)
-	if not handleRecord then
-		return
-	end
-	local Recall = function(szText)
-		if not szText or szText == "" then
-			return
-		end
-		local nStackNum = tonumber(szText)
-		if not nStackNum then
-			return
-		end
-		handleRecord.tRecord.nMinEventScrutinyCD = nil
-		if nStackNum >= 0 then
-			handleRecord.tRecord.nMinEventScrutinyCD = nStackNum
-		end
-		RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
-	end
-	GetUserInput(handleRecord.tRecord.szName.."（最小事件监控倒计时触发时间间隔设置）", Recall, nil, function() end, nil, handleRecord.tRecord.nMinEventScrutinyCD or 7, 5)
-end
-
 function RaidGrid_Base.IsOutOfEventTime(tRecord, nRemoveDelayTime)
 	nRemoveDelayTime = nRemoveDelayTime or 0
 	if not tRecord.fEventTimeStart or not tRecord.fEventTimeEnd then
@@ -870,7 +827,7 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 		if (not RaidGrid_EventCache.tRecords.Casting.Hash2[dwSkillID] or not RaidGrid_EventCache.tRecords.Casting.Hash2[dwSkillID][dwSkillLevel]) then
 			local szSkillName = Table_GetSkillName(dwSkillID, dwSkillLevel)
 			if not szSkillName or szSkillName == "" then
-				szSkillName = "无名" .. tostring(dwSkillID)
+				szSkillName = _L["NONE"] .. tostring(dwSkillID)
 				return -- 和谐
 			end
 			if szSkillName then
@@ -1792,15 +1749,15 @@ function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRem
 	local tBuffColor = {}
 	local szColor = ""
 	local tColorCover = {
-	["红"] = {255, 0, 0},
-	["绿"] = {0, 255, 0},
-	["蓝"] = {0, 0, 255},
-	["黄"] = {255, 255, 0},
-	["紫"] = {255, 0, 255},
-	["青"] = {0, 255, 255},
-	["橙"] = {255, 128, 0},
-	["黑"] = {0, 0, 0},
-	["白"] = {255, 255, 255},
+	[_L["Red"]] = {255, 0, 0},
+	[_L["Green"]] = {0, 255, 0},
+	[_L["Blue"]] = {0, 0, 255},
+	[_L["Yellow"]] = {255, 255, 0},
+	[_L["Purple"]] = {255, 0, 255},
+	[_L["Cyan"]] = {0, 255, 255},
+	[_L["Orange"]] = {255, 128, 0},
+	[_L["Black"]] = {0, 0, 0},
+	[_L["White"]] = {255, 255, 255},
 	}
 
 	if tRecord.tRGBuffColor then
@@ -1810,21 +1767,21 @@ function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRem
 		if tBuffColor[1] == 0 and tBuffColor[2] == 0 and tBuffColor[3] == 0 then
 			szColor = ""
 		elseif tBuffColor[1] == 255 and tBuffColor[2] == 0 and tBuffColor[3] == 0 then
-			szColor = "红"
+			szColor = _L["Red"]
 		elseif tBuffColor[1] == 0 and tBuffColor[2] == 255 and tBuffColor[3] == 0 then
-			szColor = "绿"
+			szColor = _L["Green"]
 		elseif tBuffColor[1] == 0 and tBuffColor[2] == 0 and tBuffColor[3] == 255 then
-			szColor = "蓝"
+			szColor = _L["Blue"]
 		elseif tBuffColor[1] == 255 and tBuffColor[2] == 255 and tBuffColor[3] == 0 then
-			szColor = "黄"
+			szColor = _L["Yellow"]
 		elseif tBuffColor[1] == 255 and tBuffColor[2] == 0 and tBuffColor[3] == 255 then
-			szColor = "紫"
+			szColor = _L["Purple"]
 		elseif tBuffColor[1] == 0 and tBuffColor[2] == 255 and tBuffColor[3] == 255 then
-			szColor = "青"
+			szColor = _L["Cyan"]
 		elseif tBuffColor[1] == 255 and tBuffColor[2] == 128 and tBuffColor[3] == 0 then
-			szColor = "橙"
+			szColor = _L["Orange"]
 		elseif tBuffColor[1] == 255 and tBuffColor[2] == 255 and tBuffColor[3] == 255 then
-			szColor = "白"
+			szColor = _L["White"]
 		end
 	end
 	local tCurrentDebuff = {}
