@@ -184,7 +184,7 @@ _TS.UnBreathe = function()
 	_TS.frame:Hide()
 	_TS.dwTargetID = 0
 	_TS.handle:Clear()
-	_TS.bg:SetSize(208, 55)
+	_TS.bg:SetSize(240, 55)
 	_TS.txt:SetText(_L["Loading..."])
 	_TS.Life:SetPercentage(0)
 end
@@ -233,8 +233,8 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 		end
 	end
 	
-	_TS.bg:SetSize(208, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
-	_TS.handle:SetSize(208, 24 * math.min(#tThreat, TS.nMaxBarCount))
+	_TS.bg:SetSize(240, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
+	_TS.handle:SetSize(240, 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
 	local KGnpc = GetNpc(dwApplyID)
 	if #tThreat > 0 and KGnpc then

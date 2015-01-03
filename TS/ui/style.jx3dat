@@ -47,5 +47,12 @@ data = {
 		{ "ui/Image/UICommon/ShopEntry.UITex", 0 },
 		{ 40, 40 }
 	},
-	
+	{
+		{ "ui/Image/UICommon/Feedanimials.UITex", 19 },
+		{ "ui/Image/UICommon/Feedanimials.UITex", 19 },
+		{ "ui/Image/UICommon/Feedanimials.UITex", 15 },
+		{ "ui/Image/UICommon/Feedanimials.UITex", 14 },
+		{ "ui/Image/UICommon/Feedanimials.UITex", 18 },
+		{ 168, 40 }
+	},
 }
