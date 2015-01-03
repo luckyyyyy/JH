@@ -245,7 +245,7 @@ _SkillCD.UpdateCount = function()
 					local szXml = GetFormatText(_L["["] .. szName .. _L["]"] .. "\n", 23 ,255 ,255 ,255)
 					for k, v in ipairs(v.tList) do
 						szXml = szXml .. GetFormatText(v.info.szName, 23, 255, 255, 0)
-						local szDeath = GetFormatText(" (" .. _L["Death"] .. ")", 23, 255, 128, 0)
+						local szDeath = GetFormatText(" (" .. _L["Death"] .. ")", 23, 255, 128, 0) -- 离线是bIsOnLine 其实也一样 无所谓
 						if v.info.bDeathFlag then
 							szXml = szXml .. szDeath
 						end
