@@ -68,7 +68,14 @@ JH.RegisterCustomData("Circle")
 local Circle = Circle
 local C = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
-	tData = {},
+	tData = {
+		[-1] = {
+			{ key = 4982, bEnable = true, szNote = "this is god", dwType = TARGET.NPC, tCircles = {
+					{ bEnable = true, nAngle = 360, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
+				}
+			}
+		}
+	},
 	tDrawText = {},
 	tTarget = {},
 	tCache = {
@@ -87,7 +94,6 @@ local C = {
 		[_L["All Map"]] = { id = -1, bDungeon = true },
 	},
 }
-
 do
 	for k, v in ipairs(GetMapList()) do
 		local szName = C_Table_GetMapName(v)
@@ -375,7 +381,7 @@ C.DrawTable = function()
 		if mapid == _L["All Circle"] then
 			for k, v in pairs(C.tData) do
 				for kk, vv in ipairs(v) do
-					tinsert(tab, { key = vv.szNote or vv.key, id = k, index = kk, bEnable = vv.bEnable })
+					tinsert(tab, { key = vv.key, szNote = vv.szNote, id = k, index = kk, bEnable = vv.bEnable })
 				end
 			end
 		else
@@ -643,28 +649,6 @@ C.OnBreathe = function()
 	CIRCLE_RESERT_DRAW = false
 end
 
-C.Init = function()
-	JH.RegisterInit("Circle", 
-		{ "Breathe", C.OnBreathe },
-		{ "NPC_ENTER_SCENE", C.OnNpcEnter },
-		{ "NPC_LEAVE_SCENE", C.OnNpcLeave },
-		{ "DOODAD_ENTER_SCENE", C.OnDoodadEnter },
-		{ "DOODAD_LEAVE_SCENE", C.OnDoodadLeave },
-		{ "LOADING_END", C.CreateData },
-		{ "CIRCLE_CLEAR", C.CreateData },
-		{ "CIRCLE_RESERT_DRAW", function()
-			CIRCLE_RESERT_DRAW = true
-		end }
-	)
-	Circle.bEnable = true
-end
-
-C.UnInit = function()
-	C.Release()
-	JH.UnRegisterInit("Circle")
-	Circle.bEnable = false
-end
-
 -- 注册头像右键菜单
 Target_AppendAddonMenu({function(dwID, dwType)
 	if dwType == TARGET.NPC then
@@ -849,7 +833,7 @@ C.OpenDataPanel = function(data, id, index)
 			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
 	end
-	nX, nY = ui:Append("WndCheckBox", { x = 20, y = nY + 10, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
+	nX, nY = ui:Append("WndCheckBox", { x = 20, y = nY + 5, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
 	:Enable(data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bTarget = bChecked
 		ui:Fetch("bTeamChat"):Enable(bChecked)
@@ -930,8 +914,10 @@ PS.OnPanelActive = function(frame)
 		Circle.bEnable = bChecked
 		if bChecked then
 			C.Init()
+			C.CreateData()
 		else
 			C.UnInit()
+			C.Release()
 		end
 		ui:Fetch("bTeamChat"):Enable(bChecked)
 		ui:Fetch("bWhisperChat"):Enable(bChecked)
@@ -948,8 +934,8 @@ PS.OnPanelActive = function(frame)
 		Circle.bBorder = bChecked
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	local mapid = C.dwSelMapID or C.GetMapID()
-	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_Table_GetMapName(mapid) }):Menu(function()
+	if not C.dwSelMapID then C.dwSelMapID = _L["All Circle"] end
+	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_Table_GetMapName(C.dwSelMapID) }):Menu(function()
 		local menu = {
 			{ szOption =  _L["All Circle"], fnAction = function()
 				C.dwSelMapID = _L["All Circle"]
@@ -998,11 +984,30 @@ end
 
 GUI.RegisterPanel(_L["Circle"], 2402, _L["RGES"], PS)
 
-JH.RegisterEvent("LOGIN_GAME", function()
-	if not Circle.bEnable then return end
-	C.Init()
-end)
+C.Init = function()
+	JH.RegisterInit("Circle", 
+		{ "Breathe", C.OnBreathe },
+		{ "NPC_ENTER_SCENE", C.OnNpcEnter },
+		{ "NPC_LEAVE_SCENE", C.OnNpcLeave },
+		{ "DOODAD_ENTER_SCENE", C.OnDoodadEnter },
+		{ "DOODAD_LEAVE_SCENE", C.OnDoodadLeave },
+		{ "LOADING_END", C.CreateData },
+		{ "CIRCLE_CLEAR", C.CreateData },
+		{ "CIRCLE_RESERT_DRAW", function()
+			CIRCLE_RESERT_DRAW = true
+		end }
+	)
+end
 
+C.UnInit = function()
+	JH.UnRegisterInit("Circle")
+end
+
+JH.RegisterEvent("LOGIN_GAME", function()
+	if Circle.bEnable then 
+		C.Init() 
+	end
+end)
 JH.RegisterEvent("GAME_EXIT", C.SaveFile)
 JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
 JH.RegisterEvent("FIRST_LOADING_END", function()
