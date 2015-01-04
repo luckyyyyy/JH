@@ -1053,12 +1053,12 @@ JH.GetMapName = function(dwMapID)
 	if not _JH.tMapCache[dwMapID] then
 		local szName = Table_GetMapName(dwMapID)
 		if szName ~= "" then
-			_JH.tMapCache[dwMapID] = szName
+			_JH.tMapCache[dwMapID] = tostring(dwMapID)
 		else
 			_JH.tMapCache[dwMapID] = szName
 		end
 	end
-	return unpack(_JH.tMapCache[dwMapID])
+	return _JH.tMapCache[dwMapID]
 end
 
 JH.HasBuff = function(dwBuffID, bCanCancel, me)
