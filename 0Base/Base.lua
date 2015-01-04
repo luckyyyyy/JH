@@ -74,6 +74,8 @@ local _JH = {
 	nDebug = 2,
 	tBuffCache = {},
 	tSkillCache = {},
+	tMapCache = {},
+	tItemCache = {},
 	tDungeonList = {},
 	aPlayer = {},
 	aNpc = {},
@@ -1032,6 +1034,31 @@ JH.GetSkillName = function(dwSkillID, dwLevel)
 		end
 	end
 	return unpack(_JH.tSkillCache[dwSkillID])
+end
+
+JH.GetItemName = function(nUiId)
+	if not _JH.tItemCache[nUiId] then
+		local szName = Table_GetItemName(nUiId)
+		local nIcon = Table_GetItemIconID(nUiId)
+		if szName ~= "" and nIocn ~= -1 then
+			_JH.tItemCache[nUiId] = { szName, nIcon }
+		else
+			_JH.tItemCache[nUiId] = { "ITEM#" .. nUiId, 1435 }
+		end
+	end
+	return unpack(_JH.tItemCache[nUiId])
+end
+
+JH.GetMapName = function(dwMapID)
+	if not _JH.tMapCache[dwMapID] then
+		local szName = Table_GetMapName(dwMapID)
+		if szName ~= "" then
+			_JH.tMapCache[dwMapID] = szName
+		else
+			_JH.tMapCache[dwMapID] = szName
+		end
+	end
+	return unpack(_JH.tMapCache[dwMapID])
 end
 
 JH.HasBuff = function(dwBuffID, bCanCancel, me)

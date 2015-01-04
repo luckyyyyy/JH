@@ -350,7 +350,8 @@ _GKP.SetChatWindow = function(item, ui)
 	local h = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat"):Lookup("","")
 	h:Clear()
 	box:SetObject(UI_OBJECT_ITEM_ONLY_ID, item.nUiId, item.dwID, item.nVersion, item.dwTabType, item.dwIndex)
-	box:SetObjectIcon(Table_GetItemIconID(item.nUiId))
+	local iName, iIcon = JH.GetItemName(item.nUiId)
+	box:SetObjectIcon(iIcon)
 	box.OnItemLButtonClick = ui.OnItemLButtonClick
 	box.OnItemMouseLeave = ui.OnItemMouseLeave
 	box.OnItemMouseEnter = ui.OnItemMouseEnter
@@ -1004,8 +1005,8 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 		end
 		local player = GetPlayer(v.dwID)
 		item:Lookup("Text_No"):SetText(k)
-		-- item:Lookup("Image_NameIcon"):FromUITex(GetForceImage(v.dwForceID))
-		item:Lookup("Image_NameIcon"):FromIconID(Table_GetSkillIconID(v.dwMountKungfuID))
+		local sName, sIcon = JH.GetSkillName(v.dwMountKungfuID, 1)
+		item:Lookup("Image_NameIcon"):FromIconID(sIcon)
 		item:Lookup("Text_Name"):SetText(v.szName)
 		item:Lookup("Text_Name"):SetFontColor(JH.GetForceColor(v.dwForceID))
 		local ex,r,g,b = _L["Not in the Scope"],255,255,255
@@ -1019,7 +1020,8 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 				local box = wnd:Lookup("","Handle_Box1"):Lookup(tostring(vv.nIndex))
 				wnd:Lookup("","Handle_Box1"):FormatAllItemPos()
 				box:SetObject(UI_OBJECT_ITEM)
-				box:SetObjectIcon(Table_GetBuffIconID(vv.dwID,vv.nLevel))
+				local bName, bIocn = JH.GetBuffName(vv.dwID, vv.nLevel)
+				box:SetObjectIcon(bIocn)
 				box:RegisterEvent(786)
 				local nTime = (vv.nEndFrame - GetLogicFrameCount()) / 16
 				if nTime < 480 then
@@ -1036,15 +1038,14 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 					OutputBuffTip(player,vv.dwID,vv.nLevel,0,true,nTime,{x,y,w,h})
 				end
 			end
-			
-			-- wnd:Lookup("","Handle_Box1"):SetRelPos(200+ (150 - #v.Box1 * 28) / 2 ,0)
 
 			for kk, vv in pairs(v.Box2) do
 				wnd:Lookup("","Handle_Box2"):AppendItemFromString("<box>w=28 h=28 name=\"".. vv.nIndex  .."\"</box>")
 				local box = wnd:Lookup("","Handle_Box2"):Lookup(tostring(vv.nIndex))
 				wnd:Lookup("","Handle_Box2"):FormatAllItemPos()
 				box:SetObject(UI_OBJECT_ITEM)
-				box:SetObjectIcon(Table_GetBuffIconID(vv.dwID,vv.nLevel))
+				local bName, bIcon = JH.GetBuffName(vv.dwID, vv.nLevel)
+				box:SetObjectIcon(bIcon)
 				box:RegisterEvent(786)
 				local nTime = (vv.nEndFrame - GetLogicFrameCount()) / 16
 				if nTime < 480 then
@@ -1175,7 +1176,8 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			item:Lookup("Image_NameIcon"):FromUITex(GetForceImage(v.dwForceID))
 			item:Lookup("Text_Name"):SetText(v.szPlayer)
 			item:Lookup("Text_Name"):SetFontColor(JH.GetForceColor(v.dwForceID))
-			local szName = v.szName or Table_GetItemName(v.nUiId)
+			local iName, iIcon = JH.GetItemName(v.nUiId)
+			local szName = v.szName or iName
 			item:Lookup("Text_ItemName"):SetText(szName)
 			if v.nQuality then
 				item:Lookup("Text_ItemName"):SetFontColor(GetItemFontColorByQuality(v.nQuality))
@@ -1195,7 +1197,8 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			end
 			local box = item:Lookup("Box_Item")
 			box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
-			box:SetObjectIcon(Table_GetItemIconID(v.nUiId))
+			local iName, iIcon = JH.GetItemName(v.nUiId)
+			box:SetObjectIcon(iIcon)
 			
 			if v.nStackNum then
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
@@ -1535,7 +1538,8 @@ _GKP.OnMsg = function()
 						box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
 						local icon = 2490
 						if v.nUiId ~= 0 then
-							icon = Table_GetItemIconID(v.nUiId)
+							local iName, iIcon = JH.GetItemName(v.nUiId)
+							icon = iIcon
 						end
 						box:SetObjectIcon(icon)
 						box:RegisterEvent(786)
@@ -1938,7 +1942,8 @@ _GKP.DrawDistributeList = function(doodad)
 		local szItemName = GetItemNameByItem(item)
 		local fnSetBox = function(box)
 			box:SetObject(UI_OBJECT_ITEM_ONLY_ID, item.nUiId, item.dwID, item.nVersion, item.dwTabType, item.dwIndex)
-			box:SetObjectIcon(Table_GetItemIconID(item.nUiId))
+			local iName, iIcon = JH.GetItemName(item.nUiId)
+			box:SetObjectIcon(iIcon)
 			
 			if item.bCanStack and item.nStackNum > 1 then
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
@@ -2304,7 +2309,8 @@ _GKP.Record = function(tab,item,bEnter)
 	if tab and type(item) == "number" then -- 编辑
 		text:Text(tab.szPlayer):Color(JH.GetForceColor(tab.dwForceID))
 		text.self.dwForceID = tab.dwForceID
-		Name:Text(tab.szName or Table_GetItemName(tab.nUiId)):Enable(true)
+		local iName = JH.GetItemName(tab.nUiId)
+		Name:Text(tab.szName or iName):Enable(true)
 		Source:Text(tab.szNpcName):Enable(true)
 		Money:Text(tab.nMoney)
 	end
@@ -2312,7 +2318,8 @@ _GKP.Record = function(tab,item,bEnter)
 	if tab and tab.nVersion and tab.nUiId and tab.dwTabType and tab.dwIndex then
 		-- Box
 		box:SetObject(UI_OBJECT_ITEM_INFO, tab.nVersion, tab.dwTabType, tab.dwIndex)
-		box:SetObjectIcon(Table_GetItemIconID(tab.nUiId))
+		local _, iIcon = JH.GetItemName(tab.nUiId)
+		box:SetObjectIcon(iIcon)
 		box:SetOverTextPosition(0,ITEM_POSITION.RIGHT_BOTTOM)
 		box:SetOverTextFontScheme(0,15)
 		if tab.nStackNum and tab.nStackNum > 1 then
@@ -2659,7 +2666,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 			item:Lookup("Text_Name"):SetText(_L["System"])
 			item:Lookup("Text_Change"):SetText(_L["Reward & other ways"])
 		end
-		item:Lookup("Text_Map"):SetText(Table_GetMapName(v.dwMapID))
+		item:Lookup("Text_Map"):SetText(JH.GetMapName(v.dwMapID))
 		item:Lookup("Text_Time"):SetText(GKP.GetTimeString(v.nTime))		
 		c:Lookup("WndButton_Delete").OnLButtonClick = function()
 			GKP("GKP_Account","del",k)
@@ -2764,24 +2771,6 @@ local DeathWarn = {
 	tDeath = {}
 }
 
-DeathWarn.GetName = function(tar)
-	local szName = tar.szName
-	if not IsPlayer(tar.dwID) then
-		if szName == "" then
-			szName = Table_GetNpcTemplateName(tar.dwTemplateID)
-		end
-		if tar.dwEmployer and tar.dwEmployer ~= 0 and szName == Table_GetNpcTemplateName(tar.dwTemplateID) then
-			local emp = GetPlayer(tar.dwEmployer)
-			if not emp then
-				szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. tar.szName
-			else
-				szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. tar.szName
-			end
-		end
-	end
-	return szName
-end
-
 DeathWarn.OnSkillEffectLog = function(dwCaster, dwTarget, bReact, nEffectType, dwID, dwLevel, bCriticalStrike, nCount, tResult)
 	local Caster,target,szSkillName
 	if nCount <= 2 then
@@ -2804,9 +2793,9 @@ DeathWarn.OnSkillEffectLog = function(dwCaster, dwTarget, bReact, nEffectType, d
 		return
 	end
 	if nEffectType == SKILL_EFFECT_TYPE.SKILL then
-		szSkillName = Table_GetSkillName(dwID, dwLevel);
+		szSkillName = JH.GetSkillName(dwID, dwLevel);
 	elseif nEffectType == SKILL_EFFECT_TYPE.BUFF then
-		szSkillName = Table_GetBuffName(dwID, dwLevel);
+		szSkillName = JH.GetBuffName(dwID, dwLevel);
 	end
 	if not szSkillName then
 		return
@@ -2856,8 +2845,8 @@ DeathWarn.OnSkillEffectLog = function(dwCaster, dwTarget, bReact, nEffectType, d
 			end
 			if szDamage ~= "" then
 				table.insert(DeathWarn.tDamage[dwTarget],{
-					szCaster = DeathWarn.GetName(Caster),
-					szTarget = DeathWarn.GetName(target),
+					szCaster = JH.GetTemplateName(Caster),
+					szTarget = JH.GetTemplateName(target),
 					szSkillName = szSkillName,
 					szValue = szDamage,
 				})
@@ -2878,8 +2867,8 @@ DeathWarn.OnSkillEffectLog = function(dwCaster, dwTarget, bReact, nEffectType, d
 		end
 		if szDamage ~= "" then
 			table.insert(DeathWarn.tDamage[dwCaster],{
-				szCaster = DeathWarn.GetName(target),
-				szTarget = DeathWarn.GetName(Caster),
+				szCaster = JH.GetTemplateName(target),
+				szTarget = JH.GetTemplateName(Caster),
 				szSkillName = _L["Bounce"] .. "("..szSkillName..")",
 				szValue = szDamage,
 			})
@@ -2907,7 +2896,7 @@ DeathWarn.OnCommonHealthLog = function(dwTarget, nDeltaLife)
 			end
 			table.insert(DeathWarn.tDamage[dwTarget],{
 				szCaster = _L["Unknown"],
-				szTarget = DeathWarn.GetName(target),
+				szTarget = JH.GetTemplateName(target),
 				szSkillName = _L["Unknown Skill"],
 				szValue = nDeltaLife .. _L["Points harm"],
 			})
