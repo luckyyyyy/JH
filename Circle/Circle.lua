@@ -843,6 +843,7 @@ C.OpenMtPanel = function()
 	if Station.Lookup("Normal/C_Mt") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Mt"))
 	end
+	JH.Sysmsg2(_L["CIRCLE_MT_TIP"])
 	GUI.CreateFrame("C_Mt", { w = 380, h = 250, title = _L["Mapping"], close = true }):RegisterClose()
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_Mt"))
@@ -1087,19 +1088,35 @@ PS.OnPanelActive = function(frame)
 		end
 		for k, v in pairs(C.tData) do
 			if k ~= -1 and k ~= -2 and k ~= "mt" then
-				local tm = menu[4]
+				local tm, txt = menu[4], ""
 				if C.tMapList[C.GetMapName(k)].bDungeon then
 					tm = menu[3]
+					txt = string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k])
 				end
-				tinsert(tm, { szOption = C.GetMapName(k) .. string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k]), rgb = { 255, 180, 0 }, fnAction = function() 
-					C.dwSelMapID = k
-					FireEvent("CIRCLE_DRAW_UI")
-					ui:Fetch("Select"):Text(C.GetMapName(k))
-				end })
+				tinsert(tm, { szOption = C.GetMapName(k) .. txt, 
+					rgb = { 255, 180, 0 },
+					szLayer = "ICON_RIGHT",
+					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+					nFrame = 86,
+					nMouseOverFrame = 87,
+					fnClickIcon = function()
+						JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(k) .. txt), function()
+							C.tData[k] = nil
+							FireEvent("CIRCLE_DRAW_UI")
+							FireEvent("CIRCLE_CLEAR")
+						end)
+					end,
+					fnAction = function() 
+						C.dwSelMapID = k
+						FireEvent("CIRCLE_DRAW_UI")
+						ui:Fetch("Select"):Text(C.GetMapName(k))
+					end 
+				})
 				if k == C.GetMapID() then
 					tm[#tm].szIcon = "ui/Image/Minimap/Minimap.uitex"
 					tm[#tm].szLayer = "ICON_RIGHT"
 					tm[#tm].nFrame = 10
+					tm[#tm].nMouseOverFrame = nil
 				end
 			end
 		end
@@ -1117,7 +1134,7 @@ PS.OnPanelActive = function(frame)
 				if not C.tMt[k] then -- 数据非法
 					r, g, b = 128, 128, 128
 				end
-				tinsert(menu[#menu], { szOption = string.format("%s -> %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]), rgb = { r, g, b }, fnAction = function()
+				tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]), rgb = { r, g, b }, fnAction = function()
 					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, string.format("%s -> %s", C.GetMapName(k), C.GetMapName(v))), function()
 						C.tData["mt"][k] = nil
 						if IsEmpty(C.tData["mt"]) then C.tData["mt"] = nil end
