@@ -821,23 +821,23 @@ C.OpenDataPanel = function(data, id, index)
 			v.bEnable = bChecked
 			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 2, w = 35, h = 25, limit = 3 })
+		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 2, w = 35, h = 25, limit = 4 })
 		:Enable(k ~= 2):Text(v.nAngle):Change(function(nVal)
 			local n = tonumber(nVal) or 30
 			if n < 2 or n > 360 then
 				n = 30
-				JH.Alert(_L["Limit 2, "] .. 360)
+				JH.Sysmsg2(_L["Limit 2, "] .. 360)
 			end
 			v.nAngle = n
 			FireEvent("CIRCLE_RESERT_DRAW")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" degree"] }):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY + 2, w = 35, h = 25, limit = 2 })
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY + 2, w = 35, h = 25, limit = 4 })
 		:Text(v.nRadius):Change(function(nVal)
 			local n = tonumber(nVal) or 1
 			if n < 0 or n > CIRCLE_MAX_RADIUS then
 				n = 1
-				JH.Alert(_L["Limit 0, "] .. CIRCLE_MAX_RADIUS)
+				JH.Sysmsg2(_L["Limit 0, "] .. CIRCLE_MAX_RADIUS)
 			end
 			v.nRadius = n
 			FireEvent("CIRCLE_RESERT_DRAW")
