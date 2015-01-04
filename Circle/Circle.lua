@@ -13,7 +13,7 @@ local GetClientPlayer = GetClientPlayer
 local SHADOW = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
 local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local CIRCLE_CIRCLE_ALPHA = 55 -- 最大的透明度 根据半径逐步降低 
+local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 150 -- 线和边框最大透明度
 local CIRCLE_RESERT_DRAW = false -- 全局重绘
@@ -319,10 +319,10 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	end
 	if nAngle <= 45 then nStep = 180 end
 	local nAlpha = CIRCLE_CIRCLE_ALPHA
-	if 2.5 * (nRadius / 64) > 40 then
+	if 3.3 * (nRadius / 64) > 40 then
 		nAlpha = 10
 	else
-		nAlpha = nAlpha - 2.5 * (nRadius / 64)
+		nAlpha = nAlpha - 3.3 * (nRadius / 64)
 	end
 	local r, g, b = unpack(col)
 	-- orgina point
