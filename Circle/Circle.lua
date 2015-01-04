@@ -36,26 +36,6 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 -- 除上述外 其他一律 = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
-local MAP_CACHE = {
-	[-1] = _L["All Map"],
-	[-2] = _L["Global Map"]
-}
-
-setmetatable(MAP_CACHE, { __mode = "kv" })
-local _GetMapName = Table_GetMapName
-local function C_GetMapName(mapid)
-	if MAP_CACHE[mapid] then
-		return MAP_CACHE[mapid]
-	end
-	local szMap = _GetMapName(mapid)
-	if szMap == "" then
-		MAP_CACHE[mapid] = tostring(mapid)
-	else
-		MAP_CACHE[mapid] = szMap		
-	end
-	return MAP_CACHE[mapid]
-end
-
 local function Confuse(tCode)
 	if type(tCode) == "table" then
 		return JsonEncode(tCode)
@@ -91,6 +71,7 @@ local C = {
 			{ key = "Example", bEnable = true, szNote = "Example", dwType = TARGET.NPC, }
 		}
 	},
+	tMt = {},
 	tDrawText = {},
 	tTarget = {},
 	tCache = {
@@ -110,13 +91,34 @@ local C = {
 		[_L["All Map"]] = { id = -1, bDungeon = true },
 	},
 }
+-- 获取地图名
+local MAP_CACHE = {
+	[-1] = _L["All Map"],
+	[-2] = _L["Global Map"]
+}
+setmetatable(MAP_CACHE, { __mode = "kv" })
+local _GetMapName = Table_GetMapName
+C.GetMapName = function(mapid)
+	if not MAP_CACHE[mapid] then
+		local szMap = _GetMapName(mapid)
+		if szMap == "" then
+			MAP_CACHE[mapid] = tostring(mapid)
+		else
+			MAP_CACHE[mapid] = szMap
+		end
+	end
+	return MAP_CACHE[mapid]
+end
+
 do
 	for k, v in ipairs(GetMapList()) do
-		local szName = C_GetMapName(v)
-		local a = g_tTable.DungeonInfo:Search(v)
-		C.tMapList[szName] = { id = v }
-		if a and a.dwClassID == 3 then
-			C.tMapList[szName].bDungeon = true
+		if v < 143 or v >= 147 then
+			local szName = C.GetMapName(v)
+			local a = g_tTable.DungeonInfo:Search(v)
+			C.tMapList[szName] = { id = v }
+			if a and a.dwClassID == 3 then
+				C.tMapList[szName].bDungeon = true
+			end
 		end
 	end
 end
@@ -131,7 +133,12 @@ C.SaveFile = function(szFullPath, bMsg)
 		Circle = {},
 	}
 	for k, v in pairs(C.tData) do -- fix encode
-		data.Circle[tostring(k)] = v
+		data.Circle[tostring(k) or k] = v
+		if k == "mt" then
+			for kk, vv in pairs(v) do
+				data.Circle["mt"][tostring(kk)] = vv
+			end
+		end
 	end
 	if not bMsg then
 		if IsRemotePlayer(UI_GetClientPlayerID()) then
@@ -182,15 +189,22 @@ C.LoadCircleData = function(tData, bMsg)
 		end
 	end
 	for k, v in pairs(tData.Circle) do
-		local map = C.tMapList[tonumber(k)]
-		if map and map.bDungeon then
-			if #v < CIRCLE_MAP_COUNT[tonumber(k)] then
-				data[tonumber(k)] = v
+		if k ~= "mt" then
+			local map = C.tMapList[tonumber(k)]
+			if map and map.bDungeon then
+				if #v < CIRCLE_MAP_COUNT[tonumber(k)] then
+					data[tonumber(k)] = v
+				else
+					JH.Debug2(_L["Length limit. # "] .. k)
+				end
 			else
-				JH.Debug2(_L["Length limit. # "] .. k)
+				data[tonumber(k)] = v
 			end
 		else
-			data[tonumber(k)] = v
+			data["mt"] = {}
+			for kk, vv in pairs(v) do
+				data["mt"][tonumber(kk)] = vv
+			end
 		end
 	end
 	C.tData = data
@@ -222,6 +236,22 @@ C.Release = function()
 		[TARGET.NPC] = {},
 		[TARGET.DOODAD] = {},
 	}
+	C.tMt = {}
+	-- 规则检查
+	if C.tData["mt"] then
+		for k, v in pairs(C.tData["mt"]) do
+			if C.GetMapName(v):match(C.GetMapName(k)) then
+				local a = C.tMapList[C.GetMapName(v)]
+				local b = C.tMapList[C.GetMapName(k)]
+				if (a.bDungeon and b.bDungeon) or (not a.bDungeon and not b.bDungeon) then
+					if b.id >= 0 then
+						C.tMt[k] = v
+					end
+				end
+			end
+		end
+	end
+	
 	C.tTarget = {} -- clear
 	-- 取得容器
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
@@ -232,6 +262,14 @@ C.Release = function()
 	C.shName:Clear()
 	C.shName = C.shName:AppendItemFromIni(SHADOW, "shadow", "Circle_NAME")
 	C.shName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
+	local mt = {
+		__index = function(me, mapid)
+			if tonumber(mapid) and C.tMt[mapid] then
+				return me[C.tMt[mapid]]
+			end
+		end
+	}
+	setmetatable(C.tData, mt)
 end
 -- 构建data table
 C.CreateData = function()
@@ -242,14 +280,14 @@ C.CreateData = function()
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	-- 全地图数据
-	if C.tData[-1] and C.tMapList[C_GetMapName(mapid)] and not C.tMapList[C_GetMapName(mapid)].bDungeon then
+	if C.tData[-1] and C.tMapList[C.GetMapName(mapid)] and not C.tMapList[C.GetMapName(mapid)].bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
 		end
 	end
 	-- 全地图数据
-	if C.tData[-2] and C.tMapList[C_GetMapName(mapid)] then
+	if C.tData[-2] and C.tMapList[C.GetMapName(mapid)] then
 		for k, v in ipairs(C.tData[-2]) do
 			C.tList[v.dwType][v.key] = { id = -2, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-2][k] end })
@@ -275,6 +313,9 @@ C.RemoveData = function(mapid, index, bConfirm)
 			table.remove(C.tData[mapid], index)
 			FireEvent("CIRCLE_CLEAR")
 			FireEvent("CIRCLE_DRAW_UI")
+			if #C.tData[mapid] == 0 then
+				C.tData[mapid] = nil
+			end
 		end
 		if bConfirm then
 			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
@@ -408,8 +449,10 @@ C.DrawTable = function()
 		local mapid = C.dwSelMapID or C.GetMapID()
 		if mapid == _L["All Circle"] then
 			for k, v in pairs(C.tData) do
-				for kk, vv in ipairs(v) do
-					tinsert(tab, { key = vv.key, szNote = vv.szNote, id = k, index = kk, bEnable = vv.bEnable })
+				if k ~= "mt" then
+					for kk, vv in ipairs(v) do
+						tinsert(tab, { key = vv.key, szNote = vv.szNote, id = k, index = kk, bEnable = vv.bEnable })
+					end
 				end
 			end
 		else
@@ -424,9 +467,9 @@ C.DrawTable = function()
 					item:Lookup("Image_Line"):Hide()
 				end
 				item:Lookup("Text_I_Name"):SetText(v.szNote or v.key)
-				local szMapName = C_GetMapName(mapid)
+				local szMapName = C.GetMapName(mapid)
 				if v.id then
-					szMapName = C_GetMapName(v.id)
+					szMapName = C.GetMapName(v.id)
 				end
 				item:Lookup("Text_I_Map"):SetText(szMapName)
 				item.OnItemMouseEnter = function()
@@ -730,7 +773,7 @@ C.OpenAddPanel = function(szName, dwType)
 		ui:Fetch("Name"):Text(szText)
 	end)
 	ui:Append("Text", { txt = _L["Map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
-	ui:Append("WndEdit", "Map", { txt = C_GetMapName(C.GetMapID()), x = 115, y = 113 })
+	ui:Append("WndEdit", "Map", { txt = C.GetMapName(C.GetMapID()), x = 115, y = 113 })
 	
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
 	:Enable(szName == nil):Click(function()
@@ -791,6 +834,41 @@ C.OpenAddPanel = function(szName, dwType)
 			end
 		else
 			JH.Alert(_L["The map does not exist"])
+		end
+	end)
+end
+
+C.OpenMtPanel = function()
+	if Station.Lookup("Normal/C_Mt") then
+		Wnd.CloseWindow(Station.Lookup("Normal/C_Mt"))
+	end
+	GUI.CreateFrame("C_Mt", { w = 380, h = 250, title = _L["Mapping"], close = true }):RegisterClose()
+	-- update ui = wnd
+	local ui = GUI(Station.Lookup("Normal/C_Mt"))
+	ui:Append("Text", "Name", { txt = _L["Please enter Map"], font = 48, w = 380, h = 30, x = 0, y = 45, align = 1 })
+	ui:Append("Text", { txt = _L["source:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
+	ui:Append("WndEdit", "source", { txt = szName, x = 115, y = 83, enable = szName == nil })
+	:Change(function(szText)
+		ui:Fetch("Name"):Text(ui:Fetch("map"):Text()  .. " = " .. szText)
+	end)
+	ui:Append("Text", { txt = _L["map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
+	ui:Append("WndEdit", "map", { x = 115, y = 113 }):Change(function(szText)
+		ui:Fetch("Name"):Text(szText .. " = " .. ui:Fetch("source"):Text())
+	end)	
+	ui:Append("WndButton3", { txt = g_tStrings.STR_HOTKEY_SURE, x = 115, y = 185 })
+	:Click(function()
+		local map = C.tMapList[ui:Fetch("map"):Text()]
+		local source = C.tMapList[ui:Fetch("source"):Text()]
+		if not map or not source then
+			return JH.Alert(_L["The map does not exist"])
+		end
+		if ui:Fetch("source"):Text():match(ui:Fetch("map"):Text()) and ((map.bDungeon and source.bDungeon) or (not map.bDungeon and not source.bDungeon)) then
+			C.tData["mt"] = C.tData["mt"] or {}
+			C.tData["mt"][map.id] = source.id
+			ui:Fetch("Btn_Close"):Click()
+			FireEvent("CIRCLE_CLEAR")
+		else
+			return JH.Alert(_L["Do not conform to the rules"])
 		end
 	end)
 end
@@ -961,7 +1039,6 @@ C.OpenDataPanel = function(data, id, index)
 	:Click(function()
 		C.RemoveData(id, index, not IsAltKeyDown())
 	end)
-	
 end
 
 local PS = {}
@@ -996,29 +1073,66 @@ PS.OnPanelActive = function(frame)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	if not C.dwSelMapID then C.dwSelMapID = _L["All Circle"] end
-	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_GetMapName(C.dwSelMapID) }):Menu(function()
+	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C.GetMapName(C.dwSelMapID) }):Menu(function()
 		local menu = {
-			{ szOption =  _L["All Circle"], fnAction = function()
+			{ szOption = _L["All Circle"], fnAction = function()
 				C.dwSelMapID = _L["All Circle"]
 				FireEvent("CIRCLE_DRAW_UI")
 				ui:Fetch("Select"):Text(_L["All Circle"])
 			end },
-			{ bDevide = true }
+			{ bDevide = true },
+			{ szOption = _L["Dungeon"] },
+			{ szOption = _L["Other"] },
 		}
-		for k, v in pairs(C.tData) do
-			tinsert(menu, { szOption = C_GetMapName(k), fnAction = function() 
-				C.dwSelMapID = k
-				FireEvent("CIRCLE_DRAW_UI")
-				ui:Fetch("Select"):Text(C_GetMapName(k))
-			end })
-			if k == C.GetMapID() then
-				menu[#menu].szIcon = "ui/Image/Minimap/Minimap.uitex"
-				menu[#menu].szLayer = "ICON_RIGHT"
-				menu[#menu].nFrame = 10
+		for i = -1, -2, -1 do
+			if C.tData[i] then
+				tinsert(menu, { szOption = C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i]), rgb = { 255, 180, 0 }, fnAction = function() 
+					C.dwSelMapID = i
+					FireEvent("CIRCLE_DRAW_UI")
+					ui:Fetch("Select"):Text(C.GetMapName(i))
+				end })
 			end
 		end
-		if #menu == 0 then
-			tinsert(menu, { szOption = _L["None Data"], bDisable = true })
+		for k, v in pairs(C.tData) do
+			if k ~= -1 and k ~= -2 and k ~= "mt" then
+				local tm = menu[4]
+				if C.tMapList[C.GetMapName(k)].bDungeon then
+					tm = menu[3]
+				end
+				tinsert(tm, { szOption = C.GetMapName(k) .. string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k]), rgb = { 255, 180, 0 }, fnAction = function() 
+					C.dwSelMapID = k
+					FireEvent("CIRCLE_DRAW_UI")
+					ui:Fetch("Select"):Text(C.GetMapName(k))
+				end })
+				if k == C.GetMapID() then
+					tm[#tm].szIcon = "ui/Image/Minimap/Minimap.uitex"
+					tm[#tm].szLayer = "ICON_RIGHT"
+					tm[#tm].nFrame = 10
+				end
+			end
+		end
+		tinsert(menu, { bDevide = true })
+		tinsert(menu, { szOption = _L["Mapping"], rgb = { 255, 0, 0 } , 
+			{ szOption = _L["Add Mapping"], fnAction = C.OpenMtPanel },
+			{ bDevide = true },
+		})
+		if not IsTableEmpty(C.tData["mt"]) then
+			for k, v in pairs(C.tData["mt"]) do
+				local n, r, g, b = 0, 255, 0, 128
+				if C.tData[v] then
+					n = #C.tData[v]
+				end
+				if not C.tMt[k] then -- 数据非法
+					r, g, b = 128, 128, 128
+				end
+				tinsert(menu[#menu], { szOption = string.format("%s -> %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]), rgb = { r, g, b }, fnAction = function()
+					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, string.format("%s -> %s", C.GetMapName(k), C.GetMapName(v))), function()
+						C.tData["mt"][k] = nil
+						if IsEmpty(C.tData["mt"]) then C.tData["mt"] = nil end
+						FireEvent("CIRCLE_CLEAR")
+					end)
+				end })
+			end
 		end
 		return menu
 	end):Pos_()

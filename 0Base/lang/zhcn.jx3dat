@@ -522,4 +522,11 @@ data = {
 	["TaiJiWuJi"] = "太极无极",
 	["value is too big"] = "数据太大了",
 	["please enter number"] = "请输入数字",
+	["Dungeon"] = "团队副本",
+	["source:"] = "源数据地图：",
+	["map:"] = "目标地图：",
+	["Mapping"] = "数据作用地图映射",
+	["Add Mapping"] = "添加映射",
+	["Please enter Map"] = "请输入地图名",
+	["Do not conform to the rules"] = "不符合规则，目标地图名必须包含源地图名并且双方均为副本地图\n例：目标(血战天策),源(英雄血战天策)",
 }
