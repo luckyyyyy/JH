@@ -1032,7 +1032,7 @@ PS.OnPanelActive = function(frame)
 	FireEvent("CIRCLE_DRAW_UI")
 end
 
-GUI.RegisterPanel(_L["Circle"], 2402, _L["RGES"], PS)
+GUI.RegisterPanel(_L["Circle"], 2673, _L["RGES"], PS)
 
 C.Init = function()
 	JH.RegisterInit("Circle", 
@@ -1073,7 +1073,6 @@ end })
 local ui = {
 	OpenAddPanel = C.OpenAddPanel,
 	LoadCircleData = C.LoadCircleData,
-	SaveFile = C.SaveFile,
 	GetData = C.GetData,
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )
