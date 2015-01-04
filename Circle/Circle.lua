@@ -36,20 +36,24 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 -- 除上述外 其他一律 = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
+local MAP_CACHE = {
+	[-1] = _L["All Map"],
+	[-2] = _L["Global Map"]
+}
+
+setmetatable(MAP_CACHE, { __mode = "kv" })
 local _GetMapName = Table_GetMapName
-local function C_Table_GetMapName(mapid)
-	if mapid == -1 then
-		return _L["All Map"]
-	end
-	if mapid == -2 then
-		return _L["Global Map"]
+local function C_GetMapName(mapid)
+	if MAP_CACHE[mapid] then
+		return MAP_CACHE[mapid]
 	end
 	local szMap = _GetMapName(mapid)
 	if szMap == "" then
-		return tostring(mapid)
+		MAP_CACHE[mapid] = tostring(mapid)
 	else
-		return szMap
+		MAP_CACHE[mapid] = szMap		
 	end
+	return MAP_CACHE[mapid]
 end
 
 local function Confuse(tCode)
@@ -108,7 +112,7 @@ local C = {
 }
 do
 	for k, v in ipairs(GetMapList()) do
-		local szName = C_Table_GetMapName(v)
+		local szName = C_GetMapName(v)
 		local a = g_tTable.DungeonInfo:Search(v)
 		C.tMapList[szName] = { id = v }
 		if a and a.dwClassID == 3 then
@@ -198,7 +202,11 @@ C.LoadCircleData = function(tData, bMsg)
 end
 
 C.GetMapID = function()
-	return GetClientPlayer().GetMapID()
+	local mapid = GetClientPlayer().GetMapID()
+	if mapid >= 143 and mapid <= 147 then
+		mapid = 147
+	end
+	return mapid
 end
 
 C.Release = function()
@@ -234,14 +242,14 @@ C.CreateData = function()
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	-- 全地图数据
-	if C.tData[-1] and C.tMapList[C_Table_GetMapName(mapid)] and not C.tMapList[C_Table_GetMapName(mapid)].bDungeon then
+	if C.tData[-1] and C.tMapList[C_GetMapName(mapid)] and not C.tMapList[C_GetMapName(mapid)].bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
 		end
 	end
 	-- 全地图数据
-	if C.tData[-2] and C.tMapList[C_Table_GetMapName(mapid)] then
+	if C.tData[-2] and C.tMapList[C_GetMapName(mapid)] then
 		for k, v in ipairs(C.tData[-2]) do
 			C.tList[v.dwType][v.key] = { id = -2, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-2][k] end })
@@ -416,9 +424,9 @@ C.DrawTable = function()
 					item:Lookup("Image_Line"):Hide()
 				end
 				item:Lookup("Text_I_Name"):SetText(v.szNote or v.key)
-				local szMapName = C_Table_GetMapName(mapid)
+				local szMapName = C_GetMapName(mapid)
 				if v.id then
-					szMapName = C_Table_GetMapName(v.id)
+					szMapName = C_GetMapName(v.id)
 				end
 				item:Lookup("Text_I_Map"):SetText(szMapName)
 				item.OnItemMouseEnter = function()
@@ -722,7 +730,7 @@ C.OpenAddPanel = function(szName, dwType)
 		ui:Fetch("Name"):Text(szText)
 	end)
 	ui:Append("Text", { txt = _L["Map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
-	ui:Append("WndEdit", "Map", { txt = C_Table_GetMapName(C.GetMapID()), x = 115, y = 113 })
+	ui:Append("WndEdit", "Map", { txt = C_GetMapName(C.GetMapID()), x = 115, y = 113 })
 	
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
 	:Enable(szName == nil):Click(function()
@@ -988,7 +996,7 @@ PS.OnPanelActive = function(frame)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	if not C.dwSelMapID then C.dwSelMapID = _L["All Circle"] end
-	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_Table_GetMapName(C.dwSelMapID) }):Menu(function()
+	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C_GetMapName(C.dwSelMapID) }):Menu(function()
 		local menu = {
 			{ szOption =  _L["All Circle"], fnAction = function()
 				C.dwSelMapID = _L["All Circle"]
@@ -998,10 +1006,10 @@ PS.OnPanelActive = function(frame)
 			{ bDevide = true }
 		}
 		for k, v in pairs(C.tData) do
-			tinsert(menu, { szOption = C_Table_GetMapName(k), fnAction = function() 
+			tinsert(menu, { szOption = C_GetMapName(k), fnAction = function() 
 				C.dwSelMapID = k
 				FireEvent("CIRCLE_DRAW_UI")
-				ui:Fetch("Select"):Text(C_Table_GetMapName(k))
+				ui:Fetch("Select"):Text(C_GetMapName(k))
 			end })
 			if k == C.GetMapID() then
 				menu[#menu].szIcon = "ui/Image/Minimap/Minimap.uitex"
