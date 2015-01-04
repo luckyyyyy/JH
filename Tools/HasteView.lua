@@ -17,11 +17,11 @@ HasteView.calc = function(time, x)
 	end
 	local extra = HasteView.extra
 	local oriTime = tonumber(time)
-	if oriTime > 10 then
+	if oriTime > 100 then
 		return JH.Alert("value is too big")
 	end
 	local skillx = tonumber(x)
-	if skillx > 10 then
+	if skillx > 100 then
 		return JH.Alert("value is too big")
 	end
 	local oriFrame = math.ceil(oriTime / 0.0625)
@@ -60,7 +60,7 @@ PS.OnPanelActive = function(frame)
 		if szText == "" then return end
 		HasteView.calc(ui:Fetch("time"):Text(), ui:Fetch("count"):Text())
 	end):Pos_()
-	nX = ui:Append("Text", { x = nX + 30, y = nY + 5, txt = _L["skill count"] }):Pos_()
+	nX = ui:Append("Text", { x = nX + 15, y = nY + 5, txt = _L["skill count"] }):Pos_()
 	nX, nY = ui:Append("WndEdit", "count", { x = nX + 5, y = nY + 8, txt = 1, w = 30, h = 26 })
 	:Change(function(szText)
 		if szText == "" then return end
