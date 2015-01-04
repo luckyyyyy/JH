@@ -36,6 +36,17 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 -- 除上述外 其他一律 = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
+local CIRCLE_COLOR = {
+	{ r = 0,   g = 255, b = 0},
+	{ r = 0,   g = 255, b = 255},
+	{ r = 255, g = 0,   b = 0},
+	{ r = 40,  g = 140, b = 218},
+	{ r = 211, g = 229, b = 37},
+	{ r = 65,  g = 50,  b = 160},
+	{ r = 170, g = 65,  b = 180},
+	{ r = 255, g = 255, b = 255},
+}
+
 local function Confuse(tCode)
 	if type(tCode) == "table" then
 		return JsonEncode(tCode)
@@ -60,17 +71,7 @@ JH.RegisterCustomData("Circle")
 local Circle = Circle
 local C = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
-	tData = {
-		[-2] = {
-			{ key = 4982, bEnable = true, szNote = _L["this is god"], bDrawName = true, dwType = TARGET.NPC, tCircles = {
-					{ bEnable = true, nAngle = 360, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
-				}
-			}
-		},
-		[-1] = {
-			{ key = "Example", bEnable = true, szNote = "Example", dwType = TARGET.NPC, }
-		}
-	},
+	tData = {},
 	tMt = {},
 	tDrawText = {},
 	tTarget = {},
@@ -852,7 +853,7 @@ C.OpenMtPanel = function()
 		ui:Fetch("Name"):Text(ui:Fetch("map"):Text()  .. " = " .. szText)
 	end)
 	ui:Append("Text", { txt = _L["map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
-	ui:Append("WndEdit", "map", { x = 115, y = 113 }):Change(function(szText)
+	ui:Append("WndEdit", "map", { x = 115, y = 113, txt = C.GetMapName(C.GetMapID()) }):Change(function(szText)
 		ui:Fetch("Name"):Text(szText .. " = " .. ui:Fetch("source"):Text())
 	end)	
 	ui:Append("WndButton3", { txt = g_tStrings.STR_HOTKEY_SURE, x = 115, y = 185 })
@@ -938,16 +939,7 @@ C.OpenDataPanel = function(data, id, index)
 				ui:Fetch("Color_" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				FireEvent("CIRCLE_RESERT_DRAW")
-			end,nil,nil,{
-				{ r = 0, g = 255, b = 0},
-				{ r = 0, g = 255, b = 255},
-				{ r = 255, g = 0, b = 0},
-				{ r = 40, g = 140, b = 218},
-				{ r = 211, g = 229, b = 37},
-				{ r = 65, g = 50, b = 160},
-				{ r = 170, g = 65, b = 180},
-				{ r = 255, g = 255, b = 255},
-			})
+			end,nil,nil,CIRCLE_COLOR)
 			end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = nX + 2, y = nY + 1, txt = _L["Draw Border"], checked = v.bBorder })
 		:Click(function(bChecked)
