@@ -16,7 +16,6 @@ local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载
 local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 150 -- 线和边框最大透明度
-local CIRCLE_RESERT_DRAW = false -- 全局重绘
 local CIRCLE_PLAYER_NAME = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
@@ -30,6 +29,8 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[176] = 35, -- 英雄血战天策
 	[199] = 20, -- 逐虎驱狼
 	[192] = 20, -- 逐虎驱狼
+	[182] = 25, -- 秦皇陵
+	[183] = 25, -- 秦皇陵
 }
 -- 除上述外 其他一律 = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
@@ -544,7 +545,7 @@ C.OnBreathe = function()
 						if not sha[kk] then
 							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 						end
-						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection then -- 面向不对 重绘
 							sha[kk].nFaceDirection = KGNpc.nFaceDirection
 							C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
@@ -553,7 +554,7 @@ C.OnBreathe = function()
 							if not sha[key] then
 								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 							end
-							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection then -- 面向不对 重绘
 								sha[key].nFaceDirection = KGNpc.nFaceDirection
 								C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 							end
@@ -637,7 +638,7 @@ C.OnBreathe = function()
 						if not sha[kk] then
 							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 						end
-						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection then -- 面向不对 重绘
 							sha[kk].nFaceDirection = KGDoodad.nFaceDirection
 							C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
@@ -646,7 +647,7 @@ C.OnBreathe = function()
 							if not sha[key] then
 								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 							end
-							if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection then -- 面向不对 重绘
 								sha[key].nFaceDirection = KGDoodad.nFaceDirection
 								C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 							end
@@ -668,7 +669,6 @@ C.OnBreathe = function()
 		end
 	end
 	pcall(C.DrawText)
-	CIRCLE_RESERT_DRAW = false
 end
 
 -- 注册头像右键菜单
@@ -830,7 +830,7 @@ C.OpenDataPanel = function(data, id, index)
 				JH.Sysmsg2(_L["Limit 2, "] .. 360)
 			end
 			v.nAngle = n
-			FireEvent("CIRCLE_RESERT_DRAW")
+			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" degree"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 8, y = nY + 2, w = 35, h = 25, limit = 4 })
@@ -841,7 +841,7 @@ C.OpenDataPanel = function(data, id, index)
 				JH.Sysmsg2(_L["Limit 0, "] .. CIRCLE_MAX_RADIUS)
 			end
 			v.nRadius = n
-			FireEvent("CIRCLE_RESERT_DRAW")
+			FireEvent("CIRCLE_CLEAR")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" feet"] }):Pos_()
 		nX = ui:Append("Shadow", "Color_" .. k, { x = nX + 5, y = nY + 2, color = v.col, w = 23, h = 23 })
@@ -849,7 +849,7 @@ C.OpenDataPanel = function(data, id, index)
 			OpenColorTablePanel(function(r, g, b)
 				ui:Fetch("Color_" .. k):Color(r, g, b)
 				v.col = { r, g, b }
-				FireEvent("CIRCLE_RESERT_DRAW")
+				FireEvent("CIRCLE_CLEAR")
 			end,nil,nil,{
 				{ r = 0, g = 255, b = 0},
 				{ r = 0, g = 255, b = 255},
@@ -1043,10 +1043,7 @@ C.Init = function()
 		{ "DOODAD_ENTER_SCENE", C.OnDoodadEnter },
 		{ "DOODAD_LEAVE_SCENE", C.OnDoodadLeave },
 		{ "LOADING_END", C.CreateData },
-		{ "CIRCLE_CLEAR", C.CreateData },
-		{ "CIRCLE_RESERT_DRAW", function()
-			CIRCLE_RESERT_DRAW = true
-		end }
+		{ "CIRCLE_CLEAR", C.CreateData }
 	)
 end
 
