@@ -319,10 +319,11 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	end
 	if nAngle <= 45 then nStep = 180 end
 	local nAlpha = CIRCLE_CIRCLE_ALPHA
-	if 3.3 * (nRadius / 64) > 40 then
+	local ap = 3.3 * (nRadius / 64)
+	if ap > 40 then
 		nAlpha = 10
 	else
-		nAlpha = nAlpha - 3.3 * (nRadius / 64)
+		nAlpha = nAlpha - ap
 	end
 	local r, g, b = unpack(col)
 	-- orgina point
