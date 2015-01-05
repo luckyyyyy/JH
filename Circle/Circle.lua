@@ -349,14 +349,14 @@ C.CreateData = function()
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	-- 全地图数据
-	if C.tData[-1] and C.tMapList[C.GetMapName(mapid)] and not C.tMapList[C.GetMapName(mapid)].bDungeon then
+	if C.tData[-1] and not C.tMapList[C.GetMapName(mapid)].bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
 		end
 	end
-	-- 全地图数据
-	if C.tData[-2] and C.tMapList[C.GetMapName(mapid)] then
+	-- global
+	if C.tData[-2] then
 		for k, v in ipairs(C.tData[-2]) do
 			C.tList[v.dwType][v.key] = { id = -2, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-2][k] end })
