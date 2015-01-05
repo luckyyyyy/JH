@@ -4918,9 +4918,9 @@ function RaidGrid_EventCache.PopRBOptions(handle)
 		{
 			szOption = "　★" .. _L["Add Face"], rgb = { 255, 255, 0 } ,bCheck = false, bChecked = false, bDisable = handle.tRecord.szType ~= "Npc" or type(Circle) == "nil" , fnAction = function(UserData, bCheck)
 				if IsAltKeyDown() then
-					Circle.OpenAddPanel(handle.tRecord.dwID, TARGET.NPC)
+					Circle.OpenAddPanel(handle.tRecord.dwID, TARGET.NPC, handle.tRecord.szMapName)
 				else
-					Circle.OpenAddPanel(handle.tRecord.szName, TARGET.NPC)
+					Circle.OpenAddPanel(handle.tRecord.szName, TARGET.NPC, handle.tRecord.szMapName)
 				end
 			end,
 		},
@@ -5412,9 +5412,9 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			nX = ui:Append("WndButton2",{ x = nX + 10, y = nY + 10 })
 			:Enable(type(Circle) ~= "nil"):Text("添加到面向"):Click(function(bChecked)
 				if IsAltKeyDown() then
-					Circle.OpenAddPanel(data.dwID, TARGET.NPC)
+					Circle.OpenAddPanel(data.dwID, TARGET.NPC, data.szMapName)
 				else
-					Circle.OpenAddPanel(data.szName, TARGET.NPC)
+					Circle.OpenAddPanel(data.szName, TARGET.NPC, data.szMapName)
 				end
 			end):Pos_()
 		end

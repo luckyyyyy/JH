@@ -98,14 +98,13 @@ local MAP_CACHE = {
 	[-2] = _L["Global Map"]
 }
 setmetatable(MAP_CACHE, { __mode = "kv" })
-local _GetMapName = Table_GetMapName
 C.GetMapName = function(mapid)
 	if not MAP_CACHE[mapid] then
-		local szMap = _GetMapName(mapid)
-		if szMap == "" then
+		local _szMap = Table_GetMapName(mapid) or ""
+		if _szMap == "" then
 			MAP_CACHE[mapid] = tostring(mapid)
 		else
-			MAP_CACHE[mapid] = szMap
+			MAP_CACHE[mapid] = _szMap
 		end
 	end
 	return MAP_CACHE[mapid]
@@ -372,8 +371,8 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	if nAngle <= 45 then nStep = 180 end
 	local nAlpha = CIRCLE_CIRCLE_ALPHA
 	local ap = 3.3 * (nRadius / 64)
-	if ap > 40 then
-		nAlpha = 10
+	if ap > 35 then
+		nAlpha = 15
 	else
 		nAlpha = nAlpha - ap
 	end
@@ -759,7 +758,7 @@ Target_AppendAddonMenu({function(dwID, dwType)
 	end
 end })
 
-C.OpenAddPanel = function(szName, dwType)
+C.OpenAddPanel = function(szName, dwType, szMap)
 	if Station.Lookup("Normal/C_NewFace") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_NewFace"))
 	end
@@ -774,8 +773,14 @@ C.OpenAddPanel = function(szName, dwType)
 		ui:Fetch("Name"):Text(szText)
 	end)
 	ui:Append("Text", { txt = _L["Map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
-	ui:Append("WndEdit", "Map", { txt = C.GetMapName(C.GetMapID()), x = 115, y = 113 })
-	
+	if not szMap then
+		if tonumber(C.dwSelMapID) then
+			szMap = C.GetMapName(C.dwSelMapID)
+		else
+			szMap = C.GetMapName(C.GetMapID())
+		end
+	end
+	ui:Append("WndEdit", "Map", { txt = szMap, x = 115, y = 113 })
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
 	:Enable(szName == nil):Click(function()
 		dwType = TARGET.NPC
