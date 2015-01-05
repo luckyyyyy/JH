@@ -725,7 +725,7 @@ C.OnBreathe = function()
 							JH.Talk(szName, _L("Warning: %s staring at you", data.szNote or data.key))
 						end
 						if Circle.bTeamChat and data.bTeamChat then
-							JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, szName))
+							JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
 						end
 					end
 					-- RaidGrid_RedAlarm这个还没重构 先这样 
@@ -816,9 +816,9 @@ Target_AppendAddonMenu({function(dwID, dwType)
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
 				if IsAltKeyDown() then
-					C.OpenAddPanel(p.dwTemplateID, dwType)
+					C.OpenAddPanel(p.dwTemplateID, dwType, C.GetMapName(C.GetMapID()))
 				else
-					C.OpenAddPanel(JH.GetTemplateName(p), dwType)
+					C.OpenAddPanel(JH.GetTemplateName(p), dwType, C.GetMapName(C.GetMapID()))
 				end
 			end }}
 		end
