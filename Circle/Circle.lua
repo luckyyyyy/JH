@@ -119,7 +119,7 @@ end
 
 do
 	for k, v in ipairs(GetMapList()) do
-		if not MAP_NAME_FIX[k] then
+		if not MAP_NAME_FIX[v] then
 			local szName = C.GetMapName(v)
 			local a = g_tTable.DungeonInfo:Search(v)
 			C.tMapList[szName] = { id = v }
@@ -129,7 +129,6 @@ do
 		end
 	end
 end
-
 C.GetData = function()
 	return C.tData
 end
