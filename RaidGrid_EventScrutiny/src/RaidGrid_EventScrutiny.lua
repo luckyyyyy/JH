@@ -518,7 +518,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 		RaidGrid_Base.Message(_L("Merge %s data done","RGES"))
 		if RaidGrid_EventScrutiny.bOutputBossFaceData then
 			if data.Circle then
-				Circle.LoadCircleData(data, true)
+				Circle.LoadCircleMergeData(data)
 			end
 		end
 		if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then -- 合并喊话数据
