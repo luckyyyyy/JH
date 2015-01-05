@@ -1176,7 +1176,7 @@ PS.OnPanelActive = function(frame)
 		end
 		for k, v in pairs(C.tData) do
 			if k ~= -1 and k ~= -2 and k ~= "mt" then
-				local tm, txt = menu[4], ""
+				local tm, txt = menu[4], string.format(" (%d)", #v)
 				if C.tMapList[C.GetMapName(k)].bDungeon then
 					tm = menu[3]
 					txt = string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k])
