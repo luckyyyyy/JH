@@ -205,8 +205,18 @@ _PartyBuffList.OnBuffUpdate = function()
 	if arg1 then return end
 	local szName = JH.GetBuffName(arg4,arg8)
 	if PartyBuffList.tList[szName] then
-		FireEvent("JH_PARTYBUFFLIST", arg0, arg4, arg8)
+		_PartyBuffList.OnTableInsert(arg0, arg4, arg8)
 	end
+end
+
+_PartyBuffList.OnTableInsert = function(dwID, dwBuffID, nLevel)
+	for k,v in ipairs(_PartyBuffList.tList) do
+		if v.dwID == dwID and v.dwBuffID == dwBuffID and v.nLevel == nLevel then
+			return
+		end
+	end
+	table.insert(_PartyBuffList.tList, { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel })
+	pcall(_PartyBuffList.UpdateFrame)
 end
 
 local PS = {}
@@ -253,13 +263,7 @@ JH.RegisterInit("PartyBuffList",
 	{ "Breathe" , _PartyBuffList.OnBreathe },
 	{ "JH_PARTYBUFFLIST", function()
 		if not PartyBuffList.bEnableRGES then return end
-		for k,v in ipairs(_PartyBuffList.tList) do
-			if v.dwID == arg0 and v.dwBuffID == arg1 and v.nLevel == arg2 then
-				return
-			end
-		end
-		table.insert(_PartyBuffList.tList, { dwID = arg0, dwBuffID = arg1, nLevel = arg2 })
-		pcall(_PartyBuffList.UpdateFrame)
+		_PartyBuffList.OnTableInsert(arg0, arg1, arg2)
 	end }
 )
 
