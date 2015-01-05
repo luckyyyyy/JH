@@ -172,8 +172,6 @@ C.LoadFile = function(szFullPath, bMsg)
 	end
 end
 
--- 导入数据基本使用同一个函数
--- 严格判断数量 传table
 C.LoadCircleData = function(tData, bMsg)
 	local data = {}
 	if not bMsg then
@@ -213,6 +211,70 @@ C.LoadCircleData = function(tData, bMsg)
 	if bMsg then
 		JH.Sysmsg(_L["Circle loaded."])
 	end
+end
+
+C.LoadCircleMergeData = function(tData)
+	local data = {}
+	if GetCurrentTime() - Circle.nLimit < CIRCLE_CHANGE_TIME then
+		return JH.Sysmsg2(_L["Too frequent load file"])
+	else
+		Circle.nLimit = GetCurrentTime()
+	end
+	for k, v in pairs(tData.Circle) do
+		if k ~= "mt" then
+			local map = C.tMapList[tonumber(k)]
+			if map and map.bDungeon then
+				if #v < CIRCLE_MAP_COUNT[tonumber(k)] then
+					data[tonumber(k)] = v
+				else
+					JH.Debug2(_L["Length limit. # "] .. k)
+				end
+			else
+				data[tonumber(k)] = v
+			end
+		else
+			data["mt"] = {}
+			for kk, vv in pairs(v) do
+				data["mt"][tonumber(kk)] = vv
+			end
+		end
+	end
+	for k, v in pairs(data) do
+		if k ~= "mt" then
+			if C.tData[k] then
+				local map = C.tMapList[k]
+				for kk, vv in ipairs(v) do
+					if map and map.bDungeon then
+						if #C.tData[k] < CIRCLE_MAP_COUNT[k] then
+							local find = false
+							for kkk, vvv in ipairs(C.tData[k]) do
+								if vvv.key == vv.key then
+									find = true
+									break
+								end
+							end
+							if not find then table.insert(C.tData[k], vv) end
+						else
+							JH.Debug2(_L["Length limit. # "] .. k .. " # " .. kk)
+						end
+					else
+						table.insert(C.tData[k], vv)
+					end
+				end
+			else
+				C.tData[k] = v
+			end
+		else
+			for kk, vv in pairs(v) do
+				if not C.tData[kk] then
+					C.tData[kk] = vv
+				end
+			end
+		end
+	end
+	FireEvent("CIRCLE_CLEAR")
+	FireEvent("CIRCLE_DRAW_UI")
+	JH.Sysmsg(_L["Circle loaded."])
 end
 
 C.GetMapID = function()
@@ -1238,6 +1300,7 @@ end })
 local ui = {
 	OpenAddPanel = C.OpenAddPanel,
 	LoadCircleData = C.LoadCircleData,
+	LoadCircleMergeData = C.LoadCircleMergeData,
 	GetData = C.GetData,
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )
