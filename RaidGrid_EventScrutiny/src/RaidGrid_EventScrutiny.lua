@@ -475,7 +475,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 			end
 		else
 			if RaidGrid_EventScrutiny.bOutputBossFaceData then
-				if data.Circle then
+				if data.Circle and type(Circle) ~= "nil" then
 					Circle.LoadCircleData(data, true)
 				end
 			end
@@ -517,7 +517,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 		end
 		RaidGrid_Base.Message(_L("Merge %s data done","RGES"))
 		if RaidGrid_EventScrutiny.bOutputBossFaceData then
-			if data.Circle then
+			if data.Circle and type(Circle) ~= "nil" then
 				Circle.LoadCircleMergeData(data)
 			end
 		end
