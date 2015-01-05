@@ -616,7 +616,7 @@ C.OnBreathe = function()
 				end
 			end
 			if data.bDrawName then
-				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 0, 255, 0 }, TARGET.NPC, true })
+				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
 			end
 			if data.bTarget then
 				local sha = C.tCache[TARGET.NPC][k].Line
@@ -843,7 +843,7 @@ C.OpenMtPanel = function()
 	if Station.Lookup("Normal/C_Mt") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Mt"))
 	end
-	JH.Sysmsg2(_L["CIRCLE_MT_TIP"])
+	JH.Sysmsg(_L["CIRCLE_MT_TIP"])
 	GUI.CreateFrame("C_Mt", { w = 380, h = 250, title = _L["Mapping"], close = true }):RegisterClose()
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_Mt"))
@@ -1079,11 +1079,25 @@ PS.OnPanelActive = function(frame)
 		}
 		for i = -1, -2, -1 do
 			if C.tData[i] then
-				tinsert(menu, { szOption = C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i]), rgb = { 255, 180, 0 }, fnAction = function() 
-					C.dwSelMapID = i
-					FireEvent("CIRCLE_DRAW_UI")
-					ui:Fetch("Select"):Text(C.GetMapName(i))
-				end })
+				tinsert(menu, { szOption = C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i]), 
+					rgb = { 255, 180, 0 },
+					szLayer = "ICON_RIGHT",
+					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+					nFrame = 86,
+					nMouseOverFrame = 87,
+					fnClickIcon = function()
+						JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i])), function()
+							C.tData[i] = nil
+							FireEvent("CIRCLE_DRAW_UI")
+							FireEvent("CIRCLE_CLEAR")
+						end)
+					end,
+					fnAction = function() 
+						C.dwSelMapID = i
+						FireEvent("CIRCLE_DRAW_UI")
+						ui:Fetch("Select"):Text(C.GetMapName(i))
+					end 
+				})
 			end
 		end
 		for k, v in pairs(C.tData) do
@@ -1134,13 +1148,25 @@ PS.OnPanelActive = function(frame)
 				if not C.tMt[k] then -- 数据非法
 					r, g, b = 128, 128, 128
 				end
-				tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]), rgb = { r, g, b }, fnAction = function()
-					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, string.format("%s -> %s", C.GetMapName(k), C.GetMapName(v))), function()
-						C.tData["mt"][k] = nil
-						if IsEmpty(C.tData["mt"]) then C.tData["mt"] = nil end
-						FireEvent("CIRCLE_CLEAR")
-					end)
-				end })
+				tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]), 
+					rgb = { r, g, b },
+					szLayer = "ICON_RIGHT",
+					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+					nFrame = 86,
+					nMouseOverFrame = 87,
+					fnClickIcon = function()
+						JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, string.format("%s -> %s", C.GetMapName(k), C.GetMapName(v))), function()
+							C.tData["mt"][k] = nil
+							if IsEmpty(C.tData["mt"]) then C.tData["mt"] = nil end
+							FireEvent("CIRCLE_CLEAR")
+						end)
+					end,
+					fnAction = function()
+						C.dwSelMapID = v
+						FireEvent("CIRCLE_DRAW_UI")
+						ui:Fetch("Select"):Text(C.GetMapName(v))
+					end,
+				})
 			end
 		end
 		return menu
