@@ -258,7 +258,14 @@ C.LoadCircleMergeData = function(tData)
 							JH.Debug2(_L["Length limit. # "] .. k .. " # " .. kk)
 						end
 					else
-						table.insert(C.tData[k], vv)
+						local find = false
+						for kkk, vvv in ipairs(C.tData[k]) do
+							if vvv.key == vv.key then
+								find = true
+								break
+							end
+						end
+						if not find then table.insert(C.tData[k], vv) end					
 					end
 				end
 			else
