@@ -97,6 +97,13 @@ local MAP_CACHE = {
 	[-1] = _L["All Map"],
 	[-2] = _L["Global Map"]
 }
+local MAP_NAME_FIX = {
+	[143] = 147,
+	[144] = 147,
+	[145] = 147,
+	[146] = 147,
+	[195] = 196,
+}
 setmetatable(MAP_CACHE, { __mode = "kv" })
 C.GetMapName = function(mapid)
 	if not MAP_CACHE[mapid] then
@@ -112,7 +119,7 @@ end
 
 do
 	for k, v in ipairs(GetMapList()) do
-		if v < 143 or v >= 147 then
+		if not MAP_NAME_FIX[k] then
 			local szName = C.GetMapName(v)
 			local a = g_tTable.DungeonInfo:Search(v)
 			C.tMapList[szName] = { id = v }
@@ -286,8 +293,8 @@ end
 
 C.GetMapID = function()
 	local mapid = GetClientPlayer().GetMapID()
-	if mapid >= 143 and mapid <= 147 then
-		mapid = 147
+	if MAP_NAME_FIX[mapid] then
+		mapid = MAP_NAME_FIX[mapid]
 	end
 	return mapid
 end

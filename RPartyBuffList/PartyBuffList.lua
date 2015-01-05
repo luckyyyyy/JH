@@ -205,7 +205,7 @@ _PartyBuffList.OnBuffUpdate = function()
 	if arg1 then return end
 	local szName = JH.GetBuffName(arg4,arg8)
 	if PartyBuffList.tList[szName] then
-		PartyBuffList(arg0,arg4,arg8)
+		FireEvent("JH_PARTYBUFFLIST", arg0, arg4, arg8)
 	end
 end
 
