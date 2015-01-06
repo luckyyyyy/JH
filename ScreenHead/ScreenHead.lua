@@ -15,6 +15,7 @@ JH.RegisterCustomData("ScreenHead")
 
 local ScreenHead = ScreenHead
 local ipairs, pairs = ipairs, pairs
+local unpack = unpack
 local GetPlayer = GetPlayer
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 
@@ -24,15 +25,15 @@ local _ScreenHead = {
 		["Life"] = {},
 		["Mana"] = {},
 	},
-	tPointC = {25,25,180},
+	tPointC = { 25, 25, 180 },
 	tPoint = {
-		{15,0, 100}, 
-		{35,0, 100}, 
-		{35,25,180}, 
-		{43,25,255}, 
-		{25,50,180}, 
-		{7, 25,255}, 
-		{15,25,180},
+		{ 15, 0,  100 },
+		{ 35, 0,  100 },
+		{ 35, 25, 180 },
+		{ 43, 25, 255 },
+		{ 25, 50, 180 },
+		{ 7,  25, 255 },
+		{ 15, 25, 180 },
 	},
 	tFontCol = { -- font col
 		["Buff"] = {255,128,0},
@@ -68,10 +69,10 @@ _ScreenHead.GetListText = function(tab)
 	end
 	return table.concat(tName, "\n")
 end
-_ScreenHead.Create = function(obj,info,nIndex)
+_ScreenHead.Create = function(obj, info, nIndex)
 	local dwID = obj.dwID	
-	local txt,handle,Arrow,Text,Life,Mana,BG,lifeper,manaper,data
-	local tManaCol = { 50,100,255 }
+	local txt, handle, Arrow, Text, Life, Mana, BG, lifeper, manaper, data
+	local tManaCol = { 50, 100, 255 }
 	handle = _ScreenHead.handle:Lookup(tostring(dwID))
 	if not nIndex then
 		if not handle then error("not nIndex") end
@@ -99,7 +100,7 @@ _ScreenHead.Create = function(obj,info,nIndex)
 			end
 		elseif data.type == "Life" or data.type == "Mana" then
 			if obj.nMoveState == MOVE_STATE.ON_DEATH then
-				return _ScreenHead.Remove(dwID,nIndex)
+				return _ScreenHead.Remove(dwID, nIndex)
 			end
 			if data.type == "Life" then
 				if lifeper > ScreenHead.nTeamHp then
@@ -119,7 +120,7 @@ _ScreenHead.Create = function(obj,info,nIndex)
 			if bIsPrepare then
 				txt = data.txt or JH.GetSkillName(dwSkillID, dwSkillLevel)
 			else
-				return _ScreenHead.Remove(dwID,nIndex)
+				return _ScreenHead.Remove(dwID, nIndex)
 			end
 		elseif data.type == "Object" then
 			txt = data.txt or _L["aim"]
@@ -129,7 +130,7 @@ _ScreenHead.Create = function(obj,info,nIndex)
 			data.nNow = GetTime()
 		else
 			if (GetTime() - data.nNow) / 1000 > ScreenHead.nTime then
-				return _ScreenHead.Remove(dwID,nIndex)
+				return _ScreenHead.Remove(dwID, nIndex)
 			end
 		end
 		txt = data.txt or _L["Call Alert"]
@@ -137,13 +138,13 @@ _ScreenHead.Create = function(obj,info,nIndex)
 	end
 	
 	if not handle then
-		_ScreenHead.handle:AppendItemFromString(string.format("<handle> name=\"%s\" </handle>",dwID))
+		_ScreenHead.handle:AppendItemFromString(string.format("<handle> name=\"%s\" </handle>", dwID))
 		handle = _ScreenHead.handle:Lookup(tostring(dwID))
-		Arrow = handle:AppendItemFromIni(_ScreenHead.szItemIni,"shadow",dwID .. "Arrow")
-		Text = handle:AppendItemFromIni(_ScreenHead.szItemIni,"shadow",dwID .. "Text")
-		BG = handle:AppendItemFromIni(_ScreenHead.szItemIni,"shadow",dwID .. "BG")
-		Life = handle:AppendItemFromIni(_ScreenHead.szItemIni,"shadow",dwID .. "Life")
-		Mana = handle:AppendItemFromIni(_ScreenHead.szItemIni,"shadow",dwID .. "Mana")
+		Arrow = handle:AppendItemFromIni(_ScreenHead.szItemIni, "shadow", dwID .. "Arrow")
+		Text = handle:AppendItemFromIni(_ScreenHead.szItemIni, "shadow", dwID .. "Text")
+		BG = handle:AppendItemFromIni(_ScreenHead.szItemIni, "shadow", dwID .. "BG")
+		Life = handle:AppendItemFromIni(_ScreenHead.szItemIni, "shadow", dwID .. "Life")
+		Mana = handle:AppendItemFromIni(_ScreenHead.szItemIni, "shadow", dwID .. "Mana")
 		handle.fY = 0
 		handle.s = 0
 	else
@@ -201,9 +202,9 @@ _ScreenHead.Create = function(obj,info,nIndex)
 	if not IsPlayer(obj.dwID) then
 		szName = JH.GetTemplateName(obj)
 	end
-	Text:AppendCharacterID(dwID,true,r,g,b,255,{0,0,0,0,-80},187,txt,1,1)
-	Text:AppendCharacterID(dwID,true,r,g,b,255,{0,0,0,0,-95},187,_L("%.1f feet",JH.GetDistance(obj)),1,1)
-	Text:AppendCharacterID(dwID,true,r,g,b,255,{0,0,0,0,-110},187,szName,1,1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -80}, 187, txt, 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -95}, 187, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -110}, 187, szName, 1, 1)
 
 	local bcX,bcY = -50 , -50
 	for k,v in ipairs({Life, Mana, BG}) do
@@ -211,21 +212,21 @@ _ScreenHead.Create = function(obj,info,nIndex)
 		v:SetD3DPT(D3DPT.TRIANGLEFAN)
 		v:ClearTriangleFanPoint()
 	end
-	BG:AppendCharacterID(dwID,true,255,255,255,255,{0,0,0,bcX,bcY})
-	BG:AppendCharacterID(dwID,true,255,255,255,255,{0,0,0,bcX+100,bcY})
-	BG:AppendCharacterID(dwID,true,255,255,255,255,{0,0,0,bcX+100,bcY-10})
-	BG:AppendCharacterID(dwID,true,255,255,255,255,{0,0,0,bcX,bcY-10})
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX, bcY})
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX + 100, bcY})
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX + 100, bcY - 10})
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX, bcY - 10})
 	local r,g,b = unpack(tManaCol)
-	Mana:AppendCharacterID(dwID,true,r,g,b,255,{0,0,0,bcX,bcY})
-	Mana:AppendCharacterID(dwID,true,r,g,b,255,{0,0,0,bcX+(100 * manaper ),bcY})
-	Mana:AppendCharacterID(dwID,true,r,g,b,255,{0,0,0,bcX+(100 * manaper ),bcY-5})
-	Mana:AppendCharacterID(dwID,true,r,g,b,255,{0,0,0,bcX,bcY-5})
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX, bcY})
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX + (100 * manaper), bcY})
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX + (100 * manaper), bcY - 5})
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX, bcY - 5})
 	
 	local bcX,bcY = -50 , -55
-	Life:AppendCharacterID(dwID,true,220,40,0,255,{0,0,0,bcX,bcY})
-	Life:AppendCharacterID(dwID,true,220,40,0,255,{0,0,0,bcX+(100*lifeper),bcY})
-	Life:AppendCharacterID(dwID,true,220,40,0,255,{0,0,0,bcX+(100*lifeper),bcY-5})
-	Life:AppendCharacterID(dwID,true,220,40,0,255,{0,0,0,bcX,bcY-5})	
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX, bcY})
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX + (100 * lifeper), bcY})
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX + (100 * lifeper), bcY - 5})
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX, bcY - 5})	
 end
 
 _ScreenHead.Clear = function()
@@ -233,11 +234,11 @@ _ScreenHead.Clear = function()
 	_ScreenHead.handle:Clear()
 end
 
-_ScreenHead.Remove = function(dwID,nIndex)
+_ScreenHead.Remove = function(dwID, nIndex)
 	local handle = _ScreenHead.handle:Lookup(tostring(dwID))
 	local data = _ScreenHead.tList[dwID]
 	if nIndex then
-		table.remove(data,nIndex)
+		table.remove(data, nIndex)
 		if #data == 0 then
 			_ScreenHead.tList[dwID] = nil
 		end
@@ -248,37 +249,37 @@ _ScreenHead.Remove = function(dwID,nIndex)
 end
 
 _ScreenHead.GetObject = function(dwID)
-	local p,info
+	local p, info
 	if IsPlayer(dwID) then
 		local me = GetClientPlayer()
 		if dwID == me.dwID then
-			p,info = me,me
+			p, info = me, me
 		elseif JH.IsParty(dwID) then
-			p,info = GetPlayer(dwID),GetClientTeam().GetMemberInfo(dwID)
+			p, info = GetPlayer(dwID), GetClientTeam().GetMemberInfo(dwID)
 		else
-			p,info = GetPlayer(dwID),GetPlayer(dwID)
+			p, info = GetPlayer(dwID), GetPlayer(dwID)
 		end
 	else
-		p,info = GetNpc(dwID),GetNpc(dwID)
+		p, info = GetNpc(dwID), GetNpc(dwID)
 	end
-	return p,info
+	return p, info
 end
 
 _ScreenHead.OnBreathe = function()
 	local me = GetClientPlayer()
 	if not me then return end
-	for dwID,t in pairs(_ScreenHead.tList) do
-		local p,info = _ScreenHead.GetObject(dwID)
+	for dwID, t in pairs(_ScreenHead.tList) do
+		local p, info = _ScreenHead.GetObject(dwID)
 		if not p then
 			_ScreenHead.Remove(dwID)	
 		else
 			local handle = _ScreenHead.handle:Lookup(tostring(dwID))
 			if not handle then
 				if #t > 0 then
-					_ScreenHead.Create(p,info,#t)
+					_ScreenHead.Create(p, info, #t)
 				end
 			else
-				_ScreenHead.Create(p,info)
+				_ScreenHead.Create(p, info)
 			end
 		end
 	end
@@ -317,7 +318,7 @@ _ScreenHead.OnBreatheFight = function()
 				if lifeper < ScreenHead.nTeamHp then
 					if not _ScreenHead.tCache["Life"][v] then
 						_ScreenHead.tCache["Life"][v] = true
-						_ScreenHead.RegisterHead(v,{ type = "Life" })
+						_ScreenHead.RegisterHead(v,{  type = "Life" })
 					end
 				else
 					_ScreenHead.tCache["Life"][v] = nil
@@ -325,7 +326,7 @@ _ScreenHead.OnBreatheFight = function()
 				if manaper < ScreenHead.nTeamMp and p.dwForceID < 7 then
 					if not _ScreenHead.tCache["Mana"][v] then
 						_ScreenHead.tCache["Mana"][v] = true
-						_ScreenHead.RegisterHead(v,{ type = "Mana" })
+						_ScreenHead.RegisterHead(v,{  type = "Mana" })
 					end
 				else
 					_ScreenHead.tCache["Mana"][v] = nil
@@ -350,16 +351,16 @@ _ScreenHead.RegisterHead = function(dwID, tab)
 	end
 	if not tab then tab = {} end
 	if tab.type and tab.type == "Buff" or tab.type == "Debuff" then
-		for k,v in ipairs(_ScreenHead.tList[dwID]) do
+		for k, v in ipairs(_ScreenHead.tList[dwID]) do
 			if v.type == tab.type and v.dwID == tab.dwID then
 				return
 			end
 		end
 	end
-	table.insert(_ScreenHead.tList[dwID],tab)
-	local p,info = _ScreenHead.GetObject(dwID)
+	table.insert(_ScreenHead.tList[dwID], tab)
+	local p, info = _ScreenHead.GetObject(dwID)
 	if p and info then
-		_ScreenHead.Create(p,info,#_ScreenHead.tList[dwID])
+		_ScreenHead.Create(p, info, #_ScreenHead.tList[dwID])
 	end
 end
 
@@ -372,7 +373,7 @@ _ScreenHead.OnBuffUpdate = function()
 		if not arg3 then
 			type = "Debuff"
 		end
-		_ScreenHead.RegisterHead(arg0,{ type = type, dwID = arg4 })
+		_ScreenHead.RegisterHead(arg0, { type = type, dwID = arg4 })
 	end
 end
 

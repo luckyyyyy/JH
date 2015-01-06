@@ -408,6 +408,9 @@ PS.OnPanelActive = function(frame)
 		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
 		:Text(v.nAlpha):Change(function(nVal)
 			v.nAlpha = tonumber(nVal) or 0
+			if v.nAlpha > 255 then
+				v.nAlpha = 255
+			end
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" alpha"] }):Pos_()
