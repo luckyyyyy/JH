@@ -62,7 +62,7 @@ do
 end
 
 local _JH = {
-	dwVersion = 0x0080100,
+	dwVersion = 0x0080200,
 	szTitle = _L["JH"],
 	tHotkey = {},
 	tDelayCall = {},
@@ -1642,7 +1642,6 @@ function _GUI.Frm:CloseFrame(fnAction)
 end
 -- (number, number) Instance:Size()						-- 取得窗体宽和高
 -- (self) Instance:Size(number nW, number nH)	-- 设置窗体的宽和高
--- 特别注意：窗体最小高度为 200，宽度自动按接近取  234/380/770 中的一个
 function _GUI.Frm:Size(nW, nH)
 	local frm = self.self
 	if not nW then
@@ -1655,36 +1654,18 @@ function _GUI.Frm:Size(nW, nH)
 		hnd:SetSize(nW, nH)
 		return self
 	end
-	-- fix size
-	if nW > 400 then
-		nW = 770
-		hnd:Lookup("Image_CBg1"):SetSize(385, 70)
-		hnd:Lookup("Image_CBg2"):SetSize(384, 70)
-		hnd:Lookup("Image_CBg1"):SetFrame(2)
-		hnd:Lookup("Image_CBg2"):SetFrame(2)
-	elseif nW > 250 then
-		nW = 380
-		hnd:Lookup("Image_CBg1"):SetSize(190, 70)
-		hnd:Lookup("Image_CBg2"):SetSize(189, 70)
-		hnd:Lookup("Image_CBg1"):SetFrame(1)
-		hnd:Lookup("Image_CBg2"):SetFrame(1)
-	else
-		nW = 234
-		hnd:Lookup("Image_CBg1"):SetSize(117, 70)
-		hnd:Lookup("Image_CBg2"):SetSize(117, 70)
-		hnd:Lookup("Image_CBg1"):SetFrame(0)
-		hnd:Lookup("Image_CBg2"):SetFrame(0)
-	end
-	if nH < 200 then nH = 200 end
 	-- set size
 	frm:SetSize(nW, nH)
 	frm:SetDragArea(0, 0, nW, 70)
 	hnd:SetSize(nW, nH)
-	hnd:Lookup("Image_CBg3"):SetSize(8, nH - 160)
-	hnd:Lookup("Image_CBg4"):SetSize(nW - 16, nH - 160)
-	hnd:Lookup("Image_CBg5"):SetSize(8, nH - 160)
-	hnd:Lookup("Image_CBg7"):SetSize(nW - 132, 85)
-	hnd:Lookup("Text_Title"):SetSize(nW - 90, 30)
+	hnd:Lookup("Image_BgT"):SetW(nW)
+	hnd:Lookup("Image_BgCT"):SetW(nW - 32)
+	hnd:Lookup("Image_BgLC"):SetH(nH - 149)
+	hnd:Lookup("Image_BgCC"):SetSize(nW - 16, nH - 149)
+	hnd:Lookup("Image_BgRC"):SetH(nH - 149)
+	hnd:Lookup("Image_BgCB"):SetW(nW - 132)
+	hnd:Lookup("Text_Title"):SetW(nW - 90)
+	
 	hnd:FormatAllItemPos()
 	frm:Lookup("Btn_Close"):SetRelPos(nW - 35, 15)
 	self.wnd:SetSize(nW - 90, nH - 90)
