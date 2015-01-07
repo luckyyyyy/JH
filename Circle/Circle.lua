@@ -30,18 +30,18 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[176] = 35, -- 英雄血战天策
 	[199] = 20, -- 逐虎驱狼
 	[192] = 20, -- 逐虎驱狼
-	[182] = 25,
-	[183] = 25,
+	[182] = 25, -- 秦皇陵
+	[183] = 25, -- 秦皇陵
 }
 -- 除上述外 其他一律 = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
 local CIRCLE_COLOR = {
-	{ r = 0,   g = 255, b = 0},
+	{ r = 0,   g = 255, b = 0  },
 	{ r = 0,   g = 255, b = 255},
-	{ r = 255, g = 0,   b = 0},
+	{ r = 255, g = 0,   b = 0  },
 	{ r = 40,  g = 140, b = 218},
-	{ r = 211, g = 229, b = 37},
+	{ r = 211, g = 229, b = 37 },
 	{ r = 65,  g = 50,  b = 160},
 	{ r = 170, g = 65,  b = 180},
 	{ r = 255, g = 255, b = 255},
@@ -315,7 +315,7 @@ C.Release = function()
 	-- 规则检查
 	if C.tData["mt"] then
 		for k, v in pairs(C.tData["mt"]) do
-			if C.GetMapName(v):match(C.GetMapName(k)) then
+			if C.GetMapName(v):match(C.GetMapName(k)) and k ~= v then
 				local a = C.tMapList[C.GetMapName(v)]
 				local b = C.tMapList[C.GetMapName(k)]
 				if (a.bDungeon and b.bDungeon) or (not a.bDungeon and not b.bDungeon) then
@@ -386,11 +386,11 @@ C.RemoveData = function(mapid, index, bConfirm)
 	if C.tData[mapid] and C.tData[mapid][index] then
 		local fnAction = function() 
 			table.remove(C.tData[mapid], index)
-			FireEvent("CIRCLE_CLEAR")
-			FireEvent("CIRCLE_DRAW_UI")
 			if #C.tData[mapid] == 0 then
 				C.tData[mapid] = nil
 			end
+			FireEvent("CIRCLE_CLEAR")
+			FireEvent("CIRCLE_DRAW_UI")
 		end
 		if bConfirm then
 			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
@@ -439,18 +439,22 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 		dwRad1 = dwRad1 - pi - pi
 	end
 	local dwRad2 = dwRad1 + (nAngle / 180 * pi)
-	local nStep = 18
+	local nStep = 16
+	if nAngle <= 45 then nStep = 180 end
 	if nAngle == 360 then
 		dwRad2 = dwRad2 + pi / 20
 	end
-	if nAngle <= 45 then nStep = 180 end
+	-- nAlpha 补偿
 	local nAlpha = CIRCLE_CIRCLE_ALPHA
-	local ap = 3.3 * (nRadius / 64)
+	local ap = 3 * (nRadius / 64)
 	if ap > 35 then
 		nAlpha = 15
 	else
 		nAlpha = nAlpha - ap
 	end
+	nAlpha = nAlpha + (360 - nAngle) / 8
+	if nAlpha > CIRCLE_CIRCLE_ALPHA then nAlpha = CIRCLE_CIRCLE_ALPHA end
+	
 	local r, g, b = unpack(col)
 	-- orgina point
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
@@ -484,12 +488,12 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	if tar.nFaceDirection > (256 - nFace) then
 		dwRad1 = dwRad1 - pi - pi
 	end	
-	local dwStepRadBase = nRadius / 128
-	if dwStepRadBase < 2 then
-		dwStepRadBase = 2
+	local dwRad2 = dwRad1 + (nAngle / 180 * pi)
+	local nStep = 16
+	if nAngle <= 45 then nStep = 180 end
+	if nAngle == 360 then
+		dwRad2 = dwRad2 + pi / 20
 	end
-	local dwStepRad = dwMaxRad / (nRadius / dwStepRadBase)
-	local dwCurRad = 0 - dwStepRad
 	local sX, sZ = Scene_PlaneGameWorldPosToScene(tar.nX, tar.nY)
 	local r, g, b = unpack(col)
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
@@ -497,12 +501,12 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	sha:ClearTriangleFanPoint()
 	repeat
 		local tRad = {
-			{ nRadius, dwCurRad },
-			{ nRadius - nThick, dwCurRad }
+			{ nRadius },
+			{ nRadius - nThick }
 		}
 		for _, v in ipairs(tRad) do
-			local nX = tar.nX + cos((v[2] + dwRad1)) * v[1]
-			local nY = tar.nY + sin((v[2] + dwRad1)) * v[1]
+			local nX = tar.nX + cos((dwRad1)) * v[1]
+			local nY = tar.nY + sin((dwRad1)) * v[1]
 			local sX_,sZ_ = Scene_PlaneGameWorldPosToScene(nX ,nY)
 			if dwType == TARGET.DOODAD then
 				sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
@@ -510,8 +514,8 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 				sha:AppendCharacterID(tar.dwID, false, r, g, b, CIRCLE_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
 			end
 		end
-		dwCurRad = dwCurRad + dwStepRad
-	until dwMaxRad <= dwCurRad
+		dwRad1 = dwRad1 + pi / nStep
+	until dwRad1 > dwRad2
 end
 
 -- 绘制设置UI表格
@@ -995,9 +999,9 @@ C.OpenDataPanel = function(data, id, index)
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 2, w = 35, h = 25, limit = 4 })
 		:Enable(k ~= 2):Text(v.nAngle):Change(function(nVal)
 			local n = tonumber(nVal) or 30
-			if n < 2 or n > 360 then
+			if n < 1 or n > 360 then
 				n = 30
-				JH.Sysmsg2(_L["Limit 2, "] .. 360)
+				JH.Sysmsg2(_L["Limit 1, "] .. 360)
 			end
 			v.nAngle = n
 			FireEvent("CIRCLE_RESERT_DRAW")
@@ -1103,7 +1107,7 @@ C.OpenDataPanel = function(data, id, index)
 	if data.tCircles then n = #data.tCircles end
 	ui:Append("WndButton2", { x = 260, y = 330, txt = _L["Add Circle"] }):Enable(n < 2)
 	:Click(function()
-		if not data.tCircles then data.tCircles = {} end
+		data.tCircles = data.tCircles or {}
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
 		C.OpenDataPanel(data, id, index)
@@ -1181,7 +1185,7 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 		for k, v in pairs(C.tData) do
-			if k ~= -1 and k ~= -2 and k ~= "mt" then
+			if k ~= -1 and k ~= -2 and k ~= "mt" and C.tMapList[C.GetMapName(k)] then
 				local tm, txt = menu[4], string.format(" (%d)", #v)
 				if C.tMapList[C.GetMapName(k)].bDungeon then
 					tm = menu[3]
