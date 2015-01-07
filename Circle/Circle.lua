@@ -33,7 +33,6 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 	[182] = 25, -- 秦皇陵
 	[183] = 25, -- 秦皇陵
 }
--- 除上述外 其他一律 = 15
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
 local CIRCLE_COLOR = {
@@ -499,12 +498,9 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	sha:SetD3DPT(D3DPT.TRIANGLESTRIP)
 	sha:ClearTriangleFanPoint()
 	repeat
-		local tRad = {
-			{ nRadius },
-			{ nRadius - nThick }
-		}
+		local tRad = { nRadius, nRadius - nThick }
 		for _, v in ipairs(tRad) do
-			local sX_, sZ_ = Scene_PlaneGameWorldPosToScene(tar.nX + cos(dwRad1) * v[1] , tar.nY + sin(dwRad1) * v[1])
+			local sX_, sZ_ = Scene_PlaneGameWorldPosToScene(tar.nX + cos(dwRad1) * v , tar.nY + sin(dwRad1) * v)
 			if dwType == TARGET.DOODAD then
 				sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
 			else
