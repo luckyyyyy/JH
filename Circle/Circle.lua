@@ -482,7 +482,6 @@ end
 C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	local nRadius = nRadius * 64
 	local nThick = 1 + (5 * nRadius / 64 / 20)
-	local dwMaxRad = nAngle / 180 * pi
 	local nFace = ceil(128 * nAngle / 360)
 	local dwRad1 = pi * (tar.nFaceDirection - nFace) / 128
 	if tar.nFaceDirection > (256 - nFace) then
@@ -505,9 +504,7 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 			{ nRadius - nThick }
 		}
 		for _, v in ipairs(tRad) do
-			local nX = tar.nX + cos((dwRad1)) * v[1]
-			local nY = tar.nY + sin((dwRad1)) * v[1]
-			local sX_,sZ_ = Scene_PlaneGameWorldPosToScene(nX ,nY)
+			local sX_, sZ_ = Scene_PlaneGameWorldPosToScene(tar.nX + cos(dwRad1) * v[1] , tar.nY + sin(dwRad1) * v[1])
 			if dwType == TARGET.DOODAD then
 				sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA, { sX_ - sX, 0, sZ_ - sZ })
 			else
