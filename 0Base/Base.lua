@@ -1715,6 +1715,93 @@ function _GUI.Frm:Lookup(...)
 	return self.wnd:Lookup(...)
 end
 
+_GUI.Frm2 = class(_GUI.Base)
+
+-- constructor
+function _GUI.Frm2:ctor(szName, bEmpty)
+	local frm, szIniFile = nil, ROOT_PATH .. "ui/WndFrame2.ini"
+	if bEmpty then
+		szIniFile = ROOT_PATH .. "ui/WndFrameEmpty.ini"
+	end
+	if type(szName) == "string" then
+		frm = Station.Lookup("Normal/" .. szName)
+		if frm then
+			Wnd.CloseWindow(frm)
+		end
+		frm = Wnd.OpenWindow(szIniFile, szName)
+	else
+		frm = Wnd.OpenWindow(szIniFile)
+	end
+	frm:Show()
+	if not bEmpty then
+		frm:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+		frm:Lookup("Btn_Close").OnLButtonClick = function()
+			self:CloseFrame()
+		end
+		self.wnd = frm:Lookup("Window_Main")
+		self.handle = self.wnd:Lookup("", "")
+	else
+		self.handle = frm:Lookup("", "")
+	end
+	self.self, self.type = frm, "WndFrame"
+end
+
+function _GUI.Frm2:Size(nW, nH)
+	local frm = self.self
+	if not nW then
+		return frm:GetSize()
+	end
+	local hnd = frm:Lookup("", "")
+	-- empty frame
+	if not self.wnd then
+		frm:SetSize(nW, nH)
+		hnd:SetSize(nW, nH)
+		return self
+	end
+	-- set size
+	frm:SetSize(nW, nH)
+	frm:SetDragArea(0, 0, nW, 30)
+	hnd:SetSize(nW, nH)
+	hnd:Lookup("Image_Bg"):SetSize(nW, nH)
+	hnd:Lookup("Image_Title"):SetW(nW)
+	hnd:Lookup("Text_Title"):SetW(nW - 90)
+	hnd:FormatAllItemPos()
+	frm:Lookup("Btn_Close"):SetRelPos(nW - 30, 5)
+	self.wnd:SetSize(nW - 90, nH - 90)
+	self.wnd:Lookup("", ""):SetSize(nW - 90, nH - 90)
+	-- reset position
+	local an = GetFrameAnchor(frm)
+	frm:SetPoint(an.s, 0, 0, an.r, an.x, an.y)
+	return self
+end
+
+function _GUI.Frm2:CloseFrame(fnAction)
+	local frm = self.self
+	if frm.bClose then
+		Wnd.CloseWindow(frm)
+	else
+		frm:Hide()
+	end
+	if fnAction then
+		fnAction()
+	end
+end
+
+function _GUI.Frm2:RegisterSetting(fnAction)
+	local wnd = self.self
+	wnd:Lookup("Btn_Setting").OnLButtonClick = fnAction
+	return self
+end
+
+function _GUI.Frm2:Title(szTitle)
+	local ttl = self.self:Lookup("", "Text_Title")
+	if not szTitle then
+		return ttl:GetText()
+	end
+	ttl:SetText(szTitle)
+	return self
+end
+
 -------------------------------------
 -- Window Component
 -------------------------------------
@@ -2655,6 +2742,26 @@ end
 -- 创建空窗体
 GUI.CreateFrameEmpty = function(szName, szParent)
 	return GUI.CreateFrame(szName, { empty  = true, parent = szParent })
+end
+-- 透明的窗口
+GUI.CreateFrame2 = function(szName, tArg)
+	if type(szName) == "table" then
+		szName, tArg = nil, szName
+	end
+	tArg = tArg or {}
+	local ui = _GUI.Frm2.new(szName, tArg.empty == true)
+	Station.SetFocusWindow(ui.self)
+	-- apply init setting
+	if tArg.w and tArg.h then ui:Size(tArg.w, tArg.h) end
+	if tArg.x and tArg.y then ui:Pos(tArg.x, tArg.y) end
+	if tArg.title then ui:Title(tArg.title) end
+	if tArg.drag ~= nil then ui:Drag(tArg.drag) end
+	if tArg.close ~= nil then ui.self.bClose = tArg.close end
+	if tArg.fnCreate then tArg.fnCreate(ui:Raw()) end
+	if tArg.fnDestroy then ui.fnDestroy = tArg.fnDestroy end
+	if tArg.parent then ui:Relation(tArg.parent) end
+	ui:Point() -- fix Size
+	return ui
 end
 -- 往某一父窗体或容器添加  INI 配置文件中的部分，并返回 GUI 封装对象
 -- (class) GUI.Append(userdata hParent, string szIniFile, string szTag, string szName)
