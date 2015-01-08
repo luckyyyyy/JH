@@ -2,6 +2,7 @@ local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
 	bRequestList = true,
+	bTeamInfo = true,
 }
 JH.RegisterCustomData("JH_AutoSetTeam")
 
@@ -16,7 +17,6 @@ local AutoSetTeam = {
 }
 
 AutoSetTeam.SaveList = JH.LoadLUAData(AutoSetTeam.szDataFile) or {}
-
 
 AutoSetTeam.Save = function(n)
 	local tList, tList2, me, team = {}, {}, GetClientPlayer(), GetClientTeam()
@@ -351,18 +351,7 @@ RequestList = {
 	-- bEnable = true,
 }
 local _RequestList = {
-	tRequestList = {
-		-- { szName = "test", nLevel = "123", nCamp = 1, dwForce = 1, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "test2", nLevel = "23", nCamp = 1, dwForce = 2, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "test3", nLevel = "45", nCamp = 1, dwForce = 4, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "test4", nLevel = "80", nCamp = 1, dwForce = 3, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "test5", nLevel = "22", nCamp = 1, dwForce = 8, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "test6", nLevel = "11", nCamp = 1, dwForce = 7, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "tes78t", nLevel = "44", nCamp = 1, dwForce = 6, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "tes4t", nLevel = "33", nCamp = 1, dwForce = 21, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "tes6t", nLevel = "90", nCamp = 1, dwForce = 0, fnCancelAction = function() end, fnAction = function() end, },
-		-- { szName = "tes8t", nLevel = "67", nCamp = 1, dwForce = 5, fnCancelAction = function() end, fnAction = function() end, },
-	},
+	tRequestList = {},
 	tRequestCache = {},
 	tDetails = {},
 	szIniFile = JH.GetAddonInfo().szRootPath .. "AutoSetTeam/ui/RequestList.ini",
@@ -560,18 +549,167 @@ JH.RegisterEvent("LOGIN_GAME", function()
 	JH.RegisterInit("RequestList", _RequestList.GetEvent())
 end)
 
+-------------------------------------------------
+-- PARTY_UPDATE_MEMBER_POSITION	刷新队伍成员位置	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
+-- PARTY_UPDATE_MEMBER_LMR	刷新队伍成员血量	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
+-- PARTY_UPDATE_MEMBER_INFO	刷新队伍成员信息	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
+-- PARTY_UPDATE_BASE_INFO	刷新队伍基本信息	arg0,arg1,arg2,arg3,arg4	arg0:dwTeamID  arg1:dwLeaderID  arg2:nLootMode  arg3:nRollQuality  arg4:bAddTeamMemberFlag   	dwTeamID：队伍ID :dwLeaderID：队长ID nLootMode  nRollQuality：需要Roll点的物品  bAddTeamMemberFlag：是否能增加队伍成员   
+-- PARTY_SYNC_MEMBER_DATA	同步队伍成员数据	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamID：队伍ID dwMemberID：成员ID nGroupIndex ：分组ID 
+-- PARTY_SET_MEMBER_ONLINE_FLAG	同步队伍成员是否在线状态	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:bOnlineFlag  	dwTeamID：队伍ID dwMemberID：成员ID bOnlineFlag：是否在线 
+-- PARTY_SET_MARK	队伍设置标记	
+-- PARTY_SET_FORMATION_LEADER	队伍设置阵眼	arg0	arg0:dwFormationLeader  	dwFormationLeader：阵眼成员ID
+-- PARTY_SET_DISTRIBUTE_MAN	队伍设置分配者	arg0	arg0:dwDistributeMan  	dwDistributeMan：分配者ID
+-- PARTY_ROLL_QUALITY_CHANGED	队伍需要Roll点物品品质改变	arg0,arg1	arg0:dwTeamID  arg1:nRollQuality  	dwTeamID：队伍ID nRollQuality：需要Roll点品质
+-- PARTY_RESET	队伍重置	
+-- PARTY_NOTIFY_SIGNPOST	队伍通知集合点	arg0,arg1	arg0:nX  arg1:nY  	nX,nY:坐标点
+-- PARTY_MESSAGE_NOTIFY	队伍信息通知	arg0,arg1	arg0:nCode  arg1:szName  	nCode：见枚举型[[PARTY_NOTIFY_CODE]] szName:对应玩家名
+-- PARTY_LOOT_MODE_CHANGED	队伍拾取模式更改	arg0,arg1	arg0:dwTeamID  arg1:nLootMode  	dwTeamID：队伍ID nLootMode：拾取模式，见枚举型[[PARTY_LOOT_MODE]]
+-- PARTY_LEVEL_UP_RAID	队伍调整为团队模式	
+-- PARTY_LEADER_CHANGED	更换队长	arg0,arg1	arg0:dwTeamID  arg1:dwNewLeaderID  	dwTeamID：队伍ID dwNewLeaderID：新的队长ID
+-- PARTY_INVITE_REQUEST	邀请入队请求	arg0,arg1,arg2,arg3	arg0:szInviteSrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szInviteSrc：邀请者 dwSrcCamp：邀请者阵营 dwSrcForceID：邀请者势力ID dwSrcLevel：邀请者等级 
+-- PARTY_DISBAND	队伍解散	arg0	arg0:dwTeamID  	dwTeamID：队伍ID 
+-- PARTY_DELETE_MEMBER	队伍删除成员	arg0,arg1,arg2,arg3	arg0:dwTeamID  arg1:dwMemberID  arg2:szName  arg3:nGroupIndex  	dwTeamID：队伍ID dwMemberID：成员ID szName：成员名 nGroupIndex：分组编号
+-- PARTY_CAMP_CHANGE	队伍阵营变更	
+-- PARTY_APPLY_REQUEST	申请入队请求	arg0,arg1,arg2,arg3	arg0:szApplySrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szApplySrc：申请者名 dwSrcCamp：申请者阵营  dwSrcForceID：申请者势力ID dwSrcLevel：申请者等级
+-- PARTY_ADD_MEMBER	队伍增加成员	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamID：队伍ID dwMemberID：成员ID nGroupIndex：分组编号
+-------------------------------------------------
+local TI = {}
+
+TI.GetEvent = function()
+	if JH_AutoSetTeam.bTeamInfo then
+		return
+			{ "PARTY_LEVEL_UP_RAID", function()
+				if TI.IsLeader() then
+					JH.Confirm(_L["Edit team info?"], function()
+						TI.CreateFrame()
+					end)
+				end
+			end },
+			{ "PARTY_DISBAND", TI.CloseFrame },
+			{ "PARTY_DELETE_MEMBER", function() if arg1 == UI_GetClientPlayerID() then TI.CloseFrame() end end },
+			{ "PARTY_ADD_MEMBER", function() 
+				if TI.IsLeader() and Station.Lookup("Normal/Team_Info") then 
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","reply", arg1, TI.szYY, TI.szIntroduction) 
+				end 
+			end },
+			{ "ON_BG_CHANNEL_MSG", TI.OnMsg}
+	end
+end
+
+TI.IsLeader = function()
+	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == GetClientPlayer().dwID
+end
+
+TI.OnMsg = function()
+	local data = JH.BgHear("TI")
+	local me = GetClientPlayer()
+	local team = GetClientTeam()
+	if team and data then
+		if data[1] == "ASK" and TI.IsLeader() then
+			if Station.Lookup("Normal/Team_Info") then
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","reply", arg3, TI.szYY, TI.szIntroduction) 
+			end
+		elseif data[1] == "Edit" then
+			TI.CreateFrame(data[2], data[3])
+		elseif data[1] == "reply" and (tonumber(data[2]) == UI_GetClientPlayerID() or data[2] == me.szName) then
+			TI.CreateFrame(data[3], data[4])
+		elseif data[1] == "Close" then
+			TI.CloseFrame()
+		end
+	end
+end
+
+TI.CreateFrame = function(a, b)
+	local an = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
+	if Station.Lookup("Normal/Team_Info") then
+		an = GetFrameAnchor(Station.Lookup("Normal/Team_Info"))
+		Wnd.CloseWindow(Station.Lookup("Normal/Team_Info"))
+	end
+	local ui = GUI.CreateFrame2("Team_Info", { w = 300, h = 200, close = true, title = _L["Team_Info"]}):Point(an.s, 0, 0, an.r, an.x, an.y)
+	local nX, nY = ui:Append("Text", { x = 10, y = 5, txt = _L["YY:"], font = 48 }):Pos_()
+	nX = ui:Append("WndEdit", "YY", { w = 140, h = 26, x = nX + 5, y = 5, font = 48, color = { 128, 255, 0 }, txt = a })
+	:Change(function(szText)
+		if TI.IsLeader() then
+			TI.szYY = szText
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", szText, ui:Fetch("introduction"):Text())
+		else
+			JH.Sysmsg(_L["You are not team leader."])
+		end
+	end):Pos_()
+	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = 5, txt = _L["Paste YY"]})
+	:Click(function()
+		local yy = ui:Fetch("YY"):Text()
+		if yy ~= "" then JH.Talk(yy) end
+	end):Pos_()
+	ui:Append("WndEdit", "introduction", { w = 280, h = 80, x = 10, y = nY + 5, multi = true, txt = b or g_tStrings.STR_GUILD_EDIT_INTRODUCTION})
+	:Change(function(szText)
+		if TI.IsLeader() then
+			TI.szIntroduction = szText
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", ui:Fetch("YY"):Text(), szText)
+		else
+			JH.Sysmsg(_L["You are not team leader."])
+		end
+	end)
+	ui:Append("Text", { txt = _L["TI_TIP"], x = 10, y = 112, w = 280, h = 60, alpha = 80, multi = true })
+	TI.szYY = ui:Fetch("YY"):Text()
+	TI.szIntroduction = ui:Fetch("introduction"):Text()
+	ui.self:Lookup("Btn_Close").OnLButtonClick = function()
+		if TI.IsLeader() then
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Close")
+		end
+		TI.CloseFrame()
+	end
+	ui:RegisterSetting(function() JH.OpenPanel(_L["AutoSetTeam"]) end)
+end
+
+TI.CloseFrame = function()
+	if Station.Lookup("Normal/Team_Info") then
+		Wnd.CloseWindow(Station.Lookup("Normal/Team_Info"))
+	end
+end
+
+JH.RegisterEvent("LOGIN_GAME", function()
+	JH.RegisterInit("TI", TI.GetEvent())
+end)
+
+JH.AddonMenu(function()
+	return {
+		szOption = _L["Enable TeamInfo"], fnDisable = function() local me = GetClientPlayer(); return not me.IsInRaid() end, fnAction = function()
+			local me = GetClientPlayer()
+			if JH_AutoSetTeam.bTeamInfo and  Station.Lookup("Normal/Team_Info") then
+				TI.CloseFrame()
+			else
+				JH_AutoSetTeam.bTeamInfo = true
+				JH.RegisterInit("TI", TI.GetEvent())
+				if me.IsInRaid() then
+					if TI.IsLeader() then
+						TI.CreateFrame()
+					else
+						JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","ASK") 
+					end
+				end
+			end
+		end
+	}
+end)
+
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AutoSetTeam"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AutoSetTeam"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 15, checked = JH_AutoSetTeam.bAppendMark, txt = _L["Append Mark"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bAppendMark = bChecked
 		JH.RegisterInit("Append_Mark", GetEvent())
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = nX + 10, y = nY + 15, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 10, y = nY + 15, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bRequestList = bChecked
 		JH.RegisterInit("RequestList", _RequestList.GetEvent())
 	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bTeamInfo, txt = _L["Enable TeamInfo"] }):Click(function(bChecked)
+		JH_AutoSetTeam.bTeamInfo = bChecked
+		JH.RegisterInit("TI", TI.GetEvent())
+	end):Pos_()
+	
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Mark Target"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndButton2", { x = 10, y = nY + 15, txt = _L["Hotkey"] }):Click(JH.SetHotKey):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SetTeam"], font = 27 }):Pos_()
