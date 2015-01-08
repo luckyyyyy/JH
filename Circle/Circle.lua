@@ -1082,7 +1082,7 @@ C.OpenDataPanel = function(data, id, index)
 	:Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
 		data.bDoodadLine = bChecked
 	end):Pos_()
-	ui:Append("WndEdit", { x = 25, y = nY + 10, w = 310, h = 26 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK })
+	ui:Append("WndEdit", { x = 25, y = nY + 10, w = 310, h = 26 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK, limit = 30, })
 	:Focus(function()
 		if this:GetText() == g_tStrings.STR_FRIEND_REMARK then
 			this:SetText("")
