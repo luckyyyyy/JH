@@ -451,7 +451,7 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	else
 		nAlpha = nAlpha - ap
 	end
-	nAlpha = nAlpha + (360 - nAngle) / 8
+	nAlpha = nAlpha + (360 - nAngle) / 6
 	if nAlpha > CIRCLE_CIRCLE_ALPHA then nAlpha = CIRCLE_CIRCLE_ALPHA end
 	
 	local r, g, b = unpack(col)
