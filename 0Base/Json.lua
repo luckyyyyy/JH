@@ -197,6 +197,7 @@ local function grok_array(text, start)
 	local text_len = text:len()
 	while i <= text_len do
 		local val, new_i = grok_one(text, i)
+		-- 这里有bug 会导致 table.insert null
 		tinsert(VALUE, val)
 		i = skip_whitespace(text, new_i)
 		-- Expect now either ']' to end things, or a ',' to allow us to continue.
