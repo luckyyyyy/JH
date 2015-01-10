@@ -1804,7 +1804,9 @@ _GKP.GKP_Calculation = function()
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	
+	if not GKP.IsDistributer() and not JH.bDebug then
+		return JH.Alert(_L["You are not the distrubutor."])
+	end
 	GetUserInput(_L["Total Amount of People with Output Settle Account"],function(num)
 		if not tonumber(num) then return end
 		local a,b = _GKP.GetRecordSum()
