@@ -16,6 +16,7 @@ local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载
 local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 150 -- 线和边框最大透明度
+local CIRCLE_MAX_CIRCLE = 2
 local CIRCLE_RESERT_DRAW = false -- 全局重绘
 local CIRCLE_PLAYER_NAME = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
@@ -1098,7 +1099,7 @@ C.OpenDataPanel = function(data, id, index)
 	end)
 	local n = 0
 	if data.tCircles then n = #data.tCircles end
-	ui:Append("WndButton2", { x = 260, y = 330, txt = _L["Add Circle"] }):Enable(n < 2)
+	ui:Append("WndButton2", { x = 260, y = 330, txt = _L["Add Circle"] }):Enable(n < CIRCLE_MAX_CIRCLE)
 	:Click(function()
 		data.tCircles = data.tCircles or {}
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
