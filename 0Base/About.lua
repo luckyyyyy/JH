@@ -158,11 +158,6 @@ _JH_About.PS.OnTaboxCheck = function(frame)
 	nX,nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File("interface/JH/0Base/background.tga"):Pos_()
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 25, color = {255,255,0}, txt = _L("%s are welcome to use JH plug-in", szName), font = 230 }):Pos_()
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 35, w = 500 , h = 0,font = 109,multi = true, txt = _L["Author"] }):Pos_()
-	ui:Append("Text","Memory", { x = 13, y = 171, txt = _JH_About.GetMemory() })
-	:Click(function()
-		collectgarbage("collect")
-		ui:Fetch("Memory"):Text(_JH_About.GetMemory())
-	end)
 end
 
 GUI.RegisterPanel(_L["About"], 252, _L["Recreation"],_JH_About.PS)

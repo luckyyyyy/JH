@@ -2079,8 +2079,8 @@ function _GUI.Wnd:Text(szText, bDummy)
 			self:AutoSize()
 		end
 		if self.type == "WndCheckBox" or self.type == "WndRadioBox" then
-			local nWidth, nHeight = self.txt:GetTextExtent()
-			self.txt:SetSize(nWidth + 26, nHeight)
+			local nWidth, nHeight = txt:GetTextExtent()
+			txt:SetSize(nWidth + 26, nHeight)
 			self.handle:SetSize(nWidth + 26, nHeight)
 			self.handle:FormatAllItemPos()
 		end
