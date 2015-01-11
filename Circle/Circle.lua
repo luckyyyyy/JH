@@ -690,14 +690,15 @@ C.OnBreathe = function()
 			if data.bDrawName then
 				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
 			end
+			
 			if data.bTarget then
 				local sha = C.tCache[TARGET.NPC][k].Line
 				local dwType, dwID = KGNpc.GetTarget()
 				local tar = JH.GetTarget(dwType, dwID)
-				if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and not sha.item and sha.dwID ~= dwID and tar then
+				if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and (not sha.item or sha.item and sha.item.dwID ~= dwID) and tar then
 					if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
 						sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-						sha.dwID = dwID
+						sha.item.dwID = dwID
 						local col = { 255, 255, 0 }
 						if dwID == me.dwID then
 							col = { 255, 0, 128 }
