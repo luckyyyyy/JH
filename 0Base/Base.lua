@@ -2221,29 +2221,17 @@ function _GUI.Wnd:Click(fnAction)
 					local uis = this:GetParent().___uis or {}
 					for _, ui in pairs(uis) do
 						if ui:Group() == this.group and ui:Name() ~= this:GetName() then
+							ui.bCanUnCheck = true
 							ui:Check(false)
+							ui.bCanUnCheck = nil
 						end
 					end
 				end
 				fnAction(true)
 			end
 			wnd.OnCheckBoxUncheck = function()
-				if wnd.group then
-					local uis = this:GetParent().___uis or {}
-					local bIsCheckBoxChecked = false
-					for _, ui in pairs(uis) do
-						if ui:Group() == this.group and ui:Name() ~= this:GetName() then
-							if ui:Check() then
-								bIsCheckBoxChecked = true
-								break
-							end
-						end
-					end
-					if bIsCheckBoxChecked then
-						fnAction(false)
-					else
-						wnd:Check(true)
-					end
+				if wnd.group and not self.bCanUnCheck then
+					self:Check(true)
 				else
 					fnAction(false)
 				end
