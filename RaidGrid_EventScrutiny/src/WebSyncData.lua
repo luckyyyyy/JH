@@ -49,7 +49,7 @@ _WebSyncData.GetData = function()
 	local fnAction = function(szText)
 		if szText ~= "" then
 			_WebSyncData.SyncTip(_L["Loading..."],{255,255,0})
-			local szUrl = _WebSyncData.tUrl.szKeyUrl.. szText .. "&_".. GetCurrentTime()
+			local szUrl = _WebSyncData.tUrl.szKeyUrl.. szText .. "?&_".. GetCurrentTime()
 			JH.RemoteRequest(szUrl,function(szTitle,szDoc)
 				local result,err = JH.JsonDecode(JH.UrlDecode(szDoc))
 				if not result then
