@@ -68,6 +68,7 @@ Circle = {
 	bBorder = true, -- 全局的边框模式 边框会造成卡
 }
 JH.RegisterCustomData("Circle")
+
 local Circle = Circle
 local C = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
@@ -1142,7 +1143,7 @@ PS.OnPanelActive = function(frame)
 		Circle.bWhisperChat = bChecked
 	end):Pos_()
 	
-	nX,nY = ui:Append("WndCheckBox", "bBorder", { x = nX + 5, y = nY + 10, checked = Circle.bEnable, txt = _L["Circle Border"] }):Enable(Circle.bEnable):Click(function(bChecked)
+	nX,nY = ui:Append("WndCheckBox", "bBorder", { x = nX + 5, y = nY + 10, checked = Circle.bBorder, txt = _L["Circle Border"] }):Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bBorder = bChecked
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
