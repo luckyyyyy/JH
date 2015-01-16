@@ -804,7 +804,7 @@ Target_AppendAddonMenu({function(dwID, dwType)
 		local p = GetNpc(dwID)
 		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(p)]
 		if data then
-			return {{ 
+			return {{
 				szOption = _L["Edit Face"],
 				rgb = { 255, 128, 0 }, 
 				szLayer = "ICON_RIGHT",
