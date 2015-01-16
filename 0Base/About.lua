@@ -130,7 +130,6 @@ _JH_About.PS.OnPanelActive = function(frame)
 		nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 12 })
 		:Text(_L["Input Json"]):Click(RaidGrid_Base.OutputRecord)
 	end
-	nX,nY = ui:Append("Text", { x = 10, y = nY + 50, w = 500 , h = 40,font = 109,multi = true, txt = _L["Author"] }):Pos_()
 	ui:Append("WndCheckBox","DEBUG", { x = 420, y = 170, checked = JH.bDebug })
 	:Text(_L["DEBUG"]):Click(function(bChecked)
 		if not JH.bDebug then
@@ -157,7 +156,6 @@ _JH_About.PS.OnTaboxCheck = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX,nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File("interface/JH/0Base/background.tga"):Pos_()
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 25, color = {255,255,0}, txt = _L("%s are welcome to use JH plug-in", szName), font = 230 }):Pos_()
-	nX,nY = ui:Append("Text", { x = 10, y = nY + 35, w = 500 , h = 0,font = 109,multi = true, txt = _L["Author"] }):Pos_()
 end
 
 GUI.RegisterPanel(_L["About"], 252, _L["Recreation"],_JH_About.PS)
