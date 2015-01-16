@@ -278,11 +278,13 @@ C.LoadCircleMergeData = function(tData)
 				C.tData[k] = v
 			end
 		else
+			local dat = C.tData["mt"] or {}
 			for kk, vv in pairs(v) do
-				if not C.tData[kk] then
-					C.tData[kk] = vv
+				if not dat[kk] then
+					dat[kk] = vv
 				end
 			end
+			C.tData["mt"] = dat
 		end
 	end
 	FireEvent("CIRCLE_CLEAR")
