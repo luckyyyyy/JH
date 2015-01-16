@@ -194,9 +194,9 @@ C.LoadCircleData = function(tData, bMsg)
 	end
 	for k, v in pairs(tData.Circle) do
 		if k ~= "mt" then
-			local map = C.tMapList[tonumber(k)]
+			local map = C.tMapList[C.GetMapName(tonumber(k))]
 			if map and map.bDungeon then
-				if #v < CIRCLE_MAP_COUNT[tonumber(k)] then
+				if #v <= CIRCLE_MAP_COUNT[tonumber(k)] then
 					data[tonumber(k)] = v
 				else
 					JH.Debug2(_L["Length limit. # "] .. k)
@@ -228,9 +228,9 @@ C.LoadCircleMergeData = function(tData)
 	end
 	for k, v in pairs(tData.Circle) do
 		if k ~= "mt" then
-			local map = C.tMapList[tonumber(k)]
+			local map = C.tMapList[C.GetMapName(tonumber(k))]
 			if map and map.bDungeon then
-				if #v < CIRCLE_MAP_COUNT[tonumber(k)] then
+				if #v <= CIRCLE_MAP_COUNT[tonumber(k)] then
 					data[tonumber(k)] = v
 				else
 					JH.Debug2(_L["Length limit. # "] .. k)
@@ -248,7 +248,7 @@ C.LoadCircleMergeData = function(tData)
 	for k, v in pairs(data) do
 		if k ~= "mt" then
 			if C.tData[k] then
-				local map = C.tMapList[k]
+				local map = C.tMapList[C.GetMapName(k)]
 				for kk, vv in ipairs(v) do
 					if map and map.bDungeon then
 						if #C.tData[k] < CIRCLE_MAP_COUNT[k] then
