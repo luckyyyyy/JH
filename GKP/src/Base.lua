@@ -189,7 +189,13 @@ _GKP.OpenPanel = function(bDisableSound)
 	frame:Show()
 	frame:BringToTop()
 	Station.SetActiveFrame(frame)
-	pcall(_GKP.Draw_GKP_Buff)
+	JH.BreatheCall("GKPTeamInfo", function()
+		if not _GKP.frame:IsVisible() then
+			JH.UnBreatheCall("GKPTeamInfo")
+		else
+			_GKP.Draw_GKP_Buff()
+		end
+	end, 3000)
 	if not bDisableSound then
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 	end
@@ -917,9 +923,7 @@ end
 -- 绘制团队概况
 ----------------------------------------------------------------------<
 _GKP.Draw_GKP_Buff = function(key,sort)
-	if _GKP.frame:IsVisible() then
-		JH.DelayCall(3000,_GKP.Draw_GKP_Buff)
-	end
+
 	local key = key or _GKP.GKP_Buff_Container.key or "nEquipScore"
 	local sort = sort or _GKP.GKP_Buff_Container.sort or "desc"
 	_GKP.GKP_Buff_Container.key = key
