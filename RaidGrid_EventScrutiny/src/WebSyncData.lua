@@ -259,8 +259,8 @@ _WebSyncData.AppendItem = function(tData,aid,k)
 		if WebSyncData.tData.aid and WebSyncData.tData.aid == tData.aid then
 			item:Lookup("Text_Title"):SetFontColor(255,255,0)
 			if WebSyncData.tData.md5 == tData.md5 then
-				btn:Enable(false)
-				btn:Lookup("","Text_Default"):SetText("使用中")
+				-- btn:Enable(false)
+				btn:Lookup("","Text_Default"):SetText("上次选择")
 			else
 				btn:Lookup("","Text_Default"):SetText("有更新")
 				btn:Lookup("","Text_Default"):SetFontColor(255,255,0)
