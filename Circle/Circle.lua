@@ -195,7 +195,7 @@ C.LoadCircleData = function(tData, bMsg)
 	end
 	for k, v in pairs(tData.Circle) do
 		if k ~= "mt" then
-			local map = C.tMapList[C.GetMapName(tonumber(k))]
+			local map = C.tMapList[C.GetMapName(tonumber(k))]			
 			if map and map.bDungeon then
 				if #v <= CIRCLE_MAP_COUNT[tonumber(k)] then
 					data[tonumber(k)] = v
@@ -434,7 +434,7 @@ C.DrawLine = function(tar, ttar, sha, col, dwType)
 	sha:Show()
 end
 
-C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
+C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	local nRadius = nRadius * 64
 	local nFace = ceil(128 * nAngle / 360)
 	local dwRad1 = pi * (tar.nFaceDirection - nFace) / 128
@@ -457,7 +457,9 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType)
 	end
 	nAlpha = nAlpha + (360 - nAngle) / 6
 	if nAlpha > CIRCLE_CIRCLE_ALPHA then nAlpha = CIRCLE_CIRCLE_ALPHA end
-	
+	if __Alpha then -- circle 2
+		nAlpha = nAlpha - (__Alpha / 360 * nAlpha / 2)
+	end
 	local r, g, b = unpack(col)
 	-- orgina point
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
@@ -675,7 +677,11 @@ C.OnBreathe = function()
 						end
 						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
 							sha[kk].nFaceDirection = KGNpc.nFaceDirection
-							C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+							local __Alpha
+							if #data.tCircles == 2 then
+								__Alpha = data.tCircles[1].nAngle
+							end
+							C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
 						end
 						if Circle.bBorder and vv.bBorder then
 							local key = "B" .. kk
@@ -769,7 +775,11 @@ C.OnBreathe = function()
 						end
 						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
 							sha[kk].nFaceDirection = KGDoodad.nFaceDirection
-							C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+							local __Alpha
+							if #data.tCircles == 2 then
+								__Alpha = data.tCircles[1].nAngle
+							end
+							C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
 						end
 						if Circle.bBorder and vv.bBorder then
 							local key = "B" .. kk
@@ -1109,6 +1119,7 @@ C.OpenDataPanel = function(data, id, index)
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
 		C.OpenDataPanel(data, id, index)
+		FireEvent("CIRCLE_CLEAR")
 	end)
 	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
 	:Click(function()
