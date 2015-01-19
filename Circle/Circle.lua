@@ -45,6 +45,7 @@ local CIRCLE_COLOR = {
 	{ r = 65,  g = 50,  b = 160},
 	{ r = 170, g = 65,  b = 180},
 	{ r = 255, g = 255, b = 255},
+	{ r = 255, g = 128, b = 0  },
 }
 
 local function Confuse(tCode)
@@ -195,7 +196,7 @@ C.LoadCircleData = function(tData, bMsg)
 	end
 	for k, v in pairs(tData.Circle) do
 		if k ~= "mt" then
-			local map = C.tMapList[C.GetMapName(tonumber(k))]			
+			local map = C.tMapList[C.GetMapName(tonumber(k))]
 			if map and map.bDungeon then
 				if #v <= CIRCLE_MAP_COUNT[tonumber(k)] then
 					data[tonumber(k)] = v
