@@ -669,6 +669,7 @@ C.OnBreathe = function()
 				}
 			end
 			if data.tCircles then
+				if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
 				for i = #data.tCircles, 1, -1 do
 					local kk, vv = i, data.tCircles[i]
 					if vv.bEnable then
@@ -767,6 +768,7 @@ C.OnBreathe = function()
 				}
 			end
 			if data.tCircles then
+				if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
 				for i = #data.tCircles, 1, -1 do
 					local kk, vv = i, data.tCircles[i]
 					if vv.bEnable then
