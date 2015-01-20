@@ -1,6 +1,6 @@
 local _L = JH.LoadLangPack
 WebSyncData = {
-	tData = {}, --ä»¥åå®ç°è‡ªåŠ¨æ›´æ–°ç”¨
+	tData = {}, --ÒÔºóÊµÏÖ×Ô¶¯¸üĞÂÓÃ
 }
 RegisterCustomData("WebSyncData.tData")
 
@@ -11,7 +11,7 @@ local _WebSyncData = {
 	tData = {},
 	tUnused = nil,
 	bSyncWebPage = false,
-	tUrl = { -- æš‚æ—¶å…ˆè¿™æ ·é…ç½® è¯·ä¸è¦ä¿®æ”¹
+	tUrl = { -- ÔİÊ±ÏÈÕâÑùÅäÖÃ Çë²»ÒªĞŞ¸Ä
 		szConfigList = "http://www.j3ui.com/list/game/",
 		szConfigList2 = "http://www.j3ui.com/list/game2/",
 		szDownload = "http://www.j3ui.com/down/json/",		
