@@ -13,7 +13,8 @@ local GetClientPlayer = GetClientPlayer
 local SHADOW = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
 local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低 
+local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低
+local CIRCLE_ALPHA_STEP = 3
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 165 -- 线和边框最大透明度
 local CIRCLE_MAX_CIRCLE = 2
@@ -446,7 +447,7 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	end
 	-- nAlpha 补偿
 	local nAlpha = CIRCLE_CIRCLE_ALPHA
-	local ap = 3 * (nRadius / 64)
+	local ap = CIRCLE_ALPHA_STEP * (nRadius / 64)
 	if ap > 35 then
 		nAlpha = 15
 	else
@@ -1300,6 +1301,12 @@ JH.RegisterEvent("FIRST_LOADING_END", function()
 	local me = GetClientPlayer()
 	CIRCLE_PLAYER_NAME = me.szName -- 防止测试reload毁了所有数据
 	C.LoadFile()
+end)
+JH.RegisterEvent("CIRCLE_DEBUG", function()
+	if JH_About.CheckNameEx() then
+		CIRCLE_CIRCLE_ALPHA, CIRCLE_ALPHA_STEP = arg0, arg1
+		FireEvent("CIRCLE_CLEAR")
+	end
 end)
 JH.RegisterEvent("LOGIN_GAME", function()
 	if Circle.bEnable then 
