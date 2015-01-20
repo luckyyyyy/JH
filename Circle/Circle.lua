@@ -546,26 +546,14 @@ C.DrawTable = function()
 					item:Lookup("Image_Line"):Hide()
 				end
 				local text = item:Lookup("Text_I_Name")
-				if v.szNote then
-					text:SetText(string.format("%s (%s)", v.key, v.szNote))
-				else
-					text:SetText(v.key)
-				end
+				text:SetText(v.szNote and string.format("%s (%s)", v.key, v.szNote) or v.key)
 				local r, g, b = 255, 255, 255
-				local vv
-				if mapid == _L["All Circle"] then
-					vv = C.tData[v.id][v.index]
-				else
-					vv = C.tData[mapid][k]
-				end
+				local vv = mapid == _L["All Circle"] and C.tData[v.id][v.index] or C.tData[mapid][k]
 				if vv.tCircles then
 					r, g, b = unpack(vv.tCircles[1].col)
 				end
 				text:SetFontColor(r, g, b)
-				local szMapName = C.GetMapName(mapid)
-				if v.id then
-					szMapName = C.GetMapName(v.id)
-				end
+				local szMapName = v.id and C.GetMapName(v.id) or C.GetMapName(mapid)
 				item:Lookup("Text_I_Map"):SetText(szMapName)
 				item.OnItemMouseEnter = function()
 					this:Lookup("Image_Light"):Show()
@@ -580,27 +568,15 @@ C.DrawTable = function()
 				end
 				item:Lookup("Image_Btn").OnItemMouseEnter = function()
 					local nFrame = this:GetFrame()
-					if nFrame == 6 then
-						this:SetFrame(7)
-					else
-						this:SetFrame(3)
-					end
+					this:SetFrame(nFrame == 6 and 7 or 3)
 				end
 				item:Lookup("Image_Btn").OnItemMouseLeave = function()
 					local nFrame = this:GetFrame()
-					if nFrame == 7 then
-						this:SetFrame(6)
-					else
-						this:SetFrame(5)
-					end
+					this:SetFrame(nFrame == 7 and 6 or 5)
 				end
 				item:Lookup("Image_Btn").OnItemLButtonClick = function()
 					local nFrame = this:GetFrame()
-					if nFrame == 7 then
-						C.tData[v.id or mapid][v.index or k].bEnable = false
-					else
-						C.tData[v.id or mapid][v.index or k].bEnable = true
-					end
+					C.tData[v.id or mapid][v.index or k].bEnable = nFrame ~= 7
 					FireEvent("CIRCLE_CLEAR")
 					FireEvent("CIRCLE_DRAW_UI")
 				end
@@ -741,10 +717,7 @@ C.OnBreathe = function()
 					if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
 						sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
 						sha.item.dwID = dwID
-						local col = { 255, 255, 0 }
-						if dwID == me.dwID then
-							col = { 255, 0, 128 }
-						end
+						local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
 						C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
 					elseif sha.item then
 						C.shLine:RemoveItem(sha.item)
@@ -755,10 +728,7 @@ C.OnBreathe = function()
 					C.tCache[TARGET.NPC][k].Line = {}
 				end				
 				if dwID ~= 0 and dwType == TARGET.PLAYER then
-					local col = { 255, 255, 0 }
-					if dwID == me.dwID then
-						col = { 255, 0, 128 }
-					end
+					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
 					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetTemplateName(tar), col })
 				end
 				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
@@ -809,10 +779,7 @@ C.OnBreathe = function()
 						end
 						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
 							sha[kk].nFaceDirection = KGDoodad.nFaceDirection
-							local __Alpha
-							if #data.tCircles == 2 then
-								__Alpha = data.tCircles[1].nAngle
-							end
+							local __Alpha = #data.tCircles == 2 and data.tCircles[1].nAngle or nil
 							C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
 						end
 						if Circle.bBorder and vv.bBorder then
@@ -867,11 +834,7 @@ Target_AppendAddonMenu({function(dwID, dwType)
 			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
-				if IsAltKeyDown() then
-					C.OpenAddPanel(p.dwTemplateID, dwType, C.GetMapName(C.GetMapID()))
-				else
-					C.OpenAddPanel(JH.GetTemplateName(p), dwType, C.GetMapName(C.GetMapID()))
-				end
+				C.OpenAddPanel(not IsAltKeyDown() and JH.GetTemplateName(p) or p.dwTemplateID, dwType, C.GetMapName(C.GetMapID()))
 			end }}
 		end
 	else
@@ -895,11 +858,7 @@ C.OpenAddPanel = function(szName, dwType, szMap)
 	end)
 	ui:Append("Text", { txt = _L["Map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
 	if not szMap then
-		if tonumber(C.dwSelMapID) then
-			szMap = C.GetMapName(C.dwSelMapID)
-		else
-			szMap = C.GetMapName(C.GetMapID())
-		end
+		szMap = tonumber(C.dwSelMapID) and C.GetMapName(C.dwSelMapID) or C.GetMapName(C.GetMapID())
 	end
 	ui:Append("WndEdit", "Map", { txt = szMap, x = 115, y = 113 })
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
@@ -1012,12 +971,7 @@ C.OpenDataPanel = function(data, id, index)
 	local ui = GUI(Station.Lookup("Normal/C_Data"))
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
 	--58
-	local title
-	if data.szNote then
-		title = string.format("%s(%s)", data.key, data.szNote)
-	else
-		title = data.key
-	end
+	local title = data.szNote and string.format("%s(%s)", data.key, data.szNote) or data.key
 	ui:Append("Image", { x = 59.5, y = 45, w = 261, h = 25, alpha = 180}):File(file, 58)
 	local nX, nY = ui:Append("Text", "Name", { txt = title, font = 48, w = 380, h = 30, x = 0, y = 40, align = 1 }):Pos_()
 	ui:Append("WndRadioBox", { x = 100, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC })
@@ -1067,7 +1021,7 @@ C.OpenDataPanel = function(data, id, index)
 				v.col = { r, g, b }
 				FireEvent("CIRCLE_RESERT_DRAW")
 				FireEvent("CIRCLE_DRAW_UI", "OPEN")
-			end,nil,nil,CIRCLE_COLOR)
+			end, nil, nil, CIRCLE_COLOR)
 			end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = nX + 2, y = nY + 1, txt = _L["Draw Border"], checked = v.bBorder })
 		:Click(function(bChecked)
@@ -1343,22 +1297,24 @@ C.UnInit = function()
 	JH.UnRegisterInit("Circle")
 end
 
-JH.RegisterEvent("LOGIN_GAME", function()
-	if Circle.bEnable then 
-		C.Init() 
-	end
-end)
 JH.RegisterEvent("GAME_EXIT", C.SaveFile)
 JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
+JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
 JH.RegisterEvent("FIRST_LOADING_END", function()
 	local me = GetClientPlayer()
 	CIRCLE_PLAYER_NAME = me.szName -- 防止测试reload毁了所有数据
 	C.LoadFile()
 end)
-JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
+JH.RegisterEvent("LOGIN_GAME", function()
+	if Circle.bEnable then 
+		C.Init() 
+	end
+end)
+
 JH.PlayerAddonMenu({ szOption = _L["Open Circle Panel"], fnAction = function()
 	JH.OpenPanel(_L["Circle"])
 end })
+
 -- public
 local ui = {
 	OpenAddPanel = C.OpenAddPanel,
