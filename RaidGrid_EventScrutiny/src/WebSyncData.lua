@@ -1,6 +1,6 @@
 local _L = JH.LoadLangPack
 WebSyncData = {
-	tData = {}, --ÒÔºóÊµÏÖ×Ô¶¯¸üĞÂÓÃ
+	tData = {}, --ä»¥åå®ç°è‡ªåŠ¨æ›´æ–°ç”¨
 }
 RegisterCustomData("WebSyncData.tData")
 
@@ -11,7 +11,7 @@ local _WebSyncData = {
 	tData = {},
 	tUnused = nil,
 	bSyncWebPage = false,
-	tUrl = { -- ÔİÊ±ÏÈÕâÑùÅäÖÃ Çë²»ÒªĞŞ¸Ä
+	tUrl = { -- æš‚æ—¶å…ˆè¿™æ ·é…ç½® è¯·ä¸è¦ä¿®æ”¹
 		szConfigList = "http://www.j3ui.com/list/game/",
 		szConfigList2 = "http://www.j3ui.com/list/game2/",
 		szDownload = "http://www.j3ui.com/down/json/",		
@@ -20,7 +20,7 @@ local _WebSyncData = {
 }
 	
 _WebSyncData.Search = function()
-	GetUserInput("ÊäÈëaid»òÕß×÷ÕßÃû×Ö»òÕß²¿·Ö±êÌâ",function(txt)
+	GetUserInput(g_tStrings.SEARCH,function(txt)
 		local t = {}
 		local x, y = _WebSyncData.Container:GetAllContentSize()
 		for k,v in ipairs(_WebSyncData.tList) do
@@ -40,7 +40,7 @@ _WebSyncData.Search = function()
 			end
 			_WebSyncData.Container:FormatAllContentPos()
 		else
-			JH.Alert("Ã»ÓĞËÑË÷½á¹û¡£")
+			JH.Alert(_L["No content"])
 		end
 	end)	
 end
@@ -63,7 +63,7 @@ _WebSyncData.GetData = function()
 			end)
 		end
 	end
-	GetUserInput("ÇëÊäÈëÎÄ¼şMD5£¨ÍøÕ¾ÄÜ¿´£©",fnAction)
+	GetUserInput(_L["Please enter md5"], fnAction)
 end
 
 _WebSyncData.SyncTeam = function()
@@ -71,18 +71,18 @@ _WebSyncData.SyncTeam = function()
 		return
 	end
 	if not _WebSyncData.tUnused then
-		return JH.Alert("ÇëÑ¡ÔñÒ»¸öÊı¾İÔÚÖ´ĞĞ²Ù×÷")
+		return JH.Alert(g_tStrings.MSG_CHOOSE_FILE_EMPTY)
 	end
 	local me = GetClientPlayer()
 	if not me.IsInParty() then
-		return JH.Alert("ÄãÃ»ÓĞ×é¶Ó¡£")
+		return JH.Alert(g_tStrings.STR_TALK_ERROR_NOT_IN_PARTY)
 	end
 	local team = GetClientTeam()
 	local szLeader = team.GetClientTeamMemberName(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER))
 	if szLeader ~= me.szName then
-		return JH.Alert("Äã²»ÊÇÍÅ³¤¡£")
+		return JH.Alert(_L["You are not team leader."])
 	end
-	JH.Confirm("È·¶¨Í¬²½Âğ£¿£¨ÇëÏÈÌáÇ°Í¨Öª¶ÓÓÑ£©£¡",function()
+	JH.Confirm(_L["Confirm?"],function()
 		local t = _WebSyncData.tUnused.tData
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "WebSyncTean", t.aid, JH.AscIIEncode(t.title), JH.AscIIEncode(t.author), t.dateline, JH.AscIIEncode(t.md5))
 	end)
@@ -95,36 +95,36 @@ JH.RegisterEvent("ON_BG_CHANNEL_MSG",function()
 			WebSyncData.OpenPanel(data[2], data[3], data[4], data[5], data[6])
 		end
 		if data[1] == "Load" then
-			JH.Sysmsg(arg3 .." Ê¹ÓÃÁË£º" .. data[2], "ÍÅ¶ÓÊı¾İ")
+			JH.Sysmsg(_L("%s use %s data", arg3, data[2]))
 		end
 	end
 end)
 
 WebSyncData.OnFrameCreate = function()
 	local ui = GUI(this)
-	ui:Append("WndButton3", { x = 30, y = 630, txt = "Í¬²½¸øÈ«ÍÅ" })
+	ui:Append("WndButton3", { x = 30, y = 630, txt = _L["sync team"] })
 	:Click(_WebSyncData.SyncTeam)
-	ui:Append("WndButton3","btn1", { x = 180, y = 630, txt = "ÍÆ¼öÊı¾İ" }):Enable(false)
+	ui:Append("WndButton3","btn1", { x = 180, y = 630, txt = g_tStrings.SEARCH }):Enable(false)
 	:Click(function()
 		ui:Fetch("btn1"):Enable(false)
 		ui:Fetch("btn2"):Enable(true)
 		_WebSyncData.RefreshList()
 	end)
-	ui:Append("WndButton3","btn2", { x = 330, y = 630, txt = "ÆäËûÊı¾İ" })
+	ui:Append("WndButton3","btn2", { x = 330, y = 630, txt = _L["Other data"] })
 	:Click(function()
 		ui:Fetch("btn1"):Enable(true)
 		ui:Fetch("btn2"):Enable(false)
 		_WebSyncData.RefreshList(true)
 	end)
-	ui:Append("WndButton3", { x = 480, y = 630, txt = "¹Ø±Õ¸üĞÂÍ¨Öª" })
+	ui:Append("WndButton3", { x = 480, y = 630, txt = _L["Close update notice"] })
 	:Click(function()
 		WebSyncData.tData = {}
-		JH.Sysmsg("ÔÚÏÂ´ÎÑ¡ÔñÊı¾İÖ®Ç°£¬²»»áÔÙÌáÊ¾ÁË¡£")
+		JH.Alert(g_tStrings.STR_MAIL_SUCCEED)
 		_WebSyncData.RefreshList()
 	end)
-	ui:Append("WndButton3", { x = 630, y = 630, txt = "ËÑË÷" })
+	ui:Append("WndButton3", { x = 630, y = 630, txt = g_tStrings.SEARCH })
 	:Click(_WebSyncData.Search)
-	ui:Append("WndButton3", { x = 780, y = 630, txt = "»ñÈ¡Ë½ÃÜÊı¾İ" })
+	ui:Append("WndButton3", { x = 780, y = 630, txt = _L["Access to personal data"] })
 	:Click(_WebSyncData.GetData)
 	ui:Point():RegisterClose(_WebSyncData.ClosePanel)
 	_WebSyncData.Container = this:Lookup("PageSet_Menu/Page_FileDownload/WndScroll_FileDownload/WndContainer_FileDownload_List")
@@ -153,7 +153,8 @@ _WebSyncData.RefreshList = function(aid, title, author, dateline, md5)
 	if type(aid) == "boolean" then
 		url = _WebSyncData.tUrl.szConfigList2
 	end
-	JH.RemoteRequest(url .. "?_" .. szDate,function(szTitle,szDoc)
+	local _, _, szLang = GetVersion()
+	JH.RemoteRequest(url .. "?_" .. szDate .. "&lang=" .. szLang,function(szTitle,szDoc)
 		local result,err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
 			JH.Sysmsg2(err)
@@ -182,13 +183,13 @@ _WebSyncData.TimeToDate = function(nTime)
 		return string.format("%02d", n)
 	end
 	if ndifference < 60 then
-		return "¸Õ¸Õ"
+		return _L["now"]
 	elseif ndifference < 3600 then
-		return string.format("%d·ÖÖÓÇ°", ndifference / 60)
+		return _L("%d mins ago", ndifference / 60)
 	elseif ndifference < 86400 then
-		return string.format("%dĞ¡Ê±Ç°", ndifference / 3600)
+		return _L("%d hours ago", ndifference / 3600)
 	else
-		return string.format("%dÌìÇ°", ndifference / 86400)
+		return _L("%d days ago", ndifference / 86400)
 	end
 end
 
@@ -215,10 +216,7 @@ _WebSyncData.AppendItem = function(tData,aid,k)
 		item.OnItemMouseEnter = function()
 			if not _WebSyncData.bSyncWebPage then
 				item:Lookup("Image_CoverBg"):Show()
-				local txt = "±êÌâ£º" .. this.tData.title .. "\n"
-				txt = txt .. "×÷Õß£º" .. this.tData.author .. "\n"
-				txt = txt .. "¸üĞÂÊ±¼ä£º" .. _WebSyncData.TimeToDate(this.tData.dateline) .. "\n"
-				txt = txt .. "ÏÂÔØ´ÎÊı£º" .. this.tData.downloads
+				local txt = this.tData.title .. " - " .. this.tData.downloads
 				_WebSyncData.MenuTip(this, txt)
 			end
 		end
@@ -253,16 +251,16 @@ _WebSyncData.AppendItem = function(tData,aid,k)
 			OpenInternetExplorer(url)
 		end
 		if tData.url then
-			btn2:Lookup("","Text_Default2"):SetText("²é¿´ÏêÇé")
+			btn2:Lookup("","Text_Default2"):SetText(_L["details"])
 			btn:Hide()
 		end
 		if WebSyncData.tData.aid and WebSyncData.tData.aid == tData.aid then
 			item:Lookup("Text_Title"):SetFontColor(255,255,0)
 			if WebSyncData.tData.md5 == tData.md5 then
 				-- btn:Enable(false)
-				btn:Lookup("","Text_Default"):SetText("ÉÏ´ÎÑ¡Ôñ")
+				btn:Lookup("","Text_Default"):SetText(_L["select"])
 			else
-				btn:Lookup("","Text_Default"):SetText("ÓĞ¸üĞÂ")
+				btn:Lookup("","Text_Default"):SetText(_L["update"])
 				btn:Lookup("","Text_Default"):SetFontColor(255,255,0)
 			end
 		end
@@ -315,18 +313,18 @@ _WebSyncData.ItemRButtonClick = function(tData, bSync)
 	local me = GetClientPlayer()
 	if self.aid then
 		local fnAction = function(tData)
-			local wnd = GUI.CreateFrame("RGES_Data",{ w = 760,h = 300,title = "¡¶½£Íø3¡·ÍÅ¶ÓÊÂ¼ş¼à¿Ø Êı¾İ¸üĞÂÌáÊ¾" ,drag = true,close = true }):RegisterClose()
+			local wnd = GUI.CreateFrame("RGES_Data",{ w = 760,h = 300,title = _L["JH"] ,drag = true,close = true }):RegisterClose()
 			tData.color = tData.color or "ffffff"
 			wnd:Append("Text", { w = 685, h = 60, x = 0, y = 0, txt = tData.title, font = 40, multi = true, align = 1, color = { "0x" .. string.sub(tData.color,0,2),"0x" .. string.sub(tData.color,2,4),"0x" .. string.sub(tData.color,4,6) } })
-			wnd:Append("Text", { w = 685, h = 30, x = 0, y = 65, txt = "×÷Õß£º" .. tData.author, font = 40, align = 1 })
-			wnd:Append("WndButton3", { x = 145, y = 120, txt = "¸²¸Çµ¼Èë" }):Click(function()
+			wnd:Append("Text", { w = 685, h = 30, x = 0, y = 65, txt = "By:" .. tData.author, font = 40, align = 1 })
+			wnd:Append("WndButton3", { x = 145, y = 120, txt = _L["Cover data"] }):Click(function()
 				WebSyncData.tData = tData
 				RaidGrid_Base.LoadSettingsFileNew("sync_data_" .. tData.aid, true)
 				if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean","Load",tData.title) end
 				_WebSyncData.LoadData(_WebSyncData.tData)
 				wnd:CloseFrame()
 			end)
-			wnd:Append("WndButton3", { x = 400, y = 120, txt = "ºÏ²¢µ¼Èë" }):Click(function()
+			wnd:Append("WndButton3", { x = 400, y = 120, txt = _L["Merge data"] }):Click(function()
 				WebSyncData.tData = {}
 				RaidGrid_Base.LoadSettingsFileNew("sync_data_" .. tData.aid, false)
 				if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean","Load",tData.title) end
@@ -346,7 +344,8 @@ _WebSyncData.ItemRButtonClick = function(tData, bSync)
 end
 
 _WebSyncData.RemoteRequest = function(szUrl, tData, fnAction)
-	JH.RemoteRequest(szUrl..tData.aid.. "?" .. tData.dateline,function(szTitle,szDoc)
+	local _, _, szLang = GetVersion()
+	JH.RemoteRequest(szUrl..tData.aid.. "?" .. tData.dateline .. "&lang=" .. szLang, function(szTitle, szDoc)
 		local data = JH.JsonToTable(szDoc)
 		local szFile = "Interface/JH/RaidGrid_EventScrutiny/alldat/sync_data_".. tData.aid .. ".jx3dat"
 		pcall(SaveLUAData, szFile, data)
@@ -361,7 +360,7 @@ _WebSyncData.SyncTip = function(szText, col)
 		f:Hide()
 	else
 		_WebSyncData.bSyncWebPage = true
-		local t = f:Lookup("","Text_Tips_Msg")
+		local t = f:Lookup("", "Text_Tips_Msg")
 		t:SetText(szText)
 		t:SetFontColor(unpack(col))
 		f:Show()

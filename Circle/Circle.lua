@@ -110,11 +110,7 @@ setmetatable(MAP_CACHE, { __mode = "kv" })
 C.GetMapName = function(mapid)
 	if not MAP_CACHE[mapid] then
 		local _szMap = Table_GetMapName(mapid) or ""
-		if _szMap == "" then
-			MAP_CACHE[mapid] = tostring(mapid)
-		else
-			MAP_CACHE[mapid] = _szMap
-		end
+		MAP_CACHE[mapid] = _szMap == "" and tostring(mapid) or _szMap
 	end
 	return MAP_CACHE[mapid]
 end
