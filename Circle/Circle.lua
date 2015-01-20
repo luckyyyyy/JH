@@ -520,7 +520,7 @@ end
 
 -- 绘制设置UI表格
 C.DrawTable = function()
-	if Station.Lookup("Normal/C_Data") then
+	if arg0 ~= "OPEN" and Station.Lookup("Normal/C_Data") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
 	end
 	if C.hTable and C.hTable:IsValid() then
@@ -545,7 +545,23 @@ C.DrawTable = function()
 				if k % 2 == 0 then
 					item:Lookup("Image_Line"):Hide()
 				end
-				item:Lookup("Text_I_Name"):SetText(v.szNote or v.key)
+				local text = item:Lookup("Text_I_Name")
+				if v.szNote then
+					text:SetText(string.format("%s (%s)", v.key, v.szNote))
+				else
+					text:SetText(v.key)
+				end
+				local r, g, b = 255, 255, 255
+				local vv
+				if mapid == _L["All Circle"] then
+					vv = C.tData[v.id][v.index]
+				else
+					vv = C.tData[mapid][k]
+				end
+				if vv.tCircles then
+					r, g, b = unpack(vv.tCircles[1].col)
+				end
+				text:SetFontColor(r, g, b)
 				local szMapName = C.GetMapName(mapid)
 				if v.id then
 					szMapName = C.GetMapName(v.id)
@@ -555,7 +571,9 @@ C.DrawTable = function()
 					this:Lookup("Image_Light"):Show()
 				end
 				item.OnItemMouseLeave = function()
-					this:Lookup("Image_Light"):Hide()
+					if this:Lookup("Image_Light") then
+						this:Lookup("Image_Light"):Hide()
+					end
 				end
 				if not v.bEnable then
 					item:Lookup("Image_Btn"):SetFrame(5)
@@ -599,6 +617,19 @@ C.DrawTable = function()
 							C.RemoveData(v.id or mapid, v.index or k, not IsAltKeyDown())
 						end }
 					}
+					if mapid ~= _L["All Circle"] then
+						tinsert(menu, 4, { szOption = _L["Move up"], bDisable = k == 1, fnAction = function()
+							C.tData[mapid][k], C.tData[mapid][k - 1] = C.tData[mapid][k - 1], C.tData[mapid][k]
+							FireEvent("CIRCLE_CLEAR")
+							FireEvent("CIRCLE_DRAW_UI")
+						end})
+						tinsert(menu, 5, { szOption = _L["Move down"], bDisable = k == #tab, fnAction = function()
+							C.tData[mapid][k], C.tData[mapid][k + 1] = C.tData[mapid][k + 1], C.tData[mapid][k]
+							FireEvent("CIRCLE_CLEAR")
+							FireEvent("CIRCLE_DRAW_UI")
+						end})
+						tinsert(menu, 6, { bDevide = true })
+					end
 					PopupMenu(menu)
 				end
 				item:Show()
@@ -1035,6 +1066,7 @@ C.OpenDataPanel = function(data, id, index)
 				ui:Fetch("Color_" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				FireEvent("CIRCLE_RESERT_DRAW")
+				FireEvent("CIRCLE_DRAW_UI", "OPEN")
 			end,nil,nil,CIRCLE_COLOR)
 			end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = nX + 2, y = nY + 1, txt = _L["Draw Border"], checked = v.bBorder })
@@ -1051,6 +1083,7 @@ C.OpenDataPanel = function(data, id, index)
 			end
 			C.OpenDataPanel(data, id, index)
 			FireEvent("CIRCLE_CLEAR")
+			FireEvent("CIRCLE_DRAW_UI", "OPEN")
 		end):Pos_()
 	end
 	nX, nY = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
@@ -1123,6 +1156,7 @@ C.OpenDataPanel = function(data, id, index)
 		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
 		C.OpenDataPanel(data, id, index)
 		FireEvent("CIRCLE_CLEAR")
+		FireEvent("CIRCLE_DRAW_UI", "OPEN")
 	end)
 	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
 	:Click(function()
