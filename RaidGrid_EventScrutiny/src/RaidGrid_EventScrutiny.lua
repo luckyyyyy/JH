@@ -4693,7 +4693,7 @@ PS.OnPanelActive = function(frame)
 		if szLang ~= "zhcn" and szLang ~= "zhtw" then
 			return JH.Sysmsg(_L["Sorry, Does not support this function"])
 		end
-		pcall(WebSyncData.OpenPanel)
+		WebSyncData.OpenPanel()
 	end):Pos_()
 	nX = ui:Append("WndButton2", { x = 32, y = nY + 12 })
 	:Text("BUFF"):Click(function(bChecked)
