@@ -4690,7 +4690,7 @@ PS.OnPanelActive = function(frame)
 	nX,nY = ui:Append("WndButton2", { x = nX + 18, y = nY + 12,color = {255,255,0} })
 	:Text(_L["Network data"]):Click(function()
 		local _, _, szLang = GetVersion()
-		if szLang ~= "zhcn" then
+		if szLang ~= "zhcn" and szLang ~= "zhtw" then
 			return JH.Sysmsg(_L["Sorry, Does not support this function"])
 		end
 		pcall(WebSyncData.OpenPanel)
