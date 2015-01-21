@@ -83,12 +83,12 @@ _ScreenHead.Create = function(obj, info, nIndex)
 	if info.nMaxLife == 0 then info.nMaxLife = 1 end
 	if info.nMaxMana == 0 then info.nMaxMana = 1 end
 	lifeper = info.nCurrentLife / info.nMaxLife
-	manaper = info.nCurrentMana / info.nMaxMana -- è‹äº‘å•¥çš„æ‡’å¾—ä¿®æ­£äº† åæ­£æ²¡æ„ä¹‰
+	manaper = info.nCurrentMana / info.nMaxMana -- ²ÔÔÆÉ¶µÄÀÁµÃÐÞÕýÁË ·´ÕýÃ»ÒâÒå
 	if manaper > 1 then manaper = 1 end
 	if lifeper > 1 then lifeper = 1 end
 	if data.type and data.type ~= "Other" then
 		if data.type == "Buff" or data.type == "Debuff" then
-			local bExist,tBuff = JH.HasBuff(data.dwID,obj) -- åªåˆ¤æ–­dwID åæ­£ä¸å¯èƒ½åŒæ—¶èŽ·å¾—ä¸åŒlv
+			local bExist,tBuff = JH.HasBuff(data.dwID,obj) -- Ö»ÅÐ¶ÏdwID ·´Õý²»¿ÉÄÜÍ¬Ê±»ñµÃ²»Í¬lv
 			if bExist then
 				if tBuff.nStackNum > 1 then
 					txt = string.format("%s(%d)_%s",data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame),5999))

@@ -1,16 +1,16 @@
 local _L = JH.LoadLangPack
 
 TS = {
-	bEnable = true, -- å¼€å¯
-	bInDungeon = false, -- åªæœ‰å‰¯æœ¬å†…æ‰å¼€å¯
-	nBGAlpha = 30, -- èƒŒæ™¯é€æ˜åº¦
-	nMaxBarCount = 7, -- æœ€å¤§åˆ—è¡¨
-	bForceColor = false, --æ ¹æ®é—¨æ´¾ç€è‰²
-	bForceIcon = true, -- æ˜¾ç¤ºé—¨æ´¾å›¾æ ‡ å›¢é˜Ÿæ—¶æ˜¾ç¤ºå¿ƒæ³•
-	nOTAlertLevel = 1, -- OTæé†’
-	bOTAlertSound = true, -- OT æ’­æ”¾å£°éŸ³
-	bSpecialSelf = true, -- ç‰¹æ®Šé¢œè‰²æ˜¾ç¤ºè‡ªå·±
-	bTopTarget = true, -- ç½®é¡¶å½“å‰ç›®æ ‡
+	bEnable = true, -- ¿ªÆô
+	bInDungeon = false, -- Ö»ÓĞ¸±±¾ÄÚ²Å¿ªÆô
+	nBGAlpha = 30, -- ±³¾°Í¸Ã÷¶È
+	nMaxBarCount = 7, -- ×î´óÁĞ±í
+	bForceColor = false, --¸ù¾İÃÅÅÉ×ÅÉ«
+	bForceIcon = true, -- ÏÔÊ¾ÃÅÅÉÍ¼±ê ÍÅ¶ÓÊ±ÏÔÊ¾ĞÄ·¨
+	nOTAlertLevel = 1, -- OTÌáĞÑ
+	bOTAlertSound = true, -- OT ²¥·ÅÉùÒô
+	bSpecialSelf = true, -- ÌØÊâÑÕÉ«ÏÔÊ¾×Ô¼º
+	bTopTarget = true, -- ÖÃ¶¥µ±Ç°Ä¿±ê
 	tAnchor = {},
 	nStyle = 2,
 }
@@ -42,7 +42,7 @@ end
 _TS.ClosePanel = function()
 	Wnd.CloseWindow(_TS.frame)
 	JH.UnBreatheCall("TS")
-	-- é‡Šæ”¾å˜é‡
+	-- ÊÍ·Å±äÁ¿
 	_TS.frame = nil
 	_TS.bg = nil
 	_TS.handle = nil
@@ -145,7 +145,7 @@ _TS.OnBreathe = function()
 			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
 			_TS.Life:SetPercentage(lifeper)
 		end
-		-- æ— å¨èƒæé†’
+		-- ÎŞÍşĞ²ÌáĞÑ
 		local bExist, tBuff = JH.HasBuff({ 917, 4487, 926, 775, 4101, 8422 })
 		if bExist then
 			local szName = JH.GetBuffName(tBuff.dwID, tBuff.nLevel)
@@ -156,7 +156,7 @@ _TS.OnBreathe = function()
 			_TS.frame:Lookup("", "Text_Title"):SetFontColor(255, 255, 255)
 		end
 		
-		-- å¼€æ€ªæé†’
+		-- ¿ª¹ÖÌáĞÑ
 		if _TS.dwDropTargetPlayerID >= 0 and GetTime() - _TS.dwDropTargetPlayerID > 1000 * 7 and GetNpcIntensity(p) > 2 then
 			local me = GetClientPlayer()
 			if not me.bFightState then return end
@@ -199,29 +199,29 @@ _TS.UpdateAnchor = function(frame)
 	this:CorrectPos()
 end
 
--- æœ‰å‡ ä¸ªé—®é¢˜
--- 1) å½“å‰ç›®æ ‡ ç»“æœåé¦ˆçš„æ˜¯0ä»‡æ¨ BUGäº† fixed
--- 2) åé¦ˆçš„ç›®æ ‡æ˜¯é”™è¯¯çš„ ä¹ŸBUGäº† fixed
--- 3) å› ä¸ºæ˜¯å¼‚æ­¥ åé¦ˆæ—¶ç›®æ ‡å·²ç»æ›´æ–° ä¹Ÿéœ€è¦åŒæ—¶æ›´æ–° fixed
--- 4) åé¦ˆçš„åˆ—è¡¨ä¸­ä¸å­˜åœ¨å½“å‰ç›®æ ‡ fixed
+-- ÓĞ¼¸¸öÎÊÌâ
+-- 1) µ±Ç°Ä¿±ê ½á¹û·´À¡µÄÊÇ0³ğºŞ BUGÁË fixed
+-- 2) ·´À¡µÄÄ¿±êÊÇ´íÎóµÄ Ò²BUGÁË fixed
+-- 3) ÒòÎªÊÇÒì²½ ·´À¡Ê±Ä¿±êÒÑ¾­¸üĞÂ Ò²ĞèÒªÍ¬Ê±¸üĞÂ fixed
+-- 4) ·´À¡µÄÁĞ±íÖĞ²»´æÔÚµ±Ç°Ä¿±ê fixed
 _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 	local team = GetClientTeam()
 	local tThreat, nTopRank, nMyRank = {}, 65535, 0
-	-- ä¿®å¤arg2åé¦ˆä¸å‡† å½“å‰ç›®æ ‡æ‰ä¿®å¤ éå½“å‰ç›®æ ‡ä¹Ÿä¸å‡†ã€‚ã€‚
+	-- ĞŞ¸´arg2·´À¡²»×¼ µ±Ç°Ä¿±ê²ÅĞŞ¸´ ·Çµ±Ç°Ä¿±êÒ²²»×¼¡£¡£
 	local dwID, dwType = Target_GetTargetData()
 	if dwID == dwApplyID and dwType == TARGET.NPC then
 		local p = GetNpc(dwApplyID)
 		if p then
 			local _, tdwID = p.GetTarget()
-			if tdwID and tdwID ~= 0 and tdwID ~= dwTargetID and tList[tdwID] then -- åŸæ¥æ˜¯0 æåŠå¤©ã€‚ã€‚
+			if tdwID and tdwID ~= 0 and tdwID ~= dwTargetID and tList[tdwID] then -- Ô­À´ÊÇ0 ¸ã°ëÌì¡£¡£
 				dwTargetID = tdwID
 			end
 		end
 	end
-	-- é‡æ„ç”¨äºæ’åº
+	-- ÖØ¹¹ÓÃÓÚÅÅĞò
 	for k, v in pairs(tList) do
 		if dwTargetID == k then
-			if v ~= 0 then -- 1ä»‡æ°¸è¿œä¸èƒ½æ˜¯0
+			if v ~= 0 then -- 1³ğÓÀÔ¶²»ÄÜÊÇ0
 				nTopRank = v
 			end
 			table.insert(tThreat, 1, { id = k, val = nTopRank })
@@ -249,7 +249,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				table.sort(tThreat, function(a, b) return a.val > b.val end)
 			end
 		end
-		-- æˆ‘å°±è¯´ è¿™å‘çˆ¹çš„ è¡€æˆ˜æµ‹å‡ºæ¥çš„bug
+		-- ÎÒ¾ÍËµ Õâ¿ÓµùµÄ ÑªÕ½²â³öÀ´µÄbug
 		if not tList[dwTargetID] then
 			nTopRank = tThreat[1].val
 		end
@@ -268,7 +268,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				end
 				_TS.bSelfTreatRank = v.val / nTopRank
 				show = true
-			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- å§‹ç»ˆæ˜¾ç¤ºè‡ªå·±çš„
+			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- Ê¼ÖÕÏÔÊ¾×Ô¼ºµÄ
 				v.id, v.val = UI_GetClientPlayerID(), nMyRank
 			end
 			
@@ -326,7 +326,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			end
 			if fDiff > 1 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[4]))
-				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --çº¢è‰²çš„ æ— è®ºå¦‚ä½•éƒ½æ˜¾ç¤ºç™½äº† å¦åˆ™çœ‹ä¸æ¸…
+				item:Lookup("Text_ThreatName"):SetFontColor(255, 255, 255) --ºìÉ«µÄ ÎŞÂÛÈçºÎ¶¼ÏÔÊ¾°×ÁË ·ñÔò¿´²»Çå
 			elseif fDiff >= 0.80 then
 				item:Lookup("Image_Treat_Bar"):FromUITex(unpack(dat[3]))
 			elseif fDiff >= 0.50 then
@@ -381,7 +381,7 @@ PS.OnPanelActive = function(frame)
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Alert Setting"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = TS.nOTAlertLevel == 1, txt = _L["OT Alert"] }):Click(function(bChecked)
-		if bChecked then -- ä»¥åå¯ä»¥åš% æš‚æ—¶å…ˆä¸ç®¡
+		if bChecked then -- ÒÔºó¿ÉÒÔ×ö% ÔİÊ±ÏÈ²»¹Ü
 			TS.nOTAlertLevel = 1
 		else
 			TS.nOTAlertLevel = 0
@@ -433,7 +433,7 @@ PS.OnPanelActive = function(frame)
 	nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY, txt = g_tStrings.STR_SHOW_HATRE_COUNTS })
 	:Menu(function()
 		local t = {}
-		for k, v in ipairs({2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50}) do -- å…¶å®æœåŠ¡å™¨æœ€å¤§åé¦ˆä¸åˆ°50ä¸ª
+		for k, v in ipairs({2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50}) do -- ÆäÊµ·şÎñÆ÷×î´ó·´À¡²»µ½50¸ö
 			table.insert(t, {
 				szOption = v,
 				bMCheck = true,
@@ -481,7 +481,7 @@ JH.AddonMenu(function()
 	return {
 		szOption = g_tStrings.HATRED_COLLECT, bCheck = true, bChecked = type(_TS.frame) ~= "nil", fnAction = function()
 			TS.bInDungeon = false
-			if type(_TS.frame) == "nil" then -- è¿™æ ·æ‰å¯¹å˜›  æŒ‰æŒ‰é’®åº”è¯¥å¼ºåˆ¶å¼€å¯å’Œå…³é—­
+			if type(_TS.frame) == "nil" then -- ÕâÑù²Å¶ÔÂï  °´°´Å¥Ó¦¸ÃÇ¿ÖÆ¿ªÆôºÍ¹Ø±Õ
 				TS.bEnable = true
 				_TS.OpenPanel()
 			else

@@ -197,9 +197,9 @@ _PartyBuffList.OnBreathe = function()
 end
 
 -- buff update
--- arg0ï¼šdwPlayerIDï¼Œarg1ï¼šbDeleteï¼Œarg2ï¼šnIndexï¼Œarg3ï¼šbCanCancel
--- arg4ï¼šdwBuffIDï¼Œarg5ï¼šnStackNumï¼Œarg6ï¼šnEndFrameï¼Œarg7ï¼šï¼Ÿupdate all?
--- arg8ï¼šnLevelï¼Œarg9ï¼šdwSkillSrcID
+-- arg0£ºdwPlayerID£¬arg1£ºbDelete£¬arg2£ºnIndex£¬arg3£ºbCanCancel
+-- arg4£ºdwBuffID£¬arg5£ºnStackNum£¬arg6£ºnEndFrame£¬arg7£º£¿update all?
+-- arg8£ºnLevel£¬arg9£ºdwSkillSrcID
 _PartyBuffList.OnBuffUpdate = function()
 	if not PartyBuffList.bEnable then return end
 	if arg1 then return end

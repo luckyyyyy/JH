@@ -57,12 +57,12 @@ AutoSetTeam.Delete = function(n)
 	JH.SaveLUAData(AutoSetTeam.szDataFile,AutoSetTeam.SaveList)
 end
 AutoSetTeam.SyncMember = function(team, dwID, szName, state)
-	if AutoSetTeam.bKeepForm and state.bForm then --å¦‚æœè¿™è´§ä¹‹å‰æœ‰é˜µçœ¼
-		team.SetTeamFormationLeader(dwID, state.nGroup) -- é˜µçœ¼ç»™ä»–
+	if AutoSetTeam.bKeepForm and state.bForm then --Èç¹ûÕâ»õÖ®Ç°ÓĞÕóÑÛ
+		team.SetTeamFormationLeader(dwID, state.nGroup) -- ÕóÑÛ¸øËû
 		JH.Sysmsg("restore formation of " .. string.format("%d", state.nGroup + 1) .. " group: " .. szName)
 	end
-	if AutoSetTeam.bKeepMark and state.nMark then -- å¦‚æœè¿™è´§ä¹‹å‰æœ‰æ ‡è®°
-		team.SetTeamMark(state.nMark, dwID) -- æ ‡è®°ç»™ä»–
+	if AutoSetTeam.bKeepMark and state.nMark then -- Èç¹ûÕâ»õÖ®Ç°ÓĞ±ê¼Ç
+		team.SetTeamMark(state.nMark, dwID) -- ±ê¼Ç¸øËû
 		JH.Sysmsg("restore player marked as [" .. AutoSetTeam.tMarkName[state.nMark] .. "]: " .. szName)
 	end
 end
@@ -76,9 +76,9 @@ AutoSetTeam.GetWrongIndex = function(tWrong, bState)
 end
 
 AutoSetTeam.Restore = function(n)
-	-- è·å–è‡ªå·±å’Œå›¢é˜Ÿæ“ä½œå¯¹è±¡
+	-- »ñÈ¡×Ô¼ººÍÍÅ¶Ó²Ù×÷¶ÔÏó
 	local me, team = GetClientPlayer(), GetClientTeam()
-	-- updateä¹‹å‰ä¿å­˜çš„å›¢é˜Ÿåˆ—è¡¨
+	-- updateÖ®Ç°±£´æµÄÍÅ¶ÓÁĞ±í
 	AutoSetTeam.SaveList = JH.LoadLUAData(AutoSetTeam.szDataFile) or {}
 	
 	if not me or not me.IsInParty() then
@@ -143,7 +143,7 @@ AutoSetTeam.Restore = function(n)
 			table.remove(tWrong[nGroup], nIndex)
 			-- do adjust
 			if not dIndex then
-				team.ChangeMemberGroup(src.dwID, src.state.nGroup, 0) -- ç›´æ¥ä¸¢è¿‡å»
+				team.ChangeMemberGroup(src.dwID, src.state.nGroup, 0) -- Ö±½Ó¶ª¹ıÈ¥
 			else
 				local dst = tWrong[src.state.nGroup][dIndex]
 				table.remove(tWrong[src.state.nGroup], dIndex)
@@ -205,9 +205,9 @@ AutoSetTeam.Restore2 = function(n)
 	
 	local fnAction = function(dwMountKungfuID,nGroup,dwID)
 		for k,v in pairs(tWrong) do
-			if dwMountKungfuID and v.dwMountKungfuID == dwMountKungfuID then -- åªè¦å†…åŠŸåŒ¹é…çš„äºº
+			if dwMountKungfuID and v.dwMountKungfuID == dwMountKungfuID then -- Ö»ÒªÄÚ¹¦Æ¥ÅäµÄÈË
 				return k,v
-			elseif nGroup and v.nGroup == nGroup and k ~= dwID then -- ä¸æ˜¯è‡ªå·±çš„åŒç»„äººè¦ä¸€ä¸ª
+			elseif nGroup and v.nGroup == nGroup and k ~= dwID then -- ²»ÊÇ×Ô¼ºµÄÍ¬×éÈËÒªÒ»¸ö
 				return k,v
 			end
 		end
@@ -550,28 +550,28 @@ JH.RegisterEvent("LOGIN_GAME", function()
 end)
 
 -------------------------------------------------
--- PARTY_UPDATE_MEMBER_POSITION	åˆ·æ–°é˜Ÿä¼æˆå‘˜ä½ç½®	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamIDï¼šé˜Ÿä¼ID dwMemberIDï¼šæˆå‘˜ID 
--- PARTY_UPDATE_MEMBER_LMR	åˆ·æ–°é˜Ÿä¼æˆå‘˜è¡€é‡	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamIDï¼šé˜Ÿä¼ID dwMemberIDï¼šæˆå‘˜ID 
--- PARTY_UPDATE_MEMBER_INFO	åˆ·æ–°é˜Ÿä¼æˆå‘˜ä¿¡æ¯	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamIDï¼šé˜Ÿä¼ID dwMemberIDï¼šæˆå‘˜ID 
--- PARTY_UPDATE_BASE_INFO	åˆ·æ–°é˜Ÿä¼åŸºæœ¬ä¿¡æ¯	arg0,arg1,arg2,arg3,arg4	arg0:dwTeamID  arg1:dwLeaderID  arg2:nLootMode  arg3:nRollQuality  arg4:bAddTeamMemberFlag   	dwTeamIDï¼šé˜Ÿä¼ID :dwLeaderIDï¼šé˜Ÿé•¿ID nLootMode  nRollQualityï¼šéœ€è¦Rollç‚¹çš„ç‰©å“  bAddTeamMemberFlagï¼šæ˜¯å¦èƒ½å¢åŠ é˜Ÿä¼æˆå‘˜   
--- PARTY_SYNC_MEMBER_DATA	åŒæ­¥é˜Ÿä¼æˆå‘˜æ•°æ®	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamIDï¼šé˜Ÿä¼ID dwMemberIDï¼šæˆå‘˜ID nGroupIndex ï¼šåˆ†ç»„ID 
--- PARTY_SET_MEMBER_ONLINE_FLAG	åŒæ­¥é˜Ÿä¼æˆå‘˜æ˜¯å¦åœ¨çº¿çŠ¶æ€	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:bOnlineFlag  	dwTeamIDï¼šé˜Ÿä¼ID dwMemberIDï¼šæˆå‘˜ID bOnlineFlagï¼šæ˜¯å¦åœ¨çº¿ 
--- PARTY_SET_MARK	é˜Ÿä¼è®¾ç½®æ ‡è®°	
--- PARTY_SET_FORMATION_LEADER	é˜Ÿä¼è®¾ç½®é˜µçœ¼	arg0	arg0:dwFormationLeader  	dwFormationLeaderï¼šé˜µçœ¼æˆå‘˜ID
--- PARTY_SET_DISTRIBUTE_MAN	é˜Ÿä¼è®¾ç½®åˆ†é…è€…	arg0	arg0:dwDistributeMan  	dwDistributeManï¼šåˆ†é…è€…ID
--- PARTY_ROLL_QUALITY_CHANGED	é˜Ÿä¼éœ€è¦Rollç‚¹ç‰©å“å“è´¨æ”¹å˜	arg0,arg1	arg0:dwTeamID  arg1:nRollQuality  	dwTeamIDï¼šé˜Ÿä¼ID nRollQualityï¼šéœ€è¦Rollç‚¹å“è´¨
--- PARTY_RESET	é˜Ÿä¼é‡ç½®	
--- PARTY_NOTIFY_SIGNPOST	é˜Ÿä¼é€šçŸ¥é›†åˆç‚¹	arg0,arg1	arg0:nX  arg1:nY  	nX,nY:åæ ‡ç‚¹
--- PARTY_MESSAGE_NOTIFY	é˜Ÿä¼ä¿¡æ¯é€šçŸ¥	arg0,arg1	arg0:nCode  arg1:szName  	nCodeï¼šè§æšä¸¾å‹[[PARTY_NOTIFY_CODE]] szName:å¯¹åº”ç©å®¶å
--- PARTY_LOOT_MODE_CHANGED	é˜Ÿä¼æ‹¾å–æ¨¡å¼æ›´æ”¹	arg0,arg1	arg0:dwTeamID  arg1:nLootMode  	dwTeamIDï¼šé˜Ÿä¼ID nLootModeï¼šæ‹¾å–æ¨¡å¼ï¼Œè§æšä¸¾å‹[[PARTY_LOOT_MODE]]
--- PARTY_LEVEL_UP_RAID	é˜Ÿä¼è°ƒæ•´ä¸ºå›¢é˜Ÿæ¨¡å¼	
--- PARTY_LEADER_CHANGED	æ›´æ¢é˜Ÿé•¿	arg0,arg1	arg0:dwTeamID  arg1:dwNewLeaderID  	dwTeamIDï¼šé˜Ÿä¼ID dwNewLeaderIDï¼šæ–°çš„é˜Ÿé•¿ID
--- PARTY_INVITE_REQUEST	é‚€è¯·å…¥é˜Ÿè¯·æ±‚	arg0,arg1,arg2,arg3	arg0:szInviteSrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szInviteSrcï¼šé‚€è¯·è€… dwSrcCampï¼šé‚€è¯·è€…é˜µè¥ dwSrcForceIDï¼šé‚€è¯·è€…åŠ¿åŠ›ID dwSrcLevelï¼šé‚€è¯·è€…ç­‰çº§ 
--- PARTY_DISBAND	é˜Ÿä¼è§£æ•£	arg0	arg0:dwTeamID  	dwTeamIDï¼šé˜Ÿä¼ID 
--- PARTY_DELETE_MEMBER	é˜Ÿä¼åˆ é™¤æˆå‘˜	arg0,arg1,arg2,arg3	arg0:dwTeamID  arg1:dwMemberID  arg2:szName  arg3:nGroupIndex  	dwTeamIDï¼šé˜Ÿä¼ID dwMemberIDï¼šæˆå‘˜ID szNameï¼šæˆå‘˜å nGroupIndexï¼šåˆ†ç»„ç¼–å·
--- PARTY_CAMP_CHANGE	é˜Ÿä¼é˜µè¥å˜æ›´	
--- PARTY_APPLY_REQUEST	ç”³è¯·å…¥é˜Ÿè¯·æ±‚	arg0,arg1,arg2,arg3	arg0:szApplySrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szApplySrcï¼šç”³è¯·è€…å dwSrcCampï¼šç”³è¯·è€…é˜µè¥  dwSrcForceIDï¼šç”³è¯·è€…åŠ¿åŠ›ID dwSrcLevelï¼šç”³è¯·è€…ç­‰çº§
--- PARTY_ADD_MEMBER	é˜Ÿä¼å¢åŠ æˆå‘˜	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamIDï¼šé˜Ÿä¼ID dwMemberIDï¼šæˆå‘˜ID nGroupIndexï¼šåˆ†ç»„ç¼–å·
+-- PARTY_UPDATE_MEMBER_POSITION	Ë¢ĞÂ¶ÓÎé³ÉÔ±Î»ÖÃ	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID£º¶ÓÎéID dwMemberID£º³ÉÔ±ID 
+-- PARTY_UPDATE_MEMBER_LMR	Ë¢ĞÂ¶ÓÎé³ÉÔ±ÑªÁ¿	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID£º¶ÓÎéID dwMemberID£º³ÉÔ±ID 
+-- PARTY_UPDATE_MEMBER_INFO	Ë¢ĞÂ¶ÓÎé³ÉÔ±ĞÅÏ¢	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID£º¶ÓÎéID dwMemberID£º³ÉÔ±ID 
+-- PARTY_UPDATE_BASE_INFO	Ë¢ĞÂ¶ÓÎé»ù±¾ĞÅÏ¢	arg0,arg1,arg2,arg3,arg4	arg0:dwTeamID  arg1:dwLeaderID  arg2:nLootMode  arg3:nRollQuality  arg4:bAddTeamMemberFlag   	dwTeamID£º¶ÓÎéID :dwLeaderID£º¶Ó³¤ID nLootMode  nRollQuality£ºĞèÒªRollµãµÄÎïÆ·  bAddTeamMemberFlag£ºÊÇ·ñÄÜÔö¼Ó¶ÓÎé³ÉÔ±   
+-- PARTY_SYNC_MEMBER_DATA	Í¬²½¶ÓÎé³ÉÔ±Êı¾İ	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamID£º¶ÓÎéID dwMemberID£º³ÉÔ±ID nGroupIndex £º·Ö×éID 
+-- PARTY_SET_MEMBER_ONLINE_FLAG	Í¬²½¶ÓÎé³ÉÔ±ÊÇ·ñÔÚÏß×´Ì¬	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:bOnlineFlag  	dwTeamID£º¶ÓÎéID dwMemberID£º³ÉÔ±ID bOnlineFlag£ºÊÇ·ñÔÚÏß 
+-- PARTY_SET_MARK	¶ÓÎéÉèÖÃ±ê¼Ç	
+-- PARTY_SET_FORMATION_LEADER	¶ÓÎéÉèÖÃÕóÑÛ	arg0	arg0:dwFormationLeader  	dwFormationLeader£ºÕóÑÛ³ÉÔ±ID
+-- PARTY_SET_DISTRIBUTE_MAN	¶ÓÎéÉèÖÃ·ÖÅäÕß	arg0	arg0:dwDistributeMan  	dwDistributeMan£º·ÖÅäÕßID
+-- PARTY_ROLL_QUALITY_CHANGED	¶ÓÎéĞèÒªRollµãÎïÆ·Æ·ÖÊ¸Ä±ä	arg0,arg1	arg0:dwTeamID  arg1:nRollQuality  	dwTeamID£º¶ÓÎéID nRollQuality£ºĞèÒªRollµãÆ·ÖÊ
+-- PARTY_RESET	¶ÓÎéÖØÖÃ	
+-- PARTY_NOTIFY_SIGNPOST	¶ÓÎéÍ¨Öª¼¯ºÏµã	arg0,arg1	arg0:nX  arg1:nY  	nX,nY:×ø±êµã
+-- PARTY_MESSAGE_NOTIFY	¶ÓÎéĞÅÏ¢Í¨Öª	arg0,arg1	arg0:nCode  arg1:szName  	nCode£º¼ûÃ¶¾ÙĞÍ[[PARTY_NOTIFY_CODE]] szName:¶ÔÓ¦Íæ¼ÒÃû
+-- PARTY_LOOT_MODE_CHANGED	¶ÓÎéÊ°È¡Ä£Ê½¸ü¸Ä	arg0,arg1	arg0:dwTeamID  arg1:nLootMode  	dwTeamID£º¶ÓÎéID nLootMode£ºÊ°È¡Ä£Ê½£¬¼ûÃ¶¾ÙĞÍ[[PARTY_LOOT_MODE]]
+-- PARTY_LEVEL_UP_RAID	¶ÓÎéµ÷ÕûÎªÍÅ¶ÓÄ£Ê½	
+-- PARTY_LEADER_CHANGED	¸ü»»¶Ó³¤	arg0,arg1	arg0:dwTeamID  arg1:dwNewLeaderID  	dwTeamID£º¶ÓÎéID dwNewLeaderID£ºĞÂµÄ¶Ó³¤ID
+-- PARTY_INVITE_REQUEST	ÑûÇëÈë¶ÓÇëÇó	arg0,arg1,arg2,arg3	arg0:szInviteSrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szInviteSrc£ºÑûÇëÕß dwSrcCamp£ºÑûÇëÕßÕóÓª dwSrcForceID£ºÑûÇëÕßÊÆÁ¦ID dwSrcLevel£ºÑûÇëÕßµÈ¼¶ 
+-- PARTY_DISBAND	¶ÓÎé½âÉ¢	arg0	arg0:dwTeamID  	dwTeamID£º¶ÓÎéID 
+-- PARTY_DELETE_MEMBER	¶ÓÎéÉ¾³ı³ÉÔ±	arg0,arg1,arg2,arg3	arg0:dwTeamID  arg1:dwMemberID  arg2:szName  arg3:nGroupIndex  	dwTeamID£º¶ÓÎéID dwMemberID£º³ÉÔ±ID szName£º³ÉÔ±Ãû nGroupIndex£º·Ö×é±àºÅ
+-- PARTY_CAMP_CHANGE	¶ÓÎéÕóÓª±ä¸ü	
+-- PARTY_APPLY_REQUEST	ÉêÇëÈë¶ÓÇëÇó	arg0,arg1,arg2,arg3	arg0:szApplySrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szApplySrc£ºÉêÇëÕßÃû dwSrcCamp£ºÉêÇëÕßÕóÓª  dwSrcForceID£ºÉêÇëÕßÊÆÁ¦ID dwSrcLevel£ºÉêÇëÕßµÈ¼¶
+-- PARTY_ADD_MEMBER	¶ÓÎéÔö¼Ó³ÉÔ±	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamID£º¶ÓÎéID dwMemberID£º³ÉÔ±ID nGroupIndex£º·Ö×é±àºÅ
 -------------------------------------------------
 local TI = {}
 
