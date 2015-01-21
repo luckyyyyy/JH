@@ -4,31 +4,31 @@ local _L = JH.LoadLangPack
 GKP = {
 	Config = {
 		bDebug2 = false,
-		bOn = true, -- 是分配者就开启
-		bOn2 = false, -- 不是分配者关闭
-		bMoneyTalk = false, -- 金钱变动喊话
-		bAlertMessage = true, -- 进入副本提醒清空数据
-		bCheckScore = true, -- 查看装备分
-		bMoneySystem = false, -- 记录系统金钱变动
-		bDeathWarn = false, -- 重伤提示
-		bAutoSetMoney = false, --自动设置发布时的金钱
-		bAutoBX = true, -- 自动设置碧玺碎片的价格
+		bOn = true, -- �Ƿ����߾Ϳ���
+		bOn2 = false, -- ���Ƿ����߹ر�
+		bMoneyTalk = false, -- ��Ǯ�䶯����
+		bAlertMessage = true, -- ���븱�������������
+		bCheckScore = true, -- �鿴װ����
+		bMoneySystem = false, -- ��¼ϵͳ��Ǯ�䶯
+		bDeathWarn = false, -- ������ʾ
+		bAutoSetMoney = false, --�Զ����÷���ʱ�Ľ�Ǯ
+		bAutoBX = true, -- �Զ����ñ�����Ƭ�ļ۸�
 		bDisplayEmptyRecords = true, -- show 0 record
-		bAutoSync = true, -- 自动接收分配者的同步信息
+		bAutoSync = true, -- �Զ����շ����ߵ�ͬ����Ϣ
 		bLootStyle = true,
 		szLootListTitle = "Loot List, By GKP Plugin",
 	}
 }
 JH.RegisterCustomData("GKP.Config")
 ---------------------------------------------------------------------->
--- 本地函数与变量
+-- ���غ��������
 ----------------------------------------------------------------------<
 local _GKP = {
 	szIniFile = PATH_ROOT .. "ui/GKP.ini",
-	aDoodadCache = {}, -- 拾取列表cache
-	aDistributeList = {}, -- 当前拾取列表
-	tLootListMoney = {}, -- 发布的金钱cache
-	tDistribute = {}, -- 待记账列表
+	aDoodadCache = {}, -- ʰȡ�б�cache
+	aDistributeList = {}, -- ��ǰʰȡ�б�
+	tLootListMoney = {}, -- �����Ľ�Ǯcache
+	tDistribute = {}, -- �������б�
 	tDistributeRecords = {},
 	tDungeonList = {},
 	tViewInvite = {},
@@ -88,7 +88,7 @@ local _GKP = {
 _GKP.Config = JH.LoadLUAData("config/gkp.cfg") or _GKP.Config
 
 ---------------------------------------------------------------------->
--- 数据处理
+-- ���ݴ���
 ----------------------------------------------------------------------<
 setmetatable(GKP,{ __call = function(me,key,value,sort)
 	if _GKP[key] then
@@ -137,7 +137,7 @@ setmetatable(GKP,{ __call = function(me,key,value,sort)
 end})
 
 ---------------------------------------------------------------------->
--- 本地函数
+-- ���غ���
 ----------------------------------------------------------------------<
 _GKP.SaveConfig = function()
 	JH.SaveLUAData("config/gkp.cfg",_GKP.Config)
@@ -229,12 +229,12 @@ _GKP.Init = function()
 		_GKP.OpenPanel(true):Hide()
 		_GKP.nNowMoney = me.GetMoney().nGold
 		_GKP.bInit = true
-		JH.DelayCall(50,function() -- Init延后 避免和进入副本冲突
+		JH.DelayCall(50,function() -- Init�Ӻ� ����ͽ��븱����ͻ
 			_GKP.GKP_LoadData("GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()))				
 		end)
 	end
 end
-RegisterEvent("LOADING_END",_GKP.Init) -- LOADING_END 主要是为了获取名字 所以压到最后加载
+RegisterEvent("LOADING_END",_GKP.Init) -- LOADING_END ��Ҫ��Ϊ�˻�ȡ���� ����ѹ��������
 -- OnMsgArrive
 _GKP.OnMsgArrive = function(szMsg)
 	if not Station.Lookup("Normal/GKP_Chat") then return end
@@ -259,7 +259,7 @@ _GKP.OnMsgArrive = function(szMsg)
 	h:FormatAllItemPos()
 	me:Lookup("Scroll_All"):ScrollEnd()
 end
--- 点击锤子图标预览 严格判断
+-- �������ͼ��Ԥ�� �ϸ��ж�
 GKP.DistributionItem = function()
 	local h,i = this:GetParent(),this:GetIndex()
 	if not h or not i then
@@ -312,11 +312,11 @@ GKP.DistributionItem = function()
 		end
 	end
 	if JH.bDebug then p = aPartyMember[1] end
-	if not p or (p and not p.bOnlineFlag) then -- bOnlineFlag 刷新其实有延迟
+	if not p or (p and not p.bOnlineFlag) then -- bOnlineFlag ˢ����ʵ���ӳ�
 		return JH.Alert(_L["No Pick up Object, may due to Network off - line"]) 
 	end
 	local r,g,b = JH.GetForceColor(p.dwForceID)
-	-- 不管如何品质都弹出MessageBox 防止点错手滑误操作什么的
+	-- �������Ʒ�ʶ�����MessageBox ��ֹ����ֻ������ʲô��
 	local msg = {
 		szMessage = FormatLinkString(
 			g_tStrings.PARTY_DISTRIBUTE_ITEM_SURE,
@@ -391,9 +391,9 @@ _GKP.SetLootTitle = function()
 	end
 end
 ---------------------------------------------------------------------->
--- 常用函数
+-- ���ú���
 ----------------------------------------------------------------------<
-GKP.Random = function() -- 生成一个随机字符串 这还能重复我吃翔
+GKP.Random = function() -- ����һ������ַ��� �⻹���ظ��ҳ���
 	local a = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,_+;*-"
 	local t = {}
 	for i = 1, 64 do
@@ -436,14 +436,14 @@ GKP.GetMoneyCol = function(Money)
 	end
 end
 ---------------------------------------------------------------------->
--- 判断分配者
+-- �жϷ�����
 ----------------------------------------------------------------------<
 GKP.IsDistributer = function()
 	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == GetClientPlayer().dwID
 end
 
 ---------------------------------------------------------------------->
--- 格式化链接
+-- ��ʽ������
 ----------------------------------------------------------------------<
 GKP.GetFormatLink = function(item)
 	if item.nGenre == ITEM_GENRE.BOOK then
@@ -470,7 +470,7 @@ GKP.OnItemLinkDown = function(item,ui)
 	return OnItemLinkDown(ui)
 end
 ---------------------------------------------------------------------->
--- 获取团队成员 menu
+-- ��ȡ�Ŷӳ�Ա menu
 ----------------------------------------------------------------------<
 GKP.GetTeamList = function()
 	local TeamMemberList = GetClientTeam().GetTeamMemberList()
@@ -503,7 +503,7 @@ GKP.GetTeamList = function()
 end
 
 ---------------------------------------------------------------------->
--- 窗体创建时会被调用
+-- ���崴��ʱ�ᱻ����
 ----------------------------------------------------------------------<
 function GKP.OnFrameCreate()
 	_GKP.frame = this
@@ -517,7 +517,7 @@ function GKP.OnFrameCreate()
 	ui:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(_GKP.ClosePanel)
 	:Append("WndComboBox",{x = 805,y = 52,txt = _L["Setting"]}):Click(_GKP.GetSettingMenu)
 	PageSet:Append("WndButton3",{x = 15,y = 610,txt = _L["Add Manually"]}):Click(function()
-		if IsCtrlKeyDown() and JH_About.CheckNameEx() then -- 和谐自用
+		if IsCtrlKeyDown() and JH_About.CheckNameEx() then -- ��г����
 			return _GKP.GKP_Bidding()
 		end
 		if record:IsVisible() then
@@ -662,7 +662,7 @@ function GKP.OnFrameCreate()
 	end):Change(fnAction)
 
 	
-	-- 排序
+	-- ����
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Record")
 	local t = {
 		{"#",false},
@@ -695,7 +695,7 @@ function GKP.OnFrameCreate()
 		end
 	end
 	
-	-- 排序2
+	-- ����2
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Account")
 	local t = {
 		{"#",false},
@@ -728,7 +728,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	-- 排序3
+	-- ����3
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Buff")
 	local t = {
 		{"#",false},
@@ -765,7 +765,7 @@ function GKP.OnFrameCreate()
 	end
 end
 ---------------------------------------------------------------------->
--- 获取设置菜单
+-- ��ȡ���ò˵�
 ----------------------------------------------------------------------<
 local PS = {}
 PS.OnPanelActive = function(frame)
@@ -855,7 +855,7 @@ _GKP.GetSettingMenu = function()
 	return
 end
 ---------------------------------------------------------------------->
--- 获取补贴方案菜单
+-- ��ȡ���������˵�
 ----------------------------------------------------------------------<
 _GKP.GetSubsidiesMenu = function()
 	local menu = { szOption = _L["Edit Allowance Protocols"] , rgb = {255,0,0} }
@@ -885,7 +885,7 @@ _GKP.GetSubsidiesMenu = function()
 	return menu
 end
 ---------------------------------------------------------------------->
--- 获取拍卖方案菜单
+-- ��ȡ���������˵�
 ----------------------------------------------------------------------<
 _GKP.GetSchemeMenu = function()
 	local menu = { szOption = _L["Edit Auction Protocols"] , rgb = {255,0,0} }
@@ -920,7 +920,7 @@ _GKP.GetSchemeMenu = function()
 end
 
 ---------------------------------------------------------------------->
--- 绘制团队概况
+-- �����ŶӸſ�
 ----------------------------------------------------------------------<
 _GKP.Draw_GKP_Buff = function(key,sort)
 
@@ -938,8 +938,8 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 	local tType = { [24] = true,[17] = true,[18] = true,[19] = true,[20] = true }
 	local tType2 = { [362] = true, [673] = true,[112] = true,[382] = true, [3219] = true, [2837] = true }
 	local tNameEx = { -- utf8 not supported
-		-- ["隐居"] = 3694590,
-		-- ["樱墨"] = 1301156,
+		-- ["����"] = 3694590,
+		-- ["ӣī"] = 1301156,
 	}
 	local tab = {}
 	for k,v in ipairs(TeamMemberList) do
@@ -1129,7 +1129,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 end
 
 ---------------------------------------------------------------------->
--- 查看装备回调事件
+-- �鿴װ���ص��¼�
 ----------------------------------------------------------------------<
 RegisterEvent("PEEK_OTHER_PLAYER", function()
 	if arg0 ~= 1 then return end
@@ -1148,7 +1148,7 @@ RegisterEvent("PEEK_OTHER_PLAYER", function()
 	end
 end)
 ---------------------------------------------------------------------->
--- 绘制物品记录
+-- ������Ʒ��¼
 ----------------------------------------------------------------------<
 _GKP.Draw_GKP_Record = function(key,sort)
 	local key = key or _GKP.GKP_Record_Container.key or "nTime"
@@ -1325,7 +1325,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 	txt:SetFontColor(255,255,0)
 end
 ---------------------------------------------------------------------->
--- 和谐
+-- ��г
 ----------------------------------------------------------------------<
 _GKP.GKP_Bidding = function()
 	local team = GetClientTeam()
@@ -1354,7 +1354,7 @@ _GKP.GKP_Bidding = function()
 	end	
 end
 ---------------------------------------------------------------------->
--- 同步数据
+-- ͬ������
 ----------------------------------------------------------------------<
 _GKP.GKP_Sync = function()
 	local me = GetClientPlayer()
@@ -1380,7 +1380,7 @@ _GKP.GKP_Sync = function()
 			fnAction = function()
 				JH.Confirm(_L["Wheater replace the current record with the synchronization target's record?\n Please notice, this means you are going to lose the information of current record."],function()
 					JH.Alert(_L["Asking for the sychoronization information...\n If no response in longtime, it may because the opposite side are not using GKP plugin or not responding."])
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync",v.szName) -- 请求同步信息
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync",v.szName) -- ����ͬ����Ϣ
 				end)
 			end
 		})
@@ -1460,7 +1460,7 @@ _GKP.OnMsg = function()
 				JH.Debug("#GKP# Sync Success")
 			end
 		end
-		if data[1] == "GKP_INFO" then -- 这他妈做成收据了。。。。。。。hhhhhhhhhhhhhhhhh
+		if data[1] == "GKP_INFO" then -- �����������վ��ˡ�������������hhhhhhhhhhhhhhhhh
 			if data[2] == "Start" then
 				if Station.Lookup("Normal/GKP_info") then
 					Wnd.CloseWindow(Station.Lookup("Normal/GKP_info"))
@@ -1501,7 +1501,7 @@ _GKP.OnMsg = function()
 						end
 					end
 					if me.szName == data[3] then ui:Toggle(true) end
-					for k, v in ipairs(GKP("GKP_Record")) do -- 依赖于本地记录 反正也不可能差异到哪去
+					for k, v in ipairs(GKP("GKP_Record")) do -- �����ڱ��ؼ�¼ ����Ҳ�����ܲ��쵽��ȥ
 						if v.szPlayer == data[3] then
 							if dwForceID == -1 then
 								dwForceID = v.dwForceID
@@ -1515,7 +1515,7 @@ _GKP.OnMsg = function()
 					ui:Append("Text", { w = 140, h = 30, x = 60, y = 120 + 30 * n, txt = data[3], color = { JH.GetForceColor(dwForceID) } })
 					local r, g, b = GKP.GetMoneyCol(data[4])
 					if tonumber(data[4]) < 0 then
-						r, g, b = GKP.GetMoneyCol(tonumber(data[4]) * - 1) -- 就算是欠债 也要抓颜色
+						r, g, b = GKP.GetMoneyCol(tonumber(data[4]) * - 1) -- ������Ƿծ ҲҪץ��ɫ
 					end
 					ui:Append("Text", { w = 80, h = 30, x = 200, y = 120 + 30 * n, txt = data[4], align = 2, color = { r, g, b } })
 					ui:Append("Image", { w = 28, h = 28, x = 283, y = 121 + 30 * n }):File("ui/image/LootPanel/LootPanel.UITex", 11)
@@ -1612,7 +1612,7 @@ _GKP.SetButton = function(bEnable)
 end
 
 ---------------------------------------------------------------------->
--- 恢复记录按钮
+-- �ָ���¼��ť
 ----------------------------------------------------------------------<
 _GKP.GKP_Recovery = function()
 	local me = GetClientPlayer()
@@ -1644,7 +1644,7 @@ _GKP.GKP_Recovery = function()
 	PopupMenu(menu)
 end
 ---------------------------------------------------------------------->
--- 清空数据
+-- �������
 ----------------------------------------------------------------------<
 _GKP.GKP_Clear = function(bConfirm)
 	local fnAction = function()
@@ -1663,7 +1663,7 @@ _GKP.GKP_Clear = function(bConfirm)
 	end
 end
 ---------------------------------------------------------------------->
--- 欠费情况
+-- Ƿ�����
 ----------------------------------------------------------------------<
 _GKP.GKP_OweList = function()
 	local me = GetClientPlayer()
@@ -1695,7 +1695,7 @@ _GKP.GKP_OweList = function()
 			end
 		end
 	end
-	-- 欠账
+	-- Ƿ��
 	local tMember2 = {}
 	for k,v in pairs(tMember) do
 		if v ~= 0 then
@@ -1717,7 +1717,7 @@ _GKP.GKP_OweList = function()
 	local nGold,nGold2 = 0,0
 	for _,v in ipairs(GKP("GKP_Account")) do
 		if not v.bDelete then
-			if v.szPlayer and v.szPlayer ~= "System" then -- 必须要有交易对象
+			if v.szPlayer and v.szPlayer ~= "System" then -- ����Ҫ�н��׶���
 				if tonumber(v.nGold) > 0 then
 					nGold = nGold + v.nGold
 				else
@@ -1735,7 +1735,7 @@ _GKP.GKP_OweList = function()
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Received: %d Gold.",nGold))
 end
 ---------------------------------------------------------------------->
--- 获取工资总额
+-- ��ȡ�����ܶ�
 ----------------------------------------------------------------------<
 _GKP.GetRecordSum = function(bAccurate)
 	if IsEmpty(GKP("GKP_Record")) then
@@ -1758,7 +1758,7 @@ _GKP.GetRecordSum = function(bAccurate)
 	end
 end
 ---------------------------------------------------------------------->
--- 消费情况按钮
+-- ���������ť
 ----------------------------------------------------------------------<
 _GKP.GKP_SpendingList = function()
 	local me = GetClientPlayer()
@@ -1799,7 +1799,7 @@ _GKP.GKP_SpendingList = function()
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Toal Auction: %d Gold.",_GKP.GetRecordSum()), _GKP.GetRecordSum())
 end
 ---------------------------------------------------------------------->
--- 结算工资按钮
+-- ���㹤�ʰ�ť
 ----------------------------------------------------------------------<
 _GKP.GKP_Calculation = function()
 	local me = GetClientPlayer()
@@ -1834,7 +1834,7 @@ _GKP.OnOpenDoodad = function(dwID)
 	local d = GetDoodad(dwID)
 	local refresh = false
 	if d then
-		-- money 拾取金钱
+		-- money ʰȡ��Ǯ
 		local nM = d.GetLootMoney() or 0
 		if nM > 0 then
 			LootMoney(d.dwID)
@@ -1911,7 +1911,7 @@ _GKP.DrawDistributeList = function(doodad)
 		
 		local fx, fy = Station.GetClientSize()
 		local w,h = frame:GetSize()
-		-- frame:SetAbsPos((fx-w)/2,(fy-h)/2) -- 固定位置在中间 他们说不好就去掉了
+		-- frame:SetAbsPos((fx-w)/2,(fy-h)/2) -- �̶�λ�����м� ����˵���þ�ȥ����
 		frame:Lookup("Btn_Close"):SetRelPos(w - 30,5)
 		frame:Lookup("Btn_Boss"):SetRelPos(365,3)
 		handle:SetHandleStyle(0)
@@ -2020,7 +2020,7 @@ _GKP.DrawDistributeList = function(doodad)
 				box:Lookup("Box_Item"):SetObjectStaring(true)
 			end
 		end
-		local _item = { -- 分配后 userdata缓存
+		local _item = { -- ����� userdata����
 			nVersion = item.nVersion,
 			dwTabType = item.dwTabType,
 			dwIndex = item.dwIndex,
@@ -2031,10 +2031,10 @@ _GKP.DrawDistributeList = function(doodad)
 		box.OnItemRButtonClick = function()
 			local me = GetClientPlayer()
 			local nLootMode = team.nLootMode
-			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- 需要分配者模式
+			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- ��Ҫ������ģʽ
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
-			if not GKP.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
+			if not GKP.IsDistributer() and not JH.bDebug then -- ��Ҫ�Լ��Ƿ�����
 				return OutputMessage("MSG_ANNOUNCE_RED",g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			local tMenu = {}
@@ -2074,10 +2074,10 @@ _GKP.DrawDistributeList = function(doodad)
 			end
 			local me = GetClientPlayer()
 			local nLootMode = team.nLootMode
-			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- 需要分配者模式
+			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- ��Ҫ������ģʽ
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
-			if not GKP.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
+			if not GKP.IsDistributer() and not JH.bDebug then -- ��Ҫ�Լ��Ƿ�����
 				return OutputMessage("MSG_ANNOUNCE_RED",g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			table.sort(aPartyMember,function(a,b)
@@ -2138,7 +2138,7 @@ _GKP.DrawDistributeList = function(doodad)
 					end
 				}
 			end
-			-- 有记忆的情况下 append meun
+			-- �м��������� append meun
 			if _GKP.tDistributeRecords[szItemName] then
 				local p
 				for k,v in ipairs(aPartyMember) do
@@ -2147,7 +2147,7 @@ _GKP.DrawDistributeList = function(doodad)
 						break
 					end
 				end
-				if p then  -- 这个人存在团队的情况下
+				if p then  -- ����˴����Ŷӵ������
 					if IsShiftKeyDown() then
 						if p.bOnlineFlag then
 							_GKP.DistributeItem(item,p,doodad,true)
@@ -2179,7 +2179,7 @@ _GKP.DrawDistributeList = function(doodad)
 		frame:Lookup("Btn_Boss").OnLButtonClick = function()
 			local tEquipment = {}
 			for k,v in ipairs(_GKP.aDistributeList) do
-				if v.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown() then -- 按住Ctrl的情况下 无视分类 否则只给装备	
+				if v.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown() then -- ��סCtrl������� ���ӷ��� ����ֻ��װ��	
 					table.insert(tEquipment,v)
 				end
 			end
@@ -2193,7 +2193,7 @@ _GKP.DrawDistributeList = function(doodad)
 					break
 				end
 			end
-			if p and p.bOnlineFlag then  -- 这个人存在团队的情况下
+			if p and p.bOnlineFlag then  -- ����˴����Ŷӵ������
 				local szXml = GetFormatText(_L["Are you sure you want the following item\n"], 162,255,255,255)
 				local r,g,b = JH.GetForceColor(p.dwForceID)
 				for k,v in ipairs(tEquipment) do
@@ -2226,7 +2226,7 @@ _GKP.DrawDistributeList = function(doodad)
 	end
 end
 ---------------------------------------------------------------------->
--- 弹出记账页面后分配
+-- ��������ҳ������
 ----------------------------------------------------------------------<
 _GKP.DistributeItem = function(item,player,doodad,bEnter)
 	if not item.dwID then
@@ -2235,7 +2235,7 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 	end
 	_GKP.CloseChatWindow(item)
 	local szName = GetItemNameByItem(item)
-	if _GKP.Config.Special[szName] or JH.bDebug then -- 记住上次分给谁
+	if _GKP.Config.Special[szName] or JH.bDebug then -- ��ס�ϴηָ�˭
 		_GKP.tDistributeRecords[szName] = player.dwID
 		JH.Debug("memory " .. szName .. " -> " .. player.dwID)
 	end
@@ -2265,14 +2265,14 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 	
 	if GKP.Config.bOn then
 		_GKP.Record(tab,item,bEnter)
-	else -- 关闭的情况所有东西全部绕过
+	else -- �رյ�������ж���ȫ���ƹ�
 		tab.nMoney = 0
 		pcall(GKP,"GKP_Record",tab)
 		pcall(_GKP.Draw_GKP_Record)
 	end
 end
 ---------------------------------------------------------------------->
--- 记账页面
+-- ����ҳ��
 ----------------------------------------------------------------------<
 _GKP.Record = function(tab,item,bEnter)
 	local record = GUI(Station.Lookup("Normal1/GKP_Record"))
@@ -2283,7 +2283,7 @@ _GKP.Record = function(tab,item,bEnter)
 	local Source = record:Fetch("Source")
 	local auto = 0
 	record:Fetch("WndCheckBox"):Check(false)
-	if record:IsVisible() and record:Fetch("btn_Close").self.userdata then -- 上次是userdata并且没关闭
+	if record:IsVisible() and record:Fetch("btn_Close").self.userdata then -- �ϴ���userdata����û�ر�
 		if text:Text() ~= g_tStrings.PLAYER_NOT_EMPTY and Name:Text() ~= "" then 
 			Money:Text(0)
 			record:Fetch("btn_ok"):Click()
@@ -2298,7 +2298,7 @@ _GKP.Record = function(tab,item,bEnter)
 		Name:Text(tab.szName):Enable(false)
 		Source:Text(tab.szNpcName):Enable(false)
 		if _GKP.tLootListMoney[item.dwID] and GKP.Config.bAutoSetMoney then
-			auto = _GKP.tLootListMoney[item.dwID] -- 自动设置发布时的金钱
+			auto = _GKP.tLootListMoney[item.dwID] -- �Զ����÷���ʱ�Ľ�Ǯ
 		elseif GKP.Config.bAutoBX and tab.szName == _L["BiXi Fragment"] and tab.nStackNum and tab.nStackNum >= 1 then
 			auto = tab.nStackNum
 		else
@@ -2312,7 +2312,7 @@ _GKP.Record = function(tab,item,bEnter)
 		Name:Text(""):Enable(true)
 		Money:Text("")
 	end	
-	if tab and type(item) == "number" then -- 编辑
+	if tab and type(item) == "number" then -- �༭
 		text:Text(tab.szPlayer):Color(JH.GetForceColor(tab.dwForceID))
 		text.self.dwForceID = tab.dwForceID
 		local iName = JH.GetItemName(tab.nUiId)
@@ -2436,7 +2436,7 @@ _GKP.Record = function(tab,item,bEnter)
 			end
 		end
 		if record:Fetch("WndCheckBox"):Check() then
-			_GKP.tDistributeRecords["EquipmentBoss"] = tab.szPlayer -- 233333 不管了 这个挺好玩的
+			_GKP.tDistributeRecords["EquipmentBoss"] = tab.szPlayer -- 233333 ������ ���ͦ�����
 			_GKP.OnOpenDoodad(_GKP.dwOpenID)
 		end
 		if tab and type(item) == "number" then
@@ -2462,7 +2462,7 @@ _GKP.OpenDoodad = function(arg0)
 	local me = GetClientPlayer()
 	if me and team then
 		local nLootMode = team.nLootMode	
-		if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE or JH.bDebug then -- 需要分配者模式
+		if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE or JH.bDebug then -- ��Ҫ������ģʽ
 			_GKP.dwOpenID = arg0
 			_GKP.OnOpenDoodad(arg0)
 		end
@@ -2485,7 +2485,7 @@ _GKP._OpenDoodad = function(arg0)
 			for i = 0, nLootItemCount - 1 do
 				-- item Roll Distribute  Bidding
 				local item, _ , bDist = d.GetLootItem(i,me)
-				if item and bDist then -- 只操作需要分配的物品
+				if item and bDist then -- ֻ������Ҫ�������Ʒ
 					refresh = true					
 					if item.dwID then
 						local tab = {
@@ -2600,7 +2600,7 @@ RegisterEvent("OPEN_DOODAD", function()
 end)
 
 ---------------------------------------------------------------------->
--- 金钱记录
+-- ��Ǯ��¼
 ----------------------------------------------------------------------<
 _GKP.TradingTarget = {}
 
@@ -2612,7 +2612,7 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 		return
 	end
 	pcall(GKP,"GKP_Account",{
-		nGold = nGold, -- API给的有问题 …… 只算金
+		nGold = nGold, -- API���������� ���� ֻ���
 		szPlayer = _GKP.TradingTarget.szName or "System",
 		dwForceID = _GKP.TradingTarget.dwForceID,
 		nTime = GetCurrentTime(),
@@ -2746,13 +2746,13 @@ _GKP.Draw_GKP_Account = function(key,sort)
 	txt:SetFontColor(255,255,0)
 end
 
-RegisterEvent("TRADING_OPEN_NOTIFY",function() -- 交易开始
+RegisterEvent("TRADING_OPEN_NOTIFY",function() -- ���׿�ʼ
 	_GKP.TradingTarget = GetPlayer(arg0)
 end)
-RegisterEvent("TRADING_CLOSE",function() -- 交易结束
+RegisterEvent("TRADING_CLOSE",function() -- ���׽���
 	_GKP.TradingTarget = {}
 end)
-RegisterEvent("MONEY_UPDATE",function() --金钱变动
+RegisterEvent("MONEY_UPDATE",function() --��Ǯ�䶯
 	_GKP.MoneyUpdate(arg0,arg1,arg2)
 end)
 
@@ -2769,7 +2769,7 @@ RegisterEvent("LOADING_END",function()
 end)
 
 ----------------------------------------------------------
--- 重伤提示
+-- ������ʾ
 ----------------------------------------------------------
 
 local DeathWarn = {
@@ -2911,7 +2911,7 @@ DeathWarn.OnCommonHealthLog = function(dwTarget, nDeltaLife)
 end
 
 --[[
-	arg0:"UI_OME_DEATH_NOTIFY" arg1:dwCharacterID arg2: 为INT_MAX，2147483647 arg3:szKiller  
+	arg0:"UI_OME_DEATH_NOTIFY" arg1:dwCharacterID arg2: ΪINT_MAX��2147483647 arg3:szKiller  
 	arg0:"UI_OME_SKILL_EFFECT_LOG" arg1:dwCaster arg2:dwTarget arg3:bReact arg4:nType  arg5:dwID  arg6:dwLevel  arg7:bCriticalStrike arg8:nResultCount 
 	arg0:"UI_OME_COMMON_HEALTH_LOG" arg1:dwCharacterID arg2:nDeltaLife  
 ]]
@@ -2941,9 +2941,9 @@ DeathWarn.OnDeath = function(dwTarget, szKiller)
 end
 
 RegisterEvent("SYS_MSG",function()
-	if arg0 == "UI_OME_DEATH_NOTIFY" then -- 死亡记录
+	if arg0 == "UI_OME_DEATH_NOTIFY" then -- ������¼
 		DeathWarn.OnDeath(arg1, arg3)
-	elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then -- 技能记录
+	elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then -- ���ܼ�¼
 		DeathWarn.OnSkillEffectLog(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9)
 	elseif arg0 == "UI_OME_COMMON_HEALTH_LOG" then
 		DeathWarn.OnCommonHealthLog(arg1,arg2)

@@ -148,7 +148,7 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 	_SkillCD.UpdateCount()
 end
 
--- ç”Ÿæˆç›‘æ§åˆ—è¡¨
+-- Éú³É¼à¿ØÁĞ±í
 _SkillCD.UpdateMonitorCache = function()
 	local kungfu = {}
 	for k, v in pairs(SkillCD.tMonitor) do
@@ -181,7 +181,7 @@ _SkillCD.UpdateCount = function()
 	else
 		tinsert(member,me.dwID)
 	end
-	-- è·å– id -> å¿ƒæ³• å¯¹åº”è¡¨
+	-- »ñÈ¡ id -> ĞÄ·¨ ¶ÔÓ¦±í
 	for k, v in ipairs(member) do
 		tKungfu[v] = {}
 		if JH.IsParty(v) then
@@ -199,9 +199,9 @@ _SkillCD.UpdateCount = function()
 		end
 	end
 	for k ,v in pairs(tKungfu) do
-		if tMonitor[v.dwMountKungfuID] then -- å¦‚æœå¿ƒæ³•åœ¨ç›‘æ§å†…
+		if tMonitor[v.dwMountKungfuID] then -- Èç¹ûĞÄ·¨ÔÚ¼à¿ØÄÚ
 			for kk, vv in ipairs(tMonitor[v.dwMountKungfuID]) do
-				if _SkillCD.tCD[k] then -- å¦‚æœæœ‰è®°å½•
+				if _SkillCD.tCD[k] then -- Èç¹ûÓĞ¼ÇÂ¼
 					local find, nEnd
 					for _, vvv in ipairs(_SkillCD.tCD[k]) do
 						if vvv.dwSkillID == vv then
@@ -216,7 +216,7 @@ _SkillCD.UpdateCount = function()
 					else
 						tinsert(tCount[vv].tList, { nSec = nEnd, info = v })
 					end
-				else -- æ— æ¡ä»¶
+				else -- ÎŞÌõ¼ş
 					tCount[vv].nCount = tCount[vv].nCount + 1
 					tinsert(tCount[vv].tList, { nSec = 0, info = v  })
 				end
@@ -245,7 +245,7 @@ _SkillCD.UpdateCount = function()
 					local szXml = GetFormatText(_L["["] .. szName .. _L["]"] .. "\n", 23 ,255 ,255 ,255)
 					for k, v in ipairs(v.tList) do
 						szXml = szXml .. GetFormatText(v.info.szName, 23, 255, 255, 0)
-						local szDeath = GetFormatText(" (" .. _L["Death"] .. ")", 23, 255, 128, 0) -- ç¦»çº¿æ˜¯bIsOnLine å…¶å®ä¹Ÿä¸€æ · æ— æ‰€è°“
+						local szDeath = GetFormatText(" (" .. _L["Death"] .. ")", 23, 255, 128, 0) -- ÀëÏßÊÇbIsOnLine ÆäÊµÒ²Ò»Ñù ÎŞËùÎ½
 						if v.info.bDeathFlag then
 							szXml = szXml .. szDeath
 						end
@@ -321,7 +321,7 @@ _SkillCD.UpdateFrame = function()
 	local handle = _SkillCD.handle
 	handle:Clear()
 	local data = {}
-	-- æ’åº
+	-- ÅÅĞò
 	for k,v in pairs(_SkillCD.tCD) do
 		for kk,vv in ipairs(v) do
 			local nSec = _SkillCD.tSkill[vv.dwSkillID]
