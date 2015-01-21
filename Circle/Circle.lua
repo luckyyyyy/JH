@@ -38,15 +38,15 @@ local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
 local CIRCLE_COLOR = {
-	{ r = 0,   g = 255, b = 0  },
-	{ r = 0,   g = 255, b = 255},
-	{ r = 255, g = 0,   b = 0  },
-	{ r = 40,  g = 140, b = 218},
-	{ r = 211, g = 229, b = 37 },
-	{ r = 65,  g = 50,  b = 160},
-	{ r = 170, g = 65,  b = 180},
-	{ r = 255, g = 255, b = 255},
-	{ r = 255, g = 128, b = 0  },
+	{ r = 0,   g = 255, b = 0   },
+	{ r = 0,   g = 255, b = 255 },
+	{ r = 255, g = 0,   b = 0   },
+	{ r = 40,  g = 140, b = 218 },
+	{ r = 211, g = 229, b = 37  },
+	{ r = 65,  g = 50,  b = 160 },
+	{ r = 170, g = 65,  b = 180 },
+	{ r = 255, g = 255, b = 255 },
+	{ r = 255, g = 128, b = 0   },
 }
 
 local function Confuse(tCode)
