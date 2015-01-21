@@ -195,7 +195,7 @@ _GKP.OpenPanel = function(bDisableSound)
 		else
 			_GKP.Draw_GKP_Buff()
 		end
-	end, 3000)
+	end, 1000)
 	if not bDisableSound then
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 	end
