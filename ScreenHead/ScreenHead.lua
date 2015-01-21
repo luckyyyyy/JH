@@ -202,9 +202,9 @@ _ScreenHead.Create = function(obj, info, nIndex)
 	if not IsPlayer(obj.dwID) then
 		szName = JH.GetTemplateName(obj)
 	end
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -80}, 187, txt, 1, 1)
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -95}, 187, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -110}, 187, szName, 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -80}, 40, txt, 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -95}, 40, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -110}, 40, szName, 1, 1)
 
 	local bcX,bcY = -50 , -50
 	for k,v in ipairs({Life, Mana, BG}) do
