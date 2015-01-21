@@ -31,7 +31,7 @@ local TeamAD = {
 }
 TeamAD.tADList = JH.LoadLUAData(TeamAD.szDataFile) or {}
 
-TeamAD.SetEdit = function(edit,tab) -- ç•¥å¥‡è‘© çœ‹ä¸æ‡‚ã€‚ã€‚ã€‚ ç¥ç»ç—…ä¸€æ ·çš„è®¾ç½®
+TeamAD.SetEdit = function(edit,tab) -- ÂÔÆæİâ ¿´²»¶®¡£¡£¡£ Éñ¾­²¡Ò»ÑùµÄÉèÖÃ
 	edit:ClearText()
 	for kk,vv in ipairs(tab) do
 		for kkk,vvv in ipairs(vv) do

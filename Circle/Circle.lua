@@ -9,31 +9,31 @@ local tinsert = table.insert
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 local GetClientPlayer = GetClientPlayer
--- å¸¸é‡ å‰¯æœ¬å¤–å¤§éƒ¨åˆ†ä¸å—æ­¤é™åˆ¶
+-- ³£Á¿ ¸±±¾Íâ´ó²¿·Ö²»ÊÜ´ËÏŞÖÆ
 local SHADOW = JH.GetAddonInfo().szShadowIni
-local CIRCLE_MAX_COUNT = 15 -- é»˜è®¤å‰¯æœ¬æœ€å¤§æ•°æ®é‡
-local CIRCLE_CHANGE_TIME = 0 --7200 -- æš‚ä¸é™åˆ¶ åŠ è½½æ•°æ®å å†æ¬¡åŠ è½½æ•°æ®çš„æ—¶é—´ 2å°æ—¶ é¿å…ä¸€ä¸ªBOSSä¸€å¥—æ•°æ®
-local CIRCLE_CIRCLE_ALPHA = 50 -- æœ€å¤§çš„é€æ˜åº¦ æ ¹æ®åŠå¾„é€æ­¥é™ä½
+local CIRCLE_MAX_COUNT = 15 -- Ä¬ÈÏ¸±±¾×î´óÊı¾İÁ¿
+local CIRCLE_CHANGE_TIME = 0 --7200 -- Ôİ²»ÏŞÖÆ ¼ÓÔØÊı¾İºó ÔÙ´Î¼ÓÔØÊı¾İµÄÊ±¼ä 2Ğ¡Ê± ±ÜÃâÒ»¸öBOSSÒ»Ì×Êı¾İ
+local CIRCLE_CIRCLE_ALPHA = 50 -- ×î´óµÄÍ¸Ã÷¶È ¸ù¾İ°ë¾¶Öğ²½½µµÍ
 local CIRCLE_ALPHA_STEP = 3
-local CIRCLE_MAX_RADIUS = 30 -- æœ€å¤§çš„åŠå¾„
-local CIRCLE_LINE_ALPHA = 165 -- çº¿å’Œè¾¹æ¡†æœ€å¤§é€æ˜åº¦
+local CIRCLE_MAX_RADIUS = 30 -- ×î´óµÄ°ë¾¶
+local CIRCLE_LINE_ALPHA = 165 -- ÏßºÍ±ß¿ò×î´óÍ¸Ã÷¶È
 local CIRCLE_MAX_CIRCLE = 2
-local CIRCLE_RESERT_DRAW = false -- å…¨å±€é‡ç»˜
+local CIRCLE_RESERT_DRAW = false -- È«¾ÖÖØ»æ
 local CIRCLE_PLAYER_NAME = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
-local CIRCLE_MAP_COUNT = { -- éƒ¨åˆ†å‰¯æœ¬åœ°å›¾æ•°é‡è¡¥å¿
-	[-1] = 100, -- å…¨åœ°å›¾ç”Ÿæ•ˆçš„ä¸œè¥¿ å‰¯æœ¬é™¤å¤–
-	[-2] = 3, -- å‰¯æœ¬å†…ä¹Ÿç”Ÿæ•ˆ é•‡å±±æ²³ åªæ”¾ç­‰
-	[165] = 30, -- è‹±é›„å¤§æ˜å®«
-	[164] = 30, -- å¤§æ˜å®«
-	[160] = 20, -- å†›æ¢°åº“
-	[171] = 20, -- è‹±é›„å†›æ¢°åº“
-	[175] = 35, -- è¡€æˆ˜å¤©ç­–
-	[176] = 35, -- è‹±é›„è¡€æˆ˜å¤©ç­–
-	[199] = 20, -- é€è™é©±ç‹¼
-	[192] = 20, -- é€è™é©±ç‹¼
-	[182] = 25, -- ç§¦çš‡é™µ
-	[183] = 25, -- ç§¦çš‡é™µ
+local CIRCLE_MAP_COUNT = { -- ²¿·Ö¸±±¾µØÍ¼ÊıÁ¿²¹³¥
+	[-1] = 100, -- È«µØÍ¼ÉúĞ§µÄ¶«Î÷ ¸±±¾³ıÍâ
+	[-2] = 3, -- ¸±±¾ÄÚÒ²ÉúĞ§ ÕòÉ½ºÓ Ö»·ÅµÈ
+	[165] = 30, -- Ó¢ĞÛ´óÃ÷¹¬
+	[164] = 30, -- ´óÃ÷¹¬
+	[160] = 20, -- ¾üĞµ¿â
+	[171] = 20, -- Ó¢ĞÛ¾üĞµ¿â
+	[175] = 35, -- ÑªÕ½Ìì²ß
+	[176] = 35, -- Ó¢ĞÛÑªÕ½Ìì²ß
+	[199] = 20, -- Öğ»¢ÇıÀÇ
+	[192] = 20, -- Öğ»¢ÇıÀÇ
+	[182] = 25, -- ÇØ»ÊÁê
+	[183] = 25, -- ÇØ»ÊÁê
 }
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
@@ -57,7 +57,7 @@ local function Confuse(tCode)
 	end
 end
 
--- è·å–æ•°æ®è·¯å¾„
+-- »ñÈ¡Êı¾İÂ·¾¶
 local function GetDataPath()
 	return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
 end
@@ -65,9 +65,9 @@ end
 Circle = {
 	bEnable = true,
 	nLimit = 0,
-	bTeamChat = false, -- æ§åˆ¶å…¨å±€çš„å›¢é˜Ÿé¢‘é“
-	bWhisperChat = false, -- æ§åˆ¶å…¨å±€çš„å¯†èŠé¢‘é“
-	bBorder = true, -- å…¨å±€çš„è¾¹æ¡†æ¨¡å¼ è¾¹æ¡†ä¼šé€ æˆå¡
+	bTeamChat = false, -- ¿ØÖÆÈ«¾ÖµÄÍÅ¶ÓÆµµÀ
+	bWhisperChat = false, -- ¿ØÖÆÈ«¾ÖµÄÃÜÁÄÆµµÀ
+	bBorder = true, -- È«¾ÖµÄ±ß¿òÄ£Ê½ ±ß¿ò»áÔì³É¿¨
 }
 JH.RegisterCustomData("Circle")
 
@@ -95,7 +95,7 @@ local C = {
 		[_L["All Map"]] = { id = -1, bDungeon = true },
 	},
 }
--- è·å–åœ°å›¾å
+-- »ñÈ¡µØÍ¼Ãû
 local MAP_CACHE = {
 	[-1] = _L["All Map"],
 	[-2] = _L["Global Map"]
@@ -157,7 +157,7 @@ C.SaveFile = function(szFullPath, bMsg)
 	end
 end
 
--- åŠ è½½æœ¬åœ°æ–‡ä»¶ä½¿ç”¨ bMsgç›¸å½“äºä¸éœ€è¦æ•ˆéªŒ
+-- ¼ÓÔØ±¾µØÎÄ¼şÊ¹ÓÃ bMsgÏàµ±ÓÚ²»ĞèÒªĞ§Ñé
 C.LoadFile = function(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
@@ -313,7 +313,7 @@ C.Release = function()
 		[TARGET.DOODAD] = {},
 	}
 	C.tMt = {}
-	-- è§„åˆ™æ£€æŸ¥
+	-- ¹æÔò¼ì²é
 	if C.tData["mt"] then
 		for k, v in pairs(C.tData["mt"]) do
 			if C.GetMapName(v):match(C.GetMapName(k)) and k ~= v then
@@ -329,7 +329,7 @@ C.Release = function()
 	end
 	
 	C.tTarget = {} -- clear
-	-- å–å¾—å®¹å™¨
+	-- È¡µÃÈİÆ÷
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
 	C.shLine = JH.GetShadowHandle("Handle_Shadow_Line")
 	C.shName = JH.GetShadowHandle("Handle_Shadow_Name")
@@ -347,7 +347,7 @@ C.Release = function()
 	}
 	setmetatable(C.tData, mt)
 end
--- æ„å»ºdata table
+-- ¹¹½¨data table
 C.CreateData = function()
 	pcall(C.Release)
 	local mapid = C.GetMapID()
@@ -355,7 +355,7 @@ C.CreateData = function()
 		C.tList[v.dwType][v.key] = { id = mapid, index = k }
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
-	-- å…¨åœ°å›¾æ•°æ®
+	-- È«µØÍ¼Êı¾İ
 	if C.tData[-1] and not C.tMapList[C.GetMapName(mapid)].bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
@@ -425,7 +425,7 @@ C.DrawLine = function(tar, ttar, sha, col, dwType)
 		sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA)
 	elseif dwType == TARGET.NPC then
 		sha:AppendCharacterID(tar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
-	elseif dwType == "Point" then -- å¯èƒ½éœ€è¦ç”¨åˆ°
+	elseif dwType == "Point" then -- ¿ÉÄÜĞèÒªÓÃµ½
 		sha:AppendTriangleFan3DPoint(tar.nX, tar.nY, tar.nZ, r, g, b, CIRCLE_LINE_ALPHA)
 	end
 	sha:AppendCharacterID(ttar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
@@ -445,7 +445,7 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	if nAngle == 360 then
 		dwRad2 = dwRad2 + pi / 20
 	end
-	-- nAlpha è¡¥å¿
+	-- nAlpha ²¹³¥
 	local nAlpha = CIRCLE_CIRCLE_ALPHA
 	local ap = CIRCLE_ALPHA_STEP * (nRadius / 64)
 	if ap > 35 then
@@ -515,7 +515,7 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	until dwRad1 > dwRad2
 end
 
--- ç»˜åˆ¶è®¾ç½®UIè¡¨æ ¼
+-- »æÖÆÉèÖÃUI±í¸ñ
 C.DrawTable = function()
 	if arg0 ~= "OPEN" and Station.Lookup("Normal/C_Data") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
@@ -659,7 +659,7 @@ C.OnDoodadLeave = function()
 end
 
 C.OnBreathe = function()
-	-- NPCé¢å‘ç»˜åˆ¶
+	-- NPCÃæÏò»æÖÆ
 	local me = GetClientPlayer()
 	if not me then return end
 	for k, v in pairs(C.tScrutiny[TARGET.NPC]) do
@@ -681,7 +681,7 @@ C.OnBreathe = function()
 						if not sha[kk] then
 							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 						end
-						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 							sha[kk].nFaceDirection = KGNpc.nFaceDirection
 							local __Alpha
 							if #data.tCircles == 2 then
@@ -694,7 +694,7 @@ C.OnBreathe = function()
 							if not sha[key] then
 								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 							end
-							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 								sha[key].nFaceDirection = KGNpc.nFaceDirection
 								C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 							end
@@ -742,7 +742,7 @@ C.OnBreathe = function()
 							JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
 						end
 					end
-					-- RaidGrid_RedAlarmè¿™ä¸ªè¿˜æ²¡é‡æ„ å…ˆè¿™æ · 
+					-- RaidGrid_RedAlarmÕâ¸ö»¹Ã»ÖØ¹¹ ÏÈÕâÑù 
 					if data.bFlash and RaidGrid_RedAlarm then
 						if me.dwID == dwID then
 							RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at you", data.szNote or data.key), true, true, 255, 0, 0)
@@ -754,7 +754,7 @@ C.OnBreathe = function()
 			end
 		end
 	end
-	-- DOODADé¢å‘ç»˜åˆ¶
+	-- DOODADÃæÏò»æÖÆ
 	for k, v in pairs(C.tScrutiny[TARGET.DOODAD]) do
 		local data = v()
 		if data.bEnable then
@@ -774,7 +774,7 @@ C.OnBreathe = function()
 						if not sha[kk] then
 							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
 						end
-						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 							sha[kk].nFaceDirection = KGDoodad.nFaceDirection
 							local __Alpha = #data.tCircles == 2 and data.tCircles[1].nAngle or nil
 							C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
@@ -784,7 +784,7 @@ C.OnBreathe = function()
 							if not sha[key] then
 								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 							end
-							if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
+							if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
 								sha[key].nFaceDirection = KGDoodad.nFaceDirection
 								C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 							end
@@ -809,7 +809,7 @@ C.OnBreathe = function()
 	CIRCLE_RESERT_DRAW = false
 end
 
--- æ³¨å†Œå¤´åƒå³é”®èœå•
+-- ×¢²áÍ·ÏñÓÒ¼ü²Ëµ¥
 Target_AppendAddonMenu({function(dwID, dwType)
 	if dwType == TARGET.NPC then
 		local p = GetNpc(dwID)
@@ -1226,7 +1226,7 @@ PS.OnPanelActive = function(frame)
 				if C.tData[v] then
 					n = #C.tData[v]
 				end
-				if not C.tMt[k] then -- æ•°æ®éæ³•
+				if not C.tMt[k] then -- Êı¾İ·Ç·¨
 					r, g, b = 128, 128, 128
 				end
 				tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]), 
@@ -1299,7 +1299,7 @@ JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
 JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
 JH.RegisterEvent("FIRST_LOADING_END", function()
 	local me = GetClientPlayer()
-	CIRCLE_PLAYER_NAME = me.szName -- é˜²æ­¢æµ‹è¯•reloadæ¯äº†æ‰€æœ‰æ•°æ®
+	CIRCLE_PLAYER_NAME = me.szName -- ·ÀÖ¹²âÊÔreload»ÙÁËËùÓĞÊı¾İ
 	C.LoadFile()
 end)
 JH.RegisterEvent("CIRCLE_DEBUG", function()
