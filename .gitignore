@@ -2,12 +2,8 @@
 *.key
 *.dat
 @DATA
-Team
-AutoTeam
-CombatTime
 7z.exe
 releases
 RaidGrid_EventScrutiny/alldat/RGES*
 RaidGrid_EventScrutiny/alldat/sync*
-0Base/About.ini
 .DS_Store
