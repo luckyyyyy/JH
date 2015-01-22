@@ -535,7 +535,7 @@ data = {
 	["TI_TIP"] = "如您是团长,关闭后团员将不再看到\n进团将会显示此界面,无须再刷YY",
 	["Paste YY"] = "发布YY",
 	["Edit team info?"] = "是否填写团队小告示（团员进组可看到）",
-	["Enable TeamInfo"] = "启用团队小告示",
+	["Enable TeamInfo"] = "团队小告示",
 	["Move up"] = "上移一位",
 	["Move down"] = "下移一位",
 	["Confirm?"] = "确定执行这个操作？",
@@ -552,4 +552,5 @@ data = {
 	["update"] = "有更新",
 	["Please enter md5"] = "请输入MD5",
 	["No content"] = "没有内容",
+	["standard data"] = "推荐数据",
 }
