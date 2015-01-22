@@ -589,7 +589,7 @@ TI.GetEvent = function()
 			{ "PARTY_DELETE_MEMBER", function() if arg1 == UI_GetClientPlayerID() then TI.CloseFrame() end end },
 			{ "PARTY_ADD_MEMBER", function() 
 				if TI.IsLeader() and Station.Lookup("Normal/Team_Info") then 
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","reply", arg1, TI.szYY, TI.szIntroduction) 
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szIntroduction) 
 				end 
 			end },
 			{ "ON_BG_CHANNEL_MSG", TI.OnMsg}
@@ -641,7 +641,7 @@ TI.CreateFrame = function(a, b)
 		local yy = ui:Fetch("YY"):Text()
 		if yy ~= "" then JH.Talk(yy) end
 	end):Pos_()
-	ui:Append("WndEdit", "introduction", { w = 280, h = 80, x = 10, y = nY + 5, multi = true, txt = b or g_tStrings.STR_GUILD_EDIT_INTRODUCTION})
+	ui:Append("WndEdit", "introduction", { w = 280, h = 80, x = 10, y = nY + 5, multi = true, txt = b})
 	:Change(function(szText)
 		if TI.IsLeader() then
 			TI.szIntroduction = szText
