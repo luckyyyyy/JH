@@ -1208,6 +1208,8 @@ end
 
 _JH.GetAddonMenu = function()
 	local menu = _JH.GetMainMenu()
+	tinsert(menu,{ szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
+	tinsert(menu,{ bDevide = true })
 	for i = 1, #_JH.tOption2, 1 do
 		local m = _JH.tOption2[i]
 		if type(m) == "function" then m = m() end
