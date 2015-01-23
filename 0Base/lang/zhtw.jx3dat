@@ -553,4 +553,10 @@ data = {
 	["Please enter md5"] = "請輸入MD5",
 	["No content"] = "沒有內容",
 	["standard data"] = "推薦數據",
+	["Login Web Account"] = "登陸官網",
+	["My Data"] = "我的數據",
+	["Enter thread ID"] = "請輸入數據ID",
+	["Logout"] = "退出",
+	["Enter User ID"] = "輸入用戶UID！不是用戶名（不要在公共場合登陸）",
+	["Enter password"] = "輸入密碼（不要在公共場合登陸）",
 }

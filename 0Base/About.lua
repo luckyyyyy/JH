@@ -184,10 +184,6 @@ local function LoginGame()
 		t.dwID = me.dwID
 		t.server = szServer
 		t.SchoolID = me.dwForceID
-		if WebSyncData and WebSyncData.tData.aid and WebSyncData.tData.md5 then
-			t.aid = WebSyncData.tData.aid
-			t.md5 = WebSyncData.tData.md5
-		end		
 		for k, v in pairs(t) do
 			s = s .. "&" .. k .. "=" .. JH.UrlEncode(tostring(v))
 		end
