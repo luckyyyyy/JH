@@ -36,26 +36,25 @@ local _ScreenHead = {
 		{ 15, 25, 180 },
 	},
 	tFontCol = { -- font col
-		["Buff"] = {255,128,0},
-		["Debuff"] = {255,0,255},
-		["Life"] = {130,255,130},
-		["Mana"] = {255,255,128},
-		["Other"] = {128,255,255},
-		["Object"] = {0,255,255},
-		["Skill"] = {150,200,255},
+		["Buff"]   = { 255, 128, 0   },
+		["Debuff"] = { 255, 0,   255 },
+		["Life"]   = { 130, 255, 130 },
+		["Mana"]   = { 255, 255, 128 },
+		["Other"]  = { 128, 255, 255 },
+		["Object"] = { 0,   255, 255 },
+		["Skill"]  = { 150, 200, 255 },
 	},
 	tArrowCol = {
-		["Buff"] = {0,255,0},
-		["Debuff"] = {255,0,0},
-		["Life"] = {255,0,0},
-		["Mana"] = {0,0,255},
-		["Other"] = {255,0,0},
-		["Object"] = {0,128,255},
-		["Skill"] = {255,128,0},
+		["Buff"]   = { 0,   255, 0   },
+		["Debuff"] = { 255, 0,   0   },
+		["Life"]   = { 255, 0,   0   },
+		["Mana"]   = { 0,   0,   255 },
+		["Other"]  = { 255, 0,   0   },
+		["Object"] = { 0,   128, 255 },
+		["Skill"]  = { 255, 128, 0   },
 	},
 	szItemIni = JH.GetAddonInfo().szShadowIni,
 }
-
 
 _ScreenHead.Init = function()
 	_ScreenHead.handle = JH.GetShadowHandle("ScreenHead")
@@ -75,7 +74,7 @@ _ScreenHead.Create = function(obj, info, nIndex)
 	local tManaCol = { 50, 100, 255 }
 	handle = _ScreenHead.handle:Lookup(tostring(dwID))
 	if not nIndex then
-		if not handle then error("not nIndex") end
+		assert(handle, "not nIndex")
 		nIndex = handle.nIndex
 	end
 	data = _ScreenHead.tList[dwID][nIndex]
@@ -91,9 +90,9 @@ _ScreenHead.Create = function(obj, info, nIndex)
 			local bExist,tBuff = JH.HasBuff(data.dwID,obj) -- 只判断dwID 反正不可能同时获得不同lv
 			if bExist then
 				if tBuff.nStackNum > 1 then
-					txt = string.format("%s(%d)_%s",data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame),5999))
+					txt = string.format("%s(%d)_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame), 5999))
 				else
-					txt = string.format("%s_%s",data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame),5999))
+					txt = string.format("%s_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame), 5999))
 				end
 			else
 				return _ScreenHead.Remove(dwID,nIndex)
@@ -161,8 +160,8 @@ _ScreenHead.Create = function(obj, info, nIndex)
 	else
 		r,g,b = unpack(_ScreenHead.tArrowCol[data.type])
 	end
-	local cX,cY,cA = unpack(_ScreenHead.tPointC)
-	local fX,fY = 25,50
+	local cX, cY, cA = unpack(_ScreenHead.tPointC)
+	local fX, fY = 25,50
 	if handle.s == 1 then
 		handle.fY = handle.fY + 2
 		if handle.fY >= 10 then
@@ -186,13 +185,13 @@ _ScreenHead.Create = function(obj, info, nIndex)
 	Arrow:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	Arrow:SetD3DPT(D3DPT.TRIANGLEFAN)
 	Arrow:ClearTriangleFanPoint()
-	Arrow:AppendCharacterID(dwID, true, r, g, b, cA, {0, 0, 0, cX * value - fX, cY * value - fY})
+	Arrow:AppendCharacterID(dwID, true, r, g, b, cA, { 0, 0, 0, cX * value - fX, cY * value - fY })
 	for k,v in ipairs(_ScreenHead.tPoint) do
 		local x, y, a = unpack(v)
-		Arrow:AppendCharacterID(dwID, true, r, g, b, a, {0, 0, 0, x * value - fX, y * value - fY})
+		Arrow:AppendCharacterID(dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
 	end
 	local x, y, a = unpack(_ScreenHead.tPoint[1])
-	Arrow:AppendCharacterID(dwID, true, r, g, b, a, {0, 0, 0, x * value - fX, y * value - fY})
+	Arrow:AppendCharacterID(dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
 	---
 	
 	Text:SetTriangleFan(GEOMETRY_TYPE.TEXT)
@@ -202,9 +201,9 @@ _ScreenHead.Create = function(obj, info, nIndex)
 	if not IsPlayer(obj.dwID) then
 		szName = JH.GetTemplateName(obj)
 	end
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -80}, 40, txt, 1, 1)
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -95}, 40, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, 0, -110}, 40, szName, 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, 40, txt, 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, 40, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, 40, szName, 1, 1)
 
 	local bcX,bcY = -50 , -50
 	for k,v in ipairs({Life, Mana, BG}) do
@@ -212,21 +211,21 @@ _ScreenHead.Create = function(obj, info, nIndex)
 		v:SetD3DPT(D3DPT.TRIANGLEFAN)
 		v:ClearTriangleFanPoint()
 	end
-	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX, bcY})
-	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX + 100, bcY})
-	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX + 100, bcY - 10})
-	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, {0, 0, 0, bcX, bcY - 10})
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX, bcY })
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX + 100, bcY })
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX + 100, bcY - 10 })
+	BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX, bcY - 10 })
 	local r,g,b = unpack(tManaCol)
-	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX, bcY})
-	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX + (100 * manaper), bcY})
-	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX + (100 * manaper), bcY - 5})
-	Mana:AppendCharacterID(dwID, true, r, g, b, 255, {0, 0, 0, bcX, bcY - 5})
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX, bcY })
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX + (100 * manaper), bcY })
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX + (100 * manaper), bcY - 5 })
+	Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX, bcY - 5 })
 	
 	local bcX,bcY = -50 , -55
-	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX, bcY})
-	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX + (100 * lifeper), bcY})
-	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX + (100 * lifeper), bcY - 5})
-	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, {0, 0, 0, bcX, bcY - 5})	
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX, bcY })
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX + (100 * lifeper), bcY })
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX + (100 * lifeper), bcY - 5 })
+	Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX, bcY - 5 })	
 end
 
 _ScreenHead.Clear = function()
