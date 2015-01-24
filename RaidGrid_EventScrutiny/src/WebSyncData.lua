@@ -214,8 +214,7 @@ W.AppendItem = function(data, k)
 		end
 		item.OnItemMouseEnter = function()
 			item:Lookup("Image_CoverBg"):Show()
-			local txt = data.title .. " - " .. data.downloads
-			W.MenuTip(item:Lookup("Text_Author"), txt)
+			W.MenuTip(item:Lookup("Text_Author"), data.title)
 		end
 		item.OnItemMouseLeave = function()
 			item:Lookup("Image_CoverBg"):Hide()
