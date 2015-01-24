@@ -3,6 +3,8 @@ local _L = JH.LoadLangPack
 WebSyncData = {
 	tData = {},
 	bLogin = false,
+	uid = 0,
+	pw = 0,
 }
 
 JH.RegisterCustomData("WebSyncData")
@@ -60,7 +62,7 @@ end
 W.Login = function()
 	local uid =  WebSyncData.uid
 	local pw =  WebSyncData.pw
-	if not uid or not pw then
+	if uid == 0 or not pw then
 		GetUserInput(_L["Enter User ID"], function(szNum)
 			if not tonumber(szNum) then
 				JH.Alert(_L["Please enter numbers"])
@@ -86,6 +88,9 @@ end
 
 W.CallLogin = function(uid, pw, fnAction)
 	-- web传参不安全 但是只能这样
+	if string.len(pw) ~= 32 then
+		pw = JH.MD5(pw)
+	end
 	JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG .. "&username=" .. uid .. "&password=" .. pw, function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
@@ -93,7 +98,7 @@ W.CallLogin = function(uid, pw, fnAction)
 		else
 			if tonumber(result['uid']) > 0 then
 				local _, _, url = string.find(result['info'], "src=\"(.-)\"")
-				JH.RemoteRequest(url) -- sync login
+				JH.RemoteRequest(url) -- synclogin set cookie
 				WebSyncData.uid = uid
 				WebSyncData.pw = pw
 				WebSyncData.bLogin = true
