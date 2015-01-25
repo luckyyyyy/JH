@@ -2961,7 +2961,7 @@ GUI.UnRegisterPanel = function(szTitle)
 end
 
 GUI.OpenFontTablePanel = function(fnAction)
-	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT })
+	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true })
 	for i = 0, 236 do
 		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
 		:Click(function()
