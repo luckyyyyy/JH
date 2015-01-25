@@ -1769,8 +1769,8 @@ function _GUI.Frm2:Size(nW, nH)
 	hnd:Lookup("Text_Title"):SetW(nW - 90)
 	hnd:FormatAllItemPos()
 	frm:Lookup("Btn_Close"):SetRelPos(nW - 30, 5)
-	self.wnd:SetSize(nW - 90, nH - 90)
-	self.wnd:Lookup("", ""):SetSize(nW - 90, nH - 90)
+	self.wnd:SetSize(nW, nH)
+	self.wnd:Lookup("", ""):SetSize(nW, nH)
 	-- reset position
 	local an = GetFrameAnchor(frm)
 	frm:SetPoint(an.s, 0, 0, an.r, an.x, an.y)
@@ -2658,13 +2658,17 @@ function _GUI.Item:Click(fnAction, bSound, bSelect)
 		if txt then
 			local tLinkColor = bSound or { 255, 255, 0 }
 			local tHoverColor = bSelect or { 255, 200, 100 }
-			txt:SetFontColor(unpack(tLinkColor))
+			if bSound then
+				txt:SetFontColor(unpack(tLinkColor))
+			end
 			if tHoverColor then
 				self:Hover(function(bIn)
-					if bIn then
-						txt:SetFontColor(unpack(tHoverColor))
-					else
-						txt:SetFontColor(unpack(tLinkColor))
+					if bSound then
+						if bIn then
+							txt:SetFontColor(unpack(tHoverColor))
+						else
+							txt:SetFontColor(unpack(tLinkColor))
+						end
 					end
 				end)
 			end
@@ -2938,6 +2942,7 @@ GUI.RegisterPanel = function(szTitle, dwIcon, szClass, fn)
 		_JH.RegisterConflictCheck(fn.OnConflictCheck)
 	end
 end
+
 GUI.UnRegisterPanel = function(szTitle)
 	local find = false
 	for k, vv in pairs(_JH.tItem) do
@@ -2953,4 +2958,22 @@ GUI.UnRegisterPanel = function(szTitle)
 		_JH.UpdateTabBox(_JH.frame)
 	end
 	-- _JH.ClosePanel()
+end
+
+GUI.OpenFontTablePanel = function(fnAction)
+	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT })
+	for i = 0, 236 do
+		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
+		:Click(function()
+			if fnAction then fnAction(i) end
+			wnd:CloseFrame()
+		end)
+		:Hover(function(bHover)
+			if bHover then
+				this:SetAlpha(255)
+			else
+				this:SetAlpha(200)
+			end
+		end)
+	end
 end
