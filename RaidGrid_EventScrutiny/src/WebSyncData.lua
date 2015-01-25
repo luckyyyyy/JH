@@ -146,7 +146,8 @@ end
 -- ¡–±Ì«Î«Û
 W.RequestList = function(szUrl)
 	szUrl = szUrl or W.szFileList
-	-- JH.Sysmsg(_L["Loaidng..."])
+	W.Container:Clear()
+	W.AppendItem({ title = "", author = "Laoding..." }, 1)
 	JH.RemoteRequest(szUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG,function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
@@ -205,56 +206,60 @@ W.AppendItem = function(data, k)
 		item.data = data
 		item:Lookup("Text_Author"):SetText(data.author)
 		item:Lookup("Text_Title"):SetText(data.title)
-	
-		local nTime = GetCurrentTime()
-		local szDate = W.TimeToDate(data.dateline)
-		item:Lookup("Text_Download"):SetText(szDate)
-		if (nTime - data.dateline) < 86400 then
-			item:Lookup("Text_Download"):SetFontColor(255, 255, 0)
-		end
-		item.OnItemMouseEnter = function()
-			item:Lookup("Image_CoverBg"):Show()
-			W.MenuTip(item:Lookup("Text_Author"), data.title)
-		end
-		item.OnItemMouseLeave = function()
-			item:Lookup("Image_CoverBg"):Hide()
-			HideTip()
-		end
-		item.OnItemLButtonClick = function()
-			if W.UseData then
-				W.UseData:Lookup("Image_Unused"):Hide()
+		if data.tid then
+			local nTime = GetCurrentTime()
+			local szDate = W.TimeToDate(data.dateline)
+			item:Lookup("Text_Download"):SetText(szDate)
+			if (nTime - data.dateline) < 86400 then
+				item:Lookup("Text_Download"):SetFontColor(255, 255, 0)
 			end
-			W.UseData = this
-			this:Lookup("Image_Unused"):Show()
-		end
+			item.OnItemMouseEnter = function()
+				item:Lookup("Image_CoverBg"):Show()
+				W.MenuTip(item:Lookup("Text_Author"), data.title)
+			end
+			item.OnItemMouseLeave = function()
+				item:Lookup("Image_CoverBg"):Hide()
+				HideTip()
+			end
+			item.OnItemLButtonClick = function()
+				if W.UseData then
+					W.UseData:Lookup("Image_Unused"):Hide()
+				end
+				W.UseData = this
+				this:Lookup("Image_Unused"):Show()
+			end
 
-		if data.color then
-			item:Lookup("Text_Title"):SetFontColor(tonumber(string.sub(data.color, 0, 2), 16), tonumber(string.sub(data.color, 2, 4), 16), tonumber(string.sub(data.color, 4, 6), 16))
-		end
-		local btn = wnd:Lookup("WndButton")
-		local btn2 = wnd:Lookup("WndButton2")
-		btn.OnLButtonClick = function()
-			W.DoanloadData(data)
-		end
-		btn2.OnLButtonClick = function()
-			local url = ROOT_URL .. "#file/".. data.tid
+			if data.color then
+				item:Lookup("Text_Title"):SetFontColor(tonumber(string.sub(data.color, 0, 2), 16), tonumber(string.sub(data.color, 2, 4), 16), tonumber(string.sub(data.color, 4, 6), 16))
+			end
+			local btn = wnd:Lookup("WndButton")
+			local btn2 = wnd:Lookup("WndButton2")
+			btn.OnLButtonClick = function()
+				W.DoanloadData(data)
+			end
+			btn2.OnLButtonClick = function()
+				local url = ROOT_URL .. "#file/".. data.tid
+				if data.url then
+					url = "http://" .. data.url
+				end
+				OpenInternetExplorer(url)
+			end
 			if data.url then
-				url = "http://" .. data.url
+				btn2:Lookup("","Text_Default2"):SetText(_L["details"])
+				btn:Hide()
 			end
-			OpenInternetExplorer(url)
-		end
-		if data.url then
-			btn2:Lookup("","Text_Default2"):SetText(_L["details"])
-			btn:Hide()
-		end
-		if WebSyncData.tData.tid and WebSyncData.tData.tid == data.tid then
-			item:Lookup("Text_Title"):SetFontColor(255, 255, 0)
-			if WebSyncData.tData.md5 == data.md5 then
-				btn:Lookup("","Text_Default"):SetText(_L["select"])
-			else
-				btn:Lookup("","Text_Default"):SetText(_L["update"])
-				btn:Lookup("","Text_Default"):SetFontColor(255, 255, 0)
+			if WebSyncData.tData.tid and WebSyncData.tData.tid == data.tid then
+				item:Lookup("Text_Title"):SetFontColor(255, 255, 0)
+				if WebSyncData.tData.md5 == data.md5 then
+					btn:Lookup("","Text_Default"):SetText(_L["select"])
+				else
+					btn:Lookup("","Text_Default"):SetText(_L["update"])
+					btn:Lookup("","Text_Default"):SetFontColor(255, 255, 0)
+				end
 			end
+		else
+			wnd:Lookup("WndButton"):Hide()
+			wnd:Lookup("WndButton2"):Hide()
 		end
 	end
 end
