@@ -10,6 +10,7 @@ ScreenHead = {
 	nTeamHp = 0.3,--0.3,
 	nTeamMp = 0.1,
 	nTime = 5,
+	nFont = 40,
 }
 JH.RegisterCustomData("ScreenHead")
 
@@ -201,9 +202,9 @@ _ScreenHead.Create = function(obj, info, nIndex)
 	if not IsPlayer(obj.dwID) then
 		szName = JH.GetTemplateName(obj)
 	end
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, 40, txt, 1, 1)
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, 40, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
-	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, 40, szName, 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
+	Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
 
 	local bcX,bcY = -50 , -50
 	for k,v in ipairs({Life, Mana, BG}) do
@@ -387,6 +388,12 @@ local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["HeadAlert"], font = 27 })
+	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT })
+	:Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			ScreenHead.nFont = nFont
+		end)
+	end)
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = ScreenHead.bEnable })
 	:Text(_L["Enable ScreenHead"]):Click(function(bChecked)
 		ScreenHead.bEnable = bChecked

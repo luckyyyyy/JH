@@ -94,6 +94,14 @@ local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["LargeText"], font = 27 })
+	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT })
+	:Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			LargeText.dwFontScheme = nFont
+			ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
+		end)
+	end)
+	
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = LargeText.bEnable })
 	:Text(_L["Enable LargeText"]):Click(function(bChecked)
 		LargeText.bEnable = bChecked
@@ -107,14 +115,6 @@ PS.OnPanelActive = function(frame)
 	:Range(1,100):Value(LargeText.fScale * 20):Change(function(nVal) 
 		LargeText.fScale = nVal / 20
 		ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
-	end):Pos_()
-	nX = ui:Append("Text", { txt = _L["Font Scheme"], x = 10, y = nY }):Pos_()
-	nX,nY = ui:Append("WndEdit", { x = nX +10, y = nY + 3,txt = LargeText.dwFontScheme })
-	:Change(function(nVal)
-		if tonumber(nVal) then
-			LargeText.dwFontScheme = tonumber(nVal)
-			ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
-		end
 	end):Pos_()
 	nX = ui:Append("Text", { txt = _L["Pause time(s)"], x = 10, y = nY }):Pos_()
 	nX,nY = ui:Append("WndEdit", { x = nX +10, y = nY + 3,txt = LargeText.nPause })
