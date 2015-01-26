@@ -267,7 +267,7 @@ _ScreenHead.OnBreathe = function()
 	for dwID, t in pairs(_ScreenHead.tList) do
 		local p, info = _ScreenHead.GetObject(dwID)
 		if not p then
-			_ScreenHead.Remove(dwID)	
+			_ScreenHead:Remove(dwID)	
 		else
 			local handle = _ScreenHead.handle:Lookup(tostring(dwID))
 			if not handle then
