@@ -3,6 +3,7 @@ JH_AutoSetTeam = {
 	bAppendMark = true,
 	bRequestList = true,
 	bTeamInfo = true,
+	bAutoCancelBuff = true,
 }
 JH.RegisterCustomData("JH_AutoSetTeam")
 
@@ -342,14 +343,10 @@ local GetEvent = function()
 			{ "PARTY_SET_MARK", SetMark }
 	end
 end
-JH.RegisterEvent("LOGIN_GAME", function()
-	JH.RegisterInit("Append_Mark", GetEvent())
-end)
+
 
 -- RequestList
-RequestList = {
-	-- bEnable = true,
-}
+RequestList = {}
 local _RequestList = {
 	tRequestList = {},
 	tRequestCache = {},
@@ -545,10 +542,6 @@ _RequestList.GetEvent = function()
 	end
 end
 
-JH.RegisterEvent("LOGIN_GAME", function()
-	JH.RegisterInit("RequestList", _RequestList.GetEvent())
-end)
-
 -------------------------------------------------
 -- PARTY_UPDATE_MEMBER_POSITION	刷新队伍成员位置	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
 -- PARTY_UPDATE_MEMBER_LMR	刷新队伍成员血量	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
@@ -592,7 +585,7 @@ TI.GetEvent = function()
 					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szIntroduction) 
 				end 
 			end },
-			{ "ON_BG_CHANNEL_MSG", TI.OnMsg}
+			{ "ON_BG_CHANNEL_MSG", TI.OnMsg }
 	end
 end
 
@@ -668,10 +661,6 @@ TI.CloseFrame = function()
 	end
 end
 
-JH.RegisterEvent("LOGIN_GAME", function()
-	JH.RegisterInit("TI", TI.GetEvent())
-end)
-
 JH.AddonMenu(function()
 	return {
 		szOption = _L["Enable TeamInfo"], fnDisable = function() local me = GetClientPlayer(); return not me.IsInRaid() end, fnAction = function()
@@ -692,22 +681,73 @@ JH.AddonMenu(function()
 		end
 	}
 end)
+-------------------------------------------------------------------------
+
+local AutoCancelBuff = {}
+
+AutoCancelBuff.CheckKungFu = function()
+	local t = {
+		[10062] = true,
+		[10002] = true,
+		[10243] = true,
+		[10389] = true,
+	}
+	if t[UI_GetPlayerMountKungfuID()] then
+		return true
+	end
+end
+
+AutoCancelBuff.GetEvent = function()
+	if JH_AutoSetTeam.bAutoCancelBuff then
+		if AutoCancelBuff.CheckKungFu() then
+			return { "BUFF_UPDATE", AutoCancelBuff.OnBuff }
+		end
+	end
+end
+
+AutoCancelBuff.Init = function()
+	JH.RegisterInit("AutoCancelBuff", AutoCancelBuff.GetEvent())
+end
+
+local BUFF = {
+	-- [103] = true,
+	[8422] = true,
+	[4487] = true,
+	[4101] = true,
+	[3098] = true,
+	[917] =  true,
+	[926] =  true,
+}
+
+-- buff update
+-- arg0：dwPlayerID，arg1：bDelete，arg2：nIndex，arg3：bCanCancel
+-- arg4：dwBuffID，arg5：nStackNum，arg6：nEndFrame，arg7：update all?
+-- arg8：nLevel，arg9：dwSkillSrcID
+AutoCancelBuff.OnBuff = function()
+	if BUFF[arg4] and not arg1 then
+		GetClientPlayer().CancelBuff(arg2)
+	end
+end
 
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AutoSetTeam"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 15, checked = JH_AutoSetTeam.bAppendMark, txt = _L["Append Mark"] }):Click(function(bChecked)
+	ui:Append("WndCheckBox", { x = 10, y = nY + 15, checked = JH_AutoSetTeam.bAppendMark, txt = _L["Append Mark"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bAppendMark = bChecked
 		JH.RegisterInit("Append_Mark", GetEvent())
-	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 10, y = nY + 15, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
+	end)
+	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY + 15, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bRequestList = bChecked
 		JH.RegisterInit("RequestList", _RequestList.GetEvent())
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bTeamInfo, txt = _L["Enable TeamInfo"] }):Click(function(bChecked)
+	ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bTeamInfo, txt = _L["Enable TeamInfo"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bTeamInfo = bChecked
 		JH.RegisterInit("TI", TI.GetEvent())
+	end)
+	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY, checked = JH_AutoSetTeam.bAutoCancelBuff, txt = _L["AutoCancelBuff"] }):Click(function(bChecked)
+		JH_AutoSetTeam.bAutoCancelBuff = bChecked
+		AutoCancelBuff.Init()
 	end):Pos_()
 	
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Mark Target"], font = 27 }):Pos_()
@@ -762,3 +802,15 @@ PS.OnPanelActive = function(frame)
 	end
 end
 GUI.RegisterPanel(_L["AutoSetTeam"], 5962, _L["General"],PS)
+
+JH.RegisterEvent("LOGIN_GAME", function()
+	JH.RegisterInit("RequestList", _RequestList.GetEvent())
+	JH.RegisterInit("Append_Mark", GetEvent())
+	JH.RegisterInit("TI", TI.GetEvent())
+end)
+
+JH.RegisterEvent("LOADING_END", function()
+	JH.RegisterInit("AutoCancelBuff", AutoCancelBuff.GetEvent())
+end)
+
+JH.RegisterEvent("SKILL_MOUNT_KUNG_FU", AutoCancelBuff.Init)
