@@ -1727,10 +1727,10 @@ _GKP.GKP_OweList = function()
 		end
 	end
 	if nGold ~= 0 then
-		JH.Talk(_L("Received: %d Gold.",nGold))
+		JH.Talk(_L("Received: %d Gold.", nGold))
 	end
 	if nGold2 ~= 0 then
-		JH.Talk(_L("Spending: %d Gold.",nGold))
+		JH.Talk(_L("Spending: %d Gold.", nGold2))
 	end
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Received: %d Gold.",nGold))
 end
