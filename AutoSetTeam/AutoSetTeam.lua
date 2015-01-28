@@ -4,6 +4,7 @@ JH_AutoSetTeam = {
 	bRequestList = true,
 	bTeamInfo = true,
 	bAutoCancelBuff = true,
+	bWorldMark = true,
 }
 JH.RegisterCustomData("JH_AutoSetTeam")
 
@@ -732,6 +733,77 @@ AutoCancelBuff.OnBuff = function()
 	end
 end
 
+local WorldMark = {
+	tMark = {
+		[20107] = { id = 1,  col = { 255, 255, 255 } },
+		[20108] = { id = 2,  col = { 255, 128, 0   } },
+		[20109] = { id = 3,  col = { 0  , 0  , 255 } },
+		[20110] = { id = 4,  col = { 0  , 255, 0   } },
+		[20111] = { id = 5,  col = { 255, 0  , 0   } },
+		[36781] = { id = 6,  col = { 50 , 220, 255 } },
+		[36782] = { id = 7,  col = { 255, 100, 220 } },
+		[36783] = { id = 8,  col = { 255, 255, 0   } },
+		[36784] = { id = 9,  col = { 200, 40,  255 } },
+		[36785] = { id = 10, col = { 30,  255, 180 } },
+	},
+	tPoint = {},
+	hShadow = JH.GetAddonInfo().szShadowIni,
+}
+
+WorldMark.GetEvent = function()
+	if JH_AutoSetTeam.bWorldMark then
+		return 
+			{ "DO_SKILL_CAST", WorldMark.OnCast },
+			{ "JH_WORDMARK_DRAW", WorldMark.Draw },
+			{ "NPC_ENTER_SCENE", WorldMark.OnNpcEvent }
+	else
+		WorldMark.tPoint = {}
+		JH.GetShadowHandle("Handle_World_Mark"):Clear()
+	end
+end
+
+WorldMark.OnNpcEvent = function()
+	local npc = GetNpc(arg0)
+	if npc then
+		local mark = WorldMark.tMark[npc.dwTemplateID]
+		if mark then
+			local point = { npc.nX, npc.nY, npc.nZ }
+			local handle = JH.GetShadowHandle("Handle_World_Mark")
+			local sha = handle:Lookup("w_" .. mark.id) or handle:AppendItemFromIni(WorldMark.hShadow, "shadow", "w_" .. mark.id)
+			WorldMark.tPoint[mark.id] = point
+			WorldMark.Draw(point, sha, mark.col)
+		end
+	end
+end
+
+WorldMark.OnCast = function()
+	if arg1 == 4906 then
+		WorldMark.tPoint = {}
+		JH.GetShadowHandle("Handle_World_Mark"):Clear()
+	end
+end
+
+WorldMark.Draw = function(Point, sha, col)
+	local nRadius = 64
+	local nFace = 128
+	local dwRad1 = math.pi
+	local dwRad2 = 3 * math.pi + math.pi / 20
+	local r, g, b = unpack(col)
+	local nX ,nY, nZ = unpack(Point)
+	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
+	sha:SetD3DPT(D3DPT.TRIANGLEFAN)
+	sha:ClearTriangleFanPoint()
+	sha:AppendTriangleFan3DPoint(nX ,nY, nZ, r, g, b, 80)
+	sha:Show()
+	local sX, sZ = Scene_PlaneGameWorldPosToScene(nX, nY)
+	repeat
+		local sX_, sZ_ = Scene_PlaneGameWorldPosToScene(nX + math.cos(dwRad1) * nRadius, nY + math.sin(dwRad1) * nRadius)
+		sha:AppendTriangleFan3DPoint(nX ,nY, nZ, r, g, b, 80, { sX_ - sX, 0, sZ_ - sZ })
+		dwRad1 = dwRad1 + math.pi / 16
+	until dwRad1 > dwRad2
+end
+
+
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
@@ -751,6 +823,10 @@ PS.OnPanelActive = function(frame)
 	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY, checked = JH_AutoSetTeam.bAutoCancelBuff, txt = _L["AutoCancelBuff"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bAutoCancelBuff = bChecked
 		AutoCancelBuff.Init()
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bWorldMark, txt = _L["WorkMark Enhance"] }):Click(function(bChecked)
+		JH_AutoSetTeam.bWorldMark = bChecked
+		JH.RegisterInit("WorldMark", WorldMark.GetEvent())
 	end):Pos_()
 	
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Mark Target"], font = 27 }):Pos_()
@@ -804,12 +880,14 @@ PS.OnPanelActive = function(frame)
 		end
 	end
 end
+
 GUI.RegisterPanel(_L["AutoSetTeam"], 5962, _L["General"], PS)
 
 JH.RegisterEvent("LOGIN_GAME", function()
 	JH.RegisterInit("RequestList", _RequestList.GetEvent())
 	JH.RegisterInit("Append_Mark", GetEvent())
 	JH.RegisterInit("TI", TI.GetEvent())
+	JH.RegisterInit("WorldMark", WorldMark.GetEvent())
 end)
 
 JH.RegisterEvent("LOADING_END", AutoCancelBuff.Init)
