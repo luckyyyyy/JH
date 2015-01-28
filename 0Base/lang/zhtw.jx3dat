@@ -559,4 +559,5 @@ data = {
 	["Logout"] = "退出",
 	["Enter User ID"] = "輸入用戶UID！不是用戶名（不要在公共場合登陸）",
 	["Enter password"] = "輸入密碼（不要在公共場合登陸）",
+	["AutoCancelBuff"] = "T心法時自動點掉身上降低威脅Buff",
 }
