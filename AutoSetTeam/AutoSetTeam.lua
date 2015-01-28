@@ -685,14 +685,25 @@ end)
 
 local AutoCancelBuff = {}
 
+local KUNGFU = {
+	[10062] = true,
+	[10002] = true,
+	[10243] = true,
+	[10389] = true,
+}
+
+local BUFF = {
+	-- [103] = true,
+	[8422] = true,
+	[4487] = true,
+	[4101] = true,
+	[3098] = true,
+	[917] =  true,
+	[926] =  true,
+}
+
 AutoCancelBuff.CheckKungFu = function()
-	local t = {
-		[10062] = true,
-		[10002] = true,
-		[10243] = true,
-		[10389] = true,
-	}
-	if t[UI_GetPlayerMountKungfuID()] then
+	if KUNGFU[UI_GetPlayerMountKungfuID()] then
 		return true
 	end
 end
@@ -709,23 +720,15 @@ AutoCancelBuff.Init = function()
 	JH.RegisterInit("AutoCancelBuff", AutoCancelBuff.GetEvent())
 end
 
-local BUFF = {
-	-- [103] = true,
-	[8422] = true,
-	[4487] = true,
-	[4101] = true,
-	[3098] = true,
-	[917] =  true,
-	[926] =  true,
-}
-
 -- buff update
 -- arg0：dwPlayerID，arg1：bDelete，arg2：nIndex，arg3：bCanCancel
 -- arg4：dwBuffID，arg5：nStackNum，arg6：nEndFrame，arg7：update all?
 -- arg8：nLevel，arg9：dwSkillSrcID
 AutoCancelBuff.OnBuff = function()
 	if BUFF[arg4] and not arg1 then
-		GetClientPlayer().CancelBuff(arg2)
+		if AutoCancelBuff.CheckKungFu() then -- 命中后再次判断
+			GetClientPlayer().CancelBuff(arg2)
+		end
 	end
 end
 
@@ -801,7 +804,7 @@ PS.OnPanelActive = function(frame)
 		end
 	end
 end
-GUI.RegisterPanel(_L["AutoSetTeam"], 5962, _L["General"],PS)
+GUI.RegisterPanel(_L["AutoSetTeam"], 5962, _L["General"], PS)
 
 JH.RegisterEvent("LOGIN_GAME", function()
 	JH.RegisterInit("RequestList", _RequestList.GetEvent())
@@ -809,8 +812,5 @@ JH.RegisterEvent("LOGIN_GAME", function()
 	JH.RegisterInit("TI", TI.GetEvent())
 end)
 
-JH.RegisterEvent("LOADING_END", function()
-	JH.RegisterInit("AutoCancelBuff", AutoCancelBuff.GetEvent())
-end)
-
+JH.RegisterEvent("LOADING_END", AutoCancelBuff.Init)
 JH.RegisterEvent("SKILL_MOUNT_KUNG_FU", AutoCancelBuff.Init)
