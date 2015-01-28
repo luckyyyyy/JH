@@ -3,7 +3,7 @@ JH_AutoSetTeam = {
 	bAppendMark = true,
 	bRequestList = true,
 	bTeamInfo = true,
-	bAutoCancelBuff = true,
+	bAutoCancelBuff = false,
 	bWorldMark = true,
 }
 JH.RegisterCustomData("JH_AutoSetTeam")
@@ -820,15 +820,15 @@ PS.OnPanelActive = function(frame)
 		JH_AutoSetTeam.bTeamInfo = bChecked
 		JH.RegisterInit("TI", TI.GetEvent())
 	end)
-	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY, checked = JH_AutoSetTeam.bAutoCancelBuff, txt = _L["AutoCancelBuff"] }):Click(function(bChecked)
-		JH_AutoSetTeam.bAutoCancelBuff = bChecked
-		AutoCancelBuff.Init()
-	end):Pos_()
+	-- nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY, checked = JH_AutoSetTeam.bAutoCancelBuff, txt = _L["AutoCancelBuff"] }):Click(function(bChecked)
+		-- JH_AutoSetTeam.bAutoCancelBuff = bChecked
+		-- AutoCancelBuff.Init()
+	-- end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bWorldMark, txt = _L["WorkMark Enhance"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bWorldMark = bChecked
 		JH.RegisterInit("WorldMark", WorldMark.GetEvent())
 	end):Pos_()
-	
+
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Mark Target"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndButton2", { x = 10, y = nY + 15, txt = _L["Hotkey"] }):Click(JH.SetHotKey):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SetTeam"], font = 27 }):Pos_()
