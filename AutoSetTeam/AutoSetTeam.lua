@@ -755,7 +755,11 @@ WorldMark.GetEvent = function()
 		return 
 			{ "DO_SKILL_CAST", WorldMark.OnCast },
 			{ "JH_WORDMARK_DRAW", WorldMark.Draw },
-			{ "NPC_ENTER_SCENE", WorldMark.OnNpcEvent }
+			{ "NPC_ENTER_SCENE", WorldMark.OnNpcEvent },
+			{ "LOADING_END", function()
+				WorldMark.tPoint = {}
+				JH.GetShadowHandle("Handle_World_Mark"):Clear()
+			end }
 	else
 		WorldMark.tPoint = {}
 		JH.GetShadowHandle("Handle_World_Mark"):Clear()
@@ -824,7 +828,7 @@ PS.OnPanelActive = function(frame)
 		-- JH_AutoSetTeam.bAutoCancelBuff = bChecked
 		-- AutoCancelBuff.Init()
 	-- end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bWorldMark, txt = _L["WorkMark Enhance"] }):Click(function(bChecked)
+	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY, checked = JH_AutoSetTeam.bWorldMark, txt = _L["WorkMark Enhance"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bWorldMark = bChecked
 		JH.RegisterInit("WorldMark", WorldMark.GetEvent())
 	end):Pos_()
