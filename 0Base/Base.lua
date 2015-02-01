@@ -2274,6 +2274,13 @@ function _GUI.Wnd:Hover(fnEnter, fnLeave)
 	return self
 end
 
+function _GUI.Wnd:Type(nType)
+	if self.type == "WndEdit" then
+		self.self:SetType(nType)
+	end
+	return self
+end
+
 -------------------------------------
 -- Handle Item
 -------------------------------------
@@ -2613,6 +2620,7 @@ function _GUI.Item:Staring(bStaring)
 	end
 	return self
 end
+
 function _GUI.Item:Percentage(fPercentage)
 	if self.type == "Image" then
 		if fPercentage then
@@ -2624,6 +2632,16 @@ function _GUI.Item:Percentage(fPercentage)
 	end
 	return self
 end
+
+function _GUI.Item:Type(nType)
+	if self.type == "Image" then
+		self.self:SetImageType(nType)
+	elseif self.type == "Handle" then
+		self.self:SetHandleStyle(nType)
+	end
+	return self
+end
+
 function _GUI.Item:Event(dwEventID)
 	if dwEventID then
 		self.self:RegisterEvent(dwEventID)
