@@ -5,10 +5,8 @@
 
 使用方法
 -----------------------
-1. 下载仓库所有文件。
+1. 在./bin/$lang$/interface/目录下载仓库所有文件，但是请注意，目前ZHCN版本需要key验证，否则会被判为非法插件。
 
-        https://github.com/Webster-jx3/JH/archive/master.zip
-		
-2. 把文件夹名称修改为JH，并且放到下面的路径。
-
-        ./bin/$lang$/interface/
+		git clone git@github.com:Webster-jx3/JH.git
+		或者也可以直接下载所有文件，文件夹名称为JH。
+		https://github.com/Webster-jx3/JH/archive/master.zip

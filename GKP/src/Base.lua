@@ -52,12 +52,12 @@ local _GKP = {
 	GKP_Account = {},
 	Config = {
 		Subsidies = {
-			{_L["Treasure Chests"],"",true},
-			{_L["BiXi Fragment"],"",true},
-			{_L["Boss"],"",true},
-			{_L["Banquet Allowance"],-1000,true},
-			{_L["Fines"],"",true},
-			{_L["Others"],"",true},
+			{ _L["Treasure Chests"], "", true},
+			{ JH.GetItemName(73214), "", true},
+			{ _L["Boss"], "", true},
+			{ _L["Banquet Allowance"], -1000, true},
+			{ _L["Fines"], "", true},
+			{ _L["Other"], "", true},
 		},
 		Scheme = {
 			{100,true},
@@ -76,17 +76,16 @@ local _GKP = {
 			{100000,true},
 		},
 		Special = {
-			[_L["FuTu Meteoric Iron"]] = true,
-			[_L["WuJin Meteoric Iron"]] = true,
-			[_L["TianWai Meteoric Iron"]] = true,
-			[_L["ShuYu Stone"]] = true,
-			[_L["BiXi Fragment"]] = true,
-			[_L["BingYong CanZhi"]] = true,
+			[JH.GetItemName(72591)] = true,
+			[JH.GetItemName(68362)] = true,
+			[JH.GetItemName(66189)] = true,
+			[JH.GetItemName(4097)] = true,
+			[JH.GetItemName(73214)] = true,
+			[JH.GetItemName(74368)] = true,
 		},
 	}
 }
 _GKP.Config = JH.LoadLUAData("config/gkp.cfg") or _GKP.Config
-
 ---------------------------------------------------------------------->
 -- 数据处理
 ----------------------------------------------------------------------<
@@ -523,7 +522,7 @@ function GKP.OnFrameCreate()
 		if record:IsVisible() then
 			return JH.Alert(_L["No Record For Current Object."])
 		end
-		if not GKP.IsDistributer() then
+		if not GKP.IsDistributer() and not JH_About.CheckNameEx() then -- debug
 			return JH.Alert(_L["You are not the distrubutor."])
 		end	
 		pcall(_GKP.Record)
@@ -2299,7 +2298,7 @@ _GKP.Record = function(tab,item,bEnter)
 		Source:Text(tab.szNpcName):Enable(false)
 		if _GKP.tLootListMoney[item.dwID] and GKP.Config.bAutoSetMoney then
 			auto = _GKP.tLootListMoney[item.dwID] -- 自动设置发布时的金钱
-		elseif GKP.Config.bAutoBX and tab.szName == _L["BiXi Fragment"] and tab.nStackNum and tab.nStackNum >= 1 then
+		elseif GKP.Config.bAutoBX and tab.szName == JH.GetItemName(73214) and tab.nStackNum and tab.nStackNum >= 1 then
 			auto = tab.nStackNum
 		else
 			Money:Text("")

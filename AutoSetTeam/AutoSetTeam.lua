@@ -894,5 +894,6 @@ JH.RegisterEvent("LOGIN_GAME", function()
 	JH.RegisterInit("WorldMark", WorldMark.GetEvent())
 end)
 
-JH.RegisterEvent("LOADING_END", AutoCancelBuff.Init)
-JH.RegisterEvent("SKILL_MOUNT_KUNG_FU", AutoCancelBuff.Init)
+-- 注销了代码就懒得删了
+-- JH.RegisterEvent("LOADING_END", AutoCancelBuff.Init)
+-- JH.RegisterEvent("SKILL_MOUNT_KUNG_FU", AutoCancelBuff.Init)
