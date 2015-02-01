@@ -2276,7 +2276,7 @@ end
 
 function _GUI.Wnd:Type(nType)
 	if self.type == "WndEdit" then
-		self.self:SetType(nType)
+		self.edit:SetType(nType)
 	end
 	return self
 end

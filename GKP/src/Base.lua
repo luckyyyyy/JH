@@ -16,7 +16,7 @@ GKP = {
 		bDisplayEmptyRecords = true, -- show 0 record
 		bAutoSync = true, -- 自动接收分配者的同步信息
 		bLootStyle = true,
-		szLootListTitle = "Loot List, By GKP Plugin",
+		szLootListTitle = g_tStrings.STR_LOOT_SHOW_LIST,
 	}
 }
 JH.RegisterCustomData("GKP.Config")
@@ -162,7 +162,7 @@ _GKP.OpenLootPanel = function()
 	if not Station.Lookup("Normal/GKP_Loot") then
 		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot")
 		loot:Hide()
-		GUI(loot):Title(GKP.Config.szLootListTitle or "Loot List, By GKP Plugin"):Point():RegisterClose(_GKP.CloseLootWindow)
+		GUI(loot):Title(GKP.Config.szLootListTitle or g_tStrings.STR_LOOT_SHOW_LIST):Point():RegisterClose(_GKP.CloseLootWindow)
 		loot:Lookup("Btn_Style").OnLButtonClick = function()
 			if IsCtrlKeyDown() then
 				if #_GKP.aDistributeList > 0 then
@@ -652,7 +652,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	record:Append("WndEdit",{x = 135,y = 185,w = 185,h = 25}):Name("Money"):Focus(fnAction,function()
+	record:Append("WndEdit",{ x = 135,y = 185,w = 185,h = 25 }):Type(0):Name("Money"):Focus(fnAction, function()
 		if not Station.GetFocusWindow() then return end
 		local szFocusWindow = Station.GetFocusWindow():GetName()
 		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
