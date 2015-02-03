@@ -652,7 +652,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	record:Append("WndEdit",{ x = 135,y = 185,w = 185,h = 25 }):Type(0):Name("Money"):Focus(fnAction, function()
+	record:Append("WndEdit",{ x = 135, y = 185, w = 185, h = 25 }):Type(1):Name("Money"):Focus(fnAction, function()
 		if not Station.GetFocusWindow() then return end
 		local szFocusWindow = Station.GetFocusWindow():GetName()
 		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
