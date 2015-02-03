@@ -1466,8 +1466,8 @@ _GKP.OnMsg = function()
 					_GKP.info = nil
 				end
 				_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP Golden Team Record"] }):Point():RegisterClose()
-				_GKP.info:Append("Text", { w = 679, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
-				_GKP.info:Append("WndButton2", "ScreenShot", { x = 580, y = -10, txt = _L["Print Ticket"], font = 41 })
+				_GKP.info:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
+				_GKP.info:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 })
 				:Enable(false):Click(function()
 					local scale = Station.GetUIScale()
 					local left, top = _GKP.info:Pos()
@@ -1477,7 +1477,7 @@ _GKP.OnMsg = function()
 					JH.Sysmsg(_L("Shot screen succeed, file saved as %s .", path))
 				end)
 				_GKP.info:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", arg3), font = 41 })
-				_GKP.info:Append("Text", { w = 120, h = 30, x = 560, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
+				_GKP.info:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
 				if data[3] == "Information on Debt" then
 					_GKP.info:Toggle(false)
 				end
