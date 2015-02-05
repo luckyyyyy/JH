@@ -1124,10 +1124,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 	if GetClientPlayer().IsInParty() then
 		RaidGrid_CTM_Edition.InsertForceCountMenu(RaidGrid_CTM_Edition.tOptions)
 	end
-	local tSubMenu = {
-			szOption = "　隐藏控制条（可快捷键打开）", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck) RaidGrid_CTM_Edition.ClosePanel() end,
-		}
-	table.insert(RaidGrid_CTM_Edition.tOptions, tSubMenu)
 	local nX, nY = Cursor.GetPos(true)
 	RaidGrid_CTM_Edition.tOptions.x, RaidGrid_CTM_Edition.tOptions.y = nX + 15, nY + 15
 
