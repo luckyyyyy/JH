@@ -110,7 +110,7 @@ _PartyBuffList.UpdateFrame = function()
 			info = team.GetMemberInfo(v.dwID)
 		end
 		if p and info then
-			local wnd = container:AppendContentFromIni(_PartyBuffList.szIniFile,"WndWindow_Item",k)
+			local wnd = container:AppendContentFromIni(_PartyBuffList.szIniFile, "WndWindow_Item", k)
 			local ui = GUI(wnd)
 			local nMaxLife = info.nMaxLife
 			if nMaxLife == 0 then nMaxLife = 1 end -- fix bug
@@ -128,9 +128,16 @@ _PartyBuffList.UpdateFrame = function()
 			end).self.OnLButtonDown = function()
 				SetTarget(TARGET.PLAYER, v.dwID)
 			end
-			ui:Append("Box", "Box", { x = 165, y = 4, w = 30, h = 30,icon = Table_GetBuffIconID(v.dwBuffID,v.nLevel) }):Staring(true)
+			ui:Append("Box", "Box", { x = 165, y = 4, w = 30, h = 30,icon = Table_GetBuffIconID(v.dwBuffID, v.nLevel) }):Staring(true)
 			ui:Append("Text",{ x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
 			ui:Append("Animate","Animate",{ x = -50, y = 2, w = 300, h = 36}):Animate("ui/Image/Common/Box.UITex",17,-1):Toggle(dwID == v.dwID)
+			local bExist, tBuff = JH.HasBuff(v.dwBuffID, p)
+			if bExist then
+				local nSec = JH.GetEndTime(tBuff.nEndFrame)
+				if nSec < 60 then
+					ui:Fetch("Box"):OverText(ITEM_POSITION.RIGHT_BOTTOM, math.floor(nSec) .. "\"", 0, 8)
+				end
+			end
 			v.k = k
 			ui.self.tab = v
 		else
