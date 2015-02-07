@@ -90,7 +90,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	if lifeper > 1 then lifeper = 1 end
 	if data.type and data.type ~= "Other" then
 		if data.type == "Buff" or data.type == "Debuff" then
-			local bExist,tBuff = JH.HasBuff(data.dwID,obj) -- 只判断dwID 反正不可能同时获得不同lv
+			local bExist,tBuff = JH.HasBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
 			if bExist then
 				if tBuff.nStackNum > 1 then
 					txt = string.format("%s(%d)_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame), 5999))

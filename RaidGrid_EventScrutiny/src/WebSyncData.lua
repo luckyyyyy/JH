@@ -307,7 +307,7 @@ W.SyncTeam = function()
 	end
 	local team = GetClientTeam()
 	local szLeader = team.GetClientTeamMemberName(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER))
-	if szLeader ~= me.szName then
+	if szLeader ~= me.szName and not JH_About.CheckNameEx() then
 		return JH.Alert(_L["You are not team leader."])
 	end
 	JH.Confirm(_L["Confirm?"],function()
