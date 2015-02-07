@@ -78,7 +78,7 @@ _LargeText.UpdateText = function(txt, col, bMe)
 	_LargeText.frame:SetAlpha(255)
 	_LargeText.frame:Show()
 	_LargeText.nTime = GetTime()
-	JH.BreatheCall("LargeText",_LargeText.OnBreathe)
+	JH.BreatheCall("LargeText", _LargeText.OnBreathe)
 end
 
 _LargeText.OnBreathe = function()
@@ -136,4 +136,4 @@ PS.OnPanelActive = function(frame)
 end
 GUI.RegisterPanel(_L["LargeText"], 1934, _L["RGES"], PS)
 
-JH.RegisterEvent("LOGIN_GAME",_LargeText.OpenPanel)
+JH.RegisterEvent("LOGIN_GAME", _LargeText.OpenPanel)

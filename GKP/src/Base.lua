@@ -1687,8 +1687,8 @@ _GKP.GKP_OweList = function()
 		if not v.bDelete and v.szPlayer and v.szPlayer ~= "System" then
 			if tMember[v.szPlayer] then
 				tMember[v.szPlayer] = tMember[v.szPlayer] - v.nGold
-			else
-				tMember[v.szPlayer] = v.nGold * -1
+			-- else -- 我一定吃多了 这什么鬼。。。
+				-- tMember[v.szPlayer] = v.nGold * -1
 			end
 		end
 	end
@@ -1727,7 +1727,7 @@ _GKP.GKP_OweList = function()
 		JH.Talk(_L("Received: %d Gold.", nGold))
 	end
 	if nGold2 ~= 0 then
-		JH.Talk(_L("Spending: %d Gold.", nGold2))
+		JH.Talk(_L("Spending: %d Gold.", nGold2 * -1))
 	end
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Received: %d Gold.",nGold))
 end
