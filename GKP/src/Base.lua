@@ -2,24 +2,22 @@ local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
 GKP = {
-	Config = {
-		bDebug2 = false,
-		bOn = true, -- 是分配者就开启
-		bOn2 = false, -- 不是分配者关闭
-		bMoneyTalk = false, -- 金钱变动喊话
-		bAlertMessage = true, -- 进入副本提醒清空数据
-		bCheckScore = true, -- 查看装备分
-		bMoneySystem = false, -- 记录系统金钱变动
-		bDeathWarn = false, -- 重伤提示
-		bAutoSetMoney = false, --自动设置发布时的金钱
-		bAutoBX = true, -- 自动设置碧玺碎片的价格
-		bDisplayEmptyRecords = true, -- show 0 record
-		bAutoSync = true, -- 自动接收分配者的同步信息
-		bLootStyle = true,
-		szLootListTitle = g_tStrings.STR_LOOT_SHOW_LIST,
-	}
+	bDebug2 = false,
+	bOn = true, -- 是分配者就开启
+	bOn2 = false, -- 不是分配者关闭
+	bMoneyTalk = false, -- 金钱变动喊话
+	bAlertMessage = true, -- 进入副本提醒清空数据
+	bCheckScore = true, -- 查看装备分
+	bMoneySystem = false, -- 记录系统金钱变动
+	bDeathWarn = false, -- 重伤提示
+	bAutoSetMoney = false, --自动设置发布时的金钱
+	bAutoBX = true, -- 自动设置碧玺碎片的价格
+	bDisplayEmptyRecords = true, -- show 0 record
+	bAutoSync = true, -- 自动接收分配者的同步信息
+	bLootStyle = true,
+	szLootListTitle = g_tStrings.STR_LOOT_SHOW_LIST,
 }
-JH.RegisterCustomData("GKP.Config")
+JH.RegisterCustomData("GKP")
 ---------------------------------------------------------------------->
 -- 本地函数与变量
 ----------------------------------------------------------------------<
@@ -162,7 +160,7 @@ _GKP.OpenLootPanel = function()
 	if not Station.Lookup("Normal/GKP_Loot") then
 		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot")
 		loot:Hide()
-		GUI(loot):Title(GKP.Config.szLootListTitle or g_tStrings.STR_LOOT_SHOW_LIST):Point():RegisterClose(_GKP.CloseLootWindow)
+		GUI(loot):Title(GKP.szLootListTitle or g_tStrings.STR_LOOT_SHOW_LIST):Point():RegisterClose(_GKP.CloseLootWindow)
 		loot:Lookup("Btn_Style").OnLButtonClick = function()
 			if IsCtrlKeyDown() then
 				if #_GKP.aDistributeList > 0 then
@@ -175,7 +173,7 @@ _GKP.OpenLootPanel = function()
 				end
 				return 
 			end
-			GKP.Config.bLootStyle = not GKP.Config.bLootStyle
+			GKP.bLootStyle = not GKP.bLootStyle
 			if _GKP.dwOpenID then
 				_GKP.OnOpenDoodad(_GKP.dwOpenID)
 			end
@@ -386,7 +384,7 @@ _GKP.CloseLootWindow = function()
 end
 _GKP.SetLootTitle = function()
 	if Station.Lookup("Normal/GKP_Loot") then
-		Station.Lookup("Normal/GKP_Loot"):Lookup("","Text_Title"):SetText(GKP.Config.szLootListTitle)
+		Station.Lookup("Normal/GKP_Loot"):Lookup("","Text_Title"):SetText(GKP.szLootListTitle)
 	end
 end
 ---------------------------------------------------------------------->
@@ -771,39 +769,39 @@ PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["Preference Setting"], font = 27 })
 	ui:Append("WndButton3", { x = 350, y = 0 }):Text(_L["Open Panel"]):Click(_GKP.OpenPanel)
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = GKP.Config.bDisplayEmptyRecords })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = GKP.bDisplayEmptyRecords })
 	:Text(_L["Clause with 0 Gold as Record"]):Click(function(bChecked)
-		GKP.Config.bDisplayEmptyRecords = bChecked
+		GKP.bDisplayEmptyRecords = bChecked
 		pcall(_GKP.Draw_GKP_Record)
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.Config.bAutoSetMoney })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bAutoSetMoney })
 	:Text(_L["Auto Fill Money by Clicking Right Button"]):Click(function(bChecked)
-		GKP.Config.bAutoSetMoney = bChecked
+		GKP.bAutoSetMoney = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.Config.bAutoBX })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bAutoBX })
 	:Text(_L["Auto Fill the amount of BiXi Fragment as Price"]):Click(function(bChecked)
-		GKP.Config.bAutoBX = bChecked
+		GKP.bAutoBX = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.Config.bAlertMessage })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bAlertMessage })
 	:Text(_L["Remind Wipe Data When Enter Dungeon"]):Click(function(bChecked)
-		GKP.Config.bAlertMessage = bChecked
+		GKP.bAlertMessage = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.Config.bAutoSync })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bAutoSync })
 	:Text(_L["Automatic Reception with Record From Distributor"]):Click(function(bChecked)
-		GKP.Config.bAutoSync = bChecked
+		GKP.bAutoSync = bChecked
 	end):Pos_()
 	nX = ui:Append("WndComboBox", { x = 10, y = nY,w = 130,h = 30 })
 	:Text(_L["Popup with Record Options"]):Menu(function()
 		return {
-			{ szOption = _L["Popup Record for Distributor"],bCheck = true,bChecked = GKP.Config.bOn,fnAction = function()
-				GKP.Config.bOn = not GKP.Config.bOn
+			{ szOption = _L["Popup Record for Distributor"],bCheck = true,bChecked = GKP.bOn,fnAction = function()
+				GKP.bOn = not GKP.bOn
 			end},
-			{ szOption = _L["Popup Record for Nondistributor"],bCheck = true,bChecked = GKP.Config.bOn2,fnAction = function()
-				GKP.Config.bOn2 = not GKP.Config.bOn2
-				if GKP.Config.bOn2 then
-					GKP.Config.bAutoSync = false
+			{ szOption = _L["Popup Record for Nondistributor"],bCheck = true,bChecked = GKP.bOn2,fnAction = function()
+				GKP.bOn2 = not GKP.bOn2
+				if GKP.bOn2 then
+					GKP.bAutoSync = false
 				else
-					GKP.Config.bAutoSync = true
+					GKP.bAutoSync = true
 				end
 			end},
 		}
@@ -813,32 +811,32 @@ PS.OnPanelActive = function(frame)
 	nX,nY = ui:Append("WndComboBox", { x = nX + 10, y = nY,w = 130,h = 30 })
 	:Text(_L["Edit Auction Protocols"]):Menu(_GKP.GetSchemeMenu):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Set Loot Title"]}):Pos_()
-	nX,nY = ui:Append("WndEdit", { x = nX + 5, y = nY,txt = GKP.Config.szLootListTitle}):Change(function(txt)
-		GKP.Config.szLootListTitle = txt
+	nX,nY = ui:Append("WndEdit", { x = nX + 5, y = nY,txt = GKP.szLootListTitle}):Change(function(txt)
+		GKP.szLootListTitle = txt
 		_GKP.SetLootTitle()
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Money Record"], font = 27 }):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.Config.bMoneySystem })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.bMoneySystem })
 	:Text(_L["Track Money Trend in the System"]):Click(function(bChecked)
-		GKP.Config.bMoneySystem = bChecked
+		GKP.bMoneySystem = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.Config.bMoneyTalk })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bMoneyTalk })
 	:Text(_L["Enable Money Trend"]):Click(function(bChecked)
-		GKP.Config.bMoneyTalk = bChecked
+		GKP.bMoneyTalk = bChecked
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Team Profile"], font = 27 }):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.Config.bCheckScore })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.bCheckScore })
 	:Text(_L["Team Profile on Equipment Score"]):Click(function(bChecked)
-		GKP.Config.bCheckScore = bChecked
+		GKP.bCheckScore = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.Config.bDeathWarn })
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bDeathWarn })
 	:Text(_L["Injuries tips"]):Click(function(bChecked)
-		GKP.Config.bDeathWarn = bChecked
+		GKP.bDeathWarn = bChecked
 	end):Pos_()
 	if JH_About.CheckNameEx() then
-		ui:Append("WndCheckBox", { x = 320, y = nY, checked = GKP.Config.bDebug2 })
+		ui:Append("WndCheckBox", { x = 320, y = nY, checked = GKP.bDebug2 })
 		:Text(_L["Show LootList(HEXIE)"]):Click(function(bChecked)
-			GKP.Config.bDebug2 = not GKP.Config.bDebug2
+			GKP.bDebug2 = not GKP.bDebug2
 		end)
 	end
 end
@@ -969,7 +967,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 				end
 			end
 			local nEquipScore = player.GetTotalEquipScore()
-			if GKP.Config.bCheckScore then
+			if GKP.bCheckScore then
 				if nEquipScore == 0 then
 					_GKP.tViewInvite[v] = true
 					local PlayerView = Station.Lookup("Normal/PlayerView")
@@ -1075,7 +1073,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 				item:Lookup("Text_Fight"):SetText(_L["Nocombat"])
 				item:Lookup("Text_Fight"):SetFontColor(0,255,0)
 			end
-			if GKP.Config.bCheckScore then
+			if GKP.bCheckScore then
 				item:Lookup("Text_Score"):SetText(v.nEquipScore)
 			else
 				item:Lookup("Text_Score"):SetText(_L["Unopened"])
@@ -1159,7 +1157,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 	local a,b = _GKP.GetRecordSum()
 	local c = 0
 	for k,v in ipairs(tab) do
-		if GKP.Config.bDisplayEmptyRecords or v.nMoney ~= 0 then
+		if GKP.bDisplayEmptyRecords or v.nMoney ~= 0 then
 			local wnd = _GKP.GKP_Record_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Record_Item.ini","WndWindow",i)
 			local item = wnd:Lookup("","")
 			if k % 2 == 0 then
@@ -1439,7 +1437,7 @@ _GKP.OnMsg = function()
 				end)
 			end
 			
-			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.Config.bAutoSync and arg3 ~= me.szName then
+			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.bAutoSync and arg3 ~= me.szName then
 				local tData,err = JH.JsonDecode(JH.AscIIDecode(data[2]))
 				if err then
 					return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
@@ -1897,7 +1895,7 @@ _GKP.DrawDistributeList = function(doodad)
 	end
 	local handle = frame:Lookup("","Handle_Box")
 	handle:Clear()
-	if GKP.Config.bLootStyle then
+	if GKP.bLootStyle then
 		if #_GKP.aDistributeList <= 6 then
 			frame:Lookup("","Image_Bg"):SetSize(6 * 72,110)
 			frame:Lookup("","Image_Title"):SetSize(6 * 72,30)
@@ -1959,7 +1957,7 @@ _GKP.DrawDistributeList = function(doodad)
 		end
 		local box	
 		
-		if GKP.Config.bLootStyle then
+		if GKP.bLootStyle then
 			handle:AppendItemFromString(string.format("<Box>name=\"box_%s\" EventID=816 w=64 h=64 </Box>",item_k))
 			box = handle:Lookup("box_" .. item_k)
 			box = fnSetBox(box)
@@ -1988,7 +1986,7 @@ _GKP.DrawDistributeList = function(doodad)
 		-- MouseEnter
 		box.OnItemMouseEnter = function()
 			local me = this
-			if not GKP.Config.bLootStyle and me:GetType() == "Handle" then
+			if not GKP.bLootStyle and me:GetType() == "Handle" then
 				me:Lookup("Image_Copper"):Show()
 				me = me:Lookup("Box_Item")
 			end
@@ -2001,7 +1999,7 @@ _GKP.DrawDistributeList = function(doodad)
 		
 		box.OnItemMouseLeave = function()
 			local me = this
-			if not GKP.Config.bLootStyle and me:GetType() == "Handle" then
+			if not GKP.bLootStyle and me:GetType() == "Handle" then
 				if me:Lookup("Image_Copper") then
 					me:Lookup("Image_Copper"):Hide()
 				end
@@ -2013,7 +2011,7 @@ _GKP.DrawDistributeList = function(doodad)
 			HideTip()
 		end
 		if _GKP.tDistributeRecords[szItemName] then
-			if GKP.Config.bLootStyle then
+			if GKP.bLootStyle then
 				box:SetObjectStaring(true)
 			else
 				box:Lookup("Box_Item"):SetObjectStaring(true)
@@ -2262,7 +2260,7 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 		tab["nBookID"] = item.nBookID
 	end
 	
-	if GKP.Config.bOn then
+	if GKP.bOn then
 		_GKP.Record(tab,item,bEnter)
 	else -- 关闭的情况所有东西全部绕过
 		tab.nMoney = 0
@@ -2296,9 +2294,9 @@ _GKP.Record = function(tab,item,bEnter)
 		text:Text(tab.szPlayer):Color(JH.GetForceColor(tab.dwForceID))
 		Name:Text(tab.szName):Enable(false)
 		Source:Text(tab.szNpcName):Enable(false)
-		if _GKP.tLootListMoney[item.dwID] and GKP.Config.bAutoSetMoney then
+		if _GKP.tLootListMoney[item.dwID] and GKP.bAutoSetMoney then
 			auto = _GKP.tLootListMoney[item.dwID] -- 自动设置发布时的金钱
-		elseif GKP.Config.bAutoBX and tab.szName == JH.GetItemName(73214) and tab.nStackNum and tab.nStackNum >= 1 then
+		elseif GKP.bAutoBX and tab.szName == JH.GetItemName(73214) and tab.nStackNum and tab.nStackNum >= 1 then
 			auto = tab.nStackNum
 		else
 			Money:Text("")
@@ -2533,7 +2531,7 @@ RegisterEvent("DISTRIBUTE_ITEM",function() -- DISTRIBUTE_ITEM
 			item.dwDoodadID = k
 			item.nTime = GetCurrentTime()
 			item.dwForceID = player.dwForceID
-			if GKP.Config.bOn2 then
+			if GKP.bOn2 then
 				local tab = clone(item)
 				tab.item = nil
 				table.insert(_GKP.tDistribute,{tab = tab , item = item.item})
@@ -2551,7 +2549,7 @@ end)
 
 RegisterEvent("FIGHT_HINT", function()
 	local me = GetClientPlayer()
-	if GKP.Config.bOn and #_GKP.tDistribute > 0 and not me.bFightState then
+	if GKP.bOn and #_GKP.tDistribute > 0 and not me.bFightState then
 		FireEvent("GKP_DISTRIBUTE_ITEM")
 	end
 end)
@@ -2581,7 +2579,7 @@ RegisterEvent("SYNC_LOOT_LIST", function()
 	if _GKP.dwOpenID == arg0 and Station.Lookup("Normal/GKP_Loot") and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
 		_GKP.OpenDoodad(arg0)
 	end	
-	if JH.IsInDungeon() and JH_About.CheckNameEx() and GKP.Config.bDebug2 and not _GKP.aDoodadCache[arg0] and not Station.Lookup("Normal/GKP_Loot") then
+	if JH.IsInDungeon() and JH_About.CheckNameEx() and GKP.bDebug2 and not _GKP.aDoodadCache[arg0] and not Station.Lookup("Normal/GKP_Loot") then
 		_GKP.OpenDoodad(arg0)
 	end
 	_GKP._OpenDoodad(arg0)
@@ -2607,7 +2605,7 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 	if nGold > -20 and nGold < 20  then
 		return
 	end
-	if not _GKP.TradingTarget.szName and not GKP.Config.bMoneySystem then
+	if not _GKP.TradingTarget.szName and not GKP.bMoneySystem then
 		return
 	end
 	pcall(GKP,"GKP_Account",{
@@ -2618,7 +2616,7 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 		dwMapID = GetClientPlayer().GetMapID()
 	})
 	pcall(_GKP.Draw_GKP_Account)
-	if _GKP.TradingTarget.szName and GKP.Config.bMoneyTalk then
+	if _GKP.TradingTarget.szName and GKP.bMoneyTalk then
 		if nGold > 0 then
 			JH.Talk({
 				{type = "text" ,text = _L["Received"]},
@@ -2760,7 +2758,7 @@ JH.AddHotKey("JH_GKP",_L["Open/Close Golden Team Record"],_GKP.TogglePanel)
 
 
 RegisterEvent("LOADING_END",function()
-	if JH.IsInDungeon() and GKP.Config.bAlertMessage then
+	if JH.IsInDungeon() and GKP.bAlertMessage then
 		if not IsEmpty(GKP("GKP_Record")) or not IsEmpty(GKP("GKP_Account")) then
 			JH.Confirm(_L["Do you want to wipe the previous data when you enter the dungeon's map?"],function() _GKP.GKP_Clear(true) end)
 		end
@@ -2932,7 +2930,7 @@ DeathWarn.OnDeath = function(dwTarget, szKiller)
 				table.remove(DeathWarn.tDeath[dwTarget],1)
 			end
 			DeathWarn.tDamage[dwTarget] = nil
-			if GKP.Config.bDeathWarn then
+			if GKP.bDeathWarn then
 				OutputMessage("MSG_SYS",_L["Boardcast of Serious Injure:"] .. "["..tInfo.szTarget.."]" .. _L["By"] .. "["..tInfo.szCaster.."]" .. _L["The"] .."<"..tInfo.szSkillName..">" .. _L["Lead to"] .. ""..tInfo.szValue.."," .. _L["Serious injured!"] .. "\n")
 			end
 		end
