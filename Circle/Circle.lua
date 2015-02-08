@@ -229,14 +229,16 @@ C.LoadSingleData = function(mapid, data)
 		return JH.Alert(_L["The map does not exist"])
 	end
 	local map = C.GetMapType(mapid)
-	if map.bDungeon then
-		if #C.tData[mapid] < CIRCLE_MAP_COUNT[mapid] then
-			tinsert(C.tData[mapid], data)
+	if map then
+		if map.bDungeon then
+			if #C.tData[mapid] < CIRCLE_MAP_COUNT[mapid] then
+				tinsert(C.tData[mapid], data)
+			else
+				JH.Sysmsg2(_L("%s Unable to add more data", _L["this map"]))
+			end
 		else
-			JH.Sysmsg2(_L("%s Unable to add more data", _L["this map"]))
+			tinsert(C.tData[mapid], data)
 		end
-	else
-		tinsert(C.tData[mapid], data)
 	end
 	FireEvent("CIRCLE_CLEAR")
 	FireEvent("CIRCLE_DRAW_UI")
