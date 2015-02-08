@@ -18,7 +18,6 @@ RaidGrid_CTM_Edition.nHPShownMode = 2;								RegisterCustomData("RaidGrid_CTM_E
 RaidGrid_CTM_Edition.nShowMP = false;								RegisterCustomData("RaidGrid_CTM_Edition.nShowMP")
 RaidGrid_CTM_Edition.bLowMPBar = true;								RegisterCustomData("RaidGrid_CTM_Edition.bLowMPBar")
 RaidGrid_CTM_Edition.bHPHitAlert = true;							RegisterCustomData("RaidGrid_CTM_Edition.bHPHitAlert")
-RaidGrid_CTM_Edition.bHPColorBar = false;							RegisterCustomData("RaidGrid_CTM_Edition.bHPColorBar")
 RaidGrid_CTM_Edition.bColoredName = true;							RegisterCustomData("RaidGrid_CTM_Edition.bColoredName")
 RaidGrid_CTM_Edition.bColoredGrid = false;							RegisterCustomData("RaidGrid_CTM_Edition.bColoredGrid")
 RaidGrid_CTM_Edition.bShowForceIcon = false;						RegisterCustomData("RaidGrid_CTM_Edition.bShowForceIcon")
@@ -26,16 +25,11 @@ RaidGrid_CTM_Edition.bShowKungfuIcon = true;						RegisterCustomData("RaidGrid_C
 RaidGrid_CTM_Edition.bShowCampIcon = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowCampIcon")
 RaidGrid_CTM_Edition.bShowDistance = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowDistance")
 RaidGrid_CTM_Edition.bColorHPBarWithDistance = true;				RegisterCustomData("RaidGrid_CTM_Edition.bColorHPBarWithDistance")
-RaidGrid_CTM_Edition.bOnlySelectDirFace = true;						RegisterCustomData("RaidGrid_CTM_Edition.bOnlySelectDirFace")
-RaidGrid_CTM_Edition.bShowDirFace = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowDirFace")
-RaidGrid_CTM_Edition.bFlashArrow = false;							RegisterCustomData("RaidGrid_CTM_Edition.bFlashArrow")
 RaidGrid_CTM_Edition.bShowMark = true;								RegisterCustomData("RaidGrid_CTM_Edition.bShowMark")
-RaidGrid_CTM_Edition.bFlashMark = false;							RegisterCustomData("RaidGrid_CTM_Edition.bFlashMark")
 
 RaidGrid_CTM_Edition.bShowSelectImage = true;						RegisterCustomData("RaidGrid_CTM_Edition.bShowSelectImage")
 RaidGrid_CTM_Edition.bShowTargetTargetAni = true;					RegisterCustomData("RaidGrid_CTM_Edition.bShowTargetTargetAni")
 
-RaidGrid_CTM_Edition.bShowTeamateCasting = false;					--RegisterCustomData("RaidGrid_CTM_Edition.bShowTeamateCasting")
 
 --[[
 RaidGrid_CTM_Edition.RaidPanel_OpenRaidFrame_Org = RaidPanel.OpenRaidFrame
@@ -111,19 +105,16 @@ function RaidGrid_CTM_Edition.PopOptions()
 				szOption = "★发布团队就位确认 (团长时)", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck) RaidGrid_Party.InitReadyCheckCover() end,
 			},
 			{
-				szOption = "　清除团队就位确认色块", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck) RaidGrid_Party.ClearReadyCheckCover() end,
+				szOption = "清除团队就位确认色块", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck) RaidGrid_Party.ClearReadyCheckCover() end,
 			},
 			{
 				bDevide = true
 			},
 			{
-				szOption = "　需按住Alt才能调队（团长时）", bCheck = true, bChecked = RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function(UserData, bCheck) RaidGrid_CTM_Edition.bAltNeededForDrag = bCheck end,
+				szOption = "需按住Alt才能调队（团长时）", bCheck = true, bChecked = RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function(UserData, bCheck) RaidGrid_CTM_Edition.bAltNeededForDrag = bCheck end,
 			},
 			{
-				szOption = "★按住Shift拖动单个小队面板位置", bCheck = false, bChecked = false, bDisable = true,
-			},
-			{
-				szOption = "打开世界标记功能", bCheck = false, bChecked = false, fnAction = function() Wnd.ToggleWindow("WorldMark") end,
+				bDevide = true
 			},
 		},
 		{
@@ -164,10 +155,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 			{
 				szOption = "◆只在团队时才显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowInRaid, fnAction = function(UserData, bCheck)
 					RaidGrid_CTM_Edition.bShowInRaid = bCheck
-					--if RaidGrid_CTM_Edition.bShowRaid and not RaidGrid_Party.IsInRaid() then
-					--	RaidGrid_CTM_Edition.bShowRaid = not RaidGrid_CTM_Edition.bShowInRaid
 					RaidGrid_Party.ReloadRaidPanel()
-					--end
 				end,
 			},
 			{
@@ -232,14 +220,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 				szOption = "　开启系统小队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSystemTeamPanel, fnAction = function(UserData, bCheck)
 					RaidGrid_CTM_Edition.bShowSystemTeamPanel = bCheck
 					RaidGrid_CTM_Edition.TeammatePanel_Switch(bCheck)
-					--if bCheck and not RaidGrid_Party.IsInRaid() then
-					--[[
-					if bCheck then
-						OpenTeammate()
-					else
-						CloseTeammate()
-					end
-					--]]
 				end,
 			},
 		},
@@ -873,14 +853,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 		},
 		{
 			szOption = "【队友行为相关】：",
-			--[[
-			{
-				szOption = "　监控并显示队友施法条", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowTeamateCasting, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowTeamateCasting = bCheck
-					RaidGrid_Party.UpdateTeamCasting(true)
-				end,
-			},
-			--]]
 			{
 				szOption = "　显示选中的队友标色", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSelectImage, fnAction = function(UserData, bCheck)
 					RaidGrid_CTM_Edition.bShowSelectImage = bCheck
@@ -903,11 +875,12 @@ function RaidGrid_CTM_Edition.PopOptions()
 				end,
 			},
 			{
-				szOption = "　队友标记闪烁效果", bCheck = true, bChecked = RaidGrid_CTM_Edition.bFlashMark, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bFlashMark = bCheck
+				szOption = "　队友距离显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function(UserData, bCheck)
+					RaidGrid_CTM_Edition.bShowDistance = bCheck
 					RaidGrid_Party.ReloadRaidPanel()
 				end,
 			},
+			
 		},
 		{
 			bDevide = true
@@ -956,12 +929,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 					RaidGrid_CTM_Edition.nHPShownMode = 0
 					RaidGrid_Party.ReloadRaidPanel()
 				end},
-			},
-			{
-				szOption = "　血量辅助着色条", bCheck = true, bChecked = RaidGrid_CTM_Edition.bHPColorBar, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bHPColorBar = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
 			},
 			{
 				szOption = "　血条根据距离着色", bCheck = true, bChecked = RaidGrid_CTM_Edition.bColorHPBarWithDistance, fnAction = function(UserData, bCheck)
@@ -1021,42 +988,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 		{
 			bDevide = true
 		},
-		{
-			szOption = "【距离和方向相关】：",
-			{
-				szOption = "　队友距离显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowDistance = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　队友方向指示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDirFace, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowDirFace = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},	
-			{
-				szOption = "　只显示选中目标方向", bCheck = true, bChecked = RaidGrid_CTM_Edition.bOnlySelectDirFace, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bOnlySelectDirFace = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　方向指示闪烁", bCheck = true, bChecked = RaidGrid_CTM_Edition.bFlashArrow, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bFlashArrow = bCheck
-				end,
-			},
-		},
-	
-		fnAction = function(UserData, bCheck)
-		end,
-		fnChangeColor = function(UserData, r, g, b)
-		end,
-		fnCancelAction = function()
-		end,
-		fnAutoClose = function()
-			return false
-		end,
 	}
 	
 	for i = 1, #RaidGrid_CTM_Edition.tOptions do
@@ -1126,7 +1057,11 @@ function RaidGrid_CTM_Edition.PopOptions()
 	end
 	local nX, nY = Cursor.GetPos(true)
 	RaidGrid_CTM_Edition.tOptions.x, RaidGrid_CTM_Edition.tOptions.y = nX + 15, nY + 15
-
+	
+	local player = GetClientPlayer()
+	local hTeam = GetClientTeam()
+	local dwDistribute = hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE)	
+	InsertDistributeMenu(RaidGrid_CTM_Edition.tOptions[1], player.dwID ~= dwDistribute)
 	PopupMenu(RaidGrid_CTM_Edition.tOptions)
 end
 
@@ -1174,200 +1109,6 @@ function RaidGrid_CTM_Edition.InsertChangeGroupMenu(tMenu, dwMemberID)
 	if #tSubMenu > 0 then
 		table.insert(tMenu, tSubMenu)
 	end
-end
-
-function RaidGrid_CTM_Edition.InsertTeammateLeaderMenu(tMenu, dwMemberID)
-	local hPlayer = GetClientPlayer()
-	if not hPlayer.IsInParty() or not hPlayer.IsPlayerInMyParty(dwMemberID) then
-		return false
-	end
-	
-	local hTeam = GetClientTeam()
-	local tMemberInfo = hTeam.GetMemberInfo(dwMemberID)
-	if not tMemberInfo then
-		return false
-	end
-	local bOffline = not tMemberInfo.bIsOnLine
-	local nMemberGroupID = hTeam.GetMemberGroupIndex(dwMemberID)
-	local nMyGroupID = hTeam.GetMemberGroupIndex(hPlayer.dwID)
-	local tMyGroupInfo = hTeam.GetGroupInfo(nMyGroupID)
-
-	if hPlayer.IsPartyLeader() then		
-		tSubMenu = 
-		{
-			szOption = g_tStrings.STR_TEAMMATE_CHANGE_PARTY_LEADER, 
-			bDisable = bOffline, 
-			fnAction = function() GetClientTeam().SetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER, dwMemberID) end
-		}
-		table.insert(tMenu, tSubMenu)
-
-		if hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == dwMemberID then
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_TAKEBACK_DISTRIBUTE_RIGHT, 
-				bDisable = bOffline, 
-				fnAction = function() GetClientTeam().SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, GetClientPlayer().dwID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		else
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_CHANGE_DISTRIBUTE_RIGHT, 
-				bDisable = bOffline, 
-				fnAction = function() GetClientTeam().SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, dwMemberID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		end
-		
-		if hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) == dwMemberID then
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_TAKEBACK_MARK_RIGHT, 
-				bDisable = bOffline, 
-				fnAction = function() GetClientTeam().SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, GetClientPlayer().dwID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		else
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_CHANGE_MARK_RIGHT, 
-				bDisable = bOffline, 
-				fnAction = function() GetClientTeam().SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, dwMemberID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		end
-		
-		if tMyGroupInfo.dwFormationLeader == dwMemberID then
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_TAKEBACK_PARTY_LEADER, 
-				bDisable = bOffline, 
-				fnAction = function() GetClientTeam().SetTeamFormationLeader(GetClientPlayer().dwID, nMyGroupID) end
-			}
-			table.insert(tMenu, tSubMenu)
-			
-		else
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_CHANGE_PARTY_LEADER, 
-				bDisable = bOffline, 
-				fnAction = function() GetClientTeam().SetTeamFormationLeader(dwMemberID, nMemberGroupID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		end
-		
-		if GetClientTeam().TeamKickoutMember then
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_TEAMMATE_KICKOUT_MENBER, 
-				bDisable = hTeam.bSystem, 
-				fnAction = function() GetClientTeam().TeamKickoutMember(tMemberInfo.szName) end
-			}
-			table.insert(tMenu, tSubMenu)
-		end
-	else
-		if hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == hPlayer.dwID then
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_CHANGE_DISTRIBUTE_RIGHT, 
-				fnAction = function() GetClientTeam().SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, dwMemberID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		end
-		if hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) == hPlayer.dwID then
-			tSubMenu = 
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_CHANGE_MARK_RIGHT, 
-				fnAction = function() GetClientTeam().SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, dwMemberID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		end
-		if tMyGroupInfo.dwFormationLeader == hPlayer.dwID and nMyGroupID == nMemberGroupID then
-			tSubMenu =
-			{
-				szOption = g_tStrings.STR_LEADER_OPTION_CHANGE_PARTY_LEADER, 
-				fnAction = function() GetClientTeam().SetTeamFormationLeader(dwMemberID, nMemberGroupID) end
-			}
-			table.insert(tMenu, tSubMenu)
-		end
-	end
-	return true
-end
-
-function RaidGrid_CTM_Edition.InsertTeammateMenu(tMenu, dwMemberID)
-	local tSubMenu = nil
-	
-	local hPlayer = GetClientPlayer()
-	if not hPlayer.IsInParty() or not hPlayer.IsPlayerInMyParty(dwMemberID) then
-		return false
-	end
-	
-	local hTeam = GetClientTeam()
-	local tMemberInfo = hTeam.GetMemberInfo(dwMemberID)
-	if not tMemberInfo then
-		return
-	end
-		
-	if hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) ==  hPlayer.dwID then
-		RaidGrid_CTM_Edition.InsertMarkMenu(tMenu, dwMemberID, not tMemberInfo.bIsOnLine)
-	end
-
-	RaidGrid_CTM_Edition.InsertTeammateLeaderMenu(tMenu, dwMemberID)
-	--if RaidGrid_CTM_Edition.InsertTeammateLeaderMenu(tMenu, dwMemberID) then
-		--table.insert(tMenu, {bDevide = true})
-	--end
-	
-	--local szMemberName = tMemberInfo.szName--GetTeammateName(dwMemberID)
-	--InsertPlayerCommonMenu(tMenu, dwMemberID, szMemberName)
-	
-	return true
-end
-
-function RaidGrid_CTM_Edition.InsertSelfMenu(tMenu, dwMemberID)
-	local hPlayer = GetClientPlayer()
-	if not hPlayer then
-		return
-	end
-	if not hPlayer.IsInParty() then
-		return
-	end
-	
-	local hTeam = GetClientTeam()
-	if not hTeam then
-		return
-	end
-		
-	if hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) ==  hPlayer.dwID then
-		RaidGrid_CTM_Edition.InsertMarkMenu(tMenu, dwMemberID, false)
-	end
-	
-	return true
-end
-
-RaidGrid_CTM_Edition.lzPARTY_MARK_ICON_PATH = "ui\\Image\\button\\FrendNPartyButton.UITex"
-RaidGrid_CTM_Edition.lzPARTY_MARK_ICON_FRAME_LIST = {66, 67, 73, 74, 75, 76, 77, 78, 81, 82}
-function RaidGrid_CTM_Edition.InsertMarkMenu(tMenu, dwCharacterID, bDisable)
-	local tSubMenu = { szOption = g_tStrings.STR_MARK_TARGET, bDisable = bDisable}
-	for nKey, nVal in pairs(RaidGrid_CTM_Edition.lzPARTY_MARK_ICON_FRAME_LIST) do
-		table.insert(
-			tSubMenu, 
-			{
-				szIcon = RaidGrid_CTM_Edition.lzPARTY_MARK_ICON_PATH, 
-				nFrame = nVal, 
-				szLayer = "ICON_CENTER", 
-				fnAction = function() GetClientTeam().SetTeamMark(nKey, dwCharacterID) end
-			}
-		)	
-	end
-	table.insert(
-		tSubMenu, 
-		{
-			szOption = g_tStrings.STR_MARK_TARGET_NONE, 
-			fnAction = function() GetClientTeam().SetTeamMark(0, dwCharacterID) end
-		}
-	)	
-	table.insert(tMenu, tSubMenu)
-	return true
 end
 
 function RaidGrid_CTM_Edition.OutputTeamMemberTip(dwID, rc)

@@ -1696,18 +1696,18 @@ _GKP.GKP_OweList = function()
 	local tMember2 = {}
 	for k,v in pairs(tMember) do
 		if v ~= 0 then
-			table.insert(tMember2,{szName = k, nGold = v * -1 })
+			table.insert(tMember2, { szName = k, nGold = v * -1 })
 		end
 	end
-	table.sort(tMember2,function(a,b) return a.nGold < b.nGold end)
+	table.sort(tMember2, function(a,b) return a.nGold < b.nGold end)
 	JH.Talk(_L["Information on Debt"])
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "Information on Debt")
 	for k,v in pairs(tMember2) do
 		if v.nGold < 0 then
-			JH.Talk({{type = "name" , name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]}})
+			JH.Talk({{type = "name", name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]}})
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "-")
 		else
-			JH.Talk({{type = "name" , name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. _L["Gold."]}})
+			JH.Talk({{type = "name", name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. _L["Gold."]}})
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "+")
 		end
 	end
