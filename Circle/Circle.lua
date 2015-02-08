@@ -129,6 +129,10 @@ do
 	end
 end
 
+C.GetMapType = function(map)
+	return tonumber(map) and C.tMapList[C.GetMapName(tonumber(map))] or C.tMapList[map]
+end
+
 C.GetData = function()
 	return C.tData
 end
@@ -194,7 +198,7 @@ C.LoadCircleData = function(tData, bMsg)
 	end
 	for k, v in pairs(tData.Circle) do
 		if k ~= "mt" then
-			local map = C.tMapList[C.GetMapName(tonumber(k))]
+			local map = C.GetMapType(k)
 			if map and map.bDungeon then
 				if #v <= CIRCLE_MAP_COUNT[tonumber(k)] then
 					data[tonumber(k)] = v
@@ -219,6 +223,25 @@ C.LoadCircleData = function(tData, bMsg)
 	end
 end
 
+C.LoadSingleData = function(mapid, data)
+	mapid = tonumber(mapid)
+	if not mapid then
+		return JH.Alert(_L["The map does not exist"])
+	end
+	local map = C.GetMapType(mapid)
+	if map.bDungeon then
+		if #C.tData[mapid] < CIRCLE_MAP_COUNT[mapid] then
+			tinsert(C.tData[mapid], data)
+		else
+			JH.Sysmsg2(_L("%s Unable to add more data", _L["this map"]))
+		end
+	else
+		tinsert(C.tData[mapid], data)
+	end
+	FireEvent("CIRCLE_CLEAR")
+	FireEvent("CIRCLE_DRAW_UI")
+end
+
 C.LoadCircleMergeData = function(tData)
 	local data = {}
 	if GetCurrentTime() - Circle.nLimit < CIRCLE_CHANGE_TIME then
@@ -228,7 +251,7 @@ C.LoadCircleMergeData = function(tData)
 	end
 	for k, v in pairs(tData.Circle) do
 		if k ~= "mt" then
-			local map = C.tMapList[C.GetMapName(tonumber(k))]
+			local map = C.GetMapType(k)
 			if map and map.bDungeon then
 				if #v <= CIRCLE_MAP_COUNT[tonumber(k)] then
 					data[tonumber(k)] = v
@@ -248,7 +271,7 @@ C.LoadCircleMergeData = function(tData)
 	for k, v in pairs(data) do
 		if k ~= "mt" then
 			if C.tData[k] then
-				local map = C.tMapList[C.GetMapName(k)]
+				local map = C.GetMapType(k)
 				for kk, vv in ipairs(v) do
 					if map and map.bDungeon then
 						if #C.tData[k] < CIRCLE_MAP_COUNT[k] then
@@ -318,8 +341,8 @@ C.Release = function()
 	if C.tData["mt"] then
 		for k, v in pairs(C.tData["mt"]) do
 			if C.GetMapName(v):match(C.GetMapName(k)) and k ~= v then
-				local a = C.tMapList[C.GetMapName(v)]
-				local b = C.tMapList[C.GetMapName(k)]
+				local a = C.GetMapType(v)
+				local b = C.GetMapType(k)
 				if (a.bDungeon and b.bDungeon) or (not a.bDungeon and not b.bDungeon) then
 					if b.id >= 0 then
 						C.tMt[k] = v
@@ -357,7 +380,7 @@ C.CreateData = function()
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	-- 全地图数据
-	if C.tData[-1] and not C.tMapList[C.GetMapName(mapid)].bDungeon then
+	if C.tData[-1] and not C.GetMapType(mapid).bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = { id = -1, index = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
@@ -870,7 +893,7 @@ C.OpenAddPanel = function(szName, dwType, szMap)
 	
 	ui:Append("WndButton3", { txt = g_tStrings.STR_HOTKEY_SURE, x = 115, y = 185 })
 	:Click(function()
-		local map = C.tMapList[ui:Fetch("Map"):Text()]
+		local map = C.GetMapType(ui:Fetch("Map"):Text())
 		local key = tonumber(ui:Fetch("Key"):Text()) or ui:Fetch("Key"):Text()
 		if JH.Trim(key) == "" then
 			return  JH.Alert(_L["Please enter NPC name or Template ID."])
@@ -942,8 +965,8 @@ C.OpenMtPanel = function()
 	end)	
 	ui:Append("WndButton3", { txt = g_tStrings.STR_HOTKEY_SURE, x = 115, y = 185 })
 	:Click(function()
-		local map = C.tMapList[ui:Fetch("map"):Text()]
-		local source = C.tMapList[ui:Fetch("source"):Text()]
+		local map = C.GetMapType(ui:Fetch("map"):Text())
+		local source = C.GetMapType(ui:Fetch("source"):Text())
 		if not map or not source then
 			return JH.Alert(_L["The map does not exist"])
 		end
@@ -1183,9 +1206,9 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 		for k, v in pairs(C.tData) do
-			if k ~= -1 and k ~= -2 and k ~= "mt" and C.tMapList[C.GetMapName(k)] then
+			if k ~= -1 and k ~= -2 and k ~= "mt" and C.GetMapType(k) then
 				local tm, txt = menu[4], string.format(" (%d)", #v)
-				if C.tMapList[C.GetMapName(k)].bDungeon then
+				if C.GetMapType(k).bDungeon then
 					tm = menu[3]
 					txt = string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k])
 				end
