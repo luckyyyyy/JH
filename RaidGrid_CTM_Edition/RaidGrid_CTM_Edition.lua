@@ -323,7 +323,7 @@ RegisterEvent("PARTY_UPDATE_BASE_INFO", RaidGrid_Party.ReloadRaidPanel)
 RegisterEvent("TEAM_CHANGE_MEMBER_GROUP", RaidGrid_Party.ReloadRaidPanel)
 
 
-JH.AddHotKey("JH_RGCTM_Switch","开启/关闭CTM团队面板",function()
+JH.AddHotKey("JH_CTM_Switch","开启/关闭CTM团队面板",function()
 	RaidGrid_CTM_Edition.CloseAndOpenPanel()
 	if RaidGrid_CTM_Edition.bAutoHideCTM then
 		if RaidGrid_CTM_Edition.bShowInRaid and RaidGrid_Party.IsInRaid() then
@@ -336,7 +336,8 @@ JH.AddHotKey("JH_RGCTM_Switch","开启/关闭CTM团队面板",function()
 		RaidGrid_Party.ReloadRaidPanel()
 	end
 end)
-JH.AddHotKey("JH_RGCTM_ResetPos","重置CTM面板位置",function()
+JH.AddHotKey("JH_CTM_Ready", "发布团队你就位确认", RaidGrid_Party.InitReadyCheckCover)
+JH.AddHotKey("JH_CTM_ResetPos","重置CTM面板位置",function()
 	RaidGrid_CTM_Edition.SetPanelPos()
 	if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
 		RaidGrid_Party.AutoLinkAllPanel()
