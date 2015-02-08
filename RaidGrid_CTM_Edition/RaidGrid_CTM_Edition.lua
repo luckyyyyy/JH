@@ -31,6 +31,8 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	
 	this:RegisterEvent("PARTY_LOOT_MODE_CHANGED")
 	this:RegisterEvent("LOADING_END")
+	this:RegisterEvent("UPDATE_SELECT_TARGET")
+	
 end
 
 function RaidGrid_CTM_Edition.OnCustomDataLoaded()
@@ -111,6 +113,8 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		RaidGrid_Party.UpdateReadyCheckCover(arg0, arg1)
 	elseif szEvent == "LOADING_END" or szEvent == "PARTY_UPDATE_BASE_INFO" or szEvent == "PARTY_LOOT_MODE_CHANGED" then
 		RaidGrid_CTM_Edition.UpdateLootImages()
+	elseif szEvent == "UPDATE_SELECT_TARGET" then
+		RaidGrid_Party.RedrawTargetSelectImage()
 	end
 end
 
@@ -160,7 +164,6 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	RaidGrid_Party.RedrawAllFadeHP()
 	RaidGrid_Party.UpdateMemberDistance()
 	RaidGrid_Party.UpdateReadyCheckFade()
-	RaidGrid_Party.RedrawTargetSelectImage()
 	if RaidGrid_CTM_Edition.nSteper % 4 == 0 then		
 		if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.RedrawAllBuffBox then
 			RaidGrid_EventScrutiny.RedrawAllBuffBox()
