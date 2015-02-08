@@ -472,6 +472,7 @@ data = {
 	["Map:"] = "有效地图:",
 	["Data already exists, whether editor?"] = "数据已经存在，是否编辑？",
 	["%s Unable to add more data"] = "你无法在%s添加更多的数据了",
+	["this map"] = "这个地图",
 	["The map does not exist"] = "这个地图不存在",
 	["Please enter key"] = "输入名字",
 	["Add Face"] = "添加圈圈",
