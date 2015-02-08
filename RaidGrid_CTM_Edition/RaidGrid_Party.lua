@@ -893,9 +893,9 @@ function RaidGrid_Party.SetTempTarget(dwMemberID, bEnter)
 		RaidGrid_Party.dwLastTempTargetId = tardwID
 		if dwMemberID ~= tardwID then
 			if player.dwID == dwMemberID then
-				if IsCtrlKeyDown() then
+				-- if IsCtrlKeyDown() then
 					RaidGrid_Party.SetTarget(dwMemberID)
-				end
+				-- end
 			else
 				RaidGrid_Party.SetTarget(dwMemberID)
 			end
