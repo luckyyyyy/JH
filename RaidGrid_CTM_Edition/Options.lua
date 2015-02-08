@@ -88,10 +88,10 @@ function RaidGrid_CTM_Edition.PopOptions()
 		{
 			szOption = "【团长功能相关】：",
 			{
-				szOption = "★发布团队就位确认 (团长时)", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck) RaidGrid_Party.InitReadyCheckCover() end,
+				szOption = "★发布团队就位确认 (团长时)", fnAction = RaidGrid_Party.InitReadyCheckCover,
 			},
 			{
-				szOption = "清除团队就位确认色块", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck) RaidGrid_Party.ClearReadyCheckCover() end,
+				szOption = "清除团队就位确认色块", fnAction =  RaidGrid_Party.ClearReadyCheckCover,
 			},
 			{
 				bDevide = true
@@ -191,7 +191,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 				end,
 			},
 			{
-				szOption = "　◆总是显示整个团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowAllPanel, fnAction = function(UserData, bCheck)
+				szOption = "　总是显示整个团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowAllPanel, fnAction = function(UserData, bCheck)
 					RaidGrid_CTM_Edition.bShowAllPanel = bCheck
 					RaidGrid_Party.ReloadRaidPanel()
 				end,
