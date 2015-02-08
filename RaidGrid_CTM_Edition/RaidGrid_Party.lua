@@ -1,8 +1,8 @@
 RaidGrid_Party = {}
 RaidGrid_Party.bDrag = false
-RaidGrid_Party.tHPBarColor = {0, 200, 72}; 				RegisterCustomData("RaidGrid_Party.tHPBarColor")
-RaidGrid_Party.tDistanceLevel = {8, 20, 24, 28, 999};		RegisterCustomData("RaidGrid_Party.tDistanceLevel")
-RaidGrid_Party.tDistanceColorLevel = {1, 2, 3, 4, 5};		RegisterCustomData("RaidGrid_Party.tDistanceColorLevel")
+RaidGrid_Party.tHPBarColor = {0, 200, 72};
+RaidGrid_Party.tDistanceLevel = {8, 20, 24, 28, 999};
+RaidGrid_Party.tDistanceColorLevel = {1, 2, 3, 4, 5};
 RaidGrid_Party.tDistanceColor = 
 {
 	{0, 170, 140},
@@ -16,37 +16,30 @@ RaidGrid_Party.tDistanceColor =
 };
 RaidGrid_Party.tLifeColor = {}
 RaidGrid_Party.tOrgW = {}
-RaidGrid_Party.fScaleX = 1;								RegisterCustomData("RaidGrid_Party.fScaleX")
-RaidGrid_Party.fScaleY = 1;								RegisterCustomData("RaidGrid_Party.fScaleY")
-RaidGrid_Party.fScaleFont = 1;							RegisterCustomData("RaidGrid_Party.fScaleFont")
-RaidGrid_Party.fScaleIcon = 1;							RegisterCustomData("RaidGrid_Party.fScaleIcon")
-RaidGrid_Party.fScaleShadowX = 1;						RegisterCustomData("RaidGrid_Party.fScaleShadowX")
-RaidGrid_Party.fScaleShadowY = 1;						RegisterCustomData("RaidGrid_Party.fScaleShadowY")
+RaidGrid_Party.fScaleX = 1;
+RaidGrid_Party.fScaleY = 1;
+RaidGrid_Party.fScaleFont = 1;
+RaidGrid_Party.fScaleIcon = 1;
+RaidGrid_Party.fScaleShadowX = 1;
+RaidGrid_Party.fScaleShadowY = 1;
 
 RaidGrid_Party.dwLastTempTargetId = 0
-RaidGrid_Party.bTempTargetEnable = true;				RegisterCustomData("RaidGrid_Party.bTempTargetEnable")
+RaidGrid_Party.bTempTargetEnable = true;
 RaidGrid_Party.Shadow = {
 	bLife = false,
 	bMana = false,
 	a = 240,
 	d = 1,
 }
-RegisterCustomData("RaidGrid_Party.Shadow")
+JH.RegisterCustomData("RaidGrid_Party")
 
-local szIniFile = "Interface/JH/RaidGrid_CTM_Edition//RaidGrid_Party.ini"
+local szIniFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/RaidGrid_Party.ini"
 
 function RaidGrid_Party.IsInRaid() --¼ì²éÊÇ·ñÔÚ¶ÓÎéÖÐ
-	local player = GetClientPlayer()
-	if not player or not player.IsInParty() then
-		return
+	local me = GetClientPlayer()
+	if me then
+		return me.IsInRaid()
 	end
-	
-	local team = GetClientTeam()
-	if not team then
-		return
-	end	
-	
-	return team.nGroupNum == 5
 end
 
 function RaidGrid_Party.OnAddOrDeleteMember(dwMemberID, nGroupIndex) --Ìí¼Ó»òÉ¾³ýÍÅÔ±
@@ -600,6 +593,12 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MPÏà¹Ø
 		else
 			textLife:SetText(math.floor(nLifePercentage * 100) .. "%")
 		end
+	elseif RaidGrid_CTM_Edition.nHPShownMode == 4 then
+		if tMemberInfo.nCurrentLife > 9999 then
+			textLife:SetText(string.format("%.1fw", tMemberInfo.nCurrentLife / 10000))
+		else
+			textLife:SetText(tMemberInfo.nCurrentLife)
+		end
 	end
 	-- À¶ÏÔÊ¾
 	local textMana = handleRole:Lookup("Handle_Common/Text_Mana")
@@ -626,9 +625,6 @@ function RaidGrid_Party.GetTeamMemberInfo(dwMemberID)	--»ñµÃ³ÉÔ±ÐÅÏ¢
 	if not tMemberInfo then
 		return
 	end
-
-	tMemberInfo.nX = tMemberInfo.nPosX
-	tMemberInfo.nY = tMemberInfo.nPosY
 	return tMemberInfo, team
 end
 
@@ -644,14 +640,7 @@ function RaidGrid_Party.InitReadyCheckCover()	--³ÉÔ±¾ÍÐ÷ÏÔÊ¾
 	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) ~= GetClientPlayer().dwID then
 		return
 	end
-	--[[
-	if not RaidPanel or not RaidPanel.StartReadyConfirm then
-		return
-	end	
-	RaidPanel.StartReadyConfirm()
-	--]]
 	Send_RaidReadyConfirm()
-	
 	for nGroupIndex = 0, 4 do
 		for nMemberIndex = 0, 4 do
 			local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, nGroupIndex)
@@ -713,22 +702,15 @@ function RaidGrid_Party.UpdateReadyCheckCover(dwMemberID, nReadyState)	--¸üÐÂ¾ÍÐ
 	local aniReady = handleRole:Lookup("Animate_Ready")
 	if nReadyState == 1 then
 		imageNotReady:Hide()
-		if RaidGrid_CTM_Edition.bCheckReadyFlash then
-			aniReady:Show()
-			aniReady:SetAlpha(255)
-		else
-			aniReady:Hide()
-		end
+		aniReady:Show()
+		aniReady:SetAlpha(255)
 	else
 		aniReady:Hide()
 		imageNotReady:Show()
 	end
 end
 
-function RaidGrid_Party.UpdateReadyCheckFade(bForceHide)	--¸üÐÂ¾ÍÐ÷¼ì²éÏûÍË
-	if not RaidGrid_CTM_Edition.bCheckReadyFlash and not bForceHide then
-		return
-	end
+function RaidGrid_Party.UpdateReadyCheckFade()	--¸üÐÂ¾ÍÐ÷¼ì²éÏûÍË
 	if not GetClientPlayer().IsInParty() then
 		return
 	end
@@ -748,11 +730,6 @@ function RaidGrid_Party.UpdateReadyCheckFade(bForceHide)	--¸üÐÂ¾ÍÐ÷¼ì²éÏûÍË
 					aniReady:SetAlpha(math.max(aniReady:GetAlpha() - 15, 0))
 					imageReadyCover:SetAlpha(math.max(imageReadyCover:GetAlpha() - 30, 0))
 				end
-				if bForceHide or (aniReady:GetAlpha() <= 0 and imageReadyCover:GetAlpha() <= 0) then
-					imageReadyCover:Hide()
-					imageNotReady:Hide()
-					aniReady:Hide()
-				end		
 			end
 		end
 	end
@@ -797,9 +774,7 @@ function RaidGrid_Party.ClearHandleRoleInGroup(nIndex, nGroupIndex) --Çå³ý´¦Àí»·
 	else
 		handleRole:Lookup("Image_BG_Slot"):Hide()
 	end
-	
-	handleRole:Lookup("Image_DirFace"):Hide()
-	
+		
 	handleRole:Lookup("Image_ReadyCover"):Hide()
 	handleRole:Lookup("Image_NotReady"):Hide()
 	handleRole:Lookup("Animate_Ready"):Hide()
@@ -898,13 +873,7 @@ function RaidGrid_Party.SetTarget(dwTargetID)	--ÉèÖÃÄ¿±ê
 	elseif IsPlayer(dwTargetID) then
 		nType = TARGET.PLAYER
 	end
-	if SetTarget then
-		local as0, as1 = arg0, arg1
-		SetTarget(nType, dwTargetID)
-		arg0, arg1 = as0, as1
-	elseif SelectTarget then
-		SelectTarget(nType, dwTargetID)
-	end
+	SetTarget(nType, dwTargetID)
 end
 
 function RaidGrid_Party.SetTempTarget(dwMemberID, bEnter)
@@ -923,7 +892,6 @@ function RaidGrid_Party.SetTempTarget(dwMemberID, bEnter)
 		RaidGrid_Party.dwLastTempTargetId = tardwID
 		if dwMemberID ~= tardwID then
 			if player.dwID == dwMemberID then
-				--Player.OnItemLButtonDown()
 				if IsCtrlKeyDown() then
 					RaidGrid_Party.SetTarget(dwMemberID)
 				end
@@ -943,7 +911,6 @@ function RaidGrid_Party.SetTempTarget(dwMemberID, bEnter)
 				end
 			end
 		end
-		--RaidGrid_Party.dwLastTempTargetId = 0
 	end
 end
 

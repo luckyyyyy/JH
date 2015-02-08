@@ -11,6 +11,7 @@ RaidGrid_CTM_Edition.tLastPartyPanelLoc = {
 function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("RENDER_FRAME_UPDATE")
 
+	this:RegisterEvent("PARTY_UPDATE_BASE_INFO")
 	this:RegisterEvent("PARTY_SYNC_MEMBER_DATA")
 	this:RegisterEvent("PARTY_ADD_MEMBER")
 	this:RegisterEvent("PARTY_DISBAND")
@@ -29,7 +30,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("PARTY_SET_FORMATION_LEADER")
 	
 	this:RegisterEvent("PARTY_LOOT_MODE_CHANGED")
-	this:RegisterEvent("PARTY_ROLL_QUALITY_CHANGED")
+	this:RegisterEvent("LOADING_END")
 end
 
 function RaidGrid_CTM_Edition.OnCustomDataLoaded()
@@ -71,7 +72,6 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
 			RaidGrid_Party.AutoLinkAllPanel()
 		end
-		RaidGrid_CTM_Edition.UpdateLootImages()
 	elseif szEvent == "PARTY_DELETE_MEMBER" then		-- dwTeamID:arg0, dwMemberID:arg1, szMemberName:arg2
 		RaidGrid_Party.tLifeColor[arg1] = nil
 		RaidGrid_Party.tOrgW[arg1] = nil
@@ -100,7 +100,6 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		RaidGrid_Party.RedrawHandleRoleHPnMP(arg1)
 		RaidGrid_Party.RedrawHandleRoleInfo(arg1)
 		RaidGrid_Party.RedrawHandleRoleInfoEx(arg1)
-	-- elseif szEvent == "BUFF_UPDATE" then
 	elseif szEvent == "TEAM_AUTHORITY_CHANGED" then
 		RaidGrid_Party.RedrawHandleRoleInfo(arg2)
 		RaidGrid_Party.RedrawHandleRoleInfo(arg3)
@@ -108,12 +107,10 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		RaidGrid_Party.ReloadRaidPanel()
 	elseif szEvent == "PARTY_SET_MARK" then
 		RaidGrid_Party.UpdateMarkImage()
-	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
-		RaidGrid_CTM_Edition.UpdateLootImages()
-	elseif szEvent == "PARTY_ROLL_QUALITY_CHANGED" then
-		RaidGrid_CTM_Edition.UpdateLootImages()
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		RaidGrid_Party.UpdateReadyCheckCover(arg0, arg1)
+	elseif szEvent == "LOADING_END" or szEvent == "PARTY_UPDATE_BASE_INFO" or szEvent == "PARTY_LOOT_MODE_CHANGED" then
+		RaidGrid_CTM_Edition.UpdateLootImages()
 	end
 end
 
@@ -209,7 +206,6 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	
 	RaidGrid_CTM_Edition.tLastLoc.nX, RaidGrid_CTM_Edition.tLastLoc.nY = RaidGrid_CTM_Edition.frameSelf:GetRelPos()
 end
-
 
 function RaidGrid_CTM_Edition.SetPanelPos(nX, nY)
 	if not nX or not nY then
@@ -320,14 +316,11 @@ function RaidGrid_CTM_Edition.IsOpened()
 end
 
 RaidGrid_CTM_Edition.OpenPanel()
-
-RegisterEvent("PARTY_LEVEL_UP_RAID", function()
-	RaidGrid_Party.ReloadRaidPanel()
-end)
+RegisterEvent("PARTY_LEVEL_UP_RAID", RaidGrid_Party.ReloadRaidPanel)
 RegisterEvent("CUSTOM_DATA_LOADED", RaidGrid_CTM_Edition.OnCustomDataLoaded)
-RegisterEvent("SYNC_ROLE_DATA_END", function()RaidGrid_Party.ReloadRaidPanel() end)
-RegisterEvent("PARTY_UPDATE_BASE_INFO", function() RaidGrid_Party.ReloadRaidPanel() end)
-RegisterEvent("TEAM_CHANGE_MEMBER_GROUP", function() RaidGrid_Party.ReloadRaidPanel() end)
+RegisterEvent("SYNC_ROLE_DATA_END", RaidGrid_Party.ReloadRaidPanel)
+RegisterEvent("PARTY_UPDATE_BASE_INFO", RaidGrid_Party.ReloadRaidPanel)
+RegisterEvent("TEAM_CHANGE_MEMBER_GROUP", RaidGrid_Party.ReloadRaidPanel)
 
 
 JH.AddHotKey("JH_RGCTM_Switch","开启/关闭CTM团队面板",function()
