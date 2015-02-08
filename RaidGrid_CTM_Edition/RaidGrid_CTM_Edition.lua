@@ -264,7 +264,7 @@ end
 function RaidGrid_CTM_Edition.OpenPanel()
 	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
 	if not frame then
-		frame = Wnd.OpenWindow("Interface\\JH\\RaidGrid_CTM_Edition\\RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
+		frame = Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
 	end
 
 	RaidGrid_CTM_Edition.frameSelf = frame

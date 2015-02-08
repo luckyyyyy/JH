@@ -1,37 +1,38 @@
 RaidGrid_Party = {}
 RaidGrid_Party.bDrag = false
-RaidGrid_Party.tHPBarColor = {0, 200, 72};
-RaidGrid_Party.tDistanceLevel = {8, 20, 24, 28, 999};
-RaidGrid_Party.tDistanceColorLevel = {1, 2, 3, 4, 5};
-RaidGrid_Party.tDistanceColor = 
-{
-	{0, 170, 140},
-	{0, 180, 52},
-	{230, 170, 40},
-	{230, 110, 230},
-	{230, 80, 80},
-	{128, 128, 128},
-	{192, 192, 192},
-	{255, 255, 255},
+RaidGrid_Party.tHPBarColor = {0, 200, 72}; 					RegisterCustomData("RaidGrid_Party.tHPBarColor")
+RaidGrid_Party.tDistanceLevel = {8, 20, 24, 28, 999};		RegisterCustomData("RaidGrid_Party.tDistanceLevel")
+RaidGrid_Party.tDistanceColorLevel = {1, 2, 3, 4, 5};		RegisterCustomData("RaidGrid_Party.tDistanceColorLevel")
+RaidGrid_Party.tDistanceColor = {
+ 	{0, 170, 140},
+ 	{0, 180, 52},
+ 	{230, 170, 40},
+ 	{230, 110, 230},
+ 	{230, 80, 80},
+ 	{128, 128, 128},
+ 	{192, 192, 192},
+ 	{255, 255, 255},
 };
 RaidGrid_Party.tLifeColor = {}
 RaidGrid_Party.tOrgW = {}
-RaidGrid_Party.fScaleX = 1;
-RaidGrid_Party.fScaleY = 1;
-RaidGrid_Party.fScaleFont = 1;
-RaidGrid_Party.fScaleIcon = 1;
-RaidGrid_Party.fScaleShadowX = 1;
-RaidGrid_Party.fScaleShadowY = 1;
-
+RaidGrid_Party.fScaleX = 1;									RegisterCustomData("RaidGrid_Party.fScaleX")
+RaidGrid_Party.fScaleY = 1;									RegisterCustomData("RaidGrid_Party.fScaleY")
+RaidGrid_Party.fScaleFont = 1;								RegisterCustomData("RaidGrid_Party.fScaleFont")
+RaidGrid_Party.fScaleIcon = 1;								RegisterCustomData("RaidGrid_Party.fScaleIcon")
+RaidGrid_Party.fScaleShadowX = 1;							RegisterCustomData("RaidGrid_Party.fScaleShadowX")
+RaidGrid_Party.fScaleShadowY = 1;							RegisterCustomData("RaidGrid_Party.fScaleShadowY")
+ 
 RaidGrid_Party.dwLastTempTargetId = 0
-RaidGrid_Party.bTempTargetEnable = true;
+RaidGrid_Party.bTempTargetEnable = true;					RegisterCustomData("RaidGrid_Party.bTempTargetEnable")
+RaidGrid_Party.bTempTargetFightTip = true;					RegisterCustomData("RaidGrid_Party.bTempTargetFightTip")
+
 RaidGrid_Party.Shadow = {
-	bLife = false,
-	bMana = false,
-	a = 240,
-	d = 1,
-}
-JH.RegisterCustomData("RaidGrid_Party")
+ 	bLife = false,
+ 	bMana = false,
+ 	a = 240,
+ 	d = 1,
+ }
+RegisterCustomData("RaidGrid_Party.Shadow")
 
 local szIniFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/RaidGrid_Party.ini"
 
@@ -1037,7 +1038,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 	if frame then
 		Wnd.CloseWindow(frame:GetName())
 	end
-	frame = Wnd.OpenWindow("Interface\\JH\\RaidGrid_CTM_Edition\\RaidGrid_Party.ini", "RaidGrid_Party_" .. nIndex)
+	frame = Wnd.OpenWindow(szIniFile, "RaidGrid_Party_" .. nIndex)
 
 	local textGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
 	textGroup:SetFontScale(RaidGrid_Party.fScaleFont)
@@ -1168,7 +1169,10 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		handleRole.OnItemMouseEnter = function()
 			local nX, nY = this:GetRoot():GetAbsPos()
 			local nW, nH = this:GetRoot():GetSize()
-			RaidGrid_CTM_Edition.OutputTeamMemberTip(this.dwMemberID, {nX, nY + 5, nW, nH})
+			local me = GetClientPlayer()
+			if RaidGrid_Party.bTempTargetFightTip and not me.bFightState or not RaidGrid_Party.bTempTargetFightTip then
+				RaidGrid_CTM_Edition.OutputTeamMemberTip(this.dwMemberID, {nX, nY + 5, nW, nH})
+			end
 			RaidGrid_Party.SetTempTarget(this.dwMemberID, true)
 		end
 		handleRole.OnItemMouseLeave = function()
