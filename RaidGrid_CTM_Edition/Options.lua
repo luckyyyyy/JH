@@ -1,7 +1,6 @@
 RaidGrid_CTM_Edition = RaidGrid_CTM_Edition or {}
 RaidGrid_CTM_Edition.tOptions = {}
 
-RaidGrid_CTM_Edition.bCheckReadyFlash = true;						--RegisterCustomData("RaidGrid_CTM_Edition.bCheckReadyFlash")
 RaidGrid_CTM_Edition.bAltNeededForDrag = true;						RegisterCustomData("RaidGrid_CTM_Edition.bAltNeededForDrag")
 RaidGrid_CTM_Edition.bRaidEnable = true;							RegisterCustomData("RaidGrid_CTM_Edition.bRaidEnable")
 RaidGrid_CTM_Edition.bShowRaid = true;								RegisterCustomData("RaidGrid_CTM_Edition.bShowRaid")
@@ -30,18 +29,6 @@ RaidGrid_CTM_Edition.bShowMark = true;								RegisterCustomData("RaidGrid_CTM_E
 RaidGrid_CTM_Edition.bShowSelectImage = true;						RegisterCustomData("RaidGrid_CTM_Edition.bShowSelectImage")
 RaidGrid_CTM_Edition.bShowTargetTargetAni = true;					RegisterCustomData("RaidGrid_CTM_Edition.bShowTargetTargetAni")
 
-
---[[
-RaidGrid_CTM_Edition.RaidPanel_OpenRaidFrame_Org = RaidPanel.OpenRaidFrame
-RaidPanel.OpenRaidFrame = function(nGroupID)
-	RaidGrid_CTM_Edition.RaidPanel_OpenRaidFrame_Org(nGroupID)
-
-	local frame = Station.Lookup("Normal/RaidPanel_" .. nGroupID)
-	if not RaidGrid_CTM_Edition.bShowSystemRaidPanel then
-		frame:Hide()
-	end
-end
-]]
 function RaidGrid_CTM_Edition.RaidPanel_Switch(bOpen)
 	local frame = Station.Lookup("Normal/RaidPanel_Main")
 	if frame then
@@ -59,7 +46,6 @@ function RaidGrid_CTM_Edition.TeammatePanel_Switch(bOpen)
 		if bOpen then
 			hFrame:Show()
 		else
-			-- Wnd.CloseWindow(hFrame)
 			hFrame:Hide()
 		end
 	end	
@@ -919,6 +905,10 @@ function RaidGrid_CTM_Edition.PopOptions()
 				end},
 				{szOption = "剩余的血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 2, fnAction = function()
 					RaidGrid_CTM_Edition.nHPShownMode = 2
+					RaidGrid_Party.ReloadRaidPanel()
+				end},
+				{szOption = "精简显示血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 4, fnAction = function()
+					RaidGrid_CTM_Edition.nHPShownMode = 4
 					RaidGrid_Party.ReloadRaidPanel()
 				end},
 				{szOption = "血量百分比", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 3, fnAction = function()
