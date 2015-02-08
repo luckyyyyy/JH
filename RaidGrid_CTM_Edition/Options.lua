@@ -833,8 +833,13 @@ function RaidGrid_CTM_Edition.PopOptions()
 			bDevide = true
 		},
 		{
-			szOption = "【开启临时选择队友功能】", bCheck = true, bChecked = RaidGrid_Party.bTempTargetEnable, fnAction = function(UserData, bCheck)
+			szOption = "【开启治疗模式】", bCheck = true, bChecked = RaidGrid_Party.bTempTargetEnable, fnAction = function(UserData, bCheck)
 				RaidGrid_Party.bTempTargetEnable = bCheck
+			end,
+		},
+		{
+			szOption = "【治疗模式战斗中不显示TIP】", bCheck = true, bChecked = RaidGrid_Party.bTempTargetFightTip, fnAction = function(UserData, bCheck)
+				RaidGrid_Party.bTempTargetFightTip = bCheck
 			end,
 		},
 		{
