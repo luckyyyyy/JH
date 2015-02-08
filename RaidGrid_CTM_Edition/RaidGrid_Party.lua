@@ -115,7 +115,6 @@ function RaidGrid_Party.UpdateMemberDistance() --团员距离更新
 			if handleRole and handleRole.dwMemberID then
 				local textDistance = handleRole:Lookup("Handle_Common/Text_Distance")
 				local playerMember = GetPlayer(handleRole.dwMemberID)
-				local imageDirFace = handleRole:Lookup("Image_DirFace")
 				
 				if not playerMember then
 					if RaidGrid_CTM_Edition.bShowDistance then
@@ -133,14 +132,12 @@ function RaidGrid_Party.UpdateMemberDistance() --团员距离更新
 						end
 						RaidGrid_Party.RedrawHandleRoleHPnMP(handleRole.dwMemberID)
 					end
-					imageDirFace:Hide()
 				elseif player.dwID == handleRole.dwMemberID then
 					if RaidGrid_CTM_Edition.bColorHPBarWithDistance then
 						RaidGrid_Party.tLifeColor[handleRole.dwMemberID] = {RaidGrid_Party.tHPBarColor[1], RaidGrid_Party.tHPBarColor[2], RaidGrid_Party.tHPBarColor[3]}
 						RaidGrid_Party.RedrawHandleRoleHPnMP(handleRole.dwMemberID)
 					end
 					textDistance:SetText("")
-					imageDirFace:Hide()
 				else
 					local tArrowDelay = {2, 3, 5, 8, 12}
 					local nArrowDelay = tArrowDelay[3]
@@ -169,80 +166,13 @@ function RaidGrid_Party.UpdateMemberDistance() --团员距离更新
 								break
 							end
 						end
-					end
-					
-					local bShowDirFace = RaidGrid_CTM_Edition.bShowDirFace
-					local _, dwTargetID = player.GetTarget()
-					if RaidGrid_CTM_Edition.bOnlySelectDirFace and dwTargetID ~= handleRole.dwMemberID then
-						bShowDirFace = false
-					end
-					bShowDirFace = false--暂时取消
-					if bShowDirFace then
-						imageDirFace:Show()
-						local fYaw = Camera_GetYawPitchRoll()
-						local nMyCameraFace = math.floor(255 - (fYaw / (3.1415927 * 2)) * 255 + 64)
-						if nMyCameraFace > 254 then
-							nMyCameraFace = nMyCameraFace - 255
-						end
-						local nTargetDir = GetLogicDirection(playerMember.nX - player.nX, playerMember.nY - player.nY)
-						local nDirDiff = nMyCameraFace - nTargetDir
-						if nDirDiff < 0 then
-							nDirDiff = nDirDiff + 255
-						end
-
-						local nX, nY = 0, 0
-						if nDirDiff <= 31 then
-							nY = 0;		nX = 62 + 62 * (nDirDiff / 32)
-						elseif nDirDiff <= 63 then
-							nX = 123;	nY = 18 * ((nDirDiff - 31) / 32)
-						elseif nDirDiff <= 95 then
-							nX = 123;	nY = 18 + 18 * ((nDirDiff - 63) / 32)
-						elseif nDirDiff <= 127 then
-							nY = 36;	nX = 123 - 62 * ((nDirDiff - 95) / 32)
-						elseif nDirDiff <= 159 then
-							nY = 36;	nX = 62 - 62 * ((nDirDiff - 127) / 32)
-						elseif nDirDiff <= 191 then
-							nX = 0;		nY = 36 - 18 * ((nDirDiff - 159) / 32)
-						elseif nDirDiff <= 223 then
-							nX = 0;		nY = 18 - 18 * ((nDirDiff - 191) / 32)
-						elseif nDirDiff <= 255 then
-							nY = 0;		nX = 62 * ((nDirDiff - 223) / 32)
-						end
-						
-						local nRotate = (nDirDiff - 64) * 6.2832 / 255
-						nX, nY = nX - 12, nY - 9
-						local nFrame = imageDirFace:GetFrame()
-						if RaidGrid_CTM_Edition.bFlashArrow and RaidGrid_CTM_Edition.nSteper % nArrowDelay == 0 then
-							if nFrame == 48 then
-								imageDirFace:SetFrame(49)
-							elseif nFrame == 49 then
-								imageDirFace:SetFrame(47)
-							elseif nFrame == 47 then
-								imageDirFace:SetFrame(199)
-								imageDirFace:SetSize(8 * RaidGrid_Party.fScaleX, 8 * RaidGrid_Party.fScaleY)
-							elseif nFrame == 199 then
-								imageDirFace:SetFrame(48)					
-								imageDirFace:SetSize(16 * RaidGrid_Party.fScaleX, 16 * RaidGrid_Party.fScaleY)
-							end
-						end
-						if imageDirFace:GetFrame() == 199 then
-							nRotate = nRotate + 0.785
-							nX, nY = nX + 5, nY + 4						
-						end
-						imageDirFace:SetRotate(nRotate)
-						imageDirFace:SetRelPos(nX * RaidGrid_Party.fScaleX, nY * RaidGrid_Party.fScaleY)
-						imageDirFace:Show()
-						handleRole:FormatAllItemPos()
-					else
-						imageDirFace:Hide()
-					end
+					end					
 				end
 			end
 		end
 	end
 end
 
-local tMarkerImageList = {66, 67, 73, 74, 75, 76, 77, 78, 81, 82} --标记图像表
 function RaidGrid_Party.UpdateMarkImage() --标记图像更新
 	local team = GetClientTeam()
 	local tPartyMark = team.GetTeamMark()
@@ -258,44 +188,15 @@ function RaidGrid_Party.UpdateMarkImage() --标记图像更新
 				if handleRole.dwMemberID then
 					nMarkImageIndex = tPartyMark[handleRole.dwMemberID]
 				end
-				if nMarkImageIndex and tMarkerImageList[nMarkImageIndex] and RaidGrid_CTM_Edition.bShowMark then
+				if nMarkImageIndex and PARTY_MARK_ICON_FRAME_LIST[nMarkImageIndex] and RaidGrid_CTM_Edition.bShowMark then
 					local imageMark = handleRole:Lookup("Handle_Icons/Image_MarkImage")
-					imageMark:SetFrame(tMarkerImageList[nMarkImageIndex])
+					imageMark:SetFrame(PARTY_MARK_ICON_FRAME_LIST[nMarkImageIndex])
 					imageMark:Show()
 					imageMark:SetAlpha(250)
 					imageMark.nFlashDegSpeed = -1
 				else
 					local imageMark = handleRole:Lookup("Handle_Icons/Image_MarkImage")
 					imageMark:Hide()
-				end
-			end
-		end
-	end
-end
-
-function RaidGrid_Party.UpdateMarkImageAlpha() --标记图像ALPHA更新
-	if not RaidGrid_CTM_Edition.bFlashMark then
-		return
-	end
-	for i = 0, 4 do
-		for nMemberIndex = 0, 4 do
-			local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, i)
-			if handleRole then
-				local imageMark = handleRole:Lookup("Handle_Icons/Image_MarkImage")
-				if imageMark:IsVisible() then
-					local nAlpha = imageMark:GetAlpha()
-					local nAlphaDiff = 0
-					if nAlpha <= 10 then
-						imageMark.nFlashDegSpeed = 1
-					elseif nAlpha >= 250 then
-						imageMark.nFlashDegSpeed = -1
-					end
-					if nAlpha >= 240 then
-						nAlphaDiff = imageMark.nFlashDegSpeed * 1
-					else
-						nAlphaDiff = imageMark.nFlashDegSpeed * 40
-					end
-					imageMark:SetAlpha(nAlpha + nAlphaDiff)
 				end
 			end
 		end
@@ -367,19 +268,16 @@ function RaidGrid_Party.RedrawHandleRoleInfoEx(dwMemberID)  --重绘处理角色信息EX
 	local nRed, nGreen, nBlue, dwForceID = RaidGrid_Party.GetCharacterColor(dwMemberID, tMemberInfo.dwForceID)
 	if not tMemberInfo.bIsOnLine then
 		RaidGrid_Party.tLifeColor[dwMemberID] = {128, 128, 128}
-		--RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)
 		textLife:SetFontColor(128, 128, 128)
-		textLife:SetText("离线")
+		textLife:SetText(g_tStrings.STR_FRIEND_NOT_ON_LINE)
 	elseif tMemberInfo.bDeathFlag then
 		RaidGrid_Party.tLifeColor[dwMemberID] = {255, 0, 0}
-		--RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)
 		textLife:SetFontColor(255, 0, 0)
-		textLife:SetText("重伤")
+		textLife:SetText(g_tStrings.FIGHT_DEATH)
 	else
 		local nRedOnline, nGreenOnline, nBlueOnline = RaidGrid_Party.tHPBarColor[1], RaidGrid_Party.tHPBarColor[2], RaidGrid_Party.tHPBarColor[3]
 		if not RaidGrid_CTM_Edition.bColorHPBarWithDistance then
 			RaidGrid_Party.tLifeColor[dwMemberID] = {nRedOnline, nGreenOnline, nBlueOnline}
-			--RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)
 		end
 		textLife:SetFontColor(255, 255, 255)
 	end
@@ -483,7 +381,8 @@ function RaidGrid_Party.RedrawHandleRoleInfo(dwMemberID)  --重绘处理角色信息
 				[7] = 108,
 				[8] = 88,
 				[9] = 110,
-				[10] = 109
+				[10] = 109,
+				[21] = 0,
 			}
 			if tForceID2Frame[dwForceID] then
 				imageForce:SetFrame(tForceID2Frame[dwForceID])				
@@ -639,7 +538,6 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 	local nLifePercentage = tMemberInfo.nCurrentLife / tMemberInfo.nMaxLife
 	local shadowLife = handleRole:Lookup("Handle_Common/Shadow_Life")
 	local shadowLifeFade = handleRole:Lookup("Handle_Common/Shadow_Life_Fade")
-	local shadowLifeWarn = handleRole:Lookup("Handle_Common/Shadow_Life_Warn")
 	if not RaidGrid_Party.tOrgW[dwMemberID] then
 		RaidGrid_Party.tOrgW[dwMemberID] = 121 * RaidGrid_Party.fScaleX
 	end
@@ -681,23 +579,6 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 
 	RaidGrid_Party.tOrgW[dwMemberID] = nNewW
 
-	-- 辅助颜色血条
-	if RaidGrid_CTM_Edition.bHPColorBar then
-		if nLifePercentage <= 0.3 then
-			shadowLifeWarn:SetColorRGB(255, 0, 0)
-		elseif nLifePercentage <= 0.45 then
-			shadowLifeWarn:SetColorRGB(255, 100, 0)
-		elseif nLifePercentage <= 0.6 then
-			shadowLifeWarn:SetColorRGB(255, 255, 0)
-		elseif nLifePercentage <= 0.8 then
-			shadowLifeWarn:SetColorRGB(100, 255, 0)
-		else
-			shadowLifeWarn:SetColorRGB(0, 255, 0)
-		end
-		shadowLifeWarn:SetSize(nNewW, 2 * RaidGrid_Party.fScaleY)
-	else
-		shadowLifeWarn:SetSize(0, 2 * RaidGrid_Party.fScaleY)
-	end
 	
 	-- 血量显示
 	local textLife = handleRole:Lookup("Handle_Common/Text_Life")
@@ -872,51 +753,6 @@ function RaidGrid_Party.UpdateReadyCheckFade(bForceHide)	--更新就绪检查消退
 					imageNotReady:Hide()
 					aniReady:Hide()
 				end		
-			end
-		end
-	end
-end
-
-function RaidGrid_Party.UpdateTeamCasting(bForceHide)	--更新组员释放
-	if (not GetClientPlayer().IsInParty() or not RaidGrid_CTM_Edition.bShowTeamateCasting) and not bForceHide then
-		return
-	end
-
-	local nCBHeight = 13
-	if RaidGrid_CTM_Edition.bLowMPBar then
-		nCBHeight = 8
-	end
-
-	for nGroupIndex = 0, 4 do
-		for nMemberIndex = 0, 4 do
-			local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, nGroupIndex)
-			if handleRole and handleRole.dwMemberID then
-				local player = GetPlayer(handleRole.dwMemberID)
-				if player then
-					local handleCasting = handleRole:Lookup("Handle_CastingBar")
-					local bPrePare, dwSkillID, dwSkillLevel, fCastPercent = player.GetSkillPrepareState()
-					if not bPrePare or bForceHide then
-						handleCasting:Hide()
-					else
-						handleCasting:Show()
-						local nIconID = Table_GetSkillIconID(dwSkillID, dwSkillLevel)
-						local box = handleCasting:Lookup("Box_CastingIcon")
-						box:SetObjectIcon(nIconID or 1435)
-						
-						local imageCasting = handleCasting:Lookup("Image_CastP")
-						imageCasting:SetSize(102 * fCastPercent * RaidGrid_Party.fScaleX, nCBHeight * RaidGrid_Party.fScaleY)
-						
-						local imageCastingEnd = handleCasting:Lookup("Image_CastPEnd")
-						local _, nCastingEndY = imageCastingEnd:GetRelPos()
-						imageCastingEnd:SetRelPos((10 + 99 * fCastPercent) * RaidGrid_Party.fScaleX, nCastingEndY)
-
-						local aniCastingEnd = handleCasting:Lookup("Animate_CastPEnd")
-						_, nCastingEndY = aniCastingEnd:GetRelPos()
-						aniCastingEnd:SetRelPos((14 + 99 * fCastPercent) * RaidGrid_Party.fScaleX, nCastingEndY)
-						
-						handleCasting:FormatAllItemPos()					
-					end
-				end
 			end
 		end
 	end
@@ -1238,9 +1074,8 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 
 	local textGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
 	textGroup:SetFontScale(RaidGrid_Party.fScaleFont)
-	local tGroupName = {[0] = "一", [1] = "二", [2] = "三", [3] = "四", [4] = "五"}
-	if textGroup and tGroupName[nIndex] then
-		textGroup:SetText(tGroupName[nIndex])
+	if textGroup then
+		textGroup:SetText(g_tStrings.STR_NUMBER[nIndex + 1])
 	end
 	
 	-- 初始化格子
@@ -1281,11 +1116,9 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 			local shadowMana = handleRole:Lookup("Handle_Common/Shadow_Mana")
 			local shadowLife = handleRole:Lookup("Handle_Common/Shadow_Life")
 			local shadowLifeFade = handleRole:Lookup("Handle_Common/Shadow_Life_Fade")
-			local shadowLifeWarn = handleRole:Lookup("Handle_Common/Shadow_Life_Warn")
 			local imageCasting = handleRole:Lookup("Handle_CastingBar/Image_CastP")
 			shadowMana:SetRelPos(-2, 29)
 			shadowLifeFade:SetSize(121, 29)
-			shadowLifeWarn:SetRelPos(-2, 28)
 			imageCasting:SetRelPos(16, 29)
 			imageCasting:SetSize(102, 8)
 			handleRole:FormatAllItemPos()
@@ -1302,7 +1135,6 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		textName:SetFontScale(RaidGrid_Party.fScaleFont)
 		local textName2 = handleRole:Lookup("Text_Name_2")
 		textName2:SetFontScale(RaidGrid_Party.fScaleFont)
-		-- textName2:SetFontScheme(23)
 		RaidGrid_Party.ClearHandleRoleInGroup(i, nIndex)
 		
 		handleRole.nGroupIndex = nIndex
@@ -1396,11 +1228,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 				end
 	
 				if IsCtrlKeyDown() then
-					--if IsGMPanelReceivePlayer(player.dwID) then
-						--GMPanel_LinkPlayerID(player.dwID)
-					--else
-						RaidGrid_CTM_Edition.EditBox_AppendLinkPlayer(player.szName)
-					--end
+					RaidGrid_CTM_Edition.EditBox_AppendLinkPlayer(player.szName)
 				else
 					RaidGrid_Party.SetTarget(dwMemberID)
 					RaidGrid_Party.dwLastTempTargetId = dwMemberID
@@ -1427,11 +1255,6 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 					
 					if dwMemberID ~= player.dwID then
 						InsertTeammateMenu(tMenu, dwMemberID)
-						--RaidGrid_CTM_Edition.InsertTeammateMenu(tMenu, dwMemberID)
-					--else
-						--InsertPlayerMenu(tMenu)
-						--table.insert(tMenu, Player_GetAddonMenu())
-						--RaidGrid_CTM_Edition.InsertSelfMenu(tMenu, dwMemberID)
 					end
 			
 					if tMenu and #tMenu > 0 then
