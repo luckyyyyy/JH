@@ -19,7 +19,6 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("PARTY_UPDATE_MEMBER_LMR")
 	this:RegisterEvent("PARTY_SET_MEMBER_ONLINE_FLAG")
 	this:RegisterEvent("PLAYER_STATE_UPDATE")
-	--this:RegisterEvent("BUFF_UPDATE")
 	this:RegisterEvent("UPDATE_PLAYER_SCHOOL_ID")
 	this:RegisterEvent("RIAD_READY_CONFIRM_RECEIVE_ANSWER")
 	this:RegisterEvent("UI_SCALED")
@@ -36,19 +35,11 @@ end
 function RaidGrid_CTM_Edition.OnCustomDataLoaded()
 	if arg0 ~= "Role" then
 		return
-	end
-	
-	--RaidGrid_CTM_Edition.bShowAllPanel = false
-	--RaidGrid_CTM_Edition.bShowAllMemberGrid = false
-	
+	end	
 	if RaidGrid_CTM_Edition.tLastLoc.nX == 0 and RaidGrid_CTM_Edition.tLastLoc.nY == 0 then
 		RaidGrid_CTM_Edition.SetPanelPos()
 	elseif RaidGrid_CTM_Edition.frameSelf then
 		RaidGrid_CTM_Edition.SetPanelPos(RaidGrid_CTM_Edition.tLastLoc.nX, RaidGrid_CTM_Edition.tLastLoc.nY)
-	end
-	-- RaidGrid_CTM_Edition.Message("CTM风格团队面板 v2.3 加载完毕。")
-	if RaidGrid_Base and RaidGrid_Base.Message then
-		-- RaidGrid_Base.Message("已关联CTM风格团队面板显示BUFF/DEBUFF。")
 	end
 end
 
@@ -80,14 +71,17 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
 			RaidGrid_Party.AutoLinkAllPanel()
 		end
+		RaidGrid_CTM_Edition.UpdateLootImages()
 	elseif szEvent == "PARTY_DELETE_MEMBER" then		-- dwTeamID:arg0, dwMemberID:arg1, szMemberName:arg2
 		RaidGrid_Party.tLifeColor[arg1] = nil
 		RaidGrid_Party.tOrgW[arg1] = nil
 		RaidGrid_Party.ReloadRaidPanel()
+		RaidGrid_CTM_Edition.UpdateLootImages()
 	elseif szEvent == "PARTY_DISBAND" then				-- dwTeamID:arg0
 		RaidGrid_Party.tLifeColor = {}
 		RaidGrid_Party.tOrgW = {}
 		RaidGrid_Party.ReloadRaidPanel()
+		RaidGrid_CTM_Edition.UpdateLootImages()
 	elseif szEvent == "PARTY_UPDATE_MEMBER_LMR" then	-- dwTeamID:arg0, dwMemberID:arg1
 		RaidGrid_Party.RedrawHandleRoleHPnMP(arg1)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_INFO" then	-- dwTeamID:arg0, dwMemberID:arg1
@@ -106,7 +100,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		RaidGrid_Party.RedrawHandleRoleHPnMP(arg1)
 		RaidGrid_Party.RedrawHandleRoleInfo(arg1)
 		RaidGrid_Party.RedrawHandleRoleInfoEx(arg1)
-	elseif szEvent == "BUFF_UPDATE" then
+	-- elseif szEvent == "BUFF_UPDATE" then
 	elseif szEvent == "TEAM_AUTHORITY_CHANGED" then
 		RaidGrid_Party.RedrawHandleRoleInfo(arg2)
 		RaidGrid_Party.RedrawHandleRoleInfo(arg3)
@@ -128,11 +122,17 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Option" then
 		RaidGrid_CTM_Edition.PopOptions()
+	elseif szName == "Btn_WorldMark" then
+		Wnd.ToggleWindow("WorldMark")
 	end
 end
 
-local tLootMode = {Image_LootMode_Free = PARTY_LOOT_MODE.FREE_FOR_ALL, Image_LootMode_Looter = PARTY_LOOT_MODE.DISTRIBUTE, Image_LootMode_Roll = PARTY_LOOT_MODE.GROUP_LOOT}
-local tLootColor = {Image_LootColor_Green = 2, Image_LootColor_Blue = 3, Image_LootColor_Purple = 4, Image_LootColor_Orange = 5}
+local tLootMode = {
+	Image_LootMode_Free = PARTY_LOOT_MODE.FREE_FOR_ALL, 
+	Image_LootMode_Looter = PARTY_LOOT_MODE.DISTRIBUTE, 
+	Image_LootMode_Roll = PARTY_LOOT_MODE.GROUP_LOOT,
+	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
+}
 function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	local szName = this:GetName()
 	local team = GetClientTeam()
@@ -143,20 +143,11 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	
 	if szName:match("Image_LootMode") then
 		team.SetTeamLootMode(tLootMode[szName])
-	elseif szName:match("Image_LootColor") then
-		team.SetTeamRollQuality(tLootColor[szName])
 	end
+
 end
 
 function RaidGrid_CTM_Edition.OnItemMouseEnter()
-	local szName = this:GetName()
-	local team = GetClientTeam()
-	local player = GetClientPlayer()
-	if IsCtrlKeyDown() or not szName:match("Image_Loot") or not team or not player.IsInParty() or team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) ~= player.dwID then
-		return
-	end
-	
-	this:SetAlpha(200)
 end
 
 function RaidGrid_CTM_Edition.OnItemMouseLeave()
@@ -170,19 +161,16 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	end
 	
 	RaidGrid_Party.RedrawAllFadeHP()
-	RaidGrid_Party.UpdateMarkImageAlpha()
 	RaidGrid_Party.UpdateMemberDistance()
 	RaidGrid_Party.UpdateReadyCheckFade()
-	
-	if RaidGrid_CTM_Edition.nSteper % 4 == 0 then
-		RaidGrid_Party.RedrawTargetSelectImage()
-		RaidGrid_CTM_Edition.UpdateLootImages()
+	RaidGrid_Party.RedrawTargetSelectImage()
+	if RaidGrid_CTM_Edition.nSteper % 4 == 0 then		
 		if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.RedrawAllBuffBox then
 			RaidGrid_EventScrutiny.RedrawAllBuffBox()
 		end
 	end
 	
-	if IsShiftKeyDown() then
+	if IsShiftKeyDown() and not RaidGrid_CTM_Edition.bAutoLinkAllPanel then
 		for i = 0, 4 do
 			local framePartyPanel = RaidGrid_Party.GetPartyPanel(i)
 			if framePartyPanel then
@@ -209,8 +197,6 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 		RaidGrid_Party.ReloadRaidPanel()
 	end
 	
-	RaidGrid_Party.UpdateTeamCasting()
-
 	if not RaidGrid_CTM_Edition.bShowSystemRaidPanel then
 		RaidGrid_CTM_Edition.RaidPanel_Switch(false)
 	end
@@ -224,10 +210,6 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	RaidGrid_CTM_Edition.tLastLoc.nX, RaidGrid_CTM_Edition.tLastLoc.nY = RaidGrid_CTM_Edition.frameSelf:GetRelPos()
 end
 
-------------------------------------------------------------------------------------------------------------
-function RaidGrid_CTM_Edition.Message(szMessage)
-	OutputMessage("MSG_SYS", "[RaidGrid_CTM_Edition] " .. tostring(szMessage) .. "\n")
-end
 
 function RaidGrid_CTM_Edition.SetPanelPos(nX, nY)
 	if not nX or not nY then
@@ -281,13 +263,6 @@ function RaidGrid_CTM_Edition.UpdateLootImages()
 			RaidGrid_CTM_Edition.tLootModeImage[i]:SetAlpha(64)
 		end
 	end
-	for i = 2, #RaidGrid_CTM_Edition.tRollQualityImage do
-		if nRollQuality == i then
-			RaidGrid_CTM_Edition.tRollQualityImage[i]:SetAlpha(255)
-		else
-			RaidGrid_CTM_Edition.tRollQualityImage[i]:SetAlpha(64)
-		end
-	end
 end
 ------------------------------------------------------------------------------------------------------------
 function RaidGrid_CTM_Edition.OpenPanel()
@@ -303,13 +278,7 @@ function RaidGrid_CTM_Edition.OpenPanel()
 		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootMode_Free"),
 		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootMode_Looter"),
 		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootMode_Roll"),
-	}
-	RaidGrid_CTM_Edition.tRollQualityImage = {
-		{},
-		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootColor_Green"),
-		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootColor_Blue"),
-		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootColor_Purple"),
-		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootColor_Orange"),
+		RaidGrid_CTM_Edition.handleBG:Lookup("Image_LootMode_Bidding"),
 	}
 end
 
@@ -352,40 +321,8 @@ end
 
 RaidGrid_CTM_Edition.OpenPanel()
 
--- ---------------------------------------------------------------
--- 转换为团队自动改分配
--- ---------------------------------------------------------------
-function RaidGrid_CTM_Edition.ChangeMode()
-	local player = GetClientPlayer()
-	local hTeam = GetClientTeam()
-	local dwDistribute = hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE)
-	local LeaderID = hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
-	if player.IsInParty() and player.dwID == dwDistribute then
-		hTeam.SetTeamLootMode(PARTY_LOOT_MODE.DISTRIBUTE)
-	end
-end
-
-function RaidGrid_CTM_Edition.ChangeModeBox()
-	local mmsg={
-	szMessage = "确定要转换分配模式为【分配者分配】吗？",
-	szName = "ChangeModeBox",
-	{szOption = "确定",fnAction=function()RaidGrid_CTM_Edition.ChangeMode()end},
-	{szOption = "取消",fnAction=nil},
-	}
-	local player = GetClientPlayer()
-	local hTeam = GetClientTeam()
-	local dwDistribute = hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE)
-	local LeaderID = hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
-	if player.IsInParty() and player.dwID == dwDistribute then
-		MessageBox(mmsg)
-	elseif player.IsInParty() and player.dwID ~= dwDistribute and player.dwID == LeaderID then
-		RaidGrid_CTM_Edition.Message("警告：虽然您是队长，但由于您不是分配者，无法自动更改分配模式。请提醒当前分配者更改分配模式！")
-	end
-end
-
 RegisterEvent("PARTY_LEVEL_UP_RAID", function()
 	RaidGrid_Party.ReloadRaidPanel()
-	--RaidGrid_CTM_Edition.ChangeModeBox()
 end)
 RegisterEvent("CUSTOM_DATA_LOADED", RaidGrid_CTM_Edition.OnCustomDataLoaded)
 RegisterEvent("SYNC_ROLE_DATA_END", function()RaidGrid_Party.ReloadRaidPanel() end)
@@ -407,7 +344,7 @@ JH.AddHotKey("JH_RGCTM_Switch","开启/关闭CTM团队面板",function()
 	end
 end)
 JH.AddHotKey("JH_RGCTM_ResetPos","重置CTM面板位置",function()
-	RaidGrid_CTM_Edition.SetPanelPos(nX, nY)
+	RaidGrid_CTM_Edition.SetPanelPos()
 	if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
 		RaidGrid_Party.AutoLinkAllPanel()
 	end
