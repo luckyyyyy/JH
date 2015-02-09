@@ -245,7 +245,7 @@ _SkillCD.UpdateCount = function()
 					local szXml = GetFormatText(_L["["] .. szName .. _L["]"] .. "\n", 23 ,255 ,255 ,255)
 					for k, v in ipairs(v.tList) do
 						szXml = szXml .. GetFormatText(v.info.szName, 23, 255, 255, 0)
-						local szDeath = GetFormatText(" (" .. _L["Death"] .. ")", 23, 255, 128, 0) -- 离线是bIsOnLine 其实也一样 无所谓
+						local szDeath = GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0) -- 离线是bIsOnLine 其实也一样 无所谓
 						if v.info.bDeathFlag then
 							szXml = szXml .. szDeath
 						end
@@ -403,20 +403,22 @@ PS.OnPanelActive = function(frame)
 	
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
 	local i = 0
-	for k,v in pairs(_SkillCD.tSkill) do
+	for k, v in pairs(_SkillCD.tSkill) do
 		local a = 100
 		if SkillCD.tMonitor[k] then a = 255 end
 		ui:Append("Box", { x = (i % 9) * 56, y = nY + floor(i / 9 ) * 55 + 15, alpha = a } ):Icon(Table_GetSkillIconID(k))
-		:ToGray(not _SkillCD.IsPanelOpened()):Staring(SkillCD.tMonitor[k] or false):Hover(function()
-			local x, y = this:GetAbsPos()
-			local w, h = this:GetSize()
-			OutputSkillTip(k,1,{ x, y, w, h })
-			if a == 100 then this:SetAlpha(200) end
-			this:SetObjectMouseOver(true)
-		end,function()
-			HideTip()
-			this:SetAlpha(a)
-			this:SetObjectMouseOver(false)
+		:ToGray(not _SkillCD.IsPanelOpened()):Staring(SkillCD.tMonitor[k] or false):Hover(function(bHover)
+			if bHover then
+				local x, y = this:GetAbsPos()
+				local w, h = this:GetSize()
+				OutputSkillTip(k,1,{ x, y, w, h })
+				if a == 100 then this:SetAlpha(200) end
+				this:SetObjectMouseOver(true)
+			else
+				HideTip()
+				this:SetAlpha(a)
+				this:SetObjectMouseOver(false)
+			end
 		end):Click(function()
 			if not _SkillCD.IsPanelOpened() then return end
 			if SkillCD.tMonitor[k] then
@@ -472,16 +474,13 @@ JH.RegisterEvent("LOADING_END", function()
 		else
 			_SkillCD.ClosePanel()
 		end
+	else
+		_SkillCD.OpenPanel()
 	end
 	if _SkillCD.frame then
 		_SkillCD.tCD = {}
 		_SkillCD.UpdateCount()
 	end
-end)
-
-JH.RegisterEvent("LOGIN_GAME", function()
-	if not SkillCD.bEnable then return end
-	_SkillCD.OpenPanel()
 end)
 
 JH.AddonMenu(function()
