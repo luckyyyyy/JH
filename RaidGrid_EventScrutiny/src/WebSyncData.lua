@@ -33,7 +33,7 @@ W.ClosePanel = function()
 	W.Container = nil
 end
 
-WebSyncData.OnFrameCreate = function()
+function WebSyncData.OnFrameCreate()
 	local ui = GUI(this)
 	ui:Append("WndButton3", { x = 30, y = 630, txt = _L["sync team"] })
 	:Click(W.SyncTeam)
