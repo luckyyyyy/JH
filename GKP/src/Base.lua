@@ -226,22 +226,22 @@ _GKP.Init = function()
 		_GKP.OpenPanel(true):Hide()
 		_GKP.nNowMoney = me.GetMoney().nGold
 		_GKP.bInit = true
-		JH.DelayCall(50,function() -- Init延后 避免和进入副本冲突
-			_GKP.GKP_LoadData("GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()))				
+		JH.DelayCall(125, function() -- Init延后 避免和进入副本冲突
+			_GKP.GKP_LoadData("GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d", GetCurrentTime()))
 		end)
 	end
 end
-RegisterEvent("LOADING_END",_GKP.Init) -- LOADING_END 主要是为了获取名字 所以压到最后加载
+JH.RegisterEvent("LOADING_END", _GKP.Init) -- LOADING_END 主要是为了获取名字 所以压到最后加载
 -- OnMsgArrive
 _GKP.OnMsgArrive = function(szMsg)
 	if not Station.Lookup("Normal/GKP_Chat") then return end
 	local me = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat")
-	local h = me:Lookup("","")
-	szMsg = string.gsub(szMsg,_L["[Team]"],"")
+	local h = me:Lookup("", "")
+	szMsg = string.gsub(szMsg, g_tStrings.STR_TALK_HEAD_TEAM, "")
 	
 	local AppendText = function()
 		local t = TimeToDate(GetCurrentTime())
-		return GetFormatText(string.format(" %02d:%02d:%02d ", t.hour, t.minute, t.second),10,255,255,255)
+		return GetFormatText(string.format(" %02d:%02d:%02d ", t.hour, t.minute, t.second), 10, 255, 255, 255)
 	end
 	szMsg = AppendText() .. szMsg
 	if MY and MY.Chat and MY.Chat.RenderLink then
@@ -258,22 +258,22 @@ _GKP.OnMsgArrive = function(szMsg)
 end
 -- 点击锤子图标预览 严格判断
 GKP.DistributionItem = function()
-	local h,i = this:GetParent(),this:GetIndex()
+	local h, i = this:GetParent(), this:GetIndex()
 	if not h or not i then
 		error("GKP_ERROR -> UI_ERROR")
 	end
-	local szName = string.match(h:Lookup(i+3):GetText(),"%[(.*)%]")
+	local szName = string.match(h:Lookup(i+3):GetText(), "%[(.*)%]")
 	local me = Station.Lookup("Normal/GKP_Chat")
-	local box = me:Lookup("","Box") or me:Lookup("","iteminfolink") or me:Lookup("","booklink") -- fix setname
+	local box = me:Lookup("", "Box") or me:Lookup("", "iteminfolink") or me:Lookup("", "booklink") -- fix setname
 	if not _GKP.dwOpenID then
 		return JH.Alert(_L["No open doodad"])
 	end
-	local _,nUiId,dwID,nVersion,dwTabType,dwIndex = box:GetObject()
+	local _, nUiId, dwID, nVersion, dwTabType, dwIndex = box:GetObject()
 	local doodad = GetDoodad(_GKP.dwOpenID)
 	if type(doodad) ~= "userdata" then return JH.Alert(_L["No open doodad"]) end
-	pcall(_GKP.OnOpenDoodad,_GKP.dwOpenID)
+	pcall(_GKP.OnOpenDoodad, _GKP.dwOpenID)
 	local item
-	for k,v in ipairs(_GKP.aDistributeList) do
+	for k, v in ipairs(_GKP.aDistributeList) do
 		if v.nUiId == nUiId and v.dwID == dwID and v.nVersion == nVersion and v.dwTabType == dwTabType and v.dwIndex == dwIndex then
 			item = v
 			break
@@ -1851,7 +1851,7 @@ _GKP.OnOpenDoodad = function(dwID)
 					table.insert(_GKP.aDistributeList,item)
 				else
 					if item.nQuality > 0 then
-						LootItem(d.dwID,item.dwID)
+						LootItem(d.dwID, item.dwID)
 						JH.Debug("LootItem")
 					end
 				end
@@ -1859,7 +1859,7 @@ _GKP.OnOpenDoodad = function(dwID)
 		end
 	end
 	if refresh then
-		pcall(_GKP.DrawDistributeList,d)
+		pcall(_GKP.DrawDistributeList, d)
 		JH.Debug("distribute items " .. #_GKP.aDistributeList)
 	else
 		return _GKP.CloseLootWindow()
@@ -1872,7 +1872,7 @@ end
 _GKP.CheckDialog = function()
 	if Station.Lookup("Normal/GKP_Loot") and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
 		if type(GetDoodad(_GKP.dwOpenID)) == "userdata" then
-			JH.DelayCall(200,_GKP.CheckDialog)
+			JH.DelayCall(200, _GKP.CheckDialog)
 		else
 			_GKP.CloseLootWindow()
 		end
@@ -1891,9 +1891,9 @@ _GKP.DrawDistributeList = function(doodad)
 	-- append tip
 	if not IsFileExist(JH.GetAddonInfo().szDataPath .. "config/lock.jx3dat") then
 		JH.Alert(_L["GKP_TIPS"])
-		JH.SaveLUAData("config/lock.jx3dat",{["Tips"] = true})
+		JH.SaveLUAData("config/lock.jx3dat", {["Tips"] = true})
 	end
-	local handle = frame:Lookup("","Handle_Box")
+	local handle = frame:Lookup("", "Handle_Box")
 	handle:Clear()
 	if GKP.bLootStyle then
 		if #_GKP.aDistributeList <= 6 then
@@ -1902,26 +1902,24 @@ _GKP.DrawDistributeList = function(doodad)
 			frame:SetSize(6 * 72,110)
 		else
 			frame:Lookup("","Image_Bg"):SetSize(6 * 72,30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
-			frame:Lookup("","Image_Title"):SetSize(6 * 72,30)
-			frame:SetSize(6 * 72,8 + 30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
+			frame:Lookup("","Image_Title"):SetSize(6 * 72, 30)
+			frame:SetSize(6 * 72, 8 + 30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
 		end
 		
-		local fx, fy = Station.GetClientSize()
-		local w,h = frame:GetSize()
+		-- local fx, fy = Station.GetClientSize()
+		local w, h = frame:GetSize()
 		-- frame:SetAbsPos((fx-w)/2,(fy-h)/2) -- 固定位置在中间 他们说不好就去掉了
-		frame:Lookup("Btn_Close"):SetRelPos(w - 30,5)
-		frame:Lookup("Btn_Boss"):SetRelPos(365,3)
+		frame:Lookup("Btn_Close"):SetRelPos(w - 30, 5)
+		frame:Lookup("Btn_Boss"):SetRelPos(365, 3)
 		handle:SetHandleStyle(0)
-		
 	else
-		frame:Lookup("","Image_Bg"):SetSize(280,#_GKP.aDistributeList*56+35)
-		frame:Lookup("","Image_Title"):SetSize(280,30)
-		frame:Lookup("Btn_Close"):SetRelPos(250,5)
-		frame:SetSize(280,#_GKP.aDistributeList*56+35)
+		frame:Lookup("", "Image_Bg"):SetSize(280, #_GKP.aDistributeList * 56 + 35)
+		frame:Lookup("", "Image_Title"):SetSize(280, 30)
+		frame:Lookup("Btn_Close"):SetRelPos(250, 5)
+		frame:SetSize(280, #_GKP.aDistributeList * 56 + 35)
 		handle:SetHandleStyle(3)
-		frame:Lookup("Btn_Boss"):SetRelPos(210,3)
+		frame:Lookup("Btn_Boss"):SetRelPos(210, 3)
 	end
-	
 	
 	local team = GetClientTeam()
 	local aPartyMember = doodad.GetLooterList()
@@ -1941,41 +1939,40 @@ _GKP.DrawDistributeList = function(doodad)
 	end
 	
 	
-	for item_k,item in ipairs(_GKP.aDistributeList) do
+	for item_k, item in ipairs(_GKP.aDistributeList) do
 		local szItemName = GetItemNameByItem(item)
 		local fnSetBox = function(box)
 			box:SetObject(UI_OBJECT_ITEM_ONLY_ID, item.nUiId, item.dwID, item.nVersion, item.dwTabType, item.dwIndex)
 			local iName, iIcon = JH.GetItemName(item.nUiId)
 			box:SetObjectIcon(iIcon)
-			
 			if item.bCanStack and item.nStackNum > 1 then
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				box:SetOverTextFontScheme(0,15)
+				box:SetOverTextFontScheme(0, 15)
 				box:SetOverText(0, item.nStackNum .. " ")
 			end
 			return box
 		end
-		local box	
 		
+		local box
 		if GKP.bLootStyle then
-			handle:AppendItemFromString(string.format("<Box>name=\"box_%s\" EventID=816 w=64 h=64 </Box>",item_k))
+			handle:AppendItemFromString(string.format("<Box>name=\"box_%s\" EventID=816 w=64 h=64 </Box>", item_k))
 			box = handle:Lookup("box_" .. item_k)
 			box = fnSetBox(box)
 			-- append box			
-			local x,y = (item_k - 1) % 6 , math.ceil(item_k / 6) - 1
+			local x, y = (item_k - 1) % 6, math.ceil(item_k / 6) - 1
 			box:SetRelPos(x * 70 + 5, y * 70 + 5)
 			-- append img
 			if _GKP.tQualityImage[item.nQuality] then
 				if item.nQuality < 5 then
-					handle:AppendItemFromString(GetFormatImage("ui/Image/Common/Box.UITex",_GKP.tQualityImage[item.nQuality],62,62,nil,"img_"..item_k))
+					handle:AppendItemFromString(GetFormatImage("ui/Image/Common/Box.UITex", _GKP.tQualityImage[item.nQuality], 62, 62, nil, "img_"..item_k))
 				else
-					handle:AppendItemFromString("<animate> path=\"ui/Image/Common/Box.UITex\" group=17 w=62 h=62 name=\"img_" ..item_k.."\" </animate>")
+					handle:AppendItemFromString("<animate> path=\"ui/Image/Common/Box.UITex\" group=17 w=62 h=62 name=\"img_" .. item_k .."\" </animate>")
 				end
 				local img = handle:Lookup("img_" .. item_k)
-				img:SetRelPos(x * 70 + 6 , y * 70 + 6)
+				img:SetRelPos(x * 70 + 6, y * 70 + 6)
 			end
 		else
-			local h = handle:AppendItemFromIni(PATH_ROOT .. "ui/GKP_Loot.ini","Handle_Item",item_k)
+			local h = handle:AppendItemFromIni(PATH_ROOT .. "ui/GKP_Loot.ini", "Handle_Item", item_k)
 			box = fnSetBox(h:Lookup("Box_Item"))
 			local txt = h:Lookup("Text_Item")
 			txt:SetText(szItemName)
@@ -2032,7 +2029,7 @@ _GKP.DrawDistributeList = function(doodad)
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
 			if not GKP.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
-				return OutputMessage("MSG_ANNOUNCE_RED",g_tStrings.ERROR_LOOT_DISTRIBUTE)
+				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			local tMenu = {}
 			table.insert(tMenu,{ szOption = GetItemNameByItem(item) , bDisable = true})
@@ -2075,7 +2072,7 @@ _GKP.DrawDistributeList = function(doodad)
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
 			if not GKP.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
-				return OutputMessage("MSG_ANNOUNCE_RED",g_tStrings.ERROR_LOOT_DISTRIBUTE)
+				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			table.sort(aPartyMember,function(a,b)
 				return a.dwForceID < b.dwForceID
