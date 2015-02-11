@@ -9,12 +9,13 @@ local tinsert = table.insert
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 local GetClientPlayer = GetClientPlayer
+local TARGET = TARGET
 -- 常量 副本外大部分不受此限制
 local SHADOW = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
 local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
 local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低
-local CIRCLE_ALPHA_STEP = 3
+local CIRCLE_ALPHA_STEP = 2.5
 local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
 local CIRCLE_LINE_ALPHA = 165 -- 线和边框最大透明度
 local CIRCLE_MAX_CIRCLE = 2
@@ -836,7 +837,7 @@ C.OnBreathe = function()
 end
 
 -- 注册头像右键菜单
-Target_AppendAddonMenu({function(dwID, dwType)
+Target_AppendAddonMenu({ function(dwID, dwType)
 	if dwType == TARGET.NPC then
 		local p = GetNpc(dwID)
 		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(p)]
