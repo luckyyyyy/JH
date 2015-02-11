@@ -237,7 +237,7 @@ _GKP.OnMsgArrive = function(szMsg)
 	if not Station.Lookup("Normal/GKP_Chat") then return end
 	local me = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat")
 	local h = me:Lookup("", "")
-	szMsg = string.gsub(szMsg, g_tStrings.STR_TALK_HEAD_TEAM, "")
+	szMsg = string.gsub(szMsg, _L["[Team]"], "")
 	
 	local AppendText = function()
 		local t = TimeToDate(GetCurrentTime())
