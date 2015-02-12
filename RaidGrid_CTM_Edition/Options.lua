@@ -96,7 +96,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 	})
 	
 	table.insert(menu, { bDevide = true })
-	table.insert(menu, { szOption = "血条设置",
+	table.insert(menu, { szOption = g_tStrings.STR_RAID_LIFE_SHOW,
 		{ szOption = "血条渐变色", bCheck = true, bChecked = not RaidGrid_Party.Shadow.bLife, fnAction = function()
 			RaidGrid_Party.Shadow.bLife = not RaidGrid_Party.Shadow.bLife
 		end	},
@@ -416,20 +416,16 @@ function RaidGrid_CTM_Edition.InsertChangeGroupMenu(tMenu, dwMemberID)
 	end
 end
 
-function RaidGrid_CTM_Edition.OutputTeamMemberTip(dwID, rc)
-	if GetPlayer(dwID) then
-		RaidGrid_CTM_Edition.OutputPlayerTip(dwID, rc)
-		return
-	end
-	
+function RaidGrid_CTM_Edition.OutputTeamMemberTip(dwID, rc)	
 	local hTeam = GetClientTeam()
 	local tMemberInfo = hTeam.GetMemberInfo(dwID)
 	if not tMemberInfo then
 		return
 	end
-
-	local r, g, b = RaidGrid_CTM_Edition.GetPartyMemberFontColor()
-    local szTip = GetFormatText(FormatString(g_tStrings.STR_NAME_PLAYER, tMemberInfo.szName), 80, r, g, b)
+	local r, g, b = JH.GetForceColor(tMemberInfo.dwForceID)
+	local szPath, nFrame = GetForceImage(tMemberInfo.dwForceID)
+	local szTip = GetFormatImage(szPath, nFrame, 24, 24)
+    szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_NAME_PLAYER, tMemberInfo.szName), 80, r, g, b)
     if tMemberInfo.bIsOnLine then
     	szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, tMemberInfo.nLevel), 82)
 		local szMapName = Table_GetMapName(tMemberInfo.dwMapID)
@@ -438,82 +434,14 @@ function RaidGrid_CTM_Edition.OutputTeamMemberTip(dwID, rc)
 		end
         
         local nCamp = tMemberInfo.nCamp
-        szTip = szTip .. GetFormatText(g_tStrings.STR_GUILD_CAMP_NAME[nCamp], 82)
+        szTip = szTip .. GetFormatText(g_tStrings.STR_GUILD_CAMP_NAME[nCamp] .. "\n", 82)
     else
-    	szTip = szTip .. GetFormatText(g_tStrings.STR_FRIEND_NOT_ON_LINE .. "\n", 82)
+    	szTip = szTip .. GetFormatText(g_tStrings.STR_FRIEND_NOT_ON_LINE .. "\n", 82, 128, 128, 128)
     end
-    OutputTip(szTip, 345, rc)
-end
-
-function RaidGrid_CTM_Edition.OutputPlayerTip(dwPlayerID, Rect)
-	--如果是自己，则不显示tip
-	local player = GetPlayer(dwPlayerID)
-	if not player then
-		return
-	end
-	
-	local clientPlayer = GetClientPlayer()
-	
-	if not IsCursorInExclusiveMode() then	
-		if clientPlayer.dwID == dwPlayerID then
-			return
-		end
-	end
-	
-	local r, g, b = RaidGrid_CTM_Edition.GetForceFontColor(dwPlayerID, clientPlayer.dwID)
-	local szTip = ""
-
-	--------------名字-------------------------
-    szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_NAME_PLAYER, player.szName)).." font=80".." r="..r.." g="..g.." b="..b.." </text>"
-    
-    -------------称号----------------------------        
-    if player.szTitle ~= "" then
-    	szTip = szTip.."<Text>text="..EncodeComponentsString("<"..player.szTitle..">\n").." font=0 </text>"
-    end
-    
-    if player.dwTongID ~= 0 then
-    	local szName = GetTongClient().ApplyGetTongName(player.dwTongID)
-    	if szName and szName ~= "" then
-    		szTip = szTip.."<Text>text="..EncodeComponentsString("["..szName.."]\n").." font=0 </text>"
-    	end
-    end
-    
-    -------------等级----------------------------
-    if player.nLevel - clientPlayer.nLevel > 10 and not clientPlayer.IsPlayerInMyParty(dwPlayerID) then 
-    	szTip = szTip.."<Text>text="..EncodeComponentsString(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL).." font=82 </text>"
-    else
-    	szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, player.nLevel)).." font=82 </text>"
-    end
-
-	if RaidGrid_CTM_Edition.g_tReputation.tReputationTable[player.dwForceID] then
-		szTip = szTip.."<Text>text="..EncodeComponentsString(RaidGrid_CTM_Edition.g_tReputation.tReputationTable[player.dwForceID].szName.."\n").." font=82 </text>"
-	end
-
-	if clientPlayer.IsPlayerInMyParty(dwPlayerID) then
-		local hTeam = GetClientTeam()
-		local tMemberInfo = hTeam.GetMemberInfo(dwPlayerID)
-		if tMemberInfo then
-			local szMapName = Table_GetMapName(tMemberInfo.dwMapID)
-			if szMapName then
-				szTip = szTip.."<Text>text="..EncodeComponentsString(szMapName.."\n").." font=82 </text>"
-			end
-		end
-	end
-    
-	if player.bCampFlag then
-		szTip = szTip .. GetFormatText(g_tStrings.STR_TIP_CAMP_FLAG, 163)
-	end
-	
-    local nCamp = player.nCamp
-    szTip = szTip .. GetFormatText(g_tStrings.STR_GUILD_CAMP_NAME[nCamp], 82)
-    
     if IsCtrlKeyDown() then
-    	szTip = szTip.."<Text>text="..EncodeComponentsString("\n" .. FormatString(g_tStrings.TIP_PLAYER_ID, player.dwID)).." font=102 </text>"
-    	--szTip = szTip.."<Text>text="
-		--szTip = szTip..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, player.dwModelID.." "..var2str(player.GetRepresentID()))).." font=102 </text>" 
-    end
-    
-    OutputTip(szTip, 345, Rect)
+    	szTip = szTip .. GetFormatText(FormatString(g_tStrings.TIP_PLAYER_ID, dwID), 102)
+    end	
+    OutputTip(szTip, 345, rc)
 end
 
 function RaidGrid_CTM_Edition.GetForceFontColor(dwPeerID, dwSelfID)
@@ -539,7 +467,7 @@ function RaidGrid_CTM_Edition.GetForceFontColor(dwPeerID, dwSelfID)
 	if dwSelfID == dwPeerID then
 		r, g, b = 255, 255, 0
 	elseif bInParty then
-		r, g, b = RaidGrid_CTM_Edition.GetPartyMemberFontColor()
+		r, g, b = 126, 126, 255
 	elseif IsEnemy(src, dest) then
 		r, g, b = 255, 0, 0
 	elseif IsNeutrality(src, dest) then
@@ -552,116 +480,6 @@ function RaidGrid_CTM_Edition.GetForceFontColor(dwPeerID, dwSelfID)
 	return r, g, b
 end
 
-function RaidGrid_CTM_Edition.GetPartyMemberFontColor()
-	return 126, 126, 255
-end
-
-RaidGrid_CTM_Edition.g_tReputation =				
-{				
-	tReputationGroupTable =			
-	{			
-		{szVersionName = "风起稻香",		
-            tGroup ={				
-                {szName = "江湖门派", aForce = {11, 12, 13, 14, 15, 18, 19, 20}, },				
-                {szName = "城市", aForce = {34, 35, 36}, },				
-                {szName = "江湖势力", aForce = {38, 44, 45, 46, 47, 48, 75}, },				
-                {szName = "四大商会", aForce = {43, 54, 55, 56}, },				
-                {szName = "镖局联盟", aForce = {42}, },				
-                {szName = "阵营", aForce = {49, 50}, },				
-            }				
-		},		
-				
-		{szVersionName = "巴蜀风云",		
-            tGroup ={				
-                {szName = "江湖门派", aForce = {16,17}, },				
-                {szName = "江湖势力", aForce = {82, 83, 84, 85, 86, 87, 88, 89, 90, 93}, },				
-                {szName = "镖局联盟", aForce = {91}, },				
-            }				
-		},		
-        				
-	},			
-				
-	tReputationTable =			
-	{			
-		--bInShow = true 当bHide = true时有效，如果为true,当玩家加入这个势力才显示的		
-		--nInNoShou = 22 当bHide = false时有效，当万家加入了这个值的势力就不显示		
-				
-		[1] = {szName = "少林", szDesc = "<text>text=\"少林寺历史悠久，武学渊源流长，素有天下武功出少林之称。\"", bHide = true},		
-		[2] = {szName = "万花", szDesc = "<text>text=\"万花自从建立以来就成为了各种奇人异士聚集之地。\"", bHide = true},		
-		[3] = {szName = "天策", szDesc = "<text>text=\"“东都之狼”天策府是唐太宗李世民身为秦王时所设立的组织。随着李世民的上台逐渐成为机密机关，负责与江湖牵涉较多的事宜。\"", bHide = true},		
-		[4] = {szName = "纯阳", szDesc = "<text>text=\"注重心境修炼的道门，乃是大唐向道之人心中的圣地。\"", bHide = true},		
-		[5] = {szName = "七秀", szDesc = "<text>text=\"本是抚养孤女之地，因为有七位奇女子的出现，世称“七秀坊”。\"", bHide = true},		
-		[6] = {szName = "五毒", szDesc = "<text>text=\"自给自足，一般很少涉足中原。武林人士最为不愿招惹的门派之一。\"", bHide = true},		
-		[7] = {szName = "唐门", szDesc = "<text>text=\"江湖中最为神秘的家族，天下四大世家之首，历史最为悠久。\"", bHide = true},		
-		[8] = {szName = "藏剑", szDesc = "<text>text=\"江南新近崛起的世家，以令人惊诧的速度位列四大世家，乃是江南名侠“一叶知秋”叶孟秋一手创立的剑术名门。\"", bHide = true},		
-		[9] = {szName = "丐帮", szDesc = "<text>text=\"笑傲江湖的“天下第一大帮”。一股源自社会底层的中坚力量，帮中弟子多数有着令人为之侧目的激昂热血。\"", bHide = true},		
-		[10] = {szName = "明教", szDesc = "<text>text=\"明教是发源自波斯琐罗亚斯德教派的教派，教中众多文化来自异域，许多行为至今仍被中原武林大力排斥。\"", bHide = true},		
-				
-		[11] = {szName = "少林", szDesc = "<text>text=\"少林寺历史悠久，武学渊源流长，素有天下武功出少林之称。\""},		
-		[12] = {szName = "万花", szDesc = "<text>text=\"万花自从建立以来就成为了各种奇人异士聚集之地。\""},		
-		[13] = {szName = "天策", szDesc = "<text>text=\"“东都之狼”天策府是唐太宗李世民身为秦王时所设立的组织。随着李世民的上台逐渐成为机密机关，负责与江湖牵涉较多的事宜。\""},		
-		[14] = {szName = "纯阳", szDesc = "<text>text=\"注重心境修炼的道门，乃是大唐向道之人心中的圣地。\""},		
-		[15] = {szName = "七秀", szDesc = "<text>text=\"本是抚养孤女之地，因为有七位奇女子的出现，世称“七秀坊”。\""},		
-		[16] = {szName = "五毒", szDesc = "<text>text=\"自给自足，一般很少涉足中原。武林人士最为不愿招惹的门派之一。\""},		
-		[17] = {szName = "唐门", szDesc = "<text>text=\"江湖中最为神秘的家族，天下四大世家之首，历史最为悠久。\""},		
-		[18] = {szName = "藏剑", szDesc = "<text>text=\"江南新近崛起的世家，以令人惊诧的速度位列四大世家，乃是江南名侠“一叶知秋”叶孟秋一手创立的剑术名门。\""},		
-		[19] = {szName = "丐帮", szDesc = "<text>text=\"笑傲江湖的“天下第一大帮”。一股源自社会底层的中坚力量，帮中弟子多数有着令人为之侧目的激昂热血。\"", bHide = true},		
-		[20] = {szName = "明教", szDesc = "<text>text=\"明教是发源自波斯琐罗亚斯德教派的教派，教中众多文化来自异域，许多行为至今仍被中原武林大力排斥。\"", bHide = true},		
-				
-				
-		[34] = {szName = "扬州", szDesc = "<text>text=\"大唐最重要的港口城市，农业、商业和手工业相当发达，江淮之间富甲天下的重镇，素有扬一益二之称。\""},		
-		[35] = {szName = "洛阳", szDesc = "<text>text=\"洛阳城是大唐的东都，也是“东都之狼”天策府的发源地。\""},		
-		[36] = {szName = "长安", szDesc = "<text>text=\"长安乃是大唐国都，盛世之繁华尽可在那里看到。\""},		
-				
-				
-		[38] = {szName = "红衣教", szDesc = "<text>text=\"阿萨辛创立的势力，集祆教和中原教义在一起，倡导世无阴阳，俱为一体。\""},		
-		[44] = {szName = "东漓寨", szDesc = "<text>text=\"十二连环坞之一，虽处恶人之势，却有向善之心。\""},		
-		[45] = {szName = "长歌门", szDesc = "<text>text=\"文人雅士聚集之处，虽处江湖之远，确有庙堂之心。\""},		
-		[46] = {szName = "昆仑", szDesc = "<text>text=\"建立在昆仑山上的一个隐居飘逸的门派。\""},		
-		[47] = {szName = "刀宗", szDesc = "<text>text=\"一刀流灭亡之后，继承谢云流意志的组织。\""},		
-		[48] = {szName = "隐元会", szDesc = "<text>text=\"隐息华盖之下，潜光空洞之中，无所不知，无所不至。\""},		
-		[49] = {szName = "恶人谷", szDesc = "<text>text=\"率性而为，无拘无束人们的聚集之地。\""},		
-		[50] = {szName = "浩气盟", szDesc = "<text>text=\"针对恶人谷而特意建立的江湖联盟，以惩凶除恶为己任。\""},		
-				
-				
-		[54] = {szName = "关中商会", szDesc = "<text>text=\"活跃在大唐关内中原广大地区的商会。\""},		
-		[43] = {szName = "南洋商会", szDesc = "<text>text=\"活跃在大唐江南以及岭南大部分地区的商会。\""},		
-		[55] = {szName = "西域商会", szDesc = "<text>text=\"活跃在丝绸之路沿线和西域广大地区的商会。\""},		
-		[56] = {szName = "剑南商会", szDesc = "<text>text=\"活跃在大唐云南以及巴蜀广大地区的商会。\""},		
-				
-		[42] = {szName = "镖局联盟", szDesc = "<text>text=\"为抵抗十二连环坞而成立的镖局联盟。\""},		
-		[75] = {szName = "觅宝会", szDesc = "<text>text=\"游走于大唐各地，专门搜集天下各类宝物的神秘组织 \""},		
-		[82] = {szName = "轩辕社", szDesc = "<text>text=\"由天策府领导的江湖组织，专门调查南诏反唐。 \""},		
-		[83] = {szName = "藏经阁", szDesc = "<text>text=\"少林为了从智慧王手上追回易筋经，专门派遣的高手，不远千里来到西南。 \""},		
-		[84] = {szName = "霸刀", szDesc = "<text>text=\"为了找回九天神算多多，霸刀也派遣了众多精锐进入巴蜀。 \""},		
-		[85] = {szName = "大理宫", szDesc = "<text>text=\"由南诏清平官段俭魏一手创立，在西南武林赫赫有名。 \""},		
-		[86] = {szName = "塔纳", szDesc = "<text>text=\"由唐门大小姐唐书雁领导的一帮惨遭天一教迫害的武林人士。 \""},		
-		[87] = {szName = "祝融殿", szDesc = "<text>text=\"五毒教分部，专门负责处理本教内部事宜。 \""},		
-		[88] = {szName = "天南王家", szDesc = "<text>text=\"王昭南世家，为西南一霸，富甲一方。 \""},		
-		[89] = {szName = "拜火教", szDesc = "<text>text=\"来源于波斯的神秘组织…… \""},		
-		[90] = {szName = "九黎族", szDesc = "<text>text=\"西南蛮族之长，所有蛮族部落的精神领袖。 \""},		
-		[91] = {szName = "镇南镖局", szDesc = "<text>text=\"镖局联盟在西南的分舵。 \""},	
-		[93] = {szName = "塔纳离恨冢", szDesc = "<text>text=\"塔纳一族之中的全部成员都是被尸炼之术所害之人，为此他们与至亲好友天各一方，经受有家不能回，有愿不能圆，有情不能诉的无尽苦楚，他们中的许多人都对天一教痛恨入骨，在于天一对抗的经历中，多数塔纳都在天一强劲的围剿下死去了，剩余的塔纳为他们搭建起了离恨冢，把他们的名字和曾经为人之时的生平功过记录之中，并誓言为他们复仇。\""},			
-		},			
-				
-	tReputationLevelTable =			
-	{			
-		--szLevel 等级对应的显示名字， nFont字体, nFrame--进度条图片帧		
-		[0] = {szLevel = "仇恨", nFont = 166, nFrame = 40},		
-		[1] = {szLevel = "敌视", nFont = 166, nFrame = 40},		
-		[2] = {szLevel = "疏远", nFont = 162, nFrame = 38},		
-		[3] = {szLevel = "中立", nFont = 162, nFrame = 38},		
-		[4] = {szLevel = "友好", nFont = 165, nFrame = 39},		
-		[5] = {szLevel = "亲密", nFont = 165, nFrame = 39},		
-		[6] = {szLevel = "敬重", nFont = 165, nFrame = 39},		
-		[7] = {szLevel = "尊敬", nFont = 165, nFrame = 39},		
-		[8] = {szLevel = "钦佩", nFont = 165, nFrame = 39},		
-		[9] = {szLevel = "显赫", nFont = 165, nFrame = 39},		
-		[10] = {szLevel = "崇敬", nFont = 163, nFrame = 79},		
-		[11] = {szLevel = "崇拜", nFont = 163, nFrame = 79},		
-		[12] = {szLevel = "传说", nFont = 163, nFrame = 79},		
-	},
-}
 
 function RaidGrid_CTM_Edition.OpenRaidDragPanel(dwMemberID)
 	local hTeam = GetClientTeam()
