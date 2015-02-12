@@ -88,10 +88,10 @@ function RaidGrid_CTM_Edition.PopOptions()
 		{
 			szOption = "【团长功能相关】：",
 			{
-				szOption = "★发布团队就位确认 (团长时)", fnAction = RaidGrid_Party.InitReadyCheckCover,
+				szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, fnAction = RaidGrid_Party.InitReadyCheckCover,
 			},
 			{
-				szOption = "清除团队就位确认色块", fnAction =  RaidGrid_Party.ClearReadyCheckCover,
+				szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, fnAction =  RaidGrid_Party.ClearReadyCheckCover,
 			},
 			{
 				bDevide = true
@@ -223,610 +223,70 @@ function RaidGrid_CTM_Edition.PopOptions()
 				end,
 			},
 			{
-				szOption = "　团队界面【宽度】比例：",
-				{szOption = "４０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.4, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.4
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "４５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.45, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.45
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.5, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "５５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.55, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.55
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "６０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.6, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.6
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "６５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.65, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.65
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.7, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.7
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.75, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.75
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８０％　☆", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.8, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.8
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.85, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.85
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.9, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.9
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 0.95, fnAction = function()
-					RaidGrid_Party.fScaleX = 0.95
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１００％　★", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1, fnAction = function()
-					RaidGrid_Party.fScaleX = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１０５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.05, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.05
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.1, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.15, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.15
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.2, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.25, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.25
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.3, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.35, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.35
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.40, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.40
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.45, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.45
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.50, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.50
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１６０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.60, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.60
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.70, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.70
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１８０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 1.80, fnAction = function()
-					RaidGrid_Party.fScaleX = 1.80
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 2, fnAction = function()
-					RaidGrid_Party.fScaleX = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleX == 2.5, fnAction = function()
-					RaidGrid_Party.fScaleX = 2.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
+				szOption = "　团队界面【宽度】比例：", fnAction = function()
+					local x, y = Cursor.GetPos()
+					local fScaleX = RaidGrid_Party.fScaleX
+					GetUserPercentage(function(val)
+						RaidGrid_Party.fScaleX = tonumber(val)
+						RaidGrid_Party.ReloadRaidPanel()
+						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+					end, nil, (fScaleX - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+				end
 			},
 			{
-				szOption = "　团队界面【高度】比例：",
-				{szOption = "７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 0.7, fnAction = function()
-					RaidGrid_Party.fScaleY = 0.7
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 0.75, fnAction = function()
-					RaidGrid_Party.fScaleY = 0.75
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８０％　☆", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 0.8, fnAction = function()
-					RaidGrid_Party.fScaleY = 0.8
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 0.85, fnAction = function()
-					RaidGrid_Party.fScaleY = 0.85
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 0.9, fnAction = function()
-					RaidGrid_Party.fScaleY = 0.9
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 0.95, fnAction = function()
-					RaidGrid_Party.fScaleY = 0.95
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１００％　★", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1, fnAction = function()
-					RaidGrid_Party.fScaleY = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１０５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.05, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.05
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.1, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.15, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.15
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.2, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.25, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.25
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.3, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.35, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.35
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.40, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.40
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.45, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.45
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.50, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.50
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１６０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.60, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.60
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.70, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.70
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１８０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 1.80, fnAction = function()
-					RaidGrid_Party.fScaleY = 1.80
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 2, fnAction = function()
-					RaidGrid_Party.fScaleY = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleY == 2.5, fnAction = function()
-					RaidGrid_Party.fScaleY = 2.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
+				szOption = "　团队界面【高度】比例：", fnAction = function()
+					local x, y = Cursor.GetPos()
+					local fScaleY = RaidGrid_Party.fScaleY
+					GetUserPercentage(function(val)
+						RaidGrid_Party.fScaleY = tonumber(val)
+						RaidGrid_Party.ReloadRaidPanel()
+						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+					end, nil, (fScaleY - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+				end
 			},
 			{
-				szOption = "　团队界面【文字尺寸】比例：",
-				{szOption = "７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 0.7, fnAction = function()
-					RaidGrid_Party.fScaleFont = 0.7
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 0.75, fnAction = function()
-					RaidGrid_Party.fScaleFont = 0.75
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８０％　☆", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 0.8, fnAction = function()
-					RaidGrid_Party.fScaleFont = 0.8
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 0.85, fnAction = function()
-					RaidGrid_Party.fScaleFont = 0.85
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 0.9, fnAction = function()
-					RaidGrid_Party.fScaleFont = 0.9
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 0.95, fnAction = function()
-					RaidGrid_Party.fScaleFont = 0.95
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１００％　★", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１０５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.05, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.05
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.1, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.15, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.15
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.2, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.25, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.25
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.3, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.35, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.35
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.40, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.40
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.45, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.45
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.50, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.50
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１６０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.60, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.60
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.70, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.70
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１８０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 1.80, fnAction = function()
-					RaidGrid_Party.fScaleFont = 1.80
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 2, fnAction = function()
-					RaidGrid_Party.fScaleFont = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleFont == 2.5, fnAction = function()
-					RaidGrid_Party.fScaleFont = 2.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
+				szOption = "　团队界面【文字大小】比例：", fnAction = function()
+					local x, y = Cursor.GetPos()
+					local fScaleFont = RaidGrid_Party.fScaleFont
+					GetUserPercentage(function(val)
+						RaidGrid_Party.fScaleFont = tonumber(val)
+						RaidGrid_Party.ReloadRaidPanel()
+						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+					end, nil, (fScaleFont - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+				end
 			},
 			{
-				szOption = "　团队界面【buff图标】比例：",
-				{szOption = "７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 0.7, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 0.7
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 0.75, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 0.75
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８０％　☆", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 0.8, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 0.8
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 0.85, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 0.85
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 0.9, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 0.9
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 0.95, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 0.95
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１００％　★", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１０５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.05, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.05
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.1, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.15, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.15
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.2, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.25, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.25
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.3, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.35, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.35
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.40, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.40
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.45, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.45
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.50, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.50
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１６０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.60, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.60
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.70, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.70
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１８０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 1.80, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 1.80
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 2, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleIcon == 2.5, fnAction = function()
-					RaidGrid_Party.fScaleIcon = 2.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
+				szOption = "　团队界面【buff图标】比例：", fnAction = function()
+					local x, y = Cursor.GetPos()
+					local fScaleIcon = RaidGrid_Party.fScaleIcon
+					GetUserPercentage(function(val)
+						RaidGrid_Party.fScaleIcon = tonumber(val)
+						RaidGrid_Party.ReloadRaidPanel()
+						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+					end, nil, (fScaleIcon - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+				end
 			},
 			{
-				szOption = "　团队界面【buff背景色】宽度比例：",
-				{szOption = "７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 0.7, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 0.7
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 0.75, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 0.75
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８０％　☆", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 0.8, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 0.8
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 0.85, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 0.85
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 0.9, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 0.9
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 0.95, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 0.95
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１００％　★", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１０５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.05, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.05
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.1, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.15, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.15
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.2, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.25, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.25
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.3, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.35, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.35
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.40, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.40
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.45, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.45
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.50, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.50
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１６０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.60, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.60
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.70, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.70
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１８０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 1.80, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 1.80
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 2, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 2.5, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 2.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "３００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 3, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "３５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 3.5, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 3.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "４００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 4, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 4
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "４５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 4.5, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 4.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "５００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 5, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "５５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 5.5, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 5.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "６００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 6, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 6
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 7, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 7
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowX == 8, fnAction = function()
-					RaidGrid_Party.fScaleShadowX = 8
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
+				szOption = "　团队界面【buff背景色】宽度比例：", fnAction = function()
+					local x, y = Cursor.GetPos()
+					local fScaleShadowX = RaidGrid_Party.fScaleShadowX
+					GetUserPercentage(function(val)
+						RaidGrid_Party.fScaleShadowX = tonumber(val)
+						RaidGrid_Party.ReloadRaidPanel()
+						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+					end, nil, (fScaleShadowX - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+				end
 			},
 			{
-				szOption = "　团队界面【buff背景色】高度比例：",
-				{szOption = "７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 0.7, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 0.7
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "７５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 0.75, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 0.75
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８０％　☆", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 0.8, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 0.8
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "８５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 0.85, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 0.85
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 0.9, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 0.9
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "９５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 0.95, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 0.95
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１００％　★", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１０５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.05, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.05
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.1, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１１５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.15, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.15
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.2, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１２５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.25, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.25
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.3, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１３５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.35, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.35
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.40, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.40
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１４５％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.45, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.45
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.50, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.50
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１６０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.60, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.60
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１７０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.70, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.70
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "１８０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 1.80, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 1.80
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２００％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 2, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "２５０％", bMCheck = true, bChecked = RaidGrid_Party.fScaleShadowY == 2.5, fnAction = function()
-					RaidGrid_Party.fScaleShadowY = 2.5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
+				szOption = "　团队界面【buff背景色】高度比例：", fnAction = function()
+					local x, y = Cursor.GetPos()
+					local fScaleShadowY = RaidGrid_Party.fScaleShadowY
+					GetUserPercentage(function(val)
+						RaidGrid_Party.fScaleShadowY = tonumber(val)
+						RaidGrid_Party.ReloadRaidPanel()
+						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+					end, nil, (fScaleShadowY - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+				end
 			},
 		},
 		{
