@@ -67,7 +67,10 @@ function RaidGrid_CTM_Edition.PopOptions()
 	InsertDistributeMenu(menu, me.dwID ~= dwDistribute)
 	table.insert(menu, { bDevide = true })
 	-- 编辑模式
-	table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bCheck = true, bChecked = not RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function() RaidGrid_CTM_Edition.bAltNeededForDrag = not RaidGrid_CTM_Edition.bAltNeededForDrag end })
+	table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bCheck = true, bChecked = not RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function() 
+		RaidGrid_CTM_Edition.bAltNeededForDrag = not RaidGrid_CTM_Edition.bAltNeededForDrag
+		GetPopupMenu():Hide()
+	end })
 	-- 治疗模式
 	table.insert(menu, { szOption = g_tStrings.STR_RAID_TARGET_ASSIST, bCheck = true, bChecked = RaidGrid_Party.bTempTargetEnable, fnAction = function() RaidGrid_Party.bTempTargetEnable = not RaidGrid_Party.bTempTargetEnable end,
 		{ szOption = "战斗中不显示TIP信息", bCheck = true, bChecked = RaidGrid_Party.bTempTargetFightTip, fnDisable = function() return not RaidGrid_Party.bTempTargetEnable end, fnAction = function()
@@ -99,7 +102,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 		{ szOption = "蓝条渐变色", bCheck = true, bChecked = not RaidGrid_Party.Shadow.bMana, fnAction = function()
 			RaidGrid_Party.Shadow.bMana = not RaidGrid_Party.Shadow.bMana
 		end	},
-		{ szOption = "更细的蓝条", bCheck = true, bChecked = not RaidGrid_CTM_Edition.bLowMPBar, fnAction = function()
+		{ szOption = "更细的蓝条", bCheck = true, bChecked = RaidGrid_CTM_Edition.bLowMPBar, fnAction = function()
 			RaidGrid_CTM_Edition.bLowMPBar = not RaidGrid_CTM_Edition.bLowMPBar
 		end	},
 		{ szOption = "透明度设置", fnAction = function()
@@ -337,7 +340,18 @@ function RaidGrid_CTM_Edition.PopOptions()
 	PopupMenu(menu)
 	
 end
-
+			-- {
+				-- szOption = "　总是显示完整的小队格子", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowAllMemberGrid, fnAction = function(UserData, bCheck)
+					-- RaidGrid_CTM_Edition.bShowAllMemberGrid = bCheck
+					-- RaidGrid_Party.ReloadRaidPanel()
+				-- end,
+			-- },
+			-- {
+				-- szOption = "　总是显示整个团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowAllPanel, fnAction = function(UserData, bCheck)
+					-- RaidGrid_CTM_Edition.bShowAllPanel = bCheck
+					-- RaidGrid_Party.ReloadRaidPanel()
+				-- end,
+			-- },
 function RaidGrid_CTM_Edition.InsertForceCountMenu(tMenu)
 	local tForceList = {}
 	local hTeam = GetClientTeam()
