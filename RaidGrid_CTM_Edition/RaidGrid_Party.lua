@@ -480,28 +480,37 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 
 	
 	-- 血量显示
-	local textLife = handleRole:Lookup("Handle_Common/Text_Life")
-	if tMemberInfo.bDeathFlag or not tMemberInfo.bIsOnLine then
-	elseif not RaidGrid_CTM_Edition.nHPShownMode or RaidGrid_CTM_Edition.nHPShownMode == 0 then
-		textLife:SetText("")
-	elseif RaidGrid_CTM_Edition.nHPShownMode == 1 then
-		local nShownLife = tMemberInfo.nMaxLife - tMemberInfo.nCurrentLife
-		if nShownLife > 0 then
-			textLife:SetText("-" .. nShownLife)
+	if not tMemberInfo.bDeathFlag and tMemberInfo.bIsOnLine then
+		local life = handleRole:Lookup("Handle_Common/Text_Life")
+		if RaidGrid_CTM_Edition.nHPShownMode2 == 0 then
+			life:SetText("")
 		else
-			textLife:SetText("")
-		end
-	elseif RaidGrid_CTM_Edition.nHPShownMode == 2 then
-		textLife:SetText(tMemberInfo.nCurrentLife)
-	elseif RaidGrid_CTM_Edition.nHPShownMode == 3 then
-		textLife:SetText(string.format("%.1f", nLifePercentage * 100) .. "%")
-	elseif RaidGrid_CTM_Edition.nHPShownMode == 4 then
-		if tMemberInfo.nCurrentLife > 9999 then
-			textLife:SetText(string.format("%.1fw", tMemberInfo.nCurrentLife / 10000))
-		else
-			textLife:SetText(tMemberInfo.nCurrentLife)
+			local fnAction = function(val, max)
+				if RaidGrid_CTM_Edition.nHPShownNumMode == 1 then
+					if val > 9999 then
+						return string.format("%.1fw", val / 10000)
+					else
+						return val
+					end
+				elseif RaidGrid_CTM_Edition.nHPShownNumMode == 2 then
+					return string.format("%.1f", val / max * 100) .. "%"
+				elseif RaidGrid_CTM_Edition.nHPShownNumMode == 3 then
+					return val
+				end
+			end
+			if RaidGrid_CTM_Edition.nHPShownMode2 == 2 then
+				life:SetText(fnAction(tMemberInfo.nCurrentLife, tMemberInfo.nMaxLife))
+			elseif RaidGrid_CTM_Edition.nHPShownMode2 == 1 then
+				local nShownLife = tMemberInfo.nMaxLife - tMemberInfo.nCurrentLife
+				if nShownLife > 0 then
+					life:SetText("-" .. fnAction(nShownLife, tMemberInfo.nMaxLife))
+				else
+					life:SetText("")
+				end
+			end
 		end
 	end
+
 	-- 蓝显示
 	local textMana = handleRole:Lookup("Handle_Common/Text_Mana")
 	if not RaidGrid_CTM_Edition.nShowMP then

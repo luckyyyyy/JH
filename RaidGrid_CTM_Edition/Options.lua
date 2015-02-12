@@ -12,7 +12,8 @@ RaidGrid_CTM_Edition.bAutoLinkAllPanel = true;						--RegisterCustomData("RaidGr
 RaidGrid_CTM_Edition.nAutoLinkMode = 5;								RegisterCustomData("RaidGrid_CTM_Edition.nAutoLinkMode")
 RaidGrid_CTM_Edition.bShowAllPanel = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowAllPanel")
 RaidGrid_CTM_Edition.bShowAllMemberGrid = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowAllMemberGrid")
-RaidGrid_CTM_Edition.nHPShownMode = 2;								RegisterCustomData("RaidGrid_CTM_Edition.nHPShownMode")
+RaidGrid_CTM_Edition.nHPShownMode2 = 2;								RegisterCustomData("RaidGrid_CTM_Edition.nHPShownMode2")
+RaidGrid_CTM_Edition.nHPShownNumMode = 1;							RegisterCustomData("RaidGrid_CTM_Edition.nHPShownNumMode")
 RaidGrid_CTM_Edition.nShowMP = false;								RegisterCustomData("RaidGrid_CTM_Edition.nShowMP")
 RaidGrid_CTM_Edition.bLowMPBar = true;								RegisterCustomData("RaidGrid_CTM_Edition.bLowMPBar")
 RaidGrid_CTM_Edition.bHPHitAlert = true;							RegisterCustomData("RaidGrid_CTM_Edition.bHPHitAlert")
@@ -118,24 +119,30 @@ function RaidGrid_CTM_Edition.PopOptions()
 			RaidGrid_Party.ReloadRaidPanel()
 		end	},
 		{ bDevide = true },
-		{ szOption = g_tStrings.STR_RAID_LIFE_LOSE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 1, fnAction = function()
-			RaidGrid_CTM_Edition.nHPShownMode = 1
+		{ szOption = g_tStrings.STR_RAID_LIFE_LEFT, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode2 == 2, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode2 = 2
 			RaidGrid_Party.ReloadRaidPanel()
 		end	},
-		{ szOption = g_tStrings.STR_RAID_LIFE_LEFT, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 2, fnAction = function()
-			RaidGrid_CTM_Edition.nHPShownMode = 2
+		{ szOption = g_tStrings.STR_RAID_LIFE_LOSE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode2 == 1, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode2 = 1
 			RaidGrid_Party.ReloadRaidPanel()
 		end	},
-		{ szOption = "精简显示血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 4, fnAction = function()
-			RaidGrid_CTM_Edition.nHPShownMode = 4
+		{ bDevide = true },
+		{ szOption = "显示精简血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownNumMode == 1, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownNumMode = 1
 			RaidGrid_Party.ReloadRaidPanel()
 		end	},
-		{ szOption = g_tStrings.STR_RAID_LIFE_LEFT_PER, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 3, fnAction = function()
-			RaidGrid_CTM_Edition.nHPShownMode = 3
+		{ szOption = "显示百分比血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownNumMode == 2, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownNumMode = 2
 			RaidGrid_Party.ReloadRaidPanel()
 		end	},
-		{ szOption = g_tStrings.STR_RAID_LIFE_HIDE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 0, fnAction = function()
-			RaidGrid_CTM_Edition.nHPShownMode = 0
+		{ szOption = "显示具体数值", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownNumMode == 3, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownNumMode = 3
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ bDevide = true },
+		{ szOption = g_tStrings.STR_RAID_LIFE_HIDE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode2 == 0, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode2 = 0
 			RaidGrid_Party.ReloadRaidPanel()
 		end	},
 	})
