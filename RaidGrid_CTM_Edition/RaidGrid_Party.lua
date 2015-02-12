@@ -847,6 +847,14 @@ function RaidGrid_Party.GetPartyPanel(nIndex) --获得组队面板
 	return Station.Lookup("Normal/RaidGrid_Party_" .. nIndex)
 end
 
+function RaidGrid_Party.BringToTop()
+	for i = 0, 4 do
+		if Station.Lookup("Normal/RaidGrid_Party_" .. i) then
+			Station.Lookup("Normal/RaidGrid_Party_" .. i):BringToTop()
+		end
+	end
+end
+
 function RaidGrid_Party.AutoLinkAllPanel2()	--自动连接所有面板2
 	local player = GetClientPlayer()
 	if not player or not player.IsInParty() then
@@ -1012,6 +1020,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 			end
 			RaidGrid_CTM_Edition.OpenRaidDragPanel(dwDragMemberID)
 			RaidGrid_Party.AutoLinkAllPanel()
+			RaidGrid_Party.BringToTop()
 		end
 
 		handleRole.OnItemLButtonDragEnd = function()
@@ -1060,6 +1069,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		end
 		
 		handleRole.OnItemLButtonClick = function()
+			RaidGrid_Party.BringToTop()
 			local szName = this:GetName()
 			local player = GetClientPlayer()
 			if not player then
@@ -1087,6 +1097,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		end
 		
 		handleRole.OnItemRButtonClick = function()
+			RaidGrid_Party.BringToTop()
 			local szName = this:GetName()
 			local team = GetClientTeam()
 			if not team then
