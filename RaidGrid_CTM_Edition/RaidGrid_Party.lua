@@ -1105,8 +1105,8 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 					
 					if dwMemberID ~= player.dwID then
 						InsertTeammateMenu(tMenu, dwMemberID)
+						table.insert(tMenu, { szOption = g_tStrings.STR_LOOKUP, fnAction = function() ViewInviteToPlayer(dwMemberID) end })
 					end
-			
 					if tMenu and #tMenu > 0 then
 						PopupMenu(tMenu)
 					end

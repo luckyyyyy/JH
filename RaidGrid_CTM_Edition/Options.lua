@@ -68,7 +68,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 	InsertDistributeMenu(menu, me.dwID ~= dwDistribute)
 	table.insert(menu, { bDevide = true })
 	-- �༭ģʽ
-	table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bCheck = true, bChecked = not RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function() 
+	table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not IsLeader(), bCheck = true, bChecked = not RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function() 
 		RaidGrid_CTM_Edition.bAltNeededForDrag = not RaidGrid_CTM_Edition.bAltNeededForDrag
 		GetPopupMenu():Hide()
 	end })
