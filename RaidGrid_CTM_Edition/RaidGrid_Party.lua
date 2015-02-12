@@ -36,7 +36,7 @@ RegisterCustomData("RaidGrid_Party.Shadow")
 
 local CTM_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_Party.ini"
 local CTM_ITEM    = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/item.ini"
-
+local CTM_IMAGES  = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/images/ForceColorBox.UITex"
 function RaidGrid_Party.IsInRaid() --检查是否在队伍中
 	local me = GetClientPlayer()
 	if me then
@@ -183,7 +183,7 @@ function RaidGrid_Party.UpdateMarkImage() --标记图像更新
 				if handleRole.dwMemberID then
 					nMarkImageIndex = tPartyMark[handleRole.dwMemberID]
 				end
-				if nMarkImageIndex and PARTY_MARK_ICON_FRAME_LIST[nMarkImageIndex] and RaidGrid_CTM_Edition.bShowMark then
+				if nMarkImageIndex and PARTY_MARK_ICON_FRAME_LIST[nMarkImageIndex] then
 					local imageMark = handleRole:Lookup("Handle_Icons/Image_MarkImage")
 					imageMark:SetFrame(PARTY_MARK_ICON_FRAME_LIST[nMarkImageIndex])
 					imageMark:Show()
@@ -284,8 +284,6 @@ function RaidGrid_Party.RedrawHandleRoleInfoEx(dwMemberID)  --重绘处理角色信息EX
 	else
 		textName:SetFontColor(255, 255, 255)
 	end
-	
-	RaidGrid_Party.RedrawMemberCampImage(handleRole, tMemberInfo.nCamp)
 end
 
 function RaidGrid_Party.RedrawHandleRoleInfo(dwMemberID)  --重绘处理角色信息
@@ -335,105 +333,34 @@ function RaidGrid_Party.RedrawHandleRoleInfo(dwMemberID)  --重绘处理角色信息
 		end
 	end
 	
-	RaidGrid_Party.RedrawMemberCampImage(handleRole, tMemberInfo.nCamp)
-	
-	local imageForce = handleRole:Lookup("Handle_Icons/Image_Force")
-	local imageKungfu = handleRole:Lookup("Handle_Icons/Image_Kungfu")
-	local dwMountKungfuID = tMemberInfo.dwMountKungfuID
-	local dwForceID = tMemberInfo.dwForceID
-	if dwMountKungfuID then
-		RaidGrid_CTM_Edition.bIsSynKungfu = true
+	local img = handleRole:Lookup("Handle_Icons/Image_Icon")
+	if RaidGrid_CTM_Edition.bShowIcon == 2 then
+		local _, nIconID = JH.GetSkillName(tMemberInfo.dwMountKungfuID, 0)
+		img:FromIconID(nIconID)
+	elseif RaidGrid_CTM_Edition.bShowIcon == 1 then
+		img:FromUITex(GetForceImage(tMemberInfo.dwForceID))
+	elseif RaidGrid_CTM_Edition.bShowIcon == 3 then
+		local camp = { [0] = -1, [1] = 43, [2] = 40 }
+		img:FromUITex("UI/Image/Button/ShopButton.uitex", camp[tMemberInfo.nCamp])
 	end
-	if RaidGrid_CTM_Edition.bShowForceIcon or RaidGrid_CTM_Edition.bShowKungfuIcon then
-		if dwMountKungfuID and RaidGrid_CTM_Edition.bShowKungfuIcon then
-			local nIconID = Table_GetSkillIconID(dwMountKungfuID, 0)
-			if nIconID then
-				imageKungfu:FromIconID(nIconID)
-				if RaidGrid_Party.fScaleX ~= RaidGrid_Party.fScaleY then
-					local szImageSize = 28
-					if RaidGrid_Party.fScaleX > RaidGrid_Party.fScaleY then
-						szImageSize = szImageSize * RaidGrid_Party.fScaleY
-						imageKungfu:SetSize(szImageSize, szImageSize)
-					else
-						szImageSize = szImageSize * RaidGrid_Party.fScaleX
-						imageKungfu:SetSize(szImageSize, szImageSize)
-					end
-				end
-				imageKungfu:Show()
-			else
-				imageKungfu:Hide()
-			end
-			imageForce:Hide()
+	
+	if RaidGrid_Party.fScaleX ~= RaidGrid_Party.fScaleY then
+		local szImageSize = 28
+		if RaidGrid_Party.fScaleX > RaidGrid_Party.fScaleY then
+			szImageSize = szImageSize * RaidGrid_Party.fScaleY
+			img:SetSize(szImageSize, szImageSize)
 		else
-			imageForce:FromUITex(GetForceImage(dwForceID))
-			if RaidGrid_Party.fScaleX ~= RaidGrid_Party.fScaleY then
-				local szImageSize = 28
-				if RaidGrid_Party.fScaleX > RaidGrid_Party.fScaleY then
-					szImageSize = szImageSize * RaidGrid_Party.fScaleY
-					imageForce:SetSize(szImageSize, szImageSize)
-				else
-					szImageSize = szImageSize * RaidGrid_Party.fScaleX
-					imageForce:SetSize(szImageSize, szImageSize)
-				end
-			end
-			imageForce:Show()
-			imageKungfu:Hide()
-		end
-	else
-		imageForce:Hide()
-		imageKungfu:Hide()
-	end
-	
-	for i = 0, 8 do
-		local imageForceBG = handleRole:Lookup("Handle_Common/Image_BG_Force" .. i)
-		local dwForceID_Clone = dwForceID
-		if not RaidGrid_CTM_Edition.bColoredGrid then
-			dwForceID_Clone = -1
-		end
-		if imageForceBG then
-			if i == dwForceID_Clone then
-				imageForceBG:Show()
-			else
-				imageForceBG:Hide()
-			end
-		end
-		imageForceBG = handleRole:Lookup("Handle_Common/Image_BG_Force")
-		if dwForceID_Clone == -1 then
-			imageForceBG:Show()
+			szImageSize = szImageSize * RaidGrid_Party.fScaleX
+			img:SetSize(szImageSize, szImageSize)
 		end
 	end
-end
+	img:Show()
 
-function RaidGrid_Party.RedrawMemberCampImage(handleRole, nCamp)  --重绘成员阵营图标
-	if not handleRole then
-		return
-	end
-	local tcamp = {
-		["ALL"] = -1;
-		["NEUTRAL"] = 0;
-		["GOOD"] = 1;--CAMP.GOOD
-		["EVIL"] = 2;
-	}
-	local imageCamp = handleRole:Lookup("Handle_Icons/Image_Camp")
-	local nFrame = 7
-	if not nCamp or not RaidGrid_CTM_Edition.bShowCampIcon then
-		imageCamp:Hide()
-		imageCamp.nFrame = -1
-	elseif nCamp == tcamp.GOOD then
-		imageCamp:Show()
-		if nFrame ~= (imageCamp.nFrame or -1) then
-			imageCamp.nFrame = 7
-			imageCamp:SetFrame(imageCamp.nFrame)
-		end
-	elseif nCamp == tcamp.EVIL then
-		imageCamp:Show()
-		if nFrame ~= (imageCamp.nFrame or -1) then
-			imageCamp.nFrame = 5
-			imageCamp:SetFrame(imageCamp.nFrame)
-		end
+	local imageForceBG = handleRole:Lookup("Handle_Common/Image_BG_Force")
+	if RaidGrid_CTM_Edition.bColoredGrid then
+		imageForceBG:FromUITex(CTM_IMAGES, 3)
 	else
-		imageCamp:Hide()
-		imageCamp.nFrame = -1
+		imageForceBG:FromUITex(CTM_IMAGES, 3)
 	end
 end
 
@@ -1049,7 +976,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 			shadowLifeFade:SetSize(121, 29)
 			handleRole:FormatAllItemPos()
 		end
-		----------------------------------------------------------------------------------
+		------------------------------------------------------------------------------
 		
 		local textLife = handleRole:Lookup("Handle_Common/Text_Life")
 		textLife:SetFontScale(RaidGrid_Party.fScaleFont)
