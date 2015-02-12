@@ -5,14 +5,13 @@ RaidGrid_CTM_Edition.bAltNeededForDrag = true;						RegisterCustomData("RaidGrid
 RaidGrid_CTM_Edition.bRaidEnable = true;							RegisterCustomData("RaidGrid_CTM_Edition.bRaidEnable")
 RaidGrid_CTM_Edition.bShowRaid = true;								RegisterCustomData("RaidGrid_CTM_Edition.bShowRaid")
 RaidGrid_CTM_Edition.bShowInRaid = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowInRaid")
-RaidGrid_CTM_Edition.bAutoHideCTM = true;							RegisterCustomData("RaidGrid_CTM_Edition.bAutoHideCTM")
+RaidGrid_CTM_Edition.bAutoHideCTM = true;							--RegisterCustomData("RaidGrid_CTM_Edition.bAutoHideCTM")
 RaidGrid_CTM_Edition.bShowSystemRaidPanel = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowSystemRaidPanel")
 RaidGrid_CTM_Edition.bShowSystemTeamPanel = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowSystemTeamPanel")
-RaidGrid_CTM_Edition.bAutoLinkAllPanel = true;						RegisterCustomData("RaidGrid_CTM_Edition.bAutoLinkAllPanel")
+RaidGrid_CTM_Edition.bAutoLinkAllPanel = true;						--RegisterCustomData("RaidGrid_CTM_Edition.bAutoLinkAllPanel")
 RaidGrid_CTM_Edition.nAutoLinkMode = 5;								RegisterCustomData("RaidGrid_CTM_Edition.nAutoLinkMode")
 RaidGrid_CTM_Edition.bShowAllPanel = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowAllPanel")
 RaidGrid_CTM_Edition.bShowAllMemberGrid = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowAllMemberGrid")
-RaidGrid_CTM_Edition.bFloatNumber = true;							RegisterCustomData("RaidGrid_CTM_Edition.bFloatNumber")
 RaidGrid_CTM_Edition.nHPShownMode = 2;								RegisterCustomData("RaidGrid_CTM_Edition.nHPShownMode")
 RaidGrid_CTM_Edition.nShowMP = false;								RegisterCustomData("RaidGrid_CTM_Edition.nShowMP")
 RaidGrid_CTM_Edition.bLowMPBar = true;								RegisterCustomData("RaidGrid_CTM_Edition.bLowMPBar")
@@ -23,8 +22,13 @@ RaidGrid_CTM_Edition.bShowIcon = 2;									RegisterCustomData("RaidGrid_CTM_Edi
 RaidGrid_CTM_Edition.bShowDistance = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowDistance")
 RaidGrid_CTM_Edition.bColorHPBarWithDistance = true;				RegisterCustomData("RaidGrid_CTM_Edition.bColorHPBarWithDistance")
 
-RaidGrid_CTM_Edition.bShowSelectImage = true;						RegisterCustomData("RaidGrid_CTM_Edition.bShowSelectImage")
 RaidGrid_CTM_Edition.bShowTargetTargetAni = true;					RegisterCustomData("RaidGrid_CTM_Edition.bShowTargetTargetAni")
+
+local function IsLeader()
+	local hTeam = GetClientTeam()
+	local hPlayer = GetClientPlayer()
+	return hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == hPlayer.dwID
+end
 
 function RaidGrid_CTM_Edition.RaidPanel_Switch(bOpen)
 	local frame = Station.Lookup("Normal/RaidPanel_Main")
@@ -48,472 +52,296 @@ function RaidGrid_CTM_Edition.TeammatePanel_Switch(bOpen)
 	end	
 end
 
-function RaidGrid_CTM_Edition.ShadowSetting()
-	local Recall = function(szText)
-		if not szText or szText == "" then
-			return
-		end
-		local nCount = tonumber(szText)
-		if not nCount then
-			return
-		end
-		if nCount > 0 and nCount < 256 then
-			RaidGrid_Party.Shadow.a = nCount
-		end
-	end
-	GetUserInput("输入1-255之间的数", Recall, nil, function() end, nil, RaidGrid_Party.Shadow.a, 31)
-end
-
-function RaidGrid_CTM_Edition.ShadowSetting2()
-	local Recall = function(szText)
-		if not szText or szText == "" then
-			return
-		end
-		local nCount = tonumber(szText)
-		if not nCount then
-			return
-		end
-		if nCount > 0 and nCount <= 1 then
-			RaidGrid_Party.Shadow.d = nCount
-		end
-	end
-	GetUserInput("请输入大于0，小于等于1之间的数", Recall, nil, function() end, nil, RaidGrid_Party.Shadow.d, 31)
-end
-
 function RaidGrid_CTM_Edition.PopOptions()
-	RaidGrid_CTM_Edition.tOptions = {
-		{
-			szOption = "【团长功能相关】：",
-			{
-				szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, fnAction = RaidGrid_Party.InitReadyCheckCover,
-			},
-			{
-				szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, fnAction =  RaidGrid_Party.ClearReadyCheckCover,
-			},
-			{
-				bDevide = true
-			},
-			{
-				szOption = "需按住Alt才能调队（团长时）", bCheck = true, bChecked = RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function(UserData, bCheck) RaidGrid_CTM_Edition.bAltNeededForDrag = bCheck end,
-			},
-			{
-				bDevide = true
-			},
-		},
-		{
-			bDevide = true
-		},
-		{
-			szOption = "【面板风格设置】：",
-			{
-				szOption = "关闭血条渐变色", bCheck = true, bChecked = RaidGrid_Party.Shadow.bLife, fnAction = function(UserData, bCheck)
-					RaidGrid_Party.Shadow.bLife = bCheck
-				end,
-			},
-			{
-				szOption = "关闭蓝条渐变色", bCheck = true, bChecked = RaidGrid_Party.Shadow.bMana, fnAction = function(UserData, bCheck)
-					RaidGrid_Party.Shadow.bMana = bCheck
-				end,
-			},
-			{
-				szOption = "透明度设置",fnAction = function()
-					RaidGrid_CTM_Edition.ShadowSetting()
-				end,
-			},
-			{
-				szOption = "颜色深度设置",fnAction = function()
-					RaidGrid_CTM_Edition.ShadowSetting2()
-				end,
-			},
-		},
-		{
-			szOption = "【团队面板相关】：",
-			{
-				szOption = "★开启插件团队面板功能", bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bRaidEnable = bCheck
-					RaidGrid_CTM_Edition.bShowRaid = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "◆只在团队时才显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowInRaid, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowInRaid = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "◆CTM控制条随面板自动隐藏", bCheck = true, bChecked = RaidGrid_CTM_Edition.bAutoHideCTM, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bAutoHideCTM = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　锁定团队中小队面板间位置", bCheck = true, bChecked = RaidGrid_CTM_Edition.bAutoLinkAllPanel, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bAutoLinkAllPanel = bCheck
-					if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
-						RaidGrid_Party.AutoLinkAllPanel()
-					end
-				end,
-			},
-			{
-				szOption = "　锁定后自动排列格式：",
-				{szOption = "一行：五列/零列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 5, fnAction = function()
-					RaidGrid_CTM_Edition.nAutoLinkMode = 5
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "两行：一列/四列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 1, fnAction = function()
-					RaidGrid_CTM_Edition.nAutoLinkMode = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "两行：两列/三列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 2, fnAction = function()
-					RaidGrid_CTM_Edition.nAutoLinkMode = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "两行：三列/两列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 3, fnAction = function()
-					RaidGrid_CTM_Edition.nAutoLinkMode = 3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "两行：四列/一列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 4, fnAction = function()
-					RaidGrid_CTM_Edition.nAutoLinkMode = 4
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-			},
-			{
-				szOption = "　重置所有小队面板位置", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck) RaidGrid_Party.AutoLinkAllPanel() end,
-			},
-			{
-				szOption = "　总是显示完整的小队格子", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowAllMemberGrid, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowAllMemberGrid = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　总是显示整个团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowAllPanel, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowAllPanel = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　开启系统团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSystemRaidPanel, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowSystemRaidPanel = bCheck;
-					RaidGrid_CTM_Edition.RaidPanel_Switch(bCheck)
-				end,
-			},
-			{
-				szOption = "　开启系统小队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSystemTeamPanel, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowSystemTeamPanel = bCheck
-					RaidGrid_CTM_Edition.TeammatePanel_Switch(bCheck)
-				end,
-			},
-		},
-		{
-			szOption = "【团队面板尺寸设置】：",
-			{
-				szOption = "★还原为默认 1:1", bCheck = false, bChecked = false, fnAction = function(UserData, bCheck)
-					RaidGrid_Party.fScaleX = 1
-					RaidGrid_Party.fScaleY = 1
-					RaidGrid_Party.fScaleFont = 1
-					RaidGrid_Party.fScaleIcon = 1
-					RaidGrid_Party.fScaleShadowX = 1
-					RaidGrid_Party.fScaleShadowY = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　团队界面【宽度】比例：", fnAction = function()
-					local x, y = Cursor.GetPos()
-					local fScaleX = RaidGrid_Party.fScaleX
-					GetUserPercentage(function(val)
-						RaidGrid_Party.fScaleX = tonumber(val)
-						RaidGrid_Party.ReloadRaidPanel()
-						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleX - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
-				end
-			},
-			{
-				szOption = "　团队界面【高度】比例：", fnAction = function()
-					local x, y = Cursor.GetPos()
-					local fScaleY = RaidGrid_Party.fScaleY
-					GetUserPercentage(function(val)
-						RaidGrid_Party.fScaleY = tonumber(val)
-						RaidGrid_Party.ReloadRaidPanel()
-						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleY - 0.5) / 1.00, "高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
-				end
-			},
-			{
-				szOption = "　团队界面【文字大小】比例：", fnAction = function()
-					local x, y = Cursor.GetPos()
-					local fScaleFont = RaidGrid_Party.fScaleFont
-					GetUserPercentage(function(val)
-						RaidGrid_Party.fScaleFont = tonumber(val)
-						RaidGrid_Party.ReloadRaidPanel()
-						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleFont - 0.5) / 1.00, "文字大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
-				end
-			},
-			{
-				szOption = "　团队界面【buff图标】比例：", fnAction = function()
-					local x, y = Cursor.GetPos()
-					local fScaleIcon = RaidGrid_Party.fScaleIcon
-					GetUserPercentage(function(val)
-						RaidGrid_Party.fScaleIcon = tonumber(val)
-						RaidGrid_Party.ReloadRaidPanel()
-						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleIcon - 0.5) / 1.00, "BUFF大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
-				end
-			},
-			{
-				szOption = "　团队界面【buff背景色】宽度比例：", fnAction = function()
-					local x, y = Cursor.GetPos()
-					local fScaleShadowX = RaidGrid_Party.fScaleShadowX
-					GetUserPercentage(function(val)
-						RaidGrid_Party.fScaleShadowX = tonumber(val)
-						RaidGrid_Party.ReloadRaidPanel()
-						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleShadowX - 0.5) / 1.00, "BUFF背景色宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
-				end
-			},
-			{
-				szOption = "　团队界面【buff背景色】高度比例：", fnAction = function()
-					local x, y = Cursor.GetPos()
-					local fScaleShadowY = RaidGrid_Party.fScaleShadowY
-					GetUserPercentage(function(val)
-						RaidGrid_Party.fScaleShadowY = tonumber(val)
-						RaidGrid_Party.ReloadRaidPanel()
-						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleShadowY - 0.5) / 1.00, "BUFF背景色高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
-				end
-			},
-		},
-		{
-			bDevide = true
-		},
-		{
-			szOption = "【开启治疗模式】", bCheck = true, bChecked = RaidGrid_Party.bTempTargetEnable, fnAction = function(UserData, bCheck)
-				RaidGrid_Party.bTempTargetEnable = bCheck
-			end,
-		},
-		{
-			szOption = "【治疗模式战斗中不显示TIP】", bCheck = true, bChecked = RaidGrid_Party.bTempTargetFightTip, fnAction = function(UserData, bCheck)
-				RaidGrid_Party.bTempTargetFightTip = bCheck
-			end,
-		},
-		{
-			szOption = "【队友行为相关】：",
-			{
-				szOption = "　显示选中的队友标色", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSelectImage, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowSelectImage = bCheck
-					RaidGrid_Party.RedrawTargetSelectImage(true)
-				end,
-			},
-			{
-				szOption = "　显示被目标选中的队友动画", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowTargetTargetAni, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowTargetTargetAni = bCheck
-					RaidGrid_Party.RedrawTargetSelectImage(true)
-				end,
-			},
-			{
-				bDevide = true
-			},
-			{
-				szOption = "　队友距离显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowDistance = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			
-		},
-		{
-			bDevide = true
-		},
-		{
-			szOption = "【血条蓝条显示相关】：",
-			{
-				szOption = "　显示数值精度为 0.1", bCheck = true, bChecked = RaidGrid_CTM_Edition.bFloatNumber, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bFloatNumber = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				bDevide = true
-			},
-			{
-				szOption = "　更细的蓝条显示模式", bCheck = true, bChecked = RaidGrid_CTM_Edition.bLowMPBar, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bLowMPBar = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　显示内力剩余量", bCheck = true, bChecked = RaidGrid_CTM_Edition.nShowMP, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.nShowMP = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				bDevide = true
-			},
-			{
-				szOption = "　血量显示模式",
-				{szOption = "减少的血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 1, fnAction = function()
-					RaidGrid_CTM_Edition.nHPShownMode = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "剩余的血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 2, fnAction = function()
-					RaidGrid_CTM_Edition.nHPShownMode = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "精简显示血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 4, fnAction = function()
-					RaidGrid_CTM_Edition.nHPShownMode = 4
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "血量百分比", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 3, fnAction = function()
-					RaidGrid_CTM_Edition.nHPShownMode = 3
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-				{szOption = "不显示(同时隐藏重伤/离线标记)", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 0, fnAction = function()
-					RaidGrid_CTM_Edition.nHPShownMode = 0
-					RaidGrid_Party.ReloadRaidPanel()
-				end},
-			},
-			{
-				szOption = "　血条根据距离着色", bCheck = true, bChecked = RaidGrid_CTM_Edition.bColorHPBarWithDistance, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bColorHPBarWithDistance = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				bDevide = true
-			},
-			{
-				szOption = "　被攻击队友提示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bHPHitAlert, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bHPHitAlert = bCheck
-					RaidGrid_Party.RedrawAllFadeHP(true)
-				end,
-			},
-		},
-		{
-			szOption = "【血量着色范围设定】：", szID = "HP_COLOR_ZONE",
-		},
-		{
-			bDevide = true
-		},
-		{
-			szOption = "【着色与图标相关】：",
-			{
-				szOption = "　名字按职业着色", bCheck = true, bChecked = RaidGrid_CTM_Edition.bColoredName, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bColoredName = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　角色框按职业着色", bCheck = true, bChecked = RaidGrid_CTM_Edition.bColoredGrid, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bColoredGrid = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				bDevide = true
-			},
-			{
-				szOption = "　显示职业图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 1, fnAction = function()
-					RaidGrid_CTM_Edition.bShowIcon = 1
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　显示内功图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 2, fnAction = function()
-					RaidGrid_CTM_Edition.bShowIcon = 2
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-			{
-				szOption = "　显示阵营图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 3, fnAction = function()
-					RaidGrid_CTM_Edition.bShowIcon = 3
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
-			},
-		},
-		{
-			bDevide = true
-		},
-	}
+	local me = GetClientPlayer()
+	local team = GetClientTeam()
+	local dwDistribute = team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE)
+	local menu = {}
+	-- 团队就位
+	table.insert(menu, { szOption = g_tStrings.STR_RAID_MENU_READY_CONFIRM, 
+		{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not IsLeader(), fnAction = RaidGrid_Party.InitReadyCheckCover },
+		{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not IsLeader(), fnAction = RaidGrid_Party.ClearReadyCheckCover }
+	})
+	table.insert(menu, { bDevide = true })
+	-- 分配
+	InsertDistributeMenu(menu, me.dwID ~= dwDistribute)
+	table.insert(menu, { bDevide = true })
+	-- 编辑模式
+	table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bCheck = true, bChecked = not RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function() RaidGrid_CTM_Edition.bAltNeededForDrag = not RaidGrid_CTM_Edition.bAltNeededForDrag end })
+	-- 治疗模式
+	table.insert(menu, { szOption = g_tStrings.STR_RAID_TARGET_ASSIST, bCheck = true, bChecked = RaidGrid_Party.bTempTargetEnable, fnAction = function() RaidGrid_Party.bTempTargetEnable = not RaidGrid_Party.bTempTargetEnable end,
+		{ szOption = "战斗中不显示TIP信息", bCheck = true, bChecked = RaidGrid_Party.bTempTargetFightTip, fnDisable = function() return not RaidGrid_Party.bTempTargetEnable end, fnAction = function()
+			RaidGrid_Party.bTempTargetFightTip = not RaidGrid_Party.bTempTargetFightTip
+		end	}
+	})
+	table.insert(menu, { bDevide = true })
+	-- 提醒窗体
+	table.insert(menu, { szOption = g_tStrings.STR_RAID_TIP_IMAGE,
+		{ szOption = g_tStrings.STR_RAID_TIP_TARGET, bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowTargetTargetAni, fnAction = function()
+			RaidGrid_CTM_Edition.bShowTargetTargetAni = not RaidGrid_CTM_Edition.bShowTargetTargetAn
+			RaidGrid_Party.RedrawTargetSelectImage(true)
+		end },
+		{ szOption = "显示距离", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function()
+			RaidGrid_CTM_Edition.bShowDistance = not RaidGrid_CTM_Edition.bShowDistance
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ szOption = "被攻击队友提示（治疗神器）", bCheck = true, bChecked = RaidGrid_CTM_Edition.bHPHitAlert, fnAction = function()
+			RaidGrid_CTM_Edition.bHPHitAlert = not RaidGrid_CTM_Edition.bHPHitAlert
+			RaidGrid_Party.RedrawAllFadeHP(true)
+		end }
+	})
 	
-	for i = 1, #RaidGrid_CTM_Edition.tOptions do
-		if RaidGrid_CTM_Edition.tOptions[i].szID then
-			if RaidGrid_CTM_Edition.tOptions[i].szID == "HP_COLOR_ZONE" then
-				local function GetDistTable(nIndex)
-					local tabAllDist = {szOption = "距离：" .. RaidGrid_Party.tDistanceLevel[nIndex],}
-					if nIndex == 5 then
-						tabAllDist.bDisable = true
-					else
-						for k = 4, 32 do
-							local tabDist = {
-								szOption = "　距离 " .. k .. "米以内 (包括)", bMCheck = true, bChecked = RaidGrid_Party.tDistanceLevel[nIndex] == k, fnAction = function(UserData, bCheck)
-									RaidGrid_Party.tDistanceLevel[nIndex] = k
-								end,
-							}
-							table.insert(tabAllDist, tabDist)
-						end
-					end
-					return tabAllDist, RaidGrid_Party.tDistanceLevel[nIndex]
-				end
-				local function GetColorTable(nIndex)
-					local tColor = {
-						{szName = "蓝色", nLevel = 1,		r = RaidGrid_Party.tDistanceColor[1][1], g = RaidGrid_Party.tDistanceColor[1][2], b = RaidGrid_Party.tDistanceColor[1][3]},
-						{szName = "绿色", nLevel = 2,		r = RaidGrid_Party.tDistanceColor[2][1], g = RaidGrid_Party.tDistanceColor[2][2], b = RaidGrid_Party.tDistanceColor[2][3]},
-						{szName = "黄色", nLevel = 3,		r = RaidGrid_Party.tDistanceColor[3][1], g = RaidGrid_Party.tDistanceColor[3][2], b = RaidGrid_Party.tDistanceColor[3][3]},
-						{szName = "紫色", nLevel = 4,		r = RaidGrid_Party.tDistanceColor[4][1], g = RaidGrid_Party.tDistanceColor[4][2], b = RaidGrid_Party.tDistanceColor[4][3]},
-						{szName = "红色", nLevel = 5,		r = RaidGrid_Party.tDistanceColor[5][1], g = RaidGrid_Party.tDistanceColor[5][2], b = RaidGrid_Party.tDistanceColor[5][3]},
-
-						{szName = "灰色 (深)", nLevel = 6,	r = RaidGrid_Party.tDistanceColor[6][1], g = RaidGrid_Party.tDistanceColor[6][2], b = RaidGrid_Party.tDistanceColor[6][3]},
-						{szName = "灰色 (浅)", nLevel = 7,	r = RaidGrid_Party.tDistanceColor[7][1], g = RaidGrid_Party.tDistanceColor[7][2], b = RaidGrid_Party.tDistanceColor[7][3]},
-						{szName = "白色", nLevel = 8,		r = RaidGrid_Party.tDistanceColor[8][1], g = RaidGrid_Party.tDistanceColor[8][2], b = RaidGrid_Party.tDistanceColor[8][3]},
-					}
-					
-					local szNameC = tColor[RaidGrid_Party.tDistanceColorLevel[nIndex]].szName
-					local nR = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][1]
-					local nG = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][2]
-					local nB = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][3]
-					local tabAllColor = {szOption = "颜色：" .. szNameC, r = nR, g = nG, b = nB}
-					for k = 1, #tColor do
-						local tabColor = {
-							szOption = tColor[k].szName, bMCheck = true, bChecked = RaidGrid_Party.tDistanceColorLevel[nIndex] == tColor[k].nLevel, fnAction = function(UserData, bCheck)
-								RaidGrid_Party.tDistanceColorLevel[nIndex] = k
-							end,
-							r = tColor[k].r, g = tColor[k].g, b = tColor[k].b, 
-						}
-						table.insert(tabAllColor, tabColor)
-					end
-					return tabAllColor, szNameC, nR, nG, nB 
-				end
-				for j = 1, 5 do
-					local tD, nDist = GetDistTable(j)
-					local tC, szNameC, nR, nG, nB = GetColorTable(j)
-					local szDist = tostring(nDist)
-					szDist = ("_"):rep(3 - #szDist) .. szDist
-					table.insert(RaidGrid_CTM_Edition.tOptions[i], {szOption = "小于 " .. szDist .. "米内为：" .. szNameC, tD, tC, r = nR, g = nG, b = nB})
-				end
+	table.insert(menu, { bDevide = true })
+	table.insert(menu, { szOption = "血条设置",
+		{ szOption = "血条渐变色", bCheck = true, bChecked = not RaidGrid_Party.Shadow.bLife, fnAction = function()
+			RaidGrid_Party.Shadow.bLife = not RaidGrid_Party.Shadow.bLife
+		end	},
+		{ szOption = "蓝条渐变色", bCheck = true, bChecked = not RaidGrid_Party.Shadow.bMana, fnAction = function()
+			RaidGrid_Party.Shadow.bMana = not RaidGrid_Party.Shadow.bMana
+		end	},
+		{ szOption = "更细的蓝条", bCheck = true, bChecked = not RaidGrid_CTM_Edition.bLowMPBar, fnAction = function()
+			RaidGrid_CTM_Edition.bLowMPBar = not RaidGrid_CTM_Edition.bLowMPBar
+		end	},
+		{ szOption = "透明度设置", fnAction = function()
+			local x, y = Cursor.GetPos()
+			GetUserPercentage(function(val)
+				RaidGrid_Party.Shadow.a = tonumber(val) * 255
+				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+			end, nil, RaidGrid_Party.Shadow.a / 255, g_tStrings.STR_ALPHA .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 })
+		end	},
+		{ bDevide = true },
+		{ szOption = "显示内力", bCheck = true, bChecked = RaidGrid_CTM_Edition.nShowMP, fnAction = function()
+			RaidGrid_CTM_Edition.nShowMP = not RaidGrid_CTM_Edition.nShowMP
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ bDevide = true },
+		{ szOption = g_tStrings.STR_RAID_LIFE_LOSE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 1, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode = 1
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ szOption = g_tStrings.STR_RAID_LIFE_LEFT, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 2, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode = 2
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ szOption = "精简显示血量", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 4, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode = 4
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ szOption = g_tStrings.STR_RAID_LIFE_LEFT_PER, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 3, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode = 3
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ szOption = g_tStrings.STR_RAID_LIFE_HIDE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode == 0, fnAction = function()
+			RaidGrid_CTM_Edition.nHPShownMode = 0
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+	})
+	table.insert(menu, { szOption = "图标与颜色",
+		{ szOption = g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, bCheck = true, bChecked = RaidGrid_CTM_Edition.bColoredName, fnAction = function()
+			RaidGrid_CTM_Edition.bColoredName = not RaidGrid_CTM_Edition.bColoredName
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},		
+		{ szOption = "边框根据门派着色（暂时无效）", bCheck = true, bChecked = RaidGrid_CTM_Edition.bColoredGrid, fnAction = function()
+			RaidGrid_CTM_Edition.bColoredGrid = not RaidGrid_CTM_Edition.bColoredGrid
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ bDevide = true },
+		{ szOption = "显示门派图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 1, fnAction = function()
+			RaidGrid_CTM_Edition.bShowIcon = 1
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ szOption = g_tStrings.STR_SHOW_KUNGFU, bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 2, fnAction = function()
+			RaidGrid_CTM_Edition.bShowIcon = 2
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+		{ szOption = "显示阵营图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 3, fnAction = function()
+			RaidGrid_CTM_Edition.bShowIcon = 3
+			RaidGrid_Party.ReloadRaidPanel()
+		end	},
+	})
+	
+	local function GetDistTable(nIndex)
+		local tabAllDist = {szOption = "距离：" .. RaidGrid_Party.tDistanceLevel[nIndex],}
+		if nIndex == 5 then
+			tabAllDist.bDisable = true
+		else
+			for k = 4, 32 do
+				local tabDist = {
+					szOption = "　距离 " .. k .. "米以内 (包括)", bMCheck = true, bChecked = RaidGrid_Party.tDistanceLevel[nIndex] == k, fnAction = function(UserData, bCheck)
+						RaidGrid_Party.tDistanceLevel[nIndex] = k
+					end,
+				}
+				table.insert(tabAllDist, tabDist)
 			end
 		end
+		return tabAllDist, RaidGrid_Party.tDistanceLevel[nIndex]
 	end
+	local function GetColorTable(nIndex)
+		local tColor = {
+			{szName = "蓝色", nLevel = 1,		r = RaidGrid_Party.tDistanceColor[1][1], g = RaidGrid_Party.tDistanceColor[1][2], b = RaidGrid_Party.tDistanceColor[1][3]},
+			{szName = "绿色", nLevel = 2,		r = RaidGrid_Party.tDistanceColor[2][1], g = RaidGrid_Party.tDistanceColor[2][2], b = RaidGrid_Party.tDistanceColor[2][3]},
+			{szName = "黄色", nLevel = 3,		r = RaidGrid_Party.tDistanceColor[3][1], g = RaidGrid_Party.tDistanceColor[3][2], b = RaidGrid_Party.tDistanceColor[3][3]},
+			{szName = "紫色", nLevel = 4,		r = RaidGrid_Party.tDistanceColor[4][1], g = RaidGrid_Party.tDistanceColor[4][2], b = RaidGrid_Party.tDistanceColor[4][3]},
+			{szName = "红色", nLevel = 5,		r = RaidGrid_Party.tDistanceColor[5][1], g = RaidGrid_Party.tDistanceColor[5][2], b = RaidGrid_Party.tDistanceColor[5][3]},
+			{szName = "灰色 (深)", nLevel = 6,	r = RaidGrid_Party.tDistanceColor[6][1], g = RaidGrid_Party.tDistanceColor[6][2], b = RaidGrid_Party.tDistanceColor[6][3]},
+			{szName = "灰色 (浅)", nLevel = 7,	r = RaidGrid_Party.tDistanceColor[7][1], g = RaidGrid_Party.tDistanceColor[7][2], b = RaidGrid_Party.tDistanceColor[7][3]},
+			{szName = "白色", nLevel = 8,		r = RaidGrid_Party.tDistanceColor[8][1], g = RaidGrid_Party.tDistanceColor[8][2], b = RaidGrid_Party.tDistanceColor[8][3]},
+		}
+		local szNameC = tColor[RaidGrid_Party.tDistanceColorLevel[nIndex]].szName
+		local nR = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][1]
+		local nG = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][2]
+		local nB = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][3]
+		local tabAllColor = {szOption = "颜色：" .. szNameC, r = nR, g = nG, b = nB}
+		for k = 1, #tColor do
+			local tabColor = {
+				szOption = tColor[k].szName, bMCheck = true, bChecked = RaidGrid_Party.tDistanceColorLevel[nIndex] == tColor[k].nLevel, fnAction = function(UserData, bCheck)
+					RaidGrid_Party.tDistanceColorLevel[nIndex] = k
+				end,
+				r = tColor[k].r, g = tColor[k].g, b = tColor[k].b, 
+			}
+			table.insert(tabAllColor, tabColor)
+		end
+		return tabAllColor, szNameC, nR, nG, nB 
+	end
+	local tDistanceMenu = { szOption = g_tStrings.STR_RAID_DISTANCE, bCheck = true, bChecked = RaidGrid_CTM_Edition.bColorHPBarWithDistance, fnAction = function() 
+		RaidGrid_CTM_Edition.bColorHPBarWithDistance = not RaidGrid_CTM_Edition.bColorHPBarWithDistance
+		RaidGrid_Party.ReloadRaidPanel() 
+	end	}
+	for j = 1, 5 do
+		local tD, nDist = GetDistTable(j)
+		local tC, szNameC, nR, nG, nB = GetColorTable(j)
+		local szDist = tostring(nDist)
+		szDist = ("_"):rep(3 - #szDist) .. szDist
+		table.insert(tDistanceMenu, { szOption = "小于 " .. szDist .. "米内为：" .. szNameC, fnDisable = function() return not RaidGrid_CTM_Edition.bColorHPBarWithDistance end,tD, tC, rgb = { nR, nG, nB }} )
+	end
+
 	
-	if GetClientPlayer().IsInParty() then
-		RaidGrid_CTM_Edition.InsertForceCountMenu(RaidGrid_CTM_Edition.tOptions)
+	table.insert(menu, tDistanceMenu)
+	table.insert(menu, { bDevide = true })
+	table.insert(menu, { szOption = "排列模式",
+		{ szOption = "一行：五列/零列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 5, fnAction = function()
+			RaidGrid_CTM_Edition.nAutoLinkMode = 5
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ szOption = "两行：一列/四列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 1, fnAction = function()
+			RaidGrid_CTM_Edition.nAutoLinkMode = 1
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ szOption = "两行：两列/三列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 2, fnAction = function()
+			RaidGrid_CTM_Edition.nAutoLinkMode = 2
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ szOption = "两行：三列/两列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 3, fnAction = function()
+			RaidGrid_CTM_Edition.nAutoLinkMode = 3
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ szOption = "两行：四列/一列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 4, fnAction = function()
+			RaidGrid_CTM_Edition.nAutoLinkMode = 4
+			RaidGrid_Party.ReloadRaidPanel()
+		end },	
+	})
+	table.insert(menu, { szOption = g_tStrings.WINDOW_ADJUST_SCALE,
+		{ szOption = "还原为默认 1:1", bCheck = false, bChecked = false, fnAction = function()
+			RaidGrid_Party.fScaleX = 1
+			RaidGrid_Party.fScaleY = 1
+			RaidGrid_Party.fScaleFont = 1
+			RaidGrid_Party.fScaleIcon = 1
+			RaidGrid_Party.fScaleShadowX = 1
+			RaidGrid_Party.fScaleShadowY = 1
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ bDevide = true },
+		{ szOption = "团队界面【宽度】比例", fnAction = function()
+			local x, y = Cursor.GetPos()
+			local fScaleX = RaidGrid_Party.fScaleX
+			GetUserPercentage(function(val)
+				RaidGrid_Party.fScaleX = tonumber(val)
+				RaidGrid_Party.ReloadRaidPanel()
+				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+			end, nil, (fScaleX - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+		end	},
+		{ szOption = "团队界面【高度】比例", fnAction = function()
+			local x, y = Cursor.GetPos()
+			local fScaleY = RaidGrid_Party.fScaleY
+			GetUserPercentage(function(val)
+				RaidGrid_Party.fScaleY = tonumber(val)
+				RaidGrid_Party.ReloadRaidPanel()
+				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+			end, nil, (fScaleY - 0.5) / 1.00, "高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+		end },
+		{ szOption = "团队界面【文字大小】比例", fnAction = function()
+			local x, y = Cursor.GetPos()
+			local fScaleFont = RaidGrid_Party.fScaleFont
+			GetUserPercentage(function(val)
+				RaidGrid_Party.fScaleFont = tonumber(val)
+				RaidGrid_Party.ReloadRaidPanel()
+				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+			end, nil, (fScaleFont - 0.5) / 1.00, "文字大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+		end },
+		{ szOption = "团队界面【buff图标】比例", fnAction = function()
+			local x, y = Cursor.GetPos()
+			local fScaleIcon = RaidGrid_Party.fScaleIcon
+			GetUserPercentage(function(val)
+				RaidGrid_Party.fScaleIcon = tonumber(val)
+				RaidGrid_Party.ReloadRaidPanel()
+				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+			end, nil, (fScaleIcon - 0.5) / 1.00, "BUFF大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+		end	},
+		{ szOption = "团队界面【buff背景色】宽度比例", fnAction = function()
+			local x, y = Cursor.GetPos()
+			local fScaleShadowX = RaidGrid_Party.fScaleShadowX
+			GetUserPercentage(function(val)
+				RaidGrid_Party.fScaleShadowX = tonumber(val)
+				RaidGrid_Party.ReloadRaidPanel()
+				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+			end, nil, (fScaleShadowX - 0.5) / 1.00, "BUFF背景色宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+		end },
+		{ szOption = "团队界面【buff背景色】高度比例", fnAction = function()
+			local x, y = Cursor.GetPos()
+			local fScaleShadowY = RaidGrid_Party.fScaleShadowY
+			GetUserPercentage(function(val)
+				RaidGrid_Party.fScaleShadowY = tonumber(val)
+				RaidGrid_Party.ReloadRaidPanel()
+				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
+			end, nil, (fScaleShadowY - 0.5) / 1.00, "BUFF背景色高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+		end },
+	})
+	table.insert(menu, { bDevide = true })
+	table.insert(menu, { szOption = g_tStrings.OTHER,
+		{ szOption = "启用", bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable, fnAction = function(UserData, bCheck)
+			RaidGrid_CTM_Edition.bRaidEnable = bCheck
+			RaidGrid_CTM_Edition.bShowRaid = bCheck
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ szOption = "只在团队时才显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowInRaid, fnAction = function(UserData, bCheck)
+			RaidGrid_CTM_Edition.bShowInRaid = bCheck
+			RaidGrid_Party.ReloadRaidPanel()
+		end },
+		{ bDevide = true },
+		{ szOption = "开启系统团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSystemRaidPanel, fnAction = function(UserData, bCheck)
+			RaidGrid_CTM_Edition.bShowSystemRaidPanel = bCheck
+			RaidGrid_CTM_Edition.RaidPanel_Switch(bCheck)
+		end },
+		{ szOption = "开启系统小队面板", bCheck = true, bDisable = me.IsInRaid(), bChecked = RaidGrid_CTM_Edition.bShowSystemTeamPanel, fnAction = function(UserData, bCheck)
+			RaidGrid_CTM_Edition.bShowSystemTeamPanel = bCheck
+			RaidGrid_CTM_Edition.TeammatePanel_Switch(bCheck)
+		end },		
+	})
+	-- 人数统计
+	if me.IsInRaid() then
+		table.insert(menu, { bDevide = true })
+		RaidGrid_CTM_Edition.InsertForceCountMenu(menu)
 	end
 	local nX, nY = Cursor.GetPos(true)
-	RaidGrid_CTM_Edition.tOptions.x, RaidGrid_CTM_Edition.tOptions.y = nX + 15, nY + 15
+	menu.x, menu.y = nX + 15, nY + 15
+	PopupMenu(menu)
 	
-	local player = GetClientPlayer()
-	local hTeam = GetClientTeam()
-	local dwDistribute = hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE)	
-	InsertDistributeMenu(RaidGrid_CTM_Edition.tOptions[1], player.dwID ~= dwDistribute)
-	PopupMenu(RaidGrid_CTM_Edition.tOptions)
 end
 
 function RaidGrid_CTM_Edition.InsertForceCountMenu(tMenu)
 	local tForceList = {}
 	local hTeam = GetClientTeam()
+	local nCount = 0
 	for nGroupID = 0, hTeam.nGroupNum - 1 do
 		local tGroupInfo = hTeam.GetGroupInfo(nGroupID)
 		for _, dwMemberID in ipairs(tGroupInfo.MemberList) do
@@ -523,10 +351,20 @@ function RaidGrid_CTM_Edition.InsertForceCountMenu(tMenu)
 			end
 			tForceList[tMemberInfo.dwForceID] = tForceList[tMemberInfo.dwForceID] + 1
 		end
+		nCount = nCount + #tGroupInfo.MemberList
 	end
-	local tSubMenu = { szOption = "【查看人数统计】：" }
+	local tSubMenu = { szOption = g_tStrings.STR_RAID_MENU_FORCE_COUNT ..
+		FormatString(g_tStrings.STR_ALL_PARENTHESES, nCount)
+	}
 	for dwForceID, nCount in pairs(tForceList) do
-		table.insert(tSubMenu, { szOption = g_tStrings.tForceTitle[dwForceID] .. "   " .. nCount })
+		local szPath, nFrame = GetForceImage(dwForceID)
+		table.insert(tSubMenu, { 
+			szOption = g_tStrings.tForceTitle[dwForceID] .. "   " .. nCount,
+			rgb = { JH.GetForceColor(dwForceID) },
+			szIcon = szPath,
+			nFrame = nFrame,
+			szLayer = "ICON_LEFT"
+		})
 	end
 	table.insert(tMenu, tSubMenu)
 end

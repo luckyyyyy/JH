@@ -30,7 +30,6 @@ RaidGrid_Party.Shadow = {
  	bLife = false,
  	bMana = false,
  	a = 240,
- 	d = 1,
  }
 RegisterCustomData("RaidGrid_Party.Shadow")
 
@@ -142,11 +141,7 @@ function RaidGrid_Party.UpdateMemberDistance() --Õ≈‘±æ‡¿Î∏¸–¬
 							if nDist2d <= RaidGrid_Party.tDistanceLevel[nDistLevel] then
 								nArrowDelay = tArrowDelay[nDistLevel]
 								if RaidGrid_CTM_Edition.bShowDistance then
-									if RaidGrid_CTM_Edition.bFloatNumber then
-										textDistance:SetText(string.format("%.1f", nDist2d))
-									else
-										textDistance:SetText(math.floor(nDist2d))
-									end
+									textDistance:SetText(string.format("%.1f", nDist2d))
 									textDistance:SetFontColor(255, 210, 255)
 								else
 									textDistance:SetText("")
@@ -199,7 +194,7 @@ function RaidGrid_Party.UpdateMarkImage() --±Íº«ÕºœÒ∏¸–¬
 end
 
 function RaidGrid_Party.RedrawTargetSelectImage(bForceHide)  --÷ÿªÊƒø±Í—°‘ÒÕºœÒ
-	if not RaidGrid_CTM_Edition.bShowSelectImage and not RaidGrid_CTM_Edition.bShowTargetTargetAni and not bForceHide then
+	if not RaidGrid_CTM_Edition.bShowTargetTargetAni and not bForceHide then
 		return
 	end
 	local player = GetClientPlayer()
@@ -226,7 +221,7 @@ function RaidGrid_Party.RedrawTargetSelectImage(bForceHide)  --÷ÿªÊƒø±Í—°‘ÒÕºœÒ
 			local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, nGroupIndex)
 			if handleRole and handleRole.dwMemberID then
 				local imageSelected = handleRole:Lookup("Image_Selected")
-				if not bForceHide and RaidGrid_CTM_Edition.bShowSelectImage and target and target.dwID == handleRole.dwMemberID then
+				if not bForceHide and target and target.dwID == handleRole.dwMemberID then
 					imageSelected:Show()
 				else
 					imageSelected:Hide()
@@ -499,11 +494,7 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MPœ‡πÿ
 	elseif RaidGrid_CTM_Edition.nHPShownMode == 2 then
 		textLife:SetText(tMemberInfo.nCurrentLife)
 	elseif RaidGrid_CTM_Edition.nHPShownMode == 3 then
-		if RaidGrid_CTM_Edition.bFloatNumber then
-			textLife:SetText(string.format("%.1f", nLifePercentage * 100) .. "%")
-		else
-			textLife:SetText(math.floor(nLifePercentage * 100) .. "%")
-		end
+		textLife:SetText(string.format("%.1f", nLifePercentage * 100) .. "%")
 	elseif RaidGrid_CTM_Edition.nHPShownMode == 4 then
 		if tMemberInfo.nCurrentLife > 9999 then
 			textLife:SetText(string.format("%.1fw", tMemberInfo.nCurrentLife / 10000))
@@ -822,20 +813,16 @@ function RaidGrid_Party.RedrawTriangleFan(shadow, x, y, r, g, b,bPureColour) --÷
 	shadow:SetTriangleFan(true)
 	shadow:ClearTriangleFanPoint()
 	local a = RaidGrid_Party.Shadow.a
-	local d = RaidGrid_Party.Shadow.d
 	if not bPureColour then
 		shadow:AppendTriangleFanPoint(	0,	0,	64,	64,	64,	a) --x,y,r,g,b,alpha
 		shadow:AppendTriangleFanPoint(	x,	0,	64,	64,	64,	a)
 		shadow:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
 		shadow:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)
 	else
-		local r2 = math.ceil(r*d)
-		local g2 = math.ceil(g*d)
-		local b2 = math.ceil(b*d)
-		shadow:AppendTriangleFanPoint(	0,	0,	r2,	g2,	b2,	a) --x,y,r,g,b,alpha
-		shadow:AppendTriangleFanPoint(	x,	0,	r2,	g2,	b2,	a)
-		shadow:AppendTriangleFanPoint(	x,	y,	r2,	g2,	b2,	a)
-		shadow:AppendTriangleFanPoint(	0,	y,	r2,	g2,	b2,	a)	
+		shadow:AppendTriangleFanPoint(	0,	0,	r,	g,	b,	a) --x,y,r,g,b,alpha
+		shadow:AppendTriangleFanPoint(	x,	0,	r,	g,	b,	a)
+		shadow:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
+		shadow:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)	
 	end
 end
 
