@@ -2,7 +2,6 @@ RaidGrid_CTM_Edition = RaidGrid_CTM_Edition or {}
 RaidGrid_CTM_Edition.nSteper = -1
 RaidGrid_CTM_Edition.frameSelf = nil
 
-RaidGrid_CTM_Edition.bIsSynKungfu = false
 RaidGrid_CTM_Edition.tLastLoc = {nX = 0, nY = 0};		RegisterCustomData("RaidGrid_CTM_Edition.tLastLoc")
 RaidGrid_CTM_Edition.tLastPartyPanelLoc = {
 	{nX = 0, nY = 0}, {nX = 0, nY = 0}, {nX = 0, nY = 0}, {nX = 0, nY = 0}, {nX = 0, nY = 0}

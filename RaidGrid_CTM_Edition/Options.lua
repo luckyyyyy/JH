@@ -19,12 +19,9 @@ RaidGrid_CTM_Edition.bLowMPBar = true;								RegisterCustomData("RaidGrid_CTM_E
 RaidGrid_CTM_Edition.bHPHitAlert = true;							RegisterCustomData("RaidGrid_CTM_Edition.bHPHitAlert")
 RaidGrid_CTM_Edition.bColoredName = true;							RegisterCustomData("RaidGrid_CTM_Edition.bColoredName")
 RaidGrid_CTM_Edition.bColoredGrid = false;							RegisterCustomData("RaidGrid_CTM_Edition.bColoredGrid")
-RaidGrid_CTM_Edition.bShowForceIcon = false;						RegisterCustomData("RaidGrid_CTM_Edition.bShowForceIcon")
-RaidGrid_CTM_Edition.bShowKungfuIcon = true;						RegisterCustomData("RaidGrid_CTM_Edition.bShowKungfuIcon")
-RaidGrid_CTM_Edition.bShowCampIcon = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowCampIcon")
+RaidGrid_CTM_Edition.bShowIcon = 2;									RegisterCustomData("RaidGrid_CTM_Edition.bShowIcon")
 RaidGrid_CTM_Edition.bShowDistance = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowDistance")
 RaidGrid_CTM_Edition.bColorHPBarWithDistance = true;				RegisterCustomData("RaidGrid_CTM_Edition.bColorHPBarWithDistance")
-RaidGrid_CTM_Edition.bShowMark = true;								RegisterCustomData("RaidGrid_CTM_Edition.bShowMark")
 
 RaidGrid_CTM_Edition.bShowSelectImage = true;						RegisterCustomData("RaidGrid_CTM_Edition.bShowSelectImage")
 RaidGrid_CTM_Edition.bShowTargetTargetAni = true;					RegisterCustomData("RaidGrid_CTM_Edition.bShowTargetTargetAni")
@@ -241,7 +238,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 						RaidGrid_Party.fScaleY = tonumber(val)
 						RaidGrid_Party.ReloadRaidPanel()
 						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleY - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+					end, nil, (fScaleY - 0.5) / 1.00, "高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 				end
 			},
 			{
@@ -252,7 +249,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 						RaidGrid_Party.fScaleFont = tonumber(val)
 						RaidGrid_Party.ReloadRaidPanel()
 						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleFont - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+					end, nil, (fScaleFont - 0.5) / 1.00, "文字大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 				end
 			},
 			{
@@ -263,7 +260,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 						RaidGrid_Party.fScaleIcon = tonumber(val)
 						RaidGrid_Party.ReloadRaidPanel()
 						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleIcon - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+					end, nil, (fScaleIcon - 0.5) / 1.00, "BUFF大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 				end
 			},
 			{
@@ -274,7 +271,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 						RaidGrid_Party.fScaleShadowX = tonumber(val)
 						RaidGrid_Party.ReloadRaidPanel()
 						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleShadowX - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+					end, nil, (fScaleShadowX - 0.5) / 1.00, "BUFF背景色宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 				end
 			},
 			{
@@ -285,7 +282,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 						RaidGrid_Party.fScaleShadowY = tonumber(val)
 						RaidGrid_Party.ReloadRaidPanel()
 						Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-					end, nil, (fScaleShadowY - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+					end, nil, (fScaleShadowY - 0.5) / 1.00, "BUFF背景色高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 				end
 			},
 		},
@@ -318,12 +315,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 			},
 			{
 				bDevide = true
-			},
-			{
-				szOption = "　显示队友标记", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowMark, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowMark = bCheck
-					RaidGrid_Party.ReloadRaidPanel()
-				end,
 			},
 			{
 				szOption = "　队友距离显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function(UserData, bCheck)
@@ -422,20 +413,23 @@ function RaidGrid_CTM_Edition.PopOptions()
 				end,
 			},
 			{
-				szOption = "　显示职业图标", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowForceIcon, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowForceIcon = bCheck
+				bDevide = true
+			},
+			{
+				szOption = "　显示职业图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 1, fnAction = function()
+					RaidGrid_CTM_Edition.bShowIcon = 1
 					RaidGrid_Party.ReloadRaidPanel()
 				end,
 			},
 			{
-				szOption = "　显示内功图标", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowKungfuIcon, bDisable = not RaidGrid_CTM_Edition.bIsSynKungfu, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowKungfuIcon = bCheck
+				szOption = "　显示内功图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 2, fnAction = function()
+					RaidGrid_CTM_Edition.bShowIcon = 2
 					RaidGrid_Party.ReloadRaidPanel()
 				end,
 			},
 			{
-				szOption = "　显示阵营图标", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowCampIcon, fnAction = function(UserData, bCheck)
-					RaidGrid_CTM_Edition.bShowCampIcon = bCheck
+				szOption = "　显示阵营图标", bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 3, fnAction = function()
+					RaidGrid_CTM_Edition.bShowIcon = 3
 					RaidGrid_Party.ReloadRaidPanel()
 				end,
 			},
@@ -460,9 +454,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 								end,
 							}
 							table.insert(tabAllDist, tabDist)
-							--if k % 5 == 0 then
-								--table.insert(tabAllDist, {bDevide = true, bDisable = true})
-							--end
 						end
 					end
 					return tabAllDist, RaidGrid_Party.tDistanceLevel[nIndex]
