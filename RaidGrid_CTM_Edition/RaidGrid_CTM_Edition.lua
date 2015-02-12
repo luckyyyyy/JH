@@ -267,7 +267,7 @@ end
 function RaidGrid_CTM_Edition.OpenPanel()
 	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
 	if not frame then
-		frame = Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
+		frame = Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
 	end
 
 	RaidGrid_CTM_Edition.frameSelf = frame
@@ -339,10 +339,4 @@ JH.AddHotKey("JH_CTM_Switch","开启/关闭CTM团队面板",function()
 		RaidGrid_Party.ReloadRaidPanel()
 	end
 end)
-JH.AddHotKey("JH_CTM_Ready", "发布团队你就位确认", RaidGrid_Party.InitReadyCheckCover)
-JH.AddHotKey("JH_CTM_ResetPos","重置CTM面板位置",function()
-	RaidGrid_CTM_Edition.SetPanelPos()
-	if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
-		RaidGrid_Party.AutoLinkAllPanel()
-	end
-end)
+JH.AddHotKey("JH_CTM_Ready", g_tStrings.STR_RAID_READY_CONFIRM_START, RaidGrid_Party.InitReadyCheckCover)

@@ -34,7 +34,8 @@ RaidGrid_Party.Shadow = {
  }
 RegisterCustomData("RaidGrid_Party.Shadow")
 
-local szIniFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/RaidGrid_Party.ini"
+local CTM_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_Party.ini"
+local CTM_ITEM    = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/item.ini"
 
 function RaidGrid_Party.IsInRaid() --检查是否在队伍中
 	local me = GetClientPlayer()
@@ -364,36 +365,18 @@ function RaidGrid_Party.RedrawHandleRoleInfo(dwMemberID)  --重绘处理角色信息
 			end
 			imageForce:Hide()
 		else
-			local tForceID2Frame = {
-				[0] = 64,
-				[1] = 59,
-				[2] = 63,
-				[3] = 62,
-				[4] = 49,
-				[5] = 56,
-				[6] = 107,
-				[7] = 108,
-				[8] = 88,
-				[9] = 110,
-				[10] = 109,
-				[21] = 0,
-			}
-			if tForceID2Frame[dwForceID] then
-				imageForce:SetFrame(tForceID2Frame[dwForceID])				
-				if RaidGrid_Party.fScaleX ~= RaidGrid_Party.fScaleY then
-					local szImageSize = 28
-					if RaidGrid_Party.fScaleX > RaidGrid_Party.fScaleY then
-						szImageSize = szImageSize * RaidGrid_Party.fScaleY
-						imageForce:SetSize(szImageSize, szImageSize)
-					else
-						szImageSize = szImageSize * RaidGrid_Party.fScaleX
-						imageForce:SetSize(szImageSize, szImageSize)
-					end
+			imageForce:FromUITex(GetForceImage(dwForceID))
+			if RaidGrid_Party.fScaleX ~= RaidGrid_Party.fScaleY then
+				local szImageSize = 28
+				if RaidGrid_Party.fScaleX > RaidGrid_Party.fScaleY then
+					szImageSize = szImageSize * RaidGrid_Party.fScaleY
+					imageForce:SetSize(szImageSize, szImageSize)
+				else
+					szImageSize = szImageSize * RaidGrid_Party.fScaleX
+					imageForce:SetSize(szImageSize, szImageSize)
 				end
-				imageForce:Show()
-			else
-				imageForce:Hide()
 			end
+			imageForce:Show()
 			imageKungfu:Hide()
 		end
 	else
@@ -779,9 +762,7 @@ function RaidGrid_Party.ClearHandleRoleInGroup(nIndex, nGroupIndex) --清除处理环
 	handleRole:Lookup("Image_ReadyCover"):Hide()
 	handleRole:Lookup("Image_NotReady"):Hide()
 	handleRole:Lookup("Animate_Ready"):Hide()
-	
-	handleRole:Lookup("Handle_CastingBar"):Hide()
-	
+		
 	local handleBoxes = handleRole:Lookup("Handle_Buff_Boxes")
 	for i = 1, 4 do
 		local box = handleBoxes:Lookup("Box_" .. i)
@@ -1032,7 +1013,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 	if frame then
 		Wnd.CloseWindow(frame:GetName())
 	end
-	frame = Wnd.OpenWindow(szIniFile, "RaidGrid_Party_" .. nIndex)
+	frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
 
 	local textGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
 	textGroup:SetFontScale(RaidGrid_Party.fScaleFont)
@@ -1044,7 +1025,8 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 	frame.tHandleRoles = {}
 	local handleRoles = frame:Lookup("", "Handle_Roles")
 	for i = 0, 4 do
-		local handleRole = handleRoles:AppendItemFromIni(szIniFile, "Handle_RoleDummy", "Handle_Role_" .. i)
+		-- 性能杀手。。。
+		local handleRole = handleRoles:AppendItemFromIni(CTM_ITEM, "Handle_RoleDummy", "Handle_Role_" .. i)
 		frame.tHandleRoles[i] = handleRole
 		handleRole:SetRelPos(5, i * 42 + 10)
 		handleRole:Show()
@@ -1053,39 +1035,21 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		if handleBoxes then
 			for j = 1, 4 do
 				local box = handleBoxes:Lookup("Box_" .. j)
-				local shadow = handleBoxes:Lookup("Shadow_BuffColor_" .. j)
 				local text = handleBoxes:Lookup("Text_Time_" .. j)
-				box:SetObject(1,0)
-				box:ClearObjectIcon()
-				box:SetObjectIcon(1435)
-				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				box:SetOverTextFontScheme(0, 15)
-				box:SetOverText(0, "")
-				box:Hide()
-				shadow:Hide()
-				text:Hide()
+				box:SetObject(UI_OBJECT_ITEM)
 				text:SetFontScale(RaidGrid_Party.fScaleFont * 0.8)
 			end
 		end
-		
-		local boxCasting = handleRole:Lookup("Handle_CastingBar/Box_CastingIcon")
-		boxCasting:Show()
-		boxCasting:SetObject(1,0)
-		boxCasting:ClearObjectIcon()
-		boxCasting:SetAlpha(180)
 		
 		if RaidGrid_CTM_Edition.bLowMPBar then
 			local shadowMana = handleRole:Lookup("Handle_Common/Shadow_Mana")
 			local shadowLife = handleRole:Lookup("Handle_Common/Shadow_Life")
 			local shadowLifeFade = handleRole:Lookup("Handle_Common/Shadow_Life_Fade")
-			local imageCasting = handleRole:Lookup("Handle_CastingBar/Image_CastP")
 			shadowMana:SetRelPos(-2, 29)
 			shadowLifeFade:SetSize(121, 29)
-			imageCasting:SetRelPos(16, 29)
-			imageCasting:SetSize(102, 8)
 			handleRole:FormatAllItemPos()
 		end
-		--------------------------------------------------------------------------------------
+		----------------------------------------------------------------------------------
 		
 		local textLife = handleRole:Lookup("Handle_Common/Text_Life")
 		textLife:SetFontScale(RaidGrid_Party.fScaleFont)
@@ -1093,8 +1057,6 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		textMana:SetFontScale(RaidGrid_Party.fScaleFont)
 		local textDistance = handleRole:Lookup("Handle_Common/Text_Distance")
 		textDistance:SetFontScale(RaidGrid_Party.fScaleFont)
-		local textName = handleRole:Lookup("Handle_Common/Text_Name")
-		textName:SetFontScale(RaidGrid_Party.fScaleFont)
 		local textName2 = handleRole:Lookup("Text_Name_2")
 		textName2:SetFontScale(RaidGrid_Party.fScaleFont)
 		RaidGrid_Party.ClearHandleRoleInGroup(i, nIndex)
@@ -1230,12 +1192,6 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		end
 	end
 	handleRoles:FormatAllItemPos()
-	
-	local handleDummy = frame:Lookup("", "Handle_Dummy/Handle_RoleDummy")
-	if handleDummy then
-		handleDummy:Hide()
-	end
-	
 	frame:Scale(RaidGrid_Party.fScaleX, RaidGrid_Party.fScaleY)
 	
 	return frame
@@ -1309,6 +1265,7 @@ function RaidGrid_Party.ReloadRaidPanel()	--重载团队面板
 	if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
 		RaidGrid_Party.AutoLinkAllPanel()
 	end
+	
 end
 
 function RaidGrid_Party.ClosePartyPanel(nIndex, bClose) --关闭组队面板
