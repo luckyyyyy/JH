@@ -19,6 +19,7 @@ RaidGrid_CTM_Edition = {
 	bShowDistance = false,
 	bColorHPBarWithDistance = true,
 	bShowTargetTargetAni = true,
+	nFont = 40,
 }
 JH.RegisterCustomData("RaidGrid_CTM_Edition")
 
@@ -202,10 +203,13 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	local szName = this:GetName()
 	local team = GetClientTeam()
 	local player = GetClientPlayer()
-	if IsCtrlKeyDown() or not szName:match("Image_Loot") or not team or not player.IsInParty() or team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) ~= player.dwID then
+	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) ~= player.dwID then
 		return
 	end
 	if szName:match("Image_LootMode") then
+		if not IsCtrlKeyDown() then
+			return _L["Please hold down Ctrl, change it"]
+		end
 		team.SetTeamLootMode(CTM_LOOT_MODE[szName])
 	end
 end
@@ -217,7 +221,7 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	RaidGrid_Party.RedrawAllFadeHP()
 	RaidGrid_Party.UpdateMemberDistance()
 	RaidGrid_Party.UpdateReadyCheckFade()
-	
+	-- kill System Panel
 	RaidPanel_Switch(false)	
 	TeammatePanel_Switch(false)
 end
@@ -324,7 +328,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 			RaidGrid_Party.RedrawAllFadeHP(true)
 		end }
 	})
-	
 	table.insert(menu, { bDevide = true })
 	table.insert(menu, { szOption = g_tStrings.STR_RAID_LIFE_SHOW,
 		{ szOption = _L["LifeBar Gradient"], bCheck = true, bChecked = not RaidGrid_Party.Shadow.bLife, fnAction = function()
@@ -403,7 +406,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 		else
 			for k = 4, 32 do
 				local tabDist = {
-					szOption = "　距离 " .. k .. "米以内 (包括)", bMCheck = true, bChecked = RaidGrid_Party.tDistanceLevel[nIndex] == k, fnAction = function(UserData, bCheck)
+					szOption = k .. g_tStrings.STR_METER, bMCheck = true, bChecked = RaidGrid_Party.tDistanceLevel[nIndex] == k, fnAction = function(UserData, bCheck)
 						RaidGrid_Party.tDistanceLevel[nIndex] = k
 					end,
 				}
@@ -414,26 +417,24 @@ function RaidGrid_CTM_Edition.PopOptions()
 	end
 	local function GetColorTable(nIndex)
 		local tColor = {
-			{szName = "蓝色", nLevel = 1,		r = RaidGrid_Party.tDistanceColor[1][1], g = RaidGrid_Party.tDistanceColor[1][2], b = RaidGrid_Party.tDistanceColor[1][3]},
-			{szName = "绿色", nLevel = 2,		r = RaidGrid_Party.tDistanceColor[2][1], g = RaidGrid_Party.tDistanceColor[2][2], b = RaidGrid_Party.tDistanceColor[2][3]},
-			{szName = "黄色", nLevel = 3,		r = RaidGrid_Party.tDistanceColor[3][1], g = RaidGrid_Party.tDistanceColor[3][2], b = RaidGrid_Party.tDistanceColor[3][3]},
-			{szName = "紫色", nLevel = 4,		r = RaidGrid_Party.tDistanceColor[4][1], g = RaidGrid_Party.tDistanceColor[4][2], b = RaidGrid_Party.tDistanceColor[4][3]},
-			{szName = "红色", nLevel = 5,		r = RaidGrid_Party.tDistanceColor[5][1], g = RaidGrid_Party.tDistanceColor[5][2], b = RaidGrid_Party.tDistanceColor[5][3]},
-			{szName = "灰色 (深)", nLevel = 6,	r = RaidGrid_Party.tDistanceColor[6][1], g = RaidGrid_Party.tDistanceColor[6][2], b = RaidGrid_Party.tDistanceColor[6][3]},
-			{szName = "灰色 (浅)", nLevel = 7,	r = RaidGrid_Party.tDistanceColor[7][1], g = RaidGrid_Party.tDistanceColor[7][2], b = RaidGrid_Party.tDistanceColor[7][3]},
-			{szName = "白色", nLevel = 8,		r = RaidGrid_Party.tDistanceColor[8][1], g = RaidGrid_Party.tDistanceColor[8][2], b = RaidGrid_Party.tDistanceColor[8][3]},
+			{ szName = _L["Blue"], nLevel = 1, rgb = RaidGrid_Party.tDistanceColor[1] },
+			{ szName = _L["Green"], nLevel = 2, rgb = RaidGrid_Party.tDistanceColor[2] },
+			{ szName = _L["Yellow"], nLevel = 3, rgb = RaidGrid_Party.tDistanceColor[3] },
+			{ szName = _L["Purple"], nLevel = 4, rgb = RaidGrid_Party.tDistanceColor[4] },
+			{ szName = _L["Red"], nLevel = 5, rgb = RaidGrid_Party.tDistanceColor[5] },
+			{ szName = _L["Gray"], nLevel = 6, rgb = RaidGrid_Party.tDistanceColor[6] },
+			{ szName = _L["Gray"], nLevel = 7, rgb = RaidGrid_Party.tDistanceColor[7] },
+			{ szName = _L["White"], nLevel = 8, rgb = RaidGrid_Party.tDistanceColor[8] },
 		}
 		local szNameC = tColor[RaidGrid_Party.tDistanceColorLevel[nIndex]].szName
-		local nR = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][1]
-		local nG = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][2]
-		local nB = RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]][3]
-		local tabAllColor = {szOption = "颜色：" .. szNameC, r = nR, g = nG, b = nB}
+		local nR, nG, nB = unpack(RaidGrid_Party.tDistanceColor[RaidGrid_Party.tDistanceColorLevel[nIndex]])
+		local tabAllColor = { szOption = g_tStrings.BACK_COLOR .. g_tStrings.STR_COLON .. szNameC, rgb = { nR, nG, nB } }
 		for k = 1, #tColor do
 			local tabColor = {
 				szOption = tColor[k].szName, bMCheck = true, bChecked = RaidGrid_Party.tDistanceColorLevel[nIndex] == tColor[k].nLevel, fnAction = function(UserData, bCheck)
 					RaidGrid_Party.tDistanceColorLevel[nIndex] = k
 				end,
-				r = tColor[k].r, g = tColor[k].g, b = tColor[k].b, 
+				rgb = tColor[k].rgb
 			}
 			table.insert(tabAllColor, tabColor)
 		end
@@ -448,29 +449,29 @@ function RaidGrid_CTM_Edition.PopOptions()
 		local tC, szNameC, nR, nG, nB = GetColorTable(j)
 		local szDist = tostring(nDist)
 		szDist = ("_"):rep(3 - #szDist) .. szDist
-		table.insert(tDistanceMenu, { szOption = "小于 " .. szDist .. "米内为：" .. szNameC, fnDisable = function() return not RaidGrid_CTM_Edition.bColorHPBarWithDistance end,tD, tC, rgb = { nR, nG, nB }} )
+		table.insert(tDistanceMenu, { szOption = szDist .. g_tStrings.STR_METER .. g_tStrings.STR_COLON .. szNameC, fnDisable = function() return not RaidGrid_CTM_Edition.bColorHPBarWithDistance end,tD, tC, rgb = { nR, nG, nB }} )
 	end
 
 	table.insert(menu, tDistanceMenu)
 	table.insert(menu, { bDevide = true })
-	table.insert(menu, { szOption = "排列模式",
-		{ szOption = "一行：五列/零列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 5, fnAction = function()
+	table.insert(menu, { szOption = _L["Arrangement"],
+		{ szOption = _L["One lines: 5/0"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 5, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 5
 			RaidGrid_Party.ReloadRaidPanel()
 		end },
-		{ szOption = "两行：一列/四列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 1, fnAction = function()
+		{ szOption = _L["Two lines: 1/4"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 1, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 1
 			RaidGrid_Party.ReloadRaidPanel()
 		end },
-		{ szOption = "两行：两列/三列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 2, fnAction = function()
+		{ szOption = _L["Two lines: 2/3"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 2, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 2
 			RaidGrid_Party.ReloadRaidPanel()
 		end },
-		{ szOption = "两行：三列/两列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 3, fnAction = function()
+		{ szOption = _L["Two lines: 3/2"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 3, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 3
 			RaidGrid_Party.ReloadRaidPanel()
 		end },
-		{ szOption = "两行：四列/一列", bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 4, fnAction = function()
+		{ szOption = _L["Two lines: 4/1"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 4, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 4
 			RaidGrid_Party.ReloadRaidPanel()
 		end },	
@@ -479,66 +480,63 @@ function RaidGrid_CTM_Edition.PopOptions()
 		{ szOption = _L["Restore Default"], bCheck = false, bChecked = false, fnAction = function()
 			RaidGrid_Party.fScaleX = 1
 			RaidGrid_Party.fScaleY = 1
-			RaidGrid_Party.fScaleFont = 1
+			RaidGrid_CTM_Edition.nFont = 40
 			RaidGrid_Party.fScaleIcon = 1
 			RaidGrid_Party.fScaleShadowX = 1
 			RaidGrid_Party.fScaleShadowY = 1
 			RaidGrid_Party.ReloadRaidPanel()
 		end },
 		{ bDevide = true },
-		{ szOption = "团队界面【宽度】比例", fnAction = function()
+		{ szOption = _L["Interface Width"], fnAction = function()
 			local x, y = Cursor.GetPos()
 			local fScaleX = RaidGrid_Party.fScaleX
 			GetUserPercentage(function(val)
 				RaidGrid_Party.fScaleX = tonumber(val)
 				RaidGrid_Party.ReloadRaidPanel()
 				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-			end, nil, (fScaleX - 0.5) / 1.00, "宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+			end, nil, (fScaleX - 0.5) / 1.00, _L["Interface Width"] .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 		end	},
-		{ szOption = "团队界面【高度】比例", fnAction = function()
+		{ szOption = _L["Interface Height"], fnAction = function()
 			local x, y = Cursor.GetPos()
 			local fScaleY = RaidGrid_Party.fScaleY
 			GetUserPercentage(function(val)
 				RaidGrid_Party.fScaleY = tonumber(val)
 				RaidGrid_Party.ReloadRaidPanel()
 				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-			end, nil, (fScaleY - 0.5) / 1.00, "高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+			end, nil, (fScaleY - 0.5) / 1.00, _L["Interface Height"] .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 		end },
-		{ szOption = "团队界面【文字大小】比例", fnAction = function()
-			local x, y = Cursor.GetPos()
-			local fScaleFont = RaidGrid_Party.fScaleFont
-			GetUserPercentage(function(val)
-				RaidGrid_Party.fScaleFont = tonumber(val)
+		{ szOption = _L["Font Style"], fnAction = function()
+			GUI.OpenFontTablePanel(function(nFont)
+				RaidGrid_CTM_Edition.nFont = nFont
 				RaidGrid_Party.ReloadRaidPanel()
-				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-			end, nil, (fScaleFont - 0.5) / 1.00, "文字大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+			end)
 		end },
-		{ szOption = "团队界面【buff图标】比例", fnAction = function()
+		{ szOption = _L["Icon Size"], fnAction = function()
 			local x, y = Cursor.GetPos()
 			local fScaleIcon = RaidGrid_Party.fScaleIcon
 			GetUserPercentage(function(val)
 				RaidGrid_Party.fScaleIcon = tonumber(val)
 				RaidGrid_Party.ReloadRaidPanel()
 				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-			end, nil, (fScaleIcon - 0.5) / 1.00, "BUFF大小" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+			end, nil, (fScaleIcon - 0.5) / 1.00, _L["Icon Size"] .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 		end	},
-		{ szOption = "团队界面【buff背景色】宽度比例", fnAction = function()
+		{ szOption = _L["Buff BG Width"], fnAction = function()
 			local x, y = Cursor.GetPos()
 			local fScaleShadowX = RaidGrid_Party.fScaleShadowX
 			GetUserPercentage(function(val)
 				RaidGrid_Party.fScaleShadowX = tonumber(val)
 				RaidGrid_Party.ReloadRaidPanel()
 				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-			end, nil, (fScaleShadowX - 0.5) / 1.00, "BUFF背景色宽度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+			end, nil, (fScaleShadowX - 0.5) / 1.00, _L["Buff BG Width"] .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 		end },
-		{ szOption = "团队界面【buff背景色】高度比例", fnAction = function()
+		{ szOption = _L["Buff BG Height"], fnAction = function()
 			local x, y = Cursor.GetPos()
 			local fScaleShadowY = RaidGrid_Party.fScaleShadowY
 			GetUserPercentage(function(val)
 				RaidGrid_Party.fScaleShadowY = tonumber(val)
 				RaidGrid_Party.ReloadRaidPanel()
 				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
-			end, nil, (fScaleShadowY - 0.5) / 1.00, "BUFF背景色高度" .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
+			end, nil, (fScaleShadowY - 0.5) / 1.00, _L["Buff BG Height"] .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
 		end },
 	})
 	table.insert(menu, { bDevide = true })

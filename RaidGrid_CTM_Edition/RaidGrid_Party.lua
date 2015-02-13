@@ -1,28 +1,12 @@
 RaidGrid_Party = {}
-RaidGrid_Party.bDrag = false
-RaidGrid_Party.tHPBarColor = {0, 200, 72}; 					RegisterCustomData("RaidGrid_Party.tHPBarColor")
-RaidGrid_Party.tDistanceLevel = {8, 20, 24, 28, 999};		RegisterCustomData("RaidGrid_Party.tDistanceLevel")
-RaidGrid_Party.tDistanceColorLevel = {1, 2, 3, 4, 5};		RegisterCustomData("RaidGrid_Party.tDistanceColorLevel")
-RaidGrid_Party.tDistanceColor = {
- 	{0, 170, 140},
- 	{0, 180, 52},
- 	{230, 170, 40},
- 	{230, 110, 230},
- 	{230, 80, 80},
- 	{128, 128, 128},
- 	{192, 192, 192},
- 	{255, 255, 255},
-};
-RaidGrid_Party.tLifeColor = {}
-RaidGrid_Party.tOrgW = {}
+RaidGrid_Party.tHPBarColor = { 0, 200, 72 }; 				RegisterCustomData("RaidGrid_Party.tHPBarColor")
+RaidGrid_Party.tDistanceLevel = { 8, 20, 22, 24, 999 };		RegisterCustomData("RaidGrid_Party.tDistanceLevel")
+RaidGrid_Party.tDistanceColorLevel = { 2, 2, 3, 4, 5 };		RegisterCustomData("RaidGrid_Party.tDistanceColorLevel")
 RaidGrid_Party.fScaleX = 1;									RegisterCustomData("RaidGrid_Party.fScaleX")
 RaidGrid_Party.fScaleY = 1;									RegisterCustomData("RaidGrid_Party.fScaleY")
-RaidGrid_Party.fScaleFont = 1;								RegisterCustomData("RaidGrid_Party.fScaleFont")
 RaidGrid_Party.fScaleIcon = 1;								RegisterCustomData("RaidGrid_Party.fScaleIcon")
 RaidGrid_Party.fScaleShadowX = 1;							RegisterCustomData("RaidGrid_Party.fScaleShadowX")
 RaidGrid_Party.fScaleShadowY = 1;							RegisterCustomData("RaidGrid_Party.fScaleShadowY")
- 
-RaidGrid_Party.dwLastTempTargetId = 0
 RaidGrid_Party.bTempTargetEnable = true;					RegisterCustomData("RaidGrid_Party.bTempTargetEnable")
 RaidGrid_Party.bTempTargetFightTip = true;					RegisterCustomData("RaidGrid_Party.bTempTargetFightTip")
 
@@ -33,9 +17,26 @@ RaidGrid_Party.Shadow = {
  }
 RegisterCustomData("RaidGrid_Party.Shadow")
 
-local CTM_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_Party.ini"
-local CTM_ITEM    = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/item.ini"
-local CTM_IMAGES  = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/images/ForceColorBox.UITex"
+RaidGrid_Party.tLifeColor = {}
+RaidGrid_Party.tOrgW = {}
+RaidGrid_Party.tDistanceColor = {
+ 	{0, 170, 140},
+ 	{0, 180, 52},
+ 	{230, 170, 40},
+ 	{230, 110, 230},
+ 	{230, 80, 80},
+ 	{128, 128, 128},
+ 	{192, 192, 192},
+ 	{255, 255, 255},
+}
+
+
+local CTM_TAR_TEMP = 0
+local CTM_DRAG     = false
+local CTM_INIFILE  = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_Party.ini"
+local CTM_ITEM     = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/item.ini"
+local CTM_IMAGES   = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/images/ForceColorBox.UITex"
+
 function RaidGrid_Party.IsInRaid() --检查是否在队伍中
 	local me = GetClientPlayer()
 	if me then
@@ -729,17 +730,17 @@ function RaidGrid_Party.SetTempTarget(dwMemberID, bEnter)
 	end
 	local tarType, tardwID = player.GetTarget()
 	if bEnter then
-		RaidGrid_Party.dwLastTempTargetId = tardwID
+		CTM_TAR_TEMP = tardwID
 		if dwMemberID ~= tardwID then
 			RaidGrid_Party.SetTarget(dwMemberID)
 		end
 	else
-		if RaidGrid_Party.dwLastTempTargetId then
-			if (dwMemberID == tardwID or tardwID <= 0) and RaidGrid_Party.dwLastTempTargetId ~= tardwID then
-				if player.dwID == RaidGrid_Party.dwLastTempTargetId then
-					RaidGrid_Party.SetTarget(RaidGrid_Party.dwLastTempTargetId)
-				elseif RaidGrid_Party.dwLastTempTargetId > 0 then
-					RaidGrid_Party.SetTarget(RaidGrid_Party.dwLastTempTargetId)
+		if CTM_TAR_TEMP then
+			if (dwMemberID == tardwID or tardwID <= 0) and CTM_TAR_TEMP ~= tardwID then
+				if player.dwID == CTM_TAR_TEMP then
+					RaidGrid_Party.SetTarget(CTM_TAR_TEMP)
+				elseif CTM_TAR_TEMP > 0 then
+					RaidGrid_Party.SetTarget(CTM_TAR_TEMP)
 				else
 					RaidGrid_Party.SetTarget(-1)
 				end
@@ -878,7 +879,6 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 	frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
 
 	local textGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
-	textGroup:SetFontScale(RaidGrid_Party.fScaleFont)
 	if textGroup then
 		textGroup:SetText(g_tStrings.STR_NUMBER[nIndex + 1])
 	end
@@ -899,7 +899,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 				local box = handleBoxes:Lookup("Box_" .. j)
 				local text = handleBoxes:Lookup("Text_Time_" .. j)
 				box:SetObject(UI_OBJECT_ITEM)
-				text:SetFontScale(RaidGrid_Party.fScaleFont * 0.8)
+				text:SetFontScale(0.8)
 			end
 		end
 		
@@ -912,13 +912,10 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		------------------------------------------------------------------------------
 		
 		local textLife = handleRole:Lookup("Handle_Common/Text_Life")
-		textLife:SetFontScale(RaidGrid_Party.fScaleFont)
 		local textMana = handleRole:Lookup("Handle_Common/Text_Mana")
-		textMana:SetFontScale(RaidGrid_Party.fScaleFont)
 		local textDistance = handleRole:Lookup("Handle_Common/Text_Distance")
-		textDistance:SetFontScale(RaidGrid_Party.fScaleFont)
 		local textName2 = handleRole:Lookup("Text_Name_2")
-		textName2:SetFontScale(RaidGrid_Party.fScaleFont)
+		textName2:SetFontScheme(RaidGrid_CTM_Edition.nFont)
 		RaidGrid_Party.ClearHandleRoleInGroup(i, nIndex)
 		
 		handleRole.nGroupIndex = nIndex
@@ -937,7 +934,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 				return
 			end
 			
-			RaidGrid_Party.bDrag = true
+			CTM_DRAG = true
 			RaidGrid_Party.ReloadRaidPanel()
 			for i = 0, 4 do
 				local frameParty = RaidGrid_Party.GetPartyPanel(i)
@@ -952,10 +949,10 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		
 		handleRole.OnItemLButtonUp = function()
 			JH.DelayCall(50, function()
-				if RaidGrid_Party.bDrag then
+				if CTM_DRAG then
 					RaidGrid_CTM_Edition.bShowAllMemberGrid = false
 					RaidGrid_CTM_Edition.bShowAllPanel = false
-					RaidGrid_Party.bDrag = false
+					CTM_DRAG = false
 					nDragGroupID = nil
 					dwDragMemberID = nil
 					RaidGrid_CTM_Edition.CloseRaidDragPanel()
@@ -969,7 +966,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 			local player = GetClientPlayer()
 			local dwTargetMemberID = this.dwMemberID or 0
 			if dwTargetMemberID ~= dwDragMemberID then
-				RaidGrid_Party.bDrag = false	
+				CTM_DRAG = false	
 				RaidGrid_CTM_Edition.bShowAllMemberGrid = false
 				RaidGrid_CTM_Edition.bShowAllPanel = false
 				local nTargetGroup = this.nGroupIndex
@@ -985,7 +982,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		handleRole.OnItemMouseEnter = function()
 			local nX, nY = this:GetRoot():GetAbsPos()
 			local nW, nH = this:GetRoot():GetSize()
-			if RaidGrid_Party.bDrag then
+			if CTM_DRAG then
 				this:Lookup("Image_Selected"):Show()
 			end
 			local me = GetClientPlayer()
@@ -996,7 +993,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		end
 		
 		handleRole.OnItemMouseLeave = function()
-			if RaidGrid_Party.bDrag then
+			if CTM_DRAG then
 				this:Lookup("Image_Selected"):Hide()
 			end
 			HideTip()
@@ -1014,7 +1011,7 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 				RaidGrid_CTM_Edition.EditBox_AppendLinkPlayer(player.szName)
 			else
 				RaidGrid_Party.SetTarget(dwMemberID)
-				RaidGrid_Party.dwLastTempTargetId = dwMemberID
+				CTM_TAR_TEMP = dwMemberID
 			end
 		end
 		
@@ -1053,7 +1050,7 @@ function RaidGrid_Party.CreateAllNewPartyPanel() --创建所有新的小队面板
 end
 
 function RaidGrid_Party.ReloadRaidPanel()	--重载团队面板
-	if not RaidGrid_Party.bDrag then
+	if not CTM_DRAG then
 		RaidGrid_Party.CreateAllNewPartyPanel()
 	end
 	local team = GetClientTeam()
