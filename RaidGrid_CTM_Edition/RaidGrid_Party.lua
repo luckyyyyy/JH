@@ -193,10 +193,7 @@ function RaidGrid_Party.UpdateMarkImage() --标记图像更新
 	end
 end
 
-function RaidGrid_Party.RedrawTargetSelectImage(bForceHide)  --重绘目标选择图像
-	if not RaidGrid_CTM_Edition.bShowTargetTargetAni and not bForceHide then
-		return
-	end
+function RaidGrid_Party.RedrawTargetSelectImage()  --重绘目标选择图像
 	local player = GetClientPlayer()
 	if not player then
 		return
@@ -221,18 +218,21 @@ function RaidGrid_Party.RedrawTargetSelectImage(bForceHide)  --重绘目标选择图像
 			local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, nGroupIndex)
 			if handleRole and handleRole.dwMemberID then
 				local imageSelected = handleRole:Lookup("Image_Selected")
-				if not bForceHide and target and target.dwID == handleRole.dwMemberID then
+				if target and target.dwID == handleRole.dwMemberID then
 					imageSelected:Show()
 				else
 					imageSelected:Hide()
 				end
-				
 				local aniTargetTarget = handleRole:Lookup("Animate_TargetTarget")
-				if not bForceHide and RaidGrid_CTM_Edition.bShowTargetTargetAni and target and targetTarget and targetTarget.dwID == handleRole.dwMemberID then
-					aniTargetTarget:Show()
+				if RaidGrid_CTM_Edition.bShowTargetTargetAni then
+					if target and targetTarget and targetTarget.dwID == handleRole.dwMemberID then
+						aniTargetTarget:Show()
+					else
+						aniTargetTarget:Hide()
+					end
 				else
 					aniTargetTarget:Hide()
-				end				
+				end
 			end
 		end
 	end
@@ -520,23 +520,16 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 	end
 end
 
-function RaidGrid_Party.GetTeamMemberInfo(dwMemberID)	--获得成员信息
-	local player = GetClientPlayer()
-	if not player or not player.IsInParty() or not player.IsPlayerInMyParty(dwMemberID) then
+function RaidGrid_Party.GetTeamMemberInfo(dwMemberID) -- 获得成员信息
+	local me = GetClientPlayer()
+	if not me or not me.IsInParty() or not me.IsPlayerInMyParty(dwMemberID) then
 		return
 	end
-
 	local team = GetClientTeam()
 	if not team then
 		return
 	end	
-
-	local tMemberInfo = nil
-	local tMemberInfo = team.GetMemberInfo(dwMemberID)
-	if not tMemberInfo then
-		return
-	end
-	return tMemberInfo, team
+	return team.GetMemberInfo(dwMemberID), team
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -853,6 +846,7 @@ function RaidGrid_Party.BringToTop()
 			Station.Lookup("Normal/RaidGrid_Party_" .. i):BringToTop()
 		end
 	end
+	Station.Lookup("Normal/RaidGrid_CTM_Edition"):BringToTop()
 end
 
 function RaidGrid_Party.AutoLinkAllPanel2()	--自动连接所有面板2
@@ -938,7 +932,6 @@ end
 
 local nDragGroupID = nil			-- 拖动的源小队序号
 local dwDragMemberID = nil			-- 拖动的角色ID
-local bLastShowAllMemberGrid = nil
 function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 	local frame = RaidGrid_Party.GetPartyPanel(nIndex)
 	if frame then
@@ -995,15 +988,13 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 		handleRole.nGroupIndex = nIndex
 
 		handleRole.OnItemLButtonDrag = function()
-			local szName = this:GetName()
 			local team = GetClientTeam()
 			local player = GetClientPlayer()
-			if RaidGrid_Party.IsInRaid() and (not IsAltKeyDown() and RaidGrid_CTM_Edition.bAltNeededForDrag) or not szName:match("Handle_Role_") or not team or not player.IsInParty() or team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) ~= player.dwID then
+			if (not IsAltKeyDown() and RaidGrid_CTM_Edition.bAltNeededForDrag) or not player.IsInRaid() or not RaidGrid_CTM_Edition.IsLeader() then
 				return
 			end
-			bLastShowAllMemberGrid = RaidGrid_CTM_Edition.bShowAllMemberGrid
 			RaidGrid_CTM_Edition.bShowAllMemberGrid = true
-			
+			RaidGrid_CTM_Edition.bShowAllPanel = true
 			nDragGroupID = this.nGroupIndex
 			dwDragMemberID = this.dwMemberID
 			if not dwDragMemberID then
@@ -1018,109 +1009,97 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 					frameParty:Show()
 				end
 			end
-			RaidGrid_CTM_Edition.OpenRaidDragPanel(dwDragMemberID)
 			RaidGrid_Party.AutoLinkAllPanel()
 			RaidGrid_Party.BringToTop()
+			RaidGrid_CTM_Edition.OpenRaidDragPanel(dwDragMemberID)
 		end
-
+		
+		handleRole.OnItemLButtonUp = function()
+			JH.DelayCall(50, function()
+				if RaidGrid_Party.bDrag then
+					RaidGrid_CTM_Edition.bShowAllMemberGrid = false
+					RaidGrid_CTM_Edition.bShowAllPanel = false
+					RaidGrid_Party.bDrag = false
+					nDragGroupID = nil
+					dwDragMemberID = nil
+					RaidGrid_CTM_Edition.CloseRaidDragPanel()
+					RaidGrid_Party.ReloadRaidPanel()
+				end
+			end)
+		end
+		
 		handleRole.OnItemLButtonDragEnd = function()
-			local szName = this:GetName()
 			local team = GetClientTeam()
 			local player = GetClientPlayer()
-			if RaidGrid_Party.IsInRaid() and not RaidGrid_Party.bDrag or not szName:match("Handle_Role_") or not team or not player.IsInParty() or team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) ~= player.dwID then
-				RaidGrid_CTM_Edition.bShowAllMemberGrid = bLastShowAllMemberGrid
+			local dwTargetMemberID = this.dwMemberID or 0
+			if dwTargetMemberID ~= dwDragMemberID then
+				RaidGrid_Party.bDrag = false	
+				RaidGrid_CTM_Edition.bShowAllMemberGrid = false
+				RaidGrid_CTM_Edition.bShowAllPanel = false
+				local nTargetGroup = this.nGroupIndex
+				if nDragGroupID and dwDragMemberID then
+					team.ChangeMemberGroup(dwDragMemberID, nTargetGroup, dwTargetMemberID)
+				end
 				nDragGroupID = nil
 				dwDragMemberID = nil
 				RaidGrid_CTM_Edition.CloseRaidDragPanel()
-				if RaidGrid_Party.bDrag then
-					RaidGrid_Party.ReloadRaidPanel()
-				end
-				return
 			end
-			RaidGrid_Party.bDrag = false	
-			RaidGrid_CTM_Edition.bShowAllMemberGrid = bLastShowAllMemberGrid		
-			local nTargetGroup = this.nGroupIndex
-			local dwTargetMemberID = this.dwMemberID or 0
-			
-			if nDragGroupID and dwDragMemberID then
-				team.ChangeMemberGroup(dwDragMemberID, nTargetGroup, dwTargetMemberID)
-			end
-			
-			if dwTargetMemberID == dwDragMemberID then
-				RaidGrid_Party.ReloadRaidPanel()
-			end
-			nDragGroupID = nil
-			dwDragMemberID = nil
-			RaidGrid_CTM_Edition.CloseRaidDragPanel()
 		end
 
 		handleRole.OnItemMouseEnter = function()
 			local nX, nY = this:GetRoot():GetAbsPos()
 			local nW, nH = this:GetRoot():GetSize()
+			if RaidGrid_Party.bDrag then
+				this:Lookup("Image_Selected"):Show()
+			end
 			local me = GetClientPlayer()
 			if RaidGrid_Party.bTempTargetFightTip and not me.bFightState or not RaidGrid_Party.bTempTargetFightTip then
-				RaidGrid_CTM_Edition.OutputTeamMemberTip(this.dwMemberID, {nX, nY + 5, nW, nH})
+				RaidGrid_CTM_Edition.OutputTeamMemberTip(this.dwMemberID, { nX, nY + 5, nW, nH })
 			end
 			RaidGrid_Party.SetTempTarget(this.dwMemberID, true)
 		end
+		
 		handleRole.OnItemMouseLeave = function()
+			if RaidGrid_Party.bDrag then
+				this:Lookup("Image_Selected"):Hide()
+			end
 			HideTip()
 			RaidGrid_Party.SetTempTarget(this.dwMemberID, false)
 		end
-		
-		handleRole.OnItemLButtonClick = function()
+
+		handleRole.OnItemLButtonDown = function()
 			RaidGrid_Party.BringToTop()
-			local szName = this:GetName()
-			local player = GetClientPlayer()
-			if not player then
+			local dwMemberID = this.dwMemberID
+			if not dwMemberID or dwMemberID <= 0 or not IsPlayer(dwMemberID) then
 				return
 			end
-			
-			if szName:match("Handle_Role_") then
-				local dwMemberID = this.dwMemberID
-				if not dwMemberID or dwMemberID <= 0 or not IsPlayer(dwMemberID) then
-					return
-				end
-				
-				local player = GetPlayer(dwMemberID)
-				if not player then
-					player = RaidGrid_Party.GetTeamMemberInfo(dwMemberID)
-				end
-	
-				if IsCtrlKeyDown() then
-					RaidGrid_CTM_Edition.EditBox_AppendLinkPlayer(player.szName)
-				else
-					RaidGrid_Party.SetTarget(dwMemberID)
-					RaidGrid_Party.dwLastTempTargetId = dwMemberID
-				end
+			local player = RaidGrid_Party.GetTeamMemberInfo(dwMemberID)
+			if IsCtrlKeyDown() then
+				RaidGrid_CTM_Edition.EditBox_AppendLinkPlayer(player.szName)
+			else
+				RaidGrid_Party.SetTarget(dwMemberID)
+				RaidGrid_Party.dwLastTempTargetId = dwMemberID
 			end
 		end
 		
 		handleRole.OnItemRButtonClick = function()
 			RaidGrid_Party.BringToTop()
-			local szName = this:GetName()
-			local team = GetClientTeam()
-			if not team then
-				return
-			end
-			
-			if szName:match("Handle_Role_") then
-				local tMenu = {}
-				local player = GetClientPlayer()
-				local dwMemberID = handleRole.dwMemberID
-				
-				if dwMemberID and player.IsInParty() then
-					if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == player.dwID then
-						RaidGrid_CTM_Edition.InsertChangeGroupMenu(tMenu, dwMemberID)
-					end
-					
-					if dwMemberID ~= player.dwID then
-						InsertTeammateMenu(tMenu, dwMemberID)
-						table.insert(tMenu, { szOption = g_tStrings.STR_LOOKUP, fnAction = function() ViewInviteToPlayer(dwMemberID) end })
-					end
-					if tMenu and #tMenu > 0 then
-						PopupMenu(tMenu)
-					end
+			local menu = {}
+			local me = GetClientPlayer()
+			local dwMemberID = this.dwMemberID
+			if dwMemberID and me.IsInParty() then
+				if RaidGrid_CTM_Edition.IsLeader() then
+					RaidGrid_CTM_Edition.InsertChangeGroupMenu(menu, dwMemberID)
+				end
+				local player = RaidGrid_Party.GetTeamMemberInfo(dwMemberID)
+				if dwMemberID ~= me.dwID then
+					InsertTeammateMenu(menu, dwMemberID)
+					table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not player.bIsOnLine, fnAction = function() 
+						ViewInviteToPlayer(dwMemberID) end 
+					})
+				end
+				if #menu > 0 then
+					PopupMenu(menu)
 				end
 			end
 		end
@@ -1153,12 +1132,10 @@ function RaidGrid_Party.ReloadRaidPanel()	--重载团队面板
 		RaidGrid_CTM_Edition.TeammatePanel_Switch(true)
 	end
 
-	if RaidGrid_CTM_Edition.bAutoHideCTM then
-		if not RaidGrid_CTM_Edition.bShowRaid or not GetClientPlayer().IsInParty() then
-			RaidGrid_CTM_Edition.ClosePanel()
-		else
-			RaidGrid_CTM_Edition.ShowPanel()
-		end
+	if not RaidGrid_CTM_Edition.bShowRaid or not GetClientPlayer().IsInParty() then
+		RaidGrid_CTM_Edition.ClosePanel()
+	else
+		RaidGrid_CTM_Edition.ShowPanel()
 	end
 
 	if not RaidGrid_Party.bDrag then
@@ -1191,14 +1168,8 @@ function RaidGrid_Party.ReloadRaidPanel()	--重载团队面板
 		end
 	end
 
-	for i = 0, 4 do
-		RaidGrid_CTM_Edition.SetPartyPanelPos(i, RaidGrid_CTM_Edition.tLastPartyPanelLoc[i+1].nX, RaidGrid_CTM_Edition.tLastPartyPanelLoc[i+1].nY)
-	end
 	RaidGrid_Party.UpdateMarkImage()
-	
-	if RaidGrid_CTM_Edition.bAutoLinkAllPanel then
-		RaidGrid_Party.AutoLinkAllPanel()
-	end
+	RaidGrid_Party.AutoLinkAllPanel()
 	
 end
 
