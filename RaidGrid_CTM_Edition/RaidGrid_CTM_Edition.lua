@@ -2,7 +2,6 @@ RaidGrid_CTM_Edition = {
 	bAltNeededForDrag = true,
 	bRaidEnable = true,
 	bShowInRaid = false,
-	bShowSystemRaidPanel = false,
 	bShowSystemTeamPanel = false,
 	tAnchor = {},
 	nAutoLinkMode = 5,
@@ -214,13 +213,8 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	RaidGrid_Party.UpdateMemberDistance()
 	RaidGrid_Party.UpdateReadyCheckFade()
 	
-	if not RaidGrid_CTM_Edition.bShowSystemRaidPanel then
-		RaidPanel_Switch(false)
-	end
-	
-	if not RaidGrid_CTM_Edition.bShowSystemTeamPanel then
-		TeammatePanel_Switch(false)
-	end
+	RaidPanel_Switch(false)	
+	TeammatePanel_Switch(false)
 end
 
 function RaidGrid_CTM_Edition.OnFrameDragEnd()
