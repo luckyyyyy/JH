@@ -565,7 +565,7 @@ JH.RegisterInit("TargetFace",
 			_Hatred.OpenPanel()
 		end
 	end },
-	{ "UPDATE_SELECT_TARGET", function() _TargetFace.bReRender = true end },
+	{ "TARGET_CHANGE", function() _TargetFace.bReRender = true end },
 	{ "LOADING_END", function() _TargetFace.bReRender = true end }
 )
 GUI.RegisterPanel(_L["TargetFace"], 3565, _L["General"], PS)

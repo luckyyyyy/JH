@@ -1,14 +1,11 @@
 RaidGrid_CTM_Edition = RaidGrid_CTM_Edition or {}
-RaidGrid_CTM_Edition.tOptions = {}
-
 RaidGrid_CTM_Edition.bAltNeededForDrag = true;						RegisterCustomData("RaidGrid_CTM_Edition.bAltNeededForDrag")
 RaidGrid_CTM_Edition.bRaidEnable = true;							RegisterCustomData("RaidGrid_CTM_Edition.bRaidEnable")
 RaidGrid_CTM_Edition.bShowRaid = true;								RegisterCustomData("RaidGrid_CTM_Edition.bShowRaid")
 RaidGrid_CTM_Edition.bShowInRaid = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowInRaid")
-RaidGrid_CTM_Edition.bAutoHideCTM = true;							--RegisterCustomData("RaidGrid_CTM_Edition.bAutoHideCTM")
 RaidGrid_CTM_Edition.bShowSystemRaidPanel = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowSystemRaidPanel")
 RaidGrid_CTM_Edition.bShowSystemTeamPanel = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowSystemTeamPanel")
-RaidGrid_CTM_Edition.bAutoLinkAllPanel = true;						--RegisterCustomData("RaidGrid_CTM_Edition.bAutoLinkAllPanel")
+RaidGrid_CTM_Edition.tAnchor = {};									RegisterCustomData("RaidGrid_CTM_Edition.tAnchor")
 RaidGrid_CTM_Edition.nAutoLinkMode = 5;								RegisterCustomData("RaidGrid_CTM_Edition.nAutoLinkMode")
 RaidGrid_CTM_Edition.bShowAllPanel = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowAllPanel")
 RaidGrid_CTM_Edition.bShowAllMemberGrid = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowAllMemberGrid")
@@ -22,15 +19,14 @@ RaidGrid_CTM_Edition.bColoredGrid = false;							RegisterCustomData("RaidGrid_CT
 RaidGrid_CTM_Edition.bShowIcon = 2;									RegisterCustomData("RaidGrid_CTM_Edition.bShowIcon")
 RaidGrid_CTM_Edition.bShowDistance = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowDistance")
 RaidGrid_CTM_Edition.bColorHPBarWithDistance = true;				RegisterCustomData("RaidGrid_CTM_Edition.bColorHPBarWithDistance")
-
 RaidGrid_CTM_Edition.bShowTargetTargetAni = true;					RegisterCustomData("RaidGrid_CTM_Edition.bShowTargetTargetAni")
 
-local function IsLeader()
+function RaidGrid_CTM_Edition.IsLeader()
 	local hTeam = GetClientTeam()
 	local hPlayer = GetClientPlayer()
 	return hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == hPlayer.dwID
 end
-
+local IsLeader = RaidGrid_CTM_Edition.IsLeader
 function RaidGrid_CTM_Edition.RaidPanel_Switch(bOpen)
 	local frame = Station.Lookup("Normal/RaidPanel_Main")
 	if frame then
@@ -68,7 +64,7 @@ function RaidGrid_CTM_Edition.PopOptions()
 	InsertDistributeMenu(menu, me.dwID ~= dwDistribute)
 	table.insert(menu, { bDevide = true })
 	-- 编辑模式
-	table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not IsLeader(), bCheck = true, bChecked = not RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function() 
+	table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not IsLeader() or not me.IsInRaid(), bCheck = true, bChecked = not RaidGrid_CTM_Edition.bAltNeededForDrag, fnAction = function() 
 		RaidGrid_CTM_Edition.bAltNeededForDrag = not RaidGrid_CTM_Edition.bAltNeededForDrag
 		GetPopupMenu():Hide()
 	end })
@@ -82,8 +78,8 @@ function RaidGrid_CTM_Edition.PopOptions()
 	-- 提醒窗体
 	table.insert(menu, { szOption = g_tStrings.STR_RAID_TIP_IMAGE,
 		{ szOption = g_tStrings.STR_RAID_TIP_TARGET, bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowTargetTargetAni, fnAction = function()
-			RaidGrid_CTM_Edition.bShowTargetTargetAni = not RaidGrid_CTM_Edition.bShowTargetTargetAn
-			RaidGrid_Party.RedrawTargetSelectImage(true)
+			RaidGrid_CTM_Edition.bShowTargetTargetAni = not RaidGrid_CTM_Edition.bShowTargetTargetAni
+			RaidGrid_Party.RedrawTargetSelectImage()
 		end },
 		{ szOption = "显示距离", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function()
 			RaidGrid_CTM_Edition.bShowDistance = not RaidGrid_CTM_Edition.bShowDistance
@@ -487,7 +483,6 @@ function RaidGrid_CTM_Edition.OpenRaidDragPanel(dwMemberID)
 	if not tMemberInfo then
 		return
 	end
-	
 	local hFrame = Wnd.OpenWindow("RaidDragPanel")
 	
 	local nX, nY = Cursor.GetPos()
@@ -516,8 +511,8 @@ function RaidGrid_CTM_Edition.OpenRaidDragPanel(dwMemberID)
 		hImageLife:SetPercentage(0)
 		hImageMana:SetPercentage(0)
 	end
-	
 	hMember:Show()
+	hFrame:BringToTop()
 end
 
 function RaidGrid_CTM_Edition.CloseRaidDragPanel()
@@ -528,15 +523,8 @@ function RaidGrid_CTM_Edition.CloseRaidDragPanel()
 	end
 end
 
-function RaidGrid_CTM_Edition.EditBox_AppendLinkPlayer(szPlayerName)
-	local frame = Station.Lookup("Lowest2/EditBox")
-	if not frame or not frame:IsVisible() then
-		return false
-	end
-
+function RaidGrid_CTM_Edition.EditBox_AppendLinkPlayer(szName)
 	local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-	edit:InsertObj("["..szPlayerName.."]", {type = "name", text = "["..szPlayerName.."]", name = szPlayerName})
-	
+	edit:InsertObj("[" .. szName .. "]", { type = "name", text = "[" .. szName .. "]", name = szName})
 	Station.SetFocusWindow(edit)
-	return true
 end

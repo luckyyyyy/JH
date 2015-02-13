@@ -263,11 +263,11 @@ PS.OnPanelActive = function(frame)
 end
 
 JH.RegisterInit("PartyBuffList", 
-	{ "ON_ENTER_CUSTOM_UI_MODE" , function() _PartyBuffList.UiMode("ON_ENTER_CUSTOM_UI_MODE") end },
-	{ "ON_LEAVE_CUSTOM_UI_MODE" , function() _PartyBuffList.UiMode("ON_LEAVE_CUSTOM_UI_MODE") end },
-	{ "BUFF_UPDATE" , _PartyBuffList.OnBuffUpdate },
-	{ "UPDATE_SELECT_TARGET" , _PartyBuffList.UpdateFrame },
-	{ "Breathe" , _PartyBuffList.OnBreathe },
+	{ "ON_ENTER_CUSTOM_UI_MODE", function() _PartyBuffList.UiMode("ON_ENTER_CUSTOM_UI_MODE") end },
+	{ "ON_LEAVE_CUSTOM_UI_MODE", function() _PartyBuffList.UiMode("ON_LEAVE_CUSTOM_UI_MODE") end },
+	{ "BUFF_UPDATE", _PartyBuffList.OnBuffUpdate },
+	{ "TARGET_CHANGE", _PartyBuffList.UpdateFrame },
+	{ "Breathe", _PartyBuffList.OnBreathe },
 	{ "JH_PARTYBUFFLIST", function()
 		if not PartyBuffList.bEnableRGES then return end
 		_PartyBuffList.OnTableInsert(arg0, arg1, arg2)
