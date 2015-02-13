@@ -7,6 +7,27 @@ local CTM_LOOT_MODE = {
 	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
 }
 local CTM_FRAME
+local function RaidPanel_Switch(bOpen)
+	local frame = Station.Lookup("Normal/RaidPanel_Main")
+	if frame then
+		if bOpen then
+			frame:Show()
+		else
+			frame:Hide()
+		end
+	end
+end
+local function TeammatePanel_Switch(bOpen)
+	local hFrame = Station.Lookup("Normal/Teammate")
+	if hFrame then
+		if bOpen then
+			hFrame:Show()
+		else
+			hFrame:Hide()
+		end
+	end	
+end
+
 -------------------------------------------------
 -- 界面创建 事件注册
 -------------------------------------------------
@@ -150,13 +171,11 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	RaidGrid_Party.UpdateReadyCheckFade()
 	
 	if not RaidGrid_CTM_Edition.bShowSystemRaidPanel then
-		RaidGrid_CTM_Edition.RaidPanel_Switch(false)
+		RaidPanel_Switch(false)
 	end
 	
-	if RaidGrid_CTM_Edition.bShowSystemTeamPanel then
-		RaidGrid_CTM_Edition.TeammatePanel_Switch(true)
-	else
-		RaidGrid_CTM_Edition.TeammatePanel_Switch(false)
+	if not RaidGrid_CTM_Edition.bShowSystemTeamPanel then
+		TeammatePanel_Switch(false)
 	end
 end
 
@@ -258,6 +277,13 @@ end
 
 RegisterEvent("LOGIN_GAME", RaidGrid_CTM_Edition.OpenPanel)
 RegisterEvent("FIRST_LOADING_END", RaidGrid_CTM_Edition.CheckEnable)
+RegisterEvent("CTM_PANEL_RAID", function()
+	RaidPanel_Switch(arg0)
+end)
+RegisterEvent("CTM_PANEL_TEAMATE", function()
+	TeammatePanel_Switch(arg0)
+end)
+
 JH.AddHotKey("JH_CTM_Ready", g_tStrings.STR_RAID_READY_CONFIRM_START, RaidGrid_Party.InitReadyCheckCover)
 JH.AddonMenu(function()
 	return {
@@ -266,6 +292,7 @@ JH.AddonMenu(function()
 			RaidGrid_CTM_Edition.bShowInRaid = false
 			RaidGrid_CTM_Edition.CheckEnable()
 			RaidGrid_CTM_Edition.Switch()
+			FireEvent("CTM_PANEL_RAID", not RaidGrid_CTM_Edition.bRaidEnable)
 		end
 	}
 end)
