@@ -90,6 +90,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "TEAM_AUTHORITY_CHANGED" then
 		RaidGrid_Party.RedrawHandleRoleInfo(arg2)
 		RaidGrid_Party.RedrawHandleRoleInfo(arg3)
+		RaidGrid_CTM_Edition.UpdateLootImages()
 	elseif szEvent == "PARTY_SET_FORMATION_LEADER" then
 		RaidGrid_Party.ReloadRaidPanel()
 	elseif szEvent == "PARTY_SET_MARK" then
@@ -264,6 +265,7 @@ JH.AddonMenu(function()
 			RaidGrid_CTM_Edition.bRaidEnable = not RaidGrid_CTM_Edition.bRaidEnable
 			RaidGrid_CTM_Edition.bShowInRaid = false
 			RaidGrid_CTM_Edition.CheckEnable()
+			RaidGrid_CTM_Edition.Switch()
 		end
 	}
 end)
