@@ -329,6 +329,7 @@ function RaidGrid_Party.RedrawHandleRoleInfo(dwMemberID)  --重绘处理角色信息
 	local img = handleRole:Lookup("Handle_Icons/Image_Icon")
 	if RaidGrid_CTM_Edition.bShowIcon == 2 then
 		local _, nIconID = JH.GetSkillName(tMemberInfo.dwMountKungfuID, 0)
+		if nIconID == 13 then nIconID = 2003 end -- _(:з」∠)_
 		img:FromIconID(nIconID)
 	elseif RaidGrid_CTM_Edition.bShowIcon == 1 then
 		img:FromUITex(GetForceImage(tMemberInfo.dwForceID))
