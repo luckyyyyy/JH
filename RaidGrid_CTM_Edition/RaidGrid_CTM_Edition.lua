@@ -11,6 +11,7 @@ local CTM_LOOT_MODE = {
 -- 界面创建 事件注册
 -------------------------------------------------
 function RaidGrid_CTM_Edition.OnFrameCreate()
+	RaidGrid_CTM_Edition.frameSelf = this
 	this:RegisterEvent("PARTY_UPDATE_BASE_INFO")
 	this:RegisterEvent("PARTY_SYNC_MEMBER_DATA")
 	this:RegisterEvent("PARTY_ADD_MEMBER")
@@ -213,7 +214,6 @@ end
 ------------------------------------------------------------------------------------------------------------
 function RaidGrid_CTM_Edition.OpenPanel()
 	local frame = RaidGrid_CTM_Edition.frameSelf or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
-	RaidGrid_CTM_Edition.frameSelf = frame
 	JH.BreatheCall("CTM_BINDRGES", function()
 		if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.RedrawAllBuffBox then
 			RaidGrid_EventScrutiny.RedrawAllBuffBox()
@@ -225,6 +225,11 @@ end
 function RaidGrid_CTM_Edition.ClosePanel()
 	Wnd.CloseWindow(RaidGrid_CTM_Edition.frameSelf)
 	JH.UnBreatheCall("CTM_BINDRGES")
+	for i = 0, 4 do
+		if Station.Lookup("Normal/RaidGrid_Party_" .. i) then
+			Wnd.CloseWindow(Station.Lookup("Normal/RaidGrid_Party_" .. i))
+		end
+	end
 	RaidGrid_CTM_Edition.frameSelf = nil
 end
 
