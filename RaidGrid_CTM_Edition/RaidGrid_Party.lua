@@ -252,19 +252,19 @@ function RaidGrid_Party.RedrawHandleRoleInfoEx(dwMemberID)  --重绘处理角色信息EX
 	end
 
 	local textLife = handleRole:Lookup("Handle_Common/Text_Life")	
-	local nRed, nGreen, nBlue, dwForceID = RaidGrid_Party.GetCharacterColor(dwMemberID, tMemberInfo.dwForceID)
+	local r, g, b = RaidGrid_CTM_Edition.GetForceColor(tMemberInfo.dwForceID)
 	if not tMemberInfo.bIsOnLine then
-		RaidGrid_Party.tLifeColor[dwMemberID] = {128, 128, 128}
+		RaidGrid_Party.tLifeColor[dwMemberID] = { 128, 128, 128 }
 		textLife:SetFontColor(128, 128, 128)
 		textLife:SetText(g_tStrings.STR_FRIEND_NOT_ON_LINE)
 	elseif tMemberInfo.bDeathFlag then
-		RaidGrid_Party.tLifeColor[dwMemberID] = {255, 0, 0}
+		RaidGrid_Party.tLifeColor[dwMemberID] = { 255, 0, 0 }
 		textLife:SetFontColor(255, 0, 0)
 		textLife:SetText(g_tStrings.FIGHT_DEATH)
 	else
-		local nRedOnline, nGreenOnline, nBlueOnline = RaidGrid_Party.tHPBarColor[1], RaidGrid_Party.tHPBarColor[2], RaidGrid_Party.tHPBarColor[3]
+		local nRedOnline, nGreenOnline, nBlueOnline = unpack(RaidGrid_Party.tHPBarColor)
 		if not RaidGrid_CTM_Edition.bColorHPBarWithDistance then
-			RaidGrid_Party.tLifeColor[dwMemberID] = {nRedOnline, nGreenOnline, nBlueOnline}
+			RaidGrid_Party.tLifeColor[dwMemberID] = { nRedOnline, nGreenOnline, nBlueOnline }
 		end
 		textLife:SetFontColor(255, 255, 255)
 	end
@@ -272,7 +272,7 @@ function RaidGrid_Party.RedrawHandleRoleInfoEx(dwMemberID)  --重绘处理角色信息EX
 	local textName = handleRole:Lookup("Text_Name_2")
 	textName:SetText(tMemberInfo.szName)
 	if RaidGrid_CTM_Edition.bColoredName then
-		textName:SetFontColor(nRed, nGreen, nBlue)
+		textName:SetFontColor(r, g, b)
 	else
 		textName:SetFontColor(255, 255, 255)
 	end
@@ -571,6 +571,7 @@ function RaidGrid_Party.InitReadyCheckCover()	--成员就绪显示
 		end
 	end
 end
+JH.AddHotKey("JH_CTM_Ready", g_tStrings.STR_RAID_READY_CONFIRM_START, RaidGrid_Party.InitReadyCheckCover)
 
 function RaidGrid_Party.ClearReadyCheckCover()	--清除就绪显示
 	for nGroupIndex = 0, 4 do
@@ -714,54 +715,6 @@ function RaidGrid_Party.GetHandleRoleInGroup(nIndex, nGroupIndex)	--获得选中的队
 		return
 	end
 	return frame.tHandleRoles[nIndex]
-end
-
-function RaidGrid_Party.GetCharacterColor(dwCharacterID, dwForceID) --获得成员颜色
-	local player = GetClientPlayer()
-	if not player then
-		return 128, 128, 128, 0
-	end
-	if not IsPlayer(dwCharacterID) then
-		return 168, 168, 168, 0
-	end
-	
-	if not dwForceID then
-		local target = GetPlayer(dwCharacterID)
-		if not target then
-			return 128, 128, 128, 0
-		end
-		
-		dwForceID = target.dwForceID
-		if not dwForceID then
-			return 168, 168, 168, 0
-		end
-	end
-	if dwForceID == 0 then		-- 侠
-		return 255, 255, 255, dwForceID
-	elseif dwForceID == 1 then	-- 少林
-		return 255, 255, 170, dwForceID
-	elseif dwForceID == 2 then	-- 万花
-		return 175, 25, 255, dwForceID
-	elseif dwForceID == 3 then	-- 天策
-		return 250, 75, 100, dwForceID
-	elseif dwForceID == 4 then	-- 纯阳
-		return 148, 178, 255, dwForceID  
-	elseif dwForceID == 5 then	-- 七秀
-		return 255, 125, 255, dwForceID
-	elseif dwForceID == 6 then	-- 五毒
-		return 140, 80, 255, dwForceID
-	elseif dwForceID == 7 then  -- 唐门
-		return 0, 128, 192, dwForceID
-	elseif dwForceID == 8 then	-- 藏剑
-		return 255, 200, 0, dwForceID
-	elseif dwForceID == 9 then	-- 丐帮
-		return 185, 125, 60, dwForceID	
-	elseif dwForceID == 10 then	-- 明教
-		return 240, 50, 200, dwForceID
-	elseif dwForceID == 21 then
-		return 180, 60, 0, dwForceID
-	end
-	return 168, 168, 168, 0
 end
 
 function RaidGrid_Party.SetTarget(dwTargetID)	--设置目标
