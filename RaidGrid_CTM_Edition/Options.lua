@@ -26,27 +26,6 @@ function RaidGrid_CTM_Edition.IsLeader()
 	return hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == hPlayer.dwID
 end
 local IsLeader = RaidGrid_CTM_Edition.IsLeader
-function RaidGrid_CTM_Edition.RaidPanel_Switch(bOpen)
-	local frame = Station.Lookup("Normal/RaidPanel_Main")
-	if frame then
-		if bOpen then
-			frame:Show()
-		else
-			frame:Hide()
-		end
-	end
-end
-
-function RaidGrid_CTM_Edition.TeammatePanel_Switch(bOpen)
-	local hFrame = Station.Lookup("Normal/Teammate")
-	if hFrame then
-		if bOpen then
-			hFrame:Show()
-		else
-			hFrame:Hide()
-		end
-	end	
-end
 
 function RaidGrid_CTM_Edition.PopOptions()
 	local me = GetClientPlayer()
@@ -313,23 +292,14 @@ function RaidGrid_CTM_Edition.PopOptions()
 	})
 	table.insert(menu, { bDevide = true })
 	table.insert(menu, { szOption = g_tStrings.OTHER,
-		{ szOption = "启用", bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable, fnAction = function(UserData, bCheck)
-			RaidGrid_CTM_Edition.bRaidEnable = bCheck
-			RaidGrid_CTM_Edition.CheckEnable()
-		end },
 		{ szOption = "只在团队时才显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowInRaid, fnAction = function(UserData, bCheck)
 			RaidGrid_CTM_Edition.bShowInRaid = bCheck
 			RaidGrid_CTM_Edition.CheckEnable()
-		end },
-		{ bDevide = true },
-		{ szOption = "开启系统团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSystemRaidPanel, fnAction = function(UserData, bCheck)
-			RaidGrid_CTM_Edition.bShowSystemRaidPanel = bCheck
-			RaidGrid_CTM_Edition.RaidPanel_Switch(bCheck)
-		end },
-		{ szOption = "开启系统小队面板", bCheck = true, bDisable = me.IsInRaid(), bChecked = RaidGrid_CTM_Edition.bShowSystemTeamPanel, fnAction = function(UserData, bCheck)
-			RaidGrid_CTM_Edition.bShowSystemTeamPanel = bCheck
-			RaidGrid_CTM_Edition.TeammatePanel_Switch(bCheck)
-		end },		
+			local me = GetClientPlayer()
+			if me.IsInParty() and not me.IsInRaid() then
+				FireEvent("CTM_PANEL_TEAMATE", RaidGrid_CTM_Edition.bShowInRaid)
+			end
+		end },	
 	})
 	-- 人数统计
 	if me.IsInRaid() then
