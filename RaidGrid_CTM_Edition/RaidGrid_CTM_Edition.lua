@@ -10,7 +10,6 @@ RaidGrid_CTM_Edition = {
 	nHPShownMode2 = 2,
 	nHPShownNumMode = 1,
 	nShowMP = false,
-	bLowMPBar = true,
 	bHPHitAlert = true,
 	bColoredName = true,
 	bColoredGrid = false,
@@ -326,9 +325,6 @@ function RaidGrid_CTM_Edition.PopOptions()
 		end	},
 		{ szOption = "蓝条渐变色", bCheck = true, bChecked = not RaidGrid_Party.Shadow.bMana, fnAction = function()
 			RaidGrid_Party.Shadow.bMana = not RaidGrid_Party.Shadow.bMana
-		end	},
-		{ szOption = "更细的蓝条", bCheck = true, bChecked = RaidGrid_CTM_Edition.bLowMPBar, fnAction = function()
-			RaidGrid_CTM_Edition.bLowMPBar = not RaidGrid_CTM_Edition.bLowMPBar
 		end	},
 		{ szOption = "透明度设置", fnAction = function()
 			local x, y = Cursor.GetPos()
