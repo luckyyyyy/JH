@@ -1556,9 +1556,6 @@ function RaidGrid_EventScrutiny.RedrawAllBuffBox()
 	if not RaidGrid_CTM_Edition or not RaidGrid_Party or not RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
 		return
 	end
-	if not RaidGrid_CTM_Edition.frameSelf then
-		return
-	end
 	for nGroupIndex = 0, 4 do
 		for nMemberIndex = 0, 4 do
 			local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, nGroupIndex)
