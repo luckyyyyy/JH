@@ -57,11 +57,8 @@ function RaidGrid_Party.OnAddOrDeleteMember(dwMemberID, nGroupIndex) --ÃÌº”ªÚ…æ≥
 	if not frame then
 		frame = RaidGrid_Party.CreateNewPartyPanel(nGroupIndex)
 	end
-	if RaidGrid_CTM_Edition.bShowRaid then
-		frame:Show()
-	else
-		frame:Hide()
-	end
+	frame:Show()
+
 
 	local tGroupInfo = team.GetGroupInfo(nGroupIndex)
 	local nMemberCount = 0
@@ -1117,31 +1114,11 @@ function RaidGrid_Party.CreateAllNewPartyPanel() --¥¥Ω®À˘”––¬µƒ–°∂”√Ê∞Â
 end
 
 function RaidGrid_Party.ReloadRaidPanel()	--÷ÿ‘ÿÕ≈∂”√Ê∞Â
-	if RaidGrid_CTM_Edition.bShowRaid then
-		if not RaidGrid_CTM_Edition.bRaidEnable or (RaidGrid_CTM_Edition.bShowInRaid and not RaidGrid_Party.IsInRaid()) then
-			RaidGrid_CTM_Edition.bShowRaid = false
-		end
-	elseif RaidGrid_CTM_Edition.bRaidEnable then
-		if not RaidGrid_CTM_Edition.bShowInRaid or RaidGrid_Party.IsInRaid() then
-			RaidGrid_CTM_Edition.bShowRaid = true
-		end
-	end
-	
-	if not RaidGrid_CTM_Edition.bShowRaid then
-		RaidGrid_CTM_Edition.TeammatePanel_Switch(true)
-	end
-
-	if not RaidGrid_CTM_Edition.bShowRaid or not GetClientPlayer().IsInParty() then
-		RaidGrid_CTM_Edition.ClosePanel()
-	else
-		RaidGrid_CTM_Edition.OpenPanel()
-	end
-
 	if not RaidGrid_Party.bDrag then
 		RaidGrid_Party.CreateAllNewPartyPanel()
 	end
-
 	local team = GetClientTeam()
+	local me = GetClientPlayer()
 	for i = 0, 4 do
 		local tGroupInfo = nil
 		if math.min(4, team.nGroupNum - 1) >= i then
@@ -1161,15 +1138,14 @@ function RaidGrid_Party.ReloadRaidPanel()	--÷ÿ‘ÿÕ≈∂”√Ê∞Â
 			frameParty:Hide()
 		end
 		
-		if not RaidGrid_CTM_Edition.bShowRaid then
-			local frameParty = RaidGrid_Party.GetPartyPanel(i)
-			frameParty:Hide()
-		end
+		-- if not RaidGrid_CTM_Edition.bShowRaid then
+			-- local frameParty = RaidGrid_Party.GetPartyPanel(i)
+			-- frameParty:Hide()
+		-- end
 	end
-
+	RaidGrid_CTM_Edition.Switch()
 	RaidGrid_Party.UpdateMarkImage()
 	RaidGrid_Party.AutoLinkAllPanel()
-	
 end
 
 function RaidGrid_Party.ClosePartyPanel(nIndex, bClose) --πÿ±’◊È∂”√Ê∞Â
