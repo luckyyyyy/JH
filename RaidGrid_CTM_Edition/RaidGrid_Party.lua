@@ -376,6 +376,16 @@ function RaidGrid_Party.RedrawAllFadeHP(bForceHide)  --重绘当前血量
 	end
 end
 
+local HIDE_FORCE = {
+	[7] = true,
+	[8] = true,
+	[10] = true,
+	[21] = true,
+}
+local IsPlayerManaHide = function(dwForceID)
+	return HIDE_FORCE[dwForceID]
+end
+
 function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 	local nMemberIndex, nGroupIndex = RaidGrid_Party.GetMemberIndexInGroup(dwMemberID)
 	if not nMemberIndex then
@@ -392,40 +402,18 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 		return
 	end
 
-	local nHPHeight = 24
-	local nMPHeight = 14
-	if RaidGrid_CTM_Edition.bLowMPBar then
-		nHPHeight = 29
-		nMPHeight = 9
-	end
+	local nHPHeight = 29
+	local nMPHeight = 9
 
-	local playerMember = GetPlayer(dwMemberID)
 	local shadowMana = handleRole:Lookup("Handle_Common/Shadow_Mana")
 	local nManaShow = 0
 	local nPercentage = nil
-	local r, g, b = 255, 255, 255
-	if playerMember and (playerMember.dwForceID == 8 or playerMember.dwForceID == 21) and playerMember.nCurrentRage and playerMember.nMaxRage then --剑气绘图
-		local nCurrentRage = playerMember.nCurrentRage
-		local nMaxRage = playerMember.nMaxRage
-		local nRagePercentage = nCurrentRage / nMaxRage
-		if nMaxRage <= 100 then
-			r, g, b = 255, 110, 0
-		else
-			r, g, b = 255, 170, 0
-		end
-		nPercentage = nRagePercentage
-		nManaShow = nCurrentRage
-	elseif playerMember and playerMember.dwForceID == 7 and playerMember.nCurrentEnergy and playerMember.nMaxEnergy and playerMember.nCurrentEnergy > 0 then --神机值绘图
-		local nCurrentEnergy = playerMember.nCurrentEnergy
-		local nMaxEnergy = playerMember.nMaxEnergy
-		local nEnergyPercentage = nCurrentEnergy / nMaxEnergy
-		r, g, b = (192 + nEnergyPercentage * (255 - 192)), (192 + nEnergyPercentage * (255 - 192)), 250
-		nPercentage = nEnergyPercentage
-		nManaShow = nCurrentEnergy
+	local r, g, b = 0, 96, 255
+	if IsPlayerManaHide(tMemberInfo.dwForceID) then
+		nPercentage = 0
+		nManaShow = 0
 	else
-		local nManaPercentage = tMemberInfo.nCurrentMana / tMemberInfo.nMaxMana
-		r, g, b = 0, 96, 255
-		nPercentage = nManaPercentage
+		nPercentage = tMemberInfo.nCurrentMana / tMemberInfo.nMaxMana
 		nManaShow = tMemberInfo.nCurrentMana
 	end
 	if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
@@ -439,7 +427,7 @@ function RaidGrid_Party.RedrawHandleRoleHPnMP(dwMemberID)  --HP&MP相关
 	end
 	local nNewW = 121 * nLifePercentage * RaidGrid_Party.fScaleX
 	if not RaidGrid_Party.tLifeColor[dwMemberID] then
-		RaidGrid_Party.tLifeColor[dwMemberID] = {255,255,255}
+		RaidGrid_Party.tLifeColor[dwMemberID] = { 255, 255, 255 }
 	end
 
 	RaidGrid_Party.RedrawTriangleFan(shadowLife, nNewW, nHPHeight * RaidGrid_Party.fScaleY, RaidGrid_Party.tLifeColor[dwMemberID][1], RaidGrid_Party.tLifeColor[dwMemberID][2], RaidGrid_Party.tLifeColor[dwMemberID][3],RaidGrid_Party.Shadow.bLife)
@@ -915,14 +903,12 @@ function RaidGrid_Party.CreateNewPartyPanel(nIndex) --创建新的小队面板
 			end
 		end
 		
-		if RaidGrid_CTM_Edition.bLowMPBar then
-			local shadowMana = handleRole:Lookup("Handle_Common/Shadow_Mana")
-			local shadowLife = handleRole:Lookup("Handle_Common/Shadow_Life")
-			local shadowLifeFade = handleRole:Lookup("Handle_Common/Shadow_Life_Fade")
-			shadowMana:SetRelPos(-2, 29)
-			shadowLifeFade:SetSize(121, 29)
-			handleRole:FormatAllItemPos()
-		end
+		local shadowMana = handleRole:Lookup("Handle_Common/Shadow_Mana")
+		local shadowLife = handleRole:Lookup("Handle_Common/Shadow_Life")
+		local shadowLifeFade = handleRole:Lookup("Handle_Common/Shadow_Life_Fade")
+		shadowMana:SetRelPos(-2, 29)
+		shadowLifeFade:SetSize(121, 29)
+		handleRole:FormatAllItemPos()
 		------------------------------------------------------------------------------
 		
 		local textLife = handleRole:Lookup("Handle_Common/Text_Life")
