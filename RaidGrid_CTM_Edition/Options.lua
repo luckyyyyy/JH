@@ -1,7 +1,6 @@
 RaidGrid_CTM_Edition = RaidGrid_CTM_Edition or {}
 RaidGrid_CTM_Edition.bAltNeededForDrag = true;						RegisterCustomData("RaidGrid_CTM_Edition.bAltNeededForDrag")
 RaidGrid_CTM_Edition.bRaidEnable = true;							RegisterCustomData("RaidGrid_CTM_Edition.bRaidEnable")
-RaidGrid_CTM_Edition.bShowRaid = true;								RegisterCustomData("RaidGrid_CTM_Edition.bShowRaid")
 RaidGrid_CTM_Edition.bShowInRaid = false;							RegisterCustomData("RaidGrid_CTM_Edition.bShowInRaid")
 RaidGrid_CTM_Edition.bShowSystemRaidPanel = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowSystemRaidPanel")
 RaidGrid_CTM_Edition.bShowSystemTeamPanel = false;					RegisterCustomData("RaidGrid_CTM_Edition.bShowSystemTeamPanel")
@@ -316,12 +315,11 @@ function RaidGrid_CTM_Edition.PopOptions()
 	table.insert(menu, { szOption = g_tStrings.OTHER,
 		{ szOption = "启用", bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable, fnAction = function(UserData, bCheck)
 			RaidGrid_CTM_Edition.bRaidEnable = bCheck
-			RaidGrid_CTM_Edition.bShowRaid = bCheck
-			RaidGrid_Party.ReloadRaidPanel()
+			RaidGrid_CTM_Edition.CheckEnable()
 		end },
 		{ szOption = "只在团队时才显示", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowInRaid, fnAction = function(UserData, bCheck)
 			RaidGrid_CTM_Edition.bShowInRaid = bCheck
-			RaidGrid_Party.ReloadRaidPanel()
+			RaidGrid_CTM_Edition.CheckEnable()
 		end },
 		{ bDevide = true },
 		{ szOption = "开启系统团队面板", bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowSystemRaidPanel, fnAction = function(UserData, bCheck)

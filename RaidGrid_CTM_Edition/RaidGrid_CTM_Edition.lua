@@ -6,12 +6,12 @@ local CTM_LOOT_MODE = {
 	Image_LootMode_Roll = PARTY_LOOT_MODE.GROUP_LOOT,
 	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
 }
-
+local CTM_FRAME
 -------------------------------------------------
 -- 界面创建 事件注册
 -------------------------------------------------
 function RaidGrid_CTM_Edition.OnFrameCreate()
-	RaidGrid_CTM_Edition.frameSelf = this
+	CTM_FRAME = this
 	this:RegisterEvent("PARTY_UPDATE_BASE_INFO")
 	this:RegisterEvent("PARTY_SYNC_MEMBER_DATA")
 	this:RegisterEvent("PARTY_ADD_MEMBER")
@@ -108,6 +108,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		RaidGrid_Party.ReloadRaidPanel()
 		RaidGrid_CTM_Edition.UpdateAnchor(this)
 		RaidGrid_CTM_Edition.UpdateLootImages()
+		RaidGrid_Party.AutoLinkAllPanel()
 	elseif szEvent == "TARGET_CHANGE" then
 		RaidGrid_Party.RedrawTargetSelectImage()
 	elseif szEvent == "UI_SCALED" then
@@ -153,7 +154,7 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	
 	if RaidGrid_CTM_Edition.bShowSystemTeamPanel then
 		RaidGrid_CTM_Edition.TeammatePanel_Switch(true)
-	elseif RaidGrid_CTM_Edition.bShowRaid then
+	else
 		RaidGrid_CTM_Edition.TeammatePanel_Switch(false)
 	end
 end
@@ -196,7 +197,7 @@ end
 
 function RaidGrid_CTM_Edition.UpdateLootImages()
 	local nLootMode, nRollQuality = RaidGrid_CTM_Edition.GetLootModenQuality()
-	local frame = RaidGrid_CTM_Edition.frameSelf
+	local frame = CTM_FRAME
 	for k, v in pairs(CTM_LOOT_MODE) do
 		if nLootMode == v then
 			frame:Lookup("", "Handle_BG"):Lookup(k):SetAlpha(255)
@@ -213,7 +214,7 @@ function RaidGrid_CTM_Edition.UpdateLootImages()
 end
 ------------------------------------------------------------------------------------------------------------
 function RaidGrid_CTM_Edition.OpenPanel()
-	local frame = RaidGrid_CTM_Edition.frameSelf or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
+	local frame = CTM_FRAME or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
 	JH.BreatheCall("CTM_BINDRGES", function()
 		if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.RedrawAllBuffBox then
 			RaidGrid_EventScrutiny.RedrawAllBuffBox()
@@ -222,28 +223,47 @@ function RaidGrid_CTM_Edition.OpenPanel()
 	return frame
 end
 
+function RaidGrid_CTM_Edition.CheckEnable()
+	if not RaidGrid_CTM_Edition.bRaidEnable then
+		return RaidGrid_CTM_Edition.ClosePanel()
+	end
+	if RaidGrid_CTM_Edition.bShowInRaid and not RaidGrid_Party.IsInRaid() then
+		return RaidGrid_CTM_Edition.ClosePanel()
+	end
+	return RaidGrid_CTM_Edition.OpenPanel()
+end
+
 function RaidGrid_CTM_Edition.ClosePanel()
-	Wnd.CloseWindow(RaidGrid_CTM_Edition.frameSelf)
+	if CTM_FRAME then Wnd.CloseWindow(CTM_FRAME) end
 	JH.UnBreatheCall("CTM_BINDRGES")
 	for i = 0, 4 do
 		if Station.Lookup("Normal/RaidGrid_Party_" .. i) then
 			Wnd.CloseWindow(Station.Lookup("Normal/RaidGrid_Party_" .. i))
 		end
 	end
-	RaidGrid_CTM_Edition.frameSelf = nil
+	CTM_FRAME = nil
 end
 
-function RaidGrid_CTM_Edition.CloseAndOpenPanel()
-	local frame = RaidGrid_CTM_Edition.frameSelf
-	if frame then
-		RaidGrid_CTM_Edition.ClosePanel()
-		RaidGrid_CTM_Edition.bRaidEnable = false
-	else
-		RaidGrid_CTM_Edition.OpenPanel()
-		RaidGrid_CTM_Edition.bRaidEnable = true
+function RaidGrid_CTM_Edition.Switch()
+	local me = GetClientPlayer()
+	if CTM_FRAME then
+		if me.IsInParty() then
+			CTM_FRAME:Show()
+		else
+			CTM_FRAME:Hide()
+		end
 	end
 end
 
 RegisterEvent("LOGIN_GAME", RaidGrid_CTM_Edition.OpenPanel)
-JH.AddHotKey("JH_CTM_Switch", "开启/关闭CTM团队面板", RaidGrid_CTM_Edition.CloseAndOpenPanel)
+RegisterEvent("FIRST_LOADING_END", RaidGrid_CTM_Edition.CheckEnable)
 JH.AddHotKey("JH_CTM_Ready", g_tStrings.STR_RAID_READY_CONFIRM_START, RaidGrid_Party.InitReadyCheckCover)
+JH.AddonMenu(function()
+	return {
+		szOption = _L["CTM Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = function()
+			RaidGrid_CTM_Edition.bRaidEnable = not RaidGrid_CTM_Edition.bRaidEnable
+			RaidGrid_CTM_Edition.bShowInRaid = false
+			RaidGrid_CTM_Edition.CheckEnable()
+		end
+	}
+end)
