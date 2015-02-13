@@ -1117,7 +1117,6 @@ function RaidGrid_Party.CreateAllNewPartyPanel() --创建所有新的小队面板
 end
 
 function RaidGrid_Party.ReloadRaidPanel()	--重载团队面板
-
 	if RaidGrid_CTM_Edition.bShowRaid then
 		if not RaidGrid_CTM_Edition.bRaidEnable or (RaidGrid_CTM_Edition.bShowInRaid and not RaidGrid_Party.IsInRaid()) then
 			RaidGrid_CTM_Edition.bShowRaid = false
@@ -1135,7 +1134,7 @@ function RaidGrid_Party.ReloadRaidPanel()	--重载团队面板
 	if not RaidGrid_CTM_Edition.bShowRaid or not GetClientPlayer().IsInParty() then
 		RaidGrid_CTM_Edition.ClosePanel()
 	else
-		RaidGrid_CTM_Edition.ShowPanel()
+		RaidGrid_CTM_Edition.OpenPanel()
 	end
 
 	if not RaidGrid_Party.bDrag then
