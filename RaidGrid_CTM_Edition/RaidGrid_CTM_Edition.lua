@@ -1,10 +1,16 @@
 RaidGrid_CTM_Edition = RaidGrid_CTM_Edition or {}
-RaidGrid_CTM_Edition.frameSelf = nil
 
-local CTM_X, CTM_Y = 0, 0
+local CTM_LOOT_MODE = {
+	Image_LootMode_Free = PARTY_LOOT_MODE.FREE_FOR_ALL, 
+	Image_LootMode_Looter = PARTY_LOOT_MODE.DISTRIBUTE, 
+	Image_LootMode_Roll = PARTY_LOOT_MODE.GROUP_LOOT,
+	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
+}
 
+-------------------------------------------------
+-- 界面创建 事件注册
+-------------------------------------------------
 function RaidGrid_CTM_Edition.OnFrameCreate()
-	this:RegisterEvent("RENDER_FRAME_UPDATE")
 	this:RegisterEvent("PARTY_UPDATE_BASE_INFO")
 	this:RegisterEvent("PARTY_SYNC_MEMBER_DATA")
 	this:RegisterEvent("PARTY_ADD_MEMBER")
@@ -12,6 +18,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("PARTY_DELETE_MEMBER")
 	this:RegisterEvent("PARTY_UPDATE_MEMBER_INFO")
 	this:RegisterEvent("PARTY_UPDATE_MEMBER_LMR")
+	this:RegisterEvent("PARTY_LEVEL_UP_RAID")
 	this:RegisterEvent("PARTY_SET_MEMBER_ONLINE_FLAG")
 	this:RegisterEvent("PLAYER_STATE_UPDATE")
 	this:RegisterEvent("UPDATE_PLAYER_SCHOOL_ID")
@@ -19,21 +26,27 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("PARTY_SET_MARK")
 	this:RegisterEvent("TEAM_AUTHORITY_CHANGED")
+	this:RegisterEvent("TEAM_CHANGE_MEMBER_GROUP")
 	this:RegisterEvent("PARTY_SET_FORMATION_LEADER")
 	this:RegisterEvent("PARTY_LOOT_MODE_CHANGED")
 	this:RegisterEvent("LOADING_END")
+	this:RegisterEvent("CTM_LOADING_END")
 	this:RegisterEvent("TARGET_CHANGE")
+	if GetClientPlayer() then
+		FireEvent("CTM_LOADING_END")
+	end
 end
-
+-------------------------------------------------
+-- 拖动窗体
+-------------------------------------------------
+function RaidGrid_CTM_Edition.OnFrameDrag() -- 救命小天使
+	RaidGrid_Party.AutoLinkAllPanel()
+end
+-------------------------------------------------
+-- 事件处理
+-------------------------------------------------
 function RaidGrid_CTM_Edition.OnEvent(szEvent)
-	if szEvent == "RENDER_FRAME_UPDATE" then
-		local me = GetClientPlayer()
-		if not me then return end
-		local nX, nY = RaidGrid_CTM_Edition.frameSelf:GetRelPos()
-		if CTM_X ~= nX or CTM_Y ~= nY then
-			RaidGrid_Party.AutoLinkAllPanel()
-		end
-	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then		-- dwTeamID:arg0, dwMemberID:arg1, nGroupIndex:arg2
+	if szEvent == "PARTY_SYNC_MEMBER_DATA" then		-- dwTeamID:arg0, dwMemberID:arg1, nGroupIndex:arg2
 		RaidGrid_Party.OnAddOrDeleteMember(arg1, arg2)
 		RaidGrid_Party.RedrawHandleRoleHPnMP(arg1)
 		RaidGrid_Party.RedrawHandleRoleInfo(arg1)
@@ -82,16 +95,28 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		RaidGrid_Party.UpdateMarkImage()
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		RaidGrid_Party.UpdateReadyCheckCover(arg0, arg1)
-	elseif szEvent == "LOADING_END" or szEvent == "PARTY_UPDATE_BASE_INFO" or szEvent == "PARTY_LOOT_MODE_CHANGED" then
+	elseif szEvent == "PARTY_UPDATE_BASE_INFO" or szEvent == "PARTY_LEVEL_UP_RAID" or szEvent == "TEAM_CHANGE_MEMBER_GROUP" then
+		RaidGrid_Party.ReloadRaidPanel()
+	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
+		RaidGrid_CTM_Edition.UpdateLootImages()
+	elseif szEvent == "LOADING_END" or szEvent == "PARTY_UPDATE_BASE_INFO" then
+		RaidGrid_Party.ReloadRaidPanel()
+		RaidGrid_CTM_Edition.UpdateAnchor(this)
+		RaidGrid_CTM_Edition.UpdateLootImages()
+	elseif szEvent == "CTM_LOADING_END" then
+		RaidGrid_Party.ReloadRaidPanel()
+		RaidGrid_CTM_Edition.UpdateAnchor(this)
 		RaidGrid_CTM_Edition.UpdateLootImages()
 	elseif szEvent == "TARGET_CHANGE" then
 		RaidGrid_Party.RedrawTargetSelectImage()
 	elseif szEvent == "UI_SCALED" then
 		RaidGrid_CTM_Edition.UpdateAnchor(this)
+		RaidGrid_Party.AutoLinkAllPanel()
 	end
 end
-
-------------------------------------------------------------------------------------------------------------
+-------------------------------------------------
+-- 菜单和世界标记
+-------------------------------------------------
 function RaidGrid_CTM_Edition.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Option" then
@@ -101,13 +126,6 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 	end
 end
 
-local tLootMode = {
-	Image_LootMode_Free = PARTY_LOOT_MODE.FREE_FOR_ALL, 
-	Image_LootMode_Looter = PARTY_LOOT_MODE.DISTRIBUTE, 
-	Image_LootMode_Roll = PARTY_LOOT_MODE.GROUP_LOOT,
-	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
-}
-
 function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	local szName = this:GetName()
 	local team = GetClientTeam()
@@ -115,11 +133,9 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	if IsCtrlKeyDown() or not szName:match("Image_Loot") or not team or not player.IsInParty() or team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) ~= player.dwID then
 		return
 	end
-	
 	if szName:match("Image_LootMode") then
-		team.SetTeamLootMode(tLootMode[szName])
+		team.SetTeamLootMode(CTM_LOOT_MODE[szName])
 	end
-
 end
 
 function RaidGrid_CTM_Edition.OnFrameBreathe()
@@ -139,13 +155,11 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	elseif RaidGrid_CTM_Edition.bShowRaid then
 		RaidGrid_CTM_Edition.TeammatePanel_Switch(false)
 	end
-	CTM_X, CTM_Y = RaidGrid_CTM_Edition.frameSelf:GetRelPos()
 end
 
 function RaidGrid_CTM_Edition.OnFrameDragEnd()
 	this:CorrectPos()
 	RaidGrid_CTM_Edition.tAnchor = GetFrameAnchor(this)
-	RaidGrid_Party.AutoLinkAllPanel()
 end
 
 function RaidGrid_CTM_Edition.UpdateAnchor(frame)
@@ -154,25 +168,6 @@ function RaidGrid_CTM_Edition.UpdateAnchor(frame)
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 	else
 		frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
-	end
-end
-
-JH.BreatheCall("CTM_RGES", function()
-	if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.RedrawAllBuffBox then
-		RaidGrid_EventScrutiny.RedrawAllBuffBox()
-	end
-end, 256)
-
-function RaidGrid_CTM_Edition.SetPanelPos(nX, nY)
-	if not nX or not nY then
-		RaidGrid_CTM_Edition.frameSelf:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
-	else
-		local nW, nH = Station.GetClientSize(true)
-		if nX < 0 then nX = 0 end
-		if nX > nW - 50 then nX = nW - 50 end
-		if nY < 0 then nY = 0 end
-		if nY > nH - 50 then nY = nH - 50 end
-		RaidGrid_CTM_Edition.frameSelf:SetRelPos(nX, nY)
 	end
 end
 
@@ -199,21 +194,16 @@ function RaidGrid_CTM_Edition.GetLootModenQuality()
 end
 
 function RaidGrid_CTM_Edition.UpdateLootImages()
-	local team = GetClientTeam()
-	local player = GetClientPlayer()
 	local nLootMode, nRollQuality = RaidGrid_CTM_Edition.GetLootModenQuality()
-	if not nLootMode or not team or not player.IsInParty() then
-		nLootMode, nRollQuality = -1, -1
-	end
-
-	for i = 1, #RaidGrid_CTM_Edition.tLootModeImage do
-		if nLootMode == i then
-			RaidGrid_CTM_Edition.tLootModeImage[i]:SetAlpha(255)
+	local frame = RaidGrid_CTM_Edition.frameSelf
+	for k, v in pairs(CTM_LOOT_MODE) do
+		if nLootMode == v then
+			frame:Lookup("", "Handle_BG"):Lookup(k):SetAlpha(255)
 		else
-			RaidGrid_CTM_Edition.tLootModeImage[i]:SetAlpha(64)
+			frame:Lookup("", "Handle_BG"):Lookup(k):SetAlpha(64)
 		end
 	end
-	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
+	-- 世界标记
 	if RaidGrid_CTM_Edition.IsLeader() then
 		frame:Lookup("Btn_WorldMark"):Show()
 	else
@@ -222,72 +212,33 @@ function RaidGrid_CTM_Edition.UpdateLootImages()
 end
 ------------------------------------------------------------------------------------------------------------
 function RaidGrid_CTM_Edition.OpenPanel()
-	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
-	if not frame then
-		frame = Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
-	end
-
+	local frame = RaidGrid_CTM_Edition.frameSelf or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
 	RaidGrid_CTM_Edition.frameSelf = frame
-	local handleBG = frame:Lookup("", "Handle_BG")
-	RaidGrid_CTM_Edition.tLootModeImage = {
-		handleBG:Lookup("Image_LootMode_Free"),
-		handleBG:Lookup("Image_LootMode_Looter"),
-		handleBG:Lookup("Image_LootMode_Roll"),
-		handleBG:Lookup("Image_LootMode_Bidding"),
-	}
-end
-
-function RaidGrid_CTM_Edition.ShowPanel()
-	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
-	if frame then
-		frame:Show()
-	end
+	JH.BreatheCall("CTM_BINDRGES", function()
+		if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.RedrawAllBuffBox then
+			RaidGrid_EventScrutiny.RedrawAllBuffBox()
+		end
+	end, 256)
+	return frame
 end
 
 function RaidGrid_CTM_Edition.ClosePanel()
-	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
-	if frame then
-		frame:Hide()
-	end
+	Wnd.CloseWindow(RaidGrid_CTM_Edition.frameSelf)
+	JH.UnBreatheCall("CTM_BINDRGES")
+	RaidGrid_CTM_Edition.frameSelf = nil
 end
 
 function RaidGrid_CTM_Edition.CloseAndOpenPanel()
-	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
+	local frame = RaidGrid_CTM_Edition.frameSelf
 	if frame then
-		if frame:IsVisible() then
-			frame:Hide()
-			RaidGrid_CTM_Edition.bRaidEnable = false
-		else
-			frame:Show()
-			RaidGrid_CTM_Edition.bRaidEnable = true
-		end
+		RaidGrid_CTM_Edition.ClosePanel()
+		RaidGrid_CTM_Edition.bRaidEnable = false
 	else
 		RaidGrid_CTM_Edition.OpenPanel()
 		RaidGrid_CTM_Edition.bRaidEnable = true
 	end
 end
 
-function RaidGrid_CTM_Edition.IsOpened()
-	local frame = Station.Lookup("Normal/RaidGrid_CTM_Edition")
-	if frame then
-		return frame:IsVisible()
-	end
-end
-
 RegisterEvent("LOGIN_GAME", RaidGrid_CTM_Edition.OpenPanel)
-RegisterEvent("PARTY_LEVEL_UP_RAID", RaidGrid_Party.ReloadRaidPanel)
-RegisterEvent("SYNC_ROLE_DATA_END", RaidGrid_Party.ReloadRaidPanel)
-RegisterEvent("PARTY_UPDATE_BASE_INFO", RaidGrid_Party.ReloadRaidPanel)
-RegisterEvent("TEAM_CHANGE_MEMBER_GROUP", RaidGrid_Party.ReloadRaidPanel)
-
-
-JH.AddHotKey("JH_CTM_Switch","开启/关闭CTM团队面板",function()
-	RaidGrid_CTM_Edition.CloseAndOpenPanel()
-	if RaidGrid_CTM_Edition.bShowInRaid and RaidGrid_Party.IsInRaid() then
-		RaidGrid_Party.ReloadRaidPanel()
-	end
-	if not RaidGrid_CTM_Edition.bShowInRaid and GetClientPlayer().IsInParty() then
-		RaidGrid_Party.ReloadRaidPanel()
-	end
-end)
+JH.AddHotKey("JH_CTM_Switch", "开启/关闭CTM团队面板", RaidGrid_CTM_Edition.CloseAndOpenPanel)
 JH.AddHotKey("JH_CTM_Ready", g_tStrings.STR_RAID_READY_CONFIRM_START, RaidGrid_Party.InitReadyCheckCover)
