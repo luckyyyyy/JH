@@ -1149,6 +1149,12 @@ JH.LoadLUAData = function(szPath)
 	return LoadLUAData(DATA_PATH .. szPath)
 end
 
+JH.IsLeader = function()
+	local hTeam = GetClientTeam()
+	local hPlayer = GetClientPlayer()
+	return hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == hPlayer.dwID
+end
+
 JH.AddHotKey = function(szName, szTitle, fnAction)
 	if string.sub(szName, 1, 3) ~= "JH_" then
 		szName = "JH_" .. szName
@@ -1203,7 +1209,14 @@ _JH.GetPlayerAddonMenu = function()
 		if type(m) == "function" then m = m() end
 		tinsert(menu, m)
 	end
-	return {menu}
+	tinsert(menu, { bDevide = true })
+	for i = 1, #_JH.tOption2, 1 do
+		local m = _JH.tOption2[i]
+		if type(m) == "function" then m = m() end
+		tinsert(menu, m)
+	end
+	
+	return { menu }
 end
 
 _JH.GetAddonMenu = function()
@@ -1215,7 +1228,7 @@ _JH.GetAddonMenu = function()
 		if type(m) == "function" then m = m() end
 		tinsert(menu, m)
 	end
-	return {menu}
+	return { menu }
 end
 
 JH.PlayerAddonMenu = function(tMenu)
