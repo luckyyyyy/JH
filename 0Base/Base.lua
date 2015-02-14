@@ -938,16 +938,14 @@ end
 JH.Sysmsg = function(szMsg, szHead, szType)
 	szHead = szHead or _JH.szShort
 	szType = szType or "MSG_SYS"
-	local szXml = GetFormatText(" [" .. szHead .. "] " .. szMsg .. "\n", 10, 255, 255, 0)
-	OutputMessage(szType, szXml, true)
+	OutputMessage(szType, " [" .. szHead .. "] " .. szMsg .. "\n")
 end
 -- err message
 JH.Sysmsg2 = function(szMsg, szHead, col)
 	szHead = szHead or _JH.szShort
 	local r, g, b = 255, 0, 0
 	if col then r, g, b = unpack(col) end
-	local szXml = GetFormatText(" [" .. szHead .. "] " .. szMsg .. "\n", 10, r, g, b)
-	OutputMessage("MSG_SYS", szXml, true)
+	OutputMessage("MSG_SYS", " [" .. szHead .. "] " .. szMsg .. "\n", false, 10, { r, g, b })
 end
 
 JH.Debug = function(szMsg, szHead, nLevel)
@@ -2988,9 +2986,9 @@ GUI.UnRegisterPanel = function(szTitle)
 	if _JH.frame and find then
 		_JH.UpdateTabBox(_JH.frame)
 	end
-	-- _JH.ClosePanel()
 end
 
+-- 字体选择界面
 GUI.OpenFontTablePanel = function(fnAction)
 	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true })
 	for i = 0, 236 do
@@ -3007,4 +3005,57 @@ GUI.OpenFontTablePanel = function(fnAction)
 			end
 		end)
 	end
+end
+
+-- 调色板
+GUI.OpenColorTablePanel = function(fnAction)
+	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Table Panel"], close = true })
+	local fnHover = function(bHover, r, g, b)
+		if bHover then
+			this:SetAlpha(255)
+			wnd:Fetch("Select"):Color(r, g, b)
+			wnd:Fetch("Select_Text"):Text(string.format("r=%d, g=%d, b=%d", r, g, b))
+		else
+			this:SetAlpha(160)
+			wnd:Fetch("Select"):Color(255, 255, 255)
+			wnd:Fetch("Select_Text"):Text(g_tStrings.STR_NONE)
+		end
+	end
+	local fnClick = function( ... )
+		if fnAction then fnAction( ... ) end
+		if not IsCtrlKeyDown() then wnd:CloseFrame() end
+	end
+	for nRed = 1, 8 do
+		for nGreen = 1, 8 do
+			for nBlue = 1, 8 do
+				local x = 20 + ((nRed - 1) % 4) * 220 + (nGreen - 1) * 25
+				local y = 10 + math.modf((nRed - 1) / 4) * 220 + (nBlue - 1) * 25
+				local r, g, b  = nRed * 32 - 1, nGreen * 32 - 1, nBlue * 32 - 1
+				wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 160 })
+				:Hover(function(bHover)
+					fnHover(bHover, r, g, b)
+				end)
+				:Click(function()
+					fnClick(r, g, b)
+				end)
+			end
+		end
+	end
+	
+	for i = 1, 16 do
+		local x = 480 + (i - 1) * 25
+		local y = 435
+		local r, g, b  = i * 16 - 1, i * 16 - 1, i * 16 - 1
+		wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 160 })
+		:Hover(function(bHover)
+			fnHover(bHover, r, g, b)
+		end)
+		:Click(function()
+			fnClick(r, g, b)
+		end)
+	end
+	
+	
+	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 435 })
+	wnd:Append("Text", "Select_Text", { x = 65, y = 435 })
 end
