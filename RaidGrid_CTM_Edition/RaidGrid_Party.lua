@@ -686,10 +686,10 @@ function CTM:RefresBuff()
 							local nTime = JH.GetEndTime(tBuff.nEndFrame)
 							if nTime < 5 then
 								hBox:SetOverTextFontScheme(0, 219)
-								hBox:SetOverText(0, math.floor(nTime))
+								hBox:SetOverText(0, math.floor(nTime) .. " ")
 							elseif nTime < 10 then
 								hBox:SetOverTextFontScheme(0, 27)
-								hBox:SetOverText(0, math.floor(nTime))
+								hBox:SetOverText(0, math.floor(nTime) .. " ")
 							end
 						else
 							handle:RemoveItem(handle:Lookup(i))
@@ -867,7 +867,7 @@ function CTM:DrawHPMP(h, dwID, info)
 						return val
 					end
 				elseif RaidGrid_CTM_Edition.nHPShownNumMode == 2 then
-					return string.format("%.1f", nLifePercentage * 100) .. "%"
+					return string.format("%.1f", val / max * 100) .. "%"
 				elseif RaidGrid_CTM_Edition.nHPShownNumMode == 3 then
 					return val
 				end
