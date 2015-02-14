@@ -312,7 +312,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		table.insert(menu, { szOption = g_tStrings.STR_RAID_TIP_IMAGE,
 			{ szOption = g_tStrings.STR_RAID_TIP_TARGET, bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowTargetTargetAni, fnAction = function()
 				RaidGrid_CTM_Edition.bShowTargetTargetAni = not RaidGrid_CTM_Edition.bShowTargetTargetAni
-				self:RefreshTarget()
+				Raid_CTM:RefreshTarget()
 			end },
 			{ szOption = _L["Show distance"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function()
 				RaidGrid_CTM_Edition.bShowDistance = not RaidGrid_CTM_Edition.bShowDistance
