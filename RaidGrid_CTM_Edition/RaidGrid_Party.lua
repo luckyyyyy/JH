@@ -93,6 +93,7 @@ local function OutputTeamMemberTip(dwID, rc)
     szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_NAME_PLAYER, tMemberInfo.szName), 80, r, g, b)
     if tMemberInfo.bIsOnLine then
     	szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, tMemberInfo.nLevel), 82)
+		szTip = szTip .. GetFormatText(JH.GetSkillName(tMemberInfo.dwMountKungfuID, 1) .. "\n", 82)
 		local szMapName = Table_GetMapName(tMemberInfo.dwMapID)
 		if szMapName then
 			szTip = szTip .. GetFormatText(szMapName .. "\n", 82)
@@ -355,7 +356,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 			local camp = { [0] = -1, [1] = 43, [2] = 40 }
 			img:FromUITex("UI/Image/Button/ShopButton.uitex", camp[info.nCamp])
 		end
-		img:Scale(1, 1)
+		img:SetSize(28, 28)
 		img:Show()
 	end
 	
@@ -590,6 +591,7 @@ function CTM:Scale(fX, fY, frame)
 		end
 	end
 	self:AutoLinkAllPanel()
+	self:CallRefreshImages(true, false, true)
 end
 
 function CTM:FormatFrame(frame, nMemberCount)
@@ -679,20 +681,22 @@ function CTM:RefresBuff()
 				for i = 0, handle:GetItemCount() - 1 do
 					if p then
 						local h = handle:Lookup(i)
-						local hBox = h:Lookup("Box")
-						local _, dwID, nLevel = hBox:GetObject()
-						local bExist, tBuff = JH.HasBuff(dwID)
-						if bExist then
-							local nTime = JH.GetEndTime(tBuff.nEndFrame)
-							if nTime < 5 then
-								hBox:SetOverTextFontScheme(0, 219)
-								hBox:SetOverText(0, math.floor(nTime) .. " ")
-							elseif nTime < 10 then
-								hBox:SetOverTextFontScheme(0, 27)
-								hBox:SetOverText(0, math.floor(nTime) .. " ")
+						if h then -- ÒòÎªÊÇºôÎü
+							local hBox = h:Lookup("Box")
+							local _, dwID, nLevel = hBox:GetObject()
+							local bExist, tBuff = JH.HasBuff(dwID)
+							if bExist then
+								local nTime = JH.GetEndTime(tBuff.nEndFrame)
+								if nTime < 5 then
+									hBox:SetOverTextFontScheme(0, 219)
+									hBox:SetOverText(0, math.floor(nTime) .. " ")
+								elseif nTime < 10 then
+									hBox:SetOverTextFontScheme(0, 27)
+									hBox:SetOverText(0, math.floor(nTime) .. " ")
+								end
+							else
+								handle:RemoveItem(handle:Lookup(i))
 							end
-						else
-							handle:RemoveItem(handle:Lookup(i))
 						end
 					else
 						handle:RemoveItem(handle:Lookup(i))

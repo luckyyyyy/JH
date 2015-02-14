@@ -154,6 +154,7 @@ local function RaidCheckEnable()
 		return RaidClosePanel()
 	end
 	RaidOpenPanel()
+	UpdateLootImages()
 	Raid_CTM:ReloadParty()
 end
 
