@@ -679,7 +679,8 @@ function CTM:RefresBuff()
 				for i = 0, handle:GetItemCount() - 1 do
 					if p then
 						local h = handle:Lookup(i)
-						local _, dwID, nLevel = h:Lookup("Box"):GetObject()
+						local hBox = hBuff:Lookup("Box")
+						local _, dwID, nLevel = hBox:GetObject()
 						local bExist, tBuff = JH.HasBuff(dwID)
 						if bExist then
 							local nTime = JH.GetEndTime(tBuff.nEndFrame)
