@@ -80,7 +80,7 @@ local function CloseRaidDragPanel()
 		Wnd.CloseWindow(hFrame)
 	end
 end
-
+-- OutputTeamMemberTip 系统的API不好用
 local function OutputTeamMemberTip(dwID, rc)	
 	local hTeam = GetClientTeam()
 	local tMemberInfo = hTeam.GetMemberInfo(dwID)
@@ -550,7 +550,17 @@ function CTM:DrawParty(nIndex)
 			if not dwID then return	end
 			local menu = {}
 			local me = GetClientPlayer()
-			if JH.IsLeader() then
+			local info = self:GetMemberInfo(dwID)
+			local szPath, nFrame = GetForceImage(info.dwForceID)
+			table.insert(menu, {
+				szOption = info.szName,
+				szLayer = "ICON_RIGHT",
+				rgb = { JH.GetForceColor(info.dwForceID) },
+				szIcon = szPath,
+				nFrame = nFrame
+			})
+			table.insert(menu, { bDevide = true })
+			if JH.IsLeader() and me.IsInRaid() then
 				InsertChangeGroupMenu(menu, dwMemberID)
 			end
 			local info = self:GetMemberInfo(dwID)
@@ -559,6 +569,8 @@ function CTM:DrawParty(nIndex)
 				table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function() 
 					ViewInviteToPlayer(dwID) end 
 				})
+			else
+				InsertPlayerMenu(menu ,dwID)
 			end
 			if #menu > 0 then
 				PopupMenu(menu)
@@ -598,28 +610,28 @@ function CTM:FormatFrame(frame, nMemberCount)
 	local fX, fY = RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY
 	if CTM_DRAG then
 		nMemberCount = CTM_MEMBER_COUNT
-		frame:SetSize(128 * fX, (235 - (5 - nMemberCount) * 42) * fY)
-		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (222 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, (203 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, (203 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (215 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (215 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (215 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (206 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
+		frame:SetSize(128 * fX, (25 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (22 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (15 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (15 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (15 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (6 + nMemberCount * 40) * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() -1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Show()
 		end
 	else
 		nMemberCount = frame.nMemberCount or CTM_MEMBER_COUNT
-		frame:SetSize(128 * fX, (235 - (5 - nMemberCount) * 42) * fY)
-		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (222 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, (203 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, (203 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (215 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (215 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (215 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (206 - (CTM_MEMBER_COUNT - nMemberCount) * 40) * fY)
+		frame:SetSize(128 * fX, (25 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (22 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (15 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (15 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (15 + nMemberCount * 40) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (6 + nMemberCount * 40) * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() -1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Hide()
@@ -728,6 +740,8 @@ function CTM:RefreshDistance()
 					end
 					if RaidGrid_CTM_Edition.bShowDistance then
 						v:Lookup("Handle_Common/Text_Distance"):SetText(nDistance)
+					else
+						v:Lookup("Handle_Common/Text_Distance"):SetText("")
 					end
 				else
 					if RaidGrid_CTM_Edition.bShowDistance then
@@ -804,7 +818,7 @@ function CTM:DrawHPMP(h, dwID, info)
 	nLifePercentage = nCurrentLife / nMaxLife
 	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
 	local nNewW = 121 * nLifePercentage
-	local r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceColor[6]) -- 不在线就灰色了
+	local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
 	local bDeathFlag = info.bDeathFlag
 	if p then
 		bDeathFlag = p.nMoveState == MOVE_STATE.ON_DEATH
@@ -813,9 +827,9 @@ function CTM:DrawHPMP(h, dwID, info)
 	if info.bIsOnLine then
 		if RaidGrid_CTM_Edition.bColorHPBarWithDistance then
 			if Lsha.nLevel then
-				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceColor[RaidGrid_CTM_Edition.tDistanceColorLevel[Lsha.nLevel]])
+				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[Lsha.nLevel])
 			else
-				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceColor[7]) -- 在线使用白色
+				r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
 			end
 		else
 			r, g, b = 0, 200, 72

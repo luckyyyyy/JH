@@ -1,13 +1,11 @@
 local _L = JH.LoadLangPack
 
-RaidGrid_CTM_Edition = {
+local CTM_CONFIG = {
 	bRaidEnable = true,
 	bShowInRaid = false,
 	bEditMode = false,
 	tAnchor = {},
 	nAutoLinkMode = 5,
-	bShowAllPanel = false,
-	bShowAllMemberGrid = false,
 	nHPShownMode2 = 2,
 	nHPShownNumMode = 1,
 	nShowMP = false,
@@ -28,27 +26,29 @@ RaidGrid_CTM_Edition = {
 	fScaleX = 1,
 	fScaleY = 1,
 	tDistanceLevel = { 8, 20, 22, 24, 999 },
-	tDistanceColorLevel = { 2, 2, 3, 4, 5 },
+	tDistanceCol = {
+		{ 0,   180, 52  }, -- ÂÌ
+		{ 0,   180, 52  }, -- ÂÌ
+		{ 230, 170, 40  }, -- »Æ
+		{ 230, 80,  80  }, -- ºì
+		{ 230, 80,  80  }, -- ºì
+	},
+	tOtherCol = {
+		{ 255, 255, 255 },
+		{ 128, 128, 128 },
+		{ 192, 192, 192 }
+	},
 	bFasterHP = false,
 }
-JH.RegisterCustomData("RaidGrid_CTM_Edition")
+local CTM_CONFIG_PLAYER = JH.LoadLUAData("CTM/Config_V1.jx3dat") or CTM_CONFIG
 
-RaidGrid_CTM_Edition.tDistanceColor = {
- 	{ 0,   170, 140 },
- 	{ 0,   180, 52  },
- 	{ 230, 170, 40  },
- 	{ 230, 110, 230 },
- 	{ 230, 80,  80  },
- 	{ 128, 128, 128 },
- 	{ 192, 192, 192 },
- 	{ 255, 255, 255 },
-}
+RaidGrid_CTM_Edition = {}
 
 local CTM_FRAME
 local CTM_LOOT_MODE = {
-	Image_LootMode_Free = PARTY_LOOT_MODE.FREE_FOR_ALL, 
-	Image_LootMode_Looter = PARTY_LOOT_MODE.DISTRIBUTE, 
-	Image_LootMode_Roll = PARTY_LOOT_MODE.GROUP_LOOT,
+	Image_LootMode_Free    = PARTY_LOOT_MODE.FREE_FOR_ALL, 
+	Image_LootMode_Looter  = PARTY_LOOT_MODE.DISTRIBUTE, 
+	Image_LootMode_Roll    = PARTY_LOOT_MODE.GROUP_LOOT,
 	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
 }
 
@@ -137,9 +137,11 @@ local function RaidOpenPanel()
 	return frame
 end
 local function RaidClosePanel()
-	if CTM_FRAME then Wnd.CloseWindow(CTM_FRAME) end
-	Raid_CTM:CloseParty()
-	CTM_FRAME = nil
+	if CTM_FRAME then
+		Wnd.CloseWindow(CTM_FRAME)
+		Raid_CTM:CloseParty()
+		CTM_FRAME = nil
+	end
 end
 
 local function RaidCheckEnable()
@@ -396,60 +398,37 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				Raid_CTM:CallRefreshImages(true, false, true)
 			end	},
 		})
-		
-		local function GetDistTable(nIndex)
-			local tabAllDist = {szOption = g_tStrings.STR_SKILL_H_CAST_MAX_DIS1 .. RaidGrid_CTM_Edition.tDistanceLevel[nIndex],}
-			if nIndex == 5 then
-				tabAllDist.bDisable = true
-			else
-				for k = 4, 32 do
-					local tabDist = {
-						szOption = k .. g_tStrings.STR_METER, bMCheck = true, bChecked = RaidGrid_CTM_Edition.tDistanceLevel[nIndex] == k, fnAction = function()
-							RaidGrid_CTM_Edition.tDistanceLevel[nIndex] = k
-							Raid_CTM:CallDrawHPMP(true)
-						end,
-					}
-					table.insert(tabAllDist, tabDist)
-				end
-			end
-			return tabAllDist, RaidGrid_CTM_Edition.tDistanceLevel[nIndex]
-		end
-		local function GetColorTable(nIndex)
-			local tColor = {
-				{ szName = _L["Blue"], nLevel = 1, rgb = RaidGrid_CTM_Edition.tDistanceColor[1] },
-				{ szName = _L["Green"], nLevel = 2, rgb = RaidGrid_CTM_Edition.tDistanceColor[2] },
-				{ szName = _L["Yellow"], nLevel = 3, rgb = RaidGrid_CTM_Edition.tDistanceColor[3] },
-				{ szName = _L["Purple"], nLevel = 4, rgb = RaidGrid_CTM_Edition.tDistanceColor[4] },
-				{ szName = _L["Red"], nLevel = 5, rgb = RaidGrid_CTM_Edition.tDistanceColor[5] },
-				{ szName = _L["Gray"], nLevel = 6, rgb = RaidGrid_CTM_Edition.tDistanceColor[6] },
-				{ szName = _L["Gray"], nLevel = 7, rgb = RaidGrid_CTM_Edition.tDistanceColor[7] },
-				{ szName = _L["White"], nLevel = 8, rgb = RaidGrid_CTM_Edition.tDistanceColor[8] },
-			}
-			local szNameC = tColor[RaidGrid_CTM_Edition.tDistanceColorLevel[nIndex]].szName
-			local nR, nG, nB = unpack(RaidGrid_CTM_Edition.tDistanceColor[RaidGrid_CTM_Edition.tDistanceColorLevel[nIndex]])
-			local tabAllColor = { szOption = g_tStrings.BACK_COLOR .. g_tStrings.STR_COLON .. szNameC, rgb = { nR, nG, nB } }
-			for k = 1, #tColor do
-				local tabColor = {
-					szOption = tColor[k].szName, bMCheck = true, bChecked = RaidGrid_CTM_Edition.tDistanceColorLevel[nIndex] == tColor[k].nLevel, fnAction = function()
-						RaidGrid_CTM_Edition.tDistanceColorLevel[nIndex] = k
+
+		local tDistanceMenu = { 
+			szOption = g_tStrings.STR_RAID_DISTANCE, bCheck = true, bChecked = RaidGrid_CTM_Edition.bColorHPBarWithDistance, fnAction = function() 
+				RaidGrid_CTM_Edition.bColorHPBarWithDistance = not RaidGrid_CTM_Edition.bColorHPBarWithDistance
+				Raid_CTM:CallDrawHPMP(true)
+			end	
+		}
+		for i = 1, #RaidGrid_CTM_Edition.tDistanceLevel do
+			local n = RaidGrid_CTM_Edition.tDistanceLevel[i - 1] or 0
+			local szOption = n .. " - " .. RaidGrid_CTM_Edition.tDistanceLevel[i] .. g_tStrings.STR_METER .. g_tStrings.BACK_COLOR
+			table.insert(tDistanceMenu, { 
+				szOption = szOption, 
+				fnDisable = function() return not RaidGrid_CTM_Edition.bColorHPBarWithDistance end, 
+				rgb = RaidGrid_CTM_Edition.tDistanceCol[i], 
+				fnAction = function()
+					GetUserInputNumber(RaidGrid_CTM_Edition.tDistanceLevel[i], RaidGrid_CTM_Edition.tDistanceLevel[i + 1] or 999, nil, function(val)
+						RaidGrid_CTM_Edition.tDistanceLevel[i] = val
 						Raid_CTM:CallDrawHPMP(true)
-					end,
-					rgb = tColor[k].rgb
-				}
-				table.insert(tabAllColor, tabColor)
-			end
-			return tabAllColor, szNameC, nR, nG, nB 
-		end
-		local tDistanceMenu = { szOption = g_tStrings.STR_RAID_DISTANCE, bCheck = true, bChecked = RaidGrid_CTM_Edition.bColorHPBarWithDistance, fnAction = function() 
-			RaidGrid_CTM_Edition.bColorHPBarWithDistance = not RaidGrid_CTM_Edition.bColorHPBarWithDistance
-			Raid_CTM:CallDrawHPMP(true)
-		end	}
-		for j = 1, 5 do
-			local tD, nDist = GetDistTable(j)
-			local tC, szNameC, nR, nG, nB = GetColorTable(j)
-			local szDist = tostring(nDist)
-			szDist = ("_"):rep(3 - #szDist) .. szDist
-			table.insert(tDistanceMenu, { szOption = szDist .. g_tStrings.STR_METER .. g_tStrings.STR_COLON .. szNameC, fnDisable = function() return not RaidGrid_CTM_Edition.bColorHPBarWithDistance end,tD, tC, rgb = { nR, nG, nB }} )
+					end)
+				end,
+				szIcon = "ui/Image/button/CommonButton_1.UItex",
+				nFrame = 69,
+				nMouseOverFrame = 70,
+				szLayer = "ICON_RIGHT",
+				fnClickIcon = function() 
+					GUI.OpenColorTablePanel(function(r, g, b)
+						RaidGrid_CTM_Edition.tDistanceCol[i] = { r, g, b }
+						Raid_CTM:CallDrawHPMP(true)
+					end)
+				end
+			})
 		end
 
 		table.insert(menu, tDistanceMenu)
@@ -481,9 +460,6 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				RaidGrid_CTM_Edition.fScaleX = 1
 				RaidGrid_CTM_Edition.fScaleY = 1
 				RaidGrid_CTM_Edition.nFont = 40
-				-- RaidGrid_CTM_Edition.fScaleIcon = 1
-				-- RaidGrid_CTM_Edition.fScaleShadowX = 1
-				-- RaidGrid_CTM_Edition.fScaleShadowY = 1
 				Raid_CTM:ReloadParty()
 			end },
 			{ bDevide = true },
@@ -546,7 +522,11 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		PopupMenu(menu)
 	
 	elseif szName == "Btn_WorldMark" then
-		Wnd.ToggleWindow("WorldMark")
+		if JH.IsInDungeon2() then
+			Wnd.ToggleWindow("WorldMark")
+		else
+			OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.STR_WORLD_MARK)
+		end
 	end
 end
 
@@ -578,7 +558,7 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 		Raid_CTM:RefreshTarget()
 	end
 	-- kill System Panel
-	RaidPanel_Switch(false)	
+	RaidPanel_Switch(false)
 	TeammatePanel_Switch(false)
 end
 
@@ -598,6 +578,12 @@ JH.RegisterEvent("CTM_PANEL_RAID", function()
 	RaidPanel_Switch(arg0)
 end)
 
+local SaveConfig = function()
+	JH.SaveLUAData("CTM/Config_V1.jx3dat", CTM_CONFIG_PLAYER)
+end
+JH.RegisterEvent("GAME_EXIT", SaveConfig)
+JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
+
 JH.AddonMenu(function()
 	return {
 		szOption = _L["CTM Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = function()
@@ -608,3 +594,8 @@ JH.AddonMenu(function()
 		end
 	}
 end)
+-- ËùÓÐ½ÇÉ«¹²ÏíÅäÖÃ
+setmetatable(RaidGrid_CTM_Edition, {
+	__index = CTM_CONFIG_PLAYER,
+	__newindex = CTM_CONFIG_PLAYER,
+})
