@@ -1552,148 +1552,6 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 	RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
 end
 
-function RaidGrid_EventScrutiny.RedrawAllBuffBox()
-	if not RaidGrid_CTM_Edition or not RaidGrid_Party or not RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
-		return
-	end
-	for nGroupIndex = 0, 4 do
-		for nMemberIndex = 0, 4 do
-			local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, nGroupIndex)
-			if handleRole and handleRole.dwMemberID then
-				RaidGrid_EventScrutiny.RefreshCTMBuffHandle(handleRole)
-			end
-		end
-	end
-end
-
-RaidGrid_EventScrutiny.nRefreshCTMBuffHandleSetper = 0
-function RaidGrid_EventScrutiny.RefreshCTMBuffHandle(handleRole, dwBuffID, bIsRemoved, tRecord)
-	local dwRemoveID = -1
-	if bIsRemoved then
-		dwRemoveID = dwBuffID
-	end
-	if not handleRole then return end
-	local handleBoxes = handleRole:Lookup("Handle_Buff_Boxes")
-	if not handleBoxes then return end
-	
-	RaidGrid_EventScrutiny.nRefreshCTMBuffHandleSetper = RaidGrid_EventScrutiny.nRefreshCTMBuffHandleSetper + 1
-	
-	local nLogic = GetLogicFrameCount()
-	local tEmptyBox = nil
-	local tLowestPriorityBox = nil
-	for i = 1, 4 do
-		local box = handleBoxes:Lookup("Box_" .. i)
-		local shadow = handleBoxes:Lookup("Shadow_BuffColor_" .. i)
-		local text = handleBoxes:Lookup("Text_Time_" .. i)
-
-		if not box.tInfo or not box.nEndFrame or box.nEndFrame <= nLogic or box.tInfo.dwID == dwRemoveID then
-			text:Hide()
-			shadow:Hide()
-			box:Hide()
-			box.tInfo = nil
-			box.nEndFrame = nil
-		else
-			local ISBuffCheck = true
-			if (RaidGrid_EventScrutiny.nRefreshCTMBuffHandleSetper % 16 == i) then
-				ISBuffCheck = false
-				local member = GetPlayer(handleRole.dwMemberID)
-				if member then
-					ISBuffCheck = JH.HasBuff(box.tInfo.dwID, member)
-				end
-			end
-			if not ISBuffCheck then
-				text:Hide()
-				shadow:Hide()
-				box:Hide()
-				box.tInfo = nil
-				box.nEndFrame = nil
-			else
-				text:SetText(JH.GetBuffTimeString(((box.nEndFrame or nLogic) - nLogic) / GLOBAL.GAME_FPS))
-			end
-		end
-
-		if box.tInfo and tRecord then
-			local nPriority = box.tInfo.nPriorityLevel or 1
-			if (tRecord.nPriorityLevel or 1) > nPriority then
-				if not tLowestPriorityBox or (tLowestPriorityBox.box.tInfo.nPriorityLevel or 1) > nPriority then
-					tLowestPriorityBox = {}
-					tLowestPriorityBox.box = box
-					tLowestPriorityBox.shadow = shadow
-					tLowestPriorityBox.text = text
-				end
-			end
-		end
-		
-		if box.tInfo and not tRecord and box.tInfo.bScreenHead then
-			FireEvent("JH_SCREENHEAD", handleRole.dwMemberID, { type = box.tInfo.szType, dwID = box.tInfo.dwID, szName = box.tInfo.szName })
-		end
-
-		if (not tEmptyBox and not box.tInfo) or (box.tInfo and box.tInfo.dwID == dwBuffID) then
-			tEmptyBox = {}
-			tEmptyBox.box = box
-			tEmptyBox.shadow = shadow
-			tEmptyBox.text = text
-		end
-	end
-	
-	if not tEmptyBox then
-		tEmptyBox = tLowestPriorityBox
-	end
-	
-	return tEmptyBox
-end
-
-function RaidGrid_EventScrutiny.UpdateCTMBuffAlertOrg(tRecord, dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
-	if not tRecord or tRecord.bNotAddToCTM or not RaidGrid_CTM_Edition or not RaidGrid_Party or not RaidGrid_CTM_Edition.IsOpened or not RaidGrid_CTM_Edition.IsOpened() then
-		return
-	end
-	
-	local nMemberIndex, nGroupIndex = RaidGrid_Party.GetMemberIndexInGroup(dwMemberID)
-	if not nMemberIndex then return end
-	local handleRole = RaidGrid_Party.GetHandleRoleInGroup(nMemberIndex, nGroupIndex)
-	
-	local tEmptyBox = RaidGrid_EventScrutiny.RefreshCTMBuffHandle(handleRole, dwBuffID, bIsRemoved, tRecord)
-	if not tEmptyBox then return end
-	
-	if bIsRemoved then
-		tEmptyBox.text:Hide()
-		tEmptyBox.box:Hide()
-		tEmptyBox.shadow:Hide()
-		tEmptyBox.box.tInfo = nil
-		tEmptyBox.box.nEndFrame = nil
-	else
-		tEmptyBox.text:Show()
-		local szBoxSize = 20
-		szBoxSize = szBoxSize * RaidGrid_Party.fScaleIcon
-		tEmptyBox.box:SetSize(szBoxSize, szBoxSize)				
-		tEmptyBox.box:Show()
-		local shadowX, shadowY = 29,37
-		shadowX, shadowY = shadowX * RaidGrid_Party.fScaleShadowX, shadowY * RaidGrid_Party.fScaleShadowY
-		tEmptyBox.shadow:SetSize(shadowX, shadowY)
-		tEmptyBox.shadow:Show()
-
-		--tRecord.nEndFrame = nEndFrame
-		--tRecord.nLevel = nLevel
-		tEmptyBox.box.tInfo = tRecord
-		tEmptyBox.box.nEndFrame = nEndFrame
-
-		tEmptyBox.box:SetObjectIcon(tRecord.nIconID or 1435)
-		if nStackNum > 1 then
-			tEmptyBox.box:SetOverText(0, tostring(nStackNum))
-		else
-			tEmptyBox.box:SetOverText(0, "")
-		end
-
-		if not tRecord.tRGBuffColor or ((tRecord.tRGBuffColor[1] or 0) <= 64 and (tRecord.tRGBuffColor[2] or 0) <= 64 and (tRecord.tRGBuffColor[3] or 0) <= 64) then
-			tEmptyBox.shadow:Hide()
-		else
-			tEmptyBox.shadow:SetColorRGB(tRecord.tRGBuffColor[1] or 0, tRecord.tRGBuffColor[2] or 0, tRecord.tRGBuffColor[3] or 0)
-			tEmptyBox.shadow:SetAlpha((RaidGrid_EventScrutiny.nBuffShowShadowAlpha or 0.6) * 255)
-		end
-	end
-end
-
-
 
 -- RaidGridEx¹ØÁª
 function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
@@ -1979,7 +1837,6 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				end
 				tTab[i].fEventTimeEnd = JH.GetLogicTime()
 				if not tTab[i].bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
-					RaidGrid_EventScrutiny.UpdateCTMBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
 					if RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable then
 						RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
 					end
@@ -2046,7 +1903,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				
 				if not tTab[i].bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
 					if RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
-						RaidGrid_EventScrutiny.UpdateCTMBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
+						FireEvent("JH_RAID_REC_BUFF", dwMemberID, dwBuffID, nLevel, tTab[i].tRGBuffColor)
 					end
 					if RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable then
 						RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
@@ -4813,7 +4670,7 @@ PS3.OnPanelActive = function(frame)
 	:Text(_L["System TeamPanel"]):Click(function(bChecked)
 		RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2 = bChecked
 		if bChecked then
-			JH.BreatheCall("Raid_MonitorBuffs",RE.Raid_MonitorBuffs,10000)
+			JH.BreatheCall("Raid_MonitorBuffs", _RE.Raid_MonitorBuffs, 10000)
 		end
 	end):Pos_()
 	nX = ui:Append("WndCheckBox",{ x = nX + 15, y = nY + 12, checked = RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable })

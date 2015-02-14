@@ -581,5 +581,6 @@ data = {
 	["Font Style"] = "团队界面【文字样式】",
 	["Icon Size"] = "团队界面【buff图标】比例",
 	["Buff BG Width"] = "团队界面【buff背景色】宽度比例",
-	["Buff BG Height"] = "团队界面【buff背景色】高度比例"
+	["Buff BG Height"] = "团队界面【buff背景色】高度比例",
+	["Faster Refresh HP(Greater performance loss)"] = "更快的血量刷新（性能消耗较高）",
 }
