@@ -1900,7 +1900,6 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				if IsPlayer(dwMemberID) and tTab[i].bPartyBuffList and (GetClientPlayer().IsPlayerInMyParty(dwMemberID) or dwMemberID == player.dwID) then
 					FireEvent("JH_PARTYBUFFLIST", dwMemberID, tTab[i].dwID, tTab[i].nLevel)
 				end
-				
 				if not tTab[i].bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
 					if RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
 						if not tTab[i].bNotAddToCTM then
