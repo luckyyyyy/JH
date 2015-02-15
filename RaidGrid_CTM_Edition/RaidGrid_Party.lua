@@ -9,7 +9,7 @@ local CTM_INIFILE      = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/u
 local CTM_ITEM         = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/item.ini"
 local CTM_BUFF_ITEM    = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/Item_Buff.ini"
 local CTM_IMAGES       = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/images/ForceColorBox.UITex"
-
+local CTM_ALPHA        = RaidGrid_CTM_Edition.nAlpha
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET
@@ -284,8 +284,6 @@ function CTM:RefreshMark()
 			else
 				v:Lookup("Handle_Icons/Image_MarkImage"):Hide()
 			end
-		else
-			CTM_CACHE[k] = nil
 		end
 	end
 end
@@ -301,8 +299,6 @@ function CTM:CallRefreshImages(dwID, ...)
 			if v:IsValid() then
 				local info = self:GetMemberInfo(k)
 				self:RefreshImages(v, k, info, ...)
-			else
-				CTM_CACHE[k] = nil
 			end
 		end
 	end
@@ -587,11 +583,11 @@ function CTM:DrawParty(nIndex)
 		if v:IsValid() then
 			local info = self:GetMemberInfo(k)
 			self:DrawHPMP(v, k, info)
-		else
-			CTM_CACHE[k] = nil
 		end
 	end
 	CTM_LIFE_CACHE = {}
+	collectgarbage("collect")
+	JH.Debug2("CTM # Call collect")
 end
 
 function CTM:Scale(fX, fY, frame)
@@ -752,8 +748,6 @@ function CTM:RefreshDistance()
 					end
 					Lsha.nLevel = nil
 				end
-			else
-				CTM_CACHE[k] = nil
 			end
 		end
 	end
@@ -773,8 +767,6 @@ function CTM:CallDrawHPMP(dwID, ...)
 				if info then
 					self:DrawHPMP(v, k, info, ...)
 				end
-			else
-				CTM_CACHE[k] = nil
 			end
 		end
 	end
@@ -950,8 +942,6 @@ function CTM:Send_RaidReadyConfirm()
 				if info.bIsOnLine and k ~= UI_GetClientPlayerID() then
 					v:Lookup("Image_ReadyCover"):Show()
 				end
-			else
-				CTM_CACHE[k] = nil
 			end
 		end
 		Send_RaidReadyConfirm()
@@ -964,8 +954,6 @@ function CTM:Clear_RaidReadyConfirm()
 			v:Lookup("Image_ReadyCover"):Hide()
 			v:Lookup("Image_NotReady"):Hide()
 			v:Lookup("Animate_Ready"):Hide()
-		else
-			CTM_CACHE[k] = nil
 		end
 	end
 end
