@@ -759,18 +759,18 @@ function CTM:RefreshDistance()
 end
 
 -- 血量 / 内力
-function CTM:CallDrawHPMP(dwID)
+function CTM:CallDrawHPMP(dwID, ...)
 	if type(dwID) == "number" then
 		local info = self:GetMemberInfo(dwID)
 		if info and CTM_CACHE[dwID] and CTM_CACHE[dwID]:IsValid() then
-			self:DrawHPMP(CTM_CACHE[dwID], dwID, info)
+			self:DrawHPMP(CTM_CACHE[dwID], dwID, info, ...)
 		end
 	else
 		for k, v in pairs(CTM_CACHE) do
 			if v:IsValid() then
 				local info = self:GetMemberInfo(k)
 				if info then
-					self:DrawHPMP(v, k, info)
+					self:DrawHPMP(v, k, info, ...)
 				end
 			else
 				CTM_CACHE[k] = nil
@@ -792,7 +792,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	
 	-- 气血绘制
 	local nLifePercentage, nCurrentLife, nMaxLife
-	if p and p.nMaxLife ~= 255 then
+	if p and p.nCurrentLife ~= 255 then
 		nCurrentLife = p.nCurrentLife
 		nMaxLife = p.nMaxLife
 	else
@@ -806,7 +806,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	local nPercentage, nManaShow = 1, 1
 	local mana = h:Lookup("Handle_Common/Text_Mana")
 	if not IsPlayerManaHide(info.dwForceID) then
-		if p and p.nMaxMana ~= 255 then
+		if p and p.nCurrentMana ~= 255 then
 			nPercentage = p.nCurrentMana / p.nMaxMana
 			nManaShow = p.nCurrentMana
 		else
