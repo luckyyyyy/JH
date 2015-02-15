@@ -510,8 +510,8 @@ function CTM:DrawParty(nIndex)
 			local info = self:GetMemberInfo(dwID)
 			if IsCtrlKeyDown() then
 				EditBox_AppendLinkPlayer(info.szName)
-			elseif info.bIsOnLine and GetPlayer(dwID) then
-				CTM.SetTarget(dwID)
+			else
+				SetTarget(TARGET.PLAYER, dwID)
 				CTM_TAR_TEMP = dwID
 			end
 		end
@@ -793,7 +793,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	
 	-- 气血计算 因为sync 必须拿出来单独算
 	local nLifePercentage, nCurrentLife, nMaxLife
-	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 255 and p.nMaxLife ~= 255 then -- p sync err fix
+	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 255 and p.nMaxLife ~= 255 and p.nCurrentLife < 10000000 and p.nCurrentLife > - 1000 then -- p sync err fix
 		nCurrentLife = p.nCurrentLife
 		nMaxLife = p.nMaxLife
 	else
