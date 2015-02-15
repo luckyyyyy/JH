@@ -510,7 +510,7 @@ function CTM:DrawParty(nIndex)
 			local info = self:GetMemberInfo(dwID)
 			if IsCtrlKeyDown() then
 				EditBox_AppendLinkPlayer(info.szName)
-			else
+			elseif info.bIsOnLine and GetPlayer(dwID) then -- 有待考证
 				SetTarget(TARGET.PLAYER, dwID)
 				CTM_TAR_TEMP = dwID
 			end
@@ -560,8 +560,8 @@ function CTM:DrawParty(nIndex)
 				szIcon = szPath,
 				nFrame = nFrame
 			})
-			table.insert(menu, { bDevide = true })
 			if JH.IsLeader() and me.IsInRaid() then
+				table.insert(menu, { bDevide = true })
 				InsertChangeGroupMenu(menu, dwMemberID)
 			end
 			local info = self:GetMemberInfo(dwID)
@@ -782,8 +782,8 @@ end
 
 -- 缩放对动态构建的UI不会缩放 所以需要后处理
 function CTM:DrawHPMP(h, dwID, info, bRefresh)
-	local nHPHeight = 29
-	local nMPHeight = 6
+	local nHPHeight = 30
+	local nMPHeight = 8
 	local Lsha = h:Lookup("Handle_Common/Shadow_Life")
 	local Msha = h:Lookup("Handle_Common/Shadow_Mana")
 	local p
