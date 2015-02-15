@@ -469,7 +469,7 @@ function CTM:DrawParty(nIndex)
 				TextName:SetFontColor(255, 255, 255)
 			end
 			h:Lookup("Handle_Common/Image_BG_Force"):FromUITex(CTM_IMAGES, 3)
-			self:RefreshImages(h, dwID, info, tSetting, true)
+			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader)
 		end
 		h.OnItemLButtonDrag = function()
 			if not dwID then return	end
@@ -581,6 +581,7 @@ function CTM:DrawParty(nIndex)
 	handle:FormatAllItemPos()
 	frame.nMemberCount = #tGroup.MemberList
 	self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
+	-- œ»Àı∑≈∫Ûª≠
 	self:FormatFrame(frame, #tGroup.MemberList)
 	for k, v in pairs(CTM_CACHE) do
 		if v:IsValid() then
