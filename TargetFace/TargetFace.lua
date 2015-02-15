@@ -385,7 +385,7 @@ PS.OnPanelActive = function(frame)
 		end):Pos_()
 		nX = ui:Append("Shadow", "Color_TargetFace2" .. k, { x = nX + 5, y = nY - 16 + 20 * k, w = 18, h = 18 })
 		:Color(unpack(v.col)):Click(function()
-			OpenColorTablePanel(function(r, g, b)
+			GUI.OpenColorTablePanel(function(r, g, b)
 				ui:Fetch("Color_TargetFace2" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				_TargetFace.bReRender = true
@@ -428,7 +428,7 @@ PS.OnPanelActive = function(frame)
 		end):Pos_()
 		nX = ui:Append("Shadow", "Color_TargetFace" .. k, { x = nX + 5, y = nY - 16 + 20 * k, w = 18, h = 18 })
 		:Color(unpack(v.col)):Click(function()
-			OpenColorTablePanel(function(r, g, b)
+			GUI.OpenColorTablePanel(function(r, g, b)
 				ui:Fetch("Color_TargetFace" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				_TargetFace.bReRender = true
@@ -463,7 +463,7 @@ PS.OnPanelActive = function(frame)
 	end):Pos_()
 	nX = ui:Append("Shadow", "tConnColor", { x = nX + 5, y = nY + 15, w = 18, h = 18 })
 	:Color(unpack(TargetFace.tConnColor)):Click(function()
-		OpenColorTablePanel(function(r, g, b)
+		GUI.OpenColorTablePanel(function(r, g, b)
 			ui:Fetch("tConnColor"):Color(r, g, b)
 			TargetFace.tConnColor = { r, g, b }
 			_TargetFace.bReRender = true
@@ -476,7 +476,7 @@ PS.OnPanelActive = function(frame)
 	end):Pos_()
 	nX,nY = ui:Append("Shadow", "tTTConnColor", { x = nX + 5, y = nY + 15, w = 18, h = 18 })
 	:Color(unpack(TargetFace.tTTConnColor)):Click(function()
-		OpenColorTablePanel(function(r, g, b)
+		GUI.OpenColorTablePanel(function(r, g, b)
 			ui:Fetch("tTTConnColor"):Color(r, g, b)
 			TargetFace.tTTConnColor = { r, g, b }
 			_TargetFace.bReRender = true

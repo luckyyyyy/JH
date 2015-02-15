@@ -3054,8 +3054,6 @@ GUI.OpenColorTablePanel = function(fnAction)
 			fnClick(r, g, b)
 		end)
 	end
-	
-	
 	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 435 })
 	wnd:Append("Text", "Select_Text", { x = 65, y = 435 })
 end
