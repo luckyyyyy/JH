@@ -658,7 +658,7 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 		end
 		local p = GetPlayer(arg0)
 		if p then
-			local bExist, tBuff = JH.HasBuff(arg1)
+			local bExist, tBuff = JH.HasBuff(arg1, p)
 			if bExist then
 				local hBuff = h:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff", arg1 .. arg2)
 				if not arg3 then
@@ -698,7 +698,7 @@ function CTM:RefresBuff()
 						if h then -- ÒòÎªÊÇºôÎü
 							local hBox = h:Lookup("Box")
 							local _, dwID, nLevel = hBox:GetObject()
-							local bExist, tBuff = JH.HasBuff(dwID)
+							local bExist, tBuff = JH.HasBuff(dwID, p)
 							if bExist then
 								local nTime = JH.GetEndTime(tBuff.nEndFrame)
 								if nTime < 5 then
