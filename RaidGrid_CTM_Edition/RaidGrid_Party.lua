@@ -790,9 +790,9 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		p = GetPlayer(dwID)
 	end
 	
-	-- 气血绘制
+	-- 气血计算 因为sync 必须拿出来单独算
 	local nLifePercentage, nCurrentLife, nMaxLife
-	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 255 then
+	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 255 and p.nMaxLife ~= 255 then -- p sync err fix
 		nCurrentLife = p.nCurrentLife
 		nMaxLife = p.nMaxLife
 	else
@@ -802,17 +802,14 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	nLifePercentage = nCurrentLife / nMaxLife
 	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
 	
-
-	local nNewW = 121 * nLifePercentage
-	local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
 	local bDeathFlag = info.bDeathFlag
 	if p then
 		bDeathFlag = p.nMoveState == MOVE_STATE.ON_DEATH
 	end
 	
 	-- 内力
-	local nPercentage, nManaShow = 1, 1
 	if not bDeathFlag then
+		local nPercentage, nManaShow = 1, 1
 		local mana = h:Lookup("Handle_Common/Text_Mana")
 		if not IsPlayerManaHide(info.dwForceID) then -- 内力不需要那么准
 			nPercentage = info.nCurrentMana / info.nMaxMana
@@ -830,18 +827,22 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		Msha:Hide()
 	end
 	
-	if info.bIsOnLine then
-		if RaidGrid_CTM_Edition.bColorHPBarWithDistance then
-			if Lsha.nLevel then
-				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[Lsha.nLevel])
-			else
-				r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
-			end
-		else
-			r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
-		end
-	end
+	-- 缓存
 	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
+		-- 颜色计算
+		local nNewW = 121 * nLifePercentage
+		local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
+		if info.bIsOnLine then
+			if RaidGrid_CTM_Edition.bColorHPBarWithDistance then
+				if Lsha.nLevel then
+					r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[Lsha.nLevel])
+				else
+					r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
+				end
+			else
+				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
+			end
+		end
 		self:DrawShadow(Lsha, nNewW, nHPHeight, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
 		Lsha:Show()
 		if RaidGrid_CTM_Edition.bHPHitAlert then
