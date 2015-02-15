@@ -222,18 +222,25 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
 		local me = GetClientPlayer()
 		if me.dwID == arg1 then
-			return RaidClosePanel()
-		end
-		local team = GetClientTeam()
-		local tGropu = team.GetGroupInfo(arg3)
-		if #tGropu.MemberList == 0 then
-			Raid_CTM:CloseParty(arg3)
-			Raid_CTM:AutoLinkAllPanel()
+			RaidClosePanel()
 		else
-			Raid_CTM:DrawParty(arg3)
+			local team = GetClientTeam()
+			local tGropu = team.GetGroupInfo(arg3)
+			if #tGropu.MemberList == 0 then
+				Raid_CTM:CloseParty(arg3)
+				Raid_CTM:AutoLinkAllPanel()
+			else
+				Raid_CTM:DrawParty(arg3)
+			end
 		end
+		JH.DelayCall(1000, function()
+			collectgarbage("collect")
+		end)
 	elseif szEvent == "PARTY_DISBAND" then
 		RaidClosePanel()
+		JH.DelayCall(1000, function()
+			collectgarbage("collect")
+		end)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_LMR" then
 		Raid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_INFO" then
