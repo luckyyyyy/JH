@@ -230,6 +230,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		local tGropu = team.GetGroupInfo(arg3)
 		if #tGropu.MemberList == 0 then
 			Raid_CTM:CloseParty(arg3)
+			Raid_CTM:AutoLinkAllPanel()
 		else
 			Raid_CTM:DrawParty(arg3)
 		end
