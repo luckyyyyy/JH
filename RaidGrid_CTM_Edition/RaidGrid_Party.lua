@@ -9,14 +9,11 @@ local CTM_INIFILE      = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/u
 local CTM_ITEM         = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/item.ini"
 local CTM_BUFF_ITEM    = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/Item_Buff.ini"
 local CTM_IMAGES       = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/images/ForceColorBox.UITex"
-local CTM_ALPHA        = RaidGrid_CTM_Edition.nAlpha
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET
-local CTM_CACHE        = {}
+local CTM_CACHE        = setmetatable({}, { __mode = "v" })
 local CTM_LIFE_CACHE   = {}
-setmetatable(CTM_CACHE, { __mode = "kv" })
-setmetatable(CTM_LIFE_CACHE, { __mode = "kv" })
 
 -- 部分官方接口封装
 local HIDE_FORCE = {
@@ -586,8 +583,6 @@ function CTM:DrawParty(nIndex)
 		end
 	end
 	CTM_LIFE_CACHE = {}
-	collectgarbage("collect")
-	JH.Debug2("CTM # Call collect")
 end
 
 function CTM:Scale(fX, fY, frame)
@@ -1018,5 +1013,4 @@ CTM.SetTempTarget = function(dwMemberID, bEnter)
 	end
 end
 
-Raid_CTM = {}
-setmetatable(Raid_CTM, { __index = CTM, __newindex = function() end, __metatable = true })
+Raid_CTM = setmetatable({}, { __index = CTM, __newindex = function() end, __metatable = true })
