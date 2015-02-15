@@ -1903,7 +1903,9 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				
 				if not tTab[i].bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
 					if RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
-						FireEvent("JH_RAID_REC_BUFF", dwMemberID, dwBuffID, nLevel, tTab[i].tRGBuffColor)
+						if not tTab[i].bNotAddToCTM then
+							FireEvent("JH_RAID_REC_BUFF", dwMemberID, dwBuffID, nLevel, tTab[i].tRGBuffColor)
+						end
 					end
 					if RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable then
 						RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
