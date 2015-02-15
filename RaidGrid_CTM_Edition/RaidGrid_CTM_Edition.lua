@@ -236,20 +236,20 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "PARTY_DISBAND" then
 		RaidClosePanel()
 	elseif szEvent == "PARTY_UPDATE_MEMBER_LMR" then
-		Raid_CTM:CallDrawHPMP(arg1)
+		Raid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_INFO" then
 		Raid_CTM:CallRefreshImages(arg1, false, true, nil, true, true)
-		Raid_CTM:CallDrawHPMP(arg1)
+		Raid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "UPDATE_PLAYER_SCHOOL_ID" then
 		if JH.IsParty(arg0) then
 			Raid_CTM:CallRefreshImages(arg0, false, true)
 		end
 	elseif szEvent == "PLAYER_STATE_UPDATE" then
 		if JH.IsParty(arg0) then
-			Raid_CTM:CallDrawHPMP(arg1)
+			Raid_CTM:CallDrawHPMP(arg1, true)
 		end
 	elseif szEvent == "PARTY_SET_MEMBER_ONLINE_FLAG" then
-		Raid_CTM:CallDrawHPMP(arg1)
+		Raid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "TEAM_AUTHORITY_CHANGED" then
 		Raid_CTM:CallRefreshImages(arg2, true)
 		Raid_CTM:CallRefreshImages(arg3, true)
@@ -322,24 +322,24 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 			end },
 			{ szOption = _L["Attack Warning"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bHPHitAlert, fnAction = function()
 				RaidGrid_CTM_Edition.bHPHitAlert = not RaidGrid_CTM_Edition.bHPHitAlert
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end }
 		})
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = g_tStrings.STR_RAID_LIFE_SHOW,
 			{ szOption = _L["LifeBar Gradient"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bLifeGradient, fnAction = function()
 				RaidGrid_CTM_Edition.bLifeGradient = not RaidGrid_CTM_Edition.bLifeGradient
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ szOption = _L["ManaBar Gradient"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bManaGradient, fnAction = function()
 				RaidGrid_CTM_Edition.bManaGradient = not RaidGrid_CTM_Edition.bManaGradient
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ szOption = g_tStrings.STR_ALPHA, fnAction = function()
 				local x, y = Cursor.GetPos()
 				GetUserPercentage(function(val)
 					RaidGrid_CTM_Edition.nAlpha = tonumber(val) * 255
-					Raid_CTM:CallDrawHPMP(true)
+					Raid_CTM:CallDrawHPMP(true, true)
 					Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
 				end, nil, RaidGrid_CTM_Edition.nAlpha / 255, g_tStrings.STR_ALPHA .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 })
 			end	},
@@ -351,28 +351,28 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 			{ bDevide = true },
 			{ szOption = g_tStrings.STR_RAID_LIFE_LEFT, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode2 == 2, fnAction = function()
 				RaidGrid_CTM_Edition.nHPShownMode2 = 2
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ szOption = g_tStrings.STR_RAID_LIFE_LOSE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode2 == 1, fnAction = function()
 				RaidGrid_CTM_Edition.nHPShownMode2 = 1
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ szOption = g_tStrings.STR_RAID_LIFE_HIDE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode2 == 0, fnAction = function()
 				RaidGrid_CTM_Edition.nHPShownMode2 = 0
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ bDevide = true },
 			{ szOption = _L["Show Format value"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownNumMode == 1, fnAction = function()
 				RaidGrid_CTM_Edition.nHPShownNumMode = 1
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ szOption = _L["Show Percentage value"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownNumMode == 2, fnAction = function()
 				RaidGrid_CTM_Edition.nHPShownNumMode = 2
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ szOption = _L["Show full value"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownNumMode == 3, fnAction = function()
 				RaidGrid_CTM_Edition.nHPShownNumMode = 3
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 		})
 		table.insert(menu, { szOption = _L["Icon & Color"],
@@ -402,7 +402,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		local tDistanceMenu = { 
 			szOption = g_tStrings.STR_RAID_DISTANCE, bCheck = true, bChecked = RaidGrid_CTM_Edition.bColorHPBarWithDistance, fnAction = function() 
 				RaidGrid_CTM_Edition.bColorHPBarWithDistance = not RaidGrid_CTM_Edition.bColorHPBarWithDistance
-				Raid_CTM:CallDrawHPMP(true)
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	
 		}
 		for i = 1, #RaidGrid_CTM_Edition.tDistanceLevel do
@@ -415,7 +415,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				fnAction = function()
 					GetUserInputNumber(RaidGrid_CTM_Edition.tDistanceLevel[i], RaidGrid_CTM_Edition.tDistanceLevel[i + 1] or 999, nil, function(val)
 						RaidGrid_CTM_Edition.tDistanceLevel[i] = val
-						Raid_CTM:CallDrawHPMP(true)
+						Raid_CTM:CallDrawHPMP(true, true)
 					end)
 				end,
 				szIcon = "ui/Image/button/CommonButton_1.UItex",
@@ -425,7 +425,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				fnClickIcon = function() 
 					GUI.OpenColorTablePanel(function(r, g, b)
 						RaidGrid_CTM_Edition.tDistanceCol[i] = { r, g, b }
-						Raid_CTM:CallDrawHPMP(true)
+						Raid_CTM:CallDrawHPMP(true, true)
 					end)
 				end
 			})

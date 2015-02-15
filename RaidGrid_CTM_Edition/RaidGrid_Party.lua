@@ -426,6 +426,7 @@ function CTM:ReloadParty()
 	self:AutoLinkAllPanel()
 	self:RefreshDistance()
 	self:RefresFormation()
+	CTM_LIFE_CACHE = {}
 end
 
 -- 哎 事件太蛋疼 就这样吧
@@ -589,6 +590,7 @@ function CTM:DrawParty(nIndex)
 			CTM_CACHE[k] = nil
 		end
 	end
+	CTM_LIFE_CACHE = {}
 end
 
 function CTM:Scale(fX, fY, frame)
@@ -732,7 +734,7 @@ function CTM:RefreshDistance()
 							if nDistance <= vv then
 								if Lsha.nLevel ~= kk then
 									Lsha.nLevel = kk
-									CTM:DrawHPMP(v, k, self:GetMemberInfo(k)) -- 立即重绘颜色 好像没API设置
+									CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true) -- 立即重绘颜色 好像没API设置
 								end
 								break
 							end
@@ -778,7 +780,7 @@ function CTM:CallDrawHPMP(dwID)
 end
 
 -- 缩放对动态构建的UI不会缩放 所以需要后处理
-function CTM:DrawHPMP(h, dwID, info)
+function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	local nHPHeight = 29
 	local nMPHeight = 6
 	local Lsha = h:Lookup("Handle_Common/Shadow_Life")
@@ -787,7 +789,21 @@ function CTM:DrawHPMP(h, dwID, info)
 	if RaidGrid_CTM_Edition.bFasterHP then
 		p = GetPlayer(dwID)
 	end
-	local nPercentage, nManaShow = 0, 0
+	
+	-- 气血绘制
+	local nLifePercentage, nCurrentLife, nMaxLife
+	if p and p.nMaxLife ~= 255 then
+		nCurrentLife = p.nCurrentLife
+		nMaxLife = p.nMaxLife
+	else
+		nCurrentLife = info.nCurrentLife
+		nMaxLife = info.nMaxLife
+	end
+	nLifePercentage = nCurrentLife / nMaxLife
+	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
+	
+	-- 内力
+	local nPercentage, nManaShow = 1, 1
 	local mana = h:Lookup("Handle_Common/Text_Mana")
 	if not IsPlayerManaHide(info.dwForceID) then
 		if p and p.nMaxMana ~= 255 then
@@ -806,17 +822,6 @@ function CTM:DrawHPMP(h, dwID, info)
 	if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
 	self:DrawShadow(Msha, 121 * nPercentage, nMPHeight, 0, 96, 255, RaidGrid_CTM_Edition.bManaGradient)
 	Msha:Show()
-	-- 气血绘制
-	local nLifePercentage, nCurrentLife, nMaxLife
-	if p and p.nMaxLife ~= 255 then
-		nCurrentLife = p.nCurrentLife
-		nMaxLife = p.nMaxLife
-	else
-		nCurrentLife = info.nCurrentLife
-		nMaxLife = info.nMaxLife
-	end
-	nLifePercentage = nCurrentLife / nMaxLife
-	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
 	local nNewW = 121 * nLifePercentage
 	local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
 	local bDeathFlag = info.bDeathFlag
@@ -832,11 +837,13 @@ function CTM:DrawHPMP(h, dwID, info)
 				r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
 			end
 		else
-			r, g, b = 0, 200, 72
+			r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
 		end
 	end
-	self:DrawShadow(Lsha, nNewW, nHPHeight, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
-	Lsha:Show()
+	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
+		self:DrawShadow(Lsha, nNewW, nHPHeight, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
+		Lsha:Show()
+	end
 	if RaidGrid_CTM_Edition.bHPHitAlert then
 		local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
 		if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
@@ -869,8 +876,7 @@ function CTM:DrawHPMP(h, dwID, info)
 	else
 		CTM_LIFE_CACHE[dwID] = nLifePercentage
 	end
-
-	-- 数值绘制
+		-- 数值绘制
 	local life = h:Lookup("Handle_Common/Text_Life")
 	if not bDeathFlag and info.bIsOnLine then
 		life:SetFontColor(255, 255, 255)
