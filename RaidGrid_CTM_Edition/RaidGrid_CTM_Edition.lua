@@ -111,14 +111,14 @@ local function InsertForceCountMenu(tMenu)
 end
 
 local function RaidPanel_Switch(bOpen)
-	local frame = Station.Lookup("Normal/RaidPanel_Main")
-	if frame then
-		if bOpen then
-			frame:Show()
-		else
-			frame:Hide()
-		end
-	end
+	-- local frame = Station.Lookup("Normal/RaidPanel_Main")
+	-- if frame then
+		-- if bOpen then
+			-- frame:Show()
+		-- else
+			-- frame:Hide()
+		-- end
+	-- end
 end
 
 local function TeammatePanel_Switch(bOpen)

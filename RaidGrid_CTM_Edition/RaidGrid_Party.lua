@@ -792,7 +792,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	
 	-- 气血绘制
 	local nLifePercentage, nCurrentLife, nMaxLife
-	if p and p.nCurrentLife ~= 255 then
+	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 255 then
 		nCurrentLife = p.nCurrentLife
 		nMaxLife = p.nMaxLife
 	else
@@ -802,31 +802,32 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	nLifePercentage = nCurrentLife / nMaxLife
 	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
 	
-	-- 内力
-	local nPercentage, nManaShow = 1, 1
-	local mana = h:Lookup("Handle_Common/Text_Mana")
-	if not IsPlayerManaHide(info.dwForceID) then
-		if p and p.nCurrentMana ~= 255 then
-			nPercentage = p.nCurrentMana / p.nMaxMana
-			nManaShow = p.nCurrentMana
-		else
-			nPercentage = info.nCurrentMana / info.nMaxMana
-			nManaShow = info.nCurrentMana
-		end
-		if not RaidGrid_CTM_Edition.nShowMP then
-			mana:SetText("")
-		else
-			mana:SetText(nManaShow)
-		end
-	end
-	if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
-	self:DrawShadow(Msha, 121 * nPercentage, nMPHeight, 0, 96, 255, RaidGrid_CTM_Edition.bManaGradient)
-	Msha:Show()
+
 	local nNewW = 121 * nLifePercentage
 	local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
 	local bDeathFlag = info.bDeathFlag
 	if p then
 		bDeathFlag = p.nMoveState == MOVE_STATE.ON_DEATH
+	end
+	
+	-- 内力
+	local nPercentage, nManaShow = 1, 1
+	if not bDeathFlag then
+		local mana = h:Lookup("Handle_Common/Text_Mana")
+		if not IsPlayerManaHide(info.dwForceID) then -- 内力不需要那么准
+			nPercentage = info.nCurrentMana / info.nMaxMana
+			nManaShow = info.nCurrentMana
+			if not RaidGrid_CTM_Edition.nShowMP then
+				mana:SetText("")
+			else
+				mana:SetText(nManaShow)
+			end
+		end
+		if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
+		self:DrawShadow(Msha, 121 * nPercentage, nMPHeight, 0, 96, 255, RaidGrid_CTM_Edition.bManaGradient)
+		Msha:Show()
+	else
+		Msha:Hide()
 	end
 	
 	if info.bIsOnLine then
@@ -843,79 +844,79 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
 		self:DrawShadow(Lsha, nNewW, nHPHeight, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
 		Lsha:Show()
-	end
-	if RaidGrid_CTM_Edition.bHPHitAlert then
-		local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
-		if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
-			local nAlpha = lifeFade:GetAlpha()
-			if nAlpha == 0 then
-				lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, nHPHeight * RaidGrid_CTM_Edition.fScaleY)
-			end
-			lifeFade:SetAlpha(240)
-			lifeFade:Show()
-			local key = "CTM_HIT_" .. dwID
-			JH.UnBreatheCall(key)
-			JH.BreatheCall(key, function()
-				if lifeFade:IsValid() then
-					local nFadeAlpha = math.max(lifeFade:GetAlpha() - 15, 0)
-					lifeFade:SetAlpha(nFadeAlpha)
-					if nFadeAlpha == 0 then
+		if RaidGrid_CTM_Edition.bHPHitAlert then
+			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
+			if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
+				local nAlpha = lifeFade:GetAlpha()
+				if nAlpha == 0 then
+					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, nHPHeight * RaidGrid_CTM_Edition.fScaleY)
+				end
+				lifeFade:SetAlpha(240)
+				lifeFade:Show()
+				local key = "CTM_HIT_" .. dwID
+				JH.UnBreatheCall(key)
+				JH.BreatheCall(key, function()
+					if lifeFade:IsValid() then
+						local nFadeAlpha = math.max(lifeFade:GetAlpha() - 15, 0)
+						lifeFade:SetAlpha(nFadeAlpha)
+						if nFadeAlpha == 0 then
+							JH.UnBreatheCall(key)
+						end
+					else
 						JH.UnBreatheCall(key)
 					end
-				else
-					JH.UnBreatheCall(key)
-				end
-			end)
-		end
-	else
-		h:Lookup("Handle_Common/Shadow_Life_Fade"):Hide()
-	end
-	
-	if not CTM_LIFE_CACHE[dwID] then
-		CTM_LIFE_CACHE[dwID] = 0
-	else
-		CTM_LIFE_CACHE[dwID] = nLifePercentage
-	end
-		-- 数值绘制
-	local life = h:Lookup("Handle_Common/Text_Life")
-	if not bDeathFlag and info.bIsOnLine then
-		life:SetFontColor(255, 255, 255)
-		if RaidGrid_CTM_Edition.nHPShownMode2 == 0 then
-			life:SetText("")
+				end)
+			end
 		else
-			local fnAction = function(val, max)
-				if RaidGrid_CTM_Edition.nHPShownNumMode == 1 then
-					if val > 9999 then
-						return string.format("%.1fw", val / 10000)
-					else
+			h:Lookup("Handle_Common/Shadow_Life_Fade"):Hide()
+		end
+		
+		if not CTM_LIFE_CACHE[dwID] then
+			CTM_LIFE_CACHE[dwID] = 0
+		else
+			CTM_LIFE_CACHE[dwID] = nLifePercentage
+		end
+			-- 数值绘制
+		local life = h:Lookup("Handle_Common/Text_Life")
+		if not bDeathFlag and info.bIsOnLine then
+			life:SetFontColor(255, 255, 255)
+			if RaidGrid_CTM_Edition.nHPShownMode2 == 0 then
+				life:SetText("")
+			else
+				local fnAction = function(val, max)
+					if RaidGrid_CTM_Edition.nHPShownNumMode == 1 then
+						if val > 9999 then
+							return string.format("%.1fw", val / 10000)
+						else
+							return val
+						end
+					elseif RaidGrid_CTM_Edition.nHPShownNumMode == 2 then
+						return string.format("%.1f", val / max * 100) .. "%"
+					elseif RaidGrid_CTM_Edition.nHPShownNumMode == 3 then
 						return val
 					end
-				elseif RaidGrid_CTM_Edition.nHPShownNumMode == 2 then
-					return string.format("%.1f", val / max * 100) .. "%"
-				elseif RaidGrid_CTM_Edition.nHPShownNumMode == 3 then
-					return val
+				end
+				if RaidGrid_CTM_Edition.nHPShownMode2 == 2 then
+					life:SetText(fnAction(nCurrentLife, nMaxLife))
+				elseif RaidGrid_CTM_Edition.nHPShownMode2 == 1 then
+					local nShownLife = nMaxLife - nCurrentLife
+					if nShownLife > 0 then
+						life:SetText("-" .. fnAction(nShownLife, nMaxLife))
+					else
+						life:SetText("")
+					end
 				end
 			end
-			if RaidGrid_CTM_Edition.nHPShownMode2 == 2 then
-				life:SetText(fnAction(nCurrentLife, nMaxLife))
-			elseif RaidGrid_CTM_Edition.nHPShownMode2 == 1 then
-				local nShownLife = nMaxLife - nCurrentLife
-				if nShownLife > 0 then
-					life:SetText("-" .. fnAction(nShownLife, nMaxLife))
-				else
-					life:SetText("")
-				end
-			end
+		elseif bDeathFlag then
+			life:SetFontColor(255, 0, 0)
+			life:SetText(g_tStrings.FIGHT_DEATH)
+		elseif not info.bIsOnLine then
+			life:SetFontColor(128, 128, 128)
+			life:SetText(g_tStrings.STR_FRIEND_NOT_ON_LINE)
+		else
+			life:SetFontColor(128, 128, 128)
+			life:SetText(g_tStrings.COINSHOP_SOURCE_NULL)
 		end
-	elseif bDeathFlag then
-		life:SetFontColor(255, 0, 0)
-		life:SetText(g_tStrings.FIGHT_DEATH)
-	elseif not info.bIsOnLine then
-		life:SetFontColor(128, 128, 128)
-		life:SetText(g_tStrings.STR_FRIEND_NOT_ON_LINE)
-	else
-		life:SetFontColor(128, 128, 128)
-		life:SetText(g_tStrings.COINSHOP_SOURCE_NULL)
 	end
 end
 
