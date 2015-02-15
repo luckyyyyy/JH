@@ -2400,7 +2400,7 @@ _GKP.Record = function(tab,item,bEnter)
 					{type = "text" ,text = _L[" Distribute to "]},
 					{type = "name" ,name = tab.szPlayer,text = "[" .. tab.szPlayer .. "]"},
 				})
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","add",JH.AscIIEncode(JH.JsonEncode(tab)))
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "add", JH.AscIIEncode(JH.JsonEncode(tab)))
 			end
 			if _GKP.tLootListMoney[item.dwID] then
 				_GKP.tLootListMoney[item.dwID] = nil
