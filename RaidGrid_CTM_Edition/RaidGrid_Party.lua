@@ -742,7 +742,7 @@ function CTM:RefreshDistance()
 						end
 					end
 					if RaidGrid_CTM_Edition.bShowDistance then
-						v:Lookup("Handle_Common/Text_Distance"):SetText(nDistance)
+						v:Lookup("Handle_Common/Text_Distance"):SetText(string.format("%.1f", nDistance))
 					else
 						v:Lookup("Handle_Common/Text_Distance"):SetText("")
 					end
