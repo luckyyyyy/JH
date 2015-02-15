@@ -41,9 +41,6 @@ local CTM_CONFIG = {
 	bFasterHP = false,
 }
 local CTM_CONFIG_PLAYER = JH.LoadLUAData("CTM/Config_V1.jx3dat") or CTM_CONFIG
-
-RaidGrid_CTM_Edition = {}
-
 local CTM_FRAME
 local CTM_LOOT_MODE = {
 	Image_LootMode_Free    = PARTY_LOOT_MODE.FREE_FOR_ALL, 
@@ -172,6 +169,7 @@ end
 -------------------------------------------------
 -- 界面创建 事件注册
 -------------------------------------------------
+RaidGrid_CTM_Edition = {}
 function RaidGrid_CTM_Edition.OnFrameCreate()
 	CTM_FRAME = this
 	

@@ -5,7 +5,7 @@
 
 使用方法
 -----------------------
-1. 在./bin/$lang$/interface/目录下载仓库所有文件，但是请注意，目前ZHCN版本需要key验证，否则会被判为非法插件。
+1. 在./bin/{ version }/interface/目录下载仓库所有文件，但是请注意，目前ZHCN版本需要key验证，否则会被判为非法插件。
 
 		git clone git@github.com:Webster-jx3/JH.git
 		或者也可以直接下载所有文件，文件夹名称为JH。
