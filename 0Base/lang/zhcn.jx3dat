@@ -585,5 +585,5 @@ data = {
 	["Faster Refresh HP(Greater performance loss)"] = "极速血量刷新（性能消耗较高）",
 	["Edit Distance Level"] = "编辑距离等级",
 	["distance, distance, ..."] = "8,20,22,24,30, ...",
-	["Colored according to the distance"] = "按据距离着色",
+	["Colored according to the distance"] = "按距离着色",
 }
