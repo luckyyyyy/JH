@@ -104,6 +104,10 @@ local function OutputTeamMemberTip(dwID, rc)
 	local szTip = GetFormatImage(szPath, nFrame, 22, 22)
     szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_NAME_PLAYER, tMemberInfo.szName), 80, r, g, b)
     if tMemberInfo.bIsOnLine then
+		local p = GetPlayer(dwID)
+		if p and p.dwTongID > 0 then
+			szTip = szTip .. GetFormatText("[" .. GetTongClient().ApplyGetTongName(p.dwTongID) .. "]\n", 41)			
+		end
     	szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, tMemberInfo.nLevel), 82)
 		szTip = szTip .. GetFormatText(JH.GetSkillName(tMemberInfo.dwMountKungfuID, 1) .. "\n", 82)
 		local szMapName = Table_GetMapName(tMemberInfo.dwMapID)
@@ -363,13 +367,13 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 	-- 刷新内功
 	if bIcon then -- 刷新icon
 		local img = h:Lookup("Image_Icon")
-		if RaidGrid_CTM_Edition.bShowIcon == 2 then
+		if RaidGrid_CTM_Edition.nShowIcon == 2 then
 			local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
 			if nIconID == 13 then nIconID = 2003 end -- _(:з」∠)_
 			img:FromIconID(nIconID)
-		elseif RaidGrid_CTM_Edition.bShowIcon == 1 then
+		elseif RaidGrid_CTM_Edition.nShowIcon == 1 then
 			img:FromUITex(GetForceImage(info.dwForceID))
-		elseif RaidGrid_CTM_Edition.bShowIcon == 3 then
+		elseif RaidGrid_CTM_Edition.nShowIcon == 3 then
 			local camp = { [0] = -1, [1] = 43, [2] = 40 }
 			img:FromUITex("UI/Image/Button/ShopButton.uitex", camp[info.nCamp])
 		end
@@ -833,7 +837,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	end
 	local nAlpha = RaidGrid_CTM_Edition.nAlpha
 	if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
-		if Lsha.nDistance and Lsha.nDistance > 20 then
+		if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
 			nAlpha = nAlpha * 0.6
 		end
 	end
@@ -862,36 +866,36 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
 		-- 颜色计算
 		local nNewW = 121 * nLifePercentage
-		
 		local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
 		if info.bIsOnLine then
-			if p or GetPlayer(dwID) then
-				if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
+			if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
+				if p or GetPlayer(dwID) then
 					if Lsha.nLevel then
 						r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[Lsha.nLevel])
 					else
 						r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3])
 					end
-				elseif RaidGrid_CTM_Edition.nBGClolrMode == 0 then
-					r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
-				elseif RaidGrid_CTM_Edition.nBGClolrMode == 2 then
-					r, g, b = JH.GetForceColor(info.dwForceID)
+				else
+					r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
 				end
-			else
-				r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
+			elseif RaidGrid_CTM_Edition.nBGClolrMode == 0 then
+				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
+			elseif RaidGrid_CTM_Edition.nBGClolrMode == 2 then
+				r, g, b = JH.GetForceColor(info.dwForceID)
 			end
-			
+		else
+			nAlpha = RaidGrid_CTM_Edition.nAlpha
 		end
 		self:DrawShadow(Lsha, nNewW, 31, r, g, b, RaidGrid_CTM_Edition.bLifeGradient, nAlpha)
 		Lsha:Show()
 		if RaidGrid_CTM_Edition.bHPHitAlert then
 			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
 			if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
-				local nAlpha = lifeFade:GetAlpha()
-				if nAlpha == 0 then
+				local alpha = lifeFade:GetAlpha()
+				if alpha == 0 then
 					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, 31 * RaidGrid_CTM_Edition.fScaleY)
 				end
-				lifeFade:SetAlpha(240)
+				lifeFade:SetAlpha(240 * nAlpha)
 				lifeFade:Show()
 				local key = "CTM_HIT_" .. dwID
 				JH.UnBreatheCall(key)
@@ -919,9 +923,13 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		-- 数值绘制
 		local life = h:Lookup("Handle_Common/Text_Life")
 		if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
-			if Lsha.nDistance and Lsha.nDistance > 20 then
+			if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
 				life:SetAlpha(150)
+			else
+				life:SetAlpha(255)
 			end
+		else
+			life:SetAlpha(255)
 		end
 		if not bDeathFlag and info.bIsOnLine then
 			life:SetFontColor(255, 255, 255)
