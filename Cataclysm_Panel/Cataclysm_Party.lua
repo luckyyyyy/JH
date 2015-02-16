@@ -741,7 +741,7 @@ function CTM:RefresBuff()
 end
 
 function CTM:RefreshDistance()
-	if RaidGrid_CTM_Edition.nBGClolrMode == 1 or RaidGrid_CTM_Edition.bShowDistance then
+	-- if RaidGrid_CTM_Edition.nBGClolrMode == 1 or RaidGrid_CTM_Edition.bShowDistance then
 		for k, v in pairs(CTM_CACHE) do
 			if v:IsValid() then
 				local p = GetPlayer(k) -- info.nPoX 刷新太慢了 对于治疗来说 这个太重要了
@@ -758,6 +758,12 @@ function CTM:RefreshDistance()
 								break
 							end
 						end
+					else
+						local _nDistance = Lsha.nDistance or 0
+						Lsha.nDistance = nDistance
+						if (nDistance > 20 and _nDistance <= 20) or (nDistance <= 20 and _nDistance > 20) then
+							CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
+						end
 					end
 					if RaidGrid_CTM_Edition.bShowDistance then
 						v:Lookup("Handle_Common/Text_Distance"):SetText(string.format("%.1f", nDistance))
@@ -772,7 +778,7 @@ function CTM:RefreshDistance()
 				end
 			end
 		end
-	end
+	-- end
 end
 
 -- 血量 / 内力
@@ -825,7 +831,12 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			bDeathFlag = p.nMoveState == MOVE_STATE_ON_DEATH
 		end
 	end
-	
+	local nAlpha = RaidGrid_CTM_Edition.nAlpha
+	if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
+		if Lsha.nDistance and Lsha.nDistance > 20 then
+			nAlpha = nAlpha * 0.6
+		end
+	end
 	-- 内力
 	if not bDeathFlag then
 		local nPercentage, nManaShow = 1, 1
@@ -841,7 +852,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		end
 		if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
 		local r, g, b = unpack(RaidGrid_CTM_Edition.tManaColor)
-		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, RaidGrid_CTM_Edition.bManaGradient)
+		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, RaidGrid_CTM_Edition.bManaGradient, nAlpha)
 		Msha:Show()
 	else
 		Msha:Hide()
@@ -851,6 +862,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
 		-- 颜色计算
 		local nNewW = 121 * nLifePercentage
+		
 		local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
 		if info.bIsOnLine then
 			if p or GetPlayer(dwID) then
@@ -870,7 +882,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			end
 			
 		end
-		self:DrawShadow(Lsha, nNewW, 31, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
+		self:DrawShadow(Lsha, nNewW, 31, r, g, b, RaidGrid_CTM_Edition.bLifeGradient, nAlpha)
 		Lsha:Show()
 		if RaidGrid_CTM_Edition.bHPHitAlert then
 			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
@@ -906,6 +918,11 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		end
 		-- 数值绘制
 		local life = h:Lookup("Handle_Common/Text_Life")
+		if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
+			if Lsha.nDistance and Lsha.nDistance > 20 then
+				life:SetAlpha(150)
+			end
+		end
 		if not bDeathFlag and info.bIsOnLine then
 			life:SetFontColor(255, 255, 255)
 			if RaidGrid_CTM_Edition.nHPShownMode2 == 0 then
@@ -948,21 +965,21 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	end
 end
 
-function CTM:DrawShadow(sha, x, y, r, g, b, bGradient) --重绘三角扇
+function CTM:DrawShadow(sha, x, y, r, g, b, bGradient, a) --重绘三角扇
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:ClearTriangleFanPoint()
 	x = x * RaidGrid_CTM_Edition.fScaleX
 	y = y * RaidGrid_CTM_Edition.fScaleY
 	if bGradient then
-		sha:AppendTriangleFanPoint(	0,	0,	64,	64,	64,	RaidGrid_CTM_Edition.nAlpha)
-		sha:AppendTriangleFanPoint(	x,	0,	64,	64,	64,	RaidGrid_CTM_Edition.nAlpha)
-		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
-		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
+		sha:AppendTriangleFanPoint(	0,	0,	64,	64,	64,	a)
+		sha:AppendTriangleFanPoint(	x,	0,	64,	64,	64,	a)
+		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
+		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)
 	else
-		sha:AppendTriangleFanPoint(	0,	0,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
-		sha:AppendTriangleFanPoint(	x,	0,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
-		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
-		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)	
+		sha:AppendTriangleFanPoint(	0,	0,	r,	g,	b,	a)
+		sha:AppendTriangleFanPoint(	x,	0,	r,	g,	b,	a)
+		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
+		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)
 	end
 end
 
