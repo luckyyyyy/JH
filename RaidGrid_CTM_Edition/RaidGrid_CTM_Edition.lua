@@ -126,7 +126,7 @@ local function TeammatePanel_Switch(bOpen)
 		end
 	end	
 end
-------------------------------------------------------------------------------------------------------------
+
 local function RaidOpenPanel()
 	local frame = CTM_FRAME or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
 	return frame
@@ -168,6 +168,7 @@ end
 -- 界面创建 事件注册
 -------------------------------------------------
 RaidGrid_CTM_Edition = {}
+local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
 function RaidGrid_CTM_Edition.OnFrameCreate()
 	CTM_FRAME = this
 	
@@ -663,11 +664,10 @@ JH.AddonMenu(function()
 				local me = GetClientPlayer()
 				if me.IsInRaid() then
 					FireEvent("CTM_PANEL_RAID", true)
-				elseif me.IsInParty()
+				elseif me.IsInParty() then
 					FireEvent("CTM_PANEL_TEAMATE", true)
 				end
 			end
-			
 		end
 	}
 end)
