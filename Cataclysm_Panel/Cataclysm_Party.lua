@@ -195,15 +195,23 @@ function CTM:CreatePanel(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
 	if frame then Wnd.CloseWindow(frame) end
 	frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
-
 	local TextGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
 	if me.IsInRaid() then
 		TextGroup:SetText(g_tStrings.STR_NUMBER[nIndex + 1])
+		local team = GetClientTeam()
+		local tGroup = team.GetGroupInfo(nIndex)
+		if tGroup and tGroup.MemberList then
+			for k, v in ipairs(tGroup.MemberList) do
+				if v == UI_GetClientPlayerID() then
+					TextGroup:SetFontColor(255, 255, 0)
+					break
+				end
+			end
+		end
 	else
 		TextGroup:SetText(g_tStrings.STR_TEAM)
 	end
 	self:AutoLinkAllPanel()
-	return self
 end
 
 function CTM:AutoLinkAllPanel() --自动连接所有面板
@@ -211,7 +219,8 @@ function CTM:AutoLinkAllPanel() --自动连接所有面板
 	local nX, nY = frameMain:GetRelPos()
 	nY = nY + 24
 	local nShownCount = 0
-	local tPosnSize = {[-1] = {nX = nX, nY = nY, nW = 0, nH = 0}}
+	local tPosnSize = {}
+	-- { nX = nX, nY = nY, nW = 0, nH = 0 }
 	for i = 0, CTM_GROUP_COUNT do
 		local framePartyPanel = self:GetPartyFrame(i)
 		if framePartyPanel then
