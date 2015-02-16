@@ -714,14 +714,14 @@ function CTM:RefresBuff()
 end
 
 function CTM:RefreshDistance()
-	if RaidGrid_CTM_Edition.bColorHPBarWithDistance or RaidGrid_CTM_Edition.bShowDistance then
+	if RaidGrid_CTM_Edition.nBGClolrMode == 1 or RaidGrid_CTM_Edition.bShowDistance then
 		for k, v in pairs(CTM_CACHE) do
 			if v:IsValid() then
 				local p = GetPlayer(k) -- info.nPoX 刷新太慢了 对于治疗来说 这个太重要了
 				local Lsha = v:Lookup("Handle_Common/Shadow_Life")
 				if p then
 					local nDistance = JH.GetDistance(p.nX, p.nY) -- 只计算平面
-					if RaidGrid_CTM_Edition.bColorHPBarWithDistance then
+					if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
 						for kk, vv in ipairs(RaidGrid_CTM_Edition.tDistanceLevel) do
 							if nDistance <= vv then
 								if Lsha.nLevel ~= kk then
@@ -809,7 +809,8 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			end
 		end
 		if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
-		self:DrawShadow(Msha, 121 * nPercentage, nMPHeight, 0, 96, 255, RaidGrid_CTM_Edition.bManaGradient)
+		local r, g, b = unpack(RaidGrid_CTM_Edition.tManaColor)
+		self:DrawShadow(Msha, 121 * nPercentage, nMPHeight, r, g, b, RaidGrid_CTM_Edition.bManaGradient)
 		Msha:Show()
 	else
 		Msha:Hide()
@@ -821,15 +822,22 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		local nNewW = 121 * nLifePercentage
 		local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
 		if info.bIsOnLine then
-			if RaidGrid_CTM_Edition.bColorHPBarWithDistance then
-				if Lsha.nLevel then
-					r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[Lsha.nLevel])
-				else
-					r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
+			if p or GetPlayer(dwID) then
+				if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
+					if Lsha.nLevel then
+						r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[Lsha.nLevel])
+					else
+						r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3])
+					end
+				elseif RaidGrid_CTM_Edition.nBGClolrMode == 0 then
+					r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
+				elseif RaidGrid_CTM_Edition.nBGClolrMode == 2 then
+					r, g, b = JH.GetForceColor(info.dwForceID)
 				end
 			else
-				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
+				r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
 			end
+			
 		end
 		self:DrawShadow(Lsha, nNewW, nHPHeight, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
 		Lsha:Show()
