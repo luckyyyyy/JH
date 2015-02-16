@@ -11,7 +11,7 @@ local CTM_CONFIG = {
 	nShowMP = false,
 	bHPHitAlert = true,
 	bColoredName = true,
-	bShowIcon = 2,
+	nShowIcon = 2,
 	bShowDistance = false,
 	nBGClolrMode = 1, -- 0 不着色 1 根据距离 2 根据门派
 	bShowTargetTargetAni = false,
@@ -490,16 +490,16 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 			end
 		})
 		table.insert(tIconColor, { bDevide = true })
-		table.insert(tIconColor, { szOption = _L["Show Force Icon"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 1, fnAction = function()
-			RaidGrid_CTM_Edition.bShowIcon = 1
+		table.insert(tIconColor, { szOption = _L["Show Force Icon"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nShowIcon == 1, fnAction = function()
+			RaidGrid_CTM_Edition.nShowIcon = 1
 			Raid_CTM:CallRefreshImages(true, false, true)
 		end	})
-		table.insert(tIconColor, { szOption = g_tStrings.STR_SHOW_KUNGFU, bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 2, fnAction = function()
-			RaidGrid_CTM_Edition.bShowIcon = 2
+		table.insert(tIconColor, { szOption = g_tStrings.STR_SHOW_KUNGFU, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nShowIcon == 2, fnAction = function()
+			RaidGrid_CTM_Edition.nShowIcon = 2
 			Raid_CTM:CallRefreshImages(true, false, true)
 		end	})
-		table.insert(tIconColor, { szOption = _L["Show Camp Icon"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.bShowIcon == 3, fnAction = function()
-			RaidGrid_CTM_Edition.bShowIcon = 3
+		table.insert(tIconColor, { szOption = _L["Show Camp Icon"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nShowIcon == 3, fnAction = function()
+			RaidGrid_CTM_Edition.nShowIcon = 3
 			Raid_CTM:CallRefreshImages(true, false, true)
 		end	})
 		table.insert(menu, tIconColor)
