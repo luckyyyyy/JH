@@ -6,6 +6,11 @@ local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
 local GetDistance = JH.GetDistance
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
+
+local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
+local STR_FRIEND_NOT_ON_LINE = g_tStrings.STR_FRIEND_NOT_ON_LINE
+local FIGHT_DEATH            = g_tStrings.FIGHT_DEATH
 
 local CTM_GROUP_COUNT  = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
 local CTM_MEMBER_COUNT = 5
@@ -775,8 +780,6 @@ end
 
 -- 缩放对动态构建的UI不会缩放 所以需要后处理
 function CTM:DrawHPMP(h, dwID, info, bRefresh)
-	local nHPHeight = 30
-	local nMPHeight = 8
 	local Lsha = h:Lookup("Handle_Common/Shadow_Life")
 	local Msha = h:Lookup("Handle_Common/Shadow_Mana")
 	local p
@@ -816,7 +819,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		end
 		if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
 		local r, g, b = unpack(RaidGrid_CTM_Edition.tManaColor)
-		self:DrawShadow(Msha, 121 * nPercentage, nMPHeight, r, g, b, RaidGrid_CTM_Edition.bManaGradient)
+		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, RaidGrid_CTM_Edition.bManaGradient)
 		Msha:Show()
 	else
 		Msha:Hide()
@@ -845,14 +848,14 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			end
 			
 		end
-		self:DrawShadow(Lsha, nNewW, nHPHeight, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
+		self:DrawShadow(Lsha, nNewW, 30, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
 		Lsha:Show()
 		if RaidGrid_CTM_Edition.bHPHitAlert then
 			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
 			if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
 				local nAlpha = lifeFade:GetAlpha()
 				if nAlpha == 0 then
-					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, nHPHeight * RaidGrid_CTM_Edition.fScaleY)
+					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, 30 * RaidGrid_CTM_Edition.fScaleY)
 				end
 				lifeFade:SetAlpha(240)
 				lifeFade:Show()
@@ -879,7 +882,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		else
 			CTM_LIFE_CACHE[dwID] = nLifePercentage
 		end
-			-- 数值绘制
+		-- 数值绘制
 		local life = h:Lookup("Handle_Common/Text_Life")
 		if not bDeathFlag and info.bIsOnLine then
 			life:SetFontColor(255, 255, 255)
@@ -912,13 +915,13 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			end
 		elseif bDeathFlag then
 			life:SetFontColor(255, 0, 0)
-			life:SetText(g_tStrings.FIGHT_DEATH)
+			life:SetText(FIGHT_DEATH)
 		elseif not info.bIsOnLine then
 			life:SetFontColor(128, 128, 128)
-			life:SetText(g_tStrings.STR_FRIEND_NOT_ON_LINE)
+			life:SetText(STR_FRIEND_NOT_ON_LINE)
 		else
 			life:SetFontColor(128, 128, 128)
-			life:SetText(g_tStrings.COINSHOP_SOURCE_NULL)
+			life:SetText(COINSHOP_SOURCE_NULL)
 		end
 	end
 end
@@ -926,19 +929,18 @@ end
 function CTM:DrawShadow(sha, x, y, r, g, b, bGradient) --重绘三角扇
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:ClearTriangleFanPoint()
-	local a = RaidGrid_CTM_Edition.nAlpha
 	x = x * RaidGrid_CTM_Edition.fScaleX
 	y = y * RaidGrid_CTM_Edition.fScaleY
 	if bGradient then
-		sha:AppendTriangleFanPoint(	0,	0,	64,	64,	64,	a)
-		sha:AppendTriangleFanPoint(	x,	0,	64,	64,	64,	a)
-		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)
+		sha:AppendTriangleFanPoint(	0,	0,	64,	64,	64,	RaidGrid_CTM_Edition.nAlpha)
+		sha:AppendTriangleFanPoint(	x,	0,	64,	64,	64,	RaidGrid_CTM_Edition.nAlpha)
+		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
+		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
 	else
-		sha:AppendTriangleFanPoint(	0,	0,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	x,	0,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)	
+		sha:AppendTriangleFanPoint(	0,	0,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
+		sha:AppendTriangleFanPoint(	x,	0,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
+		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)
+		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	RaidGrid_CTM_Edition.nAlpha)	
 	end
 end
 
