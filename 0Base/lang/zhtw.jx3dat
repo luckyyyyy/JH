@@ -504,7 +504,7 @@ data = {
 	["Mon Target"] = "監控目標",
 	["Add Circle"] = "添加圈圈",
 	["Face Circle"] = "面向圈",
-	["Open Circle Panel"] = "圈圈設置面板",
+	["Open Circle Panel"] = "畫圈圈設置面板",
 	["Draw Self Name"] = "繪出自身名稱",
 	["Draw Doodad Line"] = "繪出Doodad連線",
 	["this is god"] = "鎮山河",
@@ -583,4 +583,7 @@ data = {
 	["Buff BG Width"] = "團隊界面【buff背景色】寬度比例",
 	["Buff BG Height"] = "團隊界面【buff背景色】高度比例",
 	["Faster Refresh HP(Greater performance loss)"] = "極速血量刷新（性能消耗較高）",
+	["Edit Distance Level"] = "編輯距離等級",
+	["distance, distance, ..."] = "8,20,22,24,30, ...",
+	["Colored according to the distance"] = "按距離著色",
 }
