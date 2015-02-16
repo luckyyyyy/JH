@@ -4679,7 +4679,7 @@ PS3.OnPanelActive = function(frame)
 		RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable = bChecked
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox",{ x = nX + 15, y = nY + 12, checked = RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable })
-	:Text(_L["CTM TeamPanel"]):Click(function(bChecked)
+	:Text(_L["Cataclysm Team Panel"]):Click(function(bChecked)
 		RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable = bChecked
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Skill Scrutiny"], font = 27 }):Pos_()
