@@ -1,17 +1,21 @@
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
 -----------------------------------------------
-
+-- global cache
 local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
 local GetDistance = JH.GetDistance
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
-
+-- global STR cache
 local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
 local STR_FRIEND_NOT_ON_LINE = g_tStrings.STR_FRIEND_NOT_ON_LINE
 local FIGHT_DEATH            = g_tStrings.FIGHT_DEATH
-
+-- STATE cache
+local MOVE_STATE_ON_STAND    = MOVE_STATE.ON_STAND
+local MOVE_STATE_ON_DEATH    = MOVE_STATE.ON_DEATH
+-- local value
+local CTM_BOX_HEIGHT   = 42 -- 受限ini 这里只是作用于动态修改
 local CTM_GROUP_COUNT  = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
 local CTM_MEMBER_COUNT = 5
 local CTM_TAR_TEMP     = 0
@@ -25,8 +29,7 @@ local CTM_TARGET
 local CTM_TTARGET
 local CTM_CACHE        = setmetatable({}, { __mode = "v" })
 local CTM_LIFE_CACHE   = {}
-
--- 部分官方接口封装
+-- Package func
 local HIDE_FORCE = {
 	[7]  = true,
 	[8]  = true,
@@ -162,7 +165,7 @@ setmetatable(CTM_COLOR, { __index = function() return 168, 168, 168 end, __metat
 local function GetForceColor(dwForceID) --获得成员颜色
 	return unpack(CTM_COLOR[dwForceID])
 end
-
+-- CODE --
 local CTM = {}
 
 function CTM:GetPartyFrame(nIndex) --获得组队面板
@@ -615,28 +618,28 @@ function CTM:FormatFrame(frame, nMemberCount)
 	local fX, fY = RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY
 	if CTM_DRAG then
 		nMemberCount = CTM_MEMBER_COUNT
-		frame:SetSize(128 * fX, (25 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (22 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (15 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (15 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (15 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (6 + nMemberCount * 40) * fY)
+		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (4 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() -1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Show()
 		end
 	else
 		nMemberCount = frame.nMemberCount or CTM_MEMBER_COUNT
-		frame:SetSize(128 * fX, (25 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (22 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, (3 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (15 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (15 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (15 + nMemberCount * 40) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (6 + nMemberCount * 40) * fY)
+		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (4 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() -1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Hide()
@@ -801,7 +804,13 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	
 	local bDeathFlag = info.bDeathFlag
 	if p then
-		bDeathFlag = p.nMoveState == MOVE_STATE.ON_DEATH
+		if p.nMoveState == MOVE_STATE_ON_STAND then
+			if info.bDeathFlag then
+				bDeathFlag = true
+			end
+		else
+			bDeathFlag = p.nMoveState == MOVE_STATE_ON_DEATH
+		end
 	end
 	
 	-- 内力
@@ -848,14 +857,14 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			end
 			
 		end
-		self:DrawShadow(Lsha, nNewW, 30, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
+		self:DrawShadow(Lsha, nNewW, 31, r, g, b, RaidGrid_CTM_Edition.bLifeGradient)
 		Lsha:Show()
 		if RaidGrid_CTM_Edition.bHPHitAlert then
 			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
 			if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
 				local nAlpha = lifeFade:GetAlpha()
 				if nAlpha == 0 then
-					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, 30 * RaidGrid_CTM_Edition.fScaleY)
+					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, 31 * RaidGrid_CTM_Edition.fScaleY)
 				end
 				lifeFade:SetAlpha(240)
 				lifeFade:Show()
