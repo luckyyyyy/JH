@@ -659,7 +659,15 @@ JH.AddonMenu(function()
 			RaidGrid_CTM_Edition.bRaidEnable = not RaidGrid_CTM_Edition.bRaidEnable
 			RaidGrid_CTM_Edition.bShowInRaid = false
 			RaidCheckEnable()
-			FireEvent("CTM_PANEL_RAID", not RaidGrid_CTM_Edition.bRaidEnable)
+			if not RaidGrid_CTM_Edition.bRaidEnable then
+				local me = GetClientPlayer()
+				if me.IsInRaid() then
+					FireEvent("CTM_PANEL_RAID", true)
+				elseif me.IsInParty()
+					FireEvent("CTM_PANEL_TEAMATE", true)
+				end
+			end
+			
 		end
 	}
 end)
