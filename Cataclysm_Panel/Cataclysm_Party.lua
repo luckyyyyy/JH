@@ -5,7 +5,8 @@
 local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
 local GetDistance = JH.GetDistance
-local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
+local Station, SetTarget = Station, SetTarget
 local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
 -- global STR cache
 local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
@@ -15,15 +16,15 @@ local FIGHT_DEATH            = g_tStrings.FIGHT_DEATH
 local MOVE_STATE_ON_STAND    = MOVE_STATE.ON_STAND
 local MOVE_STATE_ON_DEATH    = MOVE_STATE.ON_DEATH
 -- local value
-local CTM_BOX_HEIGHT   = 42 -- 受限ini 这里只是作用于动态修改
+local CTM_BOX_HEIGHT   = 42    -- 注意::受限ini 这里只是作用于动态修改
 local CTM_GROUP_COUNT  = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
 local CTM_MEMBER_COUNT = 5
 local CTM_TAR_TEMP     = 0
 local CTM_DRAG         = false
-local CTM_INIFILE      = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_Party.ini"
-local CTM_ITEM         = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/item.ini"
-local CTM_BUFF_ITEM    = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/Item_Buff.ini"
-local CTM_IMAGES       = JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/images/ForceColorBox.UITex"
+local CTM_INIFILE      = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Party.ini"
+local CTM_ITEM         = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini"
+local CTM_BUFF_ITEM    = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini"
+local CTM_IMAGES       = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/images/ForceColorBox.UITex"
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET
