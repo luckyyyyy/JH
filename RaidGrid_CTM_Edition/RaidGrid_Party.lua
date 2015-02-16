@@ -657,9 +657,12 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 			return
 		end
 		for i = 0, h:GetItemCount() - 1 do
-			local _, dwID, nLevel = h:Lookup(i):Lookup("Box"):GetObject()
-			if dwID == arg1 and nLevel == arg2 then
-				return
+			local _h = h:Lookup(i)
+			if _h and _h:IsValid() then -- ·ÀÖ¹Òç³ö
+				local _, dwID, nLevel = _h:Lookup("Box"):GetObject()
+				if dwID == arg1 and nLevel == arg2 then
+					return
+				end
 			end
 		end
 		local p = GetPlayer(arg0)
