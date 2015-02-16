@@ -1,6 +1,12 @@
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
 -----------------------------------------------
+
+local pairs, ipairs = pairs, ipairs
+local type, unpack = type, unpack
+local GetDistance = JH.GetDistance
+local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+
 local CTM_GROUP_COUNT  = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
 local CTM_MEMBER_COUNT = 5
 local CTM_TAR_TEMP     = 0
@@ -720,7 +726,7 @@ function CTM:RefreshDistance()
 				local p = GetPlayer(k) -- info.nPoX 刷新太慢了 对于治疗来说 这个太重要了
 				local Lsha = v:Lookup("Handle_Common/Shadow_Life")
 				if p then
-					local nDistance = JH.GetDistance(p.nX, p.nY) -- 只计算平面
+					local nDistance = GetDistance(p.nX, p.nY) -- 只计算平面
 					if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
 						for kk, vv in ipairs(RaidGrid_CTM_Edition.tDistanceLevel) do
 							if nDistance <= vv then
