@@ -1,5 +1,5 @@
 local _L = JH.LoadLangPack
-
+local Station = Station
 local CTM_CONFIG = {
 	bRaidEnable = true,
 	bShowInRaid = false,
@@ -37,6 +37,7 @@ local CTM_CONFIG = {
 	},
 	bFasterHP = false,
 }
+local DEBUG = false
 local CONFIG_KEY = "CTM/Config_V2.jx3dat"
 local CTM_CONFIG_PLAYER = JH.LoadLUAData(CONFIG_KEY) or CTM_CONFIG
 local CTM_FRAME
@@ -587,6 +588,13 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 			table.insert(menu, { bDevide = true })
 			InsertForceCountMenu(menu)
 		end
+		if JH.bDebug then
+			table.insert(menu, { bDevide = true })
+			table.insert(menu, { szOption = "DEBUG Mode | Open System Panel", bCheck = true, bChecked = DEBUG, fnAction = function()
+				DEBUG = not DEBUG
+			end	})
+		end
+		
 		local nX, nY = Cursor.GetPos(true)
 		menu.x, menu.y = nX + 15, nY + 15
 		PopupMenu(menu)
@@ -628,7 +636,7 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 		Raid_CTM:RefreshTarget()
 	end
 	-- kill System Panel
-	RaidPanel_Switch(false)
+	RaidPanel_Switch(DEBUG)
 	TeammatePanel_Switch(false)
 end
 
