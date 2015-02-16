@@ -23,7 +23,7 @@ local CTM_CONFIG = {
 	bTempTargetEnable = true,
 	fScaleX = 1,
 	fScaleY = 1,
-	tDistanceLevel = { 20, 22, 50 },
+	tDistanceLevel = { 20, 22, 200 },
 	tManaColor = { 0, 96, 255 },
 	tDistanceCol = {
 		{ 0,   180, 52  }, -- бл
@@ -128,7 +128,7 @@ local function TeammatePanel_Switch(bOpen)
 end
 
 local function RaidOpenPanel()
-	local frame = CTM_FRAME or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "RaidGrid_CTM_Edition/ui/RaidGrid_CTM_Edition.ini", "RaidGrid_CTM_Edition")
+	local frame = CTM_FRAME or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Main.ini", "RaidGrid_CTM_Edition")
 	return frame
 end
 local function RaidClosePanel()
