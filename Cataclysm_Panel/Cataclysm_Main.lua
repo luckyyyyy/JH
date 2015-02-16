@@ -664,7 +664,7 @@ JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
 
 JH.AddonMenu(function()
 	return {
-		szOption = _L["CTM Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = function()
+		szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = function()
 			RaidGrid_CTM_Edition.bRaidEnable = not RaidGrid_CTM_Edition.bRaidEnable
 			RaidGrid_CTM_Edition.bShowInRaid = false
 			RaidCheckEnable()
