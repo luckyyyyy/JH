@@ -585,4 +585,5 @@ data = {
 	["Edit Distance Level"] = "编辑距离等级",
 	["distance, distance, ..."] = "8,20,22,24,30, ...",
 	["Colored according to the distance"] = "按距离着色",
+	["_ME_"] = "★ 自己 ★",
 }
