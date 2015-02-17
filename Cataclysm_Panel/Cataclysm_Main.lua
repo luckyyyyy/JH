@@ -19,7 +19,7 @@ local CTM_CONFIG = {
 	bLifeGradient = true,
 	bManaGradient = true,
 	nAlpha = 255,
-	bTempTargetFightTip = true,
+	bTempTargetFightTip = false,
 	bTempTargetEnable = true,
 	fScaleX = 1,
 	fScaleY = 1,
@@ -311,11 +311,12 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 			GetPopupMenu():Hide()
 		end })
 		-- 治疗模式
-		table.insert(menu, { szOption = g_tStrings.STR_RAID_TARGET_ASSIST, bCheck = true, bChecked = RaidGrid_CTM_Edition.bTempTargetEnable, fnAction = function() RaidGrid_CTM_Edition.bTempTargetEnable = not RaidGrid_CTM_Edition.bTempTargetEnable end,
-			{ szOption = _L["Don't show Tip in fight"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bTempTargetFightTip, fnDisable = function() return not RaidGrid_CTM_Edition.bTempTargetEnable end, fnAction = function()
-				RaidGrid_CTM_Edition.bTempTargetFightTip = not RaidGrid_CTM_Edition.bTempTargetFightTip
-			end	}
-		})
+		table.insert(menu, { szOption = g_tStrings.STR_RAID_TARGET_ASSIST, bCheck = true, bChecked = RaidGrid_CTM_Edition.bTempTargetEnable, fnAction = function() 
+			RaidGrid_CTM_Edition.bTempTargetEnable = not RaidGrid_CTM_Edition.bTempTargetEnable 
+		end })
+		table.insert(menu, { szOption = _L["Don't show Tip in fight"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bTempTargetFightTip, fnAction = function() 
+			RaidGrid_CTM_Edition.bTempTargetFightTip = not RaidGrid_CTM_Edition.bTempTargetFightTip 
+		end })
 		table.insert(menu, { bDevide = true })
 		-- 提醒窗体
 		table.insert(menu, { szOption = g_tStrings.STR_RAID_TIP_IMAGE,
@@ -596,9 +597,8 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		end
 		
 		local nX, nY = Cursor.GetPos(true)
-		menu.x, menu.y = nX + 15, nY + 15
+		menu.x, menu.y = nX, nY
 		PopupMenu(menu)
-	
 	elseif szName == "Btn_WorldMark" then
 		if JH.IsInDungeon2() then
 			Wnd.ToggleWindow("WorldMark")
