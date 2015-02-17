@@ -780,7 +780,10 @@ function CTM:RefreshDistance()
 					if RaidGrid_CTM_Edition.bShowDistance then
 						v:Lookup("Handle_Common/Text_Distance"):SetText("")
 					end
-					Lsha.nLevel = nil
+					if Lsha.nLevel then
+						Lsha.nLevel = nil
+						CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
+					end
 				end
 			end
 		end
