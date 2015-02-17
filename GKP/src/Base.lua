@@ -1683,12 +1683,16 @@ _GKP.GKP_OweList = function()
 			end
 		end
 	end
+	local _Account = {}
 	for k,v in ipairs(GKP("GKP_Account")) do
 		if not v.bDelete and v.szPlayer and v.szPlayer ~= "System" then
 			if tMember[v.szPlayer] then
 				tMember[v.szPlayer] = tMember[v.szPlayer] - v.nGold
-			-- else -- 我一定吃多了 这什么鬼。。。
-				-- tMember[v.szPlayer] = v.nGold * -1
+			else
+				if not _Account[v.szPlayer] then
+					_Account[v.szPlayer] = 0
+				end
+				_Account[v.szPlayer] = _Account[v.szPlayer] + v.nGold
 			end
 		end
 	end
@@ -1699,6 +1703,13 @@ _GKP.GKP_OweList = function()
 			table.insert(tMember2, { szName = k, nGold = v * -1 })
 		end
 	end
+	-- 正账
+	for k,v in pairs(_Account) do
+		if v > 0 then
+			table.insert(tMember2, { szName = k, nGold = v })
+		end
+	end
+	
 	table.sort(tMember2, function(a,b) return a.nGold < b.nGold end)
 	JH.Talk(_L["Information on Debt"])
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "Information on Debt")
