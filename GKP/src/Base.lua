@@ -1722,7 +1722,7 @@ _GKP.GKP_OweList = function()
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "+")
 		end
 	end
-	local nGold,nGold2 = 0,0
+	local nGold, nGold2 = 0, 0
 	for _,v in ipairs(GKP("GKP_Account")) do
 		if not v.bDelete then
 			if v.szPlayer and v.szPlayer ~= "System" then -- 必须要有交易对象
