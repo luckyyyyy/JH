@@ -285,11 +285,14 @@ function CTM:RefreshTarget()
 	end
 	
 	if RaidGrid_CTM_Edition.bShowTargetTargetAni and dwID then
-		local tdwType, tdwID = JH.GetTarget(dwID).GetTarget()
-		if tdwType == TARGET.PLAYER and JH.IsParty(tdwID) then
-			CTM_TTARGET = tdwID
-			if CTM_CACHE[CTM_TTARGET] and CTM_CACHE[CTM_TTARGET]:IsValid() then
-				CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Show()
+		local KObject = JH.GetTarget(dwID)
+		if KObject then
+			local tdwType, tdwID = KObject.GetTarget()
+			if tdwID and tdwType == TARGET.PLAYER and JH.IsParty(tdwID) then
+				CTM_TTARGET = tdwID
+				if CTM_CACHE[CTM_TTARGET] and CTM_CACHE[CTM_TTARGET]:IsValid() then
+					CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Show()
+				end
 			end
 		end
 	end
@@ -514,6 +517,7 @@ function CTM:DrawParty(nIndex)
 			JH.DelayCall(50, function()
 				if CTM_DRAG then
 					CTM_DRAG, CTM_DRAG_ID = false, nil
+					self:CloseParty()
 					self:ReloadParty()
 					CloseRaidDragPanel()
 				end
@@ -750,7 +754,7 @@ function CTM:RefresBuff()
 end
 
 function CTM:RefreshDistance()
-	-- if RaidGrid_CTM_Edition.nBGClolrMode == 1 or RaidGrid_CTM_Edition.bShowDistance then
+	if RaidGrid_CTM_Edition.bEnableDistance then
 		for k, v in pairs(CTM_CACHE) do
 			if v:IsValid() then
 				local p = GetPlayer(k) -- info.nPoX 刷新太慢了 对于治疗来说 这个太重要了
@@ -783,14 +787,26 @@ function CTM:RefreshDistance()
 					if RaidGrid_CTM_Edition.bShowDistance then
 						v:Lookup("Handle_Common/Text_Distance"):SetText("")
 					end
-					if Lsha.nLevel then
+					if Lsha.nLevel or Lsha.nDistance then
 						Lsha.nLevel = nil
+						Lsha.nDistance = nil
 						CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
 					end
 				end
 			end
 		end
-	-- end
+	else
+		for k, v in pairs(CTM_CACHE) do
+			if v:IsValid() then
+				local Lsha = v:Lookup("Handle_Common/Shadow_Life")
+				if Lsha.nLevel or Lsha.nDistance ~= 0 then
+					Lsha.nLevel = 1
+					Lsha.nDistance = 0
+					CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
+				end				
+			end
+		end
+	end
 end
 
 -- 血量 / 内力
