@@ -19,7 +19,7 @@ local ipairs, pairs = ipairs, pairs
 local unpack = unpack
 local GetPlayer = GetPlayer
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
-
+local UI_GetClientPlayerID = UI_GetClientPlayerID
 local _ScreenHead = {
 	tList = {},
 	tCache = {
@@ -88,17 +88,22 @@ function _ScreenHead:Create(obj, info, nIndex)
 	manaper = info.nCurrentMana / info.nMaxMana -- 苍云啥的懒得修正了 反正没意义
 	if manaper > 1 then manaper = 1 end
 	if lifeper > 1 then lifeper = 1 end
+	local _r, _g, _b
 	if data.type and data.type ~= "Other" then
 		if data.type == "Buff" or data.type == "Debuff" then
 			local bExist,tBuff = JH.HasBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
 			if bExist then
+				local nSec = JH.GetEndTime(tBuff.nEndFrame)
+				if nSec < 5 then
+					_r, _g, _b = 255, 0, 0
+				end
 				if tBuff.nStackNum > 1 then
-					txt = string.format("%s(%d)_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame), 5999))
+					txt = string.format("%s(%d)_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, JH.GetBuffTimeString(nSec, 5999))
 				else
-					txt = string.format("%s_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), JH.GetBuffTimeString(JH.GetEndTime(tBuff.nEndFrame), 5999))
+					txt = string.format("%s_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), JH.GetBuffTimeString(nSec, 5999))
 				end
 			else
-				return self:Remove(dwID,nIndex)
+				return self:Remove(dwID, nIndex)
 			end
 		elseif data.type == "Life" or data.type == "Mana" then
 			if obj.nMoveState == MOVE_STATE.ON_DEATH then
@@ -198,9 +203,16 @@ function _ScreenHead:Create(obj, info, nIndex)
 	if not IsPlayer(obj.dwID) then
 		szName = JH.GetTemplateName(obj)
 	end
-	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
-	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
+	
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
+	if dwID == UI_GetClientPlayerID() then
+		handle.Text:AppendCharacterID(dwID, true, 255, 0, 0, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L["_ME_"], 1, 1)
+	else
+		handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
+	end
+	if _r then r, g, b = _r, _g, _b end -- 5秒内显示红色倒计时
+	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
+
 
 	local bcX, bcY = -50 , -50
 	for k,v in ipairs({ handle.Life, handle.Mana, handle.BG }) do
