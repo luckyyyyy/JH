@@ -677,7 +677,7 @@ end
 function CTM:RecBuff(arg0, arg1, arg2, arg3)
 	if CTM_CACHE[arg0] and CTM_CACHE[arg0]:IsValid() then
 		local h = CTM_CACHE[arg0]:Lookup("Handle_Buff_Boxes")
-		if h:GetItemCount() >= 4 then
+		if h:GetItemCount() >= RaidGrid_CTM_Edition.nMaxShowBuff then
 			return
 		end
 		for i = 0, h:GetItemCount() - 1 do
@@ -712,6 +712,9 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 				elseif nTime < 10 then
 					hBox:SetOverTextFontScheme(0, 27)
 					hBox:SetOverText(0, math.floor(nTime))
+				end
+				if RaidGrid_CTM_Edition.fScaleY > 1 then
+					self:Scale(RaidGrid_CTM_Edition.fScaleY, RaidGrid_CTM_Edition.fScaleY, hBuff)
 				end
 				h:FormatAllItemPos()
 			end
@@ -1097,7 +1100,7 @@ CTM.SetTempTarget = function(dwMemberID, bEnter)
 	if not RaidGrid_CTM_Edition.bTempTargetEnable then
 		return
 	end
-	local dwID, dwType = Target_GetTargetData()
+	local dwID, dwType = Target_GetTargetData() -- 如果没有目标输出的是 nil, TARGET.NO_TARGET
 	if bEnter then
 		CTM_TAR_TEMP = dwID
 		if dwMemberID ~= dwID then
