@@ -197,19 +197,20 @@ end
 function CTM:CreatePanel(nIndex)
 	local me = GetClientPlayer()
 	local frame = self:GetPartyFrame(nIndex)
-	-- if frame then Wnd.CloseWindow(frame) end
 	if not frame then
 		frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
 	end
 	local TextGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
 	if me.IsInRaid() then
 		TextGroup:SetText(g_tStrings.STR_NUMBER[nIndex + 1])
+		TextGroup:SetFontScheme(7)
 		local team = GetClientTeam()
 		local tGroup = team.GetGroupInfo(nIndex)
 		if tGroup and tGroup.MemberList then
 			for k, v in ipairs(tGroup.MemberList) do
 				if v == UI_GetClientPlayerID() then
-					TextGroup:SetFontColor(255, 255, 0)
+					TextGroup:SetFontScheme(2)
+					TextGroup:SetFontColor(255, 0, 0)
 					break
 				end
 			end
@@ -643,7 +644,7 @@ function CTM:FormatFrame(frame, nMemberCount)
 		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (4 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (3 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() -1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Show()
@@ -657,7 +658,7 @@ function CTM:FormatFrame(frame, nMemberCount)
 		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (4 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (3 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() -1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Hide()
