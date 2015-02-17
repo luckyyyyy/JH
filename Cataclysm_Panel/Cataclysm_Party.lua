@@ -996,7 +996,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 					end
 				end
 			end
-		if not info.bIsOnLine then
+		elseif not info.bIsOnLine then
 			life:SetFontColor(128, 128, 128)
 			life:SetText(STR_FRIEND_NOT_ON_LINE)
 		elseif bDeathFlag then
