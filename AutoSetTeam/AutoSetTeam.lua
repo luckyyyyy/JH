@@ -812,11 +812,11 @@ local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AutoSetTeam"], font = 27 }):Pos_()
-	ui:Append("WndCheckBox", { x = 10, y = nY + 15, checked = JH_AutoSetTeam.bAppendMark, txt = _L["Append Mark"] }):Click(function(bChecked)
+	ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = JH_AutoSetTeam.bAppendMark, txt = _L["Append Mark"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bAppendMark = bChecked
 		JH.RegisterInit("Append_Mark", GetEvent())
 	end)
-	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY + 15, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
+	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY + 10, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bRequestList = bChecked
 		JH.RegisterInit("RequestList", _RequestList.GetEvent())
 	end):Pos_()
