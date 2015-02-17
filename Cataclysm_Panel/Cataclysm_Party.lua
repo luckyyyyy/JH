@@ -197,8 +197,10 @@ end
 function CTM:CreatePanel(nIndex)
 	local me = GetClientPlayer()
 	local frame = self:GetPartyFrame(nIndex)
-	if frame then Wnd.CloseWindow(frame) end
-	frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
+	-- if frame then Wnd.CloseWindow(frame) end
+	if not frame then
+		frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
+	end
 	local TextGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
 	if me.IsInRaid() then
 		TextGroup:SetText(g_tStrings.STR_NUMBER[nIndex + 1])
