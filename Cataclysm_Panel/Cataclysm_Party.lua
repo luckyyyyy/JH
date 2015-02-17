@@ -19,12 +19,12 @@ local MOVE_STATE_ON_DEATH    = MOVE_STATE.ON_DEATH
 local CTM_BOX_HEIGHT   = 42    -- 注意::受限ini 这里只是作用于动态修改
 local CTM_GROUP_COUNT  = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
 local CTM_MEMBER_COUNT = 5
-local CTM_TAR_TEMP     = 0
 local CTM_DRAG         = false
 local CTM_INIFILE      = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Party.ini"
 local CTM_ITEM         = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini"
 local CTM_BUFF_ITEM    = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini"
 local CTM_IMAGES       = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/images/ForceColorBox.UITex"
+local CTM_TAR_TEMP
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET
@@ -882,7 +882,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		end
 		if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
 		local r, g, b = unpack(RaidGrid_CTM_Edition.tManaColor)
-		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, RaidGrid_CTM_Edition.bManaGradient, nAlpha)
+		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, nAlpha, RaidGrid_CTM_Edition.bManaGradient)
 		Msha:Show()
 	else
 		Msha:Hide()
@@ -912,7 +912,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		else
 			nAlpha = RaidGrid_CTM_Edition.nAlpha
 		end
-		self:DrawShadow(Lsha, nNewW, 31, r, g, b, RaidGrid_CTM_Edition.bLifeGradient, nAlpha)
+		self:DrawShadow(Lsha, nNewW, 31, r, g, b, nAlpha, RaidGrid_CTM_Edition.bLifeGradient)
 		Lsha:Show()
 		if RaidGrid_CTM_Edition.bHPHitAlert then
 			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
@@ -1009,21 +1009,21 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	end
 end
 
-function CTM:DrawShadow(sha, x, y, r, g, b, bGradient, a) --重绘三角扇
+function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) --重绘三角扇
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:ClearTriangleFanPoint()
 	x = x * RaidGrid_CTM_Edition.fScaleX
 	y = y * RaidGrid_CTM_Edition.fScaleY
 	if bGradient then
-		sha:AppendTriangleFanPoint(	0,	0,	64,	64,	64,	a)
-		sha:AppendTriangleFanPoint(	x,	0,	64,	64,	64,	a)
-		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)
+		sha:AppendTriangleFanPoint(0, 0, 64, 64, 64, a)
+		sha:AppendTriangleFanPoint(x, 0, 64, 64, 64, a)
+		sha:AppendTriangleFanPoint(x, y, r,	 g,	 b,	 a)
+		sha:AppendTriangleFanPoint(0, y, r,	 g,	 b,	 a)
 	else
-		sha:AppendTriangleFanPoint(	0,	0,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	x,	0,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	x,	y,	r,	g,	b,	a)
-		sha:AppendTriangleFanPoint(	0,	y,	r,	g,	b,	a)
+		sha:AppendTriangleFanPoint(0, 0, r,	g, b, a)
+		sha:AppendTriangleFanPoint(x, 0, r,	g, b, a)
+		sha:AppendTriangleFanPoint(x, y, r,	g, b, a)
+		sha:AppendTriangleFanPoint(0, y, r,	g, b, a)
 	end
 end
 
@@ -1062,9 +1062,9 @@ function CTM:ChangeReadyConfirm(dwID, status)
 			h:Lookup("Animate_Ready"):SetAlpha(240)
 			JH.BreatheCall(key, function()
 				if h:Lookup("Animate_Ready"):IsValid() then
-					local nFadeAlpha = math.max(h:Lookup("Animate_Ready"):GetAlpha() - 15, 0)
-					h:Lookup("Animate_Ready"):SetAlpha(nFadeAlpha)
-					if nFadeAlpha == 0 then
+					local nAlpha = math.max(h:Lookup("Animate_Ready"):GetAlpha() - 15, 0)
+					h:Lookup("Animate_Ready"):SetAlpha(nAlpha)
+					if nAlpha == 0 then
 						JH.UnBreatheCall(key)
 					end
 				end
@@ -1084,31 +1084,27 @@ function CTM:BringToTop()
 	Station.Lookup("Normal/RaidGrid_CTM_Edition"):BringToTop()
 end
 
-CTM.SetTarget = function(dwTargetID)	--设置目标
-	local nType = TARGET.NPC
-	if not dwTargetID or (dwTargetID <= 0) then
-		nType = TARGET.NO_TARGET
-		dwTargetID = 0
-	elseif IsPlayer(dwTargetID) then
-		nType = TARGET.PLAYER
+local function CTM_SetTarget(dwTargetID)
+	if dwTargetID and dwTargetID > 0 then
+		local nType = IsPlayer(dwTargetID) and TARGET.PLAYER or TARGET.NPC
+		SetTarget(nType, dwTargetID)
+	else
+		SetTarget(TARGET.NO_TARGET, 0)
 	end
-	SetTarget(nType, dwTargetID)
 end
 
 CTM.SetTempTarget = function(dwMemberID, bEnter)
 	if not RaidGrid_CTM_Edition.bTempTargetEnable then
 		return
 	end
-	local tardwID, tarType = Target_GetTargetData()
+	local dwID, dwType = Target_GetTargetData()
 	if bEnter then
-		CTM_TAR_TEMP = tardwID
-		if dwMemberID ~= tardwID then
-			CTM.SetTarget(dwMemberID)
+		CTM_TAR_TEMP = dwID
+		if dwMemberID ~= dwID then
+			CTM_SetTarget(dwMemberID)
 		end
 	else
-		if CTM_TAR_TEMP then
-			CTM.SetTarget(CTM_TAR_TEMP)
-		end
+		CTM_SetTarget(CTM_TAR_TEMP)
 	end
 end
 
