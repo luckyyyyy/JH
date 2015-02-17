@@ -5,16 +5,16 @@
 * 插件官网：http://www.j3ui.com
 * 作者微博：http://weibo.com/techvicky
 * 建议反馈：可以通过微博私信反馈您的建议，当然欢迎各位直接pull request
+* 许可协议：https://github.com/Webster-jx3/JH/blob/master/LICENSE
 
 使用方法
 -----------------------
-1. 在./bin/{ version }/interface/目录下载仓库所有文件，但是请注意，目前```zhcn```版本需要key验证，否则会被判为非法插件。
+在```./bin/{ version }/interface/```目录下载仓库所有文件，但是请注意，目前```zhcn```版本需要key验证，否则会被判为非法插件。
 ```
 git clone git@github.com:Webster-jx3/JH.git
 或者也可以直接下载所有文件，文件夹名称为JH。
 https://github.com/Webster-jx3/JH/archive/master.zip
 ```
-2. 上线后进入插件管理勾选即可。
 
 兼容性修改
 -----------------------
@@ -37,3 +37,6 @@ local ADDON_PATH  = "interface/JH/"
 
 ### 图片文件
 对于较老的游戏版本，可能出现图片丢失的情况，请根据源码中的路径修改相应的图片资源。
+
+### 无法加载
+您可能需要在控制面板，把非Unicode使用的语言更改为United States (English)，并且推荐开启日志记录```./bin/{ version }/logs/```查看报错信息做对应的修改。
