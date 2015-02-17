@@ -13,6 +13,7 @@ local CTM_CONFIG = {
 	bColoredName = true,
 	nShowIcon = 2,
 	bShowDistance = false,
+	bEnableDistance = true,
 	nBGClolrMode = 1, -- 0 不着色 1 根据距离 2 根据门派
 	bShowTargetTargetAni = false,
 	nFont = 40,
@@ -38,7 +39,7 @@ local CTM_CONFIG = {
 	bFasterHP = false,
 }
 local DEBUG = false
-local CONFIG_KEY = "CTM/Config_V2.jx3dat"
+local CONFIG_KEY = "CTM/Config_V3.jx3dat"
 local CTM_CONFIG_PLAYER = JH.LoadLUAData(CONFIG_KEY) or CTM_CONFIG
 local CTM_FRAME
 local CTM_LOOT_MODE = {
@@ -268,6 +269,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		Raid_CTM:ChangeReadyConfirm(arg0, arg1)
 	elseif szEvent == "TEAM_CHANGE_MEMBER_GROUP" then
+		Raid_CTM:CloseParty()
 		Raid_CTM:ReloadParty()	
 	elseif szEvent == "PARTY_LEVEL_UP_RAID" then
 		Raid_CTM:ReloadParty()
@@ -296,20 +298,25 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		local team = GetClientTeam()
 		local dwDistribute = team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE)
 		local menu = {}
-		-- 团队就位
-		table.insert(menu, { szOption = g_tStrings.STR_RAID_MENU_READY_CONFIRM, 
-			{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Raid_CTM:Send_RaidReadyConfirm() end },
-			{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Raid_CTM:Clear_RaidReadyConfirm() end }
-		})
-		table.insert(menu, { bDevide = true })
+		if me.IsInRaid() then
+			-- 团队就位
+			table.insert(menu, { szOption = g_tStrings.STR_RAID_MENU_READY_CONFIRM, 
+				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Raid_CTM:Send_RaidReadyConfirm() end },
+				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Raid_CTM:Clear_RaidReadyConfirm() end }
+			})
+			table.insert(menu, { bDevide = true })
+		end
 		-- 分配
 		InsertDistributeMenu(menu, me.dwID ~= dwDistribute)
 		table.insert(menu, { bDevide = true })
-		-- 编辑模式
-		table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not JH.IsLeader() or not me.IsInRaid(), bCheck = true, bChecked = RaidGrid_CTM_Edition.bEditMode, fnAction = function() 
-			RaidGrid_CTM_Edition.bEditMode = not RaidGrid_CTM_Edition.bEditMode
-			GetPopupMenu():Hide()
-		end })
+		if me.IsInRaid() then
+			-- 编辑模式
+			table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not JH.IsLeader() or not me.IsInRaid(), bCheck = true, bChecked = RaidGrid_CTM_Edition.bEditMode, fnAction = function() 
+				RaidGrid_CTM_Edition.bEditMode = not RaidGrid_CTM_Edition.bEditMode
+				GetPopupMenu():Hide()
+			end })
+			table.insert(menu, { bDevide = true })
+		end
 		-- 治疗模式
 		table.insert(menu, { szOption = g_tStrings.STR_RAID_TARGET_ASSIST, bCheck = true, bChecked = RaidGrid_CTM_Edition.bTempTargetEnable, fnAction = function() 
 			RaidGrid_CTM_Edition.bTempTargetEnable = not RaidGrid_CTM_Edition.bTempTargetEnable 
@@ -324,7 +331,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				RaidGrid_CTM_Edition.bShowTargetTargetAni = not RaidGrid_CTM_Edition.bShowTargetTargetAni
 				Raid_CTM:RefreshTarget()
 			end },
-			{ szOption = _L["Show distance"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function()
+			{ szOption = _L["Show distance"], bCheck = true, fnDisable = function() return not RaidGrid_CTM_Edition.bEnableDistance end, bChecked = RaidGrid_CTM_Edition.bShowDistance, fnAction = function()
 				RaidGrid_CTM_Edition.bShowDistance = not RaidGrid_CTM_Edition.bShowDistance
 			end },
 			{ szOption = _L["Attack Warning"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bHPHitAlert, fnAction = function()
@@ -336,7 +343,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		table.insert(menu, { szOption = g_tStrings.STR_RAID_LIFE_SHOW,
 			{ szOption = _L["Show ManaCount"], bCheck = true, bChecked = RaidGrid_CTM_Edition.nShowMP, fnAction = function()
 				RaidGrid_CTM_Edition.nShowMP = not RaidGrid_CTM_Edition.nShowMP
-				Raid_CTM:ReloadParty()
+				Raid_CTM:CallDrawHPMP(true, true)
 			end	},
 			{ bDevide = true },
 			{ szOption = g_tStrings.STR_RAID_LIFE_LEFT, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nHPShownMode2 == 2, fnAction = function()
@@ -391,6 +398,12 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		end	})
 		table.insert(tIconColor, { bDevide = true })
 		
+		table.insert(tIconColor, { szOption = g_tStrings.STR_RAID_DISTANCE, bCheck = true, bChecked = RaidGrid_CTM_Edition.bEnableDistance, fnAction = function() 
+			RaidGrid_CTM_Edition.bEnableDistance = not RaidGrid_CTM_Edition.bEnableDistance
+			Raid_CTM:CallDrawHPMP(true, true)
+		end })
+		
+		table.insert(tIconColor, { bDevide = true })
 		table.insert(tIconColor, { szOption = g_tStrings.BACK_COLOR .. g_tStrings.STR_RAID_COLOR_NAME_NONE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nBGClolrMode == 0, fnAction = function() 
 			RaidGrid_CTM_Edition.nBGClolrMode = 0
 			Raid_CTM:CallDrawHPMP(true, true)
@@ -508,23 +521,23 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		table.insert(menu, { szOption = _L["Arrangement"],
 			{ szOption = _L["One lines: 5/0"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 5, fnAction = function()
 				RaidGrid_CTM_Edition.nAutoLinkMode = 5
-				Raid_CTM:ReloadParty()
+				Raid_CTM:AutoLinkAllPanel()
 			end },
 			{ szOption = _L["Two lines: 1/4"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 1, fnAction = function()
 				RaidGrid_CTM_Edition.nAutoLinkMode = 1
-				Raid_CTM:ReloadParty()
+				Raid_CTM:AutoLinkAllPanel()
 			end },
 			{ szOption = _L["Two lines: 2/3"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 2, fnAction = function()
 				RaidGrid_CTM_Edition.nAutoLinkMode = 2
-				Raid_CTM:ReloadParty()
+				Raid_CTM:AutoLinkAllPanel()
 			end },
 			{ szOption = _L["Two lines: 3/2"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 3, fnAction = function()
 				RaidGrid_CTM_Edition.nAutoLinkMode = 3
-				Raid_CTM:ReloadParty()
+				Raid_CTM:AutoLinkAllPanel()
 			end },
 			{ szOption = _L["Two lines: 4/1"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 4, fnAction = function()
 				RaidGrid_CTM_Edition.nAutoLinkMode = 4
-				Raid_CTM:ReloadParty()
+				Raid_CTM:AutoLinkAllPanel()
 			end },	
 		})
 		table.insert(menu, { szOption = g_tStrings.WINDOW_ADJUST_SCALE,
