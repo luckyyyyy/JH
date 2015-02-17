@@ -252,7 +252,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		end
 	elseif szEvent == "PLAYER_STATE_UPDATE" then
 		if JH.IsParty(arg0) then
-			Raid_CTM:CallDrawHPMP(arg1, true)
+			Raid_CTM:CallDrawHPMP(arg0, true)
 		end
 	elseif szEvent == "PARTY_SET_MEMBER_ONLINE_FLAG" then
 		Raid_CTM:CallDrawHPMP(arg1, true)

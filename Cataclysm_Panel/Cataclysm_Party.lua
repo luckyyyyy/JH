@@ -828,7 +828,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
 	
 	local bDeathFlag = info.bDeathFlag
-	--[[
+	-- ÓÐ´ýÑéÖ¤
 	if p then
 		if p.nMoveState == MOVE_STATE_ON_STAND then
 			if info.bDeathFlag then
@@ -838,7 +838,6 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			bDeathFlag = p.nMoveState == MOVE_STATE_ON_DEATH
 		end
 	end
-	]]
 	local nAlpha = RaidGrid_CTM_Edition.nAlpha
 	if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
 		if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
