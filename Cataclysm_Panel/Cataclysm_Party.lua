@@ -904,8 +904,18 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 				if alpha == 0 then
 					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, 31 * RaidGrid_CTM_Edition.fScaleY)
 				end
-				lifeFade:SetAlpha(240 * nAlpha)
-				lifeFade:Show()
+				if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
+					if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
+						lifeFade:SetAlpha(0)
+						lifeFade:Hide()
+					else
+						lifeFade:SetAlpha(240)
+						lifeFade:Show()
+					end
+				else
+					lifeFade:SetAlpha(240)
+					lifeFade:Show()
+				end
 				local key = "CTM_HIT_" .. dwID
 				JH.UnBreatheCall(key)
 				JH.BreatheCall(key, function()

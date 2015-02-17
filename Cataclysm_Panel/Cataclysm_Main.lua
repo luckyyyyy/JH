@@ -532,6 +532,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				RaidGrid_CTM_Edition.fScaleX = 1
 				RaidGrid_CTM_Edition.fScaleY = 1
 				RaidGrid_CTM_Edition.nFont = 40
+				Raid_CTM:CloseParty()
 				Raid_CTM:ReloadParty()
 			end },
 			{ bDevide = true },
