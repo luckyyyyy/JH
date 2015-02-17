@@ -21,7 +21,7 @@ https://github.com/Webster-jx3/JH/archive/master.zip
 对于非```zhcn```版本的客户端，可能需要做一些改动请参考如下方案。
 
 ### 路径修改
-对于较老的游戏版本，可能不支持目前的路径方案，请修改```JH/0Base/Base.lua```，请以下路径修改正确。
+对于较老的游戏版本，可能不支持目前的路径方案，请修改```JH/0Base/Base.lua```，请将以下路径修改正确。
 ```lua
 -- 请将 interface/JH/ 修改为 interface/ ，并且将文件夹从JH中移出到interface。
 local ROOT_PATH   = "interface/JH/0Base/"
