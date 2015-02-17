@@ -102,11 +102,13 @@ local function OutputTeamMemberTip(dwID, rc)
 	local r, g, b = JH.GetForceColor(tMemberInfo.dwForceID)
 	local szPath, nFrame = GetForceImage(tMemberInfo.dwForceID)
 	local szTip = GetFormatImage(szPath, nFrame, 22, 22)
-    szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_NAME_PLAYER, tMemberInfo.szName), 80, r, g, b)
-    if tMemberInfo.bIsOnLine then
+	szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_NAME_PLAYER, tMemberInfo.szName), 80, r, g, b)
+	if tMemberInfo.bIsOnLine then
 		local p = GetPlayer(dwID)
 		if p and p.dwTongID > 0 then
-			szTip = szTip .. GetFormatText("[" .. GetTongClient().ApplyGetTongName(p.dwTongID) .. "]\n", 41)			
+			if GetTongClient().ApplyGetTongName(p.dwTongID) then
+				szTip = szTip .. GetFormatText("[" .. GetTongClient().ApplyGetTongName(p.dwTongID) .. "]\n", 41)
+			end
 		end
     	szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, tMemberInfo.nLevel), 82)
 		szTip = szTip .. GetFormatText(JH.GetSkillName(tMemberInfo.dwMountKungfuID, 1) .. "\n", 82)
@@ -114,16 +116,15 @@ local function OutputTeamMemberTip(dwID, rc)
 		if szMapName then
 			szTip = szTip .. GetFormatText(szMapName .. "\n", 82)
 		end
-        
-        local nCamp = tMemberInfo.nCamp
-        szTip = szTip .. GetFormatText(g_tStrings.STR_GUILD_CAMP_NAME[nCamp] .. "\n", 82)
-    else
-    	szTip = szTip .. GetFormatText(g_tStrings.STR_FRIEND_NOT_ON_LINE .. "\n", 82, 128, 128, 128)
-    end
-    if IsCtrlKeyDown() then
-    	szTip = szTip .. GetFormatText(FormatString(g_tStrings.TIP_PLAYER_ID, dwID), 102)
-    end	
-    OutputTip(szTip, 345, rc)
+		local nCamp = tMemberInfo.nCamp
+		szTip = szTip .. GetFormatText(g_tStrings.STR_GUILD_CAMP_NAME[nCamp] .. "\n", 82)
+	else
+		szTip = szTip .. GetFormatText(g_tStrings.STR_FRIEND_NOT_ON_LINE .. "\n", 82, 128, 128, 128)
+	end
+	if IsCtrlKeyDown() then
+		szTip = szTip .. GetFormatText(FormatString(g_tStrings.TIP_PLAYER_ID, dwID), 102)
+	end	
+	OutputTip(szTip, 345, rc)
 end
 
 local function InsertChangeGroupMenu(tMenu, dwMemberID)
@@ -513,7 +514,7 @@ function CTM:DrawParty(nIndex)
 			end
 		end
 		
-		h.OnItemLButtonUp = function()
+		h.OnItemLButtonUp = function() -- fix range bug
 			JH.DelayCall(50, function()
 				if CTM_DRAG then
 					CTM_DRAG, CTM_DRAG_ID = false, nil
@@ -533,7 +534,7 @@ function CTM:DrawParty(nIndex)
 				CloseRaidDragPanel()
 			end
 		end
-		-- 按下
+		-- 按下 为了效率不用click
 		h.OnItemLButtonDown = function()
 			self:BringToTop()
 			if not dwID then return	end
@@ -614,7 +615,7 @@ function CTM:DrawParty(nIndex)
 	-- 先缩放后画
 	self:FormatFrame(frame, #tGroup.MemberList)
 	for k, v in pairs(CTM_CACHE) do
-		if v:IsValid() then
+		if v:IsValid() and v.nGroup == nIndex then
 			local info = self:GetMemberInfo(k)
 			self:DrawHPMP(v, k, info)
 		end
@@ -995,12 +996,12 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 					end
 				end
 			end
+		if not info.bIsOnLine then
+			life:SetFontColor(128, 128, 128)
+			life:SetText(STR_FRIEND_NOT_ON_LINE)
 		elseif bDeathFlag then
 			life:SetFontColor(255, 0, 0)
 			life:SetText(FIGHT_DEATH)
-		elseif not info.bIsOnLine then
-			life:SetFontColor(128, 128, 128)
-			life:SetText(STR_FRIEND_NOT_ON_LINE)
 		else
 			life:SetFontColor(128, 128, 128)
 			life:SetText(COINSHOP_SOURCE_NULL)
