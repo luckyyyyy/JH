@@ -286,9 +286,6 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	end
 	
 end
---[[
-/ FireEvent("JH_RAID_REC_BUFF", UI_GetClientPlayerID(), 103, 1, { 255, 255, 255 })
-]]
 -------------------------------------------------
 -- 菜单和世界标记
 -------------------------------------------------
@@ -316,23 +313,20 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				RaidGrid_CTM_Edition.bEditMode = not RaidGrid_CTM_Edition.bEditMode
 				GetPopupMenu():Hide()
 			end })
-			table.insert(menu, { bDevide = true })
-		end
-		table.insert(menu, { szOption = _L["Interface settings"], fnAction = function()
-			JH.OpenPanel(_L["Cataclysm"])
-		end })
 		-- 人数统计
-		if me.IsInRaid() then
 			table.insert(menu, { bDevide = true })
 			InsertForceCountMenu(menu)
+			table.insert(menu, { bDevide = true })
 		end
+		table.insert(menu, { szOption = _L["Interface settings"], rgb = { 255, 255, 0 }, fnAction = function()
+			JH.OpenPanel(_L["Cataclysm"])
+		end })
 		if JH.bDebug then
 			table.insert(menu, { bDevide = true })
 			table.insert(menu, { szOption = "DEBUG Mode", bCheck = true, bChecked = DEBUG, fnAction = function()
 				DEBUG = not DEBUG
 			end	})
 		end
-		
 		local nX, nY = Cursor.GetPos(true)
 		menu.x, menu.y = nX, nY
 		PopupMenu(menu)
@@ -779,21 +773,17 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 	end):Pos_()
-	
-	
 end
-GUI.RegisterPanel(_L["Cataclysm"], 5389, _L["General"], PS)
 
+GUI.RegisterPanel(_L["Cataclysm"], 5389, _L["General"], PS)
 JH.RegisterEvent("LOADING_END", RaidCheckEnable)
 JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", RaidCheckEnable)
 JH.RegisterEvent("CTM_PANEL_TEAMATE", function()
 	TeammatePanel_Switch(arg0)
 end)
-
 JH.RegisterEvent("CTM_PANEL_RAID", function()
 	RaidPanel_Switch(arg0)
 end)
-
 local SaveConfig = function()
 	JH.SaveLUAData(CONFIG_KEY, CTM_CONFIG_PLAYER)
 end

@@ -5,7 +5,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-
+local _VERSION_   = 0x0080500
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
@@ -62,7 +62,6 @@ do
 end
 
 local _JH = {
-	dwVersion = 0x0080500,
 	szTitle = _L["JH"],
 	tHotkey = {},
 	tDelayCall = {},
@@ -119,11 +118,37 @@ local JH = JH
 -- so caching them is worth the effort
 local ipairs, pairs, next = ipairs, pairs, next
 local pcall = pcall
-local tinsert, tremove = table.insert, table.remove
-local type, tonumber = type, tonumber
+local tinsert, tremove, tconcat = table.insert, table.remove, table.concat
+local type, tonumber, tostring = type, tonumber, tostring
+local srep = string.rep
 local GetTime, GetLogicFrameCount = GetTime, GetLogicFrameCount
 local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
 local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam
+-- 树形打印一个表
+JH.print_r = function(root, szPath)
+	local cache = {  [root] = "." }
+	local function _dump(t,space,name)
+		local temp = {}
+		for k,v in pairs(t) do
+			local key = tostring(k)
+			if cache[v] then
+				tinsert(temp, "+" .. key .. " {" .. cache[v] .."}")
+			elseif type(v) == "table" then
+				local new_key = name .. "." .. key
+				cache[v] = new_key
+				tinsert(temp, "+" .. key .. _dump(v, space .. (next(t,k) and "|" or " " ) .. srep(" ", #key), new_key))
+			else
+				tinsert(temp, "+" .. key .. " [" .. tostring(v) .."]")
+			end
+		end
+		return tconcat(temp, "\n"..space)
+	end
+	if szPath then
+		JH.SaveLUAData(szPath, _dump(root, "", ""))
+	else
+		print(_dump(root, "", ""))
+	end
+end
 -- parse faceicon in talking message
 _JH.ParseFaceIcon = function(t)
 	if not _JH.tFaceIcon then
@@ -178,7 +203,7 @@ JH.SetHotKey = function(szGroup)
 end
 
 JH.GetVersion = function()
-	local v = _JH.dwVersion
+	local v = _VERSION_
 	local szVersion = string.format("%d.%d.%d", v/0x1000000,
 		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
 	if  v%0x100 ~= 0 then
@@ -1800,6 +1825,25 @@ function _GUI.Frm2:CloseFrame(fnAction)
 	end
 end
 
+-- (self) Instance:RegisterClose(boolean bNotButton, boolean bNotKeyDown)		-- 注册Esc和Btn_Close关闭自身
+function _GUI.Frm2:RegisterClose(bNotButton, bNotKeyDown)
+	local wnd = self.self
+	if not bNotKeyDown then
+		wnd.OnFrameKeyDown = function()
+			if GetKeyName(Station.GetMessageKey()) == "Esc" then
+				self:CloseFrame()
+				return 1
+			end
+		end
+	end
+	if not bNotButton then
+		wnd:Lookup("Btn_Close").OnLButtonClick = function()
+			self:CloseFrame()
+		end
+	end
+	return self
+end
+
 function _GUI.Frm2:RegisterSetting(fnAction)
 	local wnd = self.self
 	wnd:Lookup("Btn_Setting").OnLButtonClick = fnAction
@@ -2990,7 +3034,7 @@ end
 
 -- 字体选择界面
 GUI.OpenFontTablePanel = function(fnAction)
-	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true })
+	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true }):RegisterClose()
 	for i = 0, 236 do
 		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
 		:Click(function()
@@ -3009,14 +3053,14 @@ end
 
 -- 调色板
 GUI.OpenColorTablePanel = function(fnAction)
-	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Table Panel"], close = true })
+	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], close = true }):RegisterClose()
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			this:SetAlpha(255)
 			wnd:Fetch("Select"):Color(r, g, b)
 			wnd:Fetch("Select_Text"):Text(string.format("r=%d, g=%d, b=%d", r, g, b))
 		else
-			this:SetAlpha(160)
+			this:SetAlpha(200)
 			wnd:Fetch("Select"):Color(255, 255, 255)
 			wnd:Fetch("Select_Text"):Text(g_tStrings.STR_NONE)
 		end
@@ -3031,7 +3075,7 @@ GUI.OpenColorTablePanel = function(fnAction)
 				local x = 20 + ((nRed - 1) % 4) * 220 + (nGreen - 1) * 25
 				local y = 10 + math.modf((nRed - 1) / 4) * 220 + (nBlue - 1) * 25
 				local r, g, b  = nRed * 32 - 1, nGreen * 32 - 1, nBlue * 32 - 1
-				wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 160 })
+				wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 200 })
 				:Hover(function(bHover)
 					fnHover(bHover, r, g, b)
 				end)
@@ -3046,7 +3090,7 @@ GUI.OpenColorTablePanel = function(fnAction)
 		local x = 480 + (i - 1) * 25
 		local y = 435
 		local r, g, b  = i * 16 - 1, i * 16 - 1, i * 16 - 1
-		wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 160 })
+		wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 200 })
 		:Hover(function(bHover)
 			fnHover(bHover, r, g, b)
 		end)
