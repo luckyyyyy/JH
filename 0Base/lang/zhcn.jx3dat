@@ -4,6 +4,7 @@ data = {
 	["General"] = "常用",
 	["RGES"] = "副本",
 	["Recreation"] = "娱乐",
+	["Color Picker"] = "颜色选择器",
 	["Dev"] = "开发",
 	["Other"] = "其他",
 	["Tools"] = "工具",
