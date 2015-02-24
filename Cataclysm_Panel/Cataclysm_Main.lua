@@ -228,8 +228,12 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then -- ??
 		Grid_CTM:CallRefreshImages(arg1, true, true, nil, true, true)
 	elseif szEvent == "PARTY_ADD_MEMBER" then
-		Grid_CTM:CreatePanel(arg2)
-		Grid_CTM:DrawParty(arg2)
+		if Grid_CTM:GetPartyFrame(arg2) then
+			Grid_CTM:DrawParty(arg2, true)
+		else
+			Grid_CTM:CreatePanel(arg2)
+			Grid_CTM:DrawParty(arg2)
+		end
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
 		local me = GetClientPlayer()
 		if me.dwID == arg1 then
@@ -241,7 +245,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 				Grid_CTM:CloseParty(arg3)
 				Grid_CTM:AutoLinkAllPanel()
 			else
-				Grid_CTM:DrawParty(arg3)
+				Grid_CTM:DrawParty(arg3, true)
 			end
 		end
 		JH.DelayCall(1000, function()
@@ -287,11 +291,11 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			Grid_CTM:CloseParty(arg1)
 			Grid_CTM:AutoLinkAllPanel()
 		else
-			Grid_CTM:DrawParty(arg1)
+			Grid_CTM:DrawParty(arg1, true)
 		end
 		-- DstGroup
 		if Grid_CTM:GetPartyFrame(arg2) then
-			Grid_CTM:DrawParty(arg2)
+			Grid_CTM:DrawParty(arg2, true)
 		else
 			Grid_CTM:CreatePanel(arg2)
 			Grid_CTM:DrawParty(arg2)

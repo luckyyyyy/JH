@@ -18,6 +18,7 @@ local FIGHT_DEATH            = g_tStrings.FIGHT_DEATH
 local MOVE_STATE_ON_STAND    = MOVE_STATE.ON_STAND
 local MOVE_STATE_ON_DEATH    = MOVE_STATE.ON_DEATH
 -- local value
+local CTM_ALPHA_STEP   = 15    -- 240 / CTM_ALPHA_STEP
 local CTM_BOX_HEIGHT   = 42    -- 注意::受限ini 这里只是作用于动态修改
 local CTM_GROUP_COUNT  = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
 local CTM_MEMBER_COUNT = 5
@@ -519,7 +520,7 @@ function CTM:RefresFormation()
 	end
 end
 
-function CTM:DrawParty(nIndex)
+function CTM:DrawParty(nIndex, bHandle)
 	local team = GetClientTeam()
 	local tGroup = team.GetGroupInfo(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
@@ -577,6 +578,8 @@ function CTM:DrawParty(nIndex)
 				team.ChangeMemberGroup(CTM_DRAG_ID, nIndex, dwID or 0)
 				CTM_DRAG, CTM_DRAG_ID = false, nil
 				CloseRaidDragPanel()
+				self:CloseParty()
+				self:ReloadParty()
 			end
 		end
 		-- 按下 为了效率不用click
@@ -656,13 +659,16 @@ function CTM:DrawParty(nIndex)
 	end
 	handle:FormatAllItemPos()
 	frame.nMemberCount = #tGroup.MemberList
-	self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
+	if bHandle then
+		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, handle)
+	else
+		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
+	end
 	-- 先缩放后画
 	self:FormatFrame(frame, #tGroup.MemberList)
 	for k, v in pairs(CTM_CACHE) do
 		if v:IsValid() and v.nGroup == nIndex then
-			local info = self:GetMemberInfo(k)
-			self:DrawHPMP(v, k, info)
+			self:DrawHPMP(v, k, self:GetMemberInfo(k))
 		end
 	end
 	CTM_LIFE_CACHE = {}
@@ -984,7 +990,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 				JH.UnBreatheCall(key)
 				JH.BreatheCall(key, function()
 					if lifeFade:IsValid() then
-						local nFadeAlpha = math.max(lifeFade:GetAlpha() - 30, 0)
+						local nFadeAlpha = math.max(lifeFade:GetAlpha() - CTM_ALPHA_STEP, 0)
 						lifeFade:SetAlpha(nFadeAlpha)
 						if nFadeAlpha == 0 then
 							JH.UnBreatheCall(key)
