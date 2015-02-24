@@ -161,8 +161,8 @@ end
 GUI.RegisterPanel(_L["About"], 252, _L["Recreation"],_JH_About.PS)
 
 local function LoginGame()
-	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. _L["! v"] .. JH.GetVersion() )
-	JH.DelayCall(2000,function()
+	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. "! v" .. JH.GetVersion() )
+	JH.DelayCall(2000, function()
 		local me, szTong = GetClientPlayer(), ""
 		if me.dwTongID > 0 then
 			szTong = GetTongClient().ApplyGetTongName(me.dwTongID)
@@ -189,17 +189,19 @@ local function LoginGame()
 		end
 		JH.RemoteRequest(s, function(szTitle, szDoc)
 			if #szDoc > 0 then
-				local result,err = JH.JsonDecode(JH.UrlDecode(szDoc))
+				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 				if result then
 					Station.Lookup("Lowest/Scene").JH = result
+					if result["msg"] then
+						JH.Sysmsg(result["msg"])
+					end
 				end
 			end			
 		end)
 	end)
 end
 
-JH.RegisterEvent("FIRST_LOADING_END",LoginGame)
-
+JH.RegisterEvent("FIRST_LOADING_END", LoginGame)
 JH.RegisterEvent("CALL_LUA_ERROR", function()
 	if JH.bDebug then
 		OutputMessage("MSG_SYS", arg0)
