@@ -242,7 +242,7 @@ _SkillCD.UpdateCount = function()
 					box:SetObjectMouseOver(true)
 					local x, y = box:GetAbsPos()
 					local w, h = box:GetSize()
-					local szXml = GetFormatText(_L["["] .. szName .. _L["]"] .. "\n", 23 ,255 ,255 ,255)
+					local szXml = GetFormatText("[" .. szName .. "]" .. "\n", 23 ,255 ,255 ,255)
 					for k, v in ipairs(v.tList) do
 						szXml = szXml .. GetFormatText(v.info.szName, 23, 255, 255, 0)
 						local szDeath = GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0) -- 离线是bIsOnLine 其实也一样 无所谓

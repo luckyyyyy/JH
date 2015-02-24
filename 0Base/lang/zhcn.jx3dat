@@ -52,8 +52,6 @@ data = {
 	["TargetFace"] = "目标辅助",
 	-- SkillCD.lua --
 	["SkillCD"] = "技能CD监控",
-	["["] = "[",
-	["]"] = "]",
 	["ready"] = "就绪",
 	["s"] = "秒",
 	["%dm%ds"] = "%d分%d秒",
