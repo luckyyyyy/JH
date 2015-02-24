@@ -595,7 +595,6 @@ data = {
 	["official website"] = "插件官網",
 	["Check Install"] = "安裝檢查",
 	["Input Json"] = "導入Json",
-	["DEBUG"] = "啟用 DEBUG",
 	["Warning: plugin will ignore the authority when the debugging mode is on, showing action can not be operate when cross the authorit, but none of this coud be accept by the server,do not select if you are not the developer, avoid making misunderstanding, please do not try it when set up a team, this may creat problem like messing up the record."] = "警告：開啟調試模式將會使插件無視權限規定，越權顯示不可執行的操作，但這些並不能真正的被服務器接受，非開發者請不要勾選，避免造成誤解，請勿在開團時嘗試，可能造成記錄混亂等問題。",
 	["You"] = "您",
 	-- Base.lua --
