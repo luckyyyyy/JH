@@ -437,7 +437,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 			TextName:SetFontColor(255, 255, 255)
 		end
 		if RaidGrid_CTM_Edition.nShowIcon == 4 then
-			TextName:SetRelPos(-5, 0)
+			TextName:SetRelPos(-6, 0)
 			TextName:SetSize(105, 10)
 			TextName:SetText(string.format("%s %s", CTM_KUNGFU_TEXT[info.dwMountKungfuID], info.szName))
 		else
@@ -519,7 +519,7 @@ function CTM:RefresFormation()
 	end
 end
 
-function CTM:DrawParty(nIndex)
+function CTM:DrawParty(nIndex, bScale)
 	local team = GetClientTeam()
 	local tGroup = team.GetGroupInfo(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
@@ -656,7 +656,9 @@ function CTM:DrawParty(nIndex)
 	end
 	handle:FormatAllItemPos()
 	frame.nMemberCount = #tGroup.MemberList
-	self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
+	if not bScale then
+		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
+	end
 	-- œ»Àı∑≈∫Ûª≠
 	self:FormatFrame(frame, #tGroup.MemberList)
 	for k, v in pairs(CTM_CACHE) do
