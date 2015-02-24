@@ -1232,13 +1232,14 @@ _JH.GetPlayerAddonMenu = function()
 		if type(m) == "function" then m = m() end
 		tinsert(menu, m)
 	end
+	--[[
 	tinsert(menu, { bDevide = true })
 	for i = 1, #_JH.tOption2, 1 do
 		local m = _JH.tOption2[i]
 		if type(m) == "function" then m = m() end
 		tinsert(menu, m)
 	end
-	
+	]]
 	return { menu }
 end
 
