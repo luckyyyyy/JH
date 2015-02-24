@@ -83,7 +83,7 @@ local _JH = {
 	tItem = { {}, {}, {} },
 	tOption = { szOption = _L["JH"] },
 	tOption2 = { szOption = _L["JH"] },
-	tClass = { _L["General"], _L["REGS"], _L["Other"] },
+	tClass = { _L["General"], _L["RGES"], _L["Other"] },
 	szIniFile = ROOT_PATH .. "JH.ini",
 	tTalkChannelHeader = {
 		[PLAYER_TALK_CHANNEL.NEARBY]        = "/s ",
@@ -1638,7 +1638,7 @@ function _GUI.Frm:ctor(szName, bEmpty)
 	if not bEmpty then
 		frm:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 		frm:Lookup("Btn_Close").OnLButtonClick = function()
-			self:CloseFrame()
+			self:Remove()
 		end
 		self.wnd = frm:Lookup("Window_Main")
 		self.handle = self.wnd:Lookup("", "")
@@ -1654,29 +1654,17 @@ function _GUI.Frm:RegisterClose(bNotButton, bNotKeyDown)
 	if not bNotKeyDown then
 		wnd.OnFrameKeyDown = function()
 			if GetKeyName(Station.GetMessageKey()) == "Esc" then
-				self:CloseFrame()
+				self:Remove()
 				return 1
 			end
 		end
 	end
 	if not bNotButton then
 		wnd:Lookup("Btn_Close").OnLButtonClick = function()
-			self:CloseFrame()
+			self:Remove()
 		end
 	end
 	return self
-end
--- (void) Instance:CloseFrame(func fnAction)		-- 关闭自身
-function _GUI.Frm:CloseFrame(fnAction)
-	local frm = self.self
-	if frm.bClose then
-		Wnd.CloseWindow(frm)
-	else
-		frm:Hide()
-	end
-	if fnAction then
-		fnAction()
-	end
 end
 -- (number, number) Instance:Size()						-- 取得窗体宽和高
 -- (self) Instance:Size(number nW, number nH)	-- 设置窗体的宽和高
@@ -1774,7 +1762,7 @@ function _GUI.Frm2:ctor(szName, bEmpty)
 	if not bEmpty then
 		frm:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 		frm:Lookup("Btn_Close").OnLButtonClick = function()
-			self:CloseFrame()
+			self:Remove()
 		end
 		self.wnd = frm:Lookup("Window_Main")
 		self.handle = self.wnd:Lookup("", "")
@@ -1813,32 +1801,20 @@ function _GUI.Frm2:Size(nW, nH)
 	return self
 end
 
-function _GUI.Frm2:CloseFrame(fnAction)
-	local frm = self.self
-	if frm.bClose then
-		Wnd.CloseWindow(frm)
-	else
-		frm:Hide()
-	end
-	if fnAction then
-		fnAction()
-	end
-end
-
 -- (self) Instance:RegisterClose(boolean bNotButton, boolean bNotKeyDown)		-- 注册Esc和Btn_Close关闭自身
 function _GUI.Frm2:RegisterClose(bNotButton, bNotKeyDown)
 	local wnd = self.self
 	if not bNotKeyDown then
 		wnd.OnFrameKeyDown = function()
 			if GetKeyName(Station.GetMessageKey()) == "Esc" then
-				self:CloseFrame()
+				self:Remove()
 				return 1
 			end
 		end
 	end
 	if not bNotButton then
 		wnd:Lookup("Btn_Close").OnLButtonClick = function()
-			self:CloseFrame()
+			self:Remove()
 		end
 	end
 	return self
@@ -2254,9 +2230,7 @@ function _GUI.Wnd:RegisterClose(fnAction, bNotButton, bNotKeyDown)
 		end
 	end
 	if not bNotButton then
-		wnd:Lookup("Btn_Close").OnLButtonClick = function()
-			fnAction()
-		end
+		wnd:Lookup("Btn_Close").OnLButtonClick = fnAction
 	end
 	return self
 end
@@ -3021,7 +2995,7 @@ GUI.UnRegisterPanel = function(szTitle)
 	for k, vv in pairs(_JH.tItem) do
 		for _, v in ipairs(vv) do
 			if v.szTitle == szTitle then
-				tremove(vv,_)
+				tremove(vv, _)
 				find = true
 				break
 			end
@@ -3039,7 +3013,7 @@ GUI.OpenFontTablePanel = function(fnAction)
 		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
 		:Click(function()
 			if fnAction then fnAction(i) end
-			wnd:CloseFrame()
+			wnd:Remove()
 		end)
 		:Hover(function(bHover)
 			if bHover then
@@ -3054,20 +3028,18 @@ end
 -- 调色板
 GUI.OpenColorTablePanel = function(fnAction)
 	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], close = true }):RegisterClose()
-	local fnHover = function(bHover, r, g, b)
+	local fnHover = function(bHover, r, g, b, img)
 		if bHover then
-			this:SetAlpha(255)
 			wnd:Fetch("Select"):Color(r, g, b)
 			wnd:Fetch("Select_Text"):Text(string.format("r=%d, g=%d, b=%d", r, g, b))
 		else
-			this:SetAlpha(200)
 			wnd:Fetch("Select"):Color(255, 255, 255)
 			wnd:Fetch("Select_Text"):Text(g_tStrings.STR_NONE)
 		end
 	end
 	local fnClick = function( ... )
 		if fnAction then fnAction( ... ) end
-		if not IsCtrlKeyDown() then wnd:CloseFrame() end
+		if not IsCtrlKeyDown() then wnd:Remove() end
 	end
 	for nRed = 1, 8 do
 		for nGreen = 1, 8 do
@@ -3075,9 +3047,10 @@ GUI.OpenColorTablePanel = function(fnAction)
 				local x = 20 + ((nRed - 1) % 4) * 220 + (nGreen - 1) * 25
 				local y = 10 + math.modf((nRed - 1) / 4) * 220 + (nBlue - 1) * 25
 				local r, g, b  = nRed * 32 - 1, nGreen * 32 - 1, nBlue * 32 - 1
-				wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 200 })
+				wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b } })
 				:Hover(function(bHover)
-					fnHover(bHover, r, g, b)
+					wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(bHover)
+					fnHover(bHover, r, g, b, img)
 				end)
 				:Click(function()
 					fnClick(r, g, b)
@@ -3090,14 +3063,17 @@ GUI.OpenColorTablePanel = function(fnAction)
 		local x = 480 + (i - 1) * 25
 		local y = 435
 		local r, g, b  = i * 16 - 1, i * 16 - 1, i * 16 - 1
+		local key = x .. y
 		wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 200 })
 		:Hover(function(bHover)
+			wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(bHover)
 			fnHover(bHover, r, g, b)
 		end)
 		:Click(function()
 			fnClick(r, g, b)
 		end)
 	end
+	wnd:Append("Image", "Select_Image", { w = 23, h = 23 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
 	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 435 })
 	wnd:Append("Text", "Select_Text", { x = 65, y = 435 })
 end

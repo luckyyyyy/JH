@@ -40,8 +40,17 @@ local CTM_CONFIG = {
 	bFasterHP = false,
 }
 local DEBUG = false
-local CONFIG_KEY = "CTM/Config_V4.jx3dat"
+local CONFIG_KEY = "config/Cataclysmg_V1.jx3dat"
 local CTM_CONFIG_PLAYER = JH.LoadLUAData(CONFIG_KEY) or CTM_CONFIG
+-- options fixed
+do
+	for k, v in pairs(CTM_CONFIG) do
+		if not CTM_CONFIG_PLAYER[k] then
+			CTM_CONFIG_PLAYER[k] = v
+		end
+	end
+end
+
 local CTM_FRAME
 local CTM_LOOT_MODE = {
 	Image_LootMode_Free    = PARTY_LOOT_MODE.FREE_FOR_ALL, 
@@ -137,7 +146,7 @@ end
 local function RaidClosePanel()
 	if CTM_FRAME then
 		Wnd.CloseWindow(CTM_FRAME)
-		Raid_CTM:CloseParty()
+		Grid_CTM:CloseParty()
 		CTM_FRAME = nil
 	end
 end
@@ -155,7 +164,7 @@ local function RaidCheckEnable()
 	end
 	RaidOpenPanel()
 	UpdateLootImages()
-	Raid_CTM:ReloadParty()
+	Grid_CTM:ReloadParty()
 end
 
 local function UpdateAnchor(frame)
@@ -208,19 +217,19 @@ end
 -- 拖动窗体
 -------------------------------------------------
 function RaidGrid_CTM_Edition.OnFrameDrag() -- 救命小天使
-	Raid_CTM:AutoLinkAllPanel()
+	Grid_CTM:AutoLinkAllPanel()
 end
 -------------------------------------------------
 -- 事件处理
 -------------------------------------------------
 function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	if szEvent == "RENDER_FRAME_UPDATE" then
-		Raid_CTM:CallDrawHPMP(true)
+		Grid_CTM:CallDrawHPMP(true)
 	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then -- ??
-		Raid_CTM:CallRefreshImages(arg1, true, true, nil, true, true)
+		Grid_CTM:CallRefreshImages(arg1, true, true, nil, true, true)
 	elseif szEvent == "PARTY_ADD_MEMBER" then
-		Raid_CTM:CreatePanel(arg2)
-		Raid_CTM:DrawParty(arg2)
+		Grid_CTM:CreatePanel(arg2)
+		Grid_CTM:DrawParty(arg2)
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
 		local me = GetClientPlayer()
 		if me.dwID == arg1 then
@@ -229,10 +238,10 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			local team = GetClientTeam()
 			local tGropu = team.GetGroupInfo(arg3)
 			if #tGropu.MemberList == 0 then
-				Raid_CTM:CloseParty(arg3)
-				Raid_CTM:AutoLinkAllPanel()
+				Grid_CTM:CloseParty(arg3)
+				Grid_CTM:AutoLinkAllPanel()
 			else
-				Raid_CTM:DrawParty(arg3)
+				Grid_CTM:DrawParty(arg3)
 			end
 		end
 		JH.DelayCall(1000, function()
@@ -244,45 +253,45 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			collectgarbage("collect")
 		end)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_LMR" then
-		Raid_CTM:CallDrawHPMP(arg1, true)
+		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_INFO" then
-		Raid_CTM:CallRefreshImages(arg1, false, true, nil, true, true)
-		Raid_CTM:CallDrawHPMP(arg1, true)
+		Grid_CTM:CallRefreshImages(arg1, false, true, nil, true, true)
+		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "UPDATE_PLAYER_SCHOOL_ID" then
 		if JH.IsParty(arg0) then
-			Raid_CTM:CallRefreshImages(arg0, false, true)
+			Grid_CTM:CallRefreshImages(arg0, false, true)
 		end
 	elseif szEvent == "PLAYER_STATE_UPDATE" then
 		if JH.IsParty(arg0) then
-			Raid_CTM:CallDrawHPMP(arg0, true)
+			Grid_CTM:CallDrawHPMP(arg0, true)
 		end
 	elseif szEvent == "PARTY_SET_MEMBER_ONLINE_FLAG" then
-		Raid_CTM:CallDrawHPMP(arg1, true)
+		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "TEAM_AUTHORITY_CHANGED" then
-		Raid_CTM:CallRefreshImages(arg2, true)
-		Raid_CTM:CallRefreshImages(arg3, true)
+		Grid_CTM:CallRefreshImages(arg2, true)
+		Grid_CTM:CallRefreshImages(arg3, true)
 		UpdateLootImages()
 	elseif szEvent == "PARTY_SET_FORMATION_LEADER" then
-		Raid_CTM:RefresFormation()
+		Grid_CTM:RefresFormation()
 	elseif szEvent == "PARTY_SET_MARK" then
-		Raid_CTM:RefreshMark()
+		Grid_CTM:RefreshMark()
 	-- elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_QUESTION" then
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
-		Raid_CTM:ChangeReadyConfirm(arg0, arg1)
+		Grid_CTM:ChangeReadyConfirm(arg0, arg1)
 	elseif szEvent == "TEAM_CHANGE_MEMBER_GROUP" then
-		Raid_CTM:CloseParty()
-		Raid_CTM:ReloadParty()	
+		Grid_CTM:CloseParty()
+		Grid_CTM:ReloadParty()	
 	elseif szEvent == "PARTY_LEVEL_UP_RAID" then
-		Raid_CTM:ReloadParty()
+		Grid_CTM:ReloadParty()
 	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
 		UpdateLootImages()
 	elseif szEvent == "TARGET_CHANGE" then
-		Raid_CTM:RefreshTarget()
+		Grid_CTM:RefreshTarget()
 	elseif szEvent == "JH_RAID_REC_BUFF" then
-		Raid_CTM:RecBuff(arg0, arg1, arg2, arg3)
+		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3)
 	elseif szEvent == "UI_SCALED" or "CTM_LOADING_END" then
 		UpdateAnchor(this)
-		Raid_CTM:AutoLinkAllPanel()
+		Grid_CTM:AutoLinkAllPanel()
 	end
 	
 end
@@ -299,8 +308,8 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		if me.IsInRaid() then
 			-- 团队就位
 			table.insert(menu, { szOption = g_tStrings.STR_RAID_MENU_READY_CONFIRM, 
-				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Raid_CTM:Send_RaidReadyConfirm() end },
-				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Raid_CTM:Clear_RaidReadyConfirm() end }
+				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Grid_CTM:Send_RaidReadyConfirm() end },
+				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Grid_CTM:Clear_RaidReadyConfirm() end }
 			})
 			table.insert(menu, { bDevide = true })
 		end
@@ -340,7 +349,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 end
 
 function RaidGrid_CTM_Edition.OnLButtonDown()
-	Raid_CTM:BringToTop()
+	Grid_CTM:BringToTop()
 end
 
 function RaidGrid_CTM_Edition.OnItemLButtonClick()
@@ -361,10 +370,10 @@ end
 function RaidGrid_CTM_Edition.OnFrameBreathe()
 	local me = GetClientPlayer()
 	if not me then return end
-	Raid_CTM:RefreshDistance()
-	Raid_CTM:RefresBuff()
+	Grid_CTM:RefreshDistance()
+	Grid_CTM:RefresBuff()
 	if RaidGrid_CTM_Edition.bShowTargetTargetAni then
-		Raid_CTM:RefreshTarget()
+		Grid_CTM:RefreshTarget()
 	end
 	-- kill System Panel
 	RaidPanel_Switch(DEBUG)
@@ -374,7 +383,7 @@ end
 function RaidGrid_CTM_Edition.OnFrameDragEnd()
 	this:CorrectPos()
 	RaidGrid_CTM_Edition.tAnchor = GetFrameAnchor(this)
-	Raid_CTM:AutoLinkAllPanel() -- fix screen pos
+	Grid_CTM:AutoLinkAllPanel() -- fix screen pos
 end
 
 local EnableTeamPanel = function()
@@ -410,7 +419,7 @@ PS.OnPanelActive = function(frame)
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bShowTargetTargetAni = bCheck
 		if CTM_FRAME then
-			Raid_CTM:RefreshTarget()
+			Grid_CTM:RefreshTarget()
 		end
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Show distance"], checked = RaidGrid_CTM_Edition.bShowDistance })
@@ -421,14 +430,14 @@ PS.OnPanelActive = function(frame)
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.nShowMP = bCheck
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Attack Warning"], checked = RaidGrid_CTM_Edition.bHPHitAlert })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bHPHitAlert = bCheck
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	-- 血量显示
@@ -440,7 +449,7 @@ PS.OnPanelActive = function(frame)
 		ui:Fetch("lifval2"):Enable(true)
 		ui:Fetch("lifval3"):Enable(true)
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_LOSE, group = "lifemode", checked = RaidGrid_CTM_Edition.nHPShownMode2 == 1 })
@@ -450,7 +459,7 @@ PS.OnPanelActive = function(frame)
 		ui:Fetch("lifval2"):Enable(true)
 		ui:Fetch("lifval3"):Enable(true)
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_HIDE, group = "lifemode", checked = RaidGrid_CTM_Edition.nHPShownMode2 == 0 })
@@ -460,7 +469,7 @@ PS.OnPanelActive = function(frame)
 		ui:Fetch("lifval2"):Enable(false)
 		ui:Fetch("lifval3"):Enable(false)
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	-- 数值
@@ -468,21 +477,21 @@ PS.OnPanelActive = function(frame)
 	:Enable(RaidGrid_CTM_Edition.nHPShownMode2 ~= 0):Click(function()
 		RaidGrid_CTM_Edition.nHPShownNumMode = 1
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX = ui:Append("WndRadioBox", "lifval2", { x = nX+ 5, y = nY, txt = _L["Show Percentage value"], group = "lifval", checked = RaidGrid_CTM_Edition.nHPShownNumMode == 2 })
 	:Enable(RaidGrid_CTM_Edition.nHPShownMode2 ~= 0):Click(function()
 		RaidGrid_CTM_Edition.nHPShownNumMode = 2
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", "lifval3", { x = nX+ 5, y = nY, txt = _L["Show full value"], group = "lifval", checked = RaidGrid_CTM_Edition.nHPShownNumMode == 3 })
 	:Enable(RaidGrid_CTM_Edition.nHPShownMode2 ~= 0):Click(function()
 		RaidGrid_CTM_Edition.nHPShownNumMode = 3
 		if CTM_FRAME then
-			Raid_CTM:CallDrawHPMP(true, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	-- Icon
@@ -490,24 +499,30 @@ PS.OnPanelActive = function(frame)
 	:Click(function()
 		RaidGrid_CTM_Edition.nShowIcon = 1
 		if CTM_FRAME then
-			Raid_CTM:CallRefreshImages(true, false, true)
+			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
 		end
 	end):Pos_()
 	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY, txt = g_tStrings.STR_SHOW_KUNGFU, group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 2 })
 	:Click(function()
 		RaidGrid_CTM_Edition.nShowIcon = 2
 		if CTM_FRAME then
-			Raid_CTM:CallRefreshImages(true, false, true)
+			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Camp Icon"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 3 })
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Camp Icon"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 3 })
 	:Click(function()
 		RaidGrid_CTM_Edition.nShowIcon = 3
 		if CTM_FRAME then
-			Raid_CTM:CallRefreshImages(true, false, true)
+			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
 		end
 	end):Pos_()
-	
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Text Force"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 4 })
+	:Click(function()
+		RaidGrid_CTM_Edition.nShowIcon = 4
+		if CTM_FRAME then
+			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+		end
+	end):Pos_()
 	-- Interface settings
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Interface settings"], font = 27 }):Pos_()
 	nX = ui:Append("WndComboBox", { x = 10, y = nY + 10, txt = _L["Color settings"] })
@@ -516,20 +531,20 @@ PS.OnPanelActive = function(frame)
 		table.insert(tIconColor, { szOption = _L["LifeBar Gradient"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bLifeGradient, fnAction = function()
 			RaidGrid_CTM_Edition.bLifeGradient = not RaidGrid_CTM_Edition.bLifeGradient
 			if CTM_FRAME then
-				Raid_CTM:CallDrawHPMP(true, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end	})
 		table.insert(tIconColor, { szOption = _L["ManaBar Gradient"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bManaGradient, fnAction = function()
 			RaidGrid_CTM_Edition.bManaGradient = not RaidGrid_CTM_Edition.bManaGradient
 			if CTM_FRAME then
-				Raid_CTM:CallDrawHPMP(true, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end	})
 		table.insert(tIconColor, { szOption = g_tStrings.STR_ALPHA, fnAction = function()
 			local x, y = Cursor.GetPos()
 			GetUserPercentage(function(val)
 				RaidGrid_CTM_Edition.nAlpha = tonumber(val) * 255
-				Raid_CTM:CallDrawHPMP(true, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 				Station.Lookup("Normal/GetPercentagePanel"):BringToTop()
 			end, nil, RaidGrid_CTM_Edition.nAlpha / 255, g_tStrings.STR_ALPHA .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 })
 		end	})
@@ -537,33 +552,33 @@ PS.OnPanelActive = function(frame)
 		table.insert(tIconColor, { szOption = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, bCheck = true, bChecked = RaidGrid_CTM_Edition.bColoredName, fnAction = function()
 			RaidGrid_CTM_Edition.bColoredName = not RaidGrid_CTM_Edition.bColoredName
 			if CTM_FRAME then
-				Raid_CTM:CallRefreshImages(true, false, false, nil, false, true)
+				Grid_CTM:CallRefreshImages(true, false, false, nil, false, true)
 			end
 		end	})
 		table.insert(tIconColor, { bDevide = true })
 		table.insert(tIconColor, { szOption = g_tStrings.STR_RAID_DISTANCE, bCheck = true, bChecked = RaidGrid_CTM_Edition.bEnableDistance, fnAction = function() 
 			RaidGrid_CTM_Edition.bEnableDistance = not RaidGrid_CTM_Edition.bEnableDistance
 			if CTM_FRAME then
-				Raid_CTM:CallDrawHPMP(true, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end })
 		table.insert(tIconColor, { bDevide = true })
 		table.insert(tIconColor, { szOption = g_tStrings.BACK_COLOR .. g_tStrings.STR_RAID_COLOR_NAME_NONE, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nBGClolrMode == 0, fnAction = function() 
 			RaidGrid_CTM_Edition.nBGClolrMode = 0
 			if CTM_FRAME then
-				Raid_CTM:CallDrawHPMP(true, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end })
 		table.insert(tIconColor, { szOption = g_tStrings.BACK_COLOR .. _L["Colored according to the distance"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nBGClolrMode == 1, fnAction = function() 
 			RaidGrid_CTM_Edition.nBGClolrMode = 1
 			if CTM_FRAME then
-				Raid_CTM:CallDrawHPMP(true, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end })
 		table.insert(tIconColor, { szOption = g_tStrings.BACK_COLOR .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, bMCheck = true, bChecked = RaidGrid_CTM_Edition.nBGClolrMode == 2, fnAction = function() 
 			RaidGrid_CTM_Edition.nBGClolrMode = 2
 			if CTM_FRAME then
-				Raid_CTM:CallDrawHPMP(true, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end })
 		table.insert(tIconColor, { bDevide = true })
@@ -598,7 +613,7 @@ PS.OnPanelActive = function(frame)
 					GetUserInputNumber(RaidGrid_CTM_Edition.tDistanceLevel[i], RaidGrid_CTM_Edition.tDistanceLevel[i + 1] or 999, nil, function(val)
 						RaidGrid_CTM_Edition.tDistanceLevel[i] = val
 						if CTM_FRAME then
-							Raid_CTM:CallDrawHPMP(true, true)
+							Grid_CTM:CallDrawHPMP(true, true)
 						end
 					end)
 				end,
@@ -610,7 +625,7 @@ PS.OnPanelActive = function(frame)
 					GUI.OpenColorTablePanel(function(r, g, b)
 						RaidGrid_CTM_Edition.tDistanceCol[i] = { r, g, b }
 						if CTM_FRAME then
-							Raid_CTM:CallDrawHPMP(true, true)
+							Grid_CTM:CallDrawHPMP(true, true)
 						end
 					end)
 				end
@@ -627,7 +642,7 @@ PS.OnPanelActive = function(frame)
 				GUI.OpenColorTablePanel(function(r, g, b)
 					RaidGrid_CTM_Edition.tOtherCol[3] = { r, g, b }
 					if CTM_FRAME then
-						Raid_CTM:CallDrawHPMP(true, true)
+						Grid_CTM:CallDrawHPMP(true, true)
 					end
 				end)
 			end
@@ -642,7 +657,7 @@ PS.OnPanelActive = function(frame)
 				GUI.OpenColorTablePanel(function(r, g, b)
 					RaidGrid_CTM_Edition.tOtherCol[2] = { r, g, b }
 					if CTM_FRAME then
-						Raid_CTM:CallDrawHPMP(true, true)
+						Grid_CTM:CallDrawHPMP(true, true)
 					end
 				end)
 			end
@@ -657,7 +672,7 @@ PS.OnPanelActive = function(frame)
 				GUI.OpenColorTablePanel(function(r, g, b)
 					RaidGrid_CTM_Edition.tManaColor = { r, g, b }
 					if CTM_FRAME then
-						Raid_CTM:CallDrawHPMP(true, true)
+						Grid_CTM:CallDrawHPMP(true, true)
 					end
 				end)
 			end
@@ -668,6 +683,16 @@ PS.OnPanelActive = function(frame)
 				RaidGrid_CTM_Edition.nMaxShowBuff = val
 			end)
 		end	})
+		table.insert(tIconColor, { bDevide = true })
+		table.insert(tIconColor, { szOption = _L["Font Style"], fnAction = function()
+			GUI.OpenFontTablePanel(function(nFont)
+				RaidGrid_CTM_Edition.nFont = nFont
+				if CTM_FRAME then
+					Grid_CTM:CallRefreshImages(true, false, false, nil, false, true)
+				end
+			end)
+		end })
+		
 		return tIconColor
 	end):Pos_()
 	nX = ui:Append("WndComboBox", { x = nX + 5, y = nY + 10, w = 150, h = 25, txt = g_tStrings.WINDOW_ADJUST_SCALE })
@@ -679,8 +704,8 @@ PS.OnPanelActive = function(frame)
 			RaidGrid_CTM_Edition.fScaleY = 1
 			RaidGrid_CTM_Edition.nFont = 40
 			if CTM_FRAME then
-				Raid_CTM:CloseParty()
-				Raid_CTM:ReloadParty()
+				Grid_CTM:CloseParty()
+				Grid_CTM:ReloadParty()
 			end
 		end })
 		table.insert(menu, { bDevide = true })
@@ -690,7 +715,7 @@ PS.OnPanelActive = function(frame)
 				val = tonumber(val)
 				local nNewX, nNewY = val / RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY / RaidGrid_CTM_Edition.fScaleY
 				if CTM_FRAME then
-					Raid_CTM:Scale(nNewX, nNewY)
+					Grid_CTM:Scale(nNewX, nNewY)
 				end
 				RaidGrid_CTM_Edition.fScaleX = val
 			end, nil, (fScaleX - 0.5) / 1.00, _L["Interface Width"] .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
@@ -701,18 +726,10 @@ PS.OnPanelActive = function(frame)
 				val = tonumber(val)
 				local nNewX, nNewY = RaidGrid_CTM_Edition.fScaleX / RaidGrid_CTM_Edition.fScaleX, val / RaidGrid_CTM_Edition.fScaleY
 				if CTM_FRAME then
-					Raid_CTM:Scale(nNewX, nNewY)
+					Grid_CTM:Scale(nNewX, nNewY)
 				end
 				RaidGrid_CTM_Edition.fScaleY = val
 			end, nil, (fScaleY - 0.5) / 1.00, _L["Interface Height"] .. g_tStrings.STR_COLON, { x, y, x + 1, y + 1 }, nil, { StartValue = 50, nStepCount = 100 })
-		end })
-		table.insert(menu, { szOption = _L["Font Style"], fnAction = function()
-			GUI.OpenFontTablePanel(function(nFont)
-				RaidGrid_CTM_Edition.nFont = nFont
-				if CTM_FRAME then
-					Raid_CTM:CallRefreshImages(true, false, false, nil, false, true)
-				end
-			end)
 		end })
 		return menu
 	end):Pos_()
@@ -722,42 +739,42 @@ PS.OnPanelActive = function(frame)
 		table.insert(menu, { szOption = _L["One lines: 5/0"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 5, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 5
 			if CTM_FRAME then
-				Raid_CTM:AutoLinkAllPanel()
+				Grid_CTM:AutoLinkAllPanel()
 			end
 		end })
 		table.insert(menu, { szOption = _L["Two lines: 1/4"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 1, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 1
 			if CTM_FRAME then
-				Raid_CTM:AutoLinkAllPanel()
+				Grid_CTM:AutoLinkAllPanel()
 			end
 		end })
 		table.insert(menu, { szOption = _L["Two lines: 2/3"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 2, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 2
 			if CTM_FRAME then
-				Raid_CTM:AutoLinkAllPanel()
+				Grid_CTM:AutoLinkAllPanel()
 			end
 		end })
 		table.insert(menu, { szOption = _L["Two lines: 3/2"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 3, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 3
 			if CTM_FRAME then
-				Raid_CTM:AutoLinkAllPanel()
+				Grid_CTM:AutoLinkAllPanel()
 			end
 		end })
 		table.insert(menu, { szOption = _L["Two lines: 4/1"], bMCheck = true, bChecked = RaidGrid_CTM_Edition.nAutoLinkMode == 4, fnAction = function()
 			RaidGrid_CTM_Edition.nAutoLinkMode = 4
 			if CTM_FRAME then
-				Raid_CTM:AutoLinkAllPanel()
+				Grid_CTM:AutoLinkAllPanel()
 			end
 		end })
 		return menu
 	end):Pos_()
 	-- 其他
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.OTHER, font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TARGET_ASSIST, checked = RaidGrid_CTM_Edition.bTempTargetEnable })
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TARGET_ASSIST, checked = RaidGrid_CTM_Edition.bTempTargetEnable })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bTempTargetEnable = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x =10, y = nY, txt = _L["Don't show Tip in fight"], checked = RaidGrid_CTM_Edition.bTempTargetFightTip })
+	nX, nY = ui:Append("WndCheckBox", { x = 250, y = nY + 10, txt = _L["Don't show Tip in fight"], checked = RaidGrid_CTM_Edition.bTempTargetFightTip })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bTempTargetFightTip = bCheck
 	end):Pos_()
@@ -773,6 +790,7 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["CataclysmTIP"], font = 27 }):Pos_()
 end
 
 GUI.RegisterPanel(_L["Cataclysm"], 5389, _L["General"], PS)

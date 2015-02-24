@@ -7,6 +7,10 @@
 * 建议反馈：可以通过微博私信反馈您的建议，当然欢迎各位直接pull request
 * 许可协议：https://github.com/Webster-jx3/JH/blob/master/LICENSE
 
+开发资料
+-----------------------
+* 事件查询：http://www.j3ui.com/dev
+
 使用方法
 -----------------------
 在```./bin/{ version }/interface/```目录下载仓库所有文件，但是请注意，目前```zhcn```版本需要key验证，否则会被判为非法插件。
