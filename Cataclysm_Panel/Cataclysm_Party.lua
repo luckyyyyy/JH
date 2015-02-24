@@ -519,7 +519,7 @@ function CTM:RefresFormation()
 	end
 end
 
-function CTM:DrawParty(nIndex, bScale)
+function CTM:DrawParty(nIndex)
 	local team = GetClientTeam()
 	local tGroup = team.GetGroupInfo(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
@@ -656,9 +656,7 @@ function CTM:DrawParty(nIndex, bScale)
 	end
 	handle:FormatAllItemPos()
 	frame.nMemberCount = #tGroup.MemberList
-	if not bScale then
-		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
-	end
+	self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
 	-- œ»Àı∑≈∫Ûª≠
 	self:FormatFrame(frame, #tGroup.MemberList)
 	for k, v in pairs(CTM_CACHE) do
