@@ -1,12 +1,14 @@
+local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
 -----------------------------------------------
 -- global cache
 local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
+local setmetatable = setmetatable
 local GetDistance = JH.GetDistance
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
-local Station, SetTarget = Station, SetTarget
+local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
 local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
 -- global STR cache
 local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
@@ -92,7 +94,7 @@ local function CloseRaidDragPanel()
 		Wnd.CloseWindow(hFrame)
 	end
 end
--- OutputTeamMemberTip 系统的API不好用
+-- OutputTeamMemberTip 系统的API不好用所以这是改善版
 local function OutputTeamMemberTip(dwID, rc)	
 	local hTeam = GetClientTeam()
 	local tMemberInfo = hTeam.GetMemberInfo(dwID)
@@ -152,7 +154,7 @@ local function InsertChangeGroupMenu(tMenu, dwMemberID)
 	end
 end
 
-local CTM_COLOR = {
+local CTM_FORCE_COLOR = {
 	[0] =  { 255, 255, 255 },
 	[1] =  { 255, 255, 170 },
 	[2] =  { 175, 25 , 255 },
@@ -166,11 +168,37 @@ local CTM_COLOR = {
 	[10] = { 240, 50 , 200 },
 	[21] = { 180, 60 , 0   },
 }
-setmetatable(CTM_COLOR, { __index = function() return 168, 168, 168 end, __metatable = true })
-
+setmetatable(CTM_FORCE_COLOR, { __index = function() return 168, 168, 168 end, __metatable = true })
 local function GetForceColor(dwForceID) --获得成员颜色
-	return unpack(CTM_COLOR[dwForceID])
+	return unpack(CTM_FORCE_COLOR[dwForceID])
 end
+
+-- 有各个版本之间的文本差异，所以做到翻译中
+local CTM_KUNGFU_TEXT = {
+	[10080] = _L["KUNGFU_10080"], -- "云",
+	[10081] = _L["KUNGFU_10081"], -- "冰",
+	[10021] = _L["KUNGFU_10021"], -- "花",
+	[10028] = _L["KUNGFU_10028"], -- "离",
+	[10026] = _L["KUNGFU_10026"], -- "傲",
+	[10062] = _L["KUNGFU_10062"], -- "铁",
+	[10002] = _L["KUNGFU_10002"], -- "洗",
+	[10003] = _L["KUNGFU_10003"], -- "易",
+	[10014] = _L["KUNGFU_10014"], -- "气",
+	[10015] = _L["KUNGFU_10015"], -- "剑",
+	[10144] = _L["KUNGFU_10144"], -- "问",
+	[10145] = _L["KUNGFU_10145"], -- "山",
+	[10175] = _L["KUNGFU_10175"], -- "毒",
+	[10176] = _L["KUNGFU_10176"], -- "补",
+	[10224] = _L["KUNGFU_10224"], -- "羽",
+	[10225] = _L["KUNGFU_10225"], -- "诡",
+	[10242] = _L["KUNGFU_10242"], -- "焚",
+	[10243] = _L["KUNGFU_10243"], -- "尊",
+	[10268] = _L["KUNGFU_10268"], -- "丐",
+	[10390] = _L["KUNGFU_10390"], -- "分",
+	[10389] = _L["KUNGFU_10389"], -- "衣",
+}
+setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, __metatable = true })
+
 -- CODE --
 local CTM = {}
 
@@ -243,7 +271,8 @@ function CTM:AutoLinkAllPanel() --自动连接所有面板
 					nX = nX + (128 * RaidGrid_CTM_Edition.fScaleX * (nShownCount - RaidGrid_CTM_Edition.nAutoLinkMode)),
 					nY = nY + tPosnSize[nUpperIndex].nH,
 					nW = nW,
-					nH = nH}
+					nH = nH
+				}
 			end
 			framePartyPanel:SetRelPos(tPosnSize[nShownCount].nX, tPosnSize[nShownCount].nY)
 			nShownCount = nShownCount + 1
@@ -376,20 +405,24 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 	-- 刷新内功
 	if bIcon then -- 刷新icon
 		local img = h:Lookup("Image_Icon")
-		if RaidGrid_CTM_Edition.nShowIcon == 2 then
-			local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
-			if nIconID == 13 then nIconID = 2003 end -- _(:з」∠)_
-			img:FromIconID(nIconID)
-		elseif RaidGrid_CTM_Edition.nShowIcon == 1 then
-			img:FromUITex(GetForceImage(info.dwForceID))
-		elseif RaidGrid_CTM_Edition.nShowIcon == 3 then
-			local camp = { [0] = -1, [1] = 43, [2] = 40 }
-			img:FromUITex("UI/Image/Button/ShopButton.uitex", camp[info.nCamp])
+		if RaidGrid_CTM_Edition.nShowIcon ~= 4 then
+			if RaidGrid_CTM_Edition.nShowIcon == 2 then
+				local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
+				if nIconID == 13 then nIconID = 2003 end -- _(:з」∠)_
+				img:FromIconID(nIconID)
+			elseif RaidGrid_CTM_Edition.nShowIcon == 1 then
+				img:FromUITex(GetForceImage(info.dwForceID))
+			elseif RaidGrid_CTM_Edition.nShowIcon == 3 then
+				local camp = { [0] = -1, [1] = 43, [2] = 40 }
+				img:FromUITex("UI/Image/Button/ShopButton.uitex", camp[info.nCamp])
+			end
+			img:SetSize(28, 28)
+			img:Show()
+		else -- 不再由icon控制 转交给textname
+			img:Hide()
+			bName = true
 		end
-		img:SetSize(28, 28)
-		img:Show()
 	end
-	
 	-- 刷新名字
 	if bName then
 		local TextName = h:Lookup("Text_Name")
@@ -400,6 +433,15 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 		else
 			TextName:SetFontColor(255, 255, 255)
 		end
+		if RaidGrid_CTM_Edition.nShowIcon == 4 then
+			TextName:SetRelPos(-5, 0)
+			TextName:SetSize(105, 10)
+			TextName:SetText(string.format("%s %s", CTM_KUNGFU_TEXT[info.dwMountKungfuID], info.szName))
+		else
+			TextName:SetRelPos(15, 0)
+			TextName:SetSize(90, 10)
+		end
+		h:FormatAllItemPos()
 	end
 	if bMark then
 		self:RefreshMark()
@@ -840,7 +882,6 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if RaidGrid_CTM_Edition.bFasterHP then
 		p = GetPlayer(dwID)
 	end
-	
 	-- 气血计算 因为sync 必须拿出来单独算
 	local nLifePercentage, nCurrentLife, nMaxLife
 	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 255 and p.nMaxLife ~= 255 and p.nCurrentLife < 10000000 and p.nCurrentLife > - 1000 then -- p sync err fix
@@ -940,7 +981,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 				JH.UnBreatheCall(key)
 				JH.BreatheCall(key, function()
 					if lifeFade:IsValid() then
-						local nFadeAlpha = math.max(lifeFade:GetAlpha() - 15, 0)
+						local nFadeAlpha = math.max(lifeFade:GetAlpha() - 30, 0)
 						lifeFade:SetAlpha(nFadeAlpha)
 						if nFadeAlpha == 0 then
 							JH.UnBreatheCall(key)
@@ -1078,15 +1119,6 @@ function CTM:ChangeReadyConfirm(dwID, status)
 	end
 end
 
-function CTM:BringToTop()
-	for i = 0, CTM_GROUP_COUNT do
-		if self:GetPartyFrame(i) then
-			self:GetPartyFrame(i):BringToTop()
-		end
-	end
-	Station.Lookup("Normal/RaidGrid_CTM_Edition"):BringToTop()
-end
-
 local function CTM_SetTarget(dwTargetID)
 	if dwTargetID and dwTargetID > 0 then
 		local nType = IsPlayer(dwTargetID) and TARGET.PLAYER or TARGET.NPC
@@ -1095,6 +1127,7 @@ local function CTM_SetTarget(dwTargetID)
 		SetTarget(TARGET.NO_TARGET, 0)
 	end
 end
+
 
 CTM.SetTempTarget = function(dwMemberID, bEnter)
 	if not RaidGrid_CTM_Edition.bTempTargetEnable then
@@ -1111,4 +1144,5 @@ CTM.SetTempTarget = function(dwMemberID, bEnter)
 	end
 end
 
-Raid_CTM = setmetatable({}, { __index = CTM, __newindex = function() end, __metatable = true })
+
+Grid_CTM = setmetatable({}, { __index = CTM, __newindex = function() end, __metatable = true })

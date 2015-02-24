@@ -2939,7 +2939,7 @@ DeathWarn.OnDeath = function(dwTarget, szKiller)
 			end
 			DeathWarn.tDamage[dwTarget] = nil
 			if GKP.bDeathWarn then
-				OutputMessage("MSG_SYS",_L["Boardcast of Serious Injure:"] .. "["..tInfo.szTarget.."]" .. _L["By"] .. "["..tInfo.szCaster.."]" .. _L["The"] .."<"..tInfo.szSkillName..">" .. _L["Lead to"] .. ""..tInfo.szValue.."," .. _L["Serious injured!"] .. "\n")
+				OutputMessage("MSG_SYS",_L["Boardcast of Serious Injure:"] .. "["..tInfo.szTarget.."]" .. _L["By"] .. "["..tInfo.szCaster.."]" .. _L["The"] .."<"..tInfo.szSkillName..">" .. _L["Lead to"] .. ""..tInfo.szValue.."," .. g_tStrings.FIGHT_DEATH .. "\n")
 			end
 		end
 	end
