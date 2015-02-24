@@ -1,5 +1,6 @@
 # ignore list
 *.key
+*.dump
 *.dat
 @DATA
 7z.exe
