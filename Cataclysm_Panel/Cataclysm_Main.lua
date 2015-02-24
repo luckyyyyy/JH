@@ -279,8 +279,23 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		Grid_CTM:ChangeReadyConfirm(arg0, arg1)
 	elseif szEvent == "TEAM_CHANGE_MEMBER_GROUP" then
-		Grid_CTM:CloseParty()
-		Grid_CTM:ReloadParty()	
+		local me = GetClientPlayer()
+		local team = GetClientTeam()
+		local tSrcGropu = team.GetGroupInfo(arg1)
+		-- SrcGroup
+		if #tSrcGropu.MemberList == 0 then
+			Grid_CTM:CloseParty(arg1)
+			Grid_CTM:AutoLinkAllPanel()
+		else
+			Grid_CTM:DrawParty(arg1)
+		end
+		-- DstGroup
+		if Grid_CTM:GetPartyFrame(arg2) then
+			Grid_CTM:DrawParty(arg2)
+		else
+			Grid_CTM:CreatePanel(arg2)
+			Grid_CTM:DrawParty(arg2)
+		end
 	elseif szEvent == "PARTY_LEVEL_UP_RAID" then
 		Grid_CTM:ReloadParty()
 	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
