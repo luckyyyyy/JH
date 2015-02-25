@@ -312,8 +312,6 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Option" then
 		local me = GetClientPlayer()
-		local team = GetClientTeam()
-		local dwDistribute = team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE)
 		local menu = {}
 		if me.IsInRaid() then
 			-- 团队就位
@@ -324,7 +322,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 			table.insert(menu, { bDevide = true })
 		end
 		-- 分配
-		InsertDistributeMenu(menu, me.dwID ~= dwDistribute)
+		InsertDistributeMenu(menu, not JH.IsDistributer())
 		table.insert(menu, { bDevide = true })
 		if me.IsInRaid() then
 			-- 编辑模式
