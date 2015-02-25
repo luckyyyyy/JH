@@ -945,7 +945,7 @@ JH.JsonToTable = function(szJson)
 			data[key] = v
 		end
 	end
-	return data
+	return data, nil
 end
 
 JH.TableFIXNumber = function(self, tab)
@@ -3032,7 +3032,7 @@ end
 -- µ÷É«°å
 GUI.OpenColorTablePanel = function(fnAction)
 	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], close = true }):RegisterClose()
-	local fnHover = function(bHover, r, g, b, img)
+	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			wnd:Fetch("Select"):Color(r, g, b)
 			wnd:Fetch("Select_Text"):Text(string.format("r=%d, g=%d, b=%d", r, g, b))
@@ -3079,5 +3079,35 @@ GUI.OpenColorTablePanel = function(fnAction)
 	end
 	wnd:Append("Image", "Select_Image", { w = 23, h = 23 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
 	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 435 })
-	wnd:Append("Text", "Select_Text", { x = 65, y = 435 })
+	wnd:Append("Text", "Select_Text", { x = 50, y = 435 })
+	
+	nX = wnd:Append("Text", { txt = "R", x = 205, y = 435 }):Pos_()
+	nX = wnd:Append("WndEdit", "R", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
+		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
+		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+			fnHover(true, r, g, b)
+		end
+	end):Pos_()
+	nX = wnd:Append("Text", { txt = "G", x = nX + 5, y = 435 }):Pos_()
+	nX = wnd:Append("WndEdit", "G", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
+		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
+		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+			fnHover(true, r, g, b)
+		end
+	end):Pos_()
+	nX = wnd:Append("Text", { txt = "B", x = nX + 5, y = 435 }):Pos_()
+	nX = wnd:Append("WndEdit", "B", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
+		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
+		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+			fnHover(true, r, g, b)
+		end
+	end):Pos_()
+	wnd:Append("WndButton2", { txt = g_tStrings.STR_HOTKEY_SURE, x = nX + 5, y = 440, w = 60, h = 25 }):Click(function()
+		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
+		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+			fnClick(r, g, b)
+		else
+			JH.Sysmsg("RGB value error")
+		end
+	end)
 end
