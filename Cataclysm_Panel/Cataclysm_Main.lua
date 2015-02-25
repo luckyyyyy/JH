@@ -39,16 +39,14 @@ local CTM_CONFIG = {
 	},
 	bFasterHP = false,
 }
+local CTM_CONFIG_PLAYER
 local DEBUG = false
-local CONFIG_KEY = "config/Cataclysmg_V1.jx3dat"
-local CTM_CONFIG_PLAYER = JH.LoadLUAData(CONFIG_KEY) or CTM_CONFIG
--- options fixed
-do
-	for k, v in pairs(CTM_CONFIG) do
-		if not CTM_CONFIG_PLAYER[k] then
-			CTM_CONFIG_PLAYER[k] = v
-		end
-	end
+
+Cataclysm_KEY = "common"
+RegisterCustomData("Cataclysm_KEY")
+
+local function GetConfigurePath()
+	return "config/Cataclysm_" .. Cataclysm_KEY .. ".jx3dat"
 end
 
 local CTM_FRAME
@@ -59,17 +57,9 @@ local CTM_LOOT_MODE = {
 	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
 }
 
-local function GetLootModenQuality()
-	local team = GetClientTeam()
-	local player = GetClientPlayer()
-	if not team or not player or not player.IsInParty() then
-		return
-	end
-	return team.nLootMode, team.nRollQuality
-end
-
 local function UpdateLootImages()
-	local nLootMode, nRollQuality = GetLootModenQuality()
+	local team = GetClientTeam()
+	local nLootMode = team.nLootMode
 	local frame = CTM_FRAME
 	for k, v in pairs(CTM_LOOT_MODE) do
 		if nLootMode == v then
@@ -342,7 +332,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 				RaidGrid_CTM_Edition.bEditMode = not RaidGrid_CTM_Edition.bEditMode
 				GetPopupMenu():Hide()
 			end })
-		-- 人数统计
+			-- 人数统计
 			table.insert(menu, { bDevide = true })
 			InsertForceCountMenu(menu)
 			table.insert(menu, { bDevide = true })
@@ -566,9 +556,13 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["CataclysmTIP"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["configure"], font = 27 }):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY + 8, txt = _L["Configuration name"] }):Pos_()
+	ui:Append("WndEdit", { x = nX + 5, y = nY + 10, txt = Cataclysm_KEY }):Change(function(txt)
+		Cataclysm_KEY = txt
+	end)	
 end
-GUI.RegisterPanel(_L["General"], 5389, _L["Panel"], PS)
+GUI.RegisterPanel(_L["Cataclysm"], 5389, _L["Panel"], PS)
 
 local PS2 = {}
 PS2.OnPanelActive = function(frame)
@@ -809,16 +803,26 @@ JH.RegisterEvent("CTM_PANEL_RAID", function()
 	RaidPanel_Switch(arg0)
 end)
 local SaveConfig = function()
-	JH.SaveLUAData(CONFIG_KEY, CTM_CONFIG_PLAYER)
+	JH.SaveLUAData(GetConfigurePath(), CTM_CONFIG_PLAYER)
 end
 JH.RegisterEvent("GAME_EXIT", SaveConfig)
 JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
+JH.RegisterEvent("LOGIN_GAME", function()
+	CTM_CONFIG_PLAYER = JH.LoadLUAData(GetConfigurePath()) or CTM_CONFIG
+	-- options fixed
+	do
+		for k, v in pairs(CTM_CONFIG) do
+			if not CTM_CONFIG_PLAYER[k] then
+				CTM_CONFIG_PLAYER[k] = v
+			end
+		end
+	end
+	setmetatable(RaidGrid_CTM_Edition, {
+		__index = CTM_CONFIG_PLAYER,
+		__newindex = CTM_CONFIG_PLAYER,
+	})
+end)
 
 JH.AddonMenu(function()
 	return { szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = EnableTeamPanel }
 end)
--- 所有角色共享配置
-setmetatable(RaidGrid_CTM_Edition, {
-	__index = CTM_CONFIG_PLAYER,
-	__newindex = CTM_CONFIG_PLAYER,
-})

@@ -509,7 +509,10 @@ data = {
 	["Two lines: 4/1"] = "兩行：四列/壹列",
 	["Don't show Tip in fight"] = "戰鬥中不顯示玩家TIP",
 	["Faster Refresh HP(Greater performance loss)"] = "更快的血量刷新（開銷較高）",
-	["CataclysmTIP"] = "跪求PS大神加入！支持材質更換後上色處理，有意請聯系YY:13156451",
+	["Grid Style"] = "格子樣式",
+	["Panel"] = "面板",
+	["configure"] = "配置（如果希望不共用用請隨意修改為任意字符，否則請勿修改）",
+	["Configuration name"] = "配置文件名稱",
 	-- Cataclysm_Party.lua --
 	["KUNGFU_10080"] = "雲",
 	["KUNGFU_10081"] = "冰",
