@@ -285,7 +285,10 @@ end
 W.CallDoanloadData = function(data, bOverride)
 	JH.Alert(g_tStrings.STR_WAIT_UPDATE)
 	JH.RemoteRequest(W.szDownload .. data.tid .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-		local tab = JH.JsonToTable(szDoc)
+		local tab, err = JH.JsonToTable(szDoc)
+		if err then
+			return JH.Alert(g_tStrings.STR_FT_JION_FAIL_UNKNOW)
+		end
 		local szFileName = "sync_data_".. data.tid .."_" .. CLIENT_LANG .. ".jx3dat"
 		local szFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/alldat/" .. szFileName
 		pcall(SaveLUAData, szFile, tab)
