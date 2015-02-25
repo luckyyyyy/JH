@@ -511,7 +511,7 @@ data = {
 	["Faster Refresh HP(Greater performance loss)"] = "更快的血量刷新（開銷較高）",
 	["Grid Style"] = "格子樣式",
 	["Panel"] = "面板",
-	["configure"] = "配置（如果希望不共用用請隨意修改為任意字符，否則請勿修改）",
+	["configure"] = "配置（如果希望不共用請隨意修改為任意字符，否則請勿修改）",
 	["Configuration name"] = "配置文件名稱",
 	-- Cataclysm_Party.lua --
 	["KUNGFU_10080"] = "雲",
