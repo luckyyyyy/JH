@@ -39,8 +39,10 @@ local CTM_CONFIG = {
 	},
 	bFasterHP = false,
 }
+
 local CTM_CONFIG_PLAYER
 local DEBUG = false
+local SCALE = false
 
 Cataclysm_KEY = "common"
 RegisterCustomData("Cataclysm_KEY")
@@ -154,6 +156,7 @@ local function RaidCheckEnable()
 	end
 	RaidOpenPanel()
 	UpdateLootImages()
+	Grid_CTM:CloseParty()
 	Grid_CTM:ReloadParty()
 end
 
@@ -386,6 +389,11 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	-- kill System Panel
 	RaidPanel_Switch(DEBUG)
 	TeammatePanel_Switch(false)
+	if SCALE then
+		Grid_CTM:CloseParty()
+		Grid_CTM:ReloadParty()
+		SCALE = false
+	end
 end
 
 function RaidGrid_CTM_Edition.OnFrameDragEnd()
@@ -731,7 +739,8 @@ PS3.OnPanelActive = function(frame)
 		nVal = nVal / 100
 		local nNewX, nNewY = nVal / RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY / RaidGrid_CTM_Edition.fScaleY
 		if CTM_FRAME then
-			Grid_CTM:Scale(nNewX, nNewY)
+			Grid_CTM:Scale(nNewX, nNewY) -- 官方BUG会造成handle2次缩放 很为难啊
+			SCALE = true
 		end
 		RaidGrid_CTM_Edition.fScaleX = nVal
 	end):Pos_()
@@ -743,6 +752,7 @@ PS3.OnPanelActive = function(frame)
 		local nNewX, nNewY = RaidGrid_CTM_Edition.fScaleX / RaidGrid_CTM_Edition.fScaleX, nVal / RaidGrid_CTM_Edition.fScaleY
 		if CTM_FRAME then
 			Grid_CTM:Scale(nNewX, nNewY)
+			SCALE = true
 		end
 		RaidGrid_CTM_Edition.fScaleY = nVal
 	end):Pos_()
