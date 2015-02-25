@@ -1173,10 +1173,13 @@ JH.LoadLUAData = function(szPath)
 end
 
 JH.IsLeader = function()
-	local hTeam = GetClientTeam()
-	local hPlayer = GetClientPlayer()
-	return hTeam.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == hPlayer.dwID
+	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == GetClientPlayer().dwID
 end
+
+JH.IsDistributer = function()
+	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == GetClientPlayer().dwID
+end
+
 
 JH.AddHotKey = function(szName, szTitle, fnAction)
 	if string.sub(szName, 1, 3) ~= "JH_" then

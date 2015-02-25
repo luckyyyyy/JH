@@ -166,9 +166,9 @@ _GKP.OpenLootPanel = function()
 				if #_GKP.aDistributeList > 0 then
 					local t = {}
 					for k,v in ipairs(_GKP.aDistributeList) do
-						table.insert(t,GKP.GetFormatLink(v))
+						table.insert(t, GKP.GetFormatLink(v))
 					end
-					table.insert(t,{type = "text", text = _L["Expression"]})
+					table.insert(t, GKP.GetFormatLink(_L["Expression"]))
 					JH.Talk(t)
 				end
 				return 
@@ -394,14 +394,14 @@ GKP.Random = function() -- 生成一个随机字符串 这还能重复我吃翔
 	local a = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,_+;*-"
 	local t = {}
 	for i = 1, 64 do
-		local n = math.random(1,string.len(a))
+		local n = math.random(1, string.len(a))
 		table.insert(t, string.sub(a, n ,n))
 	end
 	return table.concat(t, "")
 end
 
 GKP.Sysmsg = function(szMsg)
-	JH.Sysmsg(szMsg,"[GKP]")
+	JH.Sysmsg(szMsg, "[GKP]")
 end
 
 GKP.GetTimeString = function(nTime, year)
@@ -432,28 +432,32 @@ GKP.GetMoneyCol = function(Money)
 		return 255,255,255
 	end
 end
----------------------------------------------------------------------->
--- 判断分配者
-----------------------------------------------------------------------<
-GKP.IsDistributer = function()
-	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == GetClientPlayer().dwID
-end
 
 ---------------------------------------------------------------------->
 -- 格式化链接
 ----------------------------------------------------------------------<
-GKP.GetFormatLink = function(item)
-	if item.nGenre == ITEM_GENRE.BOOK then
-		return { type = "book",tabtype = item.dwTabType, index = item.dwIndex, bookinfo = item.nBookID, version = item.nVersion,text = "" }
-	else 
-		return { type = "iteminfo",version = item.nVersion,tabtype = item.dwTabType,index = item.dwIndex,text = "" }
+GKP.GetFormatLink = function(item, bName)
+	if type(item) == "string" then
+		if bName then
+			return { type = "name", name = item, text = "[" .. item .."]" }
+		else
+			return { type = "text", text = item }
+		end
+	else
+		if item.nGenre == ITEM_GENRE.BOOK then
+			return { type = "book", tabtype = item.dwTabType, index = item.dwIndex, bookinfo = item.nBookID, version = item.nVersion, text = "" }
+		else 
+			return { type = "iteminfo", version = item.nVersion, tabtype = item.dwTabType, index = item.dwIndex, text = "" }
+		end
 	end
 end
+
 GKP.InsertEditByName = function(szName)
 	local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-	edit:InsertObj("[" .. szName .. "]",{ type = "name" , name = szName , text = szName})
+	edit:InsertObj("[" .. szName .. "]", GKP.GetFormatLink(szName))
 	Station.SetFocusWindow(edit)
 end
+
 GKP.OnItemLinkDown = function(item,ui)
 	ui.nVersion = item.nVersion
 	ui.dwTabType = item.dwTabType
@@ -520,7 +524,7 @@ function GKP.OnFrameCreate()
 		if record:IsVisible() then
 			return JH.Alert(_L["No Record For Current Object."])
 		end
-		if not GKP.IsDistributer() and not JH_About.CheckNameEx() then -- debug
+		if not JH.IsDistributer() and not JH_About.CheckNameEx() then -- debug
 			return JH.Alert(_L["You are not the distrubutor."])
 		end	
 		pcall(_GKP.Record)
@@ -1168,7 +1172,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			end
 			item:RegisterEvent(32)
 			item.OnItemRButtonClick = function()
-				if not GKP.IsDistributer() then
+				if not JH.IsDistributer() then
 					return JH.Alert(_L["You are not the distrubutor."])
 				end	
 				_GKP.Record(v,k)
@@ -1242,18 +1246,18 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			box.OnItemLButtonClick = OnItemLButtonClick
 			
 			wnd:Lookup("WndButton_Delete").OnLButtonClick = function()
-				if not GKP.IsDistributer() then
+				if not JH.IsDistributer() then
 					return JH.Alert(_L["You are not the distrubutor."])
 				end	
 				local tab = GKP("GKP_Record","del",k)
-				if GKP.IsDistributer() then
+				if JH.IsDistributer() then
 					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","del",JH.AscIIEncode(JH.JsonEncode(tab)))
 				end
 				pcall(_GKP.Draw_GKP_Record)
 			end
 			
 			wnd:Lookup("WndButton_Edit").OnLButtonClick = function()
-				if not GKP.IsDistributer() then
+				if not JH.IsDistributer() then
 					return JH.Alert(_L["You are not the distrubutor."])
 				end	
 				_GKP.Record(v,k)
@@ -1326,7 +1330,7 @@ end
 ----------------------------------------------------------------------<
 _GKP.GKP_Bidding = function()
 	local team = GetClientTeam()
-	if not GKP.IsDistributer() then
+	if not JH.IsDistributer() then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end	
 	local nGold = _GKP.GetRecordSum(true)
@@ -1669,7 +1673,7 @@ _GKP.GKP_OweList = function()
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	if not GKP.IsDistributer() and not JH.bDebug then
+	if not JH.IsDistributer() and not JH.bDebug then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end	
 	_GKP.SetButton(false)	
@@ -1715,10 +1719,10 @@ _GKP.GKP_OweList = function()
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "Information on Debt")
 	for k,v in pairs(tMember2) do
 		if v.nGold < 0 then
-			JH.Talk({{type = "name", name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]}})
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]) })
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "-")
 		else
-			JH.Talk({{type = "name", name = v.szName , text =""},{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. _L["Gold."]}})
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. _L["Gold."]) })
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "+")
 		end
 	end
@@ -1775,7 +1779,7 @@ _GKP.GKP_SpendingList = function()
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	if not GKP.IsDistributer() and not JH.bDebug then
+	if not JH.IsDistributer() and not JH.bDebug then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end
 	_GKP.SetButton(false)
@@ -1799,7 +1803,7 @@ _GKP.GKP_SpendingList = function()
 	table.sort(sort,function(a,b) return a.nGold < b.nGold end)
 	for k,v in ipairs(sort) do
 		if v.nGold > 0 then
-			JH.Talk({{type = "name" , name = v.szName , text = "" },{type = "text" , text = g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]}})
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]) })
 		end
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold)
 	end
@@ -1816,7 +1820,7 @@ _GKP.GKP_Calculation = function()
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	if not GKP.IsDistributer() and not JH.bDebug then
+	if not JH.IsDistributer() and not JH.bDebug then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end
 	GetUserInput(_L["Total Amount of People with Output Settle Account"],function(num)
@@ -2039,7 +2043,7 @@ _GKP.DrawDistributeList = function(doodad)
 			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- 需要分配者模式
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
-			if not GKP.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
+			if not JH.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			local tMenu = {}
@@ -2054,7 +2058,7 @@ _GKP.DrawDistributeList = function(doodad)
 							MY_RollMonitor.Clear({echo=false})
 						end
 					end
-					JH.Talk({GKP.GetFormatLink(_item),{type = "text" ,text =_L["Roll the dice if you wang"]}})
+					JH.Talk({ GKP.GetFormatLink(_item), GKP.GetFormatLink(_L["Roll the dice if you wang"]) })
 				end
 			})
 			table.insert(tMenu,{bDevide = true})
@@ -2065,7 +2069,7 @@ _GKP.DrawDistributeList = function(doodad)
 						fnAction = function()
 							_GKP.SetChatWindow(item,box)
 							_GKP.tLootListMoney[item.dwID] = v[1]
-							JH.Talk({GKP.GetFormatLink(_item),{type = "text" ,text = _L(" %d Gold Start Bidding, off a price if you want.",v[1] )}})
+							JH.Talk({ GKP.GetFormatLink(_item), GKP.GetFormatLink(_L(" %d Gold Start Bidding, off a price if you want.", v[1])) })
 						end
 					})
 				end
@@ -2082,7 +2086,7 @@ _GKP.DrawDistributeList = function(doodad)
 			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- 需要分配者模式
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
-			if not GKP.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
+			if not JH.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			table.sort(aPartyMember,function(a,b)
@@ -2402,14 +2406,14 @@ _GKP.Record = function(tab,item,bEnter)
 		tab.szNpcName = Source:Text()
 		tab.nMoney = nMoney
 		tab.szPlayer = szPlayer
-		tab.key = tab.key or GKP.Random()
+		tab.key = tab.key or tab.nUiId .. GKP.Random()
 		if tab and type(item) == "userdata" then
-			if GKP.IsDistributer() then
+			if JH.IsDistributer() then
 				JH.Talk({
 					GKP.GetFormatLink(tab),
-					{type = "text" ,text = " ".. nMoney .._L["Gold"]},
-					{type = "text" ,text = _L[" Distribute to "]},
-					{type = "name" ,name = tab.szPlayer,text = "[" .. tab.szPlayer .. "]"},
+					GKP.GetFormatLink(" ".. nMoney .._L["Gold"]),
+					GKP.GetFormatLink(_L[" Distribute to "]),
+					GKP.GetFormatLink(tab.szPlayer, true)
 				})
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "add", JH.AscIIEncode(JH.JsonEncode(tab)))
 			end
@@ -2420,22 +2424,22 @@ _GKP.Record = function(tab,item,bEnter)
 			tab.szName = Name:Text()
 			tab.dwForceID = text.self.dwForceID or tab.dwForceID or 0
 			tab.bEdit = true
-			if GKP.IsDistributer() then
+			if JH.IsDistributer() then
 				JH.Talk({
-					{type = "name" ,name = tab.szPlayer,text = "[" .. tab.szPlayer .. "]"},
-					{type = "text" ,text = " " .. tab.szName},
-					{type = "text" ,text = " " .. nMoney .._L["Gold"]},
-					{type = "text" ,text = _L["Make changes to the record."]},
+					GKP.GetFormatLink(tab.szPlayer, true),
+					GKP.GetFormatLink(" ".. tab.szName),
+					GKP.GetFormatLink(" ".. nMoney .._L["Gold"]),
+					GKP.GetFormatLink(_L["Make changes to the record."]),
 				})
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","edit",JH.AscIIEncode(JH.JsonEncode(tab)))
 			end
 		else
-			if GKP.IsDistributer() then
+			if JH.IsDistributer() then
 				JH.Talk({
-					{type = "text" ,text = tab.szName},
-					{type = "text" ,text = " ".. nMoney .._L["Gold"]},
-					{type = "text" ,text = _L["Manually make record to"]},
-					{type = "name" ,name = tab.szPlayer,text = "[" .. tab.szPlayer .. "]"},
+					GKP.GetFormatLink(tab.szName),
+					GKP.GetFormatLink(" ".. nMoney .._L["Gold"]),
+					GKP.GetFormatLink(_L["Manually make record to"]),
+					GKP.GetFormatLink(tab.szPlayer, true)
 				})
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","add",JH.AscIIEncode(JH.JsonEncode(tab)))
 			end
@@ -2525,7 +2529,7 @@ end
 -- DISTRIBUTE_ITEM
 ----------------------------------------------------------------------<
 RegisterEvent("DISTRIBUTE_ITEM",function() -- DISTRIBUTE_ITEM
-	if GKP.IsDistributer() then
+	if JH.IsDistributer() then
 		return
 	end
 	local team = GetClientTeam()
@@ -2627,15 +2631,15 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 	if _GKP.TradingTarget.szName and GKP.bMoneyTalk then
 		if nGold > 0 then
 			JH.Talk({
-				{type = "text" ,text = _L["Received"]},
-				{type = "name" ,name = _GKP.TradingTarget.szName,text = "[" .. _GKP.TradingTarget.szName .. "]"},
-				{type = "text" ,text = _L["The"] .. nGold .._L["Gold."]},
+				GKP.GetFormatLink(_L["Received"]),
+				GKP.GetFormatLink(_GKP.TradingTarget.szName, true),
+				GKP.GetFormatLink(_L["The"] .. nGold .._L["Gold."]),
 			})
 		else
 			JH.Talk({
-				{type = "text" ,text = _L["Pay to"]},
-				{type = "name" ,name = _GKP.TradingTarget.szName,text = "[" .. _GKP.TradingTarget.szName .. "]"},
-				{type = "text" ,text = " " .. nGold * -1 .._L["Gold."]},
+				GKP.GetFormatLink(_L["Pay to"]),
+				GKP.GetFormatLink(_GKP.TradingTarget.szName, true),
+				GKP.GetFormatLink(" " .. nGold * -1 .._L["Gold."]),
 			})
 		end
 	end
