@@ -1,3 +1,7 @@
+-- @Author: Webster
+-- @Date:   2015-01-21 15:21:19
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2015-02-26 00:36:41
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {
 		LEAVE_BLACK_LIST = 5,
