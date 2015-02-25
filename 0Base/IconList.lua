@@ -49,6 +49,5 @@ _JH_IconList.OnPanelActive = function(frame)
 		end
 	end)
 end
-if JH.bDebug then
-	GUI.RegisterPanel(_L["Icon"], 591, _L["Dev"], _JH_IconList)
-end
+
+GUI.RegisterPanel(_L["Icon"], 591, _L["Dev"], _JH_IconList)
