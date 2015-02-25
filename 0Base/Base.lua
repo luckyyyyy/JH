@@ -930,10 +930,10 @@ JH.JsonToTable = function(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
 		JH.Debug(err)
-		return JH.Alert("json_decode Error")
+		return JH.Alert("json_decode Error"), err
 	end
 	if type(result) ~= "table" then
-		return JH.Alert("data is invalid")
+		return JH.Alert("data is invalid"), "data is invalid"
 	end
 	local data = {}
 	for k, v in pairs(result) do
