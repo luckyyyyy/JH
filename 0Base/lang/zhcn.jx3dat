@@ -510,6 +510,8 @@ data = {
 	["Don't show Tip in fight"] = "战斗中不显示玩家TIP",
 	["Faster Refresh HP(Greater performance loss)"] = "更快的血量刷新（开销较高）",
 	["CataclysmTIP"] = "跪求PS大神加入！支持材质更换后上色处理，有意请联系YY:13156451",
+	["Grid Style"] = "格子样式",
+	["Panel"] = "面板",
 	-- Cataclysm_Party.lua --
 	["KUNGFU_10080"] = "云",
 	["KUNGFU_10081"] = "冰",
