@@ -230,25 +230,35 @@ function CTM:CreatePanel(nIndex)
 	if not frame then
 		frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
 	end
-	local TextGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
-	if me.IsInRaid() then
-		TextGroup:SetText(g_tStrings.STR_NUMBER[nIndex + 1])
-		TextGroup:SetFontScheme(7)
-		local team = GetClientTeam()
-		local tGroup = team.GetGroupInfo(nIndex)
-		if tGroup and tGroup.MemberList then
-			for k, v in ipairs(tGroup.MemberList) do
-				if v == UI_GetClientPlayerID() then
-					TextGroup:SetFontScheme(2)
-					TextGroup:SetFontColor(255, 255, 0) -- 自己所在的小队 黄色
-					break
+	self:AutoLinkAllPanel()
+	self:RefreshGroupText()
+end
+-- 刷新团队组编号
+function CTM:RefreshGroupText()
+	for i = 0, CTM_GROUP_COUNT do
+		local me = GetClientPlayer()
+		local frame = self:GetPartyFrame(i)
+		if frame then
+			local TextGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
+			if me.IsInRaid() then
+				TextGroup:SetText(g_tStrings.STR_NUMBER[i + 1])
+				TextGroup:SetFontScheme(7)
+				local team = GetClientTeam()
+				local tGroup = team.GetGroupInfo(i)
+				if tGroup and tGroup.MemberList then
+					for k, v in ipairs(tGroup.MemberList) do
+						if v == UI_GetClientPlayerID() then
+							TextGroup:SetFontScheme(2)
+							TextGroup:SetFontColor(255, 255, 0) -- 自己所在的小队 黄色
+							break
+						end
+					end
 				end
+			else
+				TextGroup:SetText(g_tStrings.STR_TEAM)
 			end
 		end
-	else
-		TextGroup:SetText(g_tStrings.STR_TEAM)
 	end
-	self:AutoLinkAllPanel()
 end
 
 function CTM:AutoLinkAllPanel() --自动连接所有面板
@@ -519,7 +529,7 @@ function CTM:RefresFormation()
 		end
 	end
 end
-
+-- 绘制面板 bHandle单独刷新handle的缩放
 function CTM:DrawParty(nIndex, bHandle)
 	local team = GetClientTeam()
 	local tGroup = team.GetGroupInfo(nIndex)
@@ -647,8 +657,8 @@ function CTM:DrawParty(nIndex, bHandle)
 			if dwID ~= me.dwID then
 				InsertTeammateMenu(menu, dwID)
 				table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function() 
-					ViewInviteToPlayer(dwID) end 
-				})
+					ViewInviteToPlayer(dwID) 
+				end })
 			else
 				InsertPlayerMenu(menu ,dwID)
 			end
@@ -666,6 +676,7 @@ function CTM:DrawParty(nIndex, bHandle)
 	end
 	-- 先缩放后画
 	self:FormatFrame(frame, #tGroup.MemberList)
+	self:RefreshDistance() -- 立即刷新一次
 	for k, v in pairs(CTM_CACHE) do
 		if v:IsValid() and v.nGroup == nIndex then
 			self:DrawHPMP(v, k, self:GetMemberInfo(k))
@@ -700,9 +711,9 @@ function CTM:FormatFrame(frame, nMemberCount)
 		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (3 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, 3 + nMemberCount * CTM_BOX_HEIGHT * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
-		for i = 0, handle:GetItemCount() -1 do
+		for i = 0, handle:GetItemCount() - 1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Show()
 		end
 	else
@@ -714,9 +725,9 @@ function CTM:FormatFrame(frame, nMemberCount)
 		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
 		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, (3 + nMemberCount * CTM_BOX_HEIGHT) * fY)
+		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, 3 + nMemberCount * CTM_BOX_HEIGHT * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
-		for i = 0, handle:GetItemCount() -1 do
+		for i = 0, handle:GetItemCount() - 1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Hide()
 		end
 	end
