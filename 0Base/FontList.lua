@@ -1,7 +1,7 @@
 local _L = JH.LoadLangPack
 local _JH_FontList = {
 	nCur = 0,
-	nMax = 255,
+	nMax = 236,
 }
 _JH_FontList.OnPanelActive = function(frame)
 	local ui = GUI(frame)
@@ -50,6 +50,4 @@ _JH_FontList.OnPanelActive = function(frame)
 	end)
 end
 
-if JH.bDebug then
-	GUI.RegisterPanel(_L["Font"], 581, _L["Dev"], _JH_FontList)
-end
+GUI.RegisterPanel(_L["Font"], 581, _L["Dev"], _JH_FontList)

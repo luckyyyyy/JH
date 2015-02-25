@@ -54,6 +54,7 @@ JH = {
 }
 RegisterCustomData("JH.bDebug")
 RegisterCustomData("JH.nChannel") -- ∑Ω±„debug«–µΩTONG
+
 do
 	local exp = { GetVersion() }
 	if exp and exp[4] == "exp" then
@@ -62,7 +63,8 @@ do
 end
 
 local _JH = {
-	szTitle = _L["JH"],
+	szBuildDate = "20150227",
+	szTitle = _L["JH, JX3 Plug-in Collection"],
 	tHotkey = {},
 	tDelayCall = {},
 	tRequest = {},
@@ -216,12 +218,13 @@ JH.LoadLangPack = _L
 
 JH.GetAddonInfo = function()
 	return {
-		szName = _L["JH plugins"],
+		szName = _JH.szTitle,
 		szVersion = JH.GetVersion(),
 		szRootPath = ADDON_PATH,
 		szAuthor = _L['JH @ Double Dream Town'],
 		szShadowIni = SHADOW_PATH,
 		szDataPath = DATA_PATH,
+		szBuildDate = _JH.szBuildDate,
 	}
 end
 
@@ -440,7 +443,7 @@ JH.OnFrameCreate = function()
 	_JH.hContent = _JH.hTotal:Lookup("Handle_Content")
 	_JH.hBox = _JH.hTotal:Lookup("Box_1")
 	-- title
-	local szTitle =_JH.szTitle .. " v" ..  JH.GetVersion()
+	local szTitle = _JH.szTitle .. " v" ..  JH.GetVersion() .. " (" .. _JH.szBuildDate .. ")"
 	_JH.hTotal:Lookup("Text_Title"):SetText(szTitle)
 	-- position
 	this:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)

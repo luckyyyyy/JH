@@ -112,26 +112,31 @@ end
 JH.RegisterEvent("ON_BG_CHANNEL_MSG", _JH_About.OnBgTalk)
 _JH_About.PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File(JH.GetAddonInfo().szRootPath .. "0Base/background.tga"):Pos_()
-	nX,nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["About"], font = 27 }):Pos_()
-	nX,nY = ui:Append("Text", { x = 10, y = nY + 45, w = 500 , h = 0,multi = true, txt = _L["ABOUT_TIPS"] }):Pos_()
-	nY = 295
-	nX = ui:Append("WndButton2", { x = 10, y = nY + 12 })
-	:Text(_L["WeiBo"]):Click(function()
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 80, multi = true, txt = _L["ABOUT_TIPS"] }):Pos_()
+	nY = nY + 70
+	
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Version"], font = 27 }):Pos_()
+	local info = JH.GetAddonInfo()
+	local txt = info.szName .. " v" ..  info.szVersion .. " (Build: " .. info.szBuildDate .. ")"
+	nX, nY = ui:Append("Text", { x = 0, y = nY + 10, txt = txt }):Pos_()
+	
+	nX, nY = ui:Append("Text", { x = 0, y = nY + 20, txt = _L["Other"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, txt = _L["WeiBo"] .. " http://weibo.com/techvicky", w = 250, h = 28 }):Click(function()
 		OpenInternetExplorer("http://weibo.com/techvicky")
-	end):Pos_()
-	nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 12 })
-	:Text(_L["official website"]):Click(function()
-		OpenInternetExplorer("http://www.j3ui.com/")
-	end):Pos_()
-	nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 12 })
-	:Text(_L["Check Install"]):Click(_JH_About.CheckInstall):Pos_()
+	end, { 255, 255, 255 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 5, txt = _L["official website"] .. " http://www.j3ui.com", w = 250, h = 28 }):Click(function()
+		OpenInternetExplorer("http://www.j3ui.com")
+	end, { 255, 255, 255 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 5, txt = _L["GitHub"] .. " https://github.com/Webster-jx3/JH", w = 250, h = 28 }):Click(function()
+		OpenInternetExplorer("https://github.com/Webster-jx3/JH")
+	end, { 255, 255, 255 }):Pos_()
+	nX = ui:Append("WndButton2", { x = 10, y = nY + 12, txt = _L["Check Install"] }):Click(_JH_About.CheckInstall):Pos_()
 	if type(RaidGrid_Base) ~= "nil" then
 		nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 12 })
 		:Text(_L["Input Json"]):Click(RaidGrid_Base.OutputRecord)
 	end
-	ui:Append("WndCheckBox","DEBUG", { x = 420, y = 170, checked = JH.bDebug })
-	:Text(_L["DEBUG"]):Click(function(bChecked)
+	ui:Append("WndCheckBox", "DEBUG", { x = 380, y = 340, checked = JH.bDebug, txt = "Enable Debug" }):Click(function(bChecked)
 		if not JH.bDebug then
 			JH.Confirm(_L["Warning: plugin will ignore the authority when the debugging mode is on, showing action can not be operate when cross the authorit, but none of this coud be accept by the server,do not select if you are not the developer, avoid making misunderstanding, please do not try it when set up a team, this may creat problem like messing up the record."],function()
 				JH.bDebug = not JH.bDebug
@@ -142,7 +147,7 @@ _JH_About.PS.OnPanelActive = function(frame)
 			JH.bDebug = not JH.bDebug
 		end
 	end)
-	ui:Append("Text","Memory", { x = 13, y = 171, txt = _JH_About.GetMemory() })
+	ui:Append("Text", "Memory", { x = 0, y = 340, alpha = 30, txt = _JH_About.GetMemory() })
 	:Click(function()
 		collectgarbage("collect")
 		ui:Fetch("Memory"):Text(_JH_About.GetMemory())
@@ -154,8 +159,15 @@ _JH_About.PS.OnTaboxCheck = function(frame)
 	if me then szName = me.szName end
 	-- info
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File("interface/JH/0Base/background.tga"):Pos_()
-	nX,nY = ui:Append("Text", { x = 10, y = nY + 25, color = {255,255,0}, txt = _L("%s are welcome to use JH plug-in", szName), font = 230 }):Pos_()
+	nX, nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File("interface/JH/0Base/background.tga"):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { 255, 255, 0 }, txt = _L("%s are welcome to use JH plug-in", szName), font = 230 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY, color = { 255, 255, 0 }, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 233 }):Pos_()
+	local time = TimeToDate(GetCurrentTime())
+	-- year, month, day, hour, minute, second, weekday
+	
+	local L = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 }):Pos_()
+
 end
 
 GUI.RegisterPanel(_L["About"], 252, _L["Recreation"],_JH_About.PS)
