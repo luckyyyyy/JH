@@ -3080,32 +3080,36 @@ GUI.OpenColorTablePanel = function(fnAction)
 	wnd:Append("Image", "Select_Image", { w = 23, h = 23 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
 	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 435 })
 	wnd:Append("Text", "Select_Text", { x = 50, y = 435 })
-	
-	nX = wnd:Append("Text", { txt = "R", x = 205, y = 435 }):Pos_()
-	nX = wnd:Append("WndEdit", "R", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
+	local GetRGBValue = function()
 		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
 		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+			return r, g, b
+		end
+	end
+	nX = wnd:Append("Text", { txt = "R", x = 205, y = 435 }):Pos_()
+	nX = wnd:Append("WndEdit", "R", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
+		if GetRGBValue() then
+			local r, g, b = GetRGBValue()
 			fnHover(true, r, g, b)
 		end
 	end):Pos_()
 	nX = wnd:Append("Text", { txt = "G", x = nX + 5, y = 435 }):Pos_()
 	nX = wnd:Append("WndEdit", "G", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
-		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
-		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+		if GetRGBValue() then
+			local r, g, b = GetRGBValue()
 			fnHover(true, r, g, b)
 		end
 	end):Pos_()
 	nX = wnd:Append("Text", { txt = "B", x = nX + 5, y = 435 }):Pos_()
 	nX = wnd:Append("WndEdit", "B", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
-		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
-		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+		if GetRGBValue() then
+			local r, g, b = GetRGBValue()
 			fnHover(true, r, g, b)
 		end
 	end):Pos_()
 	wnd:Append("WndButton2", { txt = g_tStrings.STR_HOTKEY_SURE, x = nX + 5, y = 440, w = 60, h = 25 }):Click(function()
-		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
-		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
-			fnClick(r, g, b)
+		if GetRGBValue() then
+			fnClick(GetRGBValue())
 		else
 			JH.Sysmsg("RGB value error")
 		end
