@@ -1,3 +1,7 @@
+-- @Author: Webster
+-- @Date:   2015-01-21 15:21:19
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2015-02-26 00:37:48
 local _L = JH.LoadLangPack
 JH_Love = {
 	bQuiet = false,				-- 免打扰（拒绝其它人的查看请求）

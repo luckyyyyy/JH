@@ -1,3 +1,7 @@
+-- @Author: Webster
+-- @Date:   2015-01-21 15:21:19
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2015-02-26 00:37:33
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -297,7 +301,7 @@ C.LoadCircleMergeData = function(tData)
 								break
 							end
 						end
-						if not find then table.insert(C.tData[k], vv) end					
+						if not find then table.insert(C.tData[k], vv) end
 					end
 				end
 			else
@@ -354,7 +358,7 @@ C.Release = function()
 			end
 		end
 	end
-	
+
 	C.tTarget = {} -- clear
 	-- 取得容器
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
@@ -412,7 +416,7 @@ end
 
 C.RemoveData = function(mapid, index, bConfirm)
 	if C.tData[mapid] and C.tData[mapid][index] then
-		local fnAction = function() 
+		local fnAction = function()
 			table.remove(C.tData[mapid], index)
 			if #C.tData[mapid] == 0 then
 				C.tData[mapid] = nil
@@ -516,7 +520,7 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 	local dwRad1 = pi * (tar.nFaceDirection - nFace) / 128
 	if tar.nFaceDirection > (256 - nFace) then
 		dwRad1 = dwRad1 - pi - pi
-	end	
+	end
 	local dwRad2 = dwRad1 + (nAngle / 180 * pi)
 	local nStep = 16
 	if nAngle <= 45 then nStep = 180 end
@@ -732,7 +736,7 @@ C.OnBreathe = function()
 			if data.bDrawName then
 				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
 			end
-			
+
 			if data.bTarget then
 				local sha = C.tCache[TARGET.NPC][k].Line
 				local dwType, dwID = KGNpc.GetTarget()
@@ -750,7 +754,7 @@ C.OnBreathe = function()
 				elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
 					C.shLine:RemoveItem(sha.item)
 					C.tCache[TARGET.NPC][k].Line = {}
-				end				
+				end
 				if dwID ~= 0 and dwType == TARGET.PLAYER then
 					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
 					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetTemplateName(tar), col })
@@ -769,7 +773,7 @@ C.OnBreathe = function()
 							JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
 						end
 					end
-					-- RaidGrid_RedAlarm这个还没重构 先这样 
+					-- RaidGrid_RedAlarm这个还没重构 先这样
 					if data.bFlash and RaidGrid_RedAlarm then
 						if me.dwID == dwID then
 							RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at you", data.szNote or data.key), true, true, 255, 0, 0)
@@ -844,7 +848,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 		if data then
 			return {{
 				szOption = _L["Edit Face"],
-				rgb = { 255, 128, 0 }, 
+				rgb = { 255, 128, 0 },
 				szLayer = "ICON_RIGHT",
 				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
 				nFrame = 86,
@@ -854,7 +858,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 				end,
 				fnAction = function()
 					C.OpenDataPanel(C.tData[data.id][data.index], data.id, data.index)
-				end 
+				end
 			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
@@ -893,7 +897,7 @@ C.OpenAddPanel = function(szName, dwType, szMap)
 	:Enable(szName == nil):Click(function()
 		dwType = TARGET.DOODAD
 	end)
-	
+
 	ui:Append("WndButton3", { txt = g_tStrings.STR_HOTKEY_SURE, x = 115, y = 185 })
 	:Click(function()
 		local map = C.GetMapType(ui:Fetch("Map"):Text())
@@ -904,7 +908,7 @@ C.OpenAddPanel = function(szName, dwType, szMap)
 		if map then
 			local fnAction = function()
 				local data = {
-					key = key, 
+					key = key,
 					dwType = dwType,
 					bEnable = true,
 					tCircles = { clone(CIRCLE_DEFAULT_DATA) }
@@ -965,7 +969,7 @@ C.OpenMtPanel = function()
 	ui:Append("Text", { txt = _L["map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
 	ui:Append("WndEdit", "map", { x = 115, y = 113, txt = C.GetMapName(C.GetMapID()) }):Change(function(szText)
 		ui:Fetch("Name"):Text(szText .. " = " .. ui:Fetch("source"):Text())
-	end)	
+	end)
 	ui:Append("WndButton3", { txt = g_tStrings.STR_HOTKEY_SURE, x = 115, y = 185 })
 	:Click(function()
 		local map = C.GetMapType(ui:Fetch("map"):Text())
@@ -1168,7 +1172,7 @@ PS.OnPanelActive = function(frame)
 	:Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bWhisperChat = bChecked
 	end):Pos_()
-	
+
 	nX,nY = ui:Append("WndCheckBox", "bBorder", { x = nX + 5, y = nY + 10, checked = Circle.bBorder, txt = _L["Circle Border"] }):Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bBorder = bChecked
 		FireEvent("CIRCLE_CLEAR")
@@ -1187,7 +1191,7 @@ PS.OnPanelActive = function(frame)
 		}
 		for i = -1, -2, -1 do
 			if C.tData[i] then
-				tinsert(menu, { szOption = C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i]), 
+				tinsert(menu, { szOption = C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i]),
 					rgb = { 255, 180, 0 },
 					szLayer = "ICON_RIGHT",
 					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
@@ -1200,11 +1204,11 @@ PS.OnPanelActive = function(frame)
 							FireEvent("CIRCLE_CLEAR")
 						end)
 					end,
-					fnAction = function() 
+					fnAction = function()
 						C.dwSelMapID = i
 						FireEvent("CIRCLE_DRAW_UI")
 						ui:Fetch("Select"):Text(C.GetMapName(i))
-					end 
+					end
 				})
 			end
 		end
@@ -1215,7 +1219,7 @@ PS.OnPanelActive = function(frame)
 					tm = menu[3]
 					txt = string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k])
 				end
-				tinsert(tm, { szOption = C.GetMapName(k) .. txt, 
+				tinsert(tm, { szOption = C.GetMapName(k) .. txt,
 					rgb = { 255, 180, 0 },
 					szLayer = "ICON_RIGHT",
 					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
@@ -1228,11 +1232,11 @@ PS.OnPanelActive = function(frame)
 							FireEvent("CIRCLE_CLEAR")
 						end)
 					end,
-					fnAction = function() 
+					fnAction = function()
 						C.dwSelMapID = k
 						FireEvent("CIRCLE_DRAW_UI")
 						ui:Fetch("Select"):Text(C.GetMapName(k))
-					end 
+					end
 				})
 				if k == C.GetMapID() then
 					tm[#tm].szIcon = "ui/Image/Minimap/Minimap.uitex"
@@ -1243,7 +1247,7 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 		tinsert(menu, { bDevide = true })
-		tinsert(menu, { szOption = _L["Mapping"], rgb = { 255, 0, 0 } , 
+		tinsert(menu, { szOption = _L["Mapping"], rgb = { 255, 0, 0 } ,
 			{ szOption = _L["Add Mapping"], fnAction = C.OpenMtPanel },
 			{ bDevide = true },
 		})
@@ -1256,7 +1260,7 @@ PS.OnPanelActive = function(frame)
 				if not C.tMt[k] then -- 数据非法
 					r, g, b = 128, 128, 128
 				end
-				tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]), 
+				tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]),
 					rgb = { r, g, b },
 					szLayer = "ICON_RIGHT",
 					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
@@ -1279,7 +1283,7 @@ PS.OnPanelActive = function(frame)
 		end
 		return menu
 	end):Pos_()
-	
+
 	ui:Append("WndEdit", "Search", { x = 330, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
 		if ui:Fetch("Search"):Text() == g_tStrings.SEARCH then
 			ui:Fetch("Search"):Text("")
@@ -1289,7 +1293,7 @@ PS.OnPanelActive = function(frame)
 		C.szSearch = szText
 		FireEvent("CIRCLE_DRAW_UI")
 	end):Pos_()
-	
+
 	local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
 	local win = fx:Lookup("WndScroll")
 	win:ChangeRelation(frame, true, true)
@@ -1303,7 +1307,7 @@ end
 GUI.RegisterPanel(_L["Circle"], 2673, _L["RGES"], PS)
 
 C.Init = function()
-	JH.RegisterInit("Circle", 
+	JH.RegisterInit("Circle",
 		{ "Breathe", C.OnBreathe },
 		{ "NPC_ENTER_SCENE", C.OnNpcEnter },
 		{ "NPC_LEAVE_SCENE", C.OnNpcLeave },
@@ -1336,8 +1340,8 @@ JH.RegisterEvent("CIRCLE_DEBUG", function()
 	end
 end)
 JH.RegisterEvent("LOGIN_GAME", function()
-	if Circle.bEnable then 
-		C.Init() 
+	if Circle.bEnable then
+		C.Init()
 	end
 end)
 

@@ -1,8 +1,13 @@
+-- @Author: Webster
+-- @Date:   2015-01-21 15:21:19
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2015-02-26 00:37:24
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
 -----------------------------------------------
 -- global cache
+
 local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
 local setmetatable = setmetatable
@@ -18,21 +23,21 @@ local FIGHT_DEATH            = g_tStrings.FIGHT_DEATH
 local MOVE_STATE_ON_STAND    = MOVE_STATE.ON_STAND
 local MOVE_STATE_ON_DEATH    = MOVE_STATE.ON_DEATH
 -- local value
-local CTM_ALPHA_STEP   = 15    -- 240 / CTM_ALPHA_STEP
-local CTM_BOX_HEIGHT   = 42    -- 注意::受限ini 这里只是作用于动态修改
-local CTM_GROUP_COUNT  = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
-local CTM_MEMBER_COUNT = 5
-local CTM_DRAG         = false
-local CTM_INIFILE      = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Party.ini"
-local CTM_ITEM         = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini"
-local CTM_BUFF_ITEM    = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini"
-local CTM_IMAGES       = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/images/ForceColorBox.UITex"
+local CTM_ALPHA_STEP         = 15    -- 240 / CTM_ALPHA_STEP
+local CTM_BOX_HEIGHT         = 42    -- 注意::受限ini 这里只是作用于动态修改
+local CTM_GROUP_COUNT        = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
+local CTM_MEMBER_COUNT       = 5
+local CTM_DRAG               = false
+local CTM_INIFILE            = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Party.ini"
+local CTM_ITEM               = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini"
+local CTM_BUFF_ITEM          = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini"
+local CTM_IMAGES             = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/images/ForceColorBox.UITex"
 local CTM_TAR_TEMP
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET
-local CTM_CACHE        = setmetatable({}, { __mode = "v" })
-local CTM_LIFE_CACHE   = {}
+local CTM_CACHE              = setmetatable({}, { __mode = "v" })
+local CTM_LIFE_CACHE         = {}
 -- Package func
 local HIDE_FORCE = {
 	[7]  = true,

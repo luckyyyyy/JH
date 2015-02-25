@@ -1,3 +1,7 @@
+-- @Author: Webster
+-- @Date:   2015-01-21 15:21:19
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2015-02-26 00:37:40
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
