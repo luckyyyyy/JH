@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 14:32:59
+-- @Last Modified time: 2015-02-26 15:07:50
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -593,7 +593,7 @@ PS2.OnPanelActive = function(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, checked = RaidGrid_CTM_Edition.bColoredName })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, checked = RaidGrid_CTM_Edition.bColoredName })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bColoredName = bCheck
 		if CTM_FRAME then
