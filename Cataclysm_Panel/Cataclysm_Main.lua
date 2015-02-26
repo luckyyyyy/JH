@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 23:45:40
+-- @Last Modified time: 2015-02-27 01:44:51
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -167,7 +167,7 @@ end
 
 local function SetFrameSize(n)
 	if CTM_FRAME then
-		local nGroup = n or GetGroupTotal()
+		local nGroup = GetGroupTotal()
 		local w = 128 * nGroup
 		local _, h = CTM_FRAME:GetSize()
 		if RaidGrid_CTM_Edition.fScaleX > 1 then
@@ -176,6 +176,13 @@ local function SetFrameSize(n)
 		CTM_FRAME:SetSize(w, h)
 		CTM_FRAME:SetDragArea(0, 0, w, h)
 		CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
+		if n == "Leave" then
+			local w = 128
+			if RaidGrid_CTM_Edition.fScaleX > 1 then
+				w = w * RaidGrid_CTM_Edition.fScaleX
+			end
+			CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
+		end
 	end
 end
 
@@ -362,9 +369,20 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		Grid_CTM:AutoLinkAllPanel()
 	end
 end
--------------------------------------------------
--- 菜单和世界标记
--------------------------------------------------
+
+function RaidGrid_CTM_Edition.OnFrameBreathe()
+	local me = GetClientPlayer()
+	if not me then return end
+	Grid_CTM:RefreshDistance()
+	Grid_CTM:RefresBuff()
+	if RaidGrid_CTM_Edition.bShowTargetTargetAni then
+		Grid_CTM:RefreshTarget()
+	end
+	-- kill System Panel
+	RaidPanel_Switch(DEBUG)
+	TeammatePanel_Switch(false)
+end
+
 function RaidGrid_CTM_Edition.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Option" then
@@ -432,29 +450,18 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	end
 end
 
-function RaidGrid_CTM_Edition.OnFrameBreathe()
-	local me = GetClientPlayer()
-	if not me then return end
-	Grid_CTM:RefreshDistance()
-	Grid_CTM:RefresBuff()
-	if RaidGrid_CTM_Edition.bShowTargetTargetAni then
-		Grid_CTM:RefreshTarget()
-	end
-	-- kill System Panel
-	RaidPanel_Switch(DEBUG)
-	TeammatePanel_Switch(false)
-end
-
 function RaidGrid_CTM_Edition.OnMouseEnter()
 	local me = GetClientPlayer()
-	if me.IsInRaid() then
-		if GetGroupTotal() > 1 and GKP_RECORD_TOTAL > 0 then -- 第一个GKP
-			SetFrameSize()
+	local nGroup = GetGroupTotal()
+	if me.IsInRaid() and nGroup > 1 then
+		SetFrameSize()
+		if GKP_RECORD_TOTAL > 0 and GKP then -- 第一个GKP
 			local text = CTM_FRAME:Lookup("", "Text_GKP")
 			text:SetText("GKP:" .. GKP_RECORD_TOTAL)
+			text:SetFontColor(GKP.GetMoneyCol(GKP_RECORD_TOTAL))
 			text:Show()
 			text.OnItemRButtonClick = GKP.OpenPanel
-			text:SetRelPos(125 * RaidGrid_CTM_Edition.fScaleX, 0)
+			text:SetRelPos(128 * (nGroup - 1) * RaidGrid_CTM_Edition.fScaleX, 0)
 			text:SetSize(125 * RaidGrid_CTM_Edition.fScaleX, 28)
 			CTM_FRAME:Lookup("", ""):FormatAllItemPos()
 		else
@@ -467,7 +474,7 @@ end
 
 function RaidGrid_CTM_Edition.OnMouseLeave()
 	if not IsKeyDown("LButton") then
-		SetFrameSize(1)
+		SetFrameSize("Leave")
 		CTM_FRAME:Lookup("", "Text_GKP"):Hide()
 	end
 end
@@ -818,7 +825,6 @@ PS3.OnPanelActive = function(frame)
 		RaidGrid_CTM_Edition.fScaleX = nVal
 		if CTM_FRAME then
 			Grid_CTM:Scale(nNewX, nNewY)
-			SetFrameSize(1)
 		end
 	end):Pos_()
 
