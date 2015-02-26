@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 18:23:33
+-- @Last Modified time: 2015-02-26 23:22:57
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -202,6 +202,7 @@ _GKP.OpenPanel = function(bDisableSound)
 	end
 	return frame
 end
+GKP.OpenPanel = _GKP.OpenPanel
 -- close
 _GKP.ClosePanel = function(bRealClose)
 	if _GKP.frame then
