@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 15:18:35
+-- @Last Modified time: 2015-02-26 17:40:00
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -54,6 +54,20 @@ RegisterCustomData("Cataclysm_KEY")
 
 local function GetConfigurePath()
 	return "config/Cataclysm_" .. Cataclysm_KEY .. ".jx3dat"
+end
+
+local function SetConfigure()
+	CTM_CONFIG_PLAYER = JH.LoadLUAData(GetConfigurePath()) or CTM_CONFIG
+	-- options fixed
+	for k, v in pairs(CTM_CONFIG) do
+		if not CTM_CONFIG_PLAYER[k] then
+			CTM_CONFIG_PLAYER[k] = v
+		end
+	end
+	setmetatable(RaidGrid_CTM_Edition, {
+		__index = CTM_CONFIG_PLAYER,
+		__newindex = CTM_CONFIG_PLAYER,
+	})
 end
 
 local CTM_FRAME
@@ -402,6 +416,13 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	end
 end
 
+function RaidGrid_CTM_Edition.OnMouseEnter( ... )
+	-- body
+end
+function RaidGrid_CTM_Edition.OnMouseLeave( ... )
+	-- body
+end
+
 function RaidGrid_CTM_Edition.OnFrameDragEnd()
 	this:CorrectPos()
 	RaidGrid_CTM_Edition.tAnchor = GetFrameAnchor(this)
@@ -576,6 +597,12 @@ PS.OnPanelActive = function(frame)
 	nX = ui:Append("Text", { x = 10, y = nY + 8, txt = _L["Configuration name"] }):Pos_()
 	ui:Append("WndEdit", { x = nX + 5, y = nY + 10, txt = Cataclysm_KEY }):Change(function(txt)
 		Cataclysm_KEY = txt
+		SetConfigure()
+		if CTM_FRAME then
+			RaidClosePanel()
+			RaidOpenPanel()
+			Grid_CTM:ReloadParty()
+		end
 	end)
 end
 GUI.RegisterPanel(_L["Cataclysm"], 5389, _L["Panel"], PS)
@@ -838,19 +865,7 @@ local SaveConfig = function()
 end
 JH.RegisterEvent("GAME_EXIT", SaveConfig)
 JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
-JH.RegisterEvent("LOGIN_GAME", function()
-	CTM_CONFIG_PLAYER = JH.LoadLUAData(GetConfigurePath()) or CTM_CONFIG
-	-- options fixed
-	for k, v in pairs(CTM_CONFIG) do
-		if not CTM_CONFIG_PLAYER[k] then
-			CTM_CONFIG_PLAYER[k] = v
-		end
-	end
-	setmetatable(RaidGrid_CTM_Edition, {
-		__index = CTM_CONFIG_PLAYER,
-		__newindex = CTM_CONFIG_PLAYER,
-	})
-end)
+JH.RegisterEvent("LOGIN_GAME", SetConfigure)
 
 JH.AddonMenu(function()
 	return { szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = EnableTeamPanel }
