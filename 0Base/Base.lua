@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:36:46
+-- @Last Modified time: 2015-02-26 13:28:25
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -131,30 +131,38 @@ local GetTime, GetLogicFrameCount = GetTime, GetLogicFrameCount
 local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
 local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam
 -- 树形打印一个表
-JH.print_r = function(root, szPath)
-	local cache = {  [root] = "." }
-	local function _dump(t,space,name)
-		local temp = {}
-		for k,v in pairs(t) do
-			local key = tostring(k)
-			if cache[v] then
-				tinsert(temp, "+" .. key .. " {" .. cache[v] .."}")
-			elseif type(v) == "table" then
-				local new_key = name .. "." .. key
-				cache[v] = new_key
-				tinsert(temp, "+" .. key .. _dump(v, space .. (next(t,k) and "|" or " " ) .. srep(" ", #key), new_key))
+local function pr(t, name, indent)
+	local tableList = {}
+	function table_r (t, name, indent, full)
+		local id = not full and name or type(name)~="number" and tostring(name) or '['..name..']'
+		local tag = indent .. id .. ' = '
+		local out = {}  -- result
+		if type(t) == "table" then
+			if tableList[t] ~= nil then
+				tinsert(out, tag .. '{} -- ' .. tableList[t] .. ' (self reference)')
 			else
-				tinsert(temp, "+" .. key .. " [" .. tostring(v) .."]")
+				tableList[t]= full and (full .. '.' .. id) or id
+				if next(t) then -- Table not empty
+					tinsert(out, tag .. '{')
+					for key,value in pairs(t) do
+						tinsert(out,table_r(value,key,indent .. '|\t',tableList[t]))
+					end
+					tinsert(out,indent .. '}')
+				else tinsert(out,tag .. '{}') end
 			end
+		else
+			local val = type(t)~="number" and type(t)~="boolean" and '"'..tostring(t)..'"' or tostring(t)
+			tinsert(out, tag .. val)
 		end
-		return tconcat(temp, "\n"..space)
+		return table.concat(out, '\n')
 	end
-	if szPath then
-		JH.SaveLUAData(szPath, _dump(root, "", ""))
-	else
-		print(_dump(root, "", ""))
-	end
+	return table_r(t,name or 'Value',indent or '')
 end
+
+JH.print_r = function( ... )
+	return pr( ... )
+end
+
 -- parse faceicon in talking message
 _JH.ParseFaceIcon = function(t)
 	if not _JH.tFaceIcon then
@@ -1702,7 +1710,7 @@ function _GUI.Frm:Size(nW, nH)
 	hnd:Lookup("Image_BgRC"):SetH(nH - 149)
 	hnd:Lookup("Image_BgCB"):SetW(nW - 132)
 	hnd:Lookup("Text_Title"):SetW(nW - 90)
-	
+
 	hnd:FormatAllItemPos()
 	frm:Lookup("Btn_Close"):SetRelPos(nW - 35, 15)
 	self.wnd:SetSize(nW - 90, nH - 90)
@@ -3069,7 +3077,7 @@ GUI.OpenColorTablePanel = function(fnAction)
 			end
 		end
 	end
-	
+
 	for i = 1, 16 do
 		local x = 480 + (i - 1) * 25
 		local y = 435

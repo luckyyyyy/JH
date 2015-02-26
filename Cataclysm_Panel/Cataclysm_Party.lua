@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:37:24
+-- @Last Modified time: 2015-02-26 13:06:47
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -62,20 +62,20 @@ local function OpenRaidDragPanel(dwMemberID)
 		return
 	end
 	local hFrame = Wnd.OpenWindow("RaidDragPanel")
-	
+
 	local nX, nY = Cursor.GetPos()
 	hFrame:SetAbsPos(nX, nY)
 	hFrame:StartMoving()
-	
+
 	hFrame.dwID = dwMemberID
 	local hMember = hFrame:Lookup("", "")
-	
+
 	local szPath, nFrame = GetForceImage(tMemberInfo.dwForceID)
 	hMember:Lookup("Image_Force"):FromUITex(szPath, nFrame)
-	
+
 	local hTextName = hMember:Lookup("Text_Name")
 	hTextName:SetText(tMemberInfo.szName)
-	
+
 	local hImageLife = hMember:Lookup("Image_Health")
 	local hImageMana = hMember:Lookup("Image_Mana")
 	if tMemberInfo.bIsOnLine then
@@ -101,7 +101,7 @@ local function CloseRaidDragPanel()
 	end
 end
 -- OutputTeamMemberTip 系统的API不好用所以这是改善版
-local function OutputTeamMemberTip(dwID, rc)	
+local function OutputTeamMemberTip(dwID, rc)
 	local hTeam = GetClientTeam()
 	local tMemberInfo = hTeam.GetMemberInfo(dwID)
 	if not tMemberInfo then
@@ -131,20 +131,20 @@ local function OutputTeamMemberTip(dwID, rc)
 	end
 	if IsCtrlKeyDown() then
 		szTip = szTip .. GetFormatText(FormatString(g_tStrings.TIP_PLAYER_ID, dwID), 102)
-	end	
+	end
 	OutputTip(szTip, 345, rc)
 end
 
 local function InsertChangeGroupMenu(tMenu, dwMemberID)
 	local hTeam = GetClientTeam()
 	local tSubMenu = { szOption = g_tStrings.STR_RAID_MENU_CHANG_GROUP }
-	
+
 	local nCurGroupID = hTeam.GetMemberGroupIndex(dwMemberID)
 	for i = 0, hTeam.nGroupNum - 1 do
 		if i ~= nCurGroupID then
 			local tGroupInfo = hTeam.GetGroupInfo(i)
 			if tGroupInfo and tGroupInfo.MemberList then
-				local tSubSubMenu = 
+				local tSubSubMenu =
 				{
 					szOption = g_tStrings.STR_NUMBER[i + 1],
 					bDisable = (#tGroupInfo.MemberList >= CTM_MEMBER_COUNT),
@@ -277,7 +277,7 @@ function CTM:AutoLinkAllPanel() --自动连接所有面板
 		local hPartyPanel = self:GetPartyFrame(i)
 		if hPartyPanel then
 			local nW, nH = hPartyPanel:GetSize()
-			
+
 			if nShownCount < RaidGrid_CTM_Edition.nAutoLinkMode then
 				tPosnSize[nShownCount] = { nX = nX + (128 * RaidGrid_CTM_Edition.fScaleX * nShownCount), nY = nY, nW = nW, nH = nH }
 			else
@@ -324,7 +324,7 @@ function CTM:RefreshTarget()
 			CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Hide()
 		end
 	end
-	
+
 	local dwID, dwType = Target_GetTargetData()
 	if dwType == TARGET.PLAYER and JH.IsParty(dwID) then
 		CTM_TARGET = dwID
@@ -332,7 +332,7 @@ function CTM:RefreshTarget()
 			CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):Show()
 		end
 	end
-	
+
 	if RaidGrid_CTM_Edition.bShowTargetTargetAni and dwID then
 		local KObject = JH.GetTarget(dwID)
 		if KObject then
@@ -394,7 +394,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 		else
 			h:Lookup("Handle_Icons/Image_Leader"):Hide()
 		end
-		
+
 		if t[TEAM_AUTHORITY_TYPE.MARK] == dwID then
 			h:Lookup("Handle_Icons/Image_Marker"):Show()
 		else
@@ -407,9 +407,9 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 			h:Lookup("Handle_Icons/Image_Looter"):Hide()
 		end
 	end
-	
+
 	if type(tSetting) == "table" then -- 根据表的内容刷新标记队长等信息
-		fnAction(tSetting)	
+		fnAction(tSetting)
 	elseif type(tSetting) == "boolean" and tSetting then
 		fnAction(self:GetTeamInfo())
 	end
@@ -445,6 +445,8 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 	-- 刷新名字
 	if bName then
 		local TextName = h:Lookup("Text_Name")
+		local life = h:Lookup("Handle_Common/Text_Life")
+		life:SetFontScheme(RaidGrid_CTM_Edition.nLifeFont) -- 主要是为了省开销
 		TextName:SetText(info.szName)
 		TextName:SetFontScheme(RaidGrid_CTM_Edition.nFont)
 		if RaidGrid_CTM_Edition.bColoredName then
@@ -550,17 +552,8 @@ function CTM:DrawParty(nIndex, bHandle)
 			h.nGroup = nIndex
 			CTM_CACHE[dwID] = h
 			local info = self:GetMemberInfo(dwID)
-			-- name
-			local TextName = h:Lookup("Text_Name")
-			TextName:SetText(info.szName)
-			TextName:SetFontScheme(RaidGrid_CTM_Edition.nFont)
-			if RaidGrid_CTM_Edition.bColoredName then
-				TextName:SetFontColor(GetForceColor(info.dwForceID))
-			else
-				TextName:SetFontColor(255, 255, 255)
-			end
 			h:Lookup("Handle_Common/Image_BG_Force"):FromUITex(CTM_IMAGES, 3)
-			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader)
+			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader, false, true)
 		end
 		h.OnItemLButtonDrag = function()
 			if not dwID then return	end
@@ -574,7 +567,7 @@ function CTM:DrawParty(nIndex, bHandle)
 				OpenRaidDragPanel(dwID)
 			end
 		end
-		
+
 		h.OnItemLButtonUp = function() -- fix range bug
 			JH.DelayCall(50, function()
 				if CTM_DRAG then
@@ -585,11 +578,11 @@ function CTM:DrawParty(nIndex, bHandle)
 				end
 			end)
 		end
-		
+
 		h.OnItemLButtonDragEnd = function()
 			if CTM_DRAG and dwID ~= CTM_DRAG_ID then
 				local team = GetClientTeam()
-				local player = GetClientPlayer()				
+				local player = GetClientPlayer()
 				team.ChangeMemberGroup(CTM_DRAG_ID, nIndex, dwID or 0)
 				CTM_DRAG, CTM_DRAG_ID = false, nil
 				CloseRaidDragPanel()
@@ -661,8 +654,8 @@ function CTM:DrawParty(nIndex, bHandle)
 			local info = self:GetMemberInfo(dwID)
 			if dwID ~= me.dwID then
 				InsertTeammateMenu(menu, dwID)
-				table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function() 
-					ViewInviteToPlayer(dwID) 
+				table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function()
+					ViewInviteToPlayer(dwID)
 				end })
 			else
 				InsertPlayerMenu(menu ,dwID)
@@ -739,7 +732,7 @@ function CTM:FormatFrame(frame, nMemberCount)
 	frame:Lookup("", "Handle_BG"):FormatAllItemPos()
 end
 
--- 注册buff 
+-- 注册buff
 -- arg0:dwMemberID, arg1:dwID, arg2:nLevel, arg3:tColor
 function CTM:RecBuff(arg0, arg1, arg2, arg3)
 	if CTM_CACHE[arg0] and CTM_CACHE[arg0]:IsValid() then
@@ -771,8 +764,8 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 				local hBox = hBuff:Lookup("Box")
 				hBox:SetObject(UI_OBJECT_ITEM, arg1, arg2)
 				hBox:SetObjectIcon(nIcon)
-				
-				local nTime = JH.GetEndTime(tBuff.nEndFrame)				
+
+				local nTime = JH.GetEndTime(tBuff.nEndFrame)
 				if nTime < 5 then
 					hBox:SetOverTextFontScheme(0, 219)
 					hBox:SetOverText(0, math.floor(nTime))
@@ -874,7 +867,7 @@ function CTM:RefreshDistance()
 					Lsha.nLevel = 1
 					Lsha.nDistance = 0
 					CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
-				end				
+				end
 			end
 		end
 	end
@@ -918,7 +911,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	end
 	nLifePercentage = nCurrentLife / nMaxLife
 	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
-	
+
 	local bDeathFlag = info.bDeathFlag
 	-- 有待验证
 	if p then
@@ -956,7 +949,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	else
 		Msha:Hide()
 	end
-	
+
 	-- 缓存
 	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
 		-- 颜色计算
@@ -1019,7 +1012,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		else
 			h:Lookup("Handle_Common/Shadow_Life_Fade"):Hide()
 		end
-		
+
 		if not CTM_LIFE_CACHE[dwID] then
 			CTM_LIFE_CACHE[dwID] = 0
 		else
@@ -1036,6 +1029,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		else
 			life:SetAlpha(255)
 		end
+
 		if not bDeathFlag and info.bIsOnLine then
 			life:SetFontColor(255, 255, 255)
 			if RaidGrid_CTM_Edition.nHPShownMode2 == 0 then
@@ -1140,7 +1134,7 @@ function CTM:ChangeReadyConfirm(dwID, status)
 			end)
 		elseif status == 2 then
 			h:Lookup("Image_NotReady"):Show()
-		end 
+		end
 	end
 end
 
@@ -1168,6 +1162,5 @@ CTM.SetTempTarget = function(dwMemberID, bEnter)
 		CTM_SetTarget(CTM_TAR_TEMP)
 	end
 end
-
 
 Grid_CTM = setmetatable({}, { __index = CTM, __newindex = function() end, __metatable = true })
