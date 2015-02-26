@@ -421,20 +421,20 @@ GKP.GetMoneyCol = function(Money)
 	local Money = tonumber(Money)
 	if Money then
 		if Money < 0 then
-			return 0,128,255
+			return 0, 128, 255
 		elseif Money < 1000 then
-			return 255,255,255
+			return 255, 255, 255
 		elseif Money < 10000 then
-			return 255,255,164
+			return 255, 255, 164
 		elseif Money < 100000 then
-			return 255,255,0
+			return 255, 255, 0
 		elseif Money < 1000000 then
-			return 255,128,0
+			return 255, 128, 0
 		else
-			return 255,0,0
+			return 255, 0, 0
 		end
 	else
-		return 255,255,255
+		return 255, 255, 255
 	end
 end
 
