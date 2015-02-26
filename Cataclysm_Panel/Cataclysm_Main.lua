@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 21:49:24
+-- @Last Modified time: 2015-02-26 23:45:40
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -44,7 +44,7 @@ local CTM_CONFIG = {
 	},
 	bFasterHP = false,
 }
-
+local GKP_RECORD_TOTAL = 0
 local CTM_CONFIG_PLAYER
 local DEBUG = false
 
@@ -59,7 +59,7 @@ local function SetConfigure()
 	CTM_CONFIG_PLAYER = JH.LoadLUAData(GetConfigurePath()) or CTM_CONFIG
 	-- options fixed
 	for k, v in pairs(CTM_CONFIG) do
-		if not CTM_CONFIG_PLAYER[k] then
+		if type(CTM_CONFIG_PLAYER[k]) == "nil" then
 			CTM_CONFIG_PLAYER[k] = v
 		end
 	end
@@ -146,6 +146,36 @@ local function TeammatePanel_Switch(bOpen)
 		else
 			hFrame:Hide()
 		end
+	end
+end
+
+local function GetGroupTotal()
+	local me, team = GetClientPlayer(), GetClientTeam()
+	local nGroup = 0
+	if me.IsInRaid() then
+		for i = 0, team.nGroupNum - 1 do
+			local tGropu = team.GetGroupInfo(i)
+			if #tGropu.MemberList > 0 then
+				nGroup = nGroup + 1
+			end
+		end
+	else
+		nGroup = 1
+	end
+	return nGroup
+end
+
+local function SetFrameSize(n)
+	if CTM_FRAME then
+		local nGroup = n or GetGroupTotal()
+		local w = 128 * nGroup
+		local _, h = CTM_FRAME:GetSize()
+		if RaidGrid_CTM_Edition.fScaleX > 1 then
+			w = w * RaidGrid_CTM_Edition.fScaleX
+		end
+		CTM_FRAME:SetSize(w, h)
+		CTM_FRAME:SetDragArea(0, 0, w, h)
+		CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
 	end
 end
 
@@ -316,6 +346,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			Grid_CTM:DrawParty(arg2)
 		end
 		Grid_CTM:RefreshGroupText()
+		Grid_CTM:RefreshMark()
 	elseif szEvent == "PARTY_LEVEL_UP_RAID" then
 		Grid_CTM:RefreshGroupText()
 	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
@@ -324,11 +355,12 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		Grid_CTM:RefreshTarget()
 	elseif szEvent == "JH_RAID_REC_BUFF" then
 		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3)
+	elseif szEvent == "GKP_RECORD_TOTAL" then
+		GKP_RECORD_TOTAL = arg0
 	elseif szEvent == "UI_SCALED" or "CTM_LOADING_END" then
 		UpdateAnchor(this)
 		Grid_CTM:AutoLinkAllPanel()
 	end
-
 end
 -------------------------------------------------
 -- 菜单和世界标记
@@ -413,11 +445,31 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	TeammatePanel_Switch(false)
 end
 
-function RaidGrid_CTM_Edition.OnMouseEnter( ... )
-	-- body
+function RaidGrid_CTM_Edition.OnMouseEnter()
+	local me = GetClientPlayer()
+	if me.IsInRaid() then
+		if GetGroupTotal() > 1 and GKP_RECORD_TOTAL > 0 then -- 第一个GKP
+			SetFrameSize()
+			local text = CTM_FRAME:Lookup("", "Text_GKP")
+			text:SetText("GKP:" .. GKP_RECORD_TOTAL)
+			text:Show()
+			text.OnItemRButtonClick = GKP.OpenPanel
+			text:SetRelPos(125 * RaidGrid_CTM_Edition.fScaleX, 0)
+			text:SetSize(125 * RaidGrid_CTM_Edition.fScaleX, 28)
+			CTM_FRAME:Lookup("", ""):FormatAllItemPos()
+		else
+			CTM_FRAME:Lookup("", "Text_GKP"):Hide()
+		end
+	else
+		CTM_FRAME:Lookup("", "Text_GKP"):Hide()
+	end
 end
-function RaidGrid_CTM_Edition.OnMouseLeave( ... )
-	-- body
+
+function RaidGrid_CTM_Edition.OnMouseLeave()
+	if not IsKeyDown("LButton") then
+		SetFrameSize(1)
+		CTM_FRAME:Lookup("", "Text_GKP"):Hide()
+	end
 end
 
 function RaidGrid_CTM_Edition.OnFrameDragEnd()
@@ -763,10 +815,11 @@ PS3.OnPanelActive = function(frame)
 	:Range(50, 250):Value(RaidGrid_CTM_Edition.fScaleX * 100):Change(function(nVal)
 		nVal = nVal / 100
 		local nNewX, nNewY = nVal / RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY / RaidGrid_CTM_Edition.fScaleY
-		if CTM_FRAME then
-			Grid_CTM:Scale(nNewX, nNewY) -- 官方BUG会造成handle2次缩放 很为难啊
-		end
 		RaidGrid_CTM_Edition.fScaleX = nVal
+		if CTM_FRAME then
+			Grid_CTM:Scale(nNewX, nNewY)
+			SetFrameSize(1)
+		end
 	end):Pos_()
 
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Interface Height"]}):Pos_()
@@ -774,10 +827,10 @@ PS3.OnPanelActive = function(frame)
 	:Range(50, 250):Value(RaidGrid_CTM_Edition.fScaleY * 100):Change(function(nVal)
 		nVal = nVal / 100
 		local nNewX, nNewY = RaidGrid_CTM_Edition.fScaleX / RaidGrid_CTM_Edition.fScaleX, nVal / RaidGrid_CTM_Edition.fScaleY
+		RaidGrid_CTM_Edition.fScaleY = nVal
 		if CTM_FRAME then
 			Grid_CTM:Scale(nNewX, nNewY)
 		end
-		RaidGrid_CTM_Edition.fScaleY = nVal
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Max buff count"]}):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2, txt = "" })
