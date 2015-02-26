@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 15:11:56
+-- @Last Modified time: 2015-02-26 15:18:35
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -225,6 +225,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		Grid_CTM:CallDrawHPMP(true)
 	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then -- ??
 		Grid_CTM:CallRefreshImages(arg1, true, true, nil, true, true)
+		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_ADD_MEMBER" then
 		if Grid_CTM:GetPartyFrame(arg2) then
 			Grid_CTM:DrawParty(arg2, true)
@@ -521,6 +522,7 @@ PS.OnPanelActive = function(frame)
 		RaidGrid_CTM_Edition.nShowIcon = 1
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY, txt = g_tStrings.STR_SHOW_KUNGFU, group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 2 })
@@ -528,6 +530,7 @@ PS.OnPanelActive = function(frame)
 		RaidGrid_CTM_Edition.nShowIcon = 2
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Camp Icon"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 3 })
@@ -535,6 +538,7 @@ PS.OnPanelActive = function(frame)
 		RaidGrid_CTM_Edition.nShowIcon = 3
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Text Force"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 4 })
@@ -542,6 +546,7 @@ PS.OnPanelActive = function(frame)
 		RaidGrid_CTM_Edition.nShowIcon = 4
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 
@@ -598,6 +603,7 @@ PS2.OnPanelActive = function(frame)
 		RaidGrid_CTM_Edition.bColoredName = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, false, nil, false, true)
+			Grid_CTM:CallDrawHPMP(true ,true)
 		end
 	end):Pos_()
 
