@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 15:07:50
+-- @Last Modified time: 2015-02-26 15:11:56
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -764,6 +764,7 @@ PS3.OnPanelActive = function(frame)
 			RaidGrid_CTM_Edition.nFont = nFont
 			if CTM_FRAME then
 				Grid_CTM:CallRefreshImages(true, false, false, nil, false, true)
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end)
 	end):Pos_()
