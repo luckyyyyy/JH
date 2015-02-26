@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:37:40
+-- @Last Modified time: 2015-02-26 18:23:33
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -91,10 +91,10 @@ _GKP.Config = JH.LoadLUAData("config/gkp.cfg") or _GKP.Config
 ---------------------------------------------------------------------->
 -- 数据处理
 ----------------------------------------------------------------------<
-setmetatable(GKP,{ __call = function(me,key,value,sort)
+setmetatable(GKP,{ __call = function(me, key, value, sort)
 	if _GKP[key] then
 		if value and type(value) == "table" then
-			table.insert(_GKP[key],value)
+			table.insert(_GKP[key], value)
 			pcall(_GKP.GKP_Save)
 		elseif value and type(value) == "string" then
 			if sort == "asc" or sort == "desc" then
@@ -146,7 +146,7 @@ end
 
 _GKP.GKP_Save = function()
 	local me = GetClientPlayer()
-	local szPath = "GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()) .. ".gkp"	
+	local szPath = "GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()) .. ".gkp"
 	JH.SaveLUAData(szPath,{ GKP_Record = GKP("GKP_Record") , GKP_Account = GKP("GKP_Account") })
 end
 _GKP.GKP_LoadData = function(szFile)
@@ -175,7 +175,7 @@ _GKP.OpenLootPanel = function()
 					table.insert(t, GKP.GetFormatLink(_L["Expression"]))
 					JH.Talk(t)
 				end
-				return 
+				return
 			end
 			GKP.bLootStyle = not GKP.bLootStyle
 			if _GKP.dwOpenID then
@@ -242,7 +242,7 @@ _GKP.OnMsgArrive = function(szMsg)
 	local me = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat")
 	local h = me:Lookup("", "")
 	szMsg = string.gsub(szMsg, _L["[Team]"], "")
-	
+
 	local AppendText = function()
 		local t = TimeToDate(GetCurrentTime())
 		return GetFormatText(string.format(" %02d:%02d:%02d ", t.hour, t.minute, t.second), 10, 255, 255, 255)
@@ -254,7 +254,7 @@ _GKP.OnMsgArrive = function(szMsg)
 	if MY_Farbnamen and MY_Farbnamen.Render then
 		szMsg = MY_Farbnamen.Render(szMsg)
 	end
-	local xml = "<image>path=" .. EncodeComponentsString("UI/Image/Button/ShopButton.uitex") .. " frame=1 eventid=786 w=20 h=20 script=\"this.OnItemLButtonClick=GKP.DistributionItem\nthis.OnItemMouseEnter=function() this:SetFrame(2) end\nthis.OnItemMouseLeave=function() this:SetFrame(1) end\"</<image>>"	
+	local xml = "<image>path=" .. EncodeComponentsString("UI/Image/Button/ShopButton.uitex") .. " frame=1 eventid=786 w=20 h=20 script=\"this.OnItemLButtonClick=GKP.DistributionItem\nthis.OnItemMouseEnter=function() this:SetFrame(2) end\nthis.OnItemMouseLeave=function() this:SetFrame(1) end\"</<image>>"
 	h:AppendItemFromString(xml)
 	h:AppendItemFromString(szMsg)
 	h:FormatAllItemPos()
@@ -314,7 +314,7 @@ GKP.DistributionItem = function()
 	end
 	if JH.bDebug then p = aPartyMember[1] end
 	if not p or (p and not p.bOnlineFlag) then -- bOnlineFlag 刷新其实有延迟
-		return JH.Alert(_L["No Pick up Object, may due to Network off - line"]) 
+		return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 	end
 	local r,g,b = JH.GetForceColor(p.dwForceID)
 	-- 不管如何品质都弹出MessageBox 防止点错手滑误操作什么的
@@ -324,11 +324,11 @@ GKP.DistributionItem = function()
 			"font=162",
 			GetFormatText("[".. GetItemNameByItem(item) .."]", "166"..GetItemFontColorByQuality(item.nQuality, true)),
 			GetFormatText("[".. p.szName .."]", 162,r,g,b)
-		), 
+		),
 		szName = "Distribute_Item_Sure",
 		bRichText = true,
 		{
-			szOption = g_tStrings.STR_HOTKEY_SURE, 
+			szOption = g_tStrings.STR_HOTKEY_SURE,
 			fnAutoClose = function()
 				return false
 			end,
@@ -353,7 +353,7 @@ _GKP.SetChatWindow = function(item, ui)
 	local box = me:Lookup("","Box") or me:Lookup("","iteminfolink") or me:Lookup("","booklink") -- fix setname
 	local txt = me:Lookup("","Text")
 	txt:SetText(GetItemNameByItem(item))
-	txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))	
+	txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
 	local h = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat"):Lookup("","")
 	h:Clear()
 	box:SetObject(UI_OBJECT_ITEM_ONLY_ID, item.nUiId, item.dwID, item.nVersion, item.dwTabType, item.dwIndex)
@@ -450,7 +450,7 @@ GKP.GetFormatLink = function(item, bName)
 	else
 		if item.nGenre == ITEM_GENRE.BOOK then
 			return { type = "book", tabtype = item.dwTabType, index = item.dwIndex, bookinfo = item.nBookID, version = item.nVersion, text = "" }
-		else 
+		else
 			return { type = "iteminfo", version = item.nVersion, tabtype = item.dwTabType, index = item.dwIndex, text = "" }
 		end
 	end
@@ -480,8 +480,8 @@ end
 GKP.GetTeamList = function()
 	local TeamMemberList = GetClientTeam().GetTeamMemberList()
 	local tTeam,menu = {},{}
-	if JH.bDebug then 
-		tTeam = _GKP.aPartyMember 
+	if JH.bDebug then
+		tTeam = _GKP.aPartyMember
 	else
 		for _,v in ipairs(TeamMemberList) do
 			local player = GetClientTeam().GetMemberInfo(v)
@@ -530,7 +530,7 @@ function GKP.OnFrameCreate()
 		end
 		if not JH.IsDistributer() and not JH_About.CheckNameEx() then -- debug
 			return JH.Alert(_L["You are not the distrubutor."])
-		end	
+		end
 		pcall(_GKP.Record)
 	end)
 	PageSet:Append("WndButton3", {x = 840,y = 570,txt = g_tStrings.GOLD_TEAM_SYLARY_LIST}):Click(_GKP.GKP_Calculation)
@@ -543,7 +543,7 @@ function GKP.OnFrameCreate()
 	PageSet:Fetch("WndCheck_GKP_Record"):Fetch("Text_GKP_Record"):Text(g_tStrings.GOLD_BID_RECORD_STATIC_TITLE)
 	PageSet:Fetch("WndCheck_GKP_Account"):Fetch("Text_GKP_Account"):Text(g_tStrings.GOLD_BID_RPAY_STATIC_TITLE)
 	PageSet:Fetch("WndCheck_GKP_Buff"):Fetch("Text_GKP_Buff"):Text(_L["Team Profile"])
-	
+
 	record:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(function()
 		if this.userdata then
 			record:Fetch("Money"):Text(0)
@@ -562,17 +562,17 @@ function GKP.OnFrameCreate()
 	record:Append("WndButton3",{x = 115,y = 300,txt = g_tStrings.STR_HOTKEY_SURE}):Name("btn_ok")
 	record:Append("WndComboBox",{x = 135,y = 53,txt = g_tStrings.PLAYER_NOT_EMPTY}):Name("TeamList"):Menu(GKP.GetTeamList)
 	record:Append("WndEdit",{x = 135,y = 155,w = 185,h = 25}):Name("Source")
-	
-	
+
+
 	local fnAction_Name = function()
 		local me = this
 		local txt = me:GetText()
 		if txt ~= "" then
-			if IsPopupMenuOpened() then 
+			if IsPopupMenuOpened() then
 				Wnd.CloseWindow("PopupMenuPanel")
 				me.txt = nil
 			end
-			return 
+			return
 		end
 		if IsPopupMenuOpened() then
 			return
@@ -595,7 +595,7 @@ function GKP.OnFrameCreate()
 		menu.x = nX
 		menu.y = nY + nH
 		menu.bShowKillFocus = true
-		menu.bDisableSound = true		
+		menu.bDisableSound = true
 		PopupMenu(menu)
 		Station.SetFocusWindow(me)
 	end
@@ -606,7 +606,7 @@ function GKP.OnFrameCreate()
 			Wnd.CloseWindow("PopupMenuPanel")
 		end
 	end):Change(fnAction_Name)
-	
+
 	local fnAction =  function()
 		local me = this
 		local txt = me:GetText()
@@ -647,7 +647,7 @@ function GKP.OnFrameCreate()
 			Station.SetFocusWindow(me)
 		elseif txt == "" then
 			me.txt = nil
-			if IsPopupMenuOpened() then 
+			if IsPopupMenuOpened() then
 				Wnd.CloseWindow("PopupMenuPanel")
 			end
 		else
@@ -666,7 +666,7 @@ function GKP.OnFrameCreate()
 		end
 	end):Change(fnAction)
 
-	
+
 	-- 排序
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Record")
 	local t = {
@@ -699,7 +699,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	
+
 	-- 排序2
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Account")
 	local t = {
@@ -710,7 +710,7 @@ function GKP.OnFrameCreate()
 		{"dwMapID",_L["The Map of Current Location when Money Changes"]},
 		{"nTime",_L["The Change of Time"]},
 	}
-	
+
 	for k ,v in ipairs(t) do
 		if v[2] then
 			local txt = page:Lookup("","Text_Account_Break"..k)
@@ -920,7 +920,7 @@ _GKP.GetSchemeMenu = function()
 			end,
 		})
 	end
-	
+
 	return menu
 end
 
@@ -1005,7 +1005,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 			return false
 		end
 	end)
-	
+
 	for k,v in ipairs(tab) do
 		local wnd = _GKP.GKP_Buff_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Buff_Item.ini","WndWindow",k)
 		local item = wnd:Lookup("","")
@@ -1085,7 +1085,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 				item:Lookup("Text_Score"):SetText(v.nEquipScore)
 			else
 				item:Lookup("Text_Score"):SetText(_L["Unopened"])
-			end			
+			end
 		else
 			for kk,vv in ipairs({"Text_Box1","Text_Box2","Text_Score","Text_Fight"}) do
 				item:Lookup(vv):SetText(ex)
@@ -1101,7 +1101,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 			SetTarget(TARGET.PLAYER,v.dwID)
 			ViewInviteToPlayer(v.dwID)
 		end
-		
+
 		item:Lookup("Text_Name").OnItemMouseEnter = function()
 			local szIcon,nFrame = GetForceImage(v.dwForceID)
 			local r,g,b = JH.GetForceColor(v.dwForceID)
@@ -1125,12 +1125,12 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 			local w, h = item:Lookup("Text_No"):GetSize()
 			OutputTip(szXml,600,{x,y,w,h})
 		end
-		
+
 		item:Lookup("Text_Name").OnItemMouseLeave = function()
 			HideTip()
 		end
 	end
-	_GKP.GKP_Buff_Container:FormatAllContentPos()	
+	_GKP.GKP_Buff_Container:FormatAllContentPos()
 end
 
 ---------------------------------------------------------------------->
@@ -1162,9 +1162,9 @@ _GKP.Draw_GKP_Record = function(key,sort)
 	_GKP.GKP_Record_Container.key = key
 	_GKP.GKP_Record_Container.sort = sort
 	_GKP.GKP_Record_Container:Clear()
-	local a,b = _GKP.GetRecordSum()
+	local a, b = _GKP.GetRecordSum()
 	local c = 0
-	for k,v in ipairs(tab) do
+	for k, v in ipairs(tab) do
 		if GKP.bDisplayEmptyRecords or v.nMoney ~= 0 then
 			local wnd = _GKP.GKP_Record_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Record_Item.ini","WndWindow",i)
 			local item = wnd:Lookup("","")
@@ -1178,7 +1178,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			item.OnItemRButtonClick = function()
 				if not JH.IsDistributer() then
 					return JH.Alert(_L["You are not the distrubutor."])
-				end	
+				end
 				_GKP.Record(v,k)
 			end
 			item:Lookup("Text_No"):SetText(k)
@@ -1195,7 +1195,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			end
 			item:Lookup("Text_Money"):SetText(v.nMoney)
 			item:Lookup("Text_Money"):SetFontColor(GKP.GetMoneyCol(v.nMoney))
-			
+
 			item:Lookup("Text_Source"):SetText(v.szNpcName)
 			if v.bSync then
 				item:Lookup("Text_Source"):SetFontColor(0,255,0)
@@ -1208,7 +1208,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
 			local iName, iIcon = JH.GetItemName(v.nUiId)
 			box:SetObjectIcon(iIcon)
-			
+
 			if v.nStackNum then
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 				box:SetOverTextFontScheme(0,15)
@@ -1230,15 +1230,15 @@ _GKP.Draw_GKP_Record = function(key,sort)
 					OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
 				end
 			end
-			
+
 			item:Lookup("Text_ItemName").OnItemMouseEnter = OnItemMouseEnter
 			box.OnItemMouseEnter = OnItemMouseEnter
-			
+
 			local OnItemMouseLeave = function()
 				box:SetObjectMouseOver(false)
 				HideTip()
 			end
-			
+
 			item:Lookup("Text_ItemName").OnItemMouseLeave = OnItemMouseLeave
 			box.OnItemMouseLeave = OnItemMouseLeave
 			local OnItemLButtonClick = function()
@@ -1248,25 +1248,25 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			end
 			item:Lookup("Text_ItemName").OnItemLButtonClick = OnItemLButtonClick
 			box.OnItemLButtonClick = OnItemLButtonClick
-			
+
 			wnd:Lookup("WndButton_Delete").OnLButtonClick = function()
 				if not JH.IsDistributer() then
 					return JH.Alert(_L["You are not the distrubutor."])
-				end	
+				end
 				local tab = GKP("GKP_Record","del",k)
 				if JH.IsDistributer() then
 					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","del",JH.AscIIEncode(JH.JsonEncode(tab)))
 				end
 				pcall(_GKP.Draw_GKP_Record)
 			end
-			
+
 			wnd:Lookup("WndButton_Edit").OnLButtonClick = function()
 				if not JH.IsDistributer() then
 					return JH.Alert(_L["You are not the distrubutor."])
-				end	
+				end
 				_GKP.Record(v,k)
 			end
-			
+
 			-- tip
 			item:Lookup("Text_Name"):RegisterEvent(786)
 			item:Lookup("Text_Name").OnItemLButtonClick = function()
@@ -1274,7 +1274,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 					return GKP.InsertEditByName(v.szPlayer)
 				end
 			end
-			
+
 			item:Lookup("Text_Name").OnItemMouseEnter = function()
 				local szIcon,nFrame = GetForceImage(v.dwForceID)
 				local r,g,b = JH.GetForceColor(v.dwForceID)
@@ -1294,7 +1294,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum .._L["Gold.\n"],136,r,g,b)
 				local r,g,b = GKP.GetMoneyCol(nNum1)
 				szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 .._L["Gold.\n"],136,r,g,b)
-				
+
 				for kk,vv in ipairs(GKP("GKP_Account")) do
 					if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
 						nNum2 = nNum2 + vv.nGold
@@ -1306,28 +1306,29 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				if nNum3 < 0 then
 					nNum3 = 0
 				end
-				local r,g,b = GKP.GetMoneyCol(nNum3)			
+				local r,g,b = GKP.GetMoneyCol(nNum3)
 				szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 .._L["Gold.\n"],136,r,g,b)
-				
+
 				local x, y = item:Lookup("Text_No"):GetAbsPos()
 				local w, h = item:Lookup("Text_No"):GetSize()
 				OutputTip(szXml,400,{x,y,w,h})
 			end
-			
+
 			item:Lookup("Text_Name").OnItemMouseLeave = function()
 				HideTip()
 			end
-			
+
 			if v.bDelete then
 				c = c + 1
 			end
 		end
 	end
-	
+
 	_GKP.GKP_Record_Container:FormatAllContentPos()
 	local txt = Station.Lookup("Normal/GKP/PageSet_Menu/Page_GKP_Record"):Lookup("","Text_GKP_RecordSettlement")
 	txt:SetText(_L("Statistic: real salary = %d Gold(By Auction: %d Gold + Extra Allowance: %d Gold) %d record has been deleted.",a+b,a,b,c))
-	txt:SetFontColor(255,255,0)
+	txt:SetFontColor(255, 255, 0)
+	FireEvent("GKP_RECORD_TOTAL", a, b)
 end
 ---------------------------------------------------------------------->
 -- 和谐
@@ -1336,7 +1337,7 @@ _GKP.GKP_Bidding = function()
 	local team = GetClientTeam()
 	if not JH.IsDistributer() then
 		return JH.Alert(_L["You are not the distrubutor."])
-	end	
+	end
 	local nGold = _GKP.GetRecordSum(true)
 	if nGold <= 0 then
 		return JH.Alert(_L["Auction Money <=0."])
@@ -1356,7 +1357,7 @@ _GKP.GKP_Bidding = function()
 		GoldTeam:Show()
 		Station.SetActiveFrame("GoldTeam")
 		GoldTeam:Lookup("PageSet_Total"):ActivePage(1)
-	end	
+	end
 end
 ---------------------------------------------------------------------->
 -- 同步数据
@@ -1412,7 +1413,7 @@ _GKP.OnMsg = function()
 				end
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Stop",arg3)
 			end
-			
+
 			if data[1] == "GKP_Sync_Start" and data[2] == me.szName then
 				_GKP.bSync = true
 				JH.Alert(_L["Start Sychoronizing..."])
@@ -1423,7 +1424,7 @@ _GKP.OnMsg = function()
 					JH.Alert(_L("Sychoronizing data please wait %d loaded.",#_GKP.tSyncQueue))
 				end
 			end
-			
+
 			if data[1] == "GKP_Sync_Stop" and data[2] == me.szName then
 				local str = ""
 				for i = 1, #_GKP.tSyncQueue do
@@ -1444,7 +1445,7 @@ _GKP.OnMsg = function()
 					pcall(_GKP.GKP_Save)
 				end)
 			end
-			
+
 			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.bAutoSync and arg3 ~= me.szName then
 				local tData,err = JH.JsonDecode(JH.AscIIDecode(data[2]))
 				if err then
@@ -1543,7 +1544,7 @@ _GKP.OnMsg = function()
 								:Animate("ui/Image/Common/Box.UITex", 17, -1)
 							end
 						end
-						
+
 						box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
 						local icon = 2490
 						if v.nUiId ~= 0 then
@@ -1622,7 +1623,7 @@ end
 _GKP.GKP_Recovery = function()
 	local me = GetClientPlayer()
 	_GKP.szName = _GKP.szName or me.szName
-	local menu = {}	
+	local menu = {}
 	table.insert(menu,{
 		szOption = _L("Loading Data of the Character's name: %s (edit by clicking)",_GKP.szName),
 		rgb = {255,255,0},
@@ -1633,7 +1634,7 @@ _GKP.GKP_Recovery = function()
 		end
 	})
 	for i = 0 , 19 do
-		local nTime = GetCurrentTime() - i * 86400		
+		local nTime = GetCurrentTime() - i * 86400
 		local szPath = JH.GetAddonInfo().szDataPath .. "GKP/" .. _GKP.szName .. "/" .. FormatTime("%Y-%m-%d",nTime) .. ".gkp"
 		table.insert(menu,{
 			szOption = FormatTime("%Y-%m-%d",nTime) .. ".gkp",
@@ -1645,7 +1646,7 @@ _GKP.GKP_Recovery = function()
 				end)
 			end,
 		})
-	end	
+	end
 	PopupMenu(menu)
 end
 ---------------------------------------------------------------------->
@@ -1679,8 +1680,8 @@ _GKP.GKP_OweList = function()
 	end
 	if not JH.IsDistributer() and not JH.bDebug then
 		return JH.Alert(_L["You are not the distrubutor."])
-	end	
-	_GKP.SetButton(false)	
+	end
+	_GKP.SetButton(false)
 	for k,v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if tonumber(v.nMoney) > 0 then
@@ -1717,7 +1718,7 @@ _GKP.GKP_OweList = function()
 			table.insert(tMember2, { szName = k, nGold = v })
 		end
 	end
-	
+
 	table.sort(tMember2, function(a,b) return a.nGold < b.nGold end)
 	JH.Talk(_L["Information on Debt"])
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "Information on Debt")
@@ -1924,7 +1925,7 @@ _GKP.DrawDistributeList = function(doodad)
 			frame:Lookup("","Image_Title"):SetSize(6 * 72, 30)
 			frame:SetSize(6 * 72, 8 + 30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
 		end
-		
+
 		-- local fx, fy = Station.GetClientSize()
 		local w, h = frame:GetSize()
 		-- frame:SetAbsPos((fx-w)/2,(fy-h)/2) -- 固定位置在中间 他们说不好就去掉了
@@ -1939,7 +1940,7 @@ _GKP.DrawDistributeList = function(doodad)
 		handle:SetHandleStyle(3)
 		frame:Lookup("Btn_Boss"):SetRelPos(210, 3)
 	end
-	
+
 	local team = GetClientTeam()
 	local aPartyMember = doodad.GetLooterList()
 	if JH.bDebug then
@@ -1956,8 +1957,8 @@ _GKP.DrawDistributeList = function(doodad)
 			aPartyMember[k].dwForceID = player.dwForceID
 		end
 	end
-	
-	
+
+
 	for item_k, item in ipairs(_GKP.aDistributeList) do
 		local szItemName = GetItemNameByItem(item)
 		local fnSetBox = function(box)
@@ -1971,13 +1972,13 @@ _GKP.DrawDistributeList = function(doodad)
 			end
 			return box
 		end
-		
+
 		local box
 		if GKP.bLootStyle then
 			handle:AppendItemFromString(string.format("<Box>name=\"box_%s\" EventID=816 w=64 h=64 </Box>", item_k))
 			box = handle:Lookup("box_" .. item_k)
 			box = fnSetBox(box)
-			-- append box			
+			-- append box
 			local x, y = (item_k - 1) % 6, math.ceil(item_k / 6) - 1
 			box:SetRelPos(x * 70 + 5, y * 70 + 5)
 			-- append img
@@ -2012,7 +2013,7 @@ _GKP.DrawDistributeList = function(doodad)
 			local _,dwID = me:GetObjectData()
 			OutputItemTip(UI_OBJECT_ITEM_ONLY_ID, dwID, nil, nil, {x, y, w, h}, nil, "loot")
 		end
-		
+
 		box.OnItemMouseLeave = function()
 			local me = this
 			if not GKP.bLootStyle and me:GetType() == "Handle" then
@@ -2053,7 +2054,7 @@ _GKP.DrawDistributeList = function(doodad)
 			local tMenu = {}
 			table.insert(tMenu,{ szOption = GetItemNameByItem(item) , bDisable = true})
 			table.insert(tMenu,{bDevide = true})
-			table.insert(tMenu,{ 
+			table.insert(tMenu,{
 				szOption = "Roll",
 				fnAction = function()
 					if MY_RollMonitor then
@@ -2080,7 +2081,7 @@ _GKP.DrawDistributeList = function(doodad)
 				PopupMenu(tMenu)
 			end
 		end
-		
+
 		box.OnItemLButtonClick = function()
 			if IsCtrlKeyDown() or IsAltKeyDown() then
 				return GKP.OnItemLinkDown(item,this)
@@ -2122,11 +2123,11 @@ _GKP.DrawDistributeList = function(doodad)
 									"font=162",
 									GetFormatText("[".. GetItemNameByItem(item) .."]", "166"..GetItemFontColorByQuality(item.nQuality, true)),
 									GetFormatText("[".. v.szName .."]", 162,r,g,b)
-								), 
-								szName = "Distribute_Item_Sure", 
+								),
+								szName = "Distribute_Item_Sure",
 								bRichText = true,
 								{
-									szOption = g_tStrings.STR_HOTKEY_SURE, 
+									szOption = g_tStrings.STR_HOTKEY_SURE,
 									fnAutoClose = function()
 										return false
 									end,
@@ -2140,7 +2141,7 @@ _GKP.DrawDistributeList = function(doodad)
 								},
 								{szOption = g_tStrings.STR_HOTKEY_CANCEL},
 							}
-							MessageBox(msg)	
+							MessageBox(msg)
 						else
 							if IsShiftKeyDown() then
 								_GKP.DistributeItem(item,v,doodad,true)
@@ -2186,13 +2187,13 @@ _GKP.DrawDistributeList = function(doodad)
 		end
 	end
 	handle:FormatAllItemPos()
-	
+
 	if _GKP.tDistributeRecords["EquipmentBoss"] then
 		frame:Lookup("Btn_Boss"):Show()
 		frame:Lookup("Btn_Boss").OnLButtonClick = function()
 			local tEquipment = {}
 			for k,v in ipairs(_GKP.aDistributeList) do
-				if v.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown() then -- 按住Ctrl的情况下 无视分类 否则只给装备	
+				if v.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown() then -- 按住Ctrl的情况下 无视分类 否则只给装备
 					table.insert(tEquipment,v)
 				end
 			end
@@ -2215,10 +2216,10 @@ _GKP.DrawDistributeList = function(doodad)
 				szXml = szXml .. GetFormatText(_L["All distrubute to"], 162,255,255,255)
 				szXml = szXml .. GetFormatText("[".. p.szName .."]", 162,r,g,b)
 				local msg = {
-					szMessage = szXml, 
-					szName = "Distribute_Item_Sure", 
+					szMessage = szXml,
+					szName = "Distribute_Item_Sure",
 					bRichText = true,
-					{szOption = g_tStrings.STR_HOTKEY_SURE, 
+					{szOption = g_tStrings.STR_HOTKEY_SURE,
 					fnAutoClose = function()
 						return false
 					end,
@@ -2229,7 +2230,7 @@ _GKP.DrawDistributeList = function(doodad)
 					end},
 					{szOption = g_tStrings.STR_HOTKEY_CANCEL},
 				}
-				MessageBox(msg)	
+				MessageBox(msg)
 			else
 				return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 			end
@@ -2256,7 +2257,7 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 	_GKP.OnOpenDoodad(_GKP.dwOpenID)
 	local tab = {
 		szPlayer = player.szName,
-		nUiId = item.nUiId,		
+		nUiId = item.nUiId,
 		szNpcName = doodad.szName,
 		dwDoodadID = doodad.dwID,
 		dwTabType = item.dwTabType,
@@ -2275,7 +2276,7 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 		tab["szName"] = GetItemNameByItem(item)
 		tab["nBookID"] = item.nBookID
 	end
-	
+
 	if GKP.bOn then
 		_GKP.Record(tab,item,bEnter)
 	else -- 关闭的情况所有东西全部绕过
@@ -2297,12 +2298,12 @@ _GKP.Record = function(tab,item,bEnter)
 	local auto = 0
 	record:Fetch("WndCheckBox"):Check(false)
 	if record:IsVisible() and record:Fetch("btn_Close").self.userdata then -- 上次是userdata并且没关闭
-		if text:Text() ~= g_tStrings.PLAYER_NOT_EMPTY and Name:Text() ~= "" then 
+		if text:Text() ~= g_tStrings.PLAYER_NOT_EMPTY and Name:Text() ~= "" then
 			Money:Text(0)
 			record:Fetch("btn_ok"):Click()
 		end
 	end
-	
+
 	if record:Fetch("btn_Close").self.userdata then
 		record:Fetch("btn_Close").self.userdata = nil
 	end
@@ -2324,7 +2325,7 @@ _GKP.Record = function(tab,item,bEnter)
 		Source:Text(_L["Add Manually"]):Enable(false)
 		Name:Text(""):Enable(true)
 		Money:Text("")
-	end	
+	end
 	if tab and type(item) == "number" then -- 编辑
 		text:Text(tab.szPlayer):Color(JH.GetForceColor(tab.dwForceID))
 		text.self.dwForceID = tab.dwForceID
@@ -2333,7 +2334,7 @@ _GKP.Record = function(tab,item,bEnter)
 		Source:Text(tab.szNpcName):Enable(true)
 		Money:Text(tab.nMoney)
 	end
-	
+
 	if tab and tab.nVersion and tab.nUiId and tab.dwTabType and tab.dwIndex then
 		-- Box
 		box:SetObject(UI_OBJECT_ITEM_INFO, tab.nVersion, tab.dwTabType, tab.dwIndex)
@@ -2366,7 +2367,7 @@ _GKP.Record = function(tab,item,bEnter)
 				OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
 			end
 		end
-		
+
 		box.OnItemMouseLeave = function()
 			this:SetObjectMouseOver(false)
 			HideTip()
@@ -2375,7 +2376,7 @@ _GKP.Record = function(tab,item,bEnter)
 	else
 		box:SetObject(UI_OBJECT_ITEM_ONLY_ID)
 		box:SetObjectIcon(95)
-	end	
+	end
 	record:Toggle(true)
 	if auto == 0 and type(item) ~= "number" and tab then -- edit/add killfocus
 		Money:Focus()
@@ -2397,7 +2398,7 @@ _GKP.Record = function(tab,item,bEnter)
 			nTime = GetCurrentTime(),
 			dwForceID = text.self.dwForceID or 0,
 			szName = Name:Text(),
-		}	
+		}
 		local nMoney = tonumber(Money:Text()) or 0
 		local szPlayer = text:Text()
 		if Name:Text() == "" then
@@ -2457,7 +2458,7 @@ _GKP.Record = function(tab,item,bEnter)
 		else
 			pcall(GKP,"GKP_Record",tab)
 		end
-		
+
 		pcall(_GKP.Draw_GKP_Record)
 		record:Toggle(false)
 		FireEvent("GKP_DEL_DISTRIBUTE_ITEM")
@@ -2465,7 +2466,7 @@ _GKP.Record = function(tab,item,bEnter)
 	if bEnter then
 		record:Fetch("btn_ok"):Click()
 	end
-	
+
 end
 ---------------------------------------------------------------------->
 -- OpenDoodad
@@ -2474,7 +2475,7 @@ _GKP.OpenDoodad = function(arg0)
 	local team = GetClientTeam()
 	local me = GetClientPlayer()
 	if me and team then
-		local nLootMode = team.nLootMode	
+		local nLootMode = team.nLootMode
 		if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE or JH.bDebug then -- 需要分配者模式
 			_GKP.dwOpenID = arg0
 			_GKP.OnOpenDoodad(arg0)
@@ -2499,7 +2500,7 @@ _GKP._OpenDoodad = function(arg0)
 				-- item Roll Distribute  Bidding
 				local item, _ , bDist = d.GetLootItem(i,me)
 				if item and bDist then -- 只操作需要分配的物品
-					refresh = true					
+					refresh = true
 					if item.dwID then
 						local tab = {
 							item = item,
@@ -2594,7 +2595,7 @@ end)
 RegisterEvent("SYNC_LOOT_LIST", function()
 	if _GKP.dwOpenID == arg0 and Station.Lookup("Normal/GKP_Loot") and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
 		_GKP.OpenDoodad(arg0)
-	end	
+	end
 	if JH.IsInDungeon() and JH_About.CheckNameEx() and GKP.bDebug2 and not _GKP.aDoodadCache[arg0] and not Station.Lookup("Normal/GKP_Loot") then
 		_GKP.OpenDoodad(arg0)
 	end
@@ -2605,11 +2606,11 @@ end)
 RegisterEvent("OPEN_DOODAD", function()
 	local team = GetClientTeam()
 	local me = GetClientPlayer()
-	local nLootMode = team.nLootMode	
+	local nLootMode = team.nLootMode
 	if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE or JH.bDebug then
 		_GKP.OpenDoodad(arg0)
 		JH.Debug("OPEN_DOODAD " .. arg0)
-	end	
+	end
 end)
 
 ---------------------------------------------------------------------->
@@ -2662,7 +2663,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 		local c = _GKP.GKP_Account_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Account_Item.ini","WndWindow",i)
 		local item = c:Lookup("","")
 		if k % 2 == 0 then
-			item:Lookup("Image_Line"):Hide()			
+			item:Lookup("Image_Line"):Hide()
 		end
 		if v.bDelete then
 			c:SetAlpha(80)
@@ -2672,8 +2673,8 @@ _GKP.Draw_GKP_Account = function(key,sort)
 			c:Lookup("","Handle_Money"):Lookup(0):SetFontColor(255,0,0)
 		else
 			c:Lookup("","Handle_Money"):Lookup(0):SetFontColor(0,255,0)
-		end		
-		c:Lookup("","Handle_Money"):FormatAllItemPos()		
+		end
+		c:Lookup("","Handle_Money"):FormatAllItemPos()
 		item:Lookup("Text_No"):SetText(k)
 		if v.szPlayer and v.szPlayer ~= "System" then
 			item:Lookup("Image_NameIcon"):FromUITex(GetForceImage(v.dwForceID))
@@ -2686,12 +2687,12 @@ _GKP.Draw_GKP_Account = function(key,sort)
 			item:Lookup("Text_Change"):SetText(_L["Reward & other ways"])
 		end
 		item:Lookup("Text_Map"):SetText(JH.GetMapName(v.dwMapID))
-		item:Lookup("Text_Time"):SetText(GKP.GetTimeString(v.nTime))		
+		item:Lookup("Text_Time"):SetText(GKP.GetTimeString(v.nTime))
 		c:Lookup("WndButton_Delete").OnLButtonClick = function()
 			GKP("GKP_Account","del",k)
 			pcall(_GKP.Draw_GKP_Account)
 		end
-		
+
 		-- tip
 		item:Lookup("Text_Name"):RegisterEvent(786)
 		item:Lookup("Text_Name").OnItemLButtonClick = function()
@@ -2699,7 +2700,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 				return GKP.InsertEditByName(v.szPlayer)
 			end
 		end
-		
+
 		item:Lookup("Text_Name").OnItemMouseEnter = function()
 			local szIcon,nFrame = GetForceImage(v.dwForceID)
 			local r,g,b = JH.GetForceColor(v.dwForceID)
@@ -2719,7 +2720,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 			szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum .._L["Gold.\n"],136,r,g,b)
 			local r,g,b = GKP.GetMoneyCol(nNum1)
 			szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 .._L["Gold.\n"],136,r,g,b)
-			
+
 			for kk,vv in ipairs(GKP("GKP_Account")) do
 				if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
 					nNum2 = nNum2 + vv.nGold
@@ -2733,7 +2734,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 			end
 			local r,g,b = GKP.GetMoneyCol(nNum3)
 			szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 .._L["Gold.\n"],136,r,g,b)
-			
+
 			local x, y = item:Lookup("Text_No"):GetAbsPos()
 			local w, h = item:Lookup("Text_No"):GetSize()
 			OutputTip(szXml,400,{x,y,w,h})
@@ -2831,7 +2832,7 @@ DeathWarn.OnSkillEffectLog = function(dwCaster, dwTarget, bReact, nEffectType, d
 			if nValue and nValue > 0 then
 				if szDamage ~= "" then
 					szDamage = szDamage..g_tStrings.STR_COMMA
-				end	
+				end
 				szDamage = szDamage..FormatString(g_tStrings.SKILL_DAMAGE, nValue, g_tStrings.STR_SKILL_PHYSICS_DAMAGE)
 			end
 			local nValue = tResult[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]
@@ -2907,7 +2908,7 @@ DeathWarn.OnCommonHealthLog = function(dwTarget, nDeltaLife)
 		nDeltaLife = -nDeltaLife
 	end
 	local me = GetClientPlayer()
-	local team = GetClientTeam() 
+	local team = GetClientTeam()
 	if IsPlayer(dwTarget) then
 		if team.IsPlayerInTeam(dwTarget) or dwTarget == me.dwID then
 			if not DeathWarn.tDamage[dwTarget] then
@@ -2924,9 +2925,9 @@ DeathWarn.OnCommonHealthLog = function(dwTarget, nDeltaLife)
 end
 
 --[[
-	arg0:"UI_OME_DEATH_NOTIFY" arg1:dwCharacterID arg2: 为INT_MAX，2147483647 arg3:szKiller  
-	arg0:"UI_OME_SKILL_EFFECT_LOG" arg1:dwCaster arg2:dwTarget arg3:bReact arg4:nType  arg5:dwID  arg6:dwLevel  arg7:bCriticalStrike arg8:nResultCount 
-	arg0:"UI_OME_COMMON_HEALTH_LOG" arg1:dwCharacterID arg2:nDeltaLife  
+	arg0:"UI_OME_DEATH_NOTIFY" arg1:dwCharacterID arg2: 为INT_MAX，2147483647 arg3:szKiller
+	arg0:"UI_OME_SKILL_EFFECT_LOG" arg1:dwCaster arg2:dwTarget arg3:bReact arg4:nType  arg5:dwID  arg6:dwLevel  arg7:bCriticalStrike arg8:nResultCount
+	arg0:"UI_OME_COMMON_HEALTH_LOG" arg1:dwCharacterID arg2:nDeltaLife
 ]]
 DeathWarn.OnDeath = function(dwTarget, szKiller)
 	local me = GetClientPlayer()

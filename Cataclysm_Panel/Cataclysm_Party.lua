@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 16:07:02
+-- @Last Modified time: 2015-02-26 22:22:56
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -90,6 +90,7 @@ local function OpenRaidDragPanel(dwMemberID)
 	end
 	hMember:Show()
 	hFrame:BringToTop()
+	hFrame:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY)
 end
 
 local function CloseRaidDragPanel()
@@ -212,12 +213,12 @@ function CTM:GetPartyFrame(nIndex) --获得组队面板
 end
 
 function CTM:BringToTop()
+	Station.Lookup("Normal/RaidGrid_CTM_Edition"):BringToTop()
 	for i = 0, CTM_GROUP_COUNT do
 		if self:GetPartyFrame(i) then
 			self:GetPartyFrame(i):BringToTop()
 		end
 	end
-	Station.Lookup("Normal/RaidGrid_CTM_Edition"):BringToTop()
 end
 
 function CTM:GetMemberHandle(nGroup, nIndex)
@@ -233,6 +234,7 @@ function CTM:CreatePanel(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
 	if not frame then
 		frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
+		frame:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY)
 	end
 	self:AutoLinkAllPanel()
 	self:RefreshGroupText()
@@ -358,10 +360,12 @@ function CTM:RefreshMark()
 					assert(nMarkID > 0 and nMarkID <= #PARTY_MARK_ICON_FRAME_LIST)
 					nIconFrame = PARTY_MARK_ICON_FRAME_LIST[nMarkID]
 				end
-				v:Lookup("Handle_Icons/Image_MarkImage"):FromUITex(PARTY_MARK_ICON_PATH, nIconFrame)
-				v:Lookup("Handle_Icons/Image_MarkImage"):Show()
+				v:Lookup("Image_MarkImage"):FromUITex(PARTY_MARK_ICON_PATH, nIconFrame)
+				v:Lookup("Image_MarkImage"):Show()
+				local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+				v:Lookup("Image_MarkImage"):SetSize(24 * fScale, 24 * fScale)
 			else
-				v:Lookup("Handle_Icons/Image_MarkImage"):Hide()
+				v:Lookup("Image_MarkImage"):Hide()
 			end
 		end
 	end
@@ -384,26 +388,23 @@ function CTM:CallRefreshImages(dwID, ...)
 end
 
 -- 刷新图标和名字之类的信息
-function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMark, bName)
+function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bName)
 	-- assert(info)
 	if not info then return end
 	local fnAction = function(t)
-		if t[TEAM_AUTHORITY_TYPE.LEADER] == dwID then
-			h:Lookup("Handle_Icons/Image_Leader"):Show()
-		else
-			h:Lookup("Handle_Icons/Image_Leader"):Hide()
-		end
-
-		if t[TEAM_AUTHORITY_TYPE.MARK] == dwID then
-			h:Lookup("Handle_Icons/Image_Marker"):Show()
-		else
-			h:Lookup("Handle_Icons/Image_Marker"):Hide()
-		end
-
-		if t[TEAM_AUTHORITY_TYPE.DISTRIBUTE] == dwID then
-			h:Lookup("Handle_Icons/Image_Looter"):Show()
-		else
-			h:Lookup("Handle_Icons/Image_Looter"):Hide()
+		local hTotal = {
+			[TEAM_AUTHORITY_TYPE.LEADER] = h:Lookup("Handle_Icons/Image_Leader"),
+			[TEAM_AUTHORITY_TYPE.MARK] = h:Lookup("Handle_Icons/Image_Marker"),
+			[TEAM_AUTHORITY_TYPE.DISTRIBUTE] = h:Lookup("Handle_Icons/Image_Looter"),
+		}
+		for k, v in pairs(hTotal) do
+			if t[k] == dwID then
+				v:Show()
+				local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+				v:SetSize(14 * fScale, 14 * fScale)
+			else
+				v:Hide()
+			end
 		end
 	end
 
@@ -415,6 +416,8 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 	-- 刷新阵眼
 	if type(bFormationLeader) == "boolean" then
 		if bFormationLeader then
+			local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+			h:Lookup("Handle_Icons/Image_Matrix"):SetSize(14 * fScale, 14 * fScale)
 			h:Lookup("Handle_Icons/Image_Matrix"):Show()
 		else
 			h:Lookup("Handle_Icons/Image_Matrix"):Hide()
@@ -434,7 +437,15 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 				local camp = { [0] = -1, [1] = 43, [2] = 40 }
 				img:FromUITex("UI/Image/Button/ShopButton.uitex", camp[info.nCamp])
 			end
-			img:SetSize(28, 28)
+
+			local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+			if fScale * 0.9 > 1 then
+				fScale = fScale * 0.9
+			end
+			img:SetSize(28 * fScale, 28 * fScale)
+			local pos = -10 - (fScale - 1) * 15
+			img:SetRelPos(pos, pos)
+			h:FormatAllItemPos()
 			img:Show()
 		else -- 不再由icon控制 转交给textname
 			img:Hide()
@@ -444,9 +455,8 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 	-- 刷新名字
 	if bName then
 		local TextName = h:Lookup("Text_Name")
-		local life = h:Lookup("Handle_Common/Text_Life")
-		life:SetFontScheme(RaidGrid_CTM_Edition.nLifeFont) -- 主要是为了省开销
 		TextName:SetText(info.szName)
+		-- TextName:SetText("测试测试测试")
 		TextName:SetFontScheme(RaidGrid_CTM_Edition.nFont)
 		if RaidGrid_CTM_Edition.bColoredName then
 			TextName:SetFontColor(GetForceColor(info.dwForceID))
@@ -454,17 +464,12 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 			TextName:SetFontColor(255, 255, 255)
 		end
 		if RaidGrid_CTM_Edition.nShowIcon == 4 then
-			TextName:SetRelPos(-6, 0)
-			TextName:SetSize(105, 10)
+			TextName:SetRelPos(-6, 0 - (RaidGrid_CTM_Edition.fScaleY - 1) * 8)
 			TextName:SetText(string.format("%s %s", CTM_KUNGFU_TEXT[info.dwMountKungfuID], info.szName))
 		else
-			TextName:SetRelPos(15, 0)
-			TextName:SetSize(90, 10)
+			TextName:SetRelPos(17 + (RaidGrid_CTM_Edition.fScaleX - 1) * 15, 0 - (RaidGrid_CTM_Edition.fScaleY - 1) * 5)
 		end
 		h:FormatAllItemPos()
-	end
-	if bMark then
-		self:RefreshMark()
 	end
 end
 
@@ -530,7 +535,9 @@ function CTM:RefresFormation()
 			local dwFormationLeader = tGroup.dwFormationLeader
 			for k, v in ipairs(tGroup.MemberList) do
 				local info = self:GetMemberInfo(v)
-				self:RefreshImages(CTM_CACHE[v], v, info, false, false, dwFormationLeader == v)
+				if CTM_CACHE[v] and CTM_CACHE[v]:IsValid() then
+					self:RefreshImages(CTM_CACHE[v], v, info, false, false, dwFormationLeader == v)
+				end
 			end
 		end
 	end
@@ -552,7 +559,7 @@ function CTM:DrawParty(nIndex, bHandle)
 			CTM_CACHE[dwID] = h
 			local info = self:GetMemberInfo(dwID)
 			h:Lookup("Handle_Common/Image_BG_Force"):FromUITex(CTM_IMAGES, 3)
-			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader, false, true)
+			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader, true)
 		end
 		h.OnItemLButtonDrag = function()
 			if not dwID then return	end
@@ -663,14 +670,10 @@ function CTM:DrawParty(nIndex, bHandle)
 				PopupMenu(menu)
 			end
 		end
+		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, h)
 	end
 	handle:FormatAllItemPos()
 	frame.nMemberCount = #tGroup.MemberList
-	if bHandle then
-		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, handle)
-	else
-		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, frame)
-	end
 	-- 先缩放后画
 	self:FormatFrame(frame, #tGroup.MemberList)
 	self:RefreshDistance() -- 立即刷新一次
@@ -694,41 +697,47 @@ function CTM:Scale(fX, fY, frame)
 		end
 	end
 	self:AutoLinkAllPanel()
-	self:CallRefreshImages(true, false, true)
+	self:CallRefreshImages(true, true, true, nil, true) -- 缩放其他图标
+	self:RefresFormation() -- 缩放阵眼
+	self:RefreshMark() -- 缩放标记
 end
 
 function CTM:FormatFrame(frame, nMemberCount)
 	local fX, fY = RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY
+	local helgit = (RaidGrid_CTM_Edition.fScaleY - 1) * 18
+	local h = frame:Lookup("", "Handle_BG")
 	if CTM_DRAG then
 		nMemberCount = CTM_MEMBER_COUNT
-		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, 3 + nMemberCount * CTM_BOX_HEIGHT * fY)
+		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Image_BG_L"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY - helgit)
+		h:Lookup("Image_BG_R"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY - helgit)
+		h:Lookup("Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Text_GroupIndex"):SetSize(128 * fX, 26 * fY - helgit)
+		h:Lookup("Text_GroupIndex"):SetRelPos(0, nMemberCount * CTM_BOX_HEIGHT * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() - 1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Show()
 		end
 	else
 		nMemberCount = frame.nMemberCount or CTM_MEMBER_COUNT
-		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_L"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_R"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY)
-		frame:Lookup("", "Handle_BG/Text_GroupIndex"):SetRelPos(0, 3 + nMemberCount * CTM_BOX_HEIGHT * fY)
+		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Image_BG_L"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY - helgit)
+		h:Lookup("Image_BG_R"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY - helgit)
+		h:Lookup("Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
+		h:Lookup("Text_GroupIndex"):SetSize(128 * fX, 26 * fY - helgit)
+		h:Lookup("Text_GroupIndex"):SetRelPos(0, nMemberCount * CTM_BOX_HEIGHT * fY)
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() - 1 do
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Hide()
 		end
 	end
-	frame:Lookup("", "Handle_BG"):FormatAllItemPos()
+	h:FormatAllItemPos()
 end
 
 -- 注册buff
@@ -773,7 +782,7 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 					hBox:SetOverText(0, math.floor(nTime))
 				end
 				if RaidGrid_CTM_Edition.fScaleY > 1 then
-					self:Scale(RaidGrid_CTM_Edition.fScaleY, RaidGrid_CTM_Edition.fScaleY, hBuff)
+					hBuff:Scale(RaidGrid_CTM_Edition.fScaleY, RaidGrid_CTM_Edition.fScaleY)
 				end
 				h:FormatAllItemPos()
 			end
@@ -893,6 +902,7 @@ end
 
 -- 缩放对动态构建的UI不会缩放 所以需要后处理
 function CTM:DrawHPMP(h, dwID, info, bRefresh)
+	if not info then return end
 	local Lsha = h:Lookup("Handle_Common/Shadow_Life")
 	local Msha = h:Lookup("Handle_Common/Shadow_Mana")
 	local p
@@ -1019,6 +1029,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		end
 		-- 数值绘制
 		local life = h:Lookup("Handle_Common/Text_Life")
+		life:SetFontScheme(RaidGrid_CTM_Edition.nLifeFont)
 		if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
 			if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
 				life:SetAlpha(150)
