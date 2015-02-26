@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 17:49:26
+-- @Last Modified time: 2015-02-26 21:49:24
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -21,7 +21,7 @@ local CTM_CONFIG = {
 	nBGClolrMode = 1, -- 0 不着色 1 根据距离 2 根据门派
 	bShowTargetTargetAni = false,
 	nFont = 40,
-	nLifeFont = 16,
+	nLifeFont = 15,
 	nMaxShowBuff = 4,
 	bLifeGradient = true,
 	bManaGradient = true,
@@ -47,7 +47,6 @@ local CTM_CONFIG = {
 
 local CTM_CONFIG_PLAYER
 local DEBUG = false
-local SCALE = false
 
 Cataclysm_KEY = "common"
 RegisterCustomData("Cataclysm_KEY")
@@ -218,9 +217,12 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("PARTY_SET_FORMATION_LEADER")
 	this:RegisterEvent("PARTY_LOOT_MODE_CHANGED")
 	this:RegisterEvent("LOADING_END")
+	this:RegisterEvent("TARGET_CHANGE")
+	--
 	this:RegisterEvent("CTM_LOADING_END")
 	this:RegisterEvent("JH_RAID_REC_BUFF")
-	this:RegisterEvent("TARGET_CHANGE")
+	this:RegisterEvent("GKP_RECORD_TOTAL")
+
 	if GetClientPlayer() then
 		FireEvent("CTM_LOADING_END")
 	end
@@ -238,7 +240,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	if szEvent == "RENDER_FRAME_UPDATE" then
 		Grid_CTM:CallDrawHPMP(true)
 	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then -- ??
-		Grid_CTM:CallRefreshImages(arg1, true, true, nil, true, true)
+		Grid_CTM:CallRefreshImages(arg1, true, true, nil, true)
 		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_ADD_MEMBER" then
 		if Grid_CTM:GetPartyFrame(arg2) then
@@ -272,7 +274,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_LMR" then
 		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_INFO" then
-		Grid_CTM:CallRefreshImages(arg1, false, true, nil, true, true)
+		Grid_CTM:CallRefreshImages(arg1, false, true, nil, true)
 		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "UPDATE_PLAYER_SCHOOL_ID" then
 		if JH.IsParty(arg0) then
@@ -409,11 +411,6 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	-- kill System Panel
 	RaidPanel_Switch(DEBUG)
 	TeammatePanel_Switch(false)
-	if SCALE then
-		Grid_CTM:CloseParty()
-		Grid_CTM:ReloadParty()
-		SCALE = false
-	end
 end
 
 function RaidGrid_CTM_Edition.OnMouseEnter( ... )
@@ -542,7 +539,7 @@ PS.OnPanelActive = function(frame)
 	:Click(function()
 		RaidGrid_CTM_Edition.nShowIcon = 1
 		if CTM_FRAME then
-			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
@@ -550,7 +547,7 @@ PS.OnPanelActive = function(frame)
 	:Click(function()
 		RaidGrid_CTM_Edition.nShowIcon = 2
 		if CTM_FRAME then
-			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
@@ -558,7 +555,7 @@ PS.OnPanelActive = function(frame)
 	:Click(function()
 		RaidGrid_CTM_Edition.nShowIcon = 3
 		if CTM_FRAME then
-			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
@@ -566,7 +563,7 @@ PS.OnPanelActive = function(frame)
 	:Click(function()
 		RaidGrid_CTM_Edition.nShowIcon = 4
 		if CTM_FRAME then
-			Grid_CTM:CallRefreshImages(true, false, true, nil, nil, true)
+			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
@@ -628,7 +625,7 @@ PS2.OnPanelActive = function(frame)
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bColoredName = bCheck
 		if CTM_FRAME then
-			Grid_CTM:CallRefreshImages(true, false, false, nil, false, true)
+			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
 			Grid_CTM:CallDrawHPMP(true ,true)
 		end
 	end):Pos_()
@@ -768,7 +765,6 @@ PS3.OnPanelActive = function(frame)
 		local nNewX, nNewY = nVal / RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY / RaidGrid_CTM_Edition.fScaleY
 		if CTM_FRAME then
 			Grid_CTM:Scale(nNewX, nNewY) -- 官方BUG会造成handle2次缩放 很为难啊
-			SCALE = true
 		end
 		RaidGrid_CTM_Edition.fScaleX = nVal
 	end):Pos_()
@@ -780,7 +776,6 @@ PS3.OnPanelActive = function(frame)
 		local nNewX, nNewY = RaidGrid_CTM_Edition.fScaleX / RaidGrid_CTM_Edition.fScaleX, nVal / RaidGrid_CTM_Edition.fScaleY
 		if CTM_FRAME then
 			Grid_CTM:Scale(nNewX, nNewY)
-			SCALE = true
 		end
 		RaidGrid_CTM_Edition.fScaleY = nVal
 	end):Pos_()
@@ -795,7 +790,7 @@ PS3.OnPanelActive = function(frame)
 		GUI.OpenFontTablePanel(function(nFont)
 			RaidGrid_CTM_Edition.nFont = nFont
 			if CTM_FRAME then
-				Grid_CTM:CallRefreshImages(true, false, false, nil, false, true)
+				Grid_CTM:CallRefreshImages(true, false, false, nil, true)
 				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end)
@@ -805,8 +800,7 @@ PS3.OnPanelActive = function(frame)
 		GUI.OpenFontTablePanel(function(nFont)
 			RaidGrid_CTM_Edition.nLifeFont = nFont
 			if CTM_FRAME then
-				Grid_CTM:CallRefreshImages(true, false, false, nil, false, true)
-				Grid_CTM:CallDrawHPMP(true, true) -- 为了刷新颜色
+				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end)
 	end):Pos_()
