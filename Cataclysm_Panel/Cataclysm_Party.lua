@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 15:15:53
+-- @Last Modified time: 2015-02-26 15:46:07
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -427,7 +427,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bMa
 		if RaidGrid_CTM_Edition.nShowIcon ~= 4 then
 			if RaidGrid_CTM_Edition.nShowIcon == 2 then
 				local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
-				if nIconID == 13 then nIconID = 2003 end -- _(:з」∠)_
+				if nIconID == 13 then nIconID = 537 end -- _(:з」∠)_
 				img:FromIconID(nIconID)
 			elseif RaidGrid_CTM_Edition.nShowIcon == 1 then
 				img:FromUITex(GetForceImage(info.dwForceID))
