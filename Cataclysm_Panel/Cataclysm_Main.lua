@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 01:44:51
+-- @Last Modified time: 2015-02-27 13:52:29
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -165,7 +165,7 @@ local function GetGroupTotal()
 	return nGroup
 end
 
-local function SetFrameSize(n)
+local function SetFrameSize(bLeave)
 	if CTM_FRAME then
 		local nGroup = GetGroupTotal()
 		local w = 128 * nGroup
@@ -176,7 +176,7 @@ local function SetFrameSize(n)
 		CTM_FRAME:SetSize(w, h)
 		CTM_FRAME:SetDragArea(0, 0, w, h)
 		CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
-		if n == "Leave" then
+		if bLeave then
 			local w = 128
 			if RaidGrid_CTM_Edition.fScaleX > 1 then
 				w = w * RaidGrid_CTM_Edition.fScaleX
@@ -259,10 +259,10 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("CTM_LOADING_END")
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
-
 	if GetClientPlayer() then
 		FireEvent("CTM_LOADING_END")
 	end
+	SetFrameSize(true)
 end
 -------------------------------------------------
 -- ÍÏ¶¯´°Ìå
@@ -285,6 +285,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		else
 			Grid_CTM:CreatePanel(arg2)
 			Grid_CTM:DrawParty(arg2)
+			SetFrameSize(true)
 		end
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
 		local me = GetClientPlayer()
@@ -474,7 +475,7 @@ end
 
 function RaidGrid_CTM_Edition.OnMouseLeave()
 	if not IsKeyDown("LButton") then
-		SetFrameSize("Leave")
+		SetFrameSize(true)
 		CTM_FRAME:Lookup("", "Text_GKP"):Hide()
 	end
 end
@@ -902,10 +903,11 @@ PS3.OnPanelActive = function(frame)
 	end):Pos_()
 end
 GUI.RegisterPanel(_L["Interface settings"], 6060, _L["Panel"], PS3)
-
-
 JH.RegisterEvent("LOADING_END", RaidCheckEnable)
-JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", RaidCheckEnable)
+JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", function()
+	RaidCheckEnable()
+	PlaySound(SOUND.UI_SOUND, g_sound.Gift)
+end)
 JH.RegisterEvent("CTM_PANEL_TEAMATE", function()
 	TeammatePanel_Switch(arg0)
 end)
