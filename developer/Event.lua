@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-02-27 14:44:16
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 15:57:30
+-- @Last Modified time: 2015-02-27 16:18:53
 local _L = JH.LoadLangPack
 local tEventIndex = {
 	{ "¼üÅÌ°´ÏÂ", 13 },
@@ -78,7 +78,7 @@ function PS.OnPanelActive(frame)
 	end
 
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Events"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit", "WndEdit", { txt = 0, x = 10, y = nY + 10, font = 201, color = { 255, 255, 255 }})
+	nX, nY = ui:Append("WndEdit", "WndEdit", { txt = 0, x = 10, y = nY + 10, font = 201, color = { 255, 255, 255 }}):Type(0)
 	:Change(function(txt)
 		if tonumber(txt) then UInt2BitTable(tonumber(txt)) end
 	end):Pos_()
@@ -98,4 +98,4 @@ function PS.OnPanelActive(frame)
 	end
 end
 
-GUI.RegisterPanel(_L["Events"], 6060, _L["Dev"], PS)
+GUI.RegisterPanel(_L["Events"], 2910, _L["Dev"], PS)
