@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:44:59
+-- @Last Modified time: 2015-02-27 11:46:27
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -15,20 +15,20 @@ local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerI
 local GetClientPlayer = GetClientPlayer
 local TARGET = TARGET
 -- 常量 副本外大部分不受此限制
-local SHADOW = JH.GetAddonInfo().szShadowIni
-local CIRCLE_MAX_COUNT = 15 -- 默认副本最大数据量
-local CIRCLE_CHANGE_TIME = 0 --7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local CIRCLE_CIRCLE_ALPHA = 50 -- 最大的透明度 根据半径逐步降低
-local CIRCLE_ALPHA_STEP = 2.5
-local CIRCLE_MAX_RADIUS = 30 -- 最大的半径
-local CIRCLE_LINE_ALPHA = 165 -- 线和边框最大透明度
-local CIRCLE_MAX_CIRCLE = 2
-local CIRCLE_RESERT_DRAW = false -- 全局重绘
-local CIRCLE_PLAYER_NAME = "NONE"
+local SHADOW              = JH.GetAddonInfo().szShadowIni
+local CIRCLE_MAX_COUNT    = 15    -- 默认副本最大数据量
+local CIRCLE_CHANGE_TIME  = 0     -- 7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
+local CIRCLE_CIRCLE_ALPHA = 50    -- 最大的透明度 根据半         径逐步降低
+local CIRCLE_ALPHA_STEP   = 2.5
+local CIRCLE_MAX_RADIUS   = 30    -- 最大的半径
+local CIRCLE_LINE_ALPHA   = 165   -- 线和边框最大透明度
+local CIRCLE_MAX_CIRCLE   = 2
+local CIRCLE_RESERT_DRAW  = false -- 全局重绘
+local CIRCLE_PLAYER_NAME  = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
-local CIRCLE_MAP_COUNT = { -- 部分副本地图数量补偿
-	[-1] = 100, -- 全地图生效的东西 副本除外
-	[-2] = 3, -- 副本内也生效 镇山河 只放等
+local CIRCLE_MAP_COUNT    = { -- 部分副本地图数量补偿
+	[-1]  = 100, -- 全地图生效的东西 副本除外
+	[-2]  = 3, -- 副本内也生效 镇山河 只放等
 	[165] = 30, -- 英雄大明宫
 	[164] = 30, -- 大明宫
 	[160] = 20, -- 军械库
@@ -113,7 +113,7 @@ local MAP_NAME_FIX = {
 	[195] = 196,
 }
 setmetatable(MAP_CACHE, { __mode = "kv" })
-C.GetMapName = function(mapid)
+function C.GetMapName(mapid)
 	if not MAP_CACHE[mapid] then
 		local _szMap = Table_GetMapName(mapid) or ""
 		MAP_CACHE[mapid] = _szMap == "" and tostring(mapid) or _szMap
@@ -134,15 +134,15 @@ do
 	end
 end
 
-C.GetMapType = function(map)
+function C.GetMapType(map)
 	return tonumber(map) and C.tMapList[C.GetMapName(tonumber(map))] or C.tMapList[map]
 end
 
-C.GetData = function()
+function C.GetData()
 	return C.tData
 end
 
-C.SaveFile = function(szFullPath, bMsg)
+function C.SaveFile(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local data = {
 		Circle = {},
@@ -168,7 +168,7 @@ C.SaveFile = function(szFullPath, bMsg)
 end
 
 -- 加载本地文件使用 bMsg相当于不需要效验
-C.LoadFile = function(szFullPath, bMsg)
+function C.LoadFile(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
 	if code then
@@ -187,7 +187,7 @@ C.LoadFile = function(szFullPath, bMsg)
 	end
 end
 
-C.LoadCircleData = function(tData, bMsg)
+function C.LoadCircleData(tData, bMsg)
 	local data = {}
 	if not bMsg then
 		if IsRemotePlayer(UI_GetClientPlayerID()) then
@@ -228,7 +228,7 @@ C.LoadCircleData = function(tData, bMsg)
 	end
 end
 
-C.LoadSingleData = function(mapid, data)
+function C.LoadSingleData(mapid, data)
 	mapid = tonumber(mapid)
 	if not mapid then
 		return JH.Alert(_L["The map does not exist"])
@@ -249,7 +249,7 @@ C.LoadSingleData = function(mapid, data)
 	FireEvent("CIRCLE_DRAW_UI")
 end
 
-C.LoadCircleMergeData = function(tData)
+function C.LoadCircleMergeData(tData)
 	local data = {}
 	if GetCurrentTime() - Circle.nLimit < CIRCLE_CHANGE_TIME then
 		return JH.Sysmsg2(_L["Too frequent load file"])
@@ -322,7 +322,7 @@ C.LoadCircleMergeData = function(tData)
 	JH.Sysmsg(_L["Circle loaded."])
 end
 
-C.GetMapID = function()
+function C.GetMapID()
 	local mapid = GetClientPlayer().GetMapID()
 	if MAP_NAME_FIX[mapid] then
 		mapid = MAP_NAME_FIX[mapid]
@@ -330,7 +330,7 @@ C.GetMapID = function()
 	return mapid
 end
 
-C.Release = function()
+function C.Release()
 	C.tScrutiny = {
 		[TARGET.NPC] = {},
 		[TARGET.DOODAD] = {},
@@ -379,7 +379,7 @@ C.Release = function()
 	setmetatable(C.tData, mt)
 end
 -- 构建data table
-C.CreateData = function()
+function C.CreateData()
 	pcall(C.Release)
 	local mapid = C.GetMapID()
 	for k, v in ipairs(C.tData[mapid] or {}) do
@@ -414,7 +414,7 @@ C.CreateData = function()
 	end
 end
 
-C.RemoveData = function(mapid, index, bConfirm)
+function C.RemoveData(mapid, index, bConfirm)
 	if C.tData[mapid] and C.tData[mapid][index] then
 		local fnAction = function()
 			table.remove(C.tData[mapid], index)
@@ -432,7 +432,7 @@ C.RemoveData = function(mapid, index, bConfirm)
 	end
 end
 
-C.DrawText = function()
+function C.DrawText()
 	local sha = C.shName
 	sha:ClearTriangleFanPoint()
 	for _ ,v in ipairs(C.tDrawText) do
@@ -448,7 +448,7 @@ C.DrawText = function()
 	C.tDrawText = {}
 end
 
-C.DrawLine = function(tar, ttar, sha, col, dwType)
+function C.DrawLine(tar, ttar, sha, col, dwType)
 	sha:SetTriangleFan(GEOMETRY_TYPE.LINE, 3)
 	sha:ClearTriangleFanPoint()
 	local r, g, b = unpack(col)
@@ -463,7 +463,7 @@ C.DrawLine = function(tar, ttar, sha, col, dwType)
 	sha:Show()
 end
 
-C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
+function C.DrawShape(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	local nRadius = nRadius * 64
 	local nFace = ceil(128 * nAngle / 360)
 	local dwRad1 = pi * (tar.nFaceDirection - nFace) / 128
@@ -513,7 +513,7 @@ C.DrawShape = function(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	until dwRad1 > dwRad2
 end
 
-C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
+function C.DrawBorder(tar, sha, nAngle, nRadius, col, dwType)
 	local nRadius = nRadius * 64
 	local nThick = 1 + (5 * nRadius / 64 / 20)
 	local nFace = ceil(128 * nAngle / 360)
@@ -547,7 +547,7 @@ C.DrawBorder = function(tar, sha, nAngle, nRadius, col, dwType)
 end
 
 -- 绘制设置UI表格
-C.DrawTable = function()
+function C.DrawTable()
 	if arg0 ~= "OPEN" and Station.Lookup("Normal/C_Data") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
 	end
@@ -643,7 +643,7 @@ C.DrawTable = function()
 	end
 end
 
-C.OnNpcEnter = function(szEvent)
+function C.OnNpcEnter(szEvent)
 	local v = GetNpc(arg0)
 	local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(v)]
 	if t then
@@ -651,7 +651,7 @@ C.OnNpcEnter = function(szEvent)
 	end
 end
 
-C.OnNpcLeave = function()
+function C.OnNpcLeave()
 	if C.tScrutiny[TARGET.NPC][arg0] then
 		if C.tCache[TARGET.NPC][arg0] then
 			for k, v in pairs(C.tCache[TARGET.NPC][arg0].Circle) do
@@ -666,7 +666,7 @@ C.OnNpcLeave = function()
 	end
 end
 
-C.OnDoodadEnter = function()
+function C.OnDoodadEnter()
 	local v = GetDoodad(arg0)
 	local t = C.tList[TARGET.DOODAD][v.dwTemplateID] or C.tList[TARGET.DOODAD][v.szName]
 	if t then
@@ -674,7 +674,7 @@ C.OnDoodadEnter = function()
 	end
 end
 
-C.OnDoodadLeave = function()
+function C.OnDoodadLeave()
 	if C.tScrutiny[TARGET.DOODAD][arg0] then
 		if C.tCache[TARGET.DOODAD][arg0] then
 			for k, v in pairs(C.tCache[TARGET.DOODAD][arg0].Circle) do
@@ -689,7 +689,7 @@ C.OnDoodadLeave = function()
 	end
 end
 
-C.OnBreathe = function()
+function C.OnBreathe()
 	-- NPC面向绘制
 	local me = GetClientPlayer()
 	if not me then return end
@@ -870,7 +870,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 	end
 end })
 
-C.OpenAddPanel = function(szName, dwType, szMap)
+function C.OpenAddPanel(szName, dwType, szMap)
 	if Station.Lookup("Normal/C_NewFace") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_NewFace"))
 	end
@@ -952,7 +952,7 @@ C.OpenAddPanel = function(szName, dwType, szMap)
 	end)
 end
 
-C.OpenMtPanel = function()
+function C.OpenMtPanel()
 	if Station.Lookup("Normal/C_Mt") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Mt"))
 	end
@@ -988,7 +988,7 @@ C.OpenMtPanel = function()
 	end)
 end
 
-C.OpenDataPanel = function(data, id, index)
+function C.OpenDataPanel(data, id, index)
 	local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 	if Station.Lookup("Normal/C_Data") then
 		a = GetFrameAnchor(Station.Lookup("Normal/C_Data"))
@@ -1147,7 +1147,7 @@ C.OpenDataPanel = function(data, id, index)
 end
 
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX,nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Circle"], font = 27 }):Pos_()
 	ui:Append("WndButton2", { x = 420, y = 0, txt = _L["New Face"] }):Click(C.OpenAddPanel)
@@ -1306,7 +1306,7 @@ end
 
 GUI.RegisterPanel(_L["Circle"], 2673, _L["RGES"], PS)
 
-C.Init = function()
+function C.Init()
 	JH.RegisterInit("Circle",
 		{ "Breathe", C.OnBreathe },
 		{ "NPC_ENTER_SCENE", C.OnNpcEnter },
@@ -1321,7 +1321,7 @@ C.Init = function()
 	)
 end
 
-C.UnInit = function()
+function C.UnInit()
 	JH.UnRegisterInit("Circle")
 end
 
