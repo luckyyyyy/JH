@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:37:05
+-- @Last Modified time: 2015-02-27 21:03:44
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -24,7 +24,7 @@ local AutoSetTeam = {
 
 AutoSetTeam.SaveList = JH.LoadLUAData(AutoSetTeam.szDataFile) or {}
 
-AutoSetTeam.Save = function(n)
+function AutoSetTeam.Save(n)
 	local tList, tList2, me, team = {}, {}, GetClientPlayer(), GetClientTeam()
 	if not me or not me.IsInParty() then
 		return JH.Sysmsg(_L["You are not in a team"])
@@ -35,7 +35,7 @@ AutoSetTeam.Save = function(n)
 	AutoSetTeam.SaveList[n].szDistribute = team.GetClientTeamMemberName(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE))
 	AutoSetTeam.SaveList[n].nLootMode = team.nLootMode
 	local tMark = team.GetTeamMark()
-	
+
 	for nGroup = 0, team.nGroupNum - 1 do
 		local tGroupInfo = team.GetGroupInfo(nGroup)
 		tList2[nGroup] = {}
@@ -58,11 +58,11 @@ AutoSetTeam.Save = function(n)
 	JH.SaveLUAData(AutoSetTeam.szDataFile,AutoSetTeam.SaveList)
 	JH.Sysmsg(_L["Team list data saved"])
 end
-AutoSetTeam.Delete = function(n)
+function AutoSetTeam.Delete(n)
 	AutoSetTeam.SaveList[n] = nil
 	JH.SaveLUAData(AutoSetTeam.szDataFile,AutoSetTeam.SaveList)
 end
-AutoSetTeam.SyncMember = function(team, dwID, szName, state)
+function AutoSetTeam.SyncMember(team, dwID, szName, state)
 	if AutoSetTeam.bKeepForm and state.bForm then --如果这货之前有阵眼
 		team.SetTeamFormationLeader(dwID, state.nGroup) -- 阵眼给他
 		JH.Sysmsg("restore formation of " .. string.format("%d", state.nGroup + 1) .. " group: " .. szName)
@@ -73,7 +73,7 @@ AutoSetTeam.SyncMember = function(team, dwID, szName, state)
 	end
 end
 
-AutoSetTeam.GetWrongIndex = function(tWrong, bState)
+function AutoSetTeam.GetWrongIndex(tWrong, bState)
 	for k, v in ipairs(tWrong) do
 		if not bState or v.state then
 			return k
@@ -81,12 +81,12 @@ AutoSetTeam.GetWrongIndex = function(tWrong, bState)
 	end
 end
 
-AutoSetTeam.Restore = function(n)
+function AutoSetTeam.Restore(n)
 	-- 获取自己和团队操作对象
 	local me, team = GetClientPlayer(), GetClientTeam()
 	-- update之前保存的团队列表
 	AutoSetTeam.SaveList = JH.LoadLUAData(AutoSetTeam.szDataFile) or {}
-	
+
 	if not me or not me.IsInParty() then
 		return JH.Sysmsg(_L["You are not in a team"])
 	elseif not AutoSetTeam.SaveList[n] then
@@ -98,11 +98,11 @@ AutoSetTeam.Restore = function(n)
 		local szLeader = team.GetClientTeamMemberName(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER))
 		return JH.Sysmsg(_L["You are not team leader, permission denied"])
 	end
-	
-	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) ~= me.dwID then 
+
+	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) ~= me.dwID then
 		team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, me.dwID)
 	end
-	
+
 	--parse wrong member
 	local tSaved, tWrong, dwLeader, dwMark = AutoSetTeam.SaveList[n].data, {}, 0, 0
 	for nGroup = 0, team.nGroupNum - 1 do
@@ -120,7 +120,7 @@ AutoSetTeam.Restore = function(n)
 				if not state then
 					table.insert(tWrong[nGroup], { dwID = dwID, szName = szName, state = nil })
 					JH.Sysmsg("unknown status: " .. szName)
-				elseif state.nGroup == nGroup then 
+				elseif state.nGroup == nGroup then
 					AutoSetTeam.SyncMember(team, dwID, szName, state)
 					JH.Sysmsg("need not adjust: " .. szName)
 				else
@@ -181,7 +181,7 @@ AutoSetTeam.Restore = function(n)
 	JH.Sysmsg(_L["Team list restored"])
 end
 
-AutoSetTeam.Restore2 = function(n)
+function AutoSetTeam.Restore2(n)
 	local me, team = GetClientPlayer(), GetClientTeam()
 	AutoSetTeam.SaveList = JH.LoadLUAData(AutoSetTeam.szDataFile) or {}
 	if not me or not me.IsInParty() then
@@ -195,8 +195,8 @@ AutoSetTeam.Restore2 = function(n)
 		local szLeader = team.GetClientTeamMemberName(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER))
 		return JH.Sysmsg(_L["You are not team leader, permission denied"])
 	end
-	
-	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) ~= me.dwID then 
+
+	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) ~= me.dwID then
 		team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, me.dwID)
 	end
 
@@ -208,7 +208,7 @@ AutoSetTeam.Restore2 = function(n)
 			tWrong[v] = { nGroup = nGroup, dwMountKungfuID = info.dwMountKungfuID }
 		end
 	end
-	
+
 	local fnAction = function(dwMountKungfuID,nGroup,dwID)
 		for k,v in pairs(tWrong) do
 			if dwMountKungfuID and v.dwMountKungfuID == dwMountKungfuID then -- 只要内功匹配的人
@@ -219,7 +219,7 @@ AutoSetTeam.Restore2 = function(n)
 		end
 		return false,false
 	end
-	
+
 	for nGroup,tGroup in pairs(tSaved) do
 		for k,v in ipairs(tGroup) do
 			local tGroupInfo = team.GetGroupInfo(nGroup)
@@ -269,12 +269,12 @@ do
 	for k,v in ipairs(AutoSetTeam.tMarkName) do
 		JH.AddHotKey("AutoSetTeam" .. k,_L["Mark"] .. " [" .. v .. "]",function()
 			local dwID,_ = Target_GetTargetData()
-			GetClientTeam().SetTeamMark(k,dwID) 
+			GetClientTeam().SetTeamMark(k,dwID)
 		end)
 	end
 end
 
-local AppendMark = function()
+local function AppendMark()
 	local WorldMark = Station.Lookup("Normal1/WorldMark")
 	if not WorldMark or WorldMark.bAppend then
 		return
@@ -307,7 +307,7 @@ local AppendMark = function()
 		end
 		img.OnItemLButtonClick = function()
 			local dwID,_ = Target_GetTargetData()
-			GetClientTeam().SetTeamMark(k,dwID) 
+			GetClientTeam().SetTeamMark(k,dwID)
 		end
 		img.OnItemRButtonClick = function()
 			GetClientTeam().SetTeamMark(k,0)
@@ -324,7 +324,7 @@ local AppendMark = function()
 	WorldMark.bAppend = true
 end
 
-local SetMark = function()
+local function SetMark()
 	if AutoSetTeam.Mark then
 		local tTeamMark,tMark = GetClientTeam().GetTeamMark() or {},{}
 		for k,v in pairs(tTeamMark) do
@@ -341,9 +341,9 @@ local SetMark = function()
 		end
 	end
 end
-local GetEvent = function()
+local function GetEvent()
 	if JH_AutoSetTeam.bAppendMark then
-		return 
+		return
 			{ "Breathe", AppendMark, 500 },
 			{ "PARTY_SET_MARK", SetMark }
 	end
@@ -364,19 +364,19 @@ function RequestList.OnFrameCreate()
 	local ui = GUI(this)
 	ui:Point():Title(_L["RequestList"]):RegisterClose(_RequestList.ClosePanel, false, true)
 end
-_RequestList.OpenPanel = function()
+function _RequestList.OpenPanel()
 	local frame = _RequestList.frame or Wnd.OpenWindow(_RequestList.szIniFile,"RequestList")
 	frame:Hide()
 	return frame
 end
-_RequestList.ClosePanel = function(bCompulsory)
+function _RequestList.ClosePanel(bCompulsory)
 	if bCompulsory then
 		Wnd.CloseWindow(_RequestList.frame)
 		_RequestList.tRequestList = {}
 		_RequestList.tRequestCache = {}
 		_RequestList.frame = nil
 	else
-		JH.Confirm(_L["Clear list and close?"],function()
+		JH.Confirm(_L["Clear list and close?"], function()
 			Wnd.CloseWindow(_RequestList.frame)
 			_RequestList.tRequestList = {}
 			_RequestList.tRequestCache = {}
@@ -384,7 +384,7 @@ _RequestList.ClosePanel = function(bCompulsory)
 		end)
 	end
 end
-_RequestList.OnApplyRequest = function()
+function _RequestList.OnApplyRequest()
 	if not JH_AutoSetTeam.bRequestList then return end
 	local MsgBox,szName = Station.Lookup("Topmost/MB_ATMP_" .. arg0), "ATMP_" .. arg0
 	if not MsgBox then
@@ -418,7 +418,7 @@ _RequestList.OnApplyRequest = function()
 	end
 end
 
-_RequestList.UpdateFrame = function()
+function _RequestList.UpdateFrame()
 	if not _RequestList.frame then
 		_RequestList.OpenPanel()
 	end
@@ -511,7 +511,7 @@ _RequestList.UpdateFrame = function()
 	container:FormatAllContentPos()
 	_RequestList.frame:Show()
 end
-_RequestList.OnBgTalk = function()
+function _RequestList.OnBgTalk()
 	local data = JH.BgHear("JH_AutoSetTeam")
 	if data then
 		if data[1] == "JH_Details" then
@@ -528,7 +528,7 @@ _RequestList.OnBgTalk = function()
 		end
 	end
 end
-_RequestList.Feedback = function(szName,data)
+function _RequestList.Feedback(szName,data)
 	local dat = {
 		dwID = data[2],
 		dwKungfuID = data[3],
@@ -538,46 +538,21 @@ _RequestList.Feedback = function(szName,data)
 	pcall(_RequestList.UpdateFrame)
 end
 
-_RequestList.GetEvent = function()
+function _RequestList.GetEvent()
 	if JH_AutoSetTeam.bRequestList then
-		return 
+		return
 			{ "PARTY_INVITE_REQUEST", _RequestList.OnApplyRequest },
 			{ "PARTY_APPLY_REQUEST", _RequestList.OnApplyRequest },
 			{ "ON_BG_CHANNEL_MSG", _RequestList.OnBgTalk }
 	end
 end
-
--------------------------------------------------
--- PARTY_UPDATE_MEMBER_POSITION	刷新队伍成员位置	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
--- PARTY_UPDATE_MEMBER_LMR	刷新队伍成员血量	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
--- PARTY_UPDATE_MEMBER_INFO	刷新队伍成员信息	arg0,arg1	arg0:dwTeamID  arg1:dwMemberID  	dwTeamID：队伍ID dwMemberID：成员ID 
--- PARTY_UPDATE_BASE_INFO	刷新队伍基本信息	arg0,arg1,arg2,arg3,arg4	arg0:dwTeamID  arg1:dwLeaderID  arg2:nLootMode  arg3:nRollQuality  arg4:bAddTeamMemberFlag   	dwTeamID：队伍ID :dwLeaderID：队长ID nLootMode  nRollQuality：需要Roll点的物品  bAddTeamMemberFlag：是否能增加队伍成员   
--- PARTY_SYNC_MEMBER_DATA	同步队伍成员数据	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamID：队伍ID dwMemberID：成员ID nGroupIndex ：分组ID 
--- PARTY_SET_MEMBER_ONLINE_FLAG	同步队伍成员是否在线状态	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:bOnlineFlag  	dwTeamID：队伍ID dwMemberID：成员ID bOnlineFlag：是否在线 
--- PARTY_SET_MARK	队伍设置标记	
--- PARTY_SET_FORMATION_LEADER	队伍设置阵眼	arg0	arg0:dwFormationLeader  	dwFormationLeader：阵眼成员ID
--- PARTY_SET_DISTRIBUTE_MAN	队伍设置分配者	arg0	arg0:dwDistributeMan  	dwDistributeMan：分配者ID
--- PARTY_ROLL_QUALITY_CHANGED	队伍需要Roll点物品品质改变	arg0,arg1	arg0:dwTeamID  arg1:nRollQuality  	dwTeamID：队伍ID nRollQuality：需要Roll点品质
--- PARTY_RESET	队伍重置	
--- PARTY_NOTIFY_SIGNPOST	队伍通知集合点	arg0,arg1	arg0:nX  arg1:nY  	nX,nY:坐标点
--- PARTY_MESSAGE_NOTIFY	队伍信息通知	arg0,arg1	arg0:nCode  arg1:szName  	nCode：见枚举型[[PARTY_NOTIFY_CODE]] szName:对应玩家名
--- PARTY_LOOT_MODE_CHANGED	队伍拾取模式更改	arg0,arg1	arg0:dwTeamID  arg1:nLootMode  	dwTeamID：队伍ID nLootMode：拾取模式，见枚举型[[PARTY_LOOT_MODE]]
--- PARTY_LEVEL_UP_RAID	队伍调整为团队模式	
--- PARTY_LEADER_CHANGED	更换队长	arg0,arg1	arg0:dwTeamID  arg1:dwNewLeaderID  	dwTeamID：队伍ID dwNewLeaderID：新的队长ID
--- PARTY_INVITE_REQUEST	邀请入队请求	arg0,arg1,arg2,arg3	arg0:szInviteSrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szInviteSrc：邀请者 dwSrcCamp：邀请者阵营 dwSrcForceID：邀请者势力ID dwSrcLevel：邀请者等级 
--- PARTY_DISBAND	队伍解散	arg0	arg0:dwTeamID  	dwTeamID：队伍ID 
--- PARTY_DELETE_MEMBER	队伍删除成员	arg0,arg1,arg2,arg3	arg0:dwTeamID  arg1:dwMemberID  arg2:szName  arg3:nGroupIndex  	dwTeamID：队伍ID dwMemberID：成员ID szName：成员名 nGroupIndex：分组编号
--- PARTY_CAMP_CHANGE	队伍阵营变更	
--- PARTY_APPLY_REQUEST	申请入队请求	arg0,arg1,arg2,arg3	arg0:szApplySrc  arg1:dwSrcCamp  arg2:dwSrcForceID  arg3:dwSrcLevel  	szApplySrc：申请者名 dwSrcCamp：申请者阵营  dwSrcForceID：申请者势力ID dwSrcLevel：申请者等级
--- PARTY_ADD_MEMBER	队伍增加成员	arg0,arg1,arg2	arg0:dwTeamID  arg1:dwMemberID  arg2:nGroupIndex  	dwTeamID：队伍ID dwMemberID：成员ID nGroupIndex：分组编号
--------------------------------------------------
+-------------------------------
 local TI = {}
-
-TI.GetEvent = function()
+function TI.GetEvent()
 	if JH_AutoSetTeam.bTeamInfo then
 		return
 			{ "PARTY_LEVEL_UP_RAID", function()
-				if TI.IsLeader() then
+				if JH.IsLeader() then
 					JH.Confirm(_L["Edit team info?"], function()
 						TI.CreateFrame()
 					end)
@@ -585,39 +560,37 @@ TI.GetEvent = function()
 			end },
 			{ "PARTY_DISBAND", TI.CloseFrame },
 			{ "PARTY_DELETE_MEMBER", function() if arg1 == UI_GetClientPlayerID() then TI.CloseFrame() end end },
-			{ "PARTY_ADD_MEMBER", function() 
-				if TI.IsLeader() and Station.Lookup("Normal/Team_Info") then 
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szIntroduction) 
-				end 
+			{ "PARTY_ADD_MEMBER", function()
+				if JH.IsLeader() and Station.Lookup("Normal/Team_Info") then
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szIntroduction)
+				end
 			end },
 			{ "ON_BG_CHANNEL_MSG", TI.OnMsg }
 	end
 end
 
-TI.IsLeader = function()
-	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == GetClientPlayer().dwID
-end
-
-TI.OnMsg = function()
+function TI.OnMsg()
 	local data = JH.BgHear("TI")
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
 	if team and data then
-		if data[1] == "ASK" and TI.IsLeader() then
+		if data[1] == "ASK" and JH.IsLeader() then
 			if Station.Lookup("Normal/Team_Info") then
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","reply", arg3, TI.szYY, TI.szIntroduction) 
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg3, TI.szYY, TI.szIntroduction)
 			end
 		elseif data[1] == "Edit" then
 			TI.CreateFrame(data[2], data[3])
 		elseif data[1] == "reply" and (tonumber(data[2]) == UI_GetClientPlayerID() or data[2] == me.szName) then
-			TI.CreateFrame(data[3], data[4])
+			if JH.Trim(data[3]) ~= "" or JH.Trim(data[4]) ~= "" then
+				TI.CreateFrame(data[3], data[4])
+			end
 		elseif data[1] == "Close" then
 			TI.CloseFrame()
 		end
 	end
 end
 
-TI.CreateFrame = function(a, b)
+function TI.CreateFrame(a, b)
 	local an = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 	if Station.Lookup("Normal/Team_Info") then
 		an = GetFrameAnchor(Station.Lookup("Normal/Team_Info"))
@@ -627,7 +600,7 @@ TI.CreateFrame = function(a, b)
 	local nX, nY = ui:Append("Text", { x = 10, y = 5, txt = _L["YY:"], font = 48 }):Pos_()
 	nX = ui:Append("WndEdit", "YY", { w = 140, h = 26, x = nX + 5, y = 5, font = 48, color = { 128, 255, 0 }, txt = a })
 	:Change(function(szText)
-		if TI.IsLeader() then
+		if JH.IsLeader() then
 			TI.szYY = szText
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", szText, ui:Fetch("introduction"):Text())
 		else
@@ -641,7 +614,7 @@ TI.CreateFrame = function(a, b)
 	end):Pos_()
 	ui:Append("WndEdit", "introduction", { w = 280, h = 80, x = 10, y = nY + 5, multi = true, txt = b})
 	:Change(function(szText)
-		if TI.IsLeader() then
+		if JH.IsLeader() then
 			TI.szIntroduction = szText
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", ui:Fetch("YY"):Text(), szText)
 		else
@@ -652,7 +625,7 @@ TI.CreateFrame = function(a, b)
 	TI.szYY = ui:Fetch("YY"):Text()
 	TI.szIntroduction = ui:Fetch("introduction"):Text()
 	ui.self:Lookup("Btn_Close").OnLButtonClick = function()
-		if TI.IsLeader() then
+		if JH.IsLeader() then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Close")
 		end
 		TI.CloseFrame()
@@ -660,7 +633,7 @@ TI.CreateFrame = function(a, b)
 	ui:RegisterSetting(function() JH.OpenPanel(_L["AutoSetTeam"]) end)
 end
 
-TI.CloseFrame = function()
+function TI.CloseFrame()
 	if Station.Lookup("Normal/Team_Info") then
 		Wnd.CloseWindow(Station.Lookup("Normal/Team_Info"))
 	end
@@ -676,10 +649,10 @@ JH.AddonMenu(function()
 				JH_AutoSetTeam.bTeamInfo = true
 				JH.RegisterInit("TI", TI.GetEvent())
 				if me.IsInRaid() then
-					if TI.IsLeader() then
+					if JH.IsLeader() then
 						TI.CreateFrame()
 					else
-						JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","ASK") 
+						JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","ASK")
 					end
 				end
 			end
@@ -707,13 +680,13 @@ local BUFF = {
 	[926] =  true,
 }
 
-AutoCancelBuff.CheckKungFu = function()
+function AutoCancelBuff.CheckKungFu()
 	if KUNGFU[UI_GetPlayerMountKungfuID()] then
 		return true
 	end
 end
 
-AutoCancelBuff.GetEvent = function()
+function AutoCancelBuff.GetEvent()
 	if JH_AutoSetTeam.bAutoCancelBuff then
 		if AutoCancelBuff.CheckKungFu() then
 			return { "BUFF_UPDATE", AutoCancelBuff.OnBuff }
@@ -721,7 +694,7 @@ AutoCancelBuff.GetEvent = function()
 	end
 end
 
-AutoCancelBuff.Init = function()
+function AutoCancelBuff.Init()
 	JH.RegisterInit("AutoCancelBuff", AutoCancelBuff.GetEvent())
 end
 
@@ -729,7 +702,7 @@ end
 -- arg0：dwPlayerID，arg1：bDelete，arg2：nIndex，arg3：bCanCancel
 -- arg4：dwBuffID，arg5：nStackNum，arg6：nEndFrame，arg7：update all?
 -- arg8：nLevel，arg9：dwSkillSrcID
-AutoCancelBuff.OnBuff = function()
+function AutoCancelBuff.OnBuff()
 	if BUFF[arg4] and not arg1 then
 		if AutoCancelBuff.CheckKungFu() then -- 命中后再次判断
 			GetClientPlayer().CancelBuff(arg2)
@@ -754,9 +727,9 @@ local WorldMark = {
 	hShadow = JH.GetAddonInfo().szShadowIni,
 }
 
-WorldMark.GetEvent = function()
+function WorldMark.GetEvent()
 	if JH_AutoSetTeam.bWorldMark then
-		return 
+		return
 			{ "DO_SKILL_CAST", WorldMark.OnCast },
 			{ "JH_WORDMARK_DRAW", WorldMark.Draw },
 			{ "NPC_ENTER_SCENE", WorldMark.OnNpcEvent },
@@ -770,7 +743,7 @@ WorldMark.GetEvent = function()
 	end
 end
 
-WorldMark.OnNpcEvent = function()
+function WorldMark.OnNpcEvent()
 	local npc = GetNpc(arg0)
 	if npc then
 		local mark = WorldMark.tMark[npc.dwTemplateID]
@@ -784,14 +757,14 @@ WorldMark.OnNpcEvent = function()
 	end
 end
 
-WorldMark.OnCast = function()
+function WorldMark.OnCast()
 	if arg1 == 4906 then
 		WorldMark.tPoint = {}
 		JH.GetShadowHandle("Handle_World_Mark"):Clear()
 	end
 end
 
-WorldMark.Draw = function(Point, sha, col)
+function WorldMark.Draw(Point, sha, col)
 	local nRadius = 64
 	local nFace = 128
 	local dwRad1 = math.pi
@@ -813,7 +786,7 @@ end
 
 
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AutoSetTeam"], font = 27 }):Pos_()
 	ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = JH_AutoSetTeam.bAppendMark, txt = _L["Append Mark"] }):Click(function(bChecked)
@@ -884,7 +857,7 @@ PS.OnPanelActive = function(frame)
 				AutoSetTeam.Delete(i)
 				JH.OpenPanel(_L["AutoSetTeam"])
 			end)
-			
+
 		end
 	end
 end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 23:22:57
+-- @Last Modified time: 2015-02-27 17:53:56
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -936,6 +936,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 	_GKP.GKP_Buff_Container.sort = sort
 	_GKP.GKP_Buff_Container:Clear()
 	local me = GetClientPlayer()
+	if not me then return end
 	if not me.IsInParty() then
 		return
 	end
