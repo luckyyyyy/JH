@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 13:52:29
+-- @Last Modified time: 2015-02-27 14:05:03
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -903,6 +903,7 @@ PS3.OnPanelActive = function(frame)
 	end):Pos_()
 end
 GUI.RegisterPanel(_L["Interface settings"], 6060, _L["Panel"], PS3)
+
 JH.RegisterEvent("LOADING_END", RaidCheckEnable)
 JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", function()
 	RaidCheckEnable()

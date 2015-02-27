@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 13:28:25
+-- @Last Modified time: 2015-02-27 14:23:49
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -360,7 +360,10 @@ _JH.UpdateDetail = function(i, data)
 				}
 			elseif JH_About.OnTaboxCheck then	-- switch
 				data.fn = {
-					OnPanelActive = function(frame) JH_About.OnTaboxCheck(frame, i, _JH.tClass[i]) end,
+					OnPanelActive = function(frame)
+						JH_About.OnTaboxCheck(frame, i, _JH.tClass[i])
+						-- PlaySound(SOUND.UI_SOUND, g_sound.Mail)
+					end,
 					GetAuthorInfo = JH_About.GetAuthorInfo
 				}
 			end
@@ -446,7 +449,11 @@ _JH.EventHandler = function(szEvent)
 	end
 end
 
-JH.OnFrameCreate = function()
+function JH.OnPanelActive( ... )
+	-- PlaySound(SOUND.UI_SOUND, g_sound.Mail)
+end
+
+function JH.OnFrameCreate()
 	-- var
 	_JH.frame = this
 	_JH.hTotal = this:Lookup("Wnd_Content", "")
@@ -463,7 +470,7 @@ JH.OnFrameCreate = function()
 	_JH.UpdateTabBox(this)
 end
 
-JH.OnFrameBreathe = function()
+function JH.OnFrameBreathe()
 	-- run breathe calls
 	local nFrame = GetLogicFrameCount()
 	for k, v in pairs(_JH.tBreatheCall) do
@@ -506,7 +513,7 @@ JH.OnFrameBreathe = function()
 	end
 end
 
-JH.OnDocumentComplete = function()
+function JH.OnDocumentComplete()
 	local r = tremove(_JH.tRequest, 1)
 	if r then
 		_JH.nRequestExpire = nil
@@ -514,7 +521,7 @@ JH.OnDocumentComplete = function()
 	end
 end
 -- key down
-JH.OnFrameKeyDown = function()
+function JH.OnFrameKeyDown()
 	if GetKeyName(Station.GetMessageKey()) == "Esc" then
 		_JH.ClosePanel()
 		return 1
