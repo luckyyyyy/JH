@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-02-27 14:44:16
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 15:33:09
+-- @Last Modified time: 2015-02-27 15:57:30
 local _L = JH.LoadLangPack
 local tEventIndex = {
 	{ "¼üÅÌ°´ÏÂ", 13 },
@@ -50,14 +50,40 @@ function PS.OnPanelActive(frame)
 		for i = 1, 24 do
 			nUInt = nUInt + (tBitTab[i] or 0) * (2 ^ (i - 1))
 		end
-		ui:Fetch("WndEdit"):Text(nUInt)
+		ui:Fetch("WndEdit"):Text(nUInt, true)
+	end
+
+	local function UInt2BitTable(nUInt)
+		local tBitTab = {}
+		local nUInt4C = nUInt
+		if nUInt4C > (2 ^ 24) then
+			return
+		end
+
+		for i = 1, 32 do
+			local nValue = math.fmod(nUInt4C, 2)
+			nUInt4C = math.floor(nUInt4C / 2)
+			table.insert(tBitTab, nValue)
+			if nUInt4C == 0 then
+				break
+			end
+		end
+		for k, v in ipairs(tEventIndex) do
+			if tBitTab[v[2]] == 1 then
+				ui:Fetch(v[1]):Check(true)
+			else
+				ui:Fetch(v[1]):Check(false)
+			end
+		end
 	end
 
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Events"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit", "WndEdit", { txt = 0, x = 10, y = nY + 10, font = 201, color = { 255, 255, 255 }}):Pos_()
+	nX, nY = ui:Append("WndEdit", "WndEdit", { txt = 0, x = 10, y = nY + 10, font = 201, color = { 255, 255, 255 }})
+	:Change(function(txt)
+		if tonumber(txt) then UInt2BitTable(tonumber(txt)) end
+	end):Pos_()
 	nX, nY = 5, nY + 10
-	for i = 1, 2 do
-		local v = tEventIndex[i]
+	for k, v in ipairs(tEventIndex) do
 		nX = ui:Append("WndCheckBox", v[1], { txt = v[1], x = nX + 5, y = nY }):Click(function(bCheck)
 			if bCheck then
 				ui:Fetch(v[1]):Color(255, 128, 0)
@@ -66,19 +92,7 @@ function PS.OnPanelActive(frame)
 			end
 			BitTable2UInt()
 		end):Pos_()
-	end
-	nX, nY = 5, nY + 25
-	for i = 3, 22 do
-		local v = tEventIndex[i]
-		nX = ui:Append("WndCheckBox", v[1], { txt = v[1], x = nX + 5, y = nY }):Click(function(bCheck)
-			if bCheck then
-				ui:Fetch(v[1]):Color(255, 128, 0)
-			else
-				ui:Fetch(v[1]):Color(255, 255, 255)
-			end
-			BitTable2UInt()
-		end):Pos_()
-		if(i - 1) % 5 == 1 then
+		if(k - 1) % 5 == 1 or k == 2 then
 			nX, nY = 5, nY + 25
 		end
 	end
