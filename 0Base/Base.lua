@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 14:23:49
+-- @Last Modified time: 2015-02-27 15:42:25
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -447,10 +447,6 @@ _JH.EventHandler = function(szEvent)
 			end
 		end
 	end
-end
-
-function JH.OnPanelActive( ... )
-	-- PlaySound(SOUND.UI_SOUND, g_sound.Mail)
 end
 
 function JH.OnFrameCreate()
