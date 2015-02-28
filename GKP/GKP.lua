@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 01:01:21
+-- @Last Modified time: 2015-03-01 01:05:57
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1491,13 +1491,16 @@ _GKP.OnMsg = function()
 				end)
 				_GKP.info:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", arg3), font = 41 })
 				_GKP.info:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
-				if data[3] == "Information on Debt" then
+				if data[3] == "Information on Debt" and arg3 ~= me.szName then
 					_GKP.info:Toggle(false)
 				end
 			end
 			if data[2] == "Info" then
 				local frm = Station.Lookup("Normal/GKP_info")
 				if frm and frm.done then
+					frm = Station.Lookup("Normal/GKP_Debt")
+				end
+				if not frm and  Station.Lookup("Normal/GKP_Debt") then
 					frm = Station.Lookup("Normal/GKP_Debt")
 				end
 				if frm then
