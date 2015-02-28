@@ -4,6 +4,7 @@
 7zipignore.txt
 7z.exe
 releases\
+docs\
 CombatTime\
 @Data\
 developer\
