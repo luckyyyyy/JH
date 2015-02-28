@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:38:06
+-- @Last Modified time: 2015-02-28 23:17:25
 local _L = JH.LoadLangPack
 
 RaidGrid_EventScrutiny = {}
@@ -37,7 +37,7 @@ local tSyncQueue = {}
 JH.RegisterEvent("ON_BG_CHANNEL_MSG",function()
 	local me = GetClientPlayer()
 	local data = JH.BgHear("RGES")
-	if data then	
+	if data then
 		 -- 开始发送
 		if data[1] == "RE_SendSOpen" and not bSendDataToTeamStart then
 			if data[2] ~= me.szName and data[2] ~= "ALL" then
@@ -134,7 +134,7 @@ end
 _RE.AutoEnable = function(bEnable)
 	local enable = RaidGrid_EventScrutiny.bEnable
 	if RaidGrid_EventScrutiny.AutoEnable then
-		if JH.IsInDungeon2() then
+		if JH.IsInDungeon(true) then
 			enable = true
 		else
 			enable = false
@@ -146,7 +146,7 @@ _RE.AutoEnable = function(bEnable)
 		else
 			enable = false
 		end
-	end	
+	end
 	if enable then
 		if not RaidGrid_EventScrutiny.bEnable then
 			RaidGrid_EventScrutiny.bEnable = true
@@ -187,7 +187,7 @@ function RaidGrid_Base.SetTargetOrg(dwTargetID)
 	if not player then
 		return
 	end
-	
+
 	local nType = TARGET.NPC
 	if not dwTargetID or (dwTargetID <= 0) then
 		nType = TARGET.NO_TARGET
@@ -195,7 +195,7 @@ function RaidGrid_Base.SetTargetOrg(dwTargetID)
 	elseif IsPlayer(dwTargetID) then
 		nType = TARGET.PLAYER
 	end
-	
+
 	if SetTarget then
 		local as0, as1 = arg0, arg1
 		-- SetTarget(nType, dwTargetID)
@@ -274,7 +274,7 @@ function RaidGrid_Base.SendDataToTeam(data,szDataType,szClientName)
 	local player = GetClientPlayer()
 	local szDataType = szDataType or data.szType
 	local szClientName = szClientName or "ALL"
-	
+
 	if player.IsInParty() then
 		local team = GetClientTeam()
 		local _GetName = team.GetClientTeamMemberName
@@ -317,7 +317,7 @@ function RaidGrid_Base.IsOutOfEventTime(tRecord, nRemoveDelayTime)
 	if fCurrentLogicTime < tRecord.fEventTimeStart or fCurrentLogicTime > tRecord.fEventTimeEnd + nRemoveDelayTime then
 		return true
 	end
-	
+
 	return false
 end
 
@@ -377,7 +377,7 @@ RaidGrid_Base.OutputRecord = function(data,szType)
 	local txt = ""
 	if data then
 		if szType then data.szType = szType end
-		txt = JH.JsonEncode(data,true) 
+		txt = JH.JsonEncode(data,true)
 	end
 	local wnd = GUI.CreateFrame("RGES_Info",{ w = 720,h = 500,title = _L["Json Data"],drag = true,close = true })
 	wnd:Append("WndEdit","WndEdit",{ w = 660, h = 350, x = 0, y = 0, color = { 255,255,0 }, multi = true, limit = 999999,txt = txt }).data = data
@@ -425,7 +425,7 @@ end
 
 function RaidGrid_Base.OutputSettingsFileNew(szName)
 	local szFullName = "\\Interface\\JH\\RaidGrid_EventScrutiny\\alldat\\" .. szName
-	local data = {}	
+	local data = {}
 	-- fix table.insert
 	local tab, dat = {}, {}
 	for k,v in ipairs(RaidGrid_BossCallAlert.tRecords.tWarningMessages) do
@@ -435,7 +435,7 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 		end
 	end
 	RaidGrid_BossCallAlert.tRecords.tWarningMessages = dat
-	
+
 	local tab, dat = {}, {}
 	for k,v in ipairs(RaidGrid_BossCallAlert.tRecords.tBossCall) do
 		if not tab[v.szText] then
@@ -444,8 +444,8 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 		end
 	end
 	RaidGrid_BossCallAlert.tRecords.tBossCall = dat
-	
-	
+
+
 	data.EventScrutinyRecords = RaidGrid_EventScrutiny.tRecords
 	if RaidGrid_EventScrutiny.bOutputBossFaceData and type(Circle ~= "nil") then
 		data.Circle = Circle.GetData()
@@ -462,14 +462,14 @@ end
 
 function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 	local szPath = "\\Interface\\JH\\RaidGrid_EventScrutiny\\alldat\\" .. szName
-	
+
 	local data = LoadLUAData(szPath)
 	if not data then
 		JH.Sysmsg2(_L["file path:"]..GetRootPath()..szPath)
 		JH.Sysmsg2(_L["load Failed, Please check the file exists"])
 		return
 	end
-		
+
 	if bOverride then
 		if not data.EventScrutinyRecords then
 			if data.Debuff then
@@ -488,7 +488,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 					RaidGrid_BossCallAlert.tRecords = data.BossCallAlertRecords
 					RaidGrid_Base.Message(_L("Override %s data done","RaidGrid_BossCallAlert"))
 				end
-			end			
+			end
 			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 				if data.EventCacheRecords then
 					RaidGrid_EventCache.tRecords = data.EventCacheRecords
@@ -537,7 +537,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 			end
 		end
 	end
-	
+
 	-- fix table.insert
 	local tab, data = {}, {}
 	for k,v in ipairs(RaidGrid_BossCallAlert.tRecords.tWarningMessages) do
@@ -547,7 +547,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 		end
 	end
 	RaidGrid_BossCallAlert.tRecords.tWarningMessages = data
-	
+
 	local tab, data = {}, {}
 	for k,v in ipairs(RaidGrid_BossCallAlert.tRecords.tBossCall) do
 		if not tab[v.szText] then
@@ -556,7 +556,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 		end
 	end
 	RaidGrid_BossCallAlert.tRecords.tBossCall = data
-	
+
 	RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
 	RaidGrid_Base.Message(_L["Loaded:"] .. GetRootPath() .. szPath)
 	GUI.UnRegisterPanel(_L["Set Data"])
@@ -632,7 +632,7 @@ function RaidGrid_EventCache.OnEvent(szEvent)
 		if target then
 			RaidGrid_EventCache.tSyncEnemyChar[arg0] = target
 			RaidGrid_EventCache.CheckEnemyNpcCreationOrg(target)
-			
+
 			local dwTemplateID = target.dwTemplateID
 			RaidGrid_EventCache.tSyncCharFightState[dwTemplateID] = RaidGrid_EventCache.tSyncCharFightState[dwTemplateID] or {}
 			RaidGrid_EventCache.tSyncCharFightState[dwTemplateID][arg0] = target.bFightState or false
@@ -708,7 +708,7 @@ function RaidGrid_EventCache.OnLButtonClick()
 						local nCurrentPage = math.ceil(i / 14)
 						RaidGrid_EventCache.tListPage[RaidGrid_EventCache.szListIndex] = nCurrentPage
 						RaidGrid_EventCache.UpdateRecordList(RaidGrid_EventCache.szListIndex)
-						
+
 						local nShownIndex = i % 14
 						if nShownIndex == 0 then
 							nShownIndex = 14
@@ -787,7 +787,7 @@ function RaidGrid_EventCache.SwitchPageType(szListIndex)
 		return
 	end
 	RaidGrid_EventCache.bCheckBoxRecall = false
-	
+
 	RaidGrid_EventCache.szListIndex = szListIndex
 	for szKey, _ in pairs(RaidGrid_EventCache.tListPage) do
 		local checkBox = RaidGrid_EventCache.wnd:Lookup("CheckBox_Page_" .. szKey)
@@ -810,7 +810,7 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 	if not player then
 		return
 	end
-	
+
 	if not RaidGrid_EventScrutiny.bEnable then
 		return
 	end
@@ -819,16 +819,16 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 		return
 	end
 
-	
+
 	local bUpdate = false
-	
+
 	local target
 	if GetPlayer(dwID) then
 		target = GetPlayer(dwID)
 	elseif GetNpc(dwID) then
 		target = GetNpc(dwID)
 	else
-		return 
+		return
 	end
 
 	if target then
@@ -841,7 +841,7 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 			if szSkillName then
 				local tRecord = {}
 				tRecord.szType = "Casting"
-				
+
 				tRecord.dwID = dwSkillID
 				tRecord.nLevel = dwSkillLevel
 				tRecord.szName = szSkillName
@@ -852,13 +852,13 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 				end
 				tRecord.szMapName = Table_GetMapName(player.GetMapID()) or _L["Unknown"]
 				tRecord.szCasterName = target.szName or _L["Unknown"]
-				
+
 				RaidGrid_EventCache.tRecords.Casting.Hash[dwSkillID] = true
 				RaidGrid_EventCache.tRecords.Casting.Hash2[dwSkillID] = RaidGrid_EventCache.tRecords.Casting.Hash2[dwSkillID] or {}
 				RaidGrid_EventCache.tRecords.Casting.Hash2[dwSkillID][dwSkillLevel] = true
-				
+
 				table.insert(RaidGrid_EventCache.tRecords.Casting, 1, tRecord)
-				
+
 				if RaidGrid_EventScrutiny.nCastingAutoRemoveCachePage then
 					local nStartLoopIndex = 14 * RaidGrid_EventScrutiny.nCastingAutoRemoveCachePage + 1
 					for i = nStartLoopIndex, #RaidGrid_EventCache.tRecords.Casting do
@@ -887,7 +887,7 @@ function RaidGrid_EventCache.CheckEnemyNpcCreationOrg(npc)
 	if not player then
 		return
 	end
-	
+
 	if not npc then
 		return
 	end
@@ -903,7 +903,7 @@ function RaidGrid_EventCache.CheckEnemyNpcCreationOrg(npc)
 	if RaidGrid_EventCache.tRecords.Npc.Hash[npc.dwTemplateID] then
 		return
 	end
-	
+
 	local tRecord = {}
 	tRecord.szType = "Npc"
 	local szNpcName = JH.GetTemplateName(npc)
@@ -915,21 +915,21 @@ function RaidGrid_EventCache.CheckEnemyNpcCreationOrg(npc)
 	tRecord.bIsVisible = true
 	local _, nIconFrame = GetNpcHeadImage(npc.dwID)
 	tRecord.nIconFrame = nIconFrame
-	
+
 	if IsEnemy(player.dwID, npc.dwID) then
 		tRecord.bEnemy = true
 	else
 		tRecord.bEnemy = false
 	end
-	
+
 	tRecord.szMapName = Table_GetMapName(player.GetMapID()) or _L["Unknown"]
 	if GetNpcIntensity(npc) >= 4 then
 		tRecord.bBossIntensity = true
 	end
-	
+
 	RaidGrid_EventCache.tRecords.Npc.Hash[npc.dwTemplateID] = true
 	table.insert(RaidGrid_EventCache.tRecords.Npc, 1, tRecord)
-	
+
 	if RaidGrid_EventScrutiny.nNpcAutoRemoveCachePage then
 		local nStartLoopIndex = 14 * RaidGrid_EventScrutiny.nNpcAutoRemoveCachePage + 1
 		for i = nStartLoopIndex, #RaidGrid_EventCache.tRecords.Npc do
@@ -946,7 +946,7 @@ end
 function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel, dwSkillSrcID, Arg3, Arg7)
 	nLevel = nLevel or 1
 	local player = GetClientPlayer()
-	
+
 	if not RaidGrid_EventScrutiny.bEnable then
 		return
 	end
@@ -954,14 +954,14 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	if not RaidGrid_EventScrutiny.bCacheEnable then
 		return
 	end
-	
+
 	local playerMember
 	if IsPlayer(dwMemberID) then
 		playerMember = GetPlayer(dwMemberID)
 	else
 		playerMember = GetNpc(dwMemberID)
 	end
-	
+
 	if bIsRemoved or not player or not playerMember then
 		return
 	end
@@ -969,11 +969,11 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	if not dwBuffID or dwBuffID <= 0 then
 		return
 	end
-	
+
 	if nLevel <= 0 then
 		return
 	end
-	
+
 	local bIsVisible = Table_BuffIsVisible(dwBuffID, nLevel)
 	if not bIsVisible then return end --和谐
 	local szBuffName = Table_GetBuffName(dwBuffID, nLevel)
@@ -988,13 +988,13 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	if tTab.Hash2[dwBuffID] and tTab.Hash2[dwBuffID][nLevel] then
 		return
 	end
-	
+
 	local tRecord = {}
 	tRecord.szType = "Buff"
 	if not Arg3 then
 		tRecord.szType = "Debuff"
 	end
-	
+
 	-- tRecord.buff = buff
 	tRecord.dwID = dwBuffID
 	tRecord.nLevel = nLevel
@@ -1004,13 +1004,13 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	if tRecord.nIconID <= 0 then
 		tRecord.nIconID = 1435
 	end
-	
+
 	local nLogicFrame = GetLogicFrameCount()
 	nEndFrame = nEndFrame or nLogicFrame
 	tRecord.fKeepTime = ((nEndFrame - nLogicFrame) / GLOBAL.GAME_FPS) or 0
-	
+
 	tRecord.szMapName = Table_GetMapName(player.GetMapID()) or _L["Unknown"]
-	
+
 	if buff.dwSkillSrcID and buff.dwSkillSrcID>0 then
 		local szSkillSrcType = ""
 		tRecord.szCasterName, szSkillSrcType = RaidGrid_Base.GetNameAndTypeFromId(buff.dwSkillSrcID)
@@ -1018,19 +1018,19 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 			tRecord.szCasterName = _L["(player)"] .. tRecord.szCasterName
 		end
 	end
-	
+
 	if IsBuffDispel then
 		if IsBuffDispel(dwBuffID, nLevel) then
 			tRecord.bIsBuffDispel = true
 		end
 	end
-	
+
 	tTab.Hash[dwBuffID] = true
 	tTab.Hash2[dwBuffID] = tTab.Hash2[dwBuffID] or {}
 	tTab.Hash2[dwBuffID][nLevel] = true
-	
+
 	table.insert(tTab, 1, tRecord)
-	
+
 	if RaidGrid_EventScrutiny.nBuffAutoRemoveCachePage then
 		local nStartLoopIndex = 14 * RaidGrid_EventScrutiny.nBuffAutoRemoveCachePage + 1
 		for i = nStartLoopIndex, #tTab do
@@ -1066,12 +1066,12 @@ function RaidGrid_EventCache.InitRecordHandles()
 			this.imageCover:Hide()
 		end
 		handleRecord.OnItemLButtonClick = function()
-			
+
 		end
 		handleRecord.OnItemRButtonClick = function()
 			RaidGrid_EventCache.PopRBOptions(this)
 		end
-		
+
 		handleRecord.box = handleRecord:Lookup("Box_Icon")
 		handleRecord.box:Show()
 		handleRecord.box:SetObject(1,0)
@@ -1098,23 +1098,23 @@ function RaidGrid_EventCache.InitRecordHandles()
 		handleRecord.box.OnItemMouseLeave = function()
 			HideTip()
 		end
-		
+
 		handleRecord.imageBoxBG = handleRecord:Lookup("Image_BGBox")
 		handleRecord.imageBoxBG.handleParent = handleRecord
 		handleRecord.imageBoxBG.OnItemMouseEnter = handleRecord.box.OnItemMouseEnter
 		handleRecord.imageBoxBG.OnItemMouseLeave = handleRecord.box.OnItemMouseLeave
-		
+
 		handleRecord.text = handleRecord:Lookup("Text_Name")
 		handleRecord.text:SetText("")
-		
+
 		handleRecord.imageGrid = handleRecord:Lookup("Image_BGGrid")
 		handleRecord.imageGrid.nFrame = 999
-		
+
 		handleRecord.imageCover = handleRecord:Lookup("Image_Cover")
-		
+
 		handleRecord:Hide()
 	end
-	
+
 	handle:FormatAllItemPos()
 end
 
@@ -1137,7 +1137,7 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 
 	handleRecord.dwID = tRecord.dwID
 	handleRecord.tRecord = tRecord
-	
+
 	local szName = tRecord.szName
 	if not tRecord.bIsVisible then
 		szName = szName .. _L["`hide"]
@@ -1145,9 +1145,9 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 		szName = szName .. _L["`dispel"]
 	end
 	handleRecord.text:SetText(szName)
-	
 
-	
+
+
 	if tRecord.bEnemy == true then
 		handleRecord.text:SetFontColor(255, 128, 128)
 	elseif tRecord.bEnemy == false then
@@ -1155,14 +1155,14 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 	else
 		handleRecord.text:SetFontColor(255, 255, 255)
 	end
-	
+
 	if RaidGrid_EventScrutiny.IsRecordInList(tRecord, RaidGrid_EventCache.szListIndex) then
 		handleRecord.text:SetFontColor(155,155,155)
 		handleRecord.box:IconToGray()
 	else
 		handleRecord.box:IconToNormal()
 	end
-	
+
 	if tRecord.szType == "Debuff" and handleRecord.imageGrid.nFrame ~= 1 then
 		handleRecord.imageGrid:SetFrame(1)
 	elseif tRecord.szType == "Buff" and handleRecord.imageGrid.nFrame ~= 13 then
@@ -1170,7 +1170,7 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 	elseif handleRecord.imageGrid.nFrame ~= 14 then
 		handleRecord.imageGrid:SetFrame(14)
 	end
-	
+
 	handleRecord.box:SetObjectIcon(tRecord.nIconID or 1435)
 	if tRecord.szType == "Npc" then
 		handleRecord.box:Hide()
@@ -1182,7 +1182,7 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 	else
 		handleRecord.box:Show()
 	end
-	
+
 	handleRecord:Show()
 end
 
@@ -1196,12 +1196,12 @@ function RaidGrid_EventCache.UpdateRecordList(szListIndex)
 	if not tTab then
 		return
 	end
-	
+
 	local nMaxPage = math.max(math.ceil(#tTab / 14), 1)
 	local nCurrentPage = math.min(RaidGrid_EventCache.tListPage[RaidGrid_EventCache.szListIndex] or 1, nMaxPage)
 	RaidGrid_EventCache.tListPage[szListIndex] = nCurrentPage
 	RaidGrid_EventCache.handleMain:Lookup("Text_PageCurrent"):SetText(nCurrentPage)
-	
+
 	local nStartIndex = 14 * (nCurrentPage - 1) + 1
 	for i = 1, 14 do
 		local handleRecord = handle:Lookup("Handle_Record_" .. i)
@@ -1223,14 +1223,14 @@ function RaidGrid_EventCache.OpenPanel()
 	end
 	frame:Show()
 	frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
-			
+
 	RaidGrid_EventCache.frameSelf = frame
 	RaidGrid_EventCache.wnd = frame:Lookup("Wnd_Cache")
 	RaidGrid_EventCache.handleMain = RaidGrid_EventCache.wnd:Lookup("", "")
 	RaidGrid_EventCache.handleRecords = RaidGrid_EventCache.handleMain:Lookup("Handle_Caches")
-	
+
 	RaidGrid_EventCache.handleMain:Lookup("Handle_RecordDummy"):Hide()
-	
+
 	RaidGrid_EventCache.InitRecordHandles()
 	RaidGrid_EventCache.SwitchPageType(RaidGrid_EventCache.szListIndex)
 end
@@ -1281,13 +1281,13 @@ RaidGrid_EventScrutiny.tRecords = {
 };
 
 function RaidGrid_EventScrutiny._SetItemUI(szName,obj,boolean)
-	local _U = tRaidGrid_EventScrutinyTextUI	
+	local _U = tRaidGrid_EventScrutinyTextUI
 	if _U[szName] then
 		if not boolean then
 			obj:Lookup(_U[szName][1]):SetFontColor(_U[szName][2][1],_U[szName][2][2],_U[szName][2][3])
 		else
 			local r,g,b = _U[szName][3][1],_U[szName][3][2],_U[szName][3][3]
-			if szName == "Image_ASBox" then 
+			if szName == "Image_ASBox" then
 				if obj.tRecord.tRGAlertColor then
 					r,g,b,_ = unpack(obj.tRecord.tRGAlertColor)
 				end
@@ -1298,22 +1298,22 @@ function RaidGrid_EventScrutiny._SetItemUI(szName,obj,boolean)
 end
 
 tRaidGrid_EventScrutinyTextUI = {
-	Image_WBox = {	
+	Image_WBox = {
 		"Text_WBox",{120,120,120},{255,0,255},"bChatAlertW",nil,_L["WhisperAlert"]
 	},
-	Image_TBox = {	
+	Image_TBox = {
 		"Text_TBox",{120,120,120},{64,128,255},"bChatAlertT",nil,_L["RaidAlert"]
 	},
-	Image_SBox = {	
+	Image_SBox = {
 		"Text_SBox",{120,120,120},{250,100,15},"bBigFontAlarm",nil,_L["LargeText"]
 	},
-	Image_TSBox = {	
+	Image_TSBox = {
 		"Text_TSBox",{120,120,120},{250,100,15},"tRGAutoSelect",nil,"该功能已无效"
 	},
-	Image_ABox = {	
+	Image_ABox = {
 		"Text_ABox",{120,120,120},{250,100,15},"tRGCenterAlarm",nil,_L["CenterAlarm"]
 	},
-	Image_ASBox = {	
+	Image_ASBox = {
 		"Text_ASBox",{120,120,120},{250,100,15},"tRGAlertColor",function(szName,obj,tRecord)
 		PopupMenu({
 			{szOption = _L["Red []"], bCheck = false, bChecked = false, r = 255, g = 0, b = 0, fnAction = function() tRecord.tRGAlertColor = {255, 0, 0, 3}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
@@ -1337,18 +1337,18 @@ function RaidGrid_EventScrutiny.OnItemMouseEnter()
 	if _U[szName] then
 		local szText="<text>text=\"".._U[szName][6].."\" font=15 </text>"
 		local r,g,b = _U[szName][3][1],_U[szName][3][2],_U[szName][3][3]
-		if szName == "Image_ASBox" then 
+		if szName == "Image_ASBox" then
 			if handleRecord.tRecord.tRGAlertColor then
 				r,g,b,_ = unpack(handleRecord.tRecord.tRGAlertColor)
 			end
 		end
 		handleRecord:Lookup(_U[szName][1]):SetFontColor(r,g,b)
-		OutputTip(szText, 450, {x, y, w, h})	
+		OutputTip(szText, 450, {x, y, w, h})
 	end
 end
 
 function RaidGrid_EventScrutiny.SetItemUI(szName,obj,tRecord,action)
-	local _U = tRaidGrid_EventScrutinyTextUI	
+	local _U = tRaidGrid_EventScrutinyTextUI
 	if _U[szName] then
 		if tRecord[_U[szName][4]] then
 			if action == "OnItemLButtonClick" then
@@ -1360,7 +1360,7 @@ function RaidGrid_EventScrutiny.SetItemUI(szName,obj,tRecord,action)
 				end
 			end
 			local r,g,b = _U[szName][3][1],_U[szName][3][2],_U[szName][3][3]
-			if szName == "Image_ASBox" then 
+			if szName == "Image_ASBox" then
 				if tRecord.tRGAlertColor then
 					r,g,b,_ = unpack(tRecord.tRGAlertColor)
 				end
@@ -1378,7 +1378,7 @@ function RaidGrid_EventScrutiny.SetItemUI(szName,obj,tRecord,action)
 			obj:Lookup(_U[szName][1]):SetFontColor(_U[szName][2][1],_U[szName][2][2],_U[szName][2][3])
 		end
 	end
-	
+
 end
 
 function RaidGrid_EventScrutiny.OnItemMouseLeave()
@@ -1440,7 +1440,7 @@ function RaidGrid_EventScrutiny.OnLButtonClick()
 		end
 	elseif szName == "Btn_Close" then
 		RaidGrid_EventScrutiny.ClosePanel()
-	elseif szName == "Btn_Options" then	
+	elseif szName == "Btn_Options" then
 		RaidGrid_EventScrutiny.PopMainOptions()
 	end
 end
@@ -1506,7 +1506,7 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 			local szText = ""
 			szText = szText.."<Text>text="..EncodeComponentsString("    注意：当前目标不是Npc！您是要将此项Npc监控用于战斗计时吗？\n\n").." font=2 r=255 g=255 b=255</text>"
 			szText = szText.."<Text>text="..EncodeComponentsString("警告：该功能主要用于Boss战斗计时，如果您不知道此项的含义请不要点确定！").." font=162 r=255 g=0 b=0</text>"
-			local msg = 
+			local msg =
 			{
 				szMessage = szText,
 				bRichText = true,
@@ -1538,7 +1538,7 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 	if not target then
 		return
 	end
-	
+
 	local szBoss = ""
 	if target.dwTemplateID == tRecord.dwID then
 		szBoss = "（计时）"
@@ -1549,7 +1549,7 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 	if GetNpcIntensity(target) >= 4 then
 		szBoss = szBoss .. "★"
 	end
-	
+
 	tRecord.bLinkNpcFightState = true
 	tRecord.szLinkNpcName = szBoss .. target.szName
 	tRecord.dwLinkNpcTID = target.dwTemplateID
@@ -1583,7 +1583,7 @@ function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRem
 		RaidGridEx.UpdateMemberBuff(dwMemberID)
 		tBoxes = handleRole.tBoxes
 	end
-	
+
 	-- 如果是删除, 则无条件删除
 	if bIsRemoved then
 		for i = 1, 4 do
@@ -1608,7 +1608,7 @@ function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRem
 		end
 		return
 	end
-	
+
 	local nRate = tRecord.nPriorityLevel or 1
 	nRate = 6 - nRate
 	local tBuffColor = {}
@@ -1673,7 +1673,7 @@ function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRem
 			table.insert(tCurrentDebuff, {szName = szBuffName, nIconID = nIconID, bShow = true, nEndFrame = nEndFrame, nRate = nRate, szColor = szColor, nAlpha = RaidGridEx.nBuffFlashAlpha, nTrend = 1})
 		end
 	end
-	
+
 	for i = 4, 1, -1 do
 		if tCurrentDebuff[i] then
 			tBoxes[i].szName = tCurrentDebuff[i].szName
@@ -1686,7 +1686,7 @@ function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRem
 			tBoxes[i].nTrend = tCurrentDebuff[i].nTrend
 			tBoxes[i]:ClearObjectIcon()
 			tBoxes[i]:SetObjectIcon(tBoxes[i].nIconID)
-			
+
 			local shadow = handleRole:Lookup("Shadow_Color")
 			if shadow and (shadow.nEndFrame == 0 or tBoxes[i].nRate <= shadow.nRate) then
 				local tColor = tColorCover[tBoxes[i].szColor]
@@ -1724,7 +1724,7 @@ function RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwTargetID, tRecord, msg
 	if not tRecord then
 		return
 	end
-	
+
 	if not bNotSelect and tRecord.tRGAutoSelect then
 		RaidGrid_Base.SetTargetOrg(dwTargetID)
 	end
@@ -1735,7 +1735,7 @@ function RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwTargetID, tRecord, msg
 		if player.dwID ~= dwTargetID and IsPlayer(dwTargetID) and player.IsPlayerInMyParty(dwTargetID) then
 			bOtherPlayer = true
 		end
-		
+
 		local nRGRAR, nRGRAG, nRGRAB = 255, 0, 0
 		local bRedAlarm = false
 		local bCenterAlarm = false
@@ -1765,11 +1765,11 @@ end
 function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel, dwSkillSrcID, Arg3)
 	nLevel = nLevel or 1
 	local player = GetClientPlayer()
-	
+
 	if not player then
 		return
 	end
-	
+
 	if not RaidGrid_EventScrutiny.bEnable then
 		return
 	end
@@ -1787,7 +1787,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 	if not dwBuffID or dwBuffID <= 0 then
 		return
 	end
-	
+
 	if nLevel <= 0 then
 		return
 	end
@@ -1844,12 +1844,12 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					if RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable then
 						RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
 					end
-				end	
+				end
 			elseif not tTab[i].nEventAlertStackNum or (tTab[i].nEventAlertStackNum <= nStackNum) then
 				tTab[i].fEventTimeStart = JH.GetLogicTime()
 				tTab[i].nEventAlertTime = fLogicTime
 				tTab[i].fEventTimeEnd = tTab[i].fEventTimeStart + tTab[i].nEventAlertTime
-				
+
 				if player.dwID == dwMemberID then
 					if not tTab[i].bNotAddSelfBuffAlert then
 						RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
@@ -1889,7 +1889,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					szmsgpre = "★你★获得效果: "
 				end
 				local msg = szmsgpre .. szBuffName .. " x" .. nStackNum .. "。".. (tTab[i].tAlarmAddInfo or "")
-				
+
 				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwMemberID, tTab[i], msg)
 				if tTab[i].bBigFontAlarm then
 					if tTab[i].tAlarmAddInfo then
@@ -1897,7 +1897,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					end
 					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
 				end
-				
+
 				if RaidGrid_EventScrutiny.bAutoMarkEnable and tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
 					RaidGrid_Base.TeamMarkOrg(dwMemberID, tTab[i].tAutoTeamMark)
 				end
@@ -1954,7 +1954,7 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					bEventCanFire = false
 				end
 			end
-			
+
 			if tTab[i].bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable then
 				--if math.abs(JH.GetLogicTime() - (tTab[i].fLastMarkCountTime or 0)) > 60 then
 				if tTab[i].nMarkCount and (tTab[i].nMarkCount >= (tTab[i].nMaxMarkCount or 10)) then
@@ -1976,7 +1976,7 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					RaidGrid_Base.TeamMarkOrg(npc.dwID, TeamMarkIndex)
 				end
 			end
-			
+
 			if tTab[i].bScreenHead then
 				FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = tTab[i].tAlarmAddInfo, col = tTab[i].tRGBuffColor })
 			end
@@ -2004,9 +2004,9 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 						end
 					end
 				end
-			
+
 				tTab[i].fLastNpcAppearTime = fLogicTime
-			
+
 				-- 事件监控倒计时触发设置
 				if (tTab[i].nEventScrutinyCDEnd or 0) <= fLogicTime then
 					tTab[i].fEventTimeStart = fLogicTime
@@ -2029,7 +2029,7 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
 				end
 				if (tTab[i].bChatAlertCDEnd or 0) <= fLogicTime then
-					
+
 					if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
 						local msg = _L("* [%s] enter %s",szNpcName,tTab[i].tAlarmAddInfo or "")
 						if tTab[i].bChatAlertW then
@@ -2060,11 +2060,11 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 	if not npc or not player then
 		return
 	end
-	
+
 	if not RaidGrid_EventScrutiny.bEnable then
 		return
 	end
-	
+
 	if not RaidGrid_EventScrutiny.IsRecordInList({dwID = dwTemplateID}, "Npc") then
 		return
 	end
@@ -2073,7 +2073,7 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 	for i = 1, #tTab do
 		if tTab[i].dwID == dwTemplateID then
 			if not tTab[i].bNpcLeaveScrutiny then return end
-			local bEventCanFire = true			
+			local bEventCanFire = true
 			if tTab[i].bNpcAllLeave then
 				local aNpc = JH.GetAllNpc()
 				for k, v in pairs(aNpc) do
@@ -2083,7 +2083,7 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 					end
 				end
 			end
-			
+
 			if bEventCanFire then
 				RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tTab[i])
 				local szNpcName = JH.GetTemplateName(npc)
@@ -2127,10 +2127,10 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 		return
 	end
 
-	if not RaidGrid_EventScrutiny.bCastingScrutinyAllEnable and not JH.IsInDungeon2() then
+	if not RaidGrid_EventScrutiny.bCastingScrutinyAllEnable and not JH.IsInDungeon(true) then
 		return
 	end
-	
+
 	local fLogicTime = JH.GetLogicTime()
 	local tTab = RaidGrid_EventScrutiny.tRecords["Casting"]
 
@@ -2142,9 +2142,9 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 		target = GetNpc(dwID)
 		ISTargetNPC = true
 	else
-		return 
+		return
 	end
-	
+
 	local sarg0 = arg0
 
 	if target then
@@ -2185,7 +2185,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 					if not szSkillName or szSkillName == "" then
 						szSkillName = tTab[i].szName or "????"
 					end
-					if tTab[i].nEventAlertTime and tTab[i].nEventAlertTime > 0 then							
+					if tTab[i].nEventAlertTime and tTab[i].nEventAlertTime > 0 then
 						-- 记录平均数
 						if dwSkillID and tTab[i].fLastSkillAppearTime and fLogicTime >= tonumber(tTab[i].nMinChatAlertCD or 7) + tTab[i].fLastSkillAppearTime and fLogicTime <= 1200 + tTab[i].fLastSkillAppearTime then
 							local fTimeLast = fLogicTime - tTab[i].fLastSkillAppearTime
@@ -2215,10 +2215,10 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 							if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
 								RaidGrid_SkillTimer.StartNewSkillTimerOrg(tTab[i].szSkillName2 or tTab[i].szName,254,1,tTab[i].nSkillTimer2*16,RaidGrid_EventScrutiny.bSkillTimerSay and tTab[i].bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
 								tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
-							end		
+							end
 						end
 						tTab[i].fLastSkillAppearTime = fLogicTime
-						
+
 						-- 事件监控倒计时触发设置
 						if (tTab[i].nEventScrutinyCDEnd or 0) <= fLogicTime then
 							tTab[i].fEventTimeStart = fLogicTime
@@ -2228,11 +2228,11 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 							end
 							tTab[i].nEventScrutinyCDEnd = fLogicTime + tonumber(tTab[i].nMinEventScrutinyCD or 7)
 						end
-						
+
 						if ((tTab[i].bChatAlertCDEnd or 0) <= fLogicTime) then
 
 							RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tTab[i])
-							
+
 							local szTargetName = _L["Unknown"]
 							local bTargetNameIsPlayer = false
 							if RaidGrid_EventScrutiny.bCastingTargetScrutinyEnable and (not tTab[i].bNotCastTargetScrutinyEnable) then
@@ -2262,7 +2262,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 									end
 								end
 							end
-							
+
 							local szInfoTemp = "。"
 							if szTargetName and szTargetName ~= "" and szTargetName ~= _L["Unknown"] then
 								szInfoTemp = "，目标：[" .. szTargetName .. "]。"
@@ -2270,7 +2270,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 									szInfoTemp = "，目标：★" .. szTargetName .. "★。"
 								end
 							end
-							
+
 							local szInfoTemp2 = "]释放了："
 							if szCastType == "UI_OME_SKILL_CAST_LOG" then
 								szInfoTemp2 = "]开始吟唱："
@@ -2280,7 +2280,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 								local tInfo2 = {{type = "text", text = "★ [" .. szName .. szInfoTemp2 .. szSkillName .. "，目标为：★你★。" .. (tTab[i].tAlarmAddInfo or "")},}
 								JH.Talk(szTargetName,tInfo2)
 							end
-							
+
 							if player.IsInParty() and RaidGrid_EventScrutiny.bCastingChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
 								local tInfo =  "★ [" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (tTab[i].tAlarmAddInfo or "")
 								if tTab[i].bChatAlertW then
@@ -2297,7 +2297,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 								FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
 							end
 							tTab[i].bChatAlertCDEnd = fLogicTime + tonumber(tTab[i].nMinChatAlertCD or 7)
-							
+
 						end
 					end
 					if sarg0 == "UI_OME_SKILL_CAST_LOG" and tTab[i].bScreenHead then
@@ -2306,7 +2306,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 					if RaidGrid_EventScrutiny.bCastingReadingBar and sarg0 == "UI_OME_SKILL_CAST_LOG" and not tTab[i].bNotReadingBar then
 						RaidGrid_ReadingBar.putOrg(target)
 					end
-					break	
+					break
 				end
 			end
 		end
@@ -2330,7 +2330,7 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 						bFightState = false
 					end
 				end
-				
+
 				if tInfos[dwID] ~= bFightState then
 					if bChangeFSFlag ~= true then
 						bChangeFSFlag = bFightState
@@ -2343,7 +2343,7 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 				end
 			end
 		end
-			
+
 		if bChangeFSFlag == true then
 			local tTypes = {"Casting", "Npc"}
 			for k = 1, 2 do
@@ -2381,7 +2381,7 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 end
 
 
--- NPC血量监控 由于结构关系 原理是战斗的时候扫tSyncEnemyChar 
+-- NPC血量监控 由于结构关系 原理是战斗的时候扫tSyncEnemyChar
 -- 然后逐个然后去扫hash 抓到的话 就扫全表 然后扫出来 获取tNpcLife
 -- 第一项是百分比 第二项是说的话 第三项是倒计时 基本就这样了很蛋疼的结构 否则可以调用分段倒计时的
 
@@ -2401,7 +2401,7 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 		return
 	end
 	local tTab = RaidGrid_EventScrutiny.tRecords["Npc"]
-	
+
 	for dwID, target in pairs(RaidGrid_EventCache.tSyncEnemyChar) do
 		local dwTemplateID = target.dwTemplateID
 		if RaidGrid_EventScrutiny.IsRecordInList({dwID = dwTemplateID}, "Npc") then
@@ -2433,7 +2433,7 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 									end
 									tTab[i].bChatAlertCDEnd = fLogicTime + tonumber(tTab[i].nMinChatAlertCD or 7)
 								end
-								_RE.tNpcLife[dwTemplateID][v[1]] = true 
+								_RE.tNpcLife[dwTemplateID][v[1]] = true
 								break
 							end
 						end
@@ -2455,10 +2455,10 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 	if not handle then
 		return
 	end
-	
+
 	local tTab = RaidGrid_EventScrutiny.tRecords["Scrutiny"]
 	local fLogicTime = JH.GetLogicTime()
-	
+
 	local tRemoveList = {}
 	for i = 1, #tTab do
 		local tRecord = tTab[i]
@@ -2498,7 +2498,7 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 	if RaidGrid_EventScrutiny.szListIndex == "Scrutiny" then
 		RaidGrid_EventScrutiny.UpdateRecordList("Scrutiny")
 	end
-	
+
 	for i = 1, 8 do
 		local handleRecord = handle:Lookup("Handle_Record_" .. i)
 		if handleRecord and handleRecord.tRecord and
@@ -2556,7 +2556,7 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 					handleRecord.textEventTime:SetText(JH.GetBuffTimeString(fTimeRemain))
 				else
 					handleRecord:Lookup("Image_TimeBar"):SetSize(125 * fP, 17)
-					handleRecord.textEventTime:SetText(JH.GetBuffTimeString(fLogicTime - handleRecord.tRecord.fEventTimeStart))					
+					handleRecord.textEventTime:SetText(JH.GetBuffTimeString(fLogicTime - handleRecord.tRecord.fEventTimeStart))
 				end
 			else
 				handleRecord:Lookup("Image_TimeBar"):SetSize(0, 17)
@@ -2589,7 +2589,7 @@ function RaidGrid_EventScrutiny.SwitchPageType(szListIndex)
 		return
 	end
 	RaidGrid_EventScrutiny.bCheckBoxRecall = false
-	
+
 	RaidGrid_EventScrutiny.szListIndex = szListIndex
 	for szKey, _ in pairs(RaidGrid_EventScrutiny.tListPage) do
 		local checkBox = RaidGrid_EventScrutiny.wnd:Lookup("CheckBox_Page_" .. szKey)
@@ -2601,14 +2601,14 @@ function RaidGrid_EventScrutiny.SwitchPageType(szListIndex)
 			checkBox:Enable(true)
 		end
 	end
-	
+
 	local tTitle = {Buff = _L["Buff"], Debuff = _L["DeBuff"], Casting = _L["Casting"], Npc = _L["Npc"], Scrutiny = _L["RaidGrid_EventScrutiny"]}
 	local textTitle = RaidGrid_EventScrutiny.handleMain:Lookup("Text_Title")
 	textTitle:SetText(tTitle[szListIndex] or _L["RGES"])
-	
+
 	RaidGrid_EventScrutiny.UpdateRecordList(szListIndex)
 	RaidGrid_EventScrutiny.RefreshEventHandle()
-	
+
 	if szListIndex == "Scrutiny" then
 		RaidGrid_EventScrutiny.handleMain:Lookup("Handle_BG"):Lookup("Image_BG_TL"):SetAlpha(64)
 		RaidGrid_EventScrutiny.handleMain:Lookup("Handle_BG"):Lookup("Image_BG_TR"):SetAlpha(64)
@@ -2624,7 +2624,7 @@ function RaidGrid_EventScrutiny.SwitchPageType(szListIndex)
 		RaidGrid_EventScrutiny.wnd:Lookup("Btn_NextPage"):Hide()
 		RaidGrid_EventScrutiny.wnd:Lookup("Btn_DelPage"):Hide()
 		RaidGrid_EventScrutiny.handleMain:Lookup("Text_PageCurrent"):Hide()
-		
+
 	else
 		RaidGrid_EventScrutiny.handleMain:Lookup("Handle_BG"):Lookup("Image_BG_TL"):SetAlpha(255)
 		RaidGrid_EventScrutiny.handleMain:Lookup("Handle_BG"):Lookup("Image_BG_TR"):SetAlpha(255)
@@ -2670,18 +2670,18 @@ function RaidGrid_EventScrutiny.AddRecordToList(tRecord, szListIndex)
 	if not tRecord or not szListIndex then
 		return
 	end
-	
+
 	local tListTable = RaidGrid_EventScrutiny.tRecords[szListIndex]
 	if not tListTable or not tListTable.Hash2 then
 		return
 	end
-	
+
 	if tListTable.Hash[tRecord.dwID] or tListTable.Hash2[tRecord.dwID] then
 		if not tRecord.nLevel or (tListTable.Hash2[tRecord.dwID] and tListTable.Hash2[tRecord.dwID][tRecord.nLevel]) then
 			return
 		end
 	end
-	
+
 	tRecord.nEventAlertTime = tRecord.nEventAlertTime or math.floor(tRecord.fKeepTime or 1200)
 
 	if szListIndex ~= "Scrutiny" then
@@ -2731,7 +2731,7 @@ function RaidGrid_EventScrutiny.UpdateRecordList(szListIndex)
 	local nCurrentPage = math.min(RaidGrid_EventScrutiny.tListPage[szListIndex] or 1, nMaxPage)
 	RaidGrid_EventScrutiny.tListPage[szListIndex] = nCurrentPage
 	RaidGrid_EventScrutiny.handleMain:Lookup("Text_PageCurrent"):SetText(nCurrentPage)
-	
+
 	local nStartIndex = 8 * (nCurrentPage - 1) + 1
 	local nShownCount = 0
 	for i = 1, 8 do
@@ -2746,7 +2746,7 @@ function RaidGrid_EventScrutiny.UpdateRecordList(szListIndex)
 			end
 		end
 	end
-	
+
 	if szListIndex == "Scrutiny" then
 		RaidGrid_EventScrutiny.frameSelf:SetSize(235, 50 + 48 * nShownCount)
 	else
@@ -2760,7 +2760,7 @@ function RaidGrid_EventScrutiny.InitRecordHandles()
 		return
 	end
 	handle:Clear()
-	
+
 	for i = 1, 8 do
 		local handleRecord = handle:AppendItemFromIni(szIniFileScrutiny, "Handle_RecordDummy", "Handle_Record_" .. i)
 		handleRecord:SetRelPos(0, (i - 1) * 46 + 1)
@@ -2802,41 +2802,41 @@ function RaidGrid_EventScrutiny.InitRecordHandles()
 		handleRecord.box.OnItemMouseLeave = function()
 			HideTip()
 		end
-		
+
 		handleRecord.imageBoxBG = handleRecord:Lookup("Image_BGBox")
 		handleRecord.imageBoxBG.handleParent = handleRecord
 		handleRecord.imageBoxBG.OnItemMouseEnter = handleRecord.box.OnItemMouseEnter
 		handleRecord.imageBoxBG.OnItemMouseLeave = handleRecord.box.OnItemMouseLeave
-		
+
 		handleRecord.text = handleRecord:Lookup("Text_Name")
 		handleRecord.text:SetText("")
-		
+
 		handleRecord.imageGrid = handleRecord:Lookup("Image_BGGrid")
 		handleRecord.imageGrid.nFrame = 999
-		
+
 		handleRecord.textTime = handleRecord:Lookup("Text_Time")
 		handleRecord.textTime:SetText("")
-		
-		handleRecord.textEventTime = handleRecord:Lookup("Text_EventTime")		
+
+		handleRecord.textEventTime = handleRecord:Lookup("Text_EventTime")
 		handleRecord.textEventTime:SetText("")
-		
+
 		handleRecord.textEventAlertTime = handleRecord:Lookup("Text_EventAlertTime")
 		handleRecord.textEventAlertTime:SetFontColor(255,128,0)
 		handleRecord.textEventAlertTime:SetText("")
-		
+
 		handleRecord.textEventAlertCount = handleRecord:Lookup("Text_Count")
 		handleRecord.textEventAlertCount:SetText("")
-		
+
 		handleRecord.imageCover = handleRecord:Lookup("Image_Cover")
 		handleRecord.imageTimeBar = handleRecord:Lookup("Image_TimeBar")
 		handleRecord.imageTimeAlertBG = handleRecord:Lookup("Image_TimeAlertBG")
 		handleRecord.shadowBuffColor = handleRecord:Lookup("Shadow_BuffColor")
-		
+
 		handleRecord.imageFSLink = handleRecord:Lookup("Image_FSLink")
-		
+
 		handleRecord:Hide()
 	end
-	
+
 	handle:FormatAllItemPos()
 end
 
@@ -2873,7 +2873,7 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 	else
 		handleRecord.text:SetFontColor(255, 255, 255)
 	end
-	
+
 	if tRecord.szType == "Debuff" and handleRecord.imageGrid.nFrame ~= 1 then
 		handleRecord.imageGrid:SetFrame(1)
 	elseif tRecord.szType == "Buff" and handleRecord.imageGrid.nFrame ~= 13 then
@@ -2881,7 +2881,7 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 	elseif handleRecord.imageGrid.nFrame ~= 14 then
 		handleRecord.imageGrid:SetFrame(14)
 	end
-	
+
 	handleRecord.box:SetObjectIcon(tRecord.nIconID or 1435)
 	if tRecord.szType == "Npc" then
 		handleRecord.box:Hide()
@@ -2893,13 +2893,13 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 	else
 		handleRecord.box:Show()
 	end
-	
+
 	if handleRecord.tRecord.nEventAlertTime then
 		handleRecord.textEventAlertTime:SetText(JH.GetBuffTimeString(handleRecord.tRecord.nEventAlertTime))
 	else
 		handleRecord.textEventAlertTime:SetText("")
 	end
-	
+
 	if handleRecord.tRecord.nEventAlertCount and handleRecord.tRecord.nEventAlertCount > 1 then
 		handleRecord.textEventAlertCount:SetText(handleRecord.tRecord.nEventAlertCount)
 	elseif handleRecord.tRecord.nEventAlertStackNum and handleRecord.tRecord.nEventAlertStackNum > 1 then
@@ -2907,7 +2907,7 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 	else
 		handleRecord.textEventAlertCount:SetText("")
 	end
-	
+
 	handleRecord.tRecord.nAutoEventTimeMode = handleRecord.tRecord.nAutoEventTimeMode or AUTO_EVENTTIME_MODE.AVG
 	if handleRecord.tRecord.nAutoEventTimeMode == AUTO_EVENTTIME_MODE.AVG then
 		handleRecord.imageTimeAlertBG:SetFrame(23)
@@ -2916,17 +2916,17 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 	else
 		handleRecord.imageTimeAlertBG:SetFrame(21)
 	end
-	
+
 	if handleRecord.tRecord.tRGBuffColor then
 		handleRecord.shadowBuffColor:SetColorRGB(handleRecord.tRecord.tRGBuffColor[1] or 0, handleRecord.tRecord.tRGBuffColor[2] or 0, handleRecord.tRecord.tRGBuffColor[3] or 0)
 	else
 		handleRecord.shadowBuffColor:SetColorRGB(0, 0, 0)
 	end
-	
+
 	for _, v in pairs(tRaidGrid_EventScrutinyTextUI) do
 		if handleRecord.tRecord[v[4]] then
 			local r,g,b = v[3][1],v[3][2],v[3][3]
-			if _ == "Image_ASBox" then 
+			if _ == "Image_ASBox" then
 				if handleRecord.tRecord.tRGAlertColor then
 					r,g,b,_ = unpack(handleRecord.tRecord.tRGAlertColor)
 				end
@@ -2936,13 +2936,13 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 			handleRecord:Lookup(v[1]):SetFontColor(v[2][1],v[2][2],v[2][3])
 		end
 	end
-	
+
 	if handleRecord.tRecord.bLinkNpcFightState then
 		handleRecord.imageFSLink:Show()
 	else
 		handleRecord.imageFSLink:Hide()
 	end
-	
+
 	handleRecord:Show()
 end
 
@@ -3011,13 +3011,13 @@ function RaidGrid_SelfBuffAlert.OnFrameBreathe()
 	local nX, nY = RaidGrid_SelfBuffAlert.frameSelf:GetRelPos()
 	if RaidGrid_SelfBuffAlert.tLastLoc.nX ~= nX and RaidGrid_SelfBuffAlert.tLastLoc.nY ~= nY then
 		RaidGrid_SelfBuffAlert.SetPanelPos(nX, nY)
-	end 
+	end
 end
 
 function RaidGrid_SelfBuffAlert.RefreshAlertColornSound()
 	local imageAlertBG = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertBG")
 	imageAlertBG:SetAlpha(math.max(0, imageAlertBG:GetAlpha() - 3))
-	
+
 	local imageAlertGrid = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertGrid")
 	if RaidGrid_EventScrutiny.bColorAlertEnable then
 		local nKeepBuffColorGrid = -1
@@ -3028,7 +3028,7 @@ function RaidGrid_SelfBuffAlert.RefreshAlertColornSound()
 				break
 			end
 		end
-		
+
 		if nKeepBuffColorGrid and nKeepBuffColorGrid >= 0 then
 			imageAlertGrid:SetFrame(nKeepBuffColorGrid)
 			imageAlertGrid:SetAlpha(200)
@@ -3050,7 +3050,7 @@ function RaidGrid_EventScrutiny.SoundFileCommon(tRecord)
 	local szType = tRecord.szType or "Alert"
 	local dwID = tRecord.dwID or tRecord.szName
 	if tRecord.bAlwaysCheckLevel then
-		szLevel = tRecord.nLevel		
+		szLevel = tRecord.nLevel
 	end
 	local szSoundFileCommon = "\\Interface\\JH\\RaidGrid_EventScrutiny\\AlertSound\\" .. szType .. "\\" .. tRecord.szName .."_" .. szLevel .. ".mp3"
 	local bFExist = IsFileExist(szSoundFileCommon)
@@ -3073,15 +3073,15 @@ function RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tRecord)
 	local nW, nH = Station.GetClientSize(true)
 	imageAlertBG:SetSize(nW, nH)
 	imageAlertGrid:SetSize(nW, nH)
-	
+
 	if tRGAlertColor and RaidGrid_EventScrutiny.bColorAlertEnable then
 		local nColorIndex = tRGAlertColor[4] or 4
 		imageAlertBG:SetFrame(nColorIndex)
 		imageAlertBG:SetAlpha(128)
 	end
-	
+
 	local bFExist,szSoundFileCommon = RaidGrid_EventScrutiny.SoundFileCommon(tRecord)
-	
+
 	if szSoundFile and szSoundFile ~= "" or bFExist then
 		local fLogicTime = JH.GetLogicTime()
 		if __RaidGrid_Sound[tRecord.dwID] and __RaidGrid_Sound[tRecord.dwID] + 2 > fLogicTime then
@@ -3091,7 +3091,7 @@ function RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tRecord)
 		-- RaidGrid_EventScrutiny.nSoundAlertCDEnd = fLogicTime + 2
 		if szSoundFile and szSoundFile ~= "" then
 			PlaySound(RaidGrid_EventScrutiny.nSoundChannel, szSoundFile)
-		elseif bFExist then			
+		elseif bFExist then
 			PlaySound(RaidGrid_EventScrutiny.nSoundChannel, szSoundFileCommon)
 		end
 		--local fLogicTime = JH.GetLogicTime()
@@ -3105,7 +3105,7 @@ function RaidGrid_SelfBuffAlert.RefreshSelfBuffHandle(dwBuffID, bIsRemoved)
 	if bIsRemoved then
 		dwRemoveID = dwBuffID
 	end
-	
+
 	local nLogic = GetLogicFrameCount()
 	local handleBoxEmpty = nil
 	for i = 1, RaidGrid_SelfBuffAlert.nBoxMax do
@@ -3127,7 +3127,7 @@ function RaidGrid_SelfBuffAlert.RefreshSelfBuffHandle(dwBuffID, bIsRemoved)
 			handleBoxEmpty = handleBox
 		end
 	end
-	
+
 	return handleBoxEmpty
 end
 
@@ -3136,12 +3136,12 @@ function RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tRecord, dwMemberID, bIsR
 	if not tRecord or not RaidGrid_EventScrutiny.bBuffListExEnable then
 		return
 	end
-	
+
 	local handleBoxEmpty = RaidGrid_SelfBuffAlert.RefreshSelfBuffHandle(dwBuffID, bIsRemoved)
 	if not handleBoxEmpty then
 		return
 	end
-	
+
 	if bIsRemoved then
 		handleBoxEmpty.tInfo = nil
 		handleBoxEmpty.nEndFrame = nil
@@ -3156,7 +3156,7 @@ function RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tRecord, dwMemberID, bIsR
 	handleBoxEmpty.box:SetObjectSparking(true)
 
 	handleBoxEmpty.box:SetObjectIcon(tRecord.nIconID or 1435)
-	
+
 	if RaidGrid_SelfBuffAlert.bShowBuffName then
 		handleBoxEmpty.textBuffName:SetText(tRecord.szName)
 	end
@@ -3187,7 +3187,7 @@ function RaidGrid_SelfBuffAlert.InitBuffBoxes()
 	for i = 1, RaidGrid_SelfBuffAlert.nBoxMax do
 		local handleBox = RaidGrid_SelfBuffAlert.handleMain:AppendItemFromIni(szIniFileSelfBuffAlert, "Handle_BuffBoxDummy", "Handle_Box_" .. i)
 		handleBox:SetRelPos((i - 1) * 47, 0)
-		
+
 		local box = handleBox:Lookup("Box_Icon")
 		local textBuffName = handleBox:Lookup("Text_BuffName")
 		local text = handleBox:Lookup("Text_Time")
@@ -3196,7 +3196,7 @@ function RaidGrid_SelfBuffAlert.InitBuffBoxes()
 		handleBox.textBuffName = textBuffName
 		handleBox.text = text
 		handleBox.ani = ani
-	
+
 		handleBox.ani:SetAlpha(0)
 		textBuffName:SetText("")
 		text:SetText("")
@@ -3205,7 +3205,7 @@ function RaidGrid_SelfBuffAlert.InitBuffBoxes()
 		box:SetOverTextPosition(0, ITEM_POSITION.LEFT_BOTTOM)
 		box:SetOverTextFontScheme(0, 15)
 		box:SetOverText(0, "")
-		
+
 		handleBox.box.handleParent = handleBox
 		handleBox.box.OnItemMouseEnter = function()
 			local tRecord = this.handleParent.tInfo
@@ -3247,7 +3247,7 @@ function RaidGrid_SelfBuffAlert.InitBuffBoxes()
 				end
 			end
 		end
-		
+
 		handleBox:Show()
 	end
 	RaidGrid_SelfBuffAlert.handleMain:FormatAllItemPos()
@@ -3276,7 +3276,7 @@ function RaidGrid_SelfBuffAlert.OpenPanel()
 	RaidGrid_SelfBuffAlert.frameSelf = frame
 	RaidGrid_SelfBuffAlert.handleMain = frame:Lookup("", "")
 	RaidGrid_SelfBuffAlert.handleMain:Lookup("Handle_BuffBoxDummy"):Hide()
-	
+
 	local frameBG = Station.Lookup("Topmost2/RaidGrid_SelfBuffAlertBG")
 	if not frameBG then
 		frameBG = Wnd.OpenWindow(_RE.szIniPath .. "RaidGrid_SelfBuffAlertBG.ini", "RaidGrid_SelfBuffAlertBG")
@@ -3284,7 +3284,7 @@ function RaidGrid_SelfBuffAlert.OpenPanel()
 	frameBG:Show()
 	RaidGrid_SelfBuffAlert.frameBG = frameBG
 	RaidGrid_SelfBuffAlert.handleMainBG = frameBG:Lookup("", "")
-	
+
 	----------------------------------------------------------------------------------------------------------------------------
 	RaidGrid_SelfBuffAlert.InitBuffBoxes()
 	RaidGrid_SelfBuffAlert.RescaleBG()
@@ -3304,9 +3304,9 @@ end
 
 RaidGrid_CenterAlarm ={
 	Anchor = {
-		s = "CENTER", 
-		r = "CENTER", 
-		x = 0, 
+		s = "CENTER",
+		r = "CENTER",
+		x = 0,
 		y = -150,
 	}
 }
@@ -3463,9 +3463,9 @@ Wnd.OpenWindow(_RE.szIniPath .. "RaidGrid_RedAlarm.ini", "RaidGrid_RedAlarm")
 RaidGrid_SkillTimerAnchor = {
 	bDragable = false,
 	Anchor = {
-		s = "CENTER", 
-		r = "CENTER", 
-		x = 0, 
+		s = "CENTER",
+		r = "CENTER",
+		x = 0,
 		y = -300,
 	},
 }
@@ -3496,7 +3496,7 @@ function RaidGrid_SkillTimerAnchor.UpdateDrag()
 	end
 end
 
-function RaidGrid_SkillTimerAnchor.OnFrameDragSetPosEnd()	
+function RaidGrid_SkillTimerAnchor.OnFrameDragSetPosEnd()
 	this:CorrectPos()
 	RaidGrid_SkillTimerAnchor.Anchor = GetFrameAnchor(this)
 end
@@ -3628,7 +3628,7 @@ function RaidGrid_SkillTimer.RemoveAllTimer()
 		hFrame.nChannel = nil
 		hFrame.bBuff = false
 		RaidGrid_SkillTimer.nCount = RaidGrid_SkillTimer.nCount - 1
-	end	
+	end
 end
 
 function RaidGrid_SkillTimer.FreshBox(frame)
@@ -3666,7 +3666,7 @@ function RaidGrid_SkillTimer.StartNewSkillTimerOrg(szSkillName, nSkillID, nSkill
 		hTimerFrame = Wnd.OpenWindow(SKILL_TIMER_INI, "RaidGrid_SkillTimer_" .. RaidGrid_SkillTimer.nCount)
 		hTimerFrame.nID = RaidGrid_SkillTimer.nCount
 		hTimerFrame.OnFrameRender = RaidGrid_SkillTimer.OnFrameRender
-	else		
+	else
 	end
 
 	local index = 1
@@ -3682,9 +3682,9 @@ function RaidGrid_SkillTimer.StartNewSkillTimerOrg(szSkillName, nSkillID, nSkill
 		local post = RaidGrid_SkillTimer.GetFrame(i-1)
 		RaidGrid_SkillTimer.CopyFrame(pre, post)
 	end
-	
-	hTimerFrame = RaidGrid_SkillTimer.GetFrame(index)	
-	
+
+	hTimerFrame = RaidGrid_SkillTimer.GetFrame(index)
+
 	hTimerFrame.szSkillName = szSkillName
 	hTimerFrame.nSkillID = nSkillID
 	hTimerFrame.nSkillLV = nSkillLV
@@ -3695,7 +3695,7 @@ function RaidGrid_SkillTimer.StartNewSkillTimerOrg(szSkillName, nSkillID, nSkill
 	hTimerFrame.bBuff = bBuff
 	RaidGrid_SkillTimer.init(hTimerFrame)
 	hTimerFrame:Show()
-	
+
 	for i=1, RaidGrid_SkillTimer.nCount, 1 do
 		if i ~= index then
 			local hTimerFrame2 = RaidGrid_SkillTimer.GetFrame(i)
@@ -3705,7 +3705,7 @@ function RaidGrid_SkillTimer.StartNewSkillTimerOrg(szSkillName, nSkillID, nSkill
 			end
 		end
 	end
-	
+
 end
 
 ----------------------------------------------------------------
@@ -3742,22 +3742,22 @@ end
 
 function RaidGrid_ReadingBar.hide()
 	local frame = Station.Lookup("Normal/RaidGrid_ReadingBar")
-	if frame then 
+	if frame then
 		if frame:IsVisible() then
-			frame:Hide()    
+			frame:Hide()
 		end
 	end
 end
 
 
 function RaidGrid_ReadingBar.putOrg(szTarget)
-	if table.getn(RaidGrid_ReadingBar.target)>=RaidGrid_ReadingBar.TOTAL then 
+	if table.getn(RaidGrid_ReadingBar.target)>=RaidGrid_ReadingBar.TOTAL then
 		return
 	else
-		--  msg(szTarget.szName..szname)  
+		--  msg(szTarget.szName..szname)
 		for _,tar in ipairs(RaidGrid_ReadingBar.target) do
-			if szTarget.dwID==tar.caster.dwID then 
-				return 
+			if szTarget.dwID==tar.caster.dwID then
+				return
 			end
 		end
 		table.insert(RaidGrid_ReadingBar.target,{caster=szTarget, shown=true})
@@ -3802,7 +3802,7 @@ function RaidGrid_ReadingBar.OnFrameBreathe()
 				elseif not bPrePare and handle.nActionState == ACTION_STATE.PREPARE then
 					handle.nActionState = ACTION_STATE.DONE
 				end
-	
+
 				if handle.nActionState == ACTION_STATE.PREPARE then
 					handle:Lookup("Image_Progress_"..i):SetPercentage(fP)
 				elseif handle.nActionState == ACTION_STATE.DONE then
@@ -3825,7 +3825,7 @@ function RaidGrid_ReadingBar.OnFrameBreathe()
 				else
 					handle:Hide()
 					targ.shown=false
-				end	
+				end
 			end
 		end
 	end
@@ -3843,7 +3843,7 @@ function RaidGrid_ReadingBar.OnFrameBreathe()
 	local le=table.getn(RaidGrid_ReadingBar.target)
 	if le>0 then
 		--frame.hide()
-	--else 
+	--else
 		frame:SetSize(300,le*30)
 	end
 end
@@ -3851,7 +3851,7 @@ end
 function RaidGrid_ReadingBar.OnFrameCreate()
 	this:SetRelPos(RaidGrid_ReadingBar.loc.x,RaidGrid_ReadingBar.loc.y)
 	this:RegisterEvent("CUSTOM_DATA_LOADED")
-	this:RegisterEvent("UI_SCALED")  
+	this:RegisterEvent("UI_SCALED")
     this:RegisterEvent("NPC_LEAVE_SCENE")
     this:RegisterEvent("OT_ACTION_PROGRESS_BREAK")
     this:RegisterEvent("PLAYER_LEAVE_SCENE")
@@ -3939,7 +3939,7 @@ RegisterCustomData("RaidGrid_BossCallAlert.bChatAlertEnable")
 
 function RaidGrid_BossCallAlert.ChannelSay(szTargetTargetName, szTargetName)
 	local playerClient = GetClientPlayer()
-	
+
 	local r, g, b = unpack(RaidGrid_BossCallAlert.tRGRedAlarm)
 	--if RaidGrid_BossCallAlert.Flash then
 		--RaidGrid_RedAlarm.FlashOrg(t, msg, bRed, bCenter, r, g, b)
@@ -3971,7 +3971,7 @@ function RaidGrid_BossCallAlert.CallProcess(bossname, saydata)
 		--OutputMessage("MSG_ANNOUNCE_YELLOW","你并未组队")
 		return
 	end
-	
+
 	if string.find(saydata,Clientplayer.szName) then
 		RaidGrid_BossCallAlert.ChannelSay(Clientplayer.szName, bossname)
 		if RaidGrid_EventScrutiny.bCalledTimerHeadEnable then
@@ -4016,7 +4016,7 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 			if not tRecord.szBossName or tRecord.szBossName == "" or tRecord.szBossName == bossname then
 				local nRGRAR, nRGRAG, nRGRAB = RaidGrid_BossCallAlert.tRGRedAlarm[1], RaidGrid_BossCallAlert.tRGRedAlarm[2], RaidGrid_BossCallAlert.tRGRedAlarm[3]
 				RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, tRecord.szName or saydata, tRecord.bFlash, tRecord.bCenterAlarm, nRGRAR, nRGRAG, nRGRAB)
-				
+
 				local tInfo = tRecord.szName or saydata
 				if RaidGrid_BossCallAlert.bChatAlertEnable and tRecord.bRAID then
 					JH.Talk(tInfo)
@@ -4024,7 +4024,7 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 				if RaidGrid_BossCallAlert.bChatAlertEnable and tRecord.bWHISPER then
 					JH.WhisperToTeamMember(tInfo)
 				end
-				
+
 				if tRecord.nTime1 and tRecord.nTime1>0 then
 					RaidGrid_SkillTimer.StartNewSkillTimerOrg(tRecord.szName or tRecord.szText,2000,1,tRecord.nTime1*16,RaidGrid_EventScrutiny.bSkillTimerSay and tRecord.bRAID,RaidGrid_EventScrutiny.nSayChannel,false)
 				end
@@ -4038,12 +4038,12 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 end
 
 function RaidGrid_BossCallAlert.BossCall(event)
-	--event=PLAYER_SAY arg0=喊话内容 arg1=喊话者ID arg2=频道 arg3=喊话者名称 
+	--event=PLAYER_SAY arg0=喊话内容 arg1=喊话者ID arg2=频道 arg3=喊话者名称
 	if event == "PLAYER_SAY" then
 		if RaidGrid_EventScrutiny.bEnable and RaidGrid_BossCallAlert.TalkMonitor then
 			local npc=GetNpc(arg1)
 			if not npc then return end
-			if RaidGrid_BossCallAlert.bDungeonOnly and not JH.IsInDungeon2() then return end
+			if RaidGrid_BossCallAlert.bDungeonOnly and not JH.IsInDungeon(true) then return end
 			if RaidGrid_BossCallAlert.bBossOnly and GetNpcIntensity(npc)<4 then return end
 			local bossname = JH.GetTemplateName(npc) or tostring(arg3)
 			local saydata = arg0
@@ -4114,7 +4114,7 @@ function RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 		if tRecord.bOn and tRecord.szText and tRecord.szText ~= "" and string.find(saydata,tRecord.szText) then
 			local nRGRAR, nRGRAG, nRGRAB = RaidGrid_BossCallAlert.tRGRedAlarm[1], RaidGrid_BossCallAlert.tRGRedAlarm[2], RaidGrid_BossCallAlert.tRGRedAlarm[3]
 			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, tRecord.szName or saydata, tRecord.bFlash, tRecord.bCenterAlarm, nRGRAR, nRGRAG, nRGRAB)
-			
+
 			local tInfo = tRecord.szName or saydata
 			if RaidGrid_BossCallAlert.bChatAlertEnable and tRecord.bRAID then
 				JH.Talk(tInfo)
@@ -4122,7 +4122,7 @@ function RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 			if RaidGrid_BossCallAlert.bChatAlertEnable and tRecord.bWHISPER then
 				JH.WhisperToTeamMember(tInfo)
 			end
-			
+
 			if tRecord.nTime1 and tRecord.nTime1>0 then
 				RaidGrid_SkillTimer.StartNewSkillTimerOrg(tRecord.szName or tRecord.szText,2000,1,tRecord.nTime1*16,RaidGrid_EventScrutiny.bSkillTimerSay and tRecord.bRAID,RaidGrid_EventScrutiny.nSayChannel,false)
 			end
@@ -4139,19 +4139,19 @@ function RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
 	if not Clientplayer then
 		return
 	end
-	
-	if RaidGrid_BossCallAlert.bDungeonOnly and not JH.IsInDungeon2() then
+
+	if RaidGrid_BossCallAlert.bDungeonOnly and not JH.IsInDungeon(true) then
 		return
 	end
-	
+
 	if RaidGrid_BossCallAlert.bPartyOnly and not Clientplayer.IsInParty() then
 		return
 	end
-	
+
 	if not szText then
 		return
 	end
-	
+
 	local saydata = tostring(szText)
 	RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 
@@ -4188,7 +4188,7 @@ end
 
 function RaidGrid_BossCallAlert.WarningMessageAlarm(szTargetTargetName, saydata)
 	local playerClient = GetClientPlayer()
-	
+
 	local r, g, b = unpack(RaidGrid_BossCallAlert.tRGRedAlarm)
 	if playerClient.szName == szTargetTargetName then
 		if RaidGrid_BossCallAlert.Flash or RaidGrid_BossCallAlert.CenterAlarm then
@@ -4198,16 +4198,16 @@ function RaidGrid_BossCallAlert.WarningMessageAlarm(szTargetTargetName, saydata)
 		if RaidGrid_BossCallAlert.CenterAlarm then
 			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, "【"..szTargetTargetName.."】被点名了！！！", false, true, r, g, b)
 		end
-		
+
 		if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.WHISPER then
 			JH.Talk(szTargetTargetName,{{type = "text", text = "【你】被点名了！！！"}})
 		end
-		
+
 		if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.RAID then
 			JH.Talk({{type = "text", text = "【"..szTargetTargetName.."】被点名了！！！"}})
 		end
 	end
-	
+
 end
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4327,12 +4327,12 @@ function RaidGrid_BossCallAlert.tPopOptions(szType)
 	for i = 1, #RaidGrid_BossCallAlert.tRecords[szType], 1 do
 		local tRecord = RaidGrid_BossCallAlert.tRecords[szType][i]
 		local tMenu = {
-			szOption = tRecord.szName, 
+			szOption = tRecord.szName,
 			bCheck = true,
 			bChecked = tRecord.bOn,
-			fnAction = function() 
+			fnAction = function()
 				tRecord.bOn = not tRecord.bOn
-			end, 
+			end,
 			fnAutoClose = function() return true end}
 		local tMenuNewName = {
 			szOption = "定义名字：" .. tRecord.szName,
@@ -4571,7 +4571,7 @@ PS.OnPanelActive = function(frame)
 			RaidGrid_EventCache.SwitchPageType("Debuff")
 			RaidGrid_EventCache.OpenPanel()
 		end
-	end):Pos_()	
+	end):Pos_()
 	nX = ui:Append("WndButton2", { x = nX + 18, y = nY + 12 })
 	:Text(_L["Casting"]):Click(function(bChecked)
 		if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.wnd then
@@ -4579,7 +4579,7 @@ PS.OnPanelActive = function(frame)
 			RaidGrid_EventCache.SwitchPageType("Casting")
 			RaidGrid_EventCache.OpenPanel()
 		end
-	end):Pos_()	
+	end):Pos_()
 	nX = ui:Append("WndButton2", { x = nX + 18, y = nY + 12 })
 	:Text(_L["NPC"]):Click(function(bChecked)
 		if RaidGrid_EventScrutiny and RaidGrid_EventScrutiny.wnd then
@@ -4587,7 +4587,7 @@ PS.OnPanelActive = function(frame)
 			RaidGrid_EventCache.SwitchPageType("Npc")
 			RaidGrid_EventCache.OpenPanel()
 		end
-	end):Pos_()	
+	end):Pos_()
 end
 GUI.RegisterPanel(_L["RaidGrid_EventScrutiny"], 22, _L["RGES"],PS)
 local PS2 = {}
@@ -4713,7 +4713,7 @@ PS3.OnPanelActive = function(frame)
 	nX,nY = ui:Append("WndCheckBox" ,{ x = 10, y = nY, checked = RaidGrid_EventScrutiny.bCenterAlarmEnable })
 	:Text("中央文字报警（总开关）"):Click(function(bChecked)
 		RaidGrid_EventScrutiny.bCenterAlarmEnable = bChecked
-	end):Pos_()	
+	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox" ,{ x = 10, y = nY, checked = RaidGrid_EventScrutiny.bAutoMarkEnable })
 	:Text("自动标记（总开关）"):Click(function(bChecked)
 		RaidGrid_EventScrutiny.bAutoMarkEnable = bChecked
@@ -4758,7 +4758,7 @@ function RaidGrid_EventCache.PopRBOptions(handle)
 	if not dwID then
 		return
 	end
-	
+
 	local tOptions = {
 		{
 			szOption = "　【"  .. (handle.tRecord.szName or "") .. "】", bCheck = false, bChecked = false, bDisable = true,
@@ -4817,7 +4817,7 @@ function RaidGrid_EventCache.PopRBOptions(handle)
 			end,
 		},
 	}
-	
+
 	local nX, nY = Cursor.GetPos(true)
 	tOptions.x, tOptions.y = nX + 15, nY + 15
 	PopupMenu(tOptions)
@@ -4830,7 +4830,7 @@ function RaidGrid_EventScrutiny.SyncOptions(tData,szType)
 	if GetClientPlayer().IsInParty() then
 		tOptions = {szOption = "★把这个数据共享给团员",rgb = {255,128,192},
 			{szOption = "共享给团队所有成员",fnAction = function() RaidGrid_Base.SendDataToTeam(tData,szType)	end},
-		}	
+		}
 		table.insert(tOptions,{bDevide = true})
 		local hTeam = GetClientTeam()
 		for i = 0, hTeam.nGroupNum - 1 do
@@ -4854,7 +4854,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 	if not handle then
 		return
 	end
-	
+
 	local tTab = RaidGrid_EventScrutiny.tRecords[RaidGrid_EventScrutiny.szListIndex] or {}
 	local nCurrentPage = RaidGrid_EventScrutiny.tListPage[RaidGrid_EventScrutiny.szListIndex] or 1
 	local nListIndex = tonumber(handle:GetName():sub(15))
@@ -4867,7 +4867,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 		return
 	end
 
-	
+
 	local tTimeCache = {"无记录", "无记录", "无记录", "无记录", "无记录", "无记录", "无记录", "无记录", "无记录", "无记录"}
 	if tTab[nStartIndex].tEventTimeCache then
 		for i = 1, #tTab[nStartIndex].tEventTimeCache do
@@ -4876,7 +4876,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			end
 		end
 	end
-	
+
 	local function GetTimeSelectFunction(nIndex)
 		return function(UserData, bCheck)
 			if not tTab[nStartIndex] or not tTab[nStartIndex].tEventTimeCache or not tTab[nStartIndex].tEventTimeCache[nIndex] or type(tTab[nStartIndex].tEventTimeCache[nIndex]) ~= "number" then
@@ -4887,8 +4887,8 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
 		end
 	end
-	
-	local tOptions = {}	
+
+	local tOptions = {}
 	local PS = {}
 	PS.OnPanelActive = function(frame)
 		local ui = GUI(frame)
@@ -4965,13 +4965,13 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			:Text("消失"):Click(function(bChecked)
 				data.bNpcLeaveScrutiny = bChecked
 				ui:Fetch("bNpcAllLeave"):Enable(bChecked)
-			end):Pos_()		
+			end):Pos_()
 			nX = ui:Append("WndCheckBox","bNpcAllLeave",{ x = nX +10, y = nY + 10, checked = data.bNpcAllLeave or false })
 			:Text("必须全部消失"):Enable(data.bNpcLeaveScrutiny or false):Click(function(bChecked)
 				data.bNpcAllLeave = bChecked
-			end):Pos_()		
+			end):Pos_()
 		end
-		local _nY = nY 
+		local _nY = nY
 		if szType ~= "Npc" then
 			if szType == "Casting" then nX = 0 end
 			nX = ui:Append("WndCheckBox",{ x = nX + 10, y = nY + 10, checked = data.bAlwaysCheckLevel or false })
@@ -5000,7 +5000,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			end):Pos_()
 		end
 		nY = 80
-		local _nX,_nY = 0,nY + 28 
+		local _nX,_nY = 0,nY + 28
 		nX,nY = ui:Append("Text",{ x = 0, y = nY, txt = "报警和触发设置", font = 27}):Pos_()
 		if szType ~= "Casting" then
 			_nX,_nY = ui:Append("WndComboBox",{ x = 0, y = nY + 10,w = 85,h = 30})
@@ -5008,13 +5008,13 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 				local menu = {}
 				for nKey, nVal in pairs(PARTY_MARK_ICON_FRAME_LIST) do
 					table.insert(menu,{
-						szIcon = PARTY_MARK_ICON_PATH, 
+						szIcon = PARTY_MARK_ICON_PATH,
 						nFrame = nVal,
 						bMCheck = true,
 						bChecked = data.tAutoTeamMark == nKey,
-						szLayer = "ICON_CENTER", 
-						fnAction = function() 
-							data.tAutoTeamMark = nKey 
+						szLayer = "ICON_CENTER",
+						fnAction = function()
+							data.tAutoTeamMark = nKey
 						end
 					})
 				end
@@ -5059,10 +5059,10 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 					data.bOnlySelfSrcAddCTM = bChecked
 				end):Pos_()
 			end
-			
-			
+
+
 		end
-		
+
 		nX = ui:Append("WndCheckBox",{ x = 0, y = _nY, checked = data.tRGCenterAlarm or false })
 		:Text(_L["CenterAlarm"]):Click(function(bChecked)
 			data.tRGCenterAlarm = bChecked
@@ -5138,7 +5138,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 						table.sort(list,function(a,b) return (a[1] > b[1]) end)
 						data.szNpcLife = szText
 						data.tNpcLife = list
-					end		
+					end
 					RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
 				end
 				GetUserInput(data.szName.."格式：0.11,Part3;0.41,Part2;0.71,Part1; ...", Recall, nil, function() end, nil, data.szNpcLife or "", 310)
@@ -5151,7 +5151,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			end):Pos_()
 		end
 		nX,nY = ui:Append("Text",{ x = 0, y = nY, txt = "倒计时相关", font = 27}):Pos_()
-		
+
 		nX = ui:Append("WndCheckBox","bSkillTimer2Enable",{ x = 10, y = nY + 10, checked = data.bSkillTimer2Enable or false })
 		:Text("第二中央倒计时"):Click(function(bChecked)
 			data.bSkillTimer2Enable = bChecked
@@ -5214,7 +5214,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 								table.insert(list,tab)
 							end
 						end
-						
+
 						if #list > 0 then
 							table.sort(list,function(a,b) return (a.nTime<b.nTime) end)
 							data.szTimerSet = szText
@@ -5310,7 +5310,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			end)
 		end,
 	})
-	
+
 	table.insert(tOptions, {bDevide = true})
 	table.insert(tOptions, {
 		szOption = "　来源地图:"  .. (tTab[nStartIndex].szMapName or _L["Unknown"]), bCheck = false, bChecked = false, bDisable = true,
@@ -5356,7 +5356,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
 		end,
 	})
-	
+
 	local nX, nY = Cursor.GetPos(true)
 	tOptions.x, tOptions.y = nX + 15, nY + 15
 	PopupMenu(tOptions)
@@ -5372,19 +5372,19 @@ function RaidGrid_EventScrutiny.OnCustomDataLoaded()
 	RaidGrid_EventCache.ClosePanel()
 	RaidGrid_SelfBuffAlert.OpenPanel()
 	RaidGrid_EventScrutiny.OpenPanel()
-	RaidGrid_EventScrutiny.bCheckBoxRecall = false	
+	RaidGrid_EventScrutiny.bCheckBoxRecall = false
 	local checkBox = RaidGrid_EventScrutiny.wnd:Lookup("CheckBox_SelfBuff")
 	if checkBox and RaidGrid_EventScrutiny.bBuffChatAlertEnable and RaidGrid_EventScrutiny.bCastingChatAlertEnable and RaidGrid_EventScrutiny.bNpcChatAlertEnable and RaidGrid_BossCallAlert and RaidGrid_BossCallAlert.bChatAlertEnable then
 		checkBox:Check(true)
 	end
 	RaidGrid_EventScrutiny.bCheckBoxRecall = true
-	
+
 	if RaidGrid_SelfBuffAlert.tLastLoc.nX <= 0 and RaidGrid_SelfBuffAlert.tLastLoc.nY <= 0 then
 		RaidGrid_SelfBuffAlert.SetPanelPos()
 	else
 		RaidGrid_SelfBuffAlert.SetPanelPos(RaidGrid_SelfBuffAlert.tLastLoc.nX, RaidGrid_SelfBuffAlert.tLastLoc.nY)
 	end
-	
+
 	if not RaidGrid_EventScrutiny.bEnable then
 		RaidGrid_EventScrutiny.ClosePanel()
 	end
@@ -5432,13 +5432,13 @@ JH.BreatheCall("Raid_MonitorBuffs", _RE.Raid_MonitorBuffs, 10000)
 JH.RegisterEvent("FIRST_LOADING_END",function()
 	local szName = GetClientPlayer().szName
 	_RE.szName = szName:gsub("@.*", "")
-	
+
 	if RaidGrid_Base.version == 1 then
 		local _, _, szLang = GetVersion()
 		RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
 		RaidGrid_Base.version = 2
 	end
-	
+
 	local HashChange = function(tRecords)
 		local Hash = {}
 		local Hash2 = {}
@@ -5454,7 +5454,7 @@ JH.RegisterEvent("FIRST_LOADING_END",function()
 		tRecords.Hash = Hash
 		tRecords.Hash2 = Hash2
 	end
-	
+
 	local path = _RE.szDataPath .. _RE.szName .. "/"
 	for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 		local data = JH.LoadLUAData(path .. v)
@@ -5495,7 +5495,7 @@ local SaveRGESData = function()
 	end
 	for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
 		JH.SaveLUAData(path .. v, JH.JsonEncode(RaidGrid_BossCallAlert.tRecords[v]))
-	end	
+	end
 
 	if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 		for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
@@ -5504,7 +5504,7 @@ local SaveRGESData = function()
 			JH.SaveLUAData(path .. "cache/" .. v, JH.JsonEncode(RaidGrid_EventCache.tRecords[v]))
 		end
 	end
-	
+
 end
 
 
