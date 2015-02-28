@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:38:40
+-- @Last Modified time: 2015-02-28 23:17:42
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -111,7 +111,7 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not SkillCD.tMonitor[dwSkillID] then
 		return
 	end
-	
+
 	local nSec = _SkillCD.tSkill[dwSkillID]
 	if not nSec then
 		return
@@ -306,7 +306,7 @@ _SkillCD.UpdateCount = function()
 		box:SetObjectIcon( dwIconID )
 		-- box:SetObjectSparking(true)
 		item:Lookup("Text_Count"):SetText( v.nCount )
-		if v.nCount > 0 then 
+		if v.nCount > 0 then
 			item:Lookup("Text_Count"):SetFontColor(0, 255, 0)
 		else
 			item:Lookup("Text_Count"):SetFontColor(255, 0, 0)
@@ -314,7 +314,7 @@ _SkillCD.UpdateCount = function()
 		item:Show()
 		item:FormatAllItemPos()
 	end
-	
+
 	handle:FormatAllItemPos()
 	local w, h = handle:GetAllItemSize()
 	_SkillCD.frame:Lookup("Wnd_Count"):SetSize(240, h + 5)
@@ -372,7 +372,7 @@ PS.OnPanelActive = function(frame)
 		ui:Fetch("bInDungeon"):Enable(bChecked)
 		if bChecked then
 			if SkillCD.bInDungeon then
-				if JH.IsInDungeon2() then
+				if JH.IsInDungeon(true) then
 					_SkillCD.OpenPanel()
 				end
 			else
@@ -394,7 +394,7 @@ PS.OnPanelActive = function(frame)
 	:Enable(SkillCD.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
 		SkillCD.bInDungeon = bChecked
 		if bChecked then
-			if JH.IsInDungeon2() then
+			if JH.IsInDungeon(true) then
 				_SkillCD.OpenPanel()
 			else
 				_SkillCD.ClosePanel()
@@ -404,7 +404,7 @@ PS.OnPanelActive = function(frame)
 		end
 		JH.OpenPanel(_L["SkillCD"])
 	end):Pos_()
-	
+
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
 	local i = 0
 	for k, v in pairs(_SkillCD.tSkill) do
@@ -440,7 +440,7 @@ end
 GUI.RegisterPanel(_L["SkillCD"], 13, _L["General"], PS)
 
 _SkillCD.Init = function()
-	JH.RegisterInit("SkillCD", 
+	JH.RegisterInit("SkillCD",
 		{ "Breathe", _SkillCD.UpdateFrame, 1000 },
 		{ "SYS_MSG", function()
 			if arg0 == "UI_OME_SKILL_HIT_LOG" and arg3 == SKILL_EFFECT_TYPE.SKILL then
@@ -473,7 +473,7 @@ end
 JH.RegisterEvent("LOADING_END", function()
 	if not SkillCD.bEnable then return end
 	if SkillCD.bInDungeon then
-		if JH.IsInDungeon2() then
+		if JH.IsInDungeon(true) then
 			_SkillCD.OpenPanel()
 		else
 			_SkillCD.ClosePanel()
