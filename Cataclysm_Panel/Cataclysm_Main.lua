@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 14:05:03
+-- @Last Modified time: 2015-02-28 23:16:50
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -424,7 +424,7 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		menu.x, menu.y = nX, nY
 		PopupMenu(menu)
 	elseif szName == "Btn_WorldMark" then
-		if JH.IsInDungeon2() then
+		if JH.IsInDungeon(true) then
 			Wnd.ToggleWindow("WorldMark")
 		else
 			OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.STR_WORLD_MARK)

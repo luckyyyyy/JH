@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 15:42:25
+-- @Last Modified time: 2015-02-28 23:16:21
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -9,7 +9,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x0090000
+local _VERSION_   = 0x0090100
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
@@ -86,6 +86,7 @@ local _JH = {
 	aNpc = {},
 	aDoodad = {},
 	tBreatheCall = {},
+	tApplyPointKey = {},
 	tItem = { {}, {}, {} },
 	tOption = { szOption = _L["JH"] },
 	tOption2 = { szOption = _L["JH"] },
@@ -120,6 +121,7 @@ local _JH = {
 }
 
 local JH = JH
+JH.LoadLangPack = GetLang()
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
 local ipairs, pairs, next = ipairs, pairs, next
@@ -133,7 +135,7 @@ local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam = GetClientPlayer, GetPl
 -- 树形打印一个表
 local function pr(t, name, indent)
 	local tableList = {}
-	function table_r (t, name, indent, full)
+	function table_r(t, name, indent, full)
 		local id = not full and name or type(name)~="number" and tostring(name) or '['..name..']'
 		local tag = indent .. id .. ' = '
 		local out = {}  -- result
@@ -159,12 +161,12 @@ local function pr(t, name, indent)
 	return table_r(t,name or 'Value',indent or '')
 end
 
-JH.print_r = function( ... )
+function JH.print_r( ... )
 	return pr( ... )
 end
 
 -- parse faceicon in talking message
-_JH.ParseFaceIcon = function(t)
+function _JH.ParseFaceIcon(t)
 	if not _JH.tFaceIcon then
 		_JH.tFaceIcon = {}
 		for i = 1, g_tTable.FaceIcon:GetRowCount() do
@@ -212,11 +214,11 @@ _JH.ParseFaceIcon = function(t)
 	return t2
 end
 
-JH.SetHotKey = function(szGroup)
+function JH.SetHotKey(szGroup)
 	HotkeyPanel_Open(szGroup or _JH.szTitle)
 end
 
-JH.GetVersion = function()
+function JH.GetVersion()
 	local v = _VERSION_
 	local szVersion = string.format("%d.%d.%d", v/0x1000000,
 		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
@@ -226,9 +228,7 @@ JH.GetVersion = function()
 	return szVersion, v
 end
 
-JH.LoadLangPack = _L
-
-JH.GetAddonInfo = function()
+function JH.GetAddonInfo()
 	return {
 		szName = _JH.szTitle,
 		szVersion = JH.GetVersion(),
@@ -243,11 +243,11 @@ end
 -------------------------------------
 -- 设置面板开关、初始化
 -------------------------------------
-JH.IsPanelOpened = function()
+function JH.IsPanelOpened()
 	return _JH.frame and _JH.frame:IsVisible()
 end
 
-JH.OpenPanel = function(szTitle)
+function JH.OpenPanel(szTitle)
 	_JH.OpenPanel(szTitle ~= nil)
 	if szTitle then
 		local nClass, nItem = 0, 0
@@ -273,7 +273,7 @@ JH.OpenPanel = function(szTitle)
 end
 
 -- open
-_JH.OpenPanel = function(bDisable)
+function _JH.OpenPanel(bDisable)
 	local frame = Station.Lookup("Normal/JH") or Wnd.OpenWindow(_JH.szIniFile, "JH")
 	frame:Show()
 	frame:BringToTop()
@@ -284,7 +284,7 @@ _JH.OpenPanel = function(bDisable)
 end
 
 -- close
-_JH.ClosePanel = function(bDisable)
+function _JH.ClosePanel(bDisable)
 	local frame = Station.Lookup("Normal/JH")
 	if frame then
 		frame:Hide()
@@ -295,7 +295,7 @@ _JH.ClosePanel = function(bDisable)
 end
 
 -- toggle
-_JH.TogglePanel = function()
+function _JH.TogglePanel()
 	if _JH.frame and _JH.frame:IsVisible() then
 		_JH.ClosePanel()
 	else
@@ -306,12 +306,12 @@ JH.ClosePanel = _JH.ClosePanel
 JH.TogglePanel = _JH.TogglePanel
 
 -- register conflict checker
-_JH.RegisterConflictCheck = function(fnAction)
+function _JH.RegisterConflictCheck(fnAction)
 	_JH.tConflict = _JH.tConflict or {}
 	tinsert(_JH.tConflict, fnAction)
 end
-_JH.tApplyPointKey = {}
-_JH.ApplyPointCallback = function(data, nX, nY)
+
+function _JH.ApplyPointCallback(data, nX, nY)
 	if not nX or (nX > 0 and nX < 0.00001 and nY > 0 and nY < 0.00001) then
 		nX, nY = nil, nil
 	else
@@ -329,7 +329,7 @@ end
 -- 更新设置面板界面
 -------------------------------------
 -- update scrollbar
-_JH.UpdateListScroll = function()
+function _JH.UpdateListScroll()
 	local handle, scroll = _JH.hList, _JH.hScroll
 	local w, h = handle:GetSize()
 	local wA, hA = handle:GetAllItemSize()
@@ -347,7 +347,7 @@ _JH.UpdateListScroll = function()
 end
 
 -- updae detail content
-_JH.UpdateDetail = function(i, data)
+function _JH.UpdateDetail(i, data)
 	local win = GUI.Fetch(_JH.frame, "Wnd_Detail")
 	if win then win:Remove() end
 	if not data then
@@ -386,7 +386,7 @@ _JH.UpdateDetail = function(i, data)
 end
 
 -- create menu item
-_JH.NewListItem = function(i, data, dwClass)
+function _JH.NewListItem(i, data, dwClass)
 	local handle = _JH.hList
 	local item = GUI.Append(handle, "BoxButton", "Button_" .. i)
 	item:Icon(data.dwIcon):Text(data.szTitle):Click(function()
@@ -396,7 +396,7 @@ _JH.NewListItem = function(i, data, dwClass)
 end
 
 -- update menu list
-_JH.UpdateListInfo = function(nIndex)
+function _JH.UpdateListInfo(nIndex)
 	local nX, nY = 0, 14
 	_JH.hList:Clear()
 	_JH.hScroll:ScrollHome()
@@ -410,7 +410,7 @@ _JH.UpdateListInfo = function(nIndex)
 end
 
 -- update tab list
-_JH.UpdateTabBox = function(frame)
+function _JH.UpdateTabBox(frame)
 	local nX, nY, first = 25, 52, nil
 	for k, v in ipairs(_JH.tClass) do
 		if table.getn(_JH.tItem[k]) > 0 then
@@ -437,7 +437,7 @@ _JH.UpdateTabBox = function(frame)
 	end
 end
 
-_JH.EventHandler = function(szEvent)
+function _JH.EventHandler(szEvent)
 	local tEvent = 	_JH.tEvent[szEvent]
 	if tEvent then
 		for k, v in pairs(tEvent) do
@@ -525,14 +525,14 @@ function JH.OnFrameKeyDown()
 	return 0
 end
 
-JH.Debug = function(szMsg)
+function JH.Debug(szMsg)
 	if JH.bDebug then
 		OutputMessage("MSG_SYS","[JH_DEBUG] " .. szMsg .."\n")
 	end
 end
 
 -- 根据模板ID获取名字 没有归属
-JH.GetTemplateName = function(tar, bEmployer)
+function JH.GetTemplateName(tar, bEmployer)
 	if not tar then
 		return _L["Unknown"]
 	end
@@ -556,7 +556,7 @@ JH.GetTemplateName = function(tar, bEmployer)
 	return szName
 end
 
-JH.RegisterEvent = function(szEvent, fnAction)
+function JH.RegisterEvent(szEvent, fnAction)
 	local szKey = nil
 	local nPos = StringFindW(szEvent, ".")
 	if nPos then
@@ -585,11 +585,11 @@ JH.RegisterEvent = function(szEvent, fnAction)
 	end
 end
 
-JH.UnRegisterEvent = function(szEvent)
+function JH.UnRegisterEvent(szEvent)
 	JH.RegisterEvent(szEvent, nil)
 end
 
-JH.RegisterCustomData = function(szVarPath)
+function JH.RegisterCustomData(szVarPath)
 	if _G and type(_G[szVarPath]) == "table" then
 		for k, _ in pairs(_G[szVarPath]) do
 			RegisterCustomData(szVarPath .. "." .. k)
@@ -600,7 +600,7 @@ JH.RegisterCustomData = function(szVarPath)
 end
 
 -- 初始化一个模块
-JH.RegisterInit = function(key, ...)
+function JH.RegisterInit(key, ...)
 	local events = { ... }
 	if _JH.tModule[key] and IsEmpty(events) then
 		for k, v in ipairs(_JH.tModule[key]) do
@@ -625,36 +625,11 @@ JH.RegisterInit = function(key, ...)
 	end
 end
 
-JH.UnRegisterInit = function(key)
+function JH.UnRegisterInit(key)
 	JH.RegisterInit(key)
 end
 
-JH.GetTarget = function(dwType, dwID)
-	if not dwType then
-		local me = GetClientPlayer()
-		if me then
-			dwType, dwID = me.GetTarget()
-		else
-			dwType, dwID = TARGET.NO_TARGET, 0
-		end
-	elseif not dwID then
-		dwID, dwType = dwType, TARGET.NPC
-		if IsPlayer(dwID) then
-			dwType = TARGET.PLAYER
-		end
-	end
-	if dwID <= 0 or dwType == TARGET.NO_TARGET then
-		return nil, TARGET.NO_TARGET
-	elseif dwType == TARGET.PLAYER then
-		return GetPlayer(dwID), TARGET.PLAYER
-	elseif dwType == TARGET.DOODAD then
-		return GetDoodad(dwID), TARGET.DOODAD
-	else
-		return GetNpc(dwID), TARGET.NPC
-	end
-end
-
-JH.GetForceColor = function(dwForce)
+function JH.GetForceColor(dwForce)
 	if _JH.tForceCol[dwForce] then
 		return unpack(_JH.tForceCol[dwForce])
 	else
@@ -662,7 +637,7 @@ JH.GetForceColor = function(dwForce)
 	end
 end
 
-JH.CanTalk = function(nChannel)
+function JH.CanTalk(nChannel)
 	for _, v in ipairs({"WHISPER", "TEAM", "RAID", "BATTLE_FIELD", "NEARBY", "TONG", "TONG_ALLIANCE" }) do
 		if nChannel == PLAYER_TALK_CHANNEL[v] then
 			return true
@@ -671,7 +646,7 @@ JH.CanTalk = function(nChannel)
 	return false
 end
 
-JH.SwitchChat = function(nChannel)
+function JH.SwitchChat(nChannel)
 	local szHeader = _JH.tTalkChannelHeader[nChannel]
 	if szHeader then
 		SwitchChatChannel(szHeader)
@@ -680,7 +655,7 @@ JH.SwitchChat = function(nChannel)
 	end
 end
 
-JH.Talk = function(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
+function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 	local szTarget, me = "", GetClientPlayer()
 	-- channel
 	if not nChannel then
@@ -735,10 +710,10 @@ JH.Talk = function(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 	end
 end
 
-JH.Talk2 = function(nChannel, szText, bNoEmotion)
+function JH.Talk2(nChannel, szText, bNoEmotion)
 	JH.Talk(nChannel, szText, bNoEmotion, true)
 end
-JH.BgTalk = function(nChannel, ...)
+function JH.BgTalk(nChannel, ...)
 	local tSay = { { type = "text", text = _L["Addon comm."] } }
 	local tArg = { ... }
 	-- compatiable with offcial bg channel msg of team
@@ -754,7 +729,7 @@ JH.BgTalk = function(nChannel, ...)
 	JH.Talk(nChannel, tSay, true)
 end
 
-JH.BgHear = function(szKey,bIgnore)
+function JH.BgHear(szKey,bIgnore)
 	local me = GetClientPlayer()
 	local tSay = me.GetTalkData()
 	if tSay and (arg0 ~= me.dwID or bIgnore) and #tSay > 1 and (tSay[1].text == _L["Addon comm."] or tSay[1].text == "BG_CHANNEL_MSG") and tSay[2].type == "eventlink" then
@@ -774,11 +749,11 @@ JH.BgHear = function(szKey,bIgnore)
 	end
 end
 
-JH.IsParty = function(dwID)
+function JH.IsParty(dwID)
 	return GetClientPlayer().IsPlayerInMyParty(dwID)
 end
 
-JH.WhisperToTeamMember = function(msg)
+function JH.WhisperToTeamMember(msg)
 	local me = GetClientPlayer()
 	if me and me.IsInParty() then
 		local team = GetClientTeam()
@@ -789,7 +764,7 @@ JH.WhisperToTeamMember = function(msg)
 	end
 end
 
-JH.GetAllPlayer = function(nLimit)
+function JH.GetAllPlayer(nLimit)
 	local aPlayer = {}
 	for k, _ in pairs(_JH.aPlayer) do
 		local p = GetPlayer(k)
@@ -805,11 +780,11 @@ JH.GetAllPlayer = function(nLimit)
 	return aPlayer
 end
 
-JH.GetAllPlayerID = function()
+function JH.GetAllPlayerID()
 	return _JH.aPlayer
 end
 
-JH.GetAllNpc = function(nLimit)
+function JH.GetAllNpc(nLimit)
 	local aNpc = {}
 	for k, _ in pairs(_JH.aNpc) do
 		local p = GetNpc(k)
@@ -825,11 +800,11 @@ JH.GetAllNpc = function(nLimit)
 	return aNpc
 end
 
-JH.GetAllNpcID = function()
+function JH.GetAllNpcID()
 	return _JH.aNpc
 end
 
-JH.GetAllDoodad = function(nLimit)
+function JH.GetAllDoodad(nLimit)
 	local aDoodad = {}
 	for k, _ in pairs(_JH.aDoodad) do
 		local p = GetDoodad(k)
@@ -845,11 +820,11 @@ JH.GetAllDoodad = function(nLimit)
 	return aDoodad
 end
 
-JH.GetAllDoodadID = function()
+function JH.GetAllDoodadID()
 	return _JH.aDoodad
 end
 
-JH.GetDistance = function(nX, nY, nZ)
+function JH.GetDistance(nX, nY, nZ)
 	local me = GetClientPlayer()
 	if not nY and not nZ then
 		local tar = nX
@@ -861,7 +836,15 @@ JH.GetDistance = function(nX, nY, nZ)
 end
 
 -- 严格判定25人本
-JH.IsInDungeon = function()
+function JH.IsInDungeon(bType)
+	local me = GetClientPlayer()
+	if not me then
+		return false
+	end
+	if bType then -- 只判断地图的类型 而不是严格判断25人本
+		local scene = me.GetScene()
+		return scene.nType == 1 or scene.nType == 4
+	end
 	if IsEmpty(_JH.tDungeonList) then
 		for k,v in ipairs(GetMapList()) do
 			local a = g_tTable.DungeonInfo:Search(v)
@@ -870,19 +853,10 @@ JH.IsInDungeon = function()
 			end
 		end
 	end
-	local me = GetClientPlayer()
 	return _JH.tDungeonList[me.GetMapID()] or false
 end
 
--- 只是根据地图属性
-JH.IsInDungeon2 = function()
-	local me = GetClientPlayer()
-	if not me then return end
-	local scene = me.GetScene()
-	return scene.nType == 1 or scene.nType == 4
-end
-
-JH.ApplyTopPoint = function(fnAction, tar, nH, szKey)
+function JH.ApplyTopPoint(fnAction, tar, nH, szKey)
 	if type(tar) == "number" then
 		tar = JH.GetTarget(tar)
 	end
@@ -913,7 +887,7 @@ JH.ApplyTopPoint = function(fnAction, tar, nH, szKey)
 end
 
 -- button click
-JH.OnLButtonClick = function()
+function JH.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Close" then
 		_JH.ClosePanel()
@@ -925,7 +899,7 @@ JH.OnLButtonClick = function()
 end
 
 -- scrolls
-JH.OnScrollBarPosChanged = function()
+function JH.OnScrollBarPosChanged()
 	if this:GetName() ~= "Scroll_List" then -- 界面里面的也连带滚动了
 		return
 	end
@@ -944,7 +918,7 @@ JH.OnScrollBarPosChanged = function()
     handle:SetItemStartRelPos(0, - nPos * 10)
 end
 
-JH.JsonToTable = function(szJson)
+function JH.JsonToTable(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
 		JH.Debug(err)
@@ -966,7 +940,7 @@ JH.JsonToTable = function(szJson)
 	return data, nil
 end
 
-JH.TableFIXNumber = function(self, tab)
+function JH.TableFIXNumber(self, tab)
 	for k,v in pairs(tab) do
 		local key = tonumber(k) or k
 		self[key] = {}
@@ -978,20 +952,20 @@ JH.TableFIXNumber = function(self, tab)
 	end
 end
 
-JH.Sysmsg = function(szMsg, szHead, szType)
+function JH.Sysmsg(szMsg, szHead, szType)
 	szHead = szHead or _JH.szShort
 	szType = szType or "MSG_SYS"
 	OutputMessage(szType, " [" .. szHead .. "] " .. szMsg .. "\n")
 end
 -- err message
-JH.Sysmsg2 = function(szMsg, szHead, col)
+function JH.Sysmsg2(szMsg, szHead, col)
 	szHead = szHead or _JH.szShort
 	local r, g, b = 255, 0, 0
 	if col then r, g, b = unpack(col) end
 	OutputMessage("MSG_SYS", " [" .. szHead .. "] " .. szMsg .. "\n", false, 10, { r, g, b })
 end
 
-JH.Debug = function(szMsg, szHead, nLevel)
+function JH.Debug(szMsg, szHead, nLevel)
 	nLevel = nLevel or 1
 	if JH.bDebug and _JH.nDebug >= nLevel then
 		if nLevel == 3 then szMsg = "### " .. szMsg
@@ -1000,11 +974,10 @@ JH.Debug = function(szMsg, szHead, nLevel)
 		JH.Sysmsg(szMsg, szHead)
 	end
 end
-JH.Debug2 = function(szMsg, szHead) JH.Debug(szMsg, szHead, 2) end
-JH.Debug3 = function(szMsg, szHead) JH.Debug(szMsg, szHead, 3) end
+function JH.Debug2(szMsg, szHead) JH.Debug(szMsg, szHead, 2) end
+function JH.Debug3(szMsg, szHead) JH.Debug(szMsg, szHead, 3) end
 
-
-JH.Alert = function(szMsg, fnAction, szSure)
+function JH.Alert(szMsg, fnAction, szSure)
 	local nW, nH = Station.GetClientSize()
 	local tMsg = {
 		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Alert",
@@ -1016,7 +989,7 @@ JH.Alert = function(szMsg, fnAction, szSure)
 	MessageBox(tMsg)
 end
 
-JH.Confirm = function(szMsg, fnAction, fnCancel, szSure, szCancel)
+function JH.Confirm(szMsg, fnAction, fnCancel, szSure, szCancel)
 	local nW, nH = Station.GetClientSize()
 	local tMsg = {
 		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Confirm",
@@ -1031,15 +1004,15 @@ JH.Confirm = function(szMsg, fnAction, fnCancel, szSure, szCancel)
 	MessageBox(tMsg)
 end
 
-JH.GetLogicTime = function()
+function JH.GetLogicTime()
 	return GetLogicFrameCount() / GLOBAL.GAME_FPS
 end
 
-JH.GetEndTime = function(nEndFrame)
+function JH.GetEndTime(nEndFrame)
 	return (nEndFrame - GetLogicFrameCount()) / GLOBAL.GAME_FPS
 end
 
-JH.GetBuffName = function(dwBuffID, dwLevel)
+function JH.GetBuffName(dwBuffID, dwLevel)
 	local xKey = dwBuffID
 	if dwLevel then
 		xKey = dwBuffID .. "_" .. dwLevel
@@ -1059,7 +1032,7 @@ JH.GetBuffName = function(dwBuffID, dwLevel)
 	return unpack(_JH.tBuffCache[xKey])
 end
 
-JH.GetSkillName = function(dwSkillID, dwLevel)
+function JH.GetSkillName(dwSkillID, dwLevel)
 	if not _JH.tSkillCache[dwSkillID] then
 		local tLine = Table_GetSkill(dwSkillID, dwLevel)
 		if tLine and tLine.dwSkillID > 0 and tLine.bShow
@@ -1077,7 +1050,7 @@ JH.GetSkillName = function(dwSkillID, dwLevel)
 	return unpack(_JH.tSkillCache[dwSkillID])
 end
 
-JH.GetItemName = function(nUiId)
+function JH.GetItemName(nUiId)
 	if not _JH.tItemCache[nUiId] then
 		local szName = Table_GetItemName(nUiId)
 		local nIcon = Table_GetItemIconID(nUiId)
@@ -1090,7 +1063,7 @@ JH.GetItemName = function(nUiId)
 	return unpack(_JH.tItemCache[nUiId])
 end
 
-JH.GetMapName = function(dwMapID)
+function JH.GetMapName(dwMapID)
 	if not _JH.tMapCache[dwMapID] then
 		local szName = Table_GetMapName(dwMapID)
 		if szName ~= "" then
@@ -1102,7 +1075,7 @@ JH.GetMapName = function(dwMapID)
 	return _JH.tMapCache[dwMapID]
 end
 
-JH.HasBuff = function(dwBuffID, bCanCancel, me)
+function JH.HasBuff(dwBuffID, bCanCancel, me)
 	if not me and bCanCancel ~= nil and type(bCanCancel) ~= "boolean" then
 		me, bCanCancel = bCanCancel, me
 	end
@@ -1133,7 +1106,7 @@ JH.HasBuff = function(dwBuffID, bCanCancel, me)
 	return false, {}
 end
 
-JH.GetBuffTimeString = function(nTime, limit)
+function JH.GetBuffTimeString(nTime, limit)
 	limit = limit or 5999
 	nTime = tonumber(nTime) or 0
 	if nTime > limit then
@@ -1146,7 +1119,7 @@ JH.GetBuffTimeString = function(nTime, limit)
 	end
 end
 
-JH.GetBuffList = function(tar)
+function JH.GetBuffList(tar)
 	tar = tar or GetClientPlayer()
 	local aBuff = {}
 	local nCount = tar.GetBuffCount()
@@ -1163,7 +1136,7 @@ JH.GetBuffList = function(tar)
 end
 
 
-JH.WalkAllBuff = function(tar, fnAction)
+function JH.WalkAllBuff(tar, fnAction)
 	if type(tar) == "function" then
 		fnAction = tar
 		tar = GetClientPlayer()
@@ -1180,33 +1153,33 @@ JH.WalkAllBuff = function(tar, fnAction)
 	end
 end
 
-JH.SaveLUAData = function(szPath, data)
+function JH.SaveLUAData(szPath, data)
 	JH.Debug3(_L["SaveLUAData # "] ..  DATA_PATH .. szPath)
 	return SaveLUAData(DATA_PATH .. szPath, data)
 end
 
-JH.LoadLUAData = function(szPath)
+function JH.LoadLUAData(szPath)
 	JH.Debug3(_L["LoadLUAData # "] ..  DATA_PATH .. szPath)
 	return LoadLUAData(DATA_PATH .. szPath)
 end
 
-JH.IsLeader = function()
+function JH.IsLeader()
 	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == GetClientPlayer().dwID
 end
 
-JH.IsDistributer = function()
+function JH.IsDistributer()
 	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == GetClientPlayer().dwID
 end
 
 
-JH.AddHotKey = function(szName, szTitle, fnAction)
+function JH.AddHotKey(szName, szTitle, fnAction)
 	if string.sub(szName, 1, 3) ~= "JH_" then
 		szName = "JH_" .. szName
 	end
 	tinsert(_JH.tHotkey, { szName = szName, szTitle = szTitle, fnAction = fnAction })
 end
 
-JH.GetTarget = function(dwType, dwID)
+function JH.GetTarget(dwType, dwID)
 	if not dwType then
 		local me = GetClientPlayer()
 		if me then
@@ -1231,7 +1204,7 @@ JH.GetTarget = function(dwType, dwID)
 	end
 end
 
-_JH.GetMainMenu = function()
+function _JH.GetMainMenu()
 	return {
 		szOption = _L["JH"],
 		fnAction = _JH.TogglePanel,
@@ -1244,7 +1217,7 @@ _JH.GetMainMenu = function()
 	}
 end
 
-_JH.GetPlayerAddonMenu = function()
+function _JH.GetPlayerAddonMenu()
 	local menu = _JH.GetMainMenu()
 	tinsert(menu,{ szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
 	tinsert(menu,{ bDevide = true })
@@ -1264,7 +1237,7 @@ _JH.GetPlayerAddonMenu = function()
 	return { menu }
 end
 
-_JH.GetAddonMenu = function()
+function _JH.GetAddonMenu()
 	local menu = _JH.GetMainMenu()
 	tinsert(menu,{ szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
 	tinsert(menu,{ bDevide = true })
@@ -1276,16 +1249,16 @@ _JH.GetAddonMenu = function()
 	return { menu }
 end
 
-JH.PlayerAddonMenu = function(tMenu)
+function JH.PlayerAddonMenu(tMenu)
 	tinsert(_JH.tOption, tMenu)
 end
 
-JH.AddonMenu = function(tMenu)
+function JH.AddonMenu(tMenu)
 	tinsert(_JH.tOption2, tMenu)
 end
 
 -- 管理全部shadow的容器 这样可以防止前后顺序覆盖
-JH.GetShadowHandle = function(szName)
+function JH.GetShadowHandle(szName)
 	local sh = Station.Lookup("Lowest/JH_Shadows") or Wnd.OpenWindow(ROOT_PATH .. "item/JH_Shadows.ini", "JH_Shadows")
 	if not sh:Lookup("", szName) then
 		sh:Lookup("", ""):AppendItemFromString(string.format("<handle> name=\"%s\" </handle>", szName))
@@ -1332,35 +1305,35 @@ end)
 ---------------------------------------------------------------------
 -- 常用函数
 ---------------------------------------------------------------------
-JH.Trim = function(szText)
+function JH.Trim(szText)
 	if not szText or szText == "" then
 		return ""
 	end
 	return (string.gsub(szText, "^%s*(.-)%s*$", "%1"))
 end
-JH.UrlEncode = function(szText)
+function JH.UrlEncode(szText)
 	local str = szText:gsub("([^0-9a-zA-Z ])", function (c) return string.format ("%%%02X", string.byte(c)) end)
 	str = str:gsub(" ", "+")
 	return str
 end
 
-JH.UrlDecode = function(szText)
+function JH.UrlDecode(szText)
 	return szText:gsub("+", " "):gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
 end
 
-JH.AscIIEncode = function(szText)
+function JH.AscIIEncode(szText)
 	return szText:gsub('(.)',function(s) return string.format("%02x",s:byte()) end)
 end
 
-JH.AscIIDecode = function(szText)
+function JH.AscIIDecode(szText)
 	return szText:gsub('([0-9a-f][0-9a-f])',function(s) return string.char(tonumber(s, 16)) end)
 end
 
-JH.RemoteRequest = function(szUrl, fnAction)
+function JH.RemoteRequest(szUrl, fnAction)
 	tinsert(_JH.tRequest, { szUrl = szUrl, fnAction = fnAction })
 end
 
-JH.Confirm = function(szMsg, fnAction, fnCancel, szSure, szCancel)
+function JH.Confirm(szMsg, fnAction, fnCancel, szSure, szCancel)
 	local nW, nH = Station.GetClientSize()
 	local tMsg = {
 		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Confirm",
@@ -1375,12 +1348,12 @@ JH.Confirm = function(szMsg, fnAction, fnCancel, szSure, szCancel)
 	MessageBox(tMsg)
 end
 
-JH.DelayCall = function(nDelay, fnAction)
+function JH.DelayCall(nDelay, fnAction)
 	local nTime = nDelay + GetTime()
 	tinsert(_JH.tDelayCall, { nTime = nTime, fnAction = fnAction })
 end
 
-JH.Split = function(szFull, szSep)
+function JH.Split(szFull, szSep)
 	local nOff, tResult = 1, {}
 	while true do
 		local nEnd = StringFindW(szFull, szSep, nOff)
@@ -1394,7 +1367,7 @@ JH.Split = function(szFull, szSep)
 	end
 	return tResult
 end
-JH.DoMessageBox = function(szName, i)
+function JH.DoMessageBox(szName, i)
 	local frame = Station.Lookup("Topmost2/MB_" .. szName) or Station.Lookup("Topmost/MB_" .. szName)
 	if frame then
 		i = i or 1
@@ -1419,7 +1392,7 @@ JH.DoMessageBox = function(szName, i)
 	end
 end
 
-JH.BreatheCall = function(szKey, fnAction, nTime)
+function JH.BreatheCall(szKey, fnAction, nTime)
 	local key = StringLowerW(szKey)
 	if type(fnAction) == "function" then
 		local nFrame = 1
@@ -1433,14 +1406,14 @@ JH.BreatheCall = function(szKey, fnAction, nTime)
 		JH.Debug3("UnBreatheCall # " .. szKey)
 	end
 end
-JH.UnBreatheCall = function(szKey)
+function JH.UnBreatheCall(szKey)
 	JH.BreatheCall(szKey)
 end
-local _GUI = {}
+
 ---------------------------------------------------------------------
 -- 本地的 UI 组件对象
 ---------------------------------------------------------------------
-
+local _GUI = {}
 -------------------------------------
 -- Base object class
 -------------------------------------

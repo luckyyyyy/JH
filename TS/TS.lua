@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:39:08
+-- @Last Modified time: 2015-02-28 23:17:57
 local _L = JH.LoadLangPack
 
 TS = {
@@ -159,7 +159,7 @@ _TS.OnBreathe = function()
 			_TS.frame:Lookup("", "Text_Title"):SetText(g_tStrings.HATRED_COLLECT)
 			_TS.frame:Lookup("", "Text_Title"):SetFontColor(255, 255, 255)
 		end
-		
+
 		-- 开怪提醒
 		if _TS.dwDropTargetPlayerID >= 0 and GetTime() - _TS.dwDropTargetPlayerID > 1000 * 7 and GetNpcIntensity(p) > 2 then
 			local me = GetClientPlayer()
@@ -236,7 +236,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			nMyRank = v
 		end
 	end
-	
+
 	_TS.bg:SetSize(240, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:SetSize(240, 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
@@ -275,7 +275,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- 始终显示自己的
 				v.id, v.val = UI_GetClientPlayerID(), nMyRank
 			end
-			
+
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
 			local nThreatPercentage, fDiff = 0, 0
 			if v.val ~= 0 then
@@ -286,14 +286,14 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 				item:Lookup("Text_ThreatValue"):SetText("0%")
 			end
 			item:Lookup("Text_ThreatValue"):SetFontScheme(dat[6][2])
-			
+
 			if v.id == dwTargetID then
 				if dwTargetID == UI_GetClientPlayerID() then
 					item:Lookup("Image_Target"):SetFrame(10)
 				end
 				item:Lookup("Image_Target"):Show()
 			end
-			
+
 			local r, g, b = 188, 188, 188
 			local szName, dwForceID = _L["Loading..."], 0
 			if IsPlayer(v.id) then
@@ -359,7 +359,7 @@ PS.OnPanelActive = function(frame)
 		ui:Fetch("bInDungeon"):Enable(bChecked)
 		if bChecked then
 			if TS.bInDungeon then
-				if JH.IsInDungeon2() then
+				if JH.IsInDungeon(true) then
 					_TS.OpenPanel()
 				end
 			else
@@ -374,7 +374,7 @@ PS.OnPanelActive = function(frame)
 	:Enable(TS.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
 		TS.bInDungeon = bChecked
 		if bChecked then
-			if JH.IsInDungeon2() then
+			if JH.IsInDungeon(true) then
 				_TS.OpenPanel()
 			else
 				_TS.ClosePanel()
@@ -402,22 +402,22 @@ PS.OnPanelActive = function(frame)
 	:Click(function(bChecked)
 		TS.bTopTarget = bChecked
 	end):Pos_()
-	
+
 	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceColor, txt = g_tStrings.STR_RAID_COLOR_NAME_SCHOOL })
 	:Click(function(bChecked)
 		TS.bForceColor = bChecked
 	end):Pos_()
-	
+
 	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bForceIcon, txt = g_tStrings.STR_SHOW_KUNGFU })
 	:Click(function(bChecked)
 		TS.bForceIcon = bChecked
 	end):Pos_()
-	
+
 	nX, nY = ui:Append("WndCheckBox", { x = 10 , y = nY, checked = TS.bSpecialSelf, txt = _L["Special Self"] })
 	:Click(function(bChecked)
 		TS.bSpecialSelf = bChecked
 	end):Pos_()
-	
+
 	nX = ui:Append("WndComboBox", { x = 10, y = nY, txt = _L["Style Select"] })
 	:Menu(function()
 		local t = {}
@@ -428,7 +428,7 @@ PS.OnPanelActive = function(frame)
 				bChecked = TS.nStyle == k,
 				fnAction = function()
 					TS.nStyle = k
-				end,				
+				end,
 			})
 		end
 
@@ -444,7 +444,7 @@ PS.OnPanelActive = function(frame)
 				bChecked = TS.nMaxBarCount == v,
 				fnAction = function()
 					TS.nMaxBarCount = v
-				end,				
+				end,
 			})
 		end
 		return t
@@ -456,8 +456,8 @@ PS.OnPanelActive = function(frame)
 		if _TS.frame then
 			_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
 		end
-	end):Pos_()	
-	
+	end):Pos_()
+
 	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Style folder:"] .. JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat" }):Pos_()
 end
@@ -467,7 +467,7 @@ GUI.RegisterPanel(g_tStrings.HATRED_COLLECT, 2047, _L["General"], PS)
 JH.RegisterEvent("LOADING_END", function()
 	if not TS.bEnable then return end
 	if TS.bInDungeon then
-		if JH.IsInDungeon2() then
+		if JH.IsInDungeon(true) then
 			_TS.OpenPanel()
 		else
 			_TS.ClosePanel()
