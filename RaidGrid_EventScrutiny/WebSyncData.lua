@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:37:59
+-- @Last Modified time: 2015-02-28 04:13:09
 local _L = JH.LoadLangPack
 
 WebSyncData = {
@@ -291,13 +291,13 @@ W.CallDoanloadData = function(data, bOverride)
 	JH.RemoteRequest(W.szDownload .. data.tid .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 		local tab, err = JH.JsonToTable(szDoc)
 		if err then
-			return JH.Alert(g_tStrings.STR_FT_JION_FAIL_UNKNOW)
+			return JH.Alert(_L["update failed! Please try again."])
 		end
 		local szFileName = "sync_data_".. data.tid .."_" .. CLIENT_LANG .. ".jx3dat"
 		local szFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/alldat/" .. szFileName
 		pcall(SaveLUAData, szFile, tab)
 		pcall(RaidGrid_Base.LoadSettingsFileNew, szFileName, bOverride)
-		JH.Alert(g_tStrings.STR_UPDATE_SUCCESS)
+		JH.Alert(g_tStrings.STR_UPDATE_SUCCESS .. "\n\n" .. data.title)
 		WebSyncData.tData = data
 		local me = GetClientPlayer()
 		if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "Load", data.title) end

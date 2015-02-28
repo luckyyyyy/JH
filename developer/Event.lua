@@ -1,35 +1,35 @@
 -- @Author: Webster
 -- @Date:   2015-02-27 14:44:16
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 16:18:53
+-- @Last Modified time: 2015-02-28 19:25:26
 local _L = JH.LoadLangPack
 local tEventIndex = {
-	{ "键盘按下", 13 },
-	{ "键盘弹起", 14 },
+	{ _L["OnKeyDown"        ], 13 },
+	{ _L["OnKeyUp"          ], 14 },
 
-	{ "左键按下", 1 },
-	{ "左键弹起", 3 },
-	{ "左键点击", 5 },
-	{ "左键双击", 7 },
-	{ "左键拖拽", 20 },
+	{ _L["OnLButtonDown"    ], 1 },
+	{ _L["OnLButtonUp"      ], 3 },
+	{ _L["OnLButtonClick"   ], 5 },
+	{ _L["OnLButtonDbClick" ], 7 },
+	{ _L["OnLButtonDrag"    ], 20 },
 
-	{ "右键按下", 2 },
-	{ "右键弹起", 4 },
-	{ "右键点击", 6 },
-	{ "右键双击", 8 },
-	{ "右键拖拽", 19 },
+	{ _L["OnRButtonDown"    ], 2 },
+	{ _L["OnRButtonUp"      ], 4 },
+	{ _L["OnRButtonClick"   ], 6 },
+	{ _L["OnRButtonDbClick" ], 8 },
+	{ _L["OnRButtonDrag"    ], 19 },
 
-	{ "中键按下", 15 },
-	{ "中键弹起", 16 },
-	{ "中键点击", 17 },
-	{ "中键双击", 18 },
-	{ "中键拖拽", 21 },
+	{ _L["OnMButtonDown"    ], 15 },
+	{ _L["OnMButtonUp"      ], 16 },
+	{ _L["OnMButtonClick"   ], 17 },
+	{ _L["OnMButtonDbClick" ], 18 },
+	{ _L["OnMButtonDrag"    ], 21 },
 
-	{ "鼠标进出", 9 },
-	{ "鼠标区域", 10 },
-	{ "鼠标移动", 11 },
-	{ "鼠标悬停", 22 },
-	{ "滚轮事件", 12 },
+	{ _L["OnMouseEnterLeave"], 9 },
+	{ _L["OnMouseArea"      ], 10 },
+	{ _L["OnMouseMove"      ], 11 },
+	{ _L["OnMouseHover"     ], 22 },
+	{ _L["OnScroll"         ], 12 },
 }
 
 local PS = {}
@@ -77,7 +77,7 @@ function PS.OnPanelActive(frame)
 		end
 	end
 
-	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Events"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["UIEventID"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndEdit", "WndEdit", { txt = 0, x = 10, y = nY + 10, font = 201, color = { 255, 255, 255 }}):Type(0)
 	:Change(function(txt)
 		if tonumber(txt) then UInt2BitTable(tonumber(txt)) end
@@ -98,4 +98,4 @@ function PS.OnPanelActive(frame)
 	end
 end
 
-GUI.RegisterPanel(_L["Events"], 2910, _L["Dev"], PS)
+GUI.RegisterPanel(_L["UIEventID"], 2910, _L["Dev"], PS)
