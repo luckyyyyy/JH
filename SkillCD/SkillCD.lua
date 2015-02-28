@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:17:42
+-- @Last Modified time: 2015-02-28 23:39:48
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -229,11 +229,11 @@ _SkillCD.UpdateCount = function()
 	end
 	local handle = _SkillCD.frame:Lookup("Wnd_Count"):Lookup("", "Handle_CList")
 	handle:Clear()
-	for k,v in pairs(tCount) do
+	for k, v in pairs(tCount) do
 		local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_CLister", k)
 		local szName, dwIconID = JH.GetSkillName(k)
 		local box = item:Lookup("Box_Icon")
-		tsort(v.tList, function(a,b)
+		tsort(v.tList, function(a, b)
 			if a.nSec == b.nSec then
 				return a.info.szName < a.info.szName
 			else
@@ -302,8 +302,8 @@ _SkillCD.UpdateCount = function()
 		if #v.tList == 0 then
 			item:SetAlpha(100)
 		end
-		box:SetObject(UI_OBJECT_ITEM)
-		box:SetObjectIcon( dwIconID )
+		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN) -- 其实是技能 不过用不到
+		box:SetObjectIcon(dwIconID)
 		-- box:SetObjectSparking(true)
 		item:Lookup("Text_Count"):SetText( v.nCount )
 		if v.nCount > 0 then

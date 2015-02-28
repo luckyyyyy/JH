@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:17:25
+-- @Last Modified time: 2015-02-28 23:52:33
 local _L = JH.LoadLangPack
 
 RaidGrid_EventScrutiny = {}
@@ -5429,60 +5429,65 @@ end
 JH.BreatheCall("Raid_MonitorBuffs", _RE.Raid_MonitorBuffs, 10000)
 ------------------------------------------------------------------
 
-JH.RegisterEvent("FIRST_LOADING_END",function()
-	local szName = GetClientPlayer().szName
-	_RE.szName = szName:gsub("@.*", "")
-
-	if RaidGrid_Base.version == 1 then
-		local _, _, szLang = GetVersion()
-		RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
-		RaidGrid_Base.version = 2
+JH.RegisterEvent("LOADING_END",function()
+	if IsRemotePlayer(UI_GetClientPlayerID()) then
+		return
 	end
+	if _RE.szName == "NONE" then
+		local me = GetClientPlayer()
+		_RE.szName = me.szName
 
-	local HashChange = function(tRecords)
-		local Hash = {}
-		local Hash2 = {}
-		for k,v in ipairs(tRecords) do
-			if v.dwID then
-				Hash[v.dwID] = true
-			end
-			if v.nLevel then
-				Hash2[v.dwID] = Hash2[v.dwID] or {}
-				Hash2[v.dwID][v.nLevel] = true
-			end
+		if RaidGrid_Base.version == 1 then
+			local _, _, szLang = GetVersion()
+			RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
+			RaidGrid_Base.version = 2
 		end
-		tRecords.Hash = Hash
-		tRecords.Hash2 = Hash2
-	end
 
-	local path = _RE.szDataPath .. _RE.szName .. "/"
-	for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
-		local data = JH.LoadLUAData(path .. v)
-		if data then
-			RaidGrid_EventScrutiny.tRecords[v] = JH.JsonDecode(data)
-			HashChange(RaidGrid_EventScrutiny.tRecords[v])
-		end
-	end
-	RaidGrid_Base.ResetChatAlertCD()
-	JH.DelayCall(1000, function()
-		for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
-			local data = JH.LoadLUAData(path .. v)
-			if data then
-				RaidGrid_BossCallAlert.tRecords[v] = JH.JsonDecode(data)
-			end
-		end
-	end)
-	JH.DelayCall(2500, function()
-		if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
-			for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
-				local data = JH.LoadLUAData(path .. "cache/" .. v)
-				if data then
-					RaidGrid_EventCache.tRecords[v] = JH.JsonDecode(data)
-					HashChange(RaidGrid_EventCache.tRecords[v])
+		local function HashChange(tRecords)
+			local Hash = {}
+			local Hash2 = {}
+			for k,v in ipairs(tRecords) do
+				if v.dwID then
+					Hash[v.dwID] = true
+				end
+				if v.nLevel then
+					Hash2[v.dwID] = Hash2[v.dwID] or {}
+					Hash2[v.dwID][v.nLevel] = true
 				end
 			end
+			tRecords.Hash = Hash
+			tRecords.Hash2 = Hash2
 		end
-	end)
+
+		local path = _RE.szDataPath .. _RE.szName .. "/"
+		for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+			local data = JH.LoadLUAData(path .. v)
+			if data then
+				RaidGrid_EventScrutiny.tRecords[v] = JH.JsonDecode(data)
+				HashChange(RaidGrid_EventScrutiny.tRecords[v])
+			end
+		end
+		RaidGrid_Base.ResetChatAlertCD()
+		JH.DelayCall(1000, function()
+			for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
+				local data = JH.LoadLUAData(path .. v)
+				if data then
+					RaidGrid_BossCallAlert.tRecords[v] = JH.JsonDecode(data)
+				end
+			end
+		end)
+		JH.DelayCall(2500, function()
+			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+				for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+					local data = JH.LoadLUAData(path .. "cache/" .. v)
+					if data then
+						RaidGrid_EventCache.tRecords[v] = JH.JsonDecode(data)
+						HashChange(RaidGrid_EventCache.tRecords[v])
+					end
+				end
+			end
+		end)
+	end
 end)
 
 local SaveRGESData = function()

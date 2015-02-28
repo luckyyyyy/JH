@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:16:21
+-- @Last Modified time: 2015-02-28 23:31:22
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -846,7 +846,7 @@ function JH.IsInDungeon(bType)
 		return scene.nType == 1 or scene.nType == 4
 	end
 	if IsEmpty(_JH.tDungeonList) then
-		for k,v in ipairs(GetMapList()) do
+		for k, v in ipairs(GetMapList()) do
 			local a = g_tTable.DungeonInfo:Search(v)
 			if a and a.dwClassID == 3 then
 				_JH.tDungeonList[a.dwMapID] = true
@@ -2610,7 +2610,7 @@ function _GUI.Item:Icon(dwIcon)
 	if self.type == "BoxButton" or self.type == "Image" then
 		self.img:FromIconID(dwIcon)
 	elseif self.type == "Box" then
-		self.self:SetObject(UI_OBJECT_ITEM)
+		self.self:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 		self.self:SetObjectIcon(dwIcon)
 	end
 	return self

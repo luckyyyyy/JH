@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 17:53:56
+-- @Last Modified time: 2015-02-28 23:42:25
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1030,7 +1030,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 				wnd:Lookup("","Handle_Box1"):AppendItemFromString("<box>w=28 h=28 name=\"".. vv.nIndex  .."\"</box>")
 				local box = wnd:Lookup("","Handle_Box1"):Lookup(tostring(vv.nIndex))
 				wnd:Lookup("","Handle_Box1"):FormatAllItemPos()
-				box:SetObject(UI_OBJECT_ITEM)
+				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 				local bName, bIocn = JH.GetBuffName(vv.dwID, vv.nLevel)
 				box:SetObjectIcon(bIocn)
 				box:RegisterEvent(786)
@@ -1054,7 +1054,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 				wnd:Lookup("","Handle_Box2"):AppendItemFromString("<box>w=28 h=28 name=\"".. vv.nIndex  .."\"</box>")
 				local box = wnd:Lookup("","Handle_Box2"):Lookup(tostring(vv.nIndex))
 				wnd:Lookup("","Handle_Box2"):FormatAllItemPos()
-				box:SetObject(UI_OBJECT_ITEM)
+				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 				local bName, bIcon = JH.GetBuffName(vv.dwID, vv.nLevel)
 				box:SetObjectIcon(bIcon)
 				box:RegisterEvent(786)
@@ -2376,7 +2376,7 @@ _GKP.Record = function(tab,item,bEnter)
 		end
 		box:Show()
 	else
-		box:SetObject(UI_OBJECT_ITEM_ONLY_ID)
+		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 		box:SetObjectIcon(95)
 	end
 	record:Toggle(true)
