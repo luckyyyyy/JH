@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 00:49:37
+-- @Last Modified time: 2015-03-01 01:01:21
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1616,6 +1616,9 @@ _GKP.OnMsg = function()
 							ui:Append("Image", { x = 640, y = n * 30 + 10, w = 100, h = 107.5 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/zhcn_img.uitex", 0)
 						end
 						Station.Lookup("Normal/GKP_info").done = true
+					elseif  szFrameName == "GKP_Debt" and not frm:IsVisible() then
+						Wnd.CloseWindow(frm)
+						_GKP.info = nil
 					end
 				end
 				_GKP.SetButton(true)
