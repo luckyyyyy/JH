@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:42:25
+-- @Last Modified time: 2015-03-01 00:49:37
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1449,17 +1449,17 @@ _GKP.OnMsg = function()
 			end
 
 			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.bAutoSync and arg3 ~= me.szName then
-				local tData,err = JH.JsonDecode(JH.AscIIDecode(data[2]))
+				local tData, err = JH.JsonDecode(JH.AscIIDecode(data[2]))
 				if err then
-					return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
+					return GKP.Sysmsg2(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
 				end
 				tData.bSync = true
 				if data[1] == "add" then
-					pcall(GKP,"GKP_Record",tData)
+					pcall(GKP, "GKP_Record", tData)
 				else
-					for k,v in ipairs(GKP("GKP_Record")) do
+					for k, v in ipairs(GKP("GKP_Record")) do
 						if v.key == tData.key then
-							pcall(GKP,"GKP_Record",k,tData)
+							pcall(GKP, "GKP_Record", k, tData)
 							break
 						end
 					end
@@ -1470,11 +1470,15 @@ _GKP.OnMsg = function()
 		end
 		if data[1] == "GKP_INFO" then -- 这他妈做成收据了。。。。。。。hhhhhhhhhhhhhhhhh
 			if data[2] == "Start" then
-				if Station.Lookup("Normal/GKP_info") then
-					Wnd.CloseWindow(Station.Lookup("Normal/GKP_info"))
+				local szFrameName = "GKP_info"
+				if data[3] == "Information on Debt" then
+					szFrameName = "GKP_Debt"
+				end
+				if Station.Lookup("Normal/" .. szFrameName) then
+					Wnd.CloseWindow(Station.Lookup("Normal/" .. szFrameName))
 					_GKP.info = nil
 				end
-				_GKP.info = GUI.CreateFrame("GKP_info", { w = 760, h = 350, title = _L["GKP Golden Team Record"] }):Point():RegisterClose()
+				_GKP.info = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point():RegisterClose()
 				_GKP.info:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
 				_GKP.info:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 })
 				:Enable(false):Click(function()
@@ -1493,6 +1497,9 @@ _GKP.OnMsg = function()
 			end
 			if data[2] == "Info" then
 				local frm = Station.Lookup("Normal/GKP_info")
+				if frm and frm.done then
+					frm = Station.Lookup("Normal/GKP_Debt")
+				end
 				if frm then
 					if not frm.n then frm.n = 0 end
 					local n = frm.n
@@ -1593,7 +1600,11 @@ _GKP.OnMsg = function()
 				end
 			end
 			if data[2] == "End" then
-				local frm = Station.Lookup("Normal/GKP_info")
+				local szFrameName = "GKP_Debt"
+				if data[4] then
+					szFrameName = "GKP_info"
+				end
+				local frm = Station.Lookup("Normal/" .. szFrameName)
 				if frm then
 					local ui = GUI(frm)
 					local n = frm.n or 0
@@ -1604,6 +1615,7 @@ _GKP.OnMsg = function()
 						if n >= 4 then
 							ui:Append("Image", { x = 640, y = n * 30 + 10, w = 100, h = 107.5 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/zhcn_img.uitex", 0)
 						end
+						Station.Lookup("Normal/GKP_info").done = true
 					end
 				end
 				_GKP.SetButton(true)
