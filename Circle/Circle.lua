@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 11:46:27
+-- @Last Modified time: 2015-02-28 23:50:31
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -155,11 +155,6 @@ function C.SaveFile(szFullPath, bMsg)
 			end
 		end
 	end
-	if not bMsg then
-		if IsRemotePlayer(UI_GetClientPlayerID()) then
-			return
-		end
-	end
 	local code = Confuse(data)
 	SaveLUAData(szFullPath, code)
 	if bMsg then
@@ -189,12 +184,7 @@ end
 
 function C.LoadCircleData(tData, bMsg)
 	local data = {}
-	if not bMsg then
-		if IsRemotePlayer(UI_GetClientPlayerID()) then
-			return JH.RegisterEvent("LOADING_END.LoadCircleData", C.LoadFile)
-		end
-		JH.UnRegisterEvent("LOADING_END.LoadCircleData")
-	else
+	if bMsg then
 		if GetCurrentTime() - Circle.nLimit < CIRCLE_CHANGE_TIME then
 			return JH.Sysmsg2(_L["Too frequent load file"])
 		else
@@ -1328,10 +1318,15 @@ end
 JH.RegisterEvent("GAME_EXIT", C.SaveFile)
 JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
 JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
-JH.RegisterEvent("FIRST_LOADING_END", function()
-	local me = GetClientPlayer()
-	CIRCLE_PLAYER_NAME = me.szName -- 防止测试reload毁了所有数据
-	C.LoadFile()
+JH.RegisterEvent("LOADING_END", function()
+	if IsRemotePlayer(UI_GetClientPlayerID()) then
+		return
+	end
+	if CIRCLE_PLAYER_NAME == "NONE" then
+		local me = GetClientPlayer()
+		CIRCLE_PLAYER_NAME = me.szName -- 防止测试reload毁了所有数据
+		C.LoadFile()
+	end
 end)
 JH.RegisterEvent("CIRCLE_DEBUG", function()
 	if JH_About.CheckNameEx() then
