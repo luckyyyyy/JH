@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 16:04:56
+-- @Last Modified time: 2015-03-01 00:10:30
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -168,7 +168,9 @@ _JH_About.PS.OnTaboxCheck = function(frame)
 	nX, nY = ui:Append("Text", { x = 10, y = nY, color = { 255, 255, 0 }, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 233 }):Pos_()
 	local time = TimeToDate(GetCurrentTime())
 	-- year, month, day, hour, minute, second, weekday
-
+	if time.weekday == 0 then
+		time.weekday = 7
+	end
 	local L = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
 	local col = { 1, 1, 0, 4, 5, 5, 4 }
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { GetItemFontColorByQuality(col[time.weekday]) }, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 }):Pos_()
