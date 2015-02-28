@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 22:22:56
+-- @Last Modified time: 2015-02-28 23:40:01
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -770,7 +770,7 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 				local szName, nIcon = JH.GetBuffName(arg1, arg2)
 				if nIcon == -1 then nIcon = 1434 end
 				local hBox = hBuff:Lookup("Box")
-				hBox:SetObject(UI_OBJECT_ITEM, arg1, arg2)
+				hBox:SetObject(UI_OBJECT_NOT_NEED_KNOWN, arg1, arg2)
 				hBox:SetObjectIcon(nIcon)
 
 				local nTime = JH.GetEndTime(tBuff.nEndFrame)
