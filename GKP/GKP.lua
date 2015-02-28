@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 01:05:57
+-- @Last Modified time: 2015-03-01 01:14:39
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1500,7 +1500,7 @@ _GKP.OnMsg = function()
 				if frm and frm.done then
 					frm = Station.Lookup("Normal/GKP_Debt")
 				end
-				if not frm and  Station.Lookup("Normal/GKP_Debt") then
+				if not frm and Station.Lookup("Normal/GKP_Debt") then
 					frm = Station.Lookup("Normal/GKP_Debt")
 				end
 				if frm then
@@ -1618,7 +1618,7 @@ _GKP.OnMsg = function()
 						if n >= 4 then
 							ui:Append("Image", { x = 640, y = n * 30 + 10, w = 100, h = 107.5 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/zhcn_img.uitex", 0)
 						end
-						Station.Lookup("Normal/GKP_info").done = true
+						frm.done = true
 					elseif  szFrameName == "GKP_Debt" and not frm:IsVisible() then
 						Wnd.CloseWindow(frm)
 						_GKP.info = nil
@@ -1630,7 +1630,7 @@ _GKP.OnMsg = function()
 	end
 end
 
-RegisterEvent("ON_BG_CHANNEL_MSG",_GKP.OnMsg)
+RegisterEvent("ON_BG_CHANNEL_MSG", _GKP.OnMsg)
 
 _GKP.SetButton = function(bEnable)
 	GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("GOLD_TEAM_BID_LIST"):Enable(bEnable)
@@ -1685,7 +1685,7 @@ _GKP.GKP_Clear = function(bConfirm)
 	if bConfirm then
 		fnAction()
 	else
-		JH.Confirm(_L["Are you sure to wipe all of the records?"],fnAction)
+		JH.Confirm(_L["Are you sure to wipe all of the records?"], fnAction)
 	end
 end
 ---------------------------------------------------------------------->
@@ -1769,17 +1769,17 @@ _GKP.GKP_OweList = function()
 	if nGold2 ~= 0 then
 		JH.Talk(_L("Spending: %d Gold.", nGold2 * -1))
 	end
-	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Received: %d Gold.",nGold))
+	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Received: %d Gold.", nGold))
 end
 ---------------------------------------------------------------------->
 -- 获取工资总额
 ----------------------------------------------------------------------<
 _GKP.GetRecordSum = function(bAccurate)
 	if IsEmpty(GKP("GKP_Record")) then
-		return 0,0
+		return 0, 0
 	end
-	local a,b = 0,0
-	for k,v in ipairs(GKP("GKP_Record")) do
+	local a ,b = 0, 0
+	for k, v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if tonumber(v.nMoney) > 0 then
 				a = a + v.nMoney
@@ -1791,7 +1791,7 @@ _GKP.GetRecordSum = function(bAccurate)
 	if bAccurate then
 		return a + b
 	else
-		return a,b
+		return a, b
 	end
 end
 ---------------------------------------------------------------------->
@@ -1833,7 +1833,7 @@ _GKP.GKP_SpendingList = function()
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold)
 	end
 	JH.Talk(_L("Toal Auction: %d Gold.",_GKP.GetRecordSum()))
-	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Toal Auction: %d Gold.",_GKP.GetRecordSum()), _GKP.GetRecordSum())
+	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Toal Auction: %d Gold.", _GKP.GetRecordSum()), _GKP.GetRecordSum())
 end
 ---------------------------------------------------------------------->
 -- 结算工资按钮
