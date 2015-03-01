@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:39:48
+-- @Last Modified time: 2015-03-01 21:19:47
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -156,8 +156,8 @@ end
 _SkillCD.UpdateMonitorCache = function()
 	local kungfu = {}
 	for k, v in pairs(SkillCD.tMonitor) do
-		for kk,vv in pairs(_SkillCD.tKungfu) do
-			for kkk,vvv in ipairs(vv) do
+		for kk, vv in pairs(_SkillCD.tKungfu) do
+			for kkk, vvv in ipairs(vv) do
 				if vvv == k then
 					if not kungfu[kk] then
 						kungfu[kk] = {}

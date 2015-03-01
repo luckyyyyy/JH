@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 01:14:39
+-- @Last Modified time: 2015-03-01 22:30:00
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -2098,8 +2098,8 @@ _GKP.DrawDistributeList = function(doodad)
 						end
 					})
 				end
-				PopupMenu(tMenu)
 			end
+			PopupMenu(tMenu)
 		end
 
 		box.OnItemLButtonClick = function()
