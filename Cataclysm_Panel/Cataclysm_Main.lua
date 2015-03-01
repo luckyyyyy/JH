@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:16:50
+-- @Last Modified time: 2015-03-01 10:55:19
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -220,7 +220,7 @@ local function UpdateAnchor(frame)
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 	else
-		frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+		frame:SetPoint("LEFTCENTER", 0, 0, "LEFTCENTER", 100, -200)
 	end
 end
 
@@ -256,11 +256,11 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("TARGET_CHANGE")
 	--
-	this:RegisterEvent("CTM_LOADING_END")
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
 	if GetClientPlayer() then
-		FireEvent("CTM_LOADING_END")
+		UpdateAnchor(this)
+		Grid_CTM:AutoLinkAllPanel()
 	end
 	SetFrameSize(true)
 end
@@ -365,7 +365,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3)
 	elseif szEvent == "GKP_RECORD_TOTAL" then
 		GKP_RECORD_TOTAL = arg0
-	elseif szEvent == "UI_SCALED" or "CTM_LOADING_END" then
+	elseif szEvent == "UI_SCALED" then
 		UpdateAnchor(this)
 		Grid_CTM:AutoLinkAllPanel()
 	end
