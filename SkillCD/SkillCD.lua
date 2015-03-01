@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 21:19:47
+-- @Last Modified time: 2015-03-02 00:11:18
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -248,7 +248,8 @@ _SkillCD.UpdateCount = function()
 					local w, h = box:GetSize()
 					local szXml = GetFormatText("[" .. szName .. "]" .. "\n", 23 ,255 ,255 ,255)
 					for k, v in ipairs(v.tList) do
-						szXml = szXml .. GetFormatText(v.info.szName, 23, 255, 255, 0)
+						local dwMountKungfuID = v.info.dwMountKungfuID or 0
+						szXml = szXml .. GetFormatText(string.format("[%s] %s",_L["KUNGFU_" .. dwMountKungfuID] ,v.info.szName), 23, 255, 255, 0)
 						local szDeath = GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0) -- 离线是bIsOnLine 其实也一样 无所谓
 						if v.info.bDeathFlag then
 							szXml = szXml .. szDeath
