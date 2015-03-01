@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 11:00:13
+-- @Last Modified time: 2015-03-02 01:54:12
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -34,7 +34,9 @@ local CTM_CONFIG = {
 	tManaColor = { 0, 96, 255 },
 	tDistanceCol = {
 		{ 0,   180, 52  }, -- ÂÌ
-		{ 230, 170, 40  }, -- »Æ
+		{ 0,   180, 52  }, -- ÂÌ
+		-- ÃâµÃ±»ËµÂÒ
+		-- { 230, 170, 40  }, -- »Æ
 		{ 230, 80,  80  }, -- ºì
 	},
 	tOtherCol = {
