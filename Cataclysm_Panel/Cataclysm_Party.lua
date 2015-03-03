@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-02 21:56:06
+-- @Last Modified time: 2015-03-04 02:46:12
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -317,14 +317,14 @@ end
 function CTM:RefreshTarget()
 	if CTM_TARGET then
 		if CTM_CACHE[CTM_TARGET] and CTM_CACHE[CTM_TARGET]:IsValid() then
-			if CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):IsValid() then
+			if CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected") and CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):IsValid() then
 				CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):Hide()
 			end
 		end
 	end
 	if CTM_TTARGET then
 		if CTM_CACHE[CTM_TTARGET] and CTM_CACHE[CTM_TTARGET]:IsValid() then
-			if CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget"):IsValid() then
+			if CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget") and CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget"):IsValid() then
 				CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Hide()
 			end
 		end
@@ -334,7 +334,7 @@ function CTM:RefreshTarget()
 	if dwType == TARGET.PLAYER and JH.IsParty(dwID) then
 		CTM_TARGET = dwID
 		if CTM_CACHE[CTM_TARGET] and CTM_CACHE[CTM_TARGET]:IsValid() then
-			if CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):IsValid() then
+			if CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected") and CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):IsValid() then
 				CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):Show()
 			end
 		end
@@ -347,7 +347,7 @@ function CTM:RefreshTarget()
 			if tdwID and tdwType == TARGET.PLAYER and JH.IsParty(tdwID) then
 				CTM_TTARGET = tdwID
 				if CTM_CACHE[CTM_TTARGET] and CTM_CACHE[CTM_TTARGET]:IsValid() then
-					if CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget"):IsValid() then
+					if CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget") and CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget"):IsValid() then
 						CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Show()
 					end
 				end

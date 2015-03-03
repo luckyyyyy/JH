@@ -1,19 +1,19 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 00:10:30
+-- @Last Modified time: 2015-03-03 15:51:30
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
 	INFO = {},
 }
 -- author
-_JH_About.PS.GetAuthorInfo = function()
+function _JH_About.PS.GetAuthorInfo()
 	return _L["AUTHOR"]
 end
 
 
-_JH_About.CheckNameEx = function(dwID, szName)
+function _JH_About.CheckNameEx(dwID, szName)
 	local me = GetClientPlayer()
 	dwID = dwID or me.dwID
 	szName = szName or me.szName
@@ -23,7 +23,7 @@ _JH_About.CheckNameEx = function(dwID, szName)
 	end
 end
 
-_JH_About.CheckInstall = function()
+function _JH_About.CheckInstall()
 	local me = GetClientPlayer()
 	local me, team = GetClientPlayer(), GetClientTeam()
 	if me.IsInParty() and (me.dwID == team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
@@ -41,7 +41,7 @@ _JH_About.CheckInstall = function()
 	end
 end
 
-_JH_About.ShowInfo = function(dat)
+function _JH_About.ShowInfo(dat)
 	_JH_About.INFO[arg0] = dat
 	local me = GetClientPlayer()
 	local ini = "interface/JH/0Base/About.ini"
@@ -81,7 +81,7 @@ _JH_About.ShowInfo = function(dat)
 	h:Show()
 end
 
-_JH_About.OnBgTalk = function()
+function _JH_About.OnBgTalk()
 	local data = JH.BgHear("JH_ABOUT",true)
 	if data then
 		if data[1] == "JH_CHECK" then
@@ -109,12 +109,13 @@ _JH_About.OnBgTalk = function()
 	end
 end
 
-_JH_About.GetMemory = function()
+function _JH_About.GetMemory()
 	return string.format("Memory:%.1fMB", collectgarbage("count") / 1024)
 end
 
 JH.RegisterEvent("ON_BG_CHANNEL_MSG", _JH_About.OnBgTalk)
-_JH_About.PS.OnPanelActive = function(frame)
+
+function _JH_About.PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 27 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 80, multi = true, txt = _L["ABOUT_TIPS"] }):Pos_()
@@ -158,7 +159,7 @@ _JH_About.PS.OnPanelActive = function(frame)
 	end)
 end
 
-_JH_About.PS.OnTaboxCheck = function(frame)
+function _JH_About.PS.OnTaboxCheck(frame)
 	local szName, me = _L["You"], GetClientPlayer()
 	if me then szName = me.szName end
 	-- info
@@ -176,7 +177,7 @@ _JH_About.PS.OnTaboxCheck = function(frame)
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { GetItemFontColorByQuality(col[time.weekday]) }, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 }):Pos_()
 end
 
-GUI.RegisterPanel(_L["About"], 252, _L["Recreation"],_JH_About.PS)
+GUI.RegisterPanel(_L["About"], 252, _L["Recreation"], _JH_About.PS)
 
 local function LoginGame()
 	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. "! v" .. JH.GetVersion() )
