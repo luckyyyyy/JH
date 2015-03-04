@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-02 03:24:34
+-- @Last Modified time: 2015-03-05 07:46:29
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -26,6 +26,8 @@ local CTM_CONFIG = {
 	bLifeGradient = true,
 	bManaGradient = true,
 	nAlpha = 255,
+	fBuffScale = 1,
+	bAutoBuffSize = true,
 	bTempTargetFightTip = false,
 	bTempTargetEnable = true,
 	fScaleX = 1,
@@ -846,6 +848,16 @@ PS3.OnPanelActive = function(frame)
 	:Range(0, 5):Value(RaidGrid_CTM_Edition.nMaxShowBuff):Change(function(nVal)
 		RaidGrid_CTM_Edition.nMaxShowBuff = nVal
 	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["buff Size"]}):Pos_()
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = RaidGrid_CTM_Edition.bAutoBuffSize, txt = g_tStrings.STR_OPTIMIZE_AUTO }):Click(function(bCheck)
+		RaidGrid_CTM_Edition.bAutoBuffSize = bCheck
+		ui:Fetch("BuffSize"):Enable(not bCheck)
+	end):Pos_()
+	nX, nY = ui:Append("WndTrackBar", "BuffSize", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
+	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
+		RaidGrid_CTM_Edition.fBuffScale = nVal / 100
+	end):Pos_()
+
 	-- ×ÖÌåÐÞ¸Ä
 	nX = ui:Append("WndButton2", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.FONT })
 	:Click(function()
