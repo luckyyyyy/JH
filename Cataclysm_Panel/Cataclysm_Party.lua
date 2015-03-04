@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-04 18:03:38
+-- @Last Modified time: 2015-03-05 07:45:20
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -45,17 +45,17 @@ local HIDE_FORCE = {
 	[21] = true,
 }
 local KUNGFU_TYPE = {
-	TIAN_CE 	= 1,      -- 天策内功
-	WAN_HUA 	= 2,      -- 万花内功
-	CHUN_YANG  	= 3,      -- 纯阳内功
-	QI_XIU  	= 4,      -- 七秀内功
-	SHAO_LIN 	= 5,      -- 少林内功
-	CANG_JIAN	= 6,      -- 藏剑内功
-	GAI_BANG	= 7,      -- 丐帮内功
-	MING_JIAO 	= 8,      -- 明教内功
-	WU_DU 	    = 9,      -- 五毒内功
-	TANG_MEN 	= 10,     -- 唐门内功
-	CANG_YUN 	= 18,     -- 苍云内功
+	TIAN_CE   = 1,      -- 天策内功
+	WAN_HUA   = 2,      -- 万花内功
+	CHUN_YANG = 3,      -- 纯阳内功
+	QI_XIU    = 4,      -- 七秀内功
+	SHAO_LIN  = 5,      -- 少林内功
+	CANG_JIAN = 6,      -- 藏剑内功
+	GAI_BANG  = 7,      -- 丐帮内功
+	MING_JIAO = 8,      -- 明教内功
+	WU_DU     = 9,      -- 五毒内功
+	TANG_MEN  = 10,     -- 唐门内功
+	CANG_YUN  = 18,     -- 苍云内功
 }
 local function IsPlayerManaHide(dwForceID, dwMountType)
 	if dwMountType then
@@ -816,8 +816,12 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 					hBox:SetOverTextFontScheme(0, 27)
 					hBox:SetOverText(0, math.floor(nTime))
 				end
-				if RaidGrid_CTM_Edition.fScaleY > 1 then
-					hBuff:Scale(RaidGrid_CTM_Edition.fScaleY, RaidGrid_CTM_Edition.fScaleY)
+				if RaidGrid_CTM_Edition.bAutoBuffSize then
+					if RaidGrid_CTM_Edition.fScaleY > 1 then
+						hBuff:Scale(RaidGrid_CTM_Edition.fScaleY, RaidGrid_CTM_Edition.fScaleY)
+					end
+				else
+					hBuff:Scale(RaidGrid_CTM_Edition.fBuffScale, RaidGrid_CTM_Edition.fBuffScale)
 				end
 				h:FormatAllItemPos()
 			end
