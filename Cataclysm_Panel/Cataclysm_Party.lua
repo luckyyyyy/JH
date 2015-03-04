@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-04 16:52:24
+-- @Last Modified time: 2015-03-04 18:03:38
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -44,8 +44,32 @@ local HIDE_FORCE = {
 	[10] = true,
 	[21] = true,
 }
-local function IsPlayerManaHide(dwForceID)
-	return HIDE_FORCE[dwForceID]
+local KUNGFU_TYPE = {
+	TIAN_CE 	= 1,      -- 天策内功
+	WAN_HUA 	= 2,      -- 万花内功
+	CHUN_YANG  	= 3,      -- 纯阳内功
+	QI_XIU  	= 4,      -- 七秀内功
+	SHAO_LIN 	= 5,      -- 少林内功
+	CANG_JIAN	= 6,      -- 藏剑内功
+	GAI_BANG	= 7,      -- 丐帮内功
+	MING_JIAO 	= 8,      -- 明教内功
+	WU_DU 	    = 9,      -- 五毒内功
+	TANG_MEN 	= 10,     -- 唐门内功
+	CANG_YUN 	= 18,     -- 苍云内功
+}
+local function IsPlayerManaHide(dwForceID, dwMountType)
+	if dwMountType then
+		if dwMountType == KUNGFU_TYPE.CANG_JIAN or           --藏剑
+			dwMountType == KUNGFU_TYPE.TANG_MEN or           --唐门
+			dwMountType == KUNGFU_TYPE.MING_JIAO or          --明教
+			dwMountType == KUNGFU_TYPE.CANG_YUN then         --苍云
+			return true
+		else
+			return false
+		end
+	else
+		return HIDE_FORCE[dwForceID]
+	end
 end
 
 local function EditBox_AppendLinkPlayer(szName)
@@ -442,8 +466,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 			elseif RaidGrid_CTM_Edition.nShowIcon == 1 then
 				img:FromUITex(GetForceImage(info.dwForceID))
 			elseif RaidGrid_CTM_Edition.nShowIcon == 3 then
-				local camp = { [0] = -1, [1] = 43, [2] = 40 }
-				img:FromUITex("UI/Image/Button/ShopButton.uitex", camp[info.nCamp])
+				img:FromUITex("ui/Image/UICommon/CommonPanel2.UITex", GetCampImageFrame(info.nCamp, false) or -1)
 			end
 
 			local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
@@ -917,7 +940,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not info then return end
 	local Lsha = h:Lookup("Handle_Common/Shadow_Life")
 	local Msha = h:Lookup("Handle_Common/Shadow_Mana")
-	local p
+	local p, dwMountType
 	if RaidGrid_CTM_Edition.bFasterHP then
 		p = GetPlayer(dwID)
 	end
@@ -936,6 +959,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	local bDeathFlag = info.bDeathFlag
 	-- 有待验证
 	if p then
+		dwMountType = p.GetKungfuMount().dwMountType
 		if p.nMoveState == MOVE_STATE_ON_STAND then
 			if info.bDeathFlag then
 				bDeathFlag = true
@@ -954,7 +978,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not bDeathFlag then
 		local nPercentage, nManaShow = 1, 1
 		local mana = h:Lookup("Handle_Common/Text_Mana")
-		if not IsPlayerManaHide(info.dwForceID) then -- 内力不需要那么准
+		if not IsPlayerManaHide(info.dwForceID, dwMountType) then -- 内力不需要那么准
 			nPercentage = info.nCurrentMana / info.nMaxMana
 			nManaShow = info.nCurrentMana
 			if not RaidGrid_CTM_Edition.nShowMP then
