@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-04 16:39:36
+-- @Last Modified time: 2015-03-04 16:52:24
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -241,15 +241,15 @@ function CTM:CreatePanel(nIndex)
 end
 -- 刷新团队组编号
 function CTM:RefreshGroupText()
-	for i = 0, CTM_GROUP_COUNT do
-		local me = GetClientPlayer()
+	local team = GetClientTeam()
+	local me = GetClientPlayer()
+	for i = 0, team.nGroupNum - 1 do
 		local frame = self:GetPartyFrame(i)
 		if frame then
 			local TextGroup = frame:Lookup("", "Handle_BG/Text_GroupIndex")
 			if me.IsInRaid() then
 				TextGroup:SetText(g_tStrings.STR_NUMBER[i + 1])
 				TextGroup:SetFontScheme(7)
-				local team = GetClientTeam()
 				local tGroup = team.GetGroupInfo(i)
 				if tGroup and tGroup.MemberList then
 					for k, v in ipairs(tGroup.MemberList) do
@@ -508,7 +508,7 @@ end
 
 function CTM:ReloadParty()
 	local team = GetClientTeam()
-	for i = 0, CTM_GROUP_COUNT do
+	for i = 0, team.nGroupNum - 1 do
 		local tGroup = team.GetGroupInfo(i)
 		if tGroup then
 			if #tGroup.MemberList == 0 then
@@ -541,7 +541,7 @@ end
 -- 哎 事件太蛋疼 就这样吧
 function CTM:RefresFormation()
 	local team = GetClientTeam()
-	for i = 0, CTM_GROUP_COUNT do
+	for i = 0, team.nGroupNum - 1 do
 		local tGroup = team.GetGroupInfo(i)
 		if tGroup and tGroup.dwFormationLeader and #tGroup.MemberList > 0 then
 			local dwFormationLeader = tGroup.dwFormationLeader
