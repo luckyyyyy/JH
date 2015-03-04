@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:36:41
+-- @Last Modified time: 2015-03-04 17:43:00
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {
 		LEAVE_BLACK_LIST = 5,
@@ -705,7 +705,7 @@ function OutputNpcTip2(dwNpcTemplateID, Rect)
     -------------等级----------------------------
     if npc.nLevel - GetClientPlayer().nLevel > 10 then
     	szTip = szTip.."<Text>text="..EncodeComponentsString(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL).." font=82 </text>"
-    else	
+    else
     	szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel)).." font=0 </text>"
     end
     ------------模版ID-----------------------
@@ -749,7 +749,7 @@ function OutputPlayerTip(dwPlayerID, Rect)
 	end
 
 	-------------等级----------------------------
-	if player.nLevel - clientPlayer.nLevel > 10 and not clientPlayer.IsPlayerInMyParty(dwPlayerID) then 
+	if player.nLevel - clientPlayer.nLevel > 10 and not clientPlayer.IsPlayerInMyParty(dwPlayerID) then
 		szTip = szTip.."<Text>text="..EncodeComponentsString(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL).." font=82 </text>"
 	else
 		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, player.nLevel)).." font=82 </text>"
@@ -776,9 +776,28 @@ function OutputPlayerTip(dwPlayerID, Rect)
 	if IsCtrlKeyDown() then
 		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_PLAYER_ID, player.dwID)).." font=102 </text>"
 		szTip = szTip.."<Text>text="
-		szTip = szTip..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, player.dwModelID.." "..var2str(player.GetRepresentID()))).." font=102 </text>" 
+		szTip = szTip..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, player.dwModelID.." "..var2str(player.GetRepresentID()))).." font=102 </text>"
 	end
 
 	OutputTip(szTip, 345, Rect)
+end
+end
+if not GetCampImageFrame then
+function GetCampImageFrame(eCamp, bFight)	-- ui\Image\UICommon\CommonPanel2.UITex
+	local nFrame
+	if eCamp == CAMP.GOOD then
+		if bFight then
+			nFrame = 117
+		else
+			nFrame = 7
+		end
+	elseif eCamp == CAMP.EVIL then
+		if bFight then
+			nFrame = 116
+		else
+			nFrame = 5
+		end
+	end
+	return nFrame
 end
 end
