@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 08:03:18
+-- @Last Modified time: 2015-03-05 08:15:35
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -9,8 +9,9 @@ local _L = JH.LoadLangPack
 -- global cache
 local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
+local floor = math.floor
 local setmetatable = setmetatable
-local GetDistance = JH.GetDistance
+local GetDistance, HasBuff, GetEndTime = JH.GetDistance, JH.HasBuff, JH.GetEndTime
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
 local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
 local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
@@ -794,7 +795,7 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 		end
 		local p = GetPlayer(arg0)
 		if p then
-			local bExist, tBuff = JH.HasBuff(arg1, p)
+			local bExist, tBuff = HasBuff(arg1, p)
 			if bExist or bDemo then
 				local hBuff = h:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff", arg1 .. arg2)
 				if not arg3 then
@@ -808,15 +809,15 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 				hBox:SetObject(UI_OBJECT_NOT_NEED_KNOWN, arg1, arg2)
 				hBox:SetObjectIcon(nIcon)
 
-				local nTime = JH.GetEndTime(tBuff.nEndFrame or 0)
+				local nTime = GetEndTime(tBuff.nEndFrame or 0)
 				if nTime < 5 then
 					hBox:SetOverTextFontScheme(0, 219)
 					if nTime >= 0 then
-						hBox:SetOverText(0, math.floor(nTime))
+						hBox:SetOverText(0, floor(nTime))
 					end
 				elseif nTime < 10 then
 					hBox:SetOverTextFontScheme(0, 27)
-					hBox:SetOverText(0, math.floor(nTime))
+					hBox:SetOverText(0, floor(nTime))
 				end
 				if RaidGrid_CTM_Edition.bAutoBuffSize then
 					if RaidGrid_CTM_Edition.fScaleY > 1 then
@@ -837,29 +838,29 @@ function CTM:RefresBuff()
 			local handle = v:Lookup("Handle_Buff_Boxes")
 			if handle:GetItemCount() > 0 then
 				local p = GetPlayer(k)
-				for i = 0, handle:GetItemCount() - 1 do
-					if p then
+				if p then
+					for i = 0, handle:GetItemCount() - 1 do
 						local h = handle:Lookup(i)
-						if h then -- 因为是呼吸
+						if h and h:IsValid() then -- 因为是呼吸
 							local hBox = h:Lookup("Box")
 							local _, dwID, nLevel = hBox:GetObject()
-							local bExist, tBuff = JH.HasBuff(dwID, p)
+							local bExist, tBuff = HasBuff(dwID, p)
 							if bExist then
-								local nTime = JH.GetEndTime(tBuff.nEndFrame)
+								local nTime = GetEndTime(tBuff.nEndFrame)
 								if nTime < 5 then
 									hBox:SetOverTextFontScheme(0, 219)
-									hBox:SetOverText(0, math.floor(nTime) .. " ")
+									hBox:SetOverText(0, floor(nTime) .. " ")
 								elseif nTime < 10 then
 									hBox:SetOverTextFontScheme(0, 27)
-									hBox:SetOverText(0, math.floor(nTime) .. " ")
+									hBox:SetOverText(0, floor(nTime) .. " ")
 								end
 							else
-								handle:RemoveItem(handle:Lookup(i))
+								handle:RemoveItem(i)
 							end
 						end
-					else
-						handle:RemoveItem(handle:Lookup(i))
 					end
+				else
+					handle:Clear()
 				end
 			end
 		end
