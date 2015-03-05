@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 19:31:16
+-- @Last Modified time: 2015-03-05 22:20:36
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -360,6 +360,9 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		end
 		Grid_CTM:RefreshGroupText()
 		Grid_CTM:RefreshMark()
+		if RaidGrid_CTM_Edition.nAutoLinkMode ~= 5 then
+			Grid_CTM:AutoLinkAllPanel()
+		end
 	elseif szEvent == "PARTY_LEVEL_UP_RAID" then
 		Grid_CTM:RefreshGroupText()
 	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
