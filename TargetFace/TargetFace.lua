@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:38:48
+-- @Last Modified time: 2015-03-05 22:31:41
 local _L = JH.LoadLangPack
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
@@ -174,7 +174,7 @@ _TargetFace.OnBreathe = function()
 	else
 		_t.hName:Hide()
 	end
-	
+
 	-- shoe connect
 	if t.bConnect and tar and tar.dwID ~= me.dwID and (not ttar or (ttar and ttar.dwID ~= me.dwID)) then
 		if _t.bReRender or (ttar and _t.tCache.dwTTID ~= ttar.dwID) or _t.tCache.dwTargetID ~= tar.dwID then
@@ -183,7 +183,7 @@ _TargetFace.OnBreathe = function()
 	else
 		_t.hTLine:Hide()
 	end
-	
+
 	if t.bTTConnect and tar and ttar then
 		if _t.bReRender or _t.tCache.dwTTID ~= ttar.dwID then
 			_TargetFace.DrawLine(tar, ttar, _t.hTTLine, t.tTTConnColor, t.nConnAlpha)
@@ -291,7 +291,7 @@ _Hatred.ClosePanel = function()
 end
 
 function Hatred.OnFrameCreate()
-	this:RegisterEvent("UPDATE_SELECT_TARGET")
+	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("CHARACTER_THREAT_RANKLIST")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
 	this:EnableDrag(not TargetFace.bHatredLockPanel)
@@ -309,7 +309,7 @@ end
 function Hatred.OnEvent(szEvent)
 	if szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
 		_Hatred.UpdateAnchor(this)
-	elseif szEvent == "UPDATE_SELECT_TARGET" then
+	elseif szEvent == "TARGET_CHANGE" then
 		_Hatred.UpdateAnchor(this)
 		if Target_GetTargetData() then
 			local dwID, dwType = Target_GetTargetData()
@@ -401,14 +401,14 @@ PS.OnPanelActive = function(frame)
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" degree"] }):Pos_()
-		
+
 		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
 		:Text(v.nRadius):Change(function(nVal)
 			v.nRadius = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" feet"] }):Pos_()
-		
+
 		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
 		:Text(v.nAlpha):Change(function(nVal)
 			v.nAlpha = tonumber(nVal) or 0
@@ -444,14 +444,14 @@ PS.OnPanelActive = function(frame)
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" degree"] }):Pos_()
-		
+
 		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
 		:Text(v.nRadius):Change(function(nVal)
 			v.nRadius = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" feet"] }):Pos_()
-		
+
 		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
 		:Text(v.nAlpha):Change(function(nVal)
 			v.nAlpha = tonumber(nVal) or 0
@@ -473,7 +473,7 @@ PS.OnPanelActive = function(frame)
 			_TargetFace.bReRender = true
 		end)
 	end):Pos_()
-	
+
 	nX = ui:Append("WndCheckBox", { x = nX + 20, y = nY + 10, checked = TargetFace.bTTConnect })
 	:Text(_L["Draw line from target to target target"]):Click(function(bChecked)
 		TargetFace.bTTConnect = bChecked
@@ -511,7 +511,7 @@ PS.OnPanelActive = function(frame)
 	nX, nY = ui:Append("WndCheckBox", "bOnlyPlane", { x = nX + 5, y = nY + 10, checked = TargetFace.bOnlyPlane })
 	:Enable(TargetFace.bDirection):Text(_L["OnlyPlane direction"]):Click(function(bChecked)
 		TargetFace.bOnlyPlane = bChecked
-	end):Pos_()	
+	end):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY, checked = TargetFace.bTTName })
 	:Text(_L["Show TTarget Name"]):Click(function(bChecked)
 		TargetFace.bTTName = bChecked
@@ -522,8 +522,8 @@ PS.OnPanelActive = function(frame)
 	:Enable(TargetFace.bTTName):Range(1, 50, 49):Value(TargetFace.fScale * 10):Change(function(nVal)
 		TargetFace.fScale = nVal / 10
 		_TargetFace.bReRender = true
-	end):Pos_()	
-	
+	end):Pos_()
+
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY, checked = TargetFace.bHatred })
 	:Text(_L["Show Target Hatred"]):Click(function(bChecked)
 		TargetFace.bHatred = bChecked
@@ -553,7 +553,7 @@ PS.OnPanelActive = function(frame)
 				_Hatred.frame:Lookup("", "Image_Bg"):Hide()
 			end
 		end
-	end):Pos_()	
+	end):Pos_()
 	nX,nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
 end
