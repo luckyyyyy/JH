@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 08:15:35
+-- @Last Modified time: 2015-03-05 08:32:10
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -578,8 +578,8 @@ function CTM:RefresFormation()
 		end
 	end
 end
--- 绘制面板 bHandle单独刷新handle的缩放
-function CTM:DrawParty(nIndex, bHandle)
+-- 绘制面板
+function CTM:DrawParty(nIndex)
 	local team = GetClientTeam()
 	local tGroup = team.GetGroupInfo(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
@@ -715,7 +715,7 @@ function CTM:DrawParty(nIndex, bHandle)
 	self:RefreshDistance() -- 立即刷新一次
 	for k, v in pairs(CTM_CACHE) do
 		if v:IsValid() and v.nGroup == nIndex then
-			self:DrawHPMP(v, k, self:GetMemberInfo(k))
+			self:CallDrawHPMP(k)
 		end
 	end
 	CTM_LIFE_CACHE = {}
@@ -880,7 +880,7 @@ function CTM:RefreshDistance()
 							if nDistance <= vv then
 								if Lsha.nLevel ~= kk then
 									Lsha.nLevel = kk
-									CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true) -- 立即重绘颜色 好像没API设置
+									self:CallDrawHPMP(k, true)
 								end
 								break
 							end
@@ -889,7 +889,7 @@ function CTM:RefreshDistance()
 						local _nDistance = Lsha.nDistance or 0
 						Lsha.nDistance = nDistance
 						if (nDistance > 20 and _nDistance <= 20) or (nDistance <= 20 and _nDistance > 20) then
-							CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
+							self:CallDrawHPMP(k, true)
 						end
 					end
 					if RaidGrid_CTM_Edition.bShowDistance then
@@ -904,7 +904,7 @@ function CTM:RefreshDistance()
 					if Lsha.nLevel or Lsha.nDistance then
 						Lsha.nLevel = nil
 						Lsha.nDistance = nil
-						CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
+						self:CallDrawHPMP(k, true)
 					end
 				end
 			end
@@ -916,7 +916,7 @@ function CTM:RefreshDistance()
 				if Lsha.nLevel or Lsha.nDistance ~= 0 then
 					Lsha.nLevel = 1
 					Lsha.nDistance = 0
-					CTM:DrawHPMP(v, k, self:GetMemberInfo(k), true)
+					self:CallDrawHPMP(k, true)
 				end
 			end
 		end
