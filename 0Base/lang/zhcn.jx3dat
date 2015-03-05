@@ -514,6 +514,10 @@ data = {
 	["Configuration name"] = "配置文件名称",
 	["buff Size"] = "BUFF大小比例",
 	["Show AllGrid"] = "显示完整的小队格子",
+	["Buff settings"] = "BUFF设置",
+	["Buff Staring"] = "BUFF边框闪烁",
+	["Show Buff Time"] = "显示BUFF剩余时间",
+	["Cataclysm_TIPS"] = "记住是每行一个，格式可以是 翔舞 或 翔舞|self ，后者表示仅来源自己",
 	-- Cataclysm_Party.lua --
 	["KUNGFU_10080"] = "云",
 	["KUNGFU_10081"] = "冰",
