@@ -1,13 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 08:00:14
+-- @Last Modified time: 2015-03-05 18:16:52
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
 	bRaidEnable = true,
 	bShowInRaid = false,
 	bEditMode = false,
+	bShowAllGrid = false,
 	tAnchor = {},
 	nAutoLinkMode = 5,
 	nHPShownMode2 = 2,
@@ -671,14 +672,22 @@ local PS2 = {}
 PS2.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Grid Style"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show AllGrid"], checked = RaidGrid_CTM_Edition.bShowAllGrid })
+	:Click(function(bCheck)
+		RaidGrid_CTM_Edition.bShowAllGrid = bCheck
+		if CTM_FRAME then
+			RaidClosePanel()
+			RaidCheckEnable()
+		end
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bLifeGradient = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["ManaBar Gradient"], checked = RaidGrid_CTM_Edition.bManaGradient })
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["ManaBar Gradient"], checked = RaidGrid_CTM_Edition.bManaGradient })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bManaGradient = bCheck
 		if CTM_FRAME then

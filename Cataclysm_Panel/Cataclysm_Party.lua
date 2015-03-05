@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 16:38:55
+-- @Last Modified time: 2015-03-05 18:22:44
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -742,7 +742,7 @@ function CTM:FormatFrame(frame, nMemberCount)
 	local fX, fY = RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY
 	local helgit = (RaidGrid_CTM_Edition.fScaleY - 1) * 18
 	local h = frame:Lookup("", "Handle_BG")
-	if CTM_DRAG then
+	if CTM_DRAG or RaidGrid_CTM_Edition.bShowAllGrid then
 		nMemberCount = CTM_MEMBER_COUNT
 		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
 		h:Lookup("Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
@@ -753,10 +753,15 @@ function CTM:FormatFrame(frame, nMemberCount)
 		h:Lookup("Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
 		h:Lookup("Text_GroupIndex"):SetSize(128 * fX, 26 * fY - helgit)
 		h:Lookup("Text_GroupIndex"):SetRelPos(0, nMemberCount * CTM_BOX_HEIGHT * fY)
-		local handle = frame:Lookup("", "Handle_Roles")
-		for i = 0, handle:GetItemCount() - 1 do
-			handle:Lookup(i):Lookup("Image_BG_Slot"):Show()
-		end
+		-- if CTM_DRAG then
+			local handle = frame:Lookup("", "Handle_Roles")
+			for i = 0, handle:GetItemCount() - 1 do
+				local h = handle:Lookup(i)
+				if h and h:IsValid() and not h.dwID then
+					handle:Lookup(i):Lookup("Image_BG_Slot"):Show()
+				end
+			end
+		-- end
 	else
 		nMemberCount = frame.nMemberCount or CTM_MEMBER_COUNT
 		frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit)
@@ -811,8 +816,8 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 
 				local nTime = GetEndTime(tBuff.nEndFrame or 0)
 				if nTime < 5 then
-					hBox:SetOverTextFontScheme(0, 219)
 					if nTime >= 0 then
+						hBox:SetOverTextFontScheme(0, 219)
 						hBox:SetOverText(0, floor(nTime))
 					end
 				elseif nTime < 10 then
@@ -848,8 +853,10 @@ function CTM:RefresBuff()
 							if bExist then
 								local nTime = GetEndTime(tBuff.nEndFrame)
 								if nTime < 5 then
-									hBox:SetOverTextFontScheme(0, 219)
-									hBox:SetOverText(0, floor(nTime) .. " ")
+									if nTime >= 0 then
+										hBox:SetOverTextFontScheme(0, 219)
+										hBox:SetOverText(0, floor(nTime) .. " ")
+									end
 								elseif nTime < 10 then
 									hBox:SetOverTextFontScheme(0, 27)
 									hBox:SetOverText(0, floor(nTime) .. " ")
