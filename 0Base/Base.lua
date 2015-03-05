@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:31:22
+-- @Last Modified time: 2015-03-05 20:27:52
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -1331,21 +1331,6 @@ end
 
 function JH.RemoteRequest(szUrl, fnAction)
 	tinsert(_JH.tRequest, { szUrl = szUrl, fnAction = fnAction })
-end
-
-function JH.Confirm(szMsg, fnAction, fnCancel, szSure, szCancel)
-	local nW, nH = Station.GetClientSize()
-	local tMsg = {
-		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Confirm",
-		{
-			szOption = szSure or g_tStrings.STR_HOTKEY_SURE,
-			fnAction = fnAction,
-		}, {
-			szOption = szCancel or g_tStrings.STR_HOTKEY_CANCEL,
-			fnAction = fnCancel,
-		},
-	}
-	MessageBox(tMsg)
 end
 
 function JH.DelayCall(nDelay, fnAction)
