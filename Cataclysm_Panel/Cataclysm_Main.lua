@@ -1,42 +1,48 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 03:49:30
+-- @Last Modified time: 2015-03-06 04:20:58
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
 local tostring = tostring
 local CTM_CONFIG = {
-	bRaidEnable = true,
-	bShowInRaid = false,
-	bEditMode = false,
-	bShowAllGrid = false,
-	tAnchor = {},
-	nAutoLinkMode = 5,
-	nHPShownMode2 = 2,
-	nHPShownNumMode = 1,
-	nShowMP = false,
-	bHPHitAlert = true,
-	bColoredName = true,
-	nShowIcon = 2,
-	bShowDistance = false,
-	bEnableDistance = true,
-	nBGClolrMode = 1, -- 0 不着色 1 根据距离 2 根据门派
+	bRaidEnable          = true,
+	bShowInRaid          = false,
+	bEditMode            = false,
+	bShowAllGrid         = false,
+	tAnchor              = {},
+	nAutoLinkMode        = 5,
+	nHPShownMode2        = 2,
+	nHPShownNumMode      = 1,
+	nShowMP              = false,
+	bHPHitAlert          = true,
+	bColoredName         = true,
+	nShowIcon            = 2,
+	bShowDistance        = false,
+	bEnableDistance      = true,
+	nBGClolrMode         = 1, -- 0 不着色 1 根据距离 2 根据门派
 	bShowTargetTargetAni = false,
-	nFont = 40,
-	nLifeFont = 15,
-	nMaxShowBuff = 4,
-	bLifeGradient = true,
-	bManaGradient = true,
-	nAlpha = 255,
-	fBuffScale = 1,
-	bAutoBuffSize = true,
-	bTempTargetFightTip = false,
-	bTempTargetEnable = true,
-	fScaleX = 1,
-	fScaleY = 1,
-	tDistanceLevel = { 20, 22, 200 },
-	tManaColor = { 0, 96, 255 },
+	nFont                = 40,
+	nLifeFont            = 15,
+	nMaxShowBuff         = 4,
+	bLifeGradient        = true,
+	bManaGradient        = true,
+	nAlpha               = 255,
+	fBuffScale           = 1,
+	bAutoBuffSize        = true,
+	bTempTargetFightTip  = false,
+	bTempTargetEnable    = true,
+	fScaleX              = 1,
+	fScaleY              = 1,
+	tDistanceLevel       = { 20, 22, 200 },
+	tManaColor           = { 0, 96, 255 },
+	bFasterHP            = false,
+	bStaring             = false,
+	bShowBuffTime        = true,
+	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
+		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
+	},
 	tDistanceCol = {
 		{ 0,   180, 52  }, -- 绿
 		{ 0,   180, 52  }, -- 绿
@@ -48,13 +54,6 @@ local CTM_CONFIG = {
 		{ 255, 255, 255 },
 		{ 128, 128, 128 },
 		{ 192, 192, 192 }
-	},
-	bFasterHP = false,
-	--
-	bStaring = false,
-	bShowBuffTime = true,
-	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
-		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
 	},
 }
 local GKP_RECORD_TOTAL = 0
@@ -693,7 +692,7 @@ local PS2 = {}
 function PS2.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Grid Style"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show AllGrid"], checked = RaidGrid_CTM_Edition.bShowAllGrid })
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show AllGrid"], checked = RaidGrid_CTM_Edition.bShowAllGrid })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bShowAllGrid = bCheck
 		if CTM_FRAME then
@@ -701,14 +700,14 @@ function PS2.OnPanelActive(frame)
 			RaidCheckEnable()
 		end
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bLifeGradient = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["ManaBar Gradient"], checked = RaidGrid_CTM_Edition.bManaGradient })
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["ManaBar Gradient"], checked = RaidGrid_CTM_Edition.bManaGradient })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bManaGradient = bCheck
 		if CTM_FRAME then
@@ -731,8 +730,18 @@ function PS2.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.BACK_COLOR, font = 27 }):Pos_()
 
+	nX = ui:Append("Text", { x = 10, y = nY, txt = g_tStrings.STR_ALPHA }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2 })
+	:Range(1, 100, 99):Value(RaidGrid_CTM_Edition.nAlpha / 255 * 100):Change(function(nVal)
+		RaidGrid_CTM_Edition.nAlpha = nVal / 100 * 255
+		if CTM_FRAME then
+			Grid_CTM:CallDrawHPMP(true, true)
+		end
+	end):Pos_()
+
+
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.BACK_COLOR, font = 27 }):Pos_()
 	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "BACK_COLOR", checked = RaidGrid_CTM_Edition.nBGClolrMode == 0 })
 	:Click(function()
 		RaidGrid_CTM_Edition.nBGClolrMode = 0
@@ -838,13 +847,6 @@ function PS2.OnPanelActive(frame)
 		end)
 	end):Pos_()
 
-	nX, nY = ui:Append("WndTrackBar", { x = 10 + 5, y = nY + 2, txt = g_tStrings.STR_ALPHA })
-	:Range(1, 100, 99):Value(RaidGrid_CTM_Edition.nAlpha / 255 * 100):Change(function(nVal)
-		RaidGrid_CTM_Edition.nAlpha = nVal / 100 * 255
-		if CTM_FRAME then
-			Grid_CTM:CallDrawHPMP(true, true)
-		end
-	end):Pos_()
 end
 GUI.RegisterPanel(_L["Grid Style"], 6233, _L["Panel"], PS2)
 
@@ -991,7 +993,7 @@ function PS4.OnPanelActive(frame)
 		RaidGrid_CTM_Edition.tBuffList = t
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Tips"], font = 27 }):Pos_()
-	ui:Append("Text", { x = 10, y = nY + 5, txt = _L["Cataclysm_TIPS"] }):Pos_()
+	ui:Append("Text", { x = 10, y = nY + 5, txt = _L["Cataclysm_TIPS"], w = 500, h = 60 , multi = true }):Pos_()
 end
 GUI.RegisterPanel(_L["Buff settings"], 1498, _L["Panel"], PS4)
 

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:38:33
+-- @Last Modified time: 2015-03-06 04:02:23
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -61,11 +61,11 @@ local _ScreenHead = {
 	szItemIni = JH.GetAddonInfo().szShadowIni,
 }
 
-_ScreenHead.Init = function()
+function _ScreenHead.Init()
 	_ScreenHead.handle = JH.GetShadowHandle("ScreenHead")
 end
 
-_ScreenHead.GetListText = function(tab)
+function _ScreenHead.GetListText(tab)
 	local tName = {}
 	for k, _ in pairs(tab) do
 		if type(k) == "string" then
@@ -76,7 +76,7 @@ _ScreenHead.GetListText = function(tab)
 end
 
 function _ScreenHead:Create(obj, info, nIndex)
-	local dwID = obj.dwID	
+	local dwID = obj.dwID
 	local txt, handle, lifeper, manaper, data
 	local tManaCol = { 50, 100, 255 }
 	handle = self.handle:Lookup(tostring(dwID))
@@ -147,7 +147,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 		txt = data.txt or _L["Call Alert"]
 		data.type = data.type or "Other"
 	end
-	
+
 	if not handle then
 		self.handle:AppendItemFromString(string.format("<handle> name=\"%s\" </handle>", dwID))
 		handle = self.handle:Lookup(tostring(dwID))
@@ -179,7 +179,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 			handle.s = 1
 		end
 	end
-	fY = fY - handle.fY	
+	fY = fY - handle.fY
 	local nDistance = tonumber(string.format("%.1f", JH.GetDistance(obj)))
 
 	if nDistance > 30 then
@@ -187,7 +187,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	end
 	fX = fX - fX * nDistance * 0.011
 	local value = 1 - nDistance * 0.01
-	
+
 	handle.Arrow:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	handle.Arrow:SetD3DPT(D3DPT.TRIANGLEFAN)
 	handle.Arrow:ClearTriangleFanPoint()
@@ -199,7 +199,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	local x, y, a = unpack(self.tPoint[1])
 	handle.Arrow:AppendCharacterID(dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
 	---
-	
+
 	handle.Text:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 	handle.Text:ClearTriangleFanPoint()
 	local r, g, b = unpack(self.tFontCol[data.type])
@@ -207,7 +207,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	if not IsPlayer(obj.dwID) then
 		szName = JH.GetTemplateName(obj)
 	end
-	
+
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
 	if dwID == UI_GetClientPlayerID() then
 		handle.Text:AppendCharacterID(dwID, true, 255, 0, 0, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L["_ME_"], 1, 1)
@@ -233,12 +233,12 @@ function _ScreenHead:Create(obj, info, nIndex)
 	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX + (100 * manaper), bcY })
 	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX + (100 * manaper), bcY - 5 })
 	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX, bcY - 5 })
-	
+
 	local bcX ,bcY = -50 , -55
 	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX, bcY })
 	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX + (100 * lifeper), bcY })
 	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX + (100 * lifeper), bcY - 5 })
-	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX, bcY - 5 })	
+	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX, bcY - 5 })
 end
 
 function _ScreenHead:Remove(dwID, nIndex)
@@ -255,12 +255,12 @@ function _ScreenHead:Remove(dwID, nIndex)
 	self.handle:RemoveItem(tostring(dwID))
 end
 
-_ScreenHead.Clear = function()
+function _ScreenHead.Clear()
 	_ScreenHead.tList = {}
 	_ScreenHead.handle:Clear()
 end
 
-_ScreenHead.GetObject = function(dwID)
+function _ScreenHead.GetObject(dwID)
 	local p, info
 	if IsPlayer(dwID) then
 		local me = GetClientPlayer()
@@ -277,13 +277,13 @@ _ScreenHead.GetObject = function(dwID)
 	return p, info
 end
 
-_ScreenHead.OnBreathe = function()
+function _ScreenHead.OnBreathe()
 	local me = GetClientPlayer()
 	if not me then return end
 	for dwID, t in pairs(_ScreenHead.tList) do
 		local p, info = _ScreenHead.GetObject(dwID)
 		if not p then
-			_ScreenHead:Remove(dwID)	
+			_ScreenHead:Remove(dwID)
 		else
 			local handle = _ScreenHead.handle:Lookup(tostring(dwID))
 			if not handle then
@@ -297,13 +297,13 @@ _ScreenHead.OnBreathe = function()
 	end
 end
 
-_ScreenHead.KillBreathe = function()
+function _ScreenHead.KillBreathe()
 	JH.BreatheCall("ScreenHead_Fight")
 	_ScreenHead.tCache["Mana"] = {}
 	_ScreenHead.tCache["Life"] = {}
 end
 
-_ScreenHead.OnBreatheFight = function()
+function _ScreenHead.OnBreatheFight()
 	local me = GetClientPlayer()
 	if not me then return end
 	if not me.bFightState then -- kill fix bug
@@ -348,7 +348,7 @@ _ScreenHead.OnBreatheFight = function()
 	end
 end
 
-_ScreenHead.RegisterFight = function(bEnable)
+function _ScreenHead.RegisterFight(bEnable)
 	if arg0 and ScreenHead.bTeamAlert then
 		JH.BreatheCall("ScreenHead_Fight", _ScreenHead.OnBreatheFight)
 	else
@@ -356,7 +356,7 @@ _ScreenHead.RegisterFight = function(bEnable)
 	end
 end
 
-_ScreenHead.RegisterHead = function(dwID, tab)
+function _ScreenHead.RegisterHead(dwID, tab)
 	if not ScreenHead.bEnable then return end
 	if not _ScreenHead.tList[dwID] then
 		_ScreenHead.tList[dwID] = {}
@@ -376,7 +376,7 @@ _ScreenHead.RegisterHead = function(dwID, tab)
 	end
 end
 
-_ScreenHead.OnBuffUpdate = function()
+function _ScreenHead.OnBuffUpdate()
 	if not ScreenHead.bEnable then return end
 	if arg1 then return end
 	local szName = JH.GetBuffName(arg4,arg8)
@@ -386,7 +386,7 @@ _ScreenHead.OnBuffUpdate = function()
 	end
 end
 
-_ScreenHead.OnNpcUpdate = function()
+function _ScreenHead.OnNpcUpdate()
 	local szName = JH.GetTemplateName(GetNpc(arg0))
 	if ScreenHead.tNpcList[szName] then
 		_ScreenHead.RegisterHead(arg0,{ type = "Object", txt = _L["aim"] })
@@ -394,7 +394,7 @@ _ScreenHead.OnNpcUpdate = function()
 end
 
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["HeadAlert"], font = 27 })
 	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT })
@@ -428,15 +428,15 @@ PS.OnPanelActive = function(frame)
 	:Text(_L["only Monitor self"]):Click(function(bChecked)
 		ScreenHead.bIsMe = bChecked
 	end):Pos_()
-	
+
 	nX = ui:Append("Text", { txt = _L["While HP less than"], x = 10, y = nY }):Pos_()
 	nX,nY = ui:Append("WndTrackBar", "Track_HP", { x = nX +10, y = nY + 3, enable = ScreenHead.bTeamAlert })
 	:Range(0,100,50):Value(ScreenHead.nTeamHp * 100):Change(function(nVal) ScreenHead.nTeamHp = nVal / 100 end):Pos_()
-	
+
 	nX = ui:Append("Text", { txt = _L["While MP less than"], x = 10, y = nY }):Pos_()
 	nX,nY = ui:Append("WndTrackBar", "Track_MP", { x = nX + 10, y = nY + 3, enable = ScreenHead.bTeamAlert })
 	:Range(0,100,50):Value(ScreenHead.nTeamMp * 100):Change(function(nVal) ScreenHead.nTeamMp = nVal / 100 end):Pos_()
-	
+
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
 	nX,nY =ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 70, limit = 4096,multi = true})
 	:Text(_ScreenHead.GetListText(ScreenHead.tList)):Change(function(szText)
@@ -463,7 +463,7 @@ PS.OnPanelActive = function(frame)
 	end)
 end
 
-JH.RegisterInit("ScreenHead", 
+JH.RegisterInit("ScreenHead",
 	{ "Breathe", _ScreenHead.OnBreathe },
 	{ "LOADING_END", _ScreenHead.Clear },
 	{ "FIGHT_HINT", _ScreenHead.RegisterFight },

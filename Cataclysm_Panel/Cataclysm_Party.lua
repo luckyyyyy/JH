@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 01:34:00
+-- @Last Modified time: 2015-03-06 04:13:31
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -978,7 +978,9 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	local nAlpha = RaidGrid_CTM_Edition.nAlpha
 	if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
 		if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
-			nAlpha = nAlpha * 0.6
+			if info.bIsOnLine then
+				nAlpha = nAlpha * 0.6
+			end
 		end
 	end
 	-- 内力
