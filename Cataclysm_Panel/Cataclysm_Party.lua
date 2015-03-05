@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 18:22:44
+-- @Last Modified time: 2015-03-05 19:50:12
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -371,7 +371,7 @@ function CTM:RefreshTarget()
 			local tdwType, tdwID = KObject.GetTarget()
 			if tdwID and tdwType == TARGET.PLAYER and JH.IsParty(tdwID) then
 				CTM_TTARGET = tdwID
-				if CTM_CACHE[tdwID] and tdwID[CTM_TTARGET]:IsValid() then
+				if CTM_CACHE[tdwID] and CTM_CACHE[tdwID]:IsValid() then
 					if CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget") and CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):IsValid() then
 						CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):Show()
 					end

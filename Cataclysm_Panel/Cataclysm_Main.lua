@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 18:16:52
+-- @Last Modified time: 2015-03-05 19:31:16
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -505,7 +505,7 @@ local EnableTeamPanel = function()
 end
 
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Cataclysm Team Panel"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable Cataclysm Team Panel"], checked = RaidGrid_CTM_Edition.bRaidEnable }):Click(EnableTeamPanel):Pos_()
@@ -669,7 +669,7 @@ end
 GUI.RegisterPanel(_L["Cataclysm"], 5389, _L["Panel"], PS)
 
 local PS2 = {}
-PS2.OnPanelActive = function(frame)
+function PS2.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Grid Style"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show AllGrid"], checked = RaidGrid_CTM_Edition.bShowAllGrid })
@@ -828,7 +828,7 @@ end
 GUI.RegisterPanel(_L["Grid Style"], 6233, _L["Panel"], PS2)
 
 local PS3 = {}
-PS3.OnPanelActive = function(frame)
+function PS3.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Interface settings"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Interface Width"]}):Pos_()
