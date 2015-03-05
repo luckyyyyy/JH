@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 07:58:57
+-- @Last Modified time: 2015-03-05 08:03:18
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -811,7 +811,7 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 				local nTime = JH.GetEndTime(tBuff.nEndFrame or 0)
 				if nTime < 5 then
 					hBox:SetOverTextFontScheme(0, 219)
-					if nTime > 0 then
+					if nTime >= 0 then
 						hBox:SetOverText(0, math.floor(nTime))
 					end
 				elseif nTime < 10 then
