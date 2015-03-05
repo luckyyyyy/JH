@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 07:46:29
+-- @Last Modified time: 2015-03-05 08:00:14
 local _L = JH.LoadLangPack
 local Station = Station
 local CTM_CONFIG = {
@@ -856,6 +856,9 @@ PS3.OnPanelActive = function(frame)
 	nX, nY = ui:Append("WndTrackBar", "BuffSize", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
 	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
 		RaidGrid_CTM_Edition.fBuffScale = nVal / 100
+		if CTM_FRAME then
+			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, true)
+		end
 	end):Pos_()
 
 	-- ×ÖÌåÐÞ¸Ä
