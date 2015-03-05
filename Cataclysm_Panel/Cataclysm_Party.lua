@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 07:45:20
+-- @Last Modified time: 2015-03-05 07:58:57
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -777,7 +777,7 @@ end
 
 -- 注册buff
 -- arg0:dwMemberID, arg1:dwID, arg2:nLevel, arg3:tColor
-function CTM:RecBuff(arg0, arg1, arg2, arg3)
+function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 	if CTM_CACHE[arg0] and CTM_CACHE[arg0]:IsValid() then
 		local h = CTM_CACHE[arg0]:Lookup("Handle_Buff_Boxes")
 		if h:GetItemCount() >= RaidGrid_CTM_Edition.nMaxShowBuff then
@@ -795,7 +795,7 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 		local p = GetPlayer(arg0)
 		if p then
 			local bExist, tBuff = JH.HasBuff(arg1, p)
-			if bExist then
+			if bExist or bDemo then
 				local hBuff = h:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff", arg1 .. arg2)
 				if not arg3 then
 					hBuff:Lookup("Shadow"):Hide()
@@ -808,10 +808,12 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3)
 				hBox:SetObject(UI_OBJECT_NOT_NEED_KNOWN, arg1, arg2)
 				hBox:SetObjectIcon(nIcon)
 
-				local nTime = JH.GetEndTime(tBuff.nEndFrame)
+				local nTime = JH.GetEndTime(tBuff.nEndFrame or 0)
 				if nTime < 5 then
 					hBox:SetOverTextFontScheme(0, 219)
-					hBox:SetOverText(0, math.floor(nTime))
+					if nTime > 0 then
+						hBox:SetOverText(0, math.floor(nTime))
+					end
 				elseif nTime < 10 then
 					hBox:SetOverTextFontScheme(0, 27)
 					hBox:SetOverText(0, math.floor(nTime))
