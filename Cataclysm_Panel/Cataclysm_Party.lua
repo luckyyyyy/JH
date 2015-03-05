@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 20:34:28
+-- @Last Modified time: 2015-03-05 22:16:35
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -11,7 +11,7 @@ local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
 local floor = math.floor
 local setmetatable = setmetatable
-local GetDistance, HasBuff, GetEndTime = JH.GetDistance, JH.HasBuff, JH.GetEndTime
+local GetDistance, HasBuff, GetEndTime, IsParty, GetTarget = JH.GetDistance, JH.HasBuff, JH.GetEndTime, JH.IsParty, JH.GetTarget
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
 local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
 local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
@@ -356,7 +356,7 @@ function CTM:RefreshTarget()
 	end
 
 	local dwID, dwType = Target_GetTargetData()
-	if dwType == TARGET.PLAYER and JH.IsParty(dwID) then
+	if dwType == TARGET.PLAYER and IsParty(dwID) then
 		CTM_TARGET = dwID
 		if CTM_CACHE[dwID] and CTM_CACHE[dwID]:IsValid() then
 			if CTM_CACHE[dwID]:Lookup("Image_Selected") and CTM_CACHE[dwID]:Lookup("Image_Selected"):IsValid() then
@@ -366,10 +366,10 @@ function CTM:RefreshTarget()
 	end
 
 	if RaidGrid_CTM_Edition.bShowTargetTargetAni and dwID then
-		local KObject = JH.GetTarget(dwID)
+		local KObject = GetTarget(dwID)
 		if KObject then
 			local tdwType, tdwID = KObject.GetTarget()
-			if tdwID and tdwType == TARGET.PLAYER and JH.IsParty(tdwID) then
+			if tdwID and tdwID ~= 0 and tdwType == TARGET.PLAYER and IsParty(tdwID) then
 				CTM_TTARGET = tdwID
 				if CTM_CACHE[tdwID] and CTM_CACHE[tdwID]:IsValid() then
 					if CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget") and CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):IsValid() then
@@ -544,7 +544,7 @@ function CTM:ReloadParty()
 		end
 	end
 	local dwID, dwType = Target_GetTargetData()
-	if dwType == TARGET.PLAYER and JH.IsParty(dwID) then
+	if dwType == TARGET.PLAYER and IsParty(dwID) then
 		CTM_TARGET = dwID
 		if RaidGrid_CTM_Edition.bShowTargetTargetAni then
 			local tdwType, tdwID = JH.GetTarget(dwID).GetTarget()
