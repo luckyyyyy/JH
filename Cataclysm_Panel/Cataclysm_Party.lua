@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 22:16:35
+-- @Last Modified time: 2015-03-06 01:34:00
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -813,17 +813,8 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 				local hBox = hBuff:Lookup("Box")
 				hBox:SetObject(UI_OBJECT_NOT_NEED_KNOWN, arg1, arg2)
 				hBox:SetObjectIcon(nIcon)
-
-				local nTime = GetEndTime(tBuff.nEndFrame or 0)
-				if nTime < 5 then
-					if nTime >= 0 then
-						hBox:SetOverTextFontScheme(0, 219)
-						hBox:SetOverText(0, floor(nTime))
-					end
-				elseif nTime < 10 then
-					hBox:SetOverTextFontScheme(0, 27)
-					hBox:SetOverText(0, floor(nTime))
-				end
+				hBox:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+				hBox:SetObjectStaring(RaidGrid_CTM_Edition.bStaring)
 				if RaidGrid_CTM_Edition.bAutoBuffSize then
 					if RaidGrid_CTM_Edition.fScaleY > 1 then
 						hBuff:Scale(RaidGrid_CTM_Edition.fScaleY, RaidGrid_CTM_Edition.fScaleY)
@@ -851,15 +842,17 @@ function CTM:RefresBuff()
 							local _, dwID, nLevel = hBox:GetObject()
 							local bExist, tBuff = HasBuff(dwID, p)
 							if bExist then
-								local nTime = GetEndTime(tBuff.nEndFrame)
-								if nTime < 5 then
-									if nTime >= 0 then
-										hBox:SetOverTextFontScheme(0, 219)
+								if RaidGrid_CTM_Edition.bShowBuffTime then
+									local nTime = GetEndTime(tBuff.nEndFrame)
+									if nTime < 5 then
+										if nTime >= 0 then
+											hBox:SetOverTextFontScheme(0, 219)
+											hBox:SetOverText(0, floor(nTime) .. " ")
+										end
+									elseif nTime < 10 then
+										hBox:SetOverTextFontScheme(0, 27)
 										hBox:SetOverText(0, floor(nTime) .. " ")
 									end
-								elseif nTime < 10 then
-									hBox:SetOverTextFontScheme(0, 27)
-									hBox:SetOverText(0, floor(nTime) .. " ")
 								end
 							else
 								handle:RemoveItem(i)

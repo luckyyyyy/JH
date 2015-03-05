@@ -1,9 +1,11 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 22:20:36
+-- @Last Modified time: 2015-03-06 03:49:30
 local _L = JH.LoadLangPack
-local Station = Station
+local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
+local GetBuffName = JH.GetBuffName
+local tostring = tostring
 local CTM_CONFIG = {
 	bRaidEnable = true,
 	bShowInRaid = false,
@@ -48,6 +50,12 @@ local CTM_CONFIG = {
 		{ 192, 192, 192 }
 	},
 	bFasterHP = false,
+	--
+	bStaring = false,
+	bShowBuffTime = true,
+	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
+		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
+	},
 }
 local GKP_RECORD_TOTAL = 0
 local CTM_CONFIG_PLAYER
@@ -260,6 +268,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("PARTY_LOOT_MODE_CHANGED")
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("TARGET_CHANGE")
+	this:RegisterEvent("BUFF_UPDATE")
 	--
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
@@ -371,6 +380,15 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		Grid_CTM:RefreshTarget()
 	elseif szEvent == "JH_RAID_REC_BUFF" then
 		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3)
+	elseif szEvent == "BUFF_UPDATE" then
+		if arg1 then return end
+		local szName = JH.GetBuffName(arg4 , arg8)
+		local tab = RaidGrid_CTM_Edition.tBuffList[szName] or RaidGrid_CTM_Edition.tBuffList[tostring(arg4)]
+		if tab then
+			if tab.bSelf and arg9 == UI_GetClientPlayerID() or not tab.bSelf then
+				Grid_CTM:RecBuff(arg0, arg4, arg8, tab.col)
+			end
+		end
 	elseif szEvent == "GKP_RECORD_TOTAL" then
 		GKP_RECORD_TOTAL = arg0
 	elseif szEvent == "UI_SCALED" then
@@ -855,24 +873,6 @@ function PS3.OnPanelActive(frame)
 			Grid_CTM:Scale(nNewX, nNewY)
 		end
 	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Max buff count"]}):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2, txt = "" })
-	:Range(0, 5):Value(RaidGrid_CTM_Edition.nMaxShowBuff):Change(function(nVal)
-		RaidGrid_CTM_Edition.nMaxShowBuff = nVal
-	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["buff Size"]}):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = RaidGrid_CTM_Edition.bAutoBuffSize, txt = g_tStrings.STR_OPTIMIZE_AUTO }):Click(function(bCheck)
-		RaidGrid_CTM_Edition.bAutoBuffSize = bCheck
-		ui:Fetch("BuffSize"):Enable(not bCheck)
-	end):Pos_()
-	nX, nY = ui:Append("WndTrackBar", "BuffSize", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
-	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
-		RaidGrid_CTM_Edition.fBuffScale = nVal / 100
-		if CTM_FRAME then
-			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, true)
-		end
-	end):Pos_()
-
 	-- 字体修改
 	nX = ui:Append("WndButton2", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.FONT })
 	:Click(function()
@@ -932,6 +932,68 @@ function PS3.OnPanelActive(frame)
 	end):Pos_()
 end
 GUI.RegisterPanel(_L["Interface settings"], 6060, _L["Panel"], PS3)
+
+-- 解析
+local function GetListText(tab)
+	local tName = {}
+	for k, v in pairs(tab) do
+		if type(k) == "string" then
+			if v.bSelf then
+				k = k .. "|self"
+			end
+			table.insert(tName, k)
+		end
+	end
+	return table.concat(tName, "\n")
+end
+
+local PS4 = {}
+function PS4.OnPanelActive(frame)
+	local ui, nX, nY = GUI(frame), 10, 0
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Buff settings"], font = 27 }):Pos_()
+
+	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Max buff count"]}):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 12, txt = "" })
+	:Range(0, 10):Value(RaidGrid_CTM_Edition.nMaxShowBuff):Change(function(nVal)
+		RaidGrid_CTM_Edition.nMaxShowBuff = nVal
+	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["buff Size"]}):Pos_()
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = RaidGrid_CTM_Edition.bAutoBuffSize, txt = g_tStrings.STR_OPTIMIZE_AUTO }):Click(function(bCheck)
+		RaidGrid_CTM_Edition.bAutoBuffSize = bCheck
+		ui:Fetch("BuffSize"):Enable(not bCheck)
+	end):Pos_()
+	nX, nY = ui:Append("WndTrackBar", "BuffSize", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
+	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
+		RaidGrid_CTM_Edition.fBuffScale = nVal / 100
+		if CTM_FRAME then
+			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, true)
+		end
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Buff Staring"], checked = RaidGrid_CTM_Edition.bStaring }):Click(function(bCheck)
+		RaidGrid_CTM_Edition.bStaring = bCheck
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show Buff Time"], checked = RaidGrid_CTM_Edition.bShowBuffTime }):Click(function(bCheck)
+		RaidGrid_CTM_Edition.bShowBuffTime = bCheck
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
+	nX, nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 140, limit = 4096,multi = true})
+	:Text(GetListText(RaidGrid_CTM_Edition.tBuffList)):Change(function(szText)
+		local t = {}
+		for _, v in ipairs(JH.Split(szText, "\n")) do
+			v = JH.Trim(v)
+			if v ~= "" then
+				local a = JH.Split(v, "|")
+				t[JH.Trim(a[1])] = {
+					bSelf = a[2] and true or false
+				}
+			end
+		end
+		RaidGrid_CTM_Edition.tBuffList = t
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Tips"], font = 27 }):Pos_()
+	ui:Append("Text", { x = 10, y = nY + 5, txt = _L["Cataclysm_TIPS"] }):Pos_()
+end
+GUI.RegisterPanel(_L["Buff settings"], 1498, _L["Panel"], PS4)
 
 JH.RegisterEvent("LOADING_END", RaidCheckEnable)
 JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", function()
