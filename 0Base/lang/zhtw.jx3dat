@@ -512,6 +512,12 @@ data = {
 	["Panel"] = "面板",
 	["configure"] = "配置（如果希望不共用設置，請隨意修改為任意字符，否則請勿修改）",
 	["Configuration name"] = "配置文件名稱",
+	["buff Size"] = "BUFF大小比例",
+	["Show AllGrid"] = "顯示完整的小隊格子",
+	["Buff settings"] = "BUFF設置",
+	["Buff Staring"] = "BUFF邊框閃爍",
+	["Show Buff Time"] = "顯示BUFF剩余時間",
+	["Cataclysm_TIPS"] = "記住是每行壹個，格式可以是 翔舞 或 翔舞|self ，後者表示僅來源自己。\n如有別的BUFF出現，可以關閉團監的關聯，副本->監控設置裏面。",
 	-- Cataclysm_Party.lua --
 	["KUNGFU_10080"] = "雲",
 	["KUNGFU_10081"] = "冰",
