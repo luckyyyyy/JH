@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:50:31
+-- @Last Modified time: 2015-03-05 08:48:26
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -18,7 +18,7 @@ local TARGET = TARGET
 local SHADOW              = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT    = 15    -- 默认副本最大数据量
 local CIRCLE_CHANGE_TIME  = 0     -- 7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local CIRCLE_CIRCLE_ALPHA = 50    -- 最大的透明度 根据半         径逐步降低
+local CIRCLE_CIRCLE_ALPHA = 50    -- 最大的透明度 根据半径逐步降低
 local CIRCLE_ALPHA_STEP   = 2.5
 local CIRCLE_MAX_RADIUS   = 30    -- 最大的半径
 local CIRCLE_LINE_ALPHA   = 165   -- 线和边框最大透明度
@@ -28,7 +28,7 @@ local CIRCLE_PLAYER_NAME  = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 local CIRCLE_MAP_COUNT    = { -- 部分副本地图数量补偿
 	[-1]  = 100, -- 全地图生效的东西 副本除外
-	[-2]  = 3, -- 副本内也生效 镇山河 只放等
+	[-2]  = 3, -- 副本内也生效 镇山河等
 	[165] = 30, -- 英雄大明宫
 	[164] = 30, -- 大明宫
 	[160] = 20, -- 军械库

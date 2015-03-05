@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 08:32:10
+-- @Last Modified time: 2015-03-05 16:38:55
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -358,9 +358,9 @@ function CTM:RefreshTarget()
 	local dwID, dwType = Target_GetTargetData()
 	if dwType == TARGET.PLAYER and JH.IsParty(dwID) then
 		CTM_TARGET = dwID
-		if CTM_CACHE[CTM_TARGET] and CTM_CACHE[CTM_TARGET]:IsValid() then
-			if CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected") and CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):IsValid() then
-				CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):Show()
+		if CTM_CACHE[dwID] and CTM_CACHE[dwID]:IsValid() then
+			if CTM_CACHE[dwID]:Lookup("Image_Selected") and CTM_CACHE[dwID]:Lookup("Image_Selected"):IsValid() then
+				CTM_CACHE[dwID]:Lookup("Image_Selected"):Show()
 			end
 		end
 	end
@@ -371,9 +371,9 @@ function CTM:RefreshTarget()
 			local tdwType, tdwID = KObject.GetTarget()
 			if tdwID and tdwType == TARGET.PLAYER and JH.IsParty(tdwID) then
 				CTM_TTARGET = tdwID
-				if CTM_CACHE[CTM_TTARGET] and CTM_CACHE[CTM_TTARGET]:IsValid() then
-					if CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget") and CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget"):IsValid() then
-						CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Show()
+				if CTM_CACHE[tdwID] and tdwID[CTM_TTARGET]:IsValid() then
+					if CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget") and CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):IsValid() then
+						CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):Show()
 					end
 				end
 			end
@@ -1201,7 +1201,7 @@ local function CTM_SetTarget(dwTargetID)
 end
 
 
-CTM.SetTempTarget = function(dwMemberID, bEnter)
+function CTM.SetTempTarget(dwMemberID, bEnter)
 	if not RaidGrid_CTM_Edition.bTempTargetEnable then
 		return
 	end
