@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:17:57
+-- @Last Modified time: 2015-03-05 22:30:54
 local _L = JH.LoadLangPack
 
 TS = {
@@ -62,7 +62,7 @@ end
 function TS.OnFrameCreate()
 	this:RegisterEvent("CHARACTER_THREAT_RANKLIST")
 	this:RegisterEvent("UI_SCALED")
-	this:RegisterEvent("UPDATE_SELECT_TARGET")
+	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("FIGHT_HINT")
 	_TS.UpdateAnchor(this)
 	_TS.frame = this
@@ -89,13 +89,13 @@ function TS.OnFrameCreate()
 	ui:Fetch("Btn_Setting"):Click(function()
 		JH.OpenPanel(g_tStrings.HATRED_COLLECT)
 	end)
-	TS.OnEvent("UPDATE_SELECT_TARGET")
+	TS.OnEvent("TARGET_CHANGE")
 end
 
 function TS.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		_TS.UpdateAnchor(this)
-	elseif szEvent == "UPDATE_SELECT_TARGET" then
+	elseif szEvent == "TARGET_CHANGE" then
 		local dwID, dwType = Target_GetTargetData()
 		if dwType == TARGET.NPC or GetNpc(_TS.dwLockTargetID) then
 			if GetNpc(_TS.dwLockTargetID) then
