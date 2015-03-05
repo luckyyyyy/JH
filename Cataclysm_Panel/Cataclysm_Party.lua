@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 19:50:12
+-- @Last Modified time: 2015-03-05 20:34:28
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -1162,6 +1162,18 @@ function CTM:Send_RaidReadyConfirm()
 			end
 		end
 		Send_RaidReadyConfirm()
+		JH.DelayCall(5000, function()
+			for k, v in pairs(CTM_CACHE) do
+				if v:IsValid() then
+					if v:Lookup("Image_ReadyCover"):IsVisible() or v:Lookup("Image_NotReady"):IsVisible() then
+						JH.Confirm(g_tStrings.STR_RAID_READY_CONFIRM_RESET .. "?", function()
+							self:Clear_RaidReadyConfirm()
+						end)
+						break
+					end
+				end
+			end
+		end)
 	end
 end
 
