@@ -512,7 +512,7 @@ data = {
 	["Panel"] = "面板",
 	["configure"] = "配置（如果希望不共用设置，请随意修改为任意字符，否则请勿修改）",
 	["Configuration name"] = "配置文件名称",
-	["buff Size"] = "Buff大小",
+	["buff Size"] = "BUFF大小比例",
 	-- Cataclysm_Party.lua --
 	["KUNGFU_10080"] = "云",
 	["KUNGFU_10081"] = "冰",
