@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 14:48:08
+-- @Last Modified time: 2015-03-06 17:39:57
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -978,7 +978,7 @@ function PS4.OnPanelActive(frame)
 		RaidGrid_CTM_Edition.bShowBuffTime = bCheck
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 140, limit = 4096, multi = true})
+	nX, nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 150, limit = 4096, multi = true})
 	:Text(GetListText(RaidGrid_CTM_Edition.tBuffList)):Change(function(szText)
 		local t = {}
 		for _, v in ipairs(JH.Split(szText, "\n")) do
