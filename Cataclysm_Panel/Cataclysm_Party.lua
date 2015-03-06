@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 18:42:22
+-- @Last Modified time: 2015-03-06 19:33:59
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -605,6 +605,7 @@ function CTM:DrawParty(nIndex)
 				CTM_DRAG = true
 				CTM_DRAG_ID = dwID
 				self:DrawAllParty()
+				self:AutoLinkAllPanel()
 				self:BringToTop()
 				OpenRaidDragPanel(dwID)
 			end
