@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 04:13:31
+-- @Last Modified time: 2015-03-06 18:42:22
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -876,14 +876,21 @@ function CTM:RefreshDistance()
 				if p then
 					local nDistance = GetDistance(p.nX, p.nY) -- 只计算平面
 					if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
+						local find
 						for kk, vv in ipairs(RaidGrid_CTM_Edition.tDistanceLevel) do
 							if nDistance <= vv then
 								if Lsha.nLevel ~= kk then
 									Lsha.nLevel = kk
 									self:CallDrawHPMP(k, true)
 								end
+								find = true
 								break
 							end
+						end
+						-- 如果上面都不匹配的话 默认认为出了同步范围 feedback 桥之于水
+						if not find and Lsha.nLevel then
+							Lsha.nLevel = nil
+							self:CallDrawHPMP(k, true)
 						end
 					else
 						local _nDistance = Lsha.nDistance or 0
