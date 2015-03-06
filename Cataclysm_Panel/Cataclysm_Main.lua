@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 04:20:58
+-- @Last Modified time: 2015-03-06 14:45:42
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -178,7 +178,7 @@ local function GetGroupTotal()
 end
 
 local function SetFrameSize(bLeave)
-	if CTM_FRAME then
+	if CTM_FRAME and RaidGrid_CTM_Edition.nAutoLinkMode == 5 then
 		local nGroup = GetGroupTotal()
 		local w = 128 * nGroup
 		local _, h = CTM_FRAME:GetSize()
@@ -965,7 +965,7 @@ function PS4.OnPanelActive(frame)
 		ui:Fetch("BuffSize"):Enable(not bCheck)
 	end):Pos_()
 	nX, nY = ui:Append("WndTrackBar", "BuffSize", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
-	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
+	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200, 150):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
 		RaidGrid_CTM_Edition.fBuffScale = nVal / 100
 		if CTM_FRAME then
 			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, true)
@@ -978,7 +978,7 @@ function PS4.OnPanelActive(frame)
 		RaidGrid_CTM_Edition.bShowBuffTime = bCheck
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 140, limit = 4096,multi = true})
+	nX, nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 140, limit = 4096, multi = true})
 	:Text(GetListText(RaidGrid_CTM_Edition.tBuffList)):Change(function(szText)
 		local t = {}
 		for _, v in ipairs(JH.Split(szText, "\n")) do
