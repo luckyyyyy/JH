@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 19:44:18
+-- @Last Modified time: 2015-03-06 20:57:58
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -39,7 +39,7 @@ local CTM_CONFIG = {
 	tManaColor           = { 0, 96, 255 },
 	bFasterHP            = false,
 	bStaring             = false,
-	bShowBuffTime        = true,
+	bShowBuffTime        = false,
 	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
 		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
 	},
