@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 03:52:48
+-- @Last Modified time: 2015-03-06 21:02:34
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -484,7 +484,7 @@ function JH.OnFrameBreathe()
 		if v.nTime <= nTime then
 			local res, err = pcall(v.fnAction)
 			if not res then
-				Output("DelayCall#" .. k .." ERROR: " .. err)
+				JH.Debug("DelayCall#" .. k .." ERROR: " .. err)
 			end
 			tremove(_JH.tDelayCall, k)
 		end
