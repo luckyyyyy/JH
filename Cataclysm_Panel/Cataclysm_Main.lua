@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 17:39:57
+-- @Last Modified time: 2015-03-06 19:44:18
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -182,9 +182,7 @@ local function SetFrameSize(bLeave)
 		local nGroup = GetGroupTotal()
 		local w = 128 * nGroup
 		local _, h = CTM_FRAME:GetSize()
-		if RaidGrid_CTM_Edition.fScaleX > 1 then
-			w = w * RaidGrid_CTM_Edition.fScaleX
-		end
+		w = w * RaidGrid_CTM_Edition.fScaleX
 		CTM_FRAME:SetSize(w, h)
 		CTM_FRAME:SetDragArea(0, 0, w, h)
 		CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
