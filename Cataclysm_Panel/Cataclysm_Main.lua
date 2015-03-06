@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 14:45:42
+-- @Last Modified time: 2015-03-06 14:48:08
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -479,7 +479,7 @@ end
 function RaidGrid_CTM_Edition.OnMouseEnter()
 	local me = GetClientPlayer()
 	local nGroup = GetGroupTotal()
-	if me.IsInRaid() and nGroup > 1 then
+	if me.IsInRaid() and nGroup > 1 and RaidGrid_CTM_Edition.nAutoLinkMode == 5 then
 		SetFrameSize()
 		if GKP_RECORD_TOTAL > 0 and GKP then -- µÚÒ»¸öGKP
 			local text = CTM_FRAME:Lookup("", "Text_GKP")
