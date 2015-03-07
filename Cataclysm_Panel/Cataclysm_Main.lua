@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-07 17:36:09
+-- @Last Modified time: 2015-03-07 17:48:28
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -40,7 +40,7 @@ local CTM_CONFIG = {
 	bFasterHP            = false,
 	bStaring             = false,
 	bShowBuffTime        = false,
-	bShowGropuNumber       = true,
+	bShowGropuNumber     = true,
 	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
 		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
 	},
@@ -179,19 +179,27 @@ local function GetGroupTotal()
 end
 
 local function SetFrameSize(bLeave)
-	if CTM_FRAME and RaidGrid_CTM_Edition.nAutoLinkMode == 5 then
-		local nGroup = GetGroupTotal()
-		local w = 128 * nGroup
-		local _, h = CTM_FRAME:GetSize()
-		w = w * RaidGrid_CTM_Edition.fScaleX
-		CTM_FRAME:SetSize(w, h)
-		CTM_FRAME:SetDragArea(0, 0, w, h)
-		CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
-		if bLeave then
-			local w = 128
-			if RaidGrid_CTM_Edition.fScaleX > 1 then
-				w = w * RaidGrid_CTM_Edition.fScaleX
+	if CTM_FRAME then
+		if RaidGrid_CTM_Edition.nAutoLinkMode == 5 then
+			local nGroup = GetGroupTotal()
+			local w = 128 * nGroup
+			local _, h = CTM_FRAME:GetSize()
+			w = w * RaidGrid_CTM_Edition.fScaleX
+			CTM_FRAME:SetSize(w, h)
+			CTM_FRAME:SetDragArea(0, 0, w, h)
+			CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
+			if bLeave then
+				local w = 128
+				if RaidGrid_CTM_Edition.fScaleX > 1 then
+					w = w * RaidGrid_CTM_Edition.fScaleX
+				end
+				CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
 			end
+		else
+			local w = 128
+			local _, h = CTM_FRAME:GetSize()
+			CTM_FRAME:SetSize(w, h)
+			CTM_FRAME:SetDragArea(0, 0, w, h)
 			CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
 		end
 	end
