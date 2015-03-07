@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 20:57:58
+-- @Last Modified time: 2015-03-07 17:36:09
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -40,6 +40,7 @@ local CTM_CONFIG = {
 	bFasterHP            = false,
 	bStaring             = false,
 	bShowBuffTime        = false,
+	bShowGropuNumber       = true,
 	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
 		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
 	},
@@ -694,8 +695,8 @@ function PS2.OnPanelActive(frame)
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bShowAllGrid = bCheck
 		if CTM_FRAME then
-			RaidClosePanel()
-			RaidCheckEnable()
+			Grid_CTM:CloseParty()
+			Grid_CTM:ReloadParty()
 		end
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
@@ -853,8 +854,8 @@ function PS3.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Interface settings"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Interface Width"]}):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 12, h = 25, w = 200 })
-	:Range(50, 250):Value(RaidGrid_CTM_Edition.fScaleX * 100):Change(function(nVal)
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 12, h = 25, w = 250 })
+	:Range(50, 250, 200):Value(RaidGrid_CTM_Edition.fScaleX * 100):Change(function(nVal)
 		nVal = nVal / 100
 		local nNewX, nNewY = nVal / RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY / RaidGrid_CTM_Edition.fScaleY
 		RaidGrid_CTM_Edition.fScaleX = nVal
@@ -864,8 +865,8 @@ function PS3.OnPanelActive(frame)
 	end):Pos_()
 
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Interface Height"]}):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
-	:Range(50, 250):Value(RaidGrid_CTM_Edition.fScaleY * 100):Change(function(nVal)
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2, h = 25, w = 250 })
+	:Range(50, 250, 200):Value(RaidGrid_CTM_Edition.fScaleY * 100):Change(function(nVal)
 		nVal = nVal / 100
 		local nNewX, nNewY = RaidGrid_CTM_Edition.fScaleX / RaidGrid_CTM_Edition.fScaleX, nVal / RaidGrid_CTM_Edition.fScaleY
 		RaidGrid_CTM_Edition.fScaleY = nVal
@@ -892,6 +893,15 @@ function PS3.OnPanelActive(frame)
 				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end)
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.OTHER, font = 27 }):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show Group Number"], checked = RaidGrid_CTM_Edition.bShowGropuNumber })
+	:Click(function(bCheck)
+		RaidGrid_CTM_Edition.bShowGropuNumber = bCheck
+		if CTM_FRAME then
+			Grid_CTM:CloseParty()
+			Grid_CTM:ReloadParty()
+		end
 	end):Pos_()
 
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Arrangement"], font = 27 }):Pos_()
