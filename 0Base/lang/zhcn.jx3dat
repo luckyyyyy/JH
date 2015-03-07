@@ -518,6 +518,7 @@ data = {
 	["Buff Staring"] = "BUFF边框闪烁",
 	["Show Buff Time"] = "显示BUFF剩余时间",
 	["Cataclysm_TIPS"] = "记住是每行一个，格式可以是 翔舞 或 翔舞|self ，后者表示仅来源自己。\n如有别的BUFF出现，可以关闭团监的关联，副本->监控设置里面。",
+	["Show Group Number"] = "显示分组编号",
 	-- Cataclysm_Party.lua --
 	["KUNGFU_10080"] = "云",
 	["KUNGFU_10081"] = "冰",
