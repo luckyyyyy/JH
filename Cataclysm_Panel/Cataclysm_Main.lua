@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-07 17:48:28
+-- @Last Modified time: 2015-03-07 22:20:03
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
 local GetBuffName = JH.GetBuffName
@@ -390,7 +390,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		if arg1 then return end
 		local szName = JH.GetBuffName(arg4 , arg8)
 		local tab = RaidGrid_CTM_Edition.tBuffList[szName] or RaidGrid_CTM_Edition.tBuffList[tostring(arg4)]
-		if tab then
+		if tab and Table_BuffIsVisible(arg4, arg8) then
 			if tab.bSelf and arg9 == UI_GetClientPlayerID() or not tab.bSelf then
 				Grid_CTM:RecBuff(arg0, arg4, arg8, tab.col)
 			end
