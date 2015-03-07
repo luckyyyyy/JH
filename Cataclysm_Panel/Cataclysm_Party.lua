@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-07 17:35:01
+-- @Last Modified time: 2015-03-07 23:48:05
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -424,27 +424,30 @@ end
 function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bName)
 	-- assert(info)
 	if not info then return end
-	local fnAction = function(t)
-		local hTotal = {
-			[TEAM_AUTHORITY_TYPE.LEADER] = h:Lookup("Handle_Icons/Image_Leader"),
-			[TEAM_AUTHORITY_TYPE.MARK] = h:Lookup("Handle_Icons/Image_Marker"),
-			[TEAM_AUTHORITY_TYPE.DISTRIBUTE] = h:Lookup("Handle_Icons/Image_Looter"),
-		}
-		for k, v in pairs(hTotal) do
-			if t[k] == dwID then
-				v:Show()
-				local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
-				v:SetSize(14 * fScale, 14 * fScale)
-			else
-				v:Hide()
+	-- 刷新团队权限标记
+	if type(tSetting) ~= "nil" then
+		local fnAction = function(t)
+			local hTotal = {
+				[TEAM_AUTHORITY_TYPE.LEADER]     = h:Lookup("Handle_Icons/Image_Leader"),
+				[TEAM_AUTHORITY_TYPE.MARK]       = h:Lookup("Handle_Icons/Image_Marker"),
+				[TEAM_AUTHORITY_TYPE.DISTRIBUTE] = h:Lookup("Handle_Icons/Image_Looter"),
+			}
+			for k, v in pairs(hTotal) do
+				if t[k] == dwID then
+					v:Show()
+					local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+					v:SetSize(14 * fScale, 14 * fScale)
+				else
+					v:Hide()
+				end
 			end
 		end
-	end
 
-	if type(tSetting) == "table" then -- 根据表的内容刷新标记队长等信息
-		fnAction(tSetting)
-	elseif type(tSetting) == "boolean" and tSetting then
-		fnAction(self:GetTeamInfo())
+		if type(tSetting) == "table" then -- 根据表的内容刷新标记队长等信息
+			fnAction(tSetting)
+		elseif type(tSetting) == "boolean" and tSetting then
+			fnAction(self:GetTeamInfo())
+		end
 	end
 	-- 刷新阵眼
 	if type(bFormationLeader) == "boolean" then
