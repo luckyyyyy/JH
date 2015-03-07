@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:38:24
+-- @Last Modified time: 2015-03-07 22:21:06
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -214,8 +214,8 @@ end
 _PartyBuffList.OnBuffUpdate = function()
 	if not PartyBuffList.bEnable then return end
 	if arg1 then return end
-	local szName = JH.GetBuffName(arg4,arg8)
-	if PartyBuffList.tList[szName] then
+	local szName = JH.GetBuffName(arg4, arg8)
+	if PartyBuffList.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
 		_PartyBuffList.OnTableInsert(arg0, arg4, arg8)
 	end
 end
@@ -249,7 +249,7 @@ PS.OnPanelActive = function(frame)
 	:Text(_L["Mouse Enter select"]):Click(function(bChecked)
 		PartyBuffList.bHoverSelect = bChecked
 	end):Pos_()
-	
+
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 100, limit = 4096,multi = true})
 	:Text(_PartyBuffList.GetListText()):Change(function(szText)
@@ -266,7 +266,7 @@ PS.OnPanelActive = function(frame)
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 40, multi = true, txt = _L["PartyBuffList_TIPS"] }):Pos_()
 end
 
-JH.RegisterInit("PartyBuffList", 
+JH.RegisterInit("PartyBuffList",
 	{ "ON_ENTER_CUSTOM_UI_MODE", function() _PartyBuffList.UiMode("ON_ENTER_CUSTOM_UI_MODE") end },
 	{ "ON_LEAVE_CUSTOM_UI_MODE", function() _PartyBuffList.UiMode("ON_LEAVE_CUSTOM_UI_MODE") end },
 	{ "BUFF_UPDATE", _PartyBuffList.OnBuffUpdate },
