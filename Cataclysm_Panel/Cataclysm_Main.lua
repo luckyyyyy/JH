@@ -1,9 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-07 22:20:03
+-- @Last Modified time: 2015-03-07 22:29:40
 local _L = JH.LoadLangPack
-local Station, UI_GetClientPlayerID = Station, UI_GetClientPlayerID
+local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
 local tostring = tostring
 local CTM_CONFIG = {
@@ -388,7 +388,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3)
 	elseif szEvent == "BUFF_UPDATE" then
 		if arg1 then return end
-		local szName = JH.GetBuffName(arg4 , arg8)
+		local szName = GetBuffName(arg4 , arg8)
 		local tab = RaidGrid_CTM_Edition.tBuffList[szName] or RaidGrid_CTM_Edition.tBuffList[tostring(arg4)]
 		if tab and Table_BuffIsVisible(arg4, arg8) then
 			if tab.bSelf and arg9 == UI_GetClientPlayerID() or not tab.bSelf then

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-07 22:21:06
+-- @Last Modified time: 2015-03-08 05:57:03
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -43,22 +43,22 @@ function PartyBuffList.OnFrameDragEnd()
 	this:CorrectPos()
 	PartyBuffList.tAnchor = GetFrameAnchor(this, "TOPCENTER")
 end
-_PartyBuffList.OpenPanel = function()
+function _PartyBuffList.OpenPanel()
 	local frame = _PartyBuffList.frame or Wnd.OpenWindow(_PartyBuffList.szIniFile,"PartyBuffList")
 	return frame
 end
-_PartyBuffList.IsPanelOpened = function()
+function _PartyBuffList.IsPanelOpened()
 	return _PartyBuffList.frame
 end
 
-_PartyBuffList.UiMode = function(szEvent)
+function _PartyBuffList.UiMode(szEvent)
 	if szEvent == "ON_ENTER_CUSTOM_UI_MODE" and not _PartyBuffList.IsPanelOpened() then
 		_PartyBuffList.OpenPanel()
 	elseif szEvent == "ON_LEAVE_CUSTOM_UI_MODE" and IsEmpty(_PartyBuffList.tList) then
 		_PartyBuffList.ClosePanel()
 	end
 end
-_PartyBuffList.UpdateAnchor = function(frame)
+function _PartyBuffList.UpdateAnchor(frame)
 	local a = PartyBuffList.tAnchor
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
@@ -67,13 +67,13 @@ _PartyBuffList.UpdateAnchor = function(frame)
 	end
 end
 
-_PartyBuffList.ClosePanel = function()
+function _PartyBuffList.ClosePanel()
 	Wnd.CloseWindow(_PartyBuffList.frame)
 	_PartyBuffList.frame = nil
 	_PartyBuffList.tList = {}
 end
 
-_PartyBuffList.GetListText = function()
+function _PartyBuffList.GetListText()
 	local tName = {}
 	for k, _ in pairs(PartyBuffList.tList) do
 		if type(k) == "string" then
@@ -83,7 +83,7 @@ _PartyBuffList.GetListText = function()
 	return table.concat(tName, "\n")
 end
 
-_PartyBuffList.UpdateFrame = function()
+function _PartyBuffList.UpdateFrame()
 	if not PartyBuffList.bEnable then return end
 	local data = _PartyBuffList.tList
 	if #data == 0 then
@@ -158,7 +158,7 @@ _PartyBuffList.UpdateFrame = function()
 	_PartyBuffList.frame:Show()
 end
 
-_PartyBuffList.OnBreathe = function()
+function _PartyBuffList.OnBreathe()
 	if not PartyBuffList.bEnable then return end
 	if not _PartyBuffList.frame then return end
 	local me = GetClientPlayer()
@@ -211,7 +211,7 @@ end
 -- arg0£ºdwPlayerID£¬arg1£ºbDelete£¬arg2£ºnIndex£¬arg3£ºbCanCancel
 -- arg4£ºdwBuffID£¬arg5£ºnStackNum£¬arg6£ºnEndFrame£¬arg7£º£¿update all?
 -- arg8£ºnLevel£¬arg9£ºdwSkillSrcID
-_PartyBuffList.OnBuffUpdate = function()
+function _PartyBuffList.OnBuffUpdate()
 	if not PartyBuffList.bEnable then return end
 	if arg1 then return end
 	local szName = JH.GetBuffName(arg4, arg8)
@@ -220,7 +220,7 @@ _PartyBuffList.OnBuffUpdate = function()
 	end
 end
 
-_PartyBuffList.OnTableInsert = function(dwID, dwBuffID, nLevel)
+function _PartyBuffList.OnTableInsert(dwID, dwBuffID, nLevel)
 	for k,v in ipairs(_PartyBuffList.tList) do
 		if v.dwID == dwID and v.dwBuffID == dwBuffID and v.nLevel == nLevel then
 			return
@@ -231,7 +231,7 @@ _PartyBuffList.OnTableInsert = function(dwID, dwBuffID, nLevel)
 end
 
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["PartyBuffList"], font = 27 })
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = PartyBuffList.bEnable })
