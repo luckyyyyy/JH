@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 04:02:23
+-- @Last Modified time: 2015-03-08 05:56:16
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -380,7 +380,7 @@ function _ScreenHead.OnBuffUpdate()
 	if not ScreenHead.bEnable then return end
 	if arg1 then return end
 	local szName = JH.GetBuffName(arg4,arg8)
-	if ScreenHead.tList[szName] then
+	if ScreenHead.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
 		local type = arg3 and "Buff" or "Debuff"
 		_ScreenHead.RegisterHead(arg0, { type = type, dwID = arg4 })
 	end
