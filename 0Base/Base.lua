@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-06 21:02:34
+-- @Last Modified time: 2015-03-08 23:19:45
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -1618,6 +1618,7 @@ function _GUI.Frm:ctor(szName, bEmpty)
 	if not bEmpty then
 		frm:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 		frm:Lookup("Btn_Close").OnLButtonClick = function()
+			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 			self:Remove()
 		end
 		self.wnd = frm:Lookup("Window_Main")
@@ -1742,6 +1743,7 @@ function _GUI.Frm2:ctor(szName, bEmpty)
 	if not bEmpty then
 		frm:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 		frm:Lookup("Btn_Close").OnLButtonClick = function()
+			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 			self:Remove()
 		end
 		self.wnd = frm:Lookup("Window_Main")
