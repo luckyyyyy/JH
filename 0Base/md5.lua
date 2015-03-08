@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:35:41
+-- @Last Modified time: 2015-03-08 18:51:27
 local md5 = {
 	_VERSION		 = "md5.lua 0.5.0",
 	_DESCRIPTION = "MD5 computation in Lua (5.1)",
