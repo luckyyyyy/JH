@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-07 22:29:40
+-- @Last Modified time: 2015-03-08 22:43:03
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -307,6 +307,9 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			Grid_CTM:DrawParty(arg2)
 			SetFrameSize(true)
 		end
+		if RaidGrid_CTM_Edition.nAutoLinkMode ~= 5 then
+			Grid_CTM:AutoLinkAllPanel()
+		end
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
 		local me = GetClientPlayer()
 		if me.dwID == arg1 then
@@ -319,6 +322,9 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 				Grid_CTM:AutoLinkAllPanel()
 			else
 				Grid_CTM:DrawParty(arg3, true)
+			end
+			if RaidGrid_CTM_Edition.nAutoLinkMode ~= 5 then
+				Grid_CTM:AutoLinkAllPanel()
 			end
 		end
 		JH.DelayCall(1000, function()
