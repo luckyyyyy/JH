@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-01 22:30:00
+-- @Last Modified time: 2015-03-09 00:42:54
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -380,12 +380,14 @@ _GKP.CloseChatWindow = function(bCheck)
 	end
 	UnRegisterMsgMonitor(_GKP.OnMsgArrive)
 	Wnd.CloseWindow(Station.Lookup("Normal/GKP_Chat"))
+	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 end
 
 _GKP.CloseLootWindow = function()
 	Wnd.CloseWindow(Station.Lookup("Normal/GKP_Loot"))
 	_GKP.dwOpenID = nil
 	_GKP.CloseChatWindow(true)
+	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 end
 _GKP.SetLootTitle = function()
 	if Station.Lookup("Normal/GKP_Loot") then
