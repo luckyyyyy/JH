@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-08 23:19:45
+-- @Last Modified time: 2015-03-09 23:04:53
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -72,6 +72,7 @@ local _JH = {
 	tHotkey = {},
 	tDelayCall = {},
 	tRequest = {},
+	tGlobalValue = {},
 	tConflict = {},
 	tEvent = {},
 	tModule = {},
@@ -599,6 +600,17 @@ function JH.RegisterCustomData(szVarPath)
 	end
 end
 
+function JH.SetGlobalValue(szVarPath, Val)
+	local t = JH.Split(szVarPath, ".")
+	local tab = _G
+	for k, v in ipairs(t) do
+		tab[v] = {}
+		if k == #t then
+			tab[v] = Val
+		end
+		tab = tab[v]
+	end
+end
 -- 初始化一个模块
 function JH.RegisterInit(key, ...)
 	local events = { ... }
@@ -1267,8 +1279,9 @@ function JH.GetShadowHandle(szName)
 	return sh:Lookup("", szName)
 end
 
-JH.RegisterEvent("PLAYER_ENTER_GAME",function()
+JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel(true):Hide()
+	_JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
 	-- 注册快捷键
 	Hotkey.AddBinding("JH_Total", _L["JH"], _L["JH"], _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do
@@ -1284,6 +1297,10 @@ JH.RegisterEvent("LOADING_END", function()
 	-- reseting frame count (FIXED BUG FOR Cross Server)
 	for k, v in pairs(_JH.tBreatheCall) do
 		v.nNext = GetLogicFrameCount()
+	end
+	for k, v in pairs(_JH.tGlobalValue) do
+		JH.SetGlobalValue(k, v)
+		_JH.tGlobalValue[k] = nil
 	end
 end)
 
