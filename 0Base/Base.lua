@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-09 23:04:53
+-- @Last Modified time: 2015-03-09 23:21:07
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -604,7 +604,9 @@ function JH.SetGlobalValue(szVarPath, Val)
 	local t = JH.Split(szVarPath, ".")
 	local tab = _G
 	for k, v in ipairs(t) do
-		tab[v] = {}
+		if type(tab[v]) == "nil" then
+			tab[v] = {}
+		end
 		if k == #t then
 			tab[v] = Val
 		end
