@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-08 22:43:03
+-- @Last Modified time: 2015-03-11 04:16:36
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -519,9 +519,12 @@ function RaidGrid_CTM_Edition.OnMouseLeave()
 end
 
 function RaidGrid_CTM_Edition.OnFrameDragEnd()
+	local w, h = this:GetSize()
+	this:SetSize(128, h) -- 什么原因你懂的我就不说了
 	this:CorrectPos()
 	RaidGrid_CTM_Edition.tAnchor = GetFrameAnchor(this)
 	Grid_CTM:AutoLinkAllPanel() -- fix screen pos
+	this:SetSize(w, h)
 end
 
 local EnableTeamPanel = function()
