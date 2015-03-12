@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-07 23:48:05
+-- @Last Modified time: 2015-03-12 17:43:28
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -719,7 +719,7 @@ function CTM:DrawParty(nIndex)
 	self:RefreshDistance() -- 立即刷新一次
 	for k, v in pairs(CTM_CACHE) do
 		if v:IsValid() and v.nGroup == nIndex then
-			self:CallDrawHPMP(k)
+			self:CallDrawHPMP(k, true)
 		end
 	end
 	CTM_LIFE_CACHE = {}
@@ -973,7 +973,9 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	local bDeathFlag = info.bDeathFlag
 	-- 有待验证
 	if p then
-		dwMountType = p.GetKungfuMount().dwMountType
+		if p.GetKungfuMount() then
+			dwMountType = p.GetKungfuMount().dwMountType
+		end
 		if p.nMoveState == MOVE_STATE_ON_STAND then
 			if info.bDeathFlag then
 				bDeathFlag = true
@@ -1010,7 +1012,6 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	else
 		Msha:Hide()
 	end
-
 	-- 缓存
 	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
 		-- 颜色计算

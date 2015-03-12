@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:38:18
+-- @Last Modified time: 2015-03-12 08:57:09
 local _L = JH.LoadLangPack
 
 LargeText = {
@@ -105,29 +105,29 @@ PS.OnPanelActive = function(frame)
 			ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 		end)
 	end)
-	
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = LargeText.bEnable })
+
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = LargeText.bEnable })
 	:Text(_L["Enable LargeText"]):Click(function(bChecked)
 		LargeText.bEnable = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = LargeText.bIsMe })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = LargeText.bIsMe })
 	:Text(_L["only Monitor self"]):Click(function(bChecked)
 		LargeText.bIsMe = bChecked
 	end):Pos_()
 	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY }):Pos_()
-	nX,nY = ui:Append("WndTrackBar", { x = nX +10, y = nY + 3 })
-	:Range(1,100):Value(LargeText.fScale * 20):Change(function(nVal) 
+	nX, nY = ui:Append("WndTrackBar", { x = nX +10, y = nY + 3 })
+	:Range(1,100):Value(LargeText.fScale * 20):Change(function(nVal)
 		LargeText.fScale = nVal / 20
 		ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 	end):Pos_()
 	nX = ui:Append("Text", { txt = _L["Pause time(s)"], x = 10, y = nY }):Pos_()
-	nX,nY = ui:Append("WndEdit", { x = nX +10, y = nY + 3,txt = LargeText.nPause })
+	nX, nY = ui:Append("WndEdit", { x = nX +10, y = nY + 3,txt = LargeText.nPause }):Type(1)
 	:Change(function(nVal) LargeText.nPause = tonumber(nVal) end):Pos_()
 	nX = ui:Append("Text", { txt = _L["FadeOut time(s)"], x = 10, y = nY }):Pos_()
-	nX,nY = ui:Append("WndEdit", { x = nX +10, y = nY + 3,txt = LargeText.nCount / 10 })
+	nX, nY = ui:Append("WndEdit", { x = nX +10, y = nY + 3,txt = LargeText.nCount / 10 }):Type(1)
 	:Change(function(txt)
 		if tonumber(txt) then
-			txt = tonumber(txt) * 10 
+			txt = tonumber(txt) * 10
 			LargeText.nCount = txt
 		end
 	end):Pos_()
@@ -135,8 +135,8 @@ PS.OnPanelActive = function(frame)
 		_LargeText.UpdateText(_L("%s are welcome to use JH plug-in",GetClientPlayer().szName),{ 255, 128, 0 }, true)
 	end)
 	ui:Append("Text", "preview", { x = 20, y = nY + 50, txt = _L["Hello World"], font = LargeText.dwFontScheme}):Scale(LargeText.fScale)
-	nX,nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = 280, font = 27 }):Pos_()
-	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
+	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = 280, font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
 end
 GUI.RegisterPanel(_L["LargeText"], 1934, _L["RGES"], PS)
 

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-03 15:51:30
+-- @Last Modified time: 2015-03-12 09:03:28
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -14,6 +14,9 @@ end
 
 
 function _JH_About.CheckNameEx(dwID, szName)
+	if JH.bDebugClient then
+		return true
+	end
 	local me = GetClientPlayer()
 	dwID = dwID or me.dwID
 	szName = szName or me.szName
