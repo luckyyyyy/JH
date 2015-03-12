@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-09 23:23:21
+-- @Last Modified time: 2015-03-12 09:02:55
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -54,6 +54,7 @@ setmetatable(g_sound, {
 ---------------------------------------------------------------------
 JH = {
 	bDebug = false,
+	bDebugClient = false,
 	nChannel = PLAYER_TALK_CHANNEL.RAID,
 }
 RegisterCustomData("JH.bDebug")
@@ -63,6 +64,7 @@ do
 	local exp = { GetVersion() }
 	if exp and exp[4] == "exp" then
 		JH.bDebug = true
+		JH.bDebugClient = true
 	end
 end
 
