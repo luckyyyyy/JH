@@ -12,7 +12,7 @@ set szTime=%szTime:/=%
 set szTime=%szTime::=%
 set szTime=%szTime: =%
 
-set szFile=releases\JH_%szTime%_%szVersion:~0,8%.7z
+set szFile=releases\JH_%szTime%_%szVersion:~0,9%.7z
 echo zippping...
 7z a -t7z %szFile% -xr!manifest.dat -xr!manifest.key -xr!publisher.key -x@7zipignore.txt -xr!About.ini -xr!RGES-* -xr!sync_*
 echo File(s) compressing acomplete!

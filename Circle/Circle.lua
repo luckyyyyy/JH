@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 08:48:26
+-- @Last Modified time: 2015-03-14 00:20:03
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -18,7 +18,6 @@ local TARGET = TARGET
 local SHADOW              = JH.GetAddonInfo().szShadowIni
 local CIRCLE_MAX_COUNT    = 15    -- 默认副本最大数据量
 local CIRCLE_CHANGE_TIME  = 0     -- 7200 -- 暂不限制 加载数据后 再次加载数据的时间 2小时 避免一个BOSS一套数据
-local CIRCLE_CIRCLE_ALPHA = 50    -- 最大的透明度 根据半径逐步降低
 local CIRCLE_ALPHA_STEP   = 2.5
 local CIRCLE_MAX_RADIUS   = 30    -- 最大的半径
 local CIRCLE_LINE_ALPHA   = 165   -- 线和边框最大透明度
@@ -68,6 +67,7 @@ local function GetDataPath()
 end
 
 Circle = {
+	nMaxAlpha = 50,
 	bEnable = true,
 	nLimit = 0,
 	bTeamChat = false, -- 控制全局的团队频道
@@ -467,7 +467,7 @@ function C.DrawShape(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 		dwRad2 = dwRad2 + pi / 20
 	end
 	-- nAlpha 补偿
-	local nAlpha = CIRCLE_CIRCLE_ALPHA
+	local nAlpha = Circle.nMaxAlpha
 	local ap = CIRCLE_ALPHA_STEP * (nRadius / 64)
 	if ap > 35 then
 		nAlpha = 15
@@ -475,7 +475,7 @@ function C.DrawShape(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 		nAlpha = nAlpha - ap
 	end
 	nAlpha = nAlpha + (360 - nAngle) / 6
-	if nAlpha > CIRCLE_CIRCLE_ALPHA then nAlpha = CIRCLE_CIRCLE_ALPHA end
+	if nAlpha > Circle.nMaxAlpha then nAlpha = Circle.nMaxAlpha end
 	if __Alpha then -- circle 2
 		nAlpha = nAlpha - (__Alpha / 360 * nAlpha / 2)
 	end
@@ -1330,7 +1330,7 @@ JH.RegisterEvent("LOADING_END", function()
 end)
 JH.RegisterEvent("CIRCLE_DEBUG", function()
 	if JH_About.CheckNameEx() then
-		CIRCLE_CIRCLE_ALPHA, CIRCLE_ALPHA_STEP = arg0, arg1
+		Circle.nMaxAlpha, CIRCLE_ALPHA_STEP = arg0, arg1
 		FireEvent("CIRCLE_CLEAR")
 	end
 end)
