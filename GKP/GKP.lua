@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-18 03:38:56
+-- @Last Modified time: 2015-03-18 03:43:27
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -318,7 +318,7 @@ GKP.DistributionItem = function()
 	if not p or (p and not p.bOnlineFlag) then -- bOnlineFlag 刷新其实有延迟
 		return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 	end
-	if p.dwMapID ~= me.GetMapID() then
+	if p.dwMapID ~= GetClientPlayer().GetMapID() then
 		return JH.Alert(_L["No Pick up Object, Please confirm that in the Dungeon."])
 	end
 	-- 不管如何品质都弹出MessageBox 防止点错手滑误操作什么的
