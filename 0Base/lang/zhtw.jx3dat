@@ -293,6 +293,7 @@ data = {
 	["Userdata is overdue, distribut failed, please try again."] = "userdata過期，分配失敗，清重新嘗試。",
 	["Pick up time limit exceeded, please try again."] = "拾取時間超出限制，請再試壹次。",
 	["No Pick up Object, may due to Network off - line"] = "沒有拾取對象，可能是掉線了。",
+	["No Pick up Object, Please confirm that in the Dungeon."] = "沒有拾取對象，請確認在同壹地圖。",
 	["Stop Bidding"] = "拍賣結束",
 	["--- Stop Bidding ---"] = "------  拍賣結束  ------",
 	["GKP Golden Team Record"] = "GKP金團記錄",

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-13 09:30:45
+-- @Last Modified time: 2015-03-17 11:17:31
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -1151,7 +1151,6 @@ function JH.GetBuffList(tar)
 	return aBuff
 end
 
-
 function JH.WalkAllBuff(tar, fnAction)
 	if type(tar) == "function" then
 		fnAction = tar
@@ -1186,7 +1185,6 @@ end
 function JH.IsDistributer()
 	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == GetClientPlayer().dwID
 end
-
 
 function JH.AddHotKey(szName, szTitle, fnAction)
 	if string.sub(szName, 1, 3) ~= "JH_" then
@@ -1343,11 +1341,11 @@ function JH.UrlDecode(szText)
 end
 
 function JH.AscIIEncode(szText)
-	return szText:gsub('(.)',function(s) return string.format("%02x",s:byte()) end)
+	return szText:gsub('(.)', function(s) return string.format("%02x", s:byte()) end)
 end
 
 function JH.AscIIDecode(szText)
-	return szText:gsub('([0-9a-f][0-9a-f])',function(s) return string.char(tonumber(s, 16)) end)
+	return szText:gsub('([0-9a-f][0-9a-f])', function(s) return string.char(tonumber(s, 16)) end)
 end
 
 function JH.RemoteRequest(szUrl, fnAction)
@@ -1373,6 +1371,7 @@ function JH.Split(szFull, szSep)
 	end
 	return tResult
 end
+
 function JH.DoMessageBox(szName, i)
 	local frame = Station.Lookup("Topmost2/MB_" .. szName) or Station.Lookup("Topmost/MB_" .. szName)
 	if frame then
@@ -1412,6 +1411,7 @@ function JH.BreatheCall(szKey, fnAction, nTime)
 		JH.Debug3("UnBreatheCall # " .. szKey)
 	end
 end
+
 function JH.UnBreatheCall(szKey)
 	JH.BreatheCall(szKey)
 end
