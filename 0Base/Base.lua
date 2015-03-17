@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-17 11:17:31
+-- @Last Modified time: 2015-03-18 04:26:20
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -1285,7 +1285,7 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel(true):Hide()
 	_JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
 	-- 注册快捷键
-	Hotkey.AddBinding("JH_Total", _L["JH"], _L["JH"], _JH.TogglePanel , nil)
+	Hotkey.AddBinding("JH_Total", _L["JH"], _JH.szTitle, _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do
 		Hotkey.AddBinding(v.szName, v.szTitle, "", v.fnAction, nil)
 	end
