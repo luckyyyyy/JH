@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-09 00:42:54
+-- @Last Modified time: 2015-03-18 03:38:56
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -304,10 +304,11 @@ GKP.DistributionItem = function()
 		for k,v in ipairs(aPartyMember) do
 			local player = team.GetMemberInfo(v.dwID)
 			aPartyMember[k].dwForceID = player.dwForceID
+			aPartyMember[k].dwMapID   = player.dwMapID
 		end
 	end
 	local p
-	for k,v in ipairs(aPartyMember) do
+	for k, v in ipairs(aPartyMember) do
 		if v.szName == szName then
 			p = v
 			break
@@ -317,8 +318,11 @@ GKP.DistributionItem = function()
 	if not p or (p and not p.bOnlineFlag) then -- bOnlineFlag 刷新其实有延迟
 		return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 	end
-	local r,g,b = JH.GetForceColor(p.dwForceID)
+	if p.dwMapID ~= me.GetMapID() then
+		return JH.Alert(_L["No Pick up Object, Please confirm that in the Dungeon."])
+	end
 	-- 不管如何品质都弹出MessageBox 防止点错手滑误操作什么的
+	local r, g, b = JH.GetForceColor(p.dwForceID)
 	local msg = {
 		szMessage = FormatLinkString(
 			g_tStrings.PARTY_DISTRIBUTE_ITEM_SURE,
@@ -1974,9 +1978,10 @@ _GKP.DrawDistributeList = function(doodad)
 		return GKP.Sysmsg(_L["Pick up time limit exceeded, please try again."])
 	end
 	if not JH.bDebug then
-		for k,v in ipairs(aPartyMember) do
+		for k, v in ipairs(aPartyMember) do
 			local player = team.GetMemberInfo(v.dwID)
 			aPartyMember[k].dwForceID = player.dwForceID
+			aPartyMember[k].dwMapID   = player.dwMapID
 		end
 	end
 
@@ -2122,7 +2127,7 @@ _GKP.DrawDistributeList = function(doodad)
 			local tMenu = {}
 			table.insert(tMenu,{ szOption = szItemName , bDisable = true})
 			table.insert(tMenu,{bDevide = true})
-			local fnAction = function(v,fnMouseEnter,fix,bEnter)
+			local fnAction = function(v, fnMouseEnter, fix, bEnter)
 				local szIcon,nFrame = GetForceImage(v.dwForceID)
 				return {
 					szOption = fix or v.szName,
@@ -2136,6 +2141,9 @@ _GKP.DrawDistributeList = function(doodad)
 						if not item.dwID then
 							_GKP.OnOpenDoodad(_GKP.dwOpenID)
 							return GKP.Sysmsg(_L["Userdata is overdue, distribut failed, please try again."])
+						end
+						if v.dwMapID ~= me.GetMapID() then
+							return JH.Alert(_L["No Pick up Object, Please confirm that in the Dungeon."])
 						end
 						if item.nQuality >= 3 then
 							local r,g,b = JH.GetForceColor(v.dwForceID)
@@ -2202,8 +2210,8 @@ _GKP.DrawDistributeList = function(doodad)
 				end
 			end
 			-- Create list
-			for k,v in ipairs(aPartyMember) do
-				table.insert(tMenu,fnAction(v))
+			for k, v in ipairs(aPartyMember) do
+				table.insert(tMenu, fnAction(v))
 			end
 			PopupMenu(tMenu)
 		end
@@ -2223,15 +2231,18 @@ _GKP.DrawDistributeList = function(doodad)
 				return JH.Alert(_L["No Equiptment left for Equiptment Boss"])
 			end
 			local p
-			for k,v in ipairs(aPartyMember) do
+			for k, v in ipairs(aPartyMember) do
 				if v.szName == _GKP.tDistributeRecords["EquipmentBoss"] then
 					p = v
 					break
 				end
 			end
 			if p and p.bOnlineFlag then  -- 这个人存在团队的情况下
+				if p.dwMapID ~= me.GetMapID() then
+					return JH.Alert(_L["No Pick up Object, Please confirm that in the Dungeon."])
+				end
 				local szXml = GetFormatText(_L["Are you sure you want the following item\n"], 162,255,255,255)
-				local r,g,b = JH.GetForceColor(p.dwForceID)
+				local r, g, b = JH.GetForceColor(p.dwForceID)
 				for k,v in ipairs(tEquipment) do
 					szXml = szXml .. GetFormatText("[".. GetItemNameByItem(v) .."]\n", "166"..GetItemFontColorByQuality(v.nQuality, true))
 				end
