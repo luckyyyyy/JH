@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-12 09:03:28
+-- @Last Modified time: 2015-03-18 12:31:59
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -184,6 +184,9 @@ GUI.RegisterPanel(_L["About"], 252, _L["Recreation"], _JH_About.PS)
 
 local function LoginGame()
 	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. "! v" .. JH.GetVersion() )
+	if IsRemotePlayer(UI_GetClientPlayerID()) then
+		return
+	end
 	JH.DelayCall(2000, function()
 		local me, szTong = GetClientPlayer(), ""
 		if me.dwTongID > 0 then
