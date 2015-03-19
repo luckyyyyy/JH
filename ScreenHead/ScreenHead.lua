@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-08 05:56:16
+-- @Last Modified time: 2015-03-20 06:33:45
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -20,10 +20,13 @@ JH.RegisterCustomData("ScreenHead")
 
 local ScreenHead = ScreenHead
 local ipairs, pairs = ipairs, pairs
-local unpack = unpack
+local unpack, tostring = unpack, tostring
 local GetPlayer = GetPlayer
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
+local GetTarget = JH.GetTarget
+local mMin = math.min
+local SCREEN_SELECT_FIX = 0.3
 local _ScreenHead = {
 	tList = {},
 	tCache = {
@@ -130,6 +133,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 			bIsPrepare, dwSkillID, dwSkillLevel, manaper = obj.GetSkillPrepareState()
 			if bIsPrepare then
 				txt = data.txt or JH.GetSkillName(dwSkillID, dwSkillLevel)
+				-- txt = txt .. string.format("%d%%", manaper * 100) -- 还是不加了 避免影响判断
 			else
 				return self:Remove(dwID, nIndex)
 			end
@@ -150,16 +154,19 @@ function _ScreenHead:Create(obj, info, nIndex)
 
 	if not handle then
 		self.handle:AppendItemFromString(string.format("<handle> name=\"%s\" </handle>", dwID))
-		handle = self.handle:Lookup(tostring(dwID))
+		handle       = self.handle:Lookup(tostring(dwID))
+		handle.Init  = true
 		handle.Arrow = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Arrow")
-		handle.Text = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Text")
-		handle.BG = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "BG")
-		handle.Life = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Life")
-		handle.Mana = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Mana")
-		handle.fY = 0
-		handle.s = 0
+		handle.Text  = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Text")
+		handle.BG    = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "BG")
+		handle.BG2   = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "BG2")
+		handle.Life  = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Life")
+		handle.Mana  = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Mana")
+		handle.fY    = 0
+		handle.s     = 0
 	end
 	handle.nIndex = nIndex
+	local _KTarget, _dwID = GetTarget()
 	local r, g, b
 	if data.col then
 		r, g, b = unpack(data.col)
@@ -192,17 +199,23 @@ function _ScreenHead:Create(obj, info, nIndex)
 	handle.Arrow:SetD3DPT(D3DPT.TRIANGLEFAN)
 	handle.Arrow:ClearTriangleFanPoint()
 	handle.Arrow:AppendCharacterID(dwID, true, r, g, b, cA, { 0, 0, 0, cX * value - fX, cY * value - fY })
+
+	if _KTarget and _KTarget.dwID == dwID then
+		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
+	end
 	for k,v in ipairs(self.tPoint) do
 		local x, y, a = unpack(v)
 		handle.Arrow:AppendCharacterID(dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
 	end
 	local x, y, a = unpack(self.tPoint[1])
 	handle.Arrow:AppendCharacterID(dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
-	---
 
 	handle.Text:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 	handle.Text:ClearTriangleFanPoint()
 	local r, g, b = unpack(self.tFontCol[data.type])
+	if _KTarget and _KTarget.dwID == dwID then
+		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
+	end
 	local szName = obj.szName
 	if not IsPlayer(obj.dwID) then
 		szName = JH.GetTemplateName(obj)
@@ -217,28 +230,48 @@ function _ScreenHead:Create(obj, info, nIndex)
 	if _r then r, g, b = _r, _g, _b end -- 5秒内显示红色倒计时
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
 
-
-	local bcX, bcY = -50 , -50
-	for k,v in ipairs({ handle.Life, handle.Mana, handle.BG }) do
+	for k,v in ipairs({ handle.Life, handle.Mana }) do
 		v:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 		v:SetD3DPT(D3DPT.TRIANGLEFAN)
 		v:ClearTriangleFanPoint()
 	end
-	handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX, bcY })
-	handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX + 100, bcY })
-	handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX + 100, bcY - 10 })
-	handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 255, { 0, 0, 0, bcX, bcY - 10 })
-	local r, g, b = unpack(tManaCol)
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX, bcY })
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX + (100 * manaper), bcY })
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX + (100 * manaper), bcY - 5 })
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, bcX, bcY - 5 })
 
-	local bcX ,bcY = -50 , -55
-	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX, bcY })
-	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX + (100 * lifeper), bcY })
-	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX + (100 * lifeper), bcY - 5 })
-	handle.Life:AppendCharacterID(dwID, true, 220, 40, 0, 255, { 0, 0, 0, bcX, bcY - 5 })
+	local bcX, bcY = -50, -60
+	if handle.Init then -- 绘制边框 免得每次刷新
+		for k,v in ipairs({ handle.BG, handle.BG2 }) do
+			v:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
+			v:SetD3DPT(D3DPT.TRIANGLEFAN)
+			v:ClearTriangleFanPoint()
+		end
+		handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY })
+		handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX + 100, bcY })
+		handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX + 100, bcY + 12 })
+		handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY + 12 })
+		bcX, bcY = -49, -59
+		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX, bcY })
+		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX + 100 - 2, bcY })
+		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX + 100 - 2, bcY + 12 - 2 })
+		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX, bcY + 12 - 2})
+		handle.Init = nil
+	end
+	bcX, bcY = -49, -59
+	local r, g ,b = 220, 40, 0
+	if _KTarget and _KTarget.dwID == dwID then
+		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
+	end
+	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
+	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * lifeper) - 2, bcY })
+	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * lifeper) - 2, bcY + 5 })
+	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
+	local r, g, b = unpack(tManaCol)
+	if _KTarget and _KTarget.dwID == dwID then
+		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
+	end
+	bcX, bcY = -49, -54
+	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
+	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * manaper) - 2, bcY })
+	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * manaper) - 2, bcY + 5 })
+	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
 end
 
 function _ScreenHead:Remove(dwID, nIndex)
