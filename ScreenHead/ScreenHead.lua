@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-20 06:33:45
+-- @Last Modified time: 2015-03-20 06:46:12
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -24,7 +24,8 @@ local unpack, tostring = unpack, tostring
 local GetPlayer = GetPlayer
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
-local GetTarget = JH.GetTarget
+local GetTarget, HasBuff, GetEndTime, GetBuffName, GetBuffTimeString, GetSkillName, GetDistance, GetTemplateName, IsParty =
+    JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.GetBuffTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, IsParty
 local mMin = math.min
 local SCREEN_SELECT_FIX = 0.3
 local _ScreenHead = {
@@ -98,16 +99,19 @@ function _ScreenHead:Create(obj, info, nIndex)
 	local _r, _g, _b
 	if data.type and data.type ~= "Other" then
 		if data.type == "Buff" or data.type == "Debuff" then
-			local bExist,tBuff = JH.HasBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
+			local bExist, tBuff = HasBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
 			if bExist then
-				local nSec = JH.GetEndTime(tBuff.nEndFrame)
+				local nSec = GetEndTime(tBuff.nEndFrame)
 				if nSec < 5 then
 					_r, _g, _b = 255, 0, 0
 				end
+				if nSec < 0 then
+					nSec = 0
+				end
 				if tBuff.nStackNum > 1 then
-					txt = string.format("%s(%d)_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, JH.GetBuffTimeString(nSec, 5999))
+					txt = string.format("%s(%d)_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, GetBuffTimeString(nSec, 5999))
 				else
-					txt = string.format("%s_%s", data.szName or JH.GetBuffName(tBuff.dwID, tBuff.nLevel), JH.GetBuffTimeString(nSec, 5999))
+					txt = string.format("%s_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), GetBuffTimeString(nSec, 5999))
 				end
 			else
 				return self:Remove(dwID, nIndex)
@@ -132,7 +136,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 			local bIsPrepare, dwSkillID, dwSkillLevel
 			bIsPrepare, dwSkillID, dwSkillLevel, manaper = obj.GetSkillPrepareState()
 			if bIsPrepare then
-				txt = data.txt or JH.GetSkillName(dwSkillID, dwSkillLevel)
+				txt = data.txt or GetSkillName(dwSkillID, dwSkillLevel)
 				-- txt = txt .. string.format("%d%%", manaper * 100) -- 还是不加了 避免影响判断
 			else
 				return self:Remove(dwID, nIndex)
@@ -166,7 +170,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 		handle.s     = 0
 	end
 	handle.nIndex = nIndex
-	local _KTarget, _dwID = GetTarget()
+	local _KTarget = GetTarget()
 	local r, g, b
 	if data.col then
 		r, g, b = unpack(data.col)
@@ -174,7 +178,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 		r, g, b = unpack(self.tArrowCol[data.type])
 	end
 	local cX, cY, cA = unpack(self.tPointC)
-	local fX, fY = 25,50
+	local fX, fY = 25, 50
 	if handle.s == 1 then
 		handle.fY = handle.fY + 2
 		if handle.fY >= 10 then
@@ -187,7 +191,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 		end
 	end
 	fY = fY - handle.fY
-	local nDistance = tonumber(string.format("%.1f", JH.GetDistance(obj)))
+	local nDistance = tonumber(string.format("%.1f", GetDistance(obj)))
 
 	if nDistance > 30 then
 		nDistance = 30
@@ -218,14 +222,14 @@ function _ScreenHead:Create(obj, info, nIndex)
 	end
 	local szName = obj.szName
 	if not IsPlayer(obj.dwID) then
-		szName = JH.GetTemplateName(obj)
+		szName = GetTemplateName(obj)
 	end
 
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
 	if dwID == UI_GetClientPlayerID() then
 		handle.Text:AppendCharacterID(dwID, true, 255, 0, 0, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L["_ME_"], 1, 1)
 	else
-		handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", JH.GetDistance(obj)), 1, 1)
+		handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", GetDistance(obj)), 1, 1)
 	end
 	if _r then r, g, b = _r, _g, _b end -- 5秒内显示红色倒计时
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
@@ -299,7 +303,7 @@ function _ScreenHead.GetObject(dwID)
 		local me = GetClientPlayer()
 		if dwID == me.dwID then
 			p, info = me, me
-		elseif JH.IsParty(dwID) then
+		elseif IsParty(dwID) then
 			p, info = GetPlayer(dwID), GetClientTeam().GetMemberInfo(dwID)
 		else
 			p, info = GetPlayer(dwID), GetPlayer(dwID)
@@ -412,7 +416,7 @@ end
 function _ScreenHead.OnBuffUpdate()
 	if not ScreenHead.bEnable then return end
 	if arg1 then return end
-	local szName = JH.GetBuffName(arg4,arg8)
+	local szName = GetBuffName(arg4,arg8)
 	if ScreenHead.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
 		local type = arg3 and "Buff" or "Debuff"
 		_ScreenHead.RegisterHead(arg0, { type = type, dwID = arg4 })
@@ -420,7 +424,7 @@ function _ScreenHead.OnBuffUpdate()
 end
 
 function _ScreenHead.OnNpcUpdate()
-	local szName = JH.GetTemplateName(GetNpc(arg0))
+	local szName = GetTemplateName(GetNpc(arg0))
 	if ScreenHead.tNpcList[szName] then
 		_ScreenHead.RegisterHead(arg0,{ type = "Object", txt = _L["aim"] })
 	end
