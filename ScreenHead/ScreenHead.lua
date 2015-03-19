@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-20 06:46:12
+-- @Last Modified time: 2015-03-20 07:18:58
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -20,14 +20,17 @@ JH.RegisterCustomData("ScreenHead")
 
 local ScreenHead = ScreenHead
 local ipairs, pairs = ipairs, pairs
-local unpack, tostring = unpack, tostring
-local GetPlayer = GetPlayer
-local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+local unpack, tostring, tonumber, sFormat =
+	  unpack, tostring, tonumber, string.format
+local mMin = math.min
+local GetTime, IsPlayer = GetTime, IsPlayer
+local GetPlayer, GetClientPlayer, GetClientTeam =
+	  GetPlayer, GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
 local GetTarget, HasBuff, GetEndTime, GetBuffName, GetBuffTimeString, GetSkillName, GetDistance, GetTemplateName, IsParty =
-    JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.GetBuffTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, IsParty
-local mMin = math.min
+	  JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.GetBuffTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, IsParty
 local SCREEN_SELECT_FIX = 0.3
+
 local _ScreenHead = {
 	tList = {},
 	tCache = {
@@ -109,9 +112,9 @@ function _ScreenHead:Create(obj, info, nIndex)
 					nSec = 0
 				end
 				if tBuff.nStackNum > 1 then
-					txt = string.format("%s(%d)_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, GetBuffTimeString(nSec, 5999))
+					txt = sFormat("%s(%d)_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, GetBuffTimeString(nSec, 5999))
 				else
-					txt = string.format("%s_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), GetBuffTimeString(nSec, 5999))
+					txt = sFormat("%s_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), GetBuffTimeString(nSec, 5999))
 				end
 			else
 				return self:Remove(dwID, nIndex)
@@ -124,12 +127,12 @@ function _ScreenHead:Create(obj, info, nIndex)
 				if lifeper > ScreenHead.nTeamHp then
 					return self:Remove(dwID, nIndex)
 				end
-				txt = g_tStrings.STR_SKILL_H_LIFE_COST .. string.format("%d/%d", info.nCurrentLife, info.nMaxLife)
+				txt = g_tStrings.STR_SKILL_H_LIFE_COST .. sFormat("%d/%d", info.nCurrentLife, info.nMaxLife)
 			elseif data.type == "Mana" then
 				if manaper > ScreenHead.nTeamMp then
 					return self:Remove(dwID, nIndex)
 				end
-				txt = g_tStrings.STR_SKILL_H_MANA_COST .. string.format("%d/%d", info.nCurrentMana, info.nMaxMana)
+				txt = g_tStrings.STR_SKILL_H_MANA_COST .. sFormat("%d/%d", info.nCurrentMana, info.nMaxMana)
 			end
 		elseif data.type == "Skill" then
 			tManaCol = { 255,128,0 }
@@ -137,7 +140,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 			bIsPrepare, dwSkillID, dwSkillLevel, manaper = obj.GetSkillPrepareState()
 			if bIsPrepare then
 				txt = data.txt or GetSkillName(dwSkillID, dwSkillLevel)
-				-- txt = txt .. string.format("%d%%", manaper * 100) -- 还是不加了 避免影响判断
+				-- txt = txt .. sFormat("%d%%", manaper * 100) -- 还是不加了 避免影响判断
 			else
 				return self:Remove(dwID, nIndex)
 			end
@@ -157,20 +160,20 @@ function _ScreenHead:Create(obj, info, nIndex)
 	end
 
 	if not handle then
-		self.handle:AppendItemFromString(string.format("<handle> name=\"%s\" </handle>", dwID))
+		self.handle:AppendItemFromString(sFormat("<handle> name=\"%s\" </handle>", dwID))
 		handle       = self.handle:Lookup(tostring(dwID))
 		handle.Init  = true
-		handle.Arrow = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Arrow")
-		handle.Text  = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Text")
-		handle.BG    = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "BG")
-		handle.BG2   = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "BG2")
-		handle.Life  = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Life")
-		handle.Mana  = handle:AppendItemFromIni(self.szItemIni, "shadow", dwID .. "Mana")
+		handle.Arrow = handle:AppendItemFromIni(self.szItemIni, "shadow", "Arrow")
+		handle.Text  = handle:AppendItemFromIni(self.szItemIni, "shadow", "Text")
+		handle.BG    = handle:AppendItemFromIni(self.szItemIni, "shadow", "BG")
+		handle.BG2   = handle:AppendItemFromIni(self.szItemIni, "shadow", "BG2")
+		handle.Life  = handle:AppendItemFromIni(self.szItemIni, "shadow", "Life")
+		handle.Mana  = handle:AppendItemFromIni(self.szItemIni, "shadow", "Mana")
 		handle.fY    = 0
 		handle.s     = 0
 	end
 	handle.nIndex = nIndex
-	local _KTarget = GetTarget()
+	local KTarget = GetTarget()
 	local r, g, b
 	if data.col then
 		r, g, b = unpack(data.col)
@@ -191,20 +194,23 @@ function _ScreenHead:Create(obj, info, nIndex)
 		end
 	end
 	fY = fY - handle.fY
-	local nDistance = tonumber(string.format("%.1f", GetDistance(obj)))
+	local nDistance = GetDistance(obj)
+	local value
 
 	if nDistance > 30 then
-		nDistance = 30
+		fX = fX - fX * 30 * 0.011
+		value = 1 - 30 * 0.01
+	else
+		fX = fX - fX * nDistance * 0.011
+		value = 1 - nDistance * 0.01
 	end
-	fX = fX - fX * nDistance * 0.011
-	local value = 1 - nDistance * 0.01
 
 	handle.Arrow:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	handle.Arrow:SetD3DPT(D3DPT.TRIANGLEFAN)
 	handle.Arrow:ClearTriangleFanPoint()
 	handle.Arrow:AppendCharacterID(dwID, true, r, g, b, cA, { 0, 0, 0, cX * value - fX, cY * value - fY })
 
-	if _KTarget and _KTarget.dwID == dwID then
+	if KTarget and KTarget.dwID == dwID then
 		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
 	end
 	for k,v in ipairs(self.tPoint) do
@@ -217,19 +223,16 @@ function _ScreenHead:Create(obj, info, nIndex)
 	handle.Text:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 	handle.Text:ClearTriangleFanPoint()
 	local r, g, b = unpack(self.tFontCol[data.type])
-	if _KTarget and _KTarget.dwID == dwID then
+	if KTarget and KTarget.dwID == dwID then
 		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
 	end
-	local szName = obj.szName
-	if not IsPlayer(obj.dwID) then
-		szName = GetTemplateName(obj)
-	end
+	local szName = IsPlayer(obj.dwID) and obj.szName or GetTemplateName(obj)
 
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
 	if dwID == UI_GetClientPlayerID() then
 		handle.Text:AppendCharacterID(dwID, true, 255, 0, 0, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L["_ME_"], 1, 1)
 	else
-		handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", GetDistance(obj)), 1, 1)
+		handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", nDistance), 1, 1)
 	end
 	if _r then r, g, b = _r, _g, _b end -- 5秒内显示红色倒计时
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
@@ -260,7 +263,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	end
 	bcX, bcY = -49, -59
 	local r, g ,b = 220, 40, 0
-	if _KTarget and _KTarget.dwID == dwID then
+	if KTarget and KTarget.dwID == dwID then
 		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
 	end
 	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
@@ -268,7 +271,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * lifeper) - 2, bcY + 5 })
 	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
 	local r, g, b = unpack(tManaCol)
-	if _KTarget and _KTarget.dwID == dwID then
+	if KTarget and KTarget.dwID == dwID then
 		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
 	end
 	bcX, bcY = -49, -54
@@ -514,4 +517,3 @@ JH.RegisterInit("ScreenHead",
 )
 
 GUI.RegisterPanel(_L["HeadAlert"], 2789, _L["RGES"], PS)
-
