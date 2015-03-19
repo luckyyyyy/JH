@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-18 04:26:20
+-- @Last Modified time: 2015-03-18 12:49:44
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -9,7 +9,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x0090301
+local _VERSION_   = 0x0090302
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
@@ -69,7 +69,7 @@ do
 end
 
 local _JH = {
-	szBuildDate = "20150306",
+	szBuildDate = "20150318",
 	szTitle = _L["JH, JX3 Plug-in Collection"],
 	tHotkey = {},
 	tDelayCall = {},
