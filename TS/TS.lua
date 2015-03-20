@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-20 11:10:18
+-- @Last Modified time: 2015-03-21 03:18:31
 local _L = JH.LoadLangPack
 
 TS = {
@@ -40,7 +40,7 @@ local _TS = {
 	DPS_TIME  = 0,
 	DPS_TOTAL = 0
 }
-_TS.OpenPanel = function()
+function _TS.OpenPanel()
 	local frame = _TS.frame or Wnd.OpenWindow(_TS.szIniFile, "TS")
 	local dwID, dwType = Target_GetTargetData()
 	if dwType ~= TARGET.NPC then
@@ -49,9 +49,10 @@ _TS.OpenPanel = function()
 	return frame
 end
 
-_TS.ClosePanel = function()
+function _TS.ClosePanel()
 	Wnd.CloseWindow(_TS.frame)
 	JH.UnBreatheCall("TS")
+	JH.UnBreatheCall("TS_DPS")
 	-- 释放变量
 	_TS.frame = nil
 	_TS.bg = nil
@@ -154,7 +155,7 @@ function TS.OnFrameDragEnd()
 	TS.tAnchor = GetFrameAnchor(this)
 end
 
-_TS.OnDpsBreathe = function()
+function _TS.OnDpsBreathe()
 	-- DPS统计 需要茗伊插件
 	if MY_Recount_GetData then
 		local me = GetClientPlayer()
@@ -177,7 +178,7 @@ _TS.OnDpsBreathe = function()
 	end
 end
 
-_TS.OnBreathe = function()
+function _TS.OnBreathe()
 	local p = GetNpc(_TS.dwTargetID)
 	if p then
 		ApplyCharacterThreatRankList(_TS.dwTargetID)
@@ -231,7 +232,7 @@ _TS.OnBreathe = function()
 	end
 end
 
-_TS.UnBreathe = function()
+function _TS.UnBreathe()
 	JH.UnBreatheCall("TS")
 	_TS.frame:Hide()
 	_TS.dwTargetID = 0
@@ -246,7 +247,7 @@ _TS.UnBreathe = function()
 	_TS.frame:Lookup("", "Text_Title").szText = ""
 end
 
-_TS.UpdateAnchor = function(frame)
+function _TS.UpdateAnchor(frame)
 	local a = TS.tAnchor
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
@@ -261,7 +262,7 @@ end
 -- 2) 反馈的目标是错误的 也BUG了 fixed
 -- 3) 因为是异步 反馈时目标已经更新 也需要同时更新 fixed
 -- 4) 反馈的列表中不存在当前目标 fixed
-_TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
+function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 	local team = GetClientTeam()
 	local tThreat, nTopRank, nMyRank = {}, 65535, 0
 	-- 修复arg2反馈不准 当前目标才修复 非当前目标也不准。。
@@ -404,7 +405,7 @@ _TS.UpdateThreatBars = function(tList, dwTargetID, dwApplyID)
 end
 
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.HATRED_COLLECT, font = 27 }):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = TS.bEnable, txt = _L["Enable ThreatScrutiny"] }):Click(function(bChecked)
