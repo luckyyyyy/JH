@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-20 07:18:58
+-- @Last Modified time: 2015-03-20 07:24:41
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -208,11 +208,10 @@ function _ScreenHead:Create(obj, info, nIndex)
 	handle.Arrow:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	handle.Arrow:SetD3DPT(D3DPT.TRIANGLEFAN)
 	handle.Arrow:ClearTriangleFanPoint()
-	handle.Arrow:AppendCharacterID(dwID, true, r, g, b, cA, { 0, 0, 0, cX * value - fX, cY * value - fY })
-
 	if KTarget and KTarget.dwID == dwID then
 		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
 	end
+	handle.Arrow:AppendCharacterID(dwID, true, r, g, b, cA, { 0, 0, 0, cX * value - fX, cY * value - fY })
 	for k,v in ipairs(self.tPoint) do
 		local x, y, a = unpack(v)
 		handle.Arrow:AppendCharacterID(dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
@@ -255,10 +254,10 @@ function _ScreenHead:Create(obj, info, nIndex)
 		handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX + 100, bcY + 12 })
 		handle.BG:AppendCharacterID(dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY + 12 })
 		bcX, bcY = -49, -59
-		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX, bcY })
-		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX + 100 - 2, bcY })
-		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX + 100 - 2, bcY + 12 - 2 })
-		handle.BG2:AppendCharacterID(dwID, true, 80, 80, 80, 80, { 0, 0, 0, bcX, bcY + 12 - 2})
+		handle.BG2:AppendCharacterID(dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY })
+		handle.BG2:AppendCharacterID(dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX + 100 - 2, bcY })
+		handle.BG2:AppendCharacterID(dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX + 100 - 2, bcY + 12 - 2 })
+		handle.BG2:AppendCharacterID(dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY + 12 - 2})
 		handle.Init = nil
 	end
 	bcX, bcY = -49, -59
@@ -471,11 +470,11 @@ function PS.OnPanelActive(frame)
 
 	nX = ui:Append("Text", { txt = _L["While HP less than"], x = 10, y = nY }):Pos_()
 	nX,nY = ui:Append("WndTrackBar", "Track_HP", { x = nX +10, y = nY + 3, enable = ScreenHead.bTeamAlert })
-	:Range(0,100,50):Value(ScreenHead.nTeamHp * 100):Change(function(nVal) ScreenHead.nTeamHp = nVal / 100 end):Pos_()
+	:Range(0,100,100):Value(ScreenHead.nTeamHp * 100):Change(function(nVal) ScreenHead.nTeamHp = nVal / 100 end):Pos_()
 
 	nX = ui:Append("Text", { txt = _L["While MP less than"], x = 10, y = nY }):Pos_()
 	nX,nY = ui:Append("WndTrackBar", "Track_MP", { x = nX + 10, y = nY + 3, enable = ScreenHead.bTeamAlert })
-	:Range(0,100,50):Value(ScreenHead.nTeamMp * 100):Change(function(nVal) ScreenHead.nTeamMp = nVal / 100 end):Pos_()
+	:Range(0,100,100):Value(ScreenHead.nTeamMp * 100):Change(function(nVal) ScreenHead.nTeamMp = nVal / 100 end):Pos_()
 
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
 	nX,nY =ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 70, limit = 4096,multi = true})

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 22:30:54
+-- @Last Modified time: 2015-03-20 10:40:23
 local _L = JH.LoadLangPack
 
 TS = {
@@ -25,6 +25,10 @@ local ipairs, pairs = ipairs, pairs
 local GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
+local MY_Recount_GetData
+local HATRED_COLLECT = g_tStrings.HATRED_COLLECT
+local HasBuff, GetBuffName, GetEndTime = JH.HasBuff, JH.GetBuffName, JH.GetEndTime
+local GetNpcIntensity = GetNpcIntensity
 
 local _TS = {
 	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
@@ -33,6 +37,8 @@ local _TS = {
 	dwLockTargetID = 0,
 	bSelfTreatRank = 0,
 	dwDropTargetPlayerID = 0,
+	DPS_TIME  = 0,
+	DPS_TOTAL = 0
 }
 _TS.OpenPanel = function()
 	local frame = _TS.frame or Wnd.OpenWindow(_TS.szIniFile, "TS")
@@ -57,6 +63,8 @@ _TS.ClosePanel = function()
 	_TS.dwTargetID = 0
 	_TS.bSelfTreatRank = 0
 	_TS.dwDropTargetPlayerID = 0
+	_TS.DPS_TIME  = 0
+	_TS.DPS_TOTAL = 0
 end
 
 function TS.OnFrameCreate()
@@ -90,6 +98,9 @@ function TS.OnFrameCreate()
 		JH.OpenPanel(g_tStrings.HATRED_COLLECT)
 	end)
 	TS.OnEvent("TARGET_CHANGE")
+	if not MY_Recount_GetData and MY_Recount and MY_Recount.Data and MY_Recount.Data.Get then
+		MY_Recount_GetData = MY_Recount.Data.Get
+	end
 end
 
 function TS.OnEvent(szEvent)
@@ -104,12 +115,14 @@ function TS.OnEvent(szEvent)
 				_TS.dwTargetID = dwID
 			end
 			JH.BreatheCall("TS", _TS.OnBreathe)
+			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 1500)
 			this:Show()
 		elseif dwType == TARGET.PLAYER and GetPlayer(dwID) then
 			local tdwTpye, tdwID = GetPlayer(dwID).GetTarget()
 			if tdwTpye == TARGET.NPC then
 				_TS.dwTargetID = tdwID
 				JH.BreatheCall("TS", _TS.OnBreathe)
+				JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 1500)
 				this:Show()
 			else
 				_TS.UnBreathe()
@@ -124,6 +137,8 @@ function TS.OnEvent(szEvent)
 	elseif szEvent == "FIGHT_HINT" then
 		if not arg0 then
 			_TS.dwDropTargetPlayerID = GetTime()
+			_TS.DPS_TIME  = 0
+			_TS.DPS_TOTAL = 0
 		end
 	end
 end
@@ -131,6 +146,33 @@ end
 function TS.OnFrameDragEnd()
 	this:CorrectPos()
 	TS.tAnchor = GetFrameAnchor(this)
+end
+
+_TS.OnDpsBreathe = function()
+	-- DPS统计 需要茗伊插件
+	if MY_Recount_GetData then
+		if me.bFightState then
+			local me = GetClientPlayer()
+			local dps = MY_Recount_GetData(0)
+			local nTotalEffect = 0
+			for k, v in pairs(dps["Damage"]) do
+				nTotalEffect = nTotalEffect + v["nTotalEffect"]
+			end
+			local nTime  = GetTime() - _TS.DPS_TIME
+			if _TS.DPS_TIME ~= 0 then
+				local nTotal = nTotalEffect - _TS.DPS_TOTAL
+				local nTime  = GetTime() - _TS.DPS_TIME
+				local nDps   = math.ceil(nTotal / (nTime / 1000))
+				_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%.1fw", nDps / 10000)
+			end
+			_TS.DPS_TIME  = GetTime()
+			_TS.DPS_TOTAL = nTotalEffect
+		else
+			_TS.DPS_TOTAL = 0
+			_TS.DPS_TIME  = 0
+			_TS.frame:Lookup("", "Text_Title").szText = ""
+		end
+	end
 end
 
 _TS.OnBreathe = function()
@@ -149,15 +191,19 @@ _TS.OnBreathe = function()
 			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
 			_TS.Life:SetPercentage(lifeper)
 		end
+
 		-- 无威胁提醒
-		local bExist, tBuff = JH.HasBuff({ 917, 4487, 926, 775, 4101, 8422 })
+		local bExist, tBuff = HasBuff({ 917, 4487, 926, 775, 4101, 8422 })
+		local hText = _TS.frame:Lookup("", "Text_Title")
+		local szText = hText.szText or ""
 		if bExist then
-			local szName = JH.GetBuffName(tBuff.dwID, tBuff.nLevel)
-			_TS.frame:Lookup("", "Text_Title"):SetText(string.format("%s (%ds)", szName, math.floor(JH.GetEndTime(tBuff.nEndFrame))))
-			_TS.frame:Lookup("", "Text_Title"):SetFontColor(0, 255, 0)
+			local szName = GetBuffName(tBuff.dwID, tBuff.nLevel)
+			hText:SetText(string.format("%s (%ds)", szName, math.floor(GetEndTime(tBuff.nEndFrame))) .. szText)
+			hText:SetFontColor(0, 255, 0)
 		else
-			_TS.frame:Lookup("", "Text_Title"):SetText(g_tStrings.HATRED_COLLECT)
-			_TS.frame:Lookup("", "Text_Title"):SetFontColor(255, 255, 255)
+			hText:SetText(HATRED_COLLECT .. szText)
+			hText:SetFontColor(255, 255, 255)
+			hText.bBuff = nil
 		end
 
 		-- 开怪提醒
@@ -191,6 +237,11 @@ _TS.UnBreathe = function()
 	_TS.bg:SetSize(240, 55)
 	_TS.txt:SetText(_L["Loading..."])
 	_TS.Life:SetPercentage(0)
+	-- 取消DPS的统计
+	JH.UnBreatheCall("TS_DPS")
+	_TS.DPS_TIME  = 0
+	_TS.DPS_TOTAL = 0
+	_TS.frame:Lookup("", "Text_Title").szText = ""
 end
 
 _TS.UpdateAnchor = function(frame)
