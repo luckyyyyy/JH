@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-20 10:53:16
+-- @Last Modified time: 2015-03-20 11:10:18
 local _L = JH.LoadLangPack
 
 TS = {
@@ -117,14 +117,14 @@ function TS.OnEvent(szEvent)
 				_TS.dwTargetID = dwID
 			end
 			JH.BreatheCall("TS", _TS.OnBreathe)
-			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 1500)
+			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 2000)
 			this:Show()
 		elseif dwType == TARGET.PLAYER and GetPlayer(dwID) then
 			local tdwTpye, tdwID = GetPlayer(dwID).GetTarget()
 			if tdwTpye == TARGET.NPC then
 				_TS.dwTargetID = tdwID
 				JH.BreatheCall("TS", _TS.OnBreathe)
-				JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 1500)
+				JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 2000)
 				this:Show()
 			else
 				_TS.UnBreathe()
