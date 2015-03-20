@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-20 10:40:23
+-- @Last Modified time: 2015-03-20 10:53:16
 local _L = JH.LoadLangPack
 
 TS = {
@@ -72,6 +72,8 @@ function TS.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("FIGHT_HINT")
+	this:RegisterEvent("MY_FIGHT_HINT")
+
 	_TS.UpdateAnchor(this)
 	_TS.frame = this
 	_TS.bg = this:Lookup("", "Image_Background")
@@ -137,8 +139,12 @@ function TS.OnEvent(szEvent)
 	elseif szEvent == "FIGHT_HINT" then
 		if not arg0 then
 			_TS.dwDropTargetPlayerID = GetTime()
+		end
+	elseif szEvent == "MY_FIGHT_HINT" then
+		if not arg0 then
 			_TS.DPS_TIME  = 0
 			_TS.DPS_TOTAL = 0
+			_TS.frame:Lookup("", "Text_Title").szText = ""
 		end
 	end
 end
@@ -151,8 +157,8 @@ end
 _TS.OnDpsBreathe = function()
 	-- DPS统计 需要茗伊插件
 	if MY_Recount_GetData then
+		local me = GetClientPlayer()
 		if me.bFightState then
-			local me = GetClientPlayer()
 			local dps = MY_Recount_GetData(0)
 			local nTotalEffect = 0
 			for k, v in pairs(dps["Damage"]) do
@@ -167,10 +173,6 @@ _TS.OnDpsBreathe = function()
 			end
 			_TS.DPS_TIME  = GetTime()
 			_TS.DPS_TOTAL = nTotalEffect
-		else
-			_TS.DPS_TOTAL = 0
-			_TS.DPS_TIME  = 0
-			_TS.frame:Lookup("", "Text_Title").szText = ""
 		end
 	end
 end
