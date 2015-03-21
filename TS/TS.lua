@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-21 11:07:49
+-- @Last Modified time: 2015-03-21 11:11:59
 local _L = JH.LoadLangPack
 
 TS = {
@@ -117,7 +117,7 @@ function TS.OnEvent(szEvent)
 			else
 				_TS.dwTargetID = dwID
 			end
-			TS.frame.nCount = 0
+			_TS.frame.nCount = 0
 			JH.BreatheCall("TS", _TS.OnBreathe)
 			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 2000)
 			this:Show()
@@ -125,7 +125,7 @@ function TS.OnEvent(szEvent)
 			local tdwTpye, tdwID = GetPlayer(dwID).GetTarget()
 			if tdwTpye == TARGET.NPC then
 				_TS.dwTargetID = tdwID
-				TS.frame.nCount = 0
+				_TS.frame.nCount = 0
 				JH.BreatheCall("TS", _TS.OnBreathe)
 				JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 2000)
 				this:Show()
@@ -192,7 +192,7 @@ function _TS.OnBreathe()
 	local p = GetNpc(_TS.dwTargetID)
 	if p then
 		-- 官方的代码 直接抄
-		local frame = TS.frame
+		local frame = _TS.frame
 		if not frame.nCount or frame.nCount > 16 then
 			frame.nCount = 0
 			ApplyCharacterThreatRankList(_TS.dwTargetID)
