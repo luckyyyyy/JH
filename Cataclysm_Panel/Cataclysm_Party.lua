@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-21 12:00:16
+-- @Last Modified time: 2015-03-21 12:12:47
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -72,12 +72,6 @@ local function IsPlayerManaHide(dwForceID, dwMountType)
 	else
 		return HIDE_FORCE[dwForceID]
 	end
-end
-
-local function EditBox_AppendLinkPlayer(szName)
-	local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-	edit:InsertObj("[" .. szName .. "]", { type = "name", text = "[" .. szName .. "]", name = szName })
-	Station.SetFocusWindow(edit)
 end
 
 local function OpenRaidDragPanel(dwMemberID)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-04 17:43:00
+-- @Last Modified time: 2015-03-21 12:11:15
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {
 		LEAVE_BLACK_LIST = 5,
@@ -782,6 +782,7 @@ function OutputPlayerTip(dwPlayerID, Rect)
 	OutputTip(szTip, 345, Rect)
 end
 end
+
 if not GetCampImageFrame then
 function GetCampImageFrame(eCamp, bFight)	-- ui\Image\UICommon\CommonPanel2.UITex
 	local nFrame
@@ -799,5 +800,14 @@ function GetCampImageFrame(eCamp, bFight)	-- ui\Image\UICommon\CommonPanel2.UITe
 		end
 	end
 	return nFrame
+end
+end
+
+if not EditBox_AppendLinkPlayer then
+function EditBox_AppendLinkPlayer(szName)
+	local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
+	edit:InsertObj("[".. szName .."]", { type = "name", text = "[".. szName .."]", name = szName })
+	Station.SetFocusWindow(edit)
+	return true
 end
 end

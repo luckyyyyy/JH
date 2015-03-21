@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-18 03:43:27
+-- @Last Modified time: 2015-03-21 12:11:37
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -461,12 +461,6 @@ GKP.GetFormatLink = function(item, bName)
 			return { type = "iteminfo", version = item.nVersion, tabtype = item.dwTabType, index = item.dwIndex, text = "" }
 		end
 	end
-end
-
-GKP.InsertEditByName = function(szName)
-	local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-	edit:InsertObj("[" .. szName .. "]", GKP.GetFormatLink(szName))
-	Station.SetFocusWindow(edit)
 end
 
 GKP.OnItemLinkDown = function(item,ui)
@@ -1104,7 +1098,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 		item:Lookup("Text_Name"):RegisterEvent(786)
 		item:Lookup("Text_Name").OnItemLButtonClick = function()
 			if IsCtrlKeyDown() then
-				return GKP.InsertEditByName(v.szName)
+				return EditBox_AppendLinkPlayer(v.szName)
 			end
 			SetTarget(TARGET.PLAYER,v.dwID)
 			ViewInviteToPlayer(v.dwID)
@@ -1279,7 +1273,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			item:Lookup("Text_Name"):RegisterEvent(786)
 			item:Lookup("Text_Name").OnItemLButtonClick = function()
 				if IsCtrlKeyDown() then
-					return GKP.InsertEditByName(v.szPlayer)
+					return EditBox_AppendLinkPlayer(v.szPlayer)
 				end
 			end
 
@@ -2730,7 +2724,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 		item:Lookup("Text_Name"):RegisterEvent(786)
 		item:Lookup("Text_Name").OnItemLButtonClick = function()
 			if IsCtrlKeyDown() then
-				return GKP.InsertEditByName(v.szPlayer)
+				return EditBox_AppendLinkPlayer(v.szPlayer)
 			end
 		end
 
