@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-18 12:49:44
+-- @Last Modified time: 2015-03-21 10:29:42
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -1233,12 +1233,37 @@ end
 
 function _JH.GetPlayerAddonMenu()
 	local menu = _JH.GetMainMenu()
-	tinsert(menu,{ szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
-	tinsert(menu,{ bDevide = true })
+	tinsert(menu, { szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
+	tinsert(menu, { bDevide = true })
 	for i = 1, #_JH.tOption, 1 do
 		local m = _JH.tOption[i]
 		if type(m) == "function" then m = m() end
 		tinsert(menu, m)
+	end
+	if JH.bDebug then
+		tinsert(menu, { bDevide = true })
+		tinsert(menu, { szOption = "Enable Debug mode", bCheck = true, bChecked = JH.bDebug, fnAction = function()
+			JH.bDebug = not JH.bDebug
+		end })
+		tinsert(menu, { bDevide = true })
+		tinsert(menu, { szOption = "Debug Level 1", bMCheck = true, bChecked = _JH.nDebug == 1, fnAction = function()
+			_JH.nDebug = 1
+		end })
+		tinsert(menu, { szOption = "Debug Level 2", bMCheck = true, bChecked = _JH.nDebug == 2, fnAction = function()
+			_JH.nDebug = 2
+		end })
+		tinsert(menu, { szOption = "Debug Level 3", bMCheck = true, bChecked = _JH.nDebug == 3, fnAction = function()
+			_JH.nDebug = 3
+		end })
+		tinsert(menu, { bDevide = true })
+		tinsert(menu, { szOption = "Talk Debug Channel",
+			{ szOption = g_tStrings.tChannelName["MSG_TEAM"], rgb = GetMsgFontColor("MSG_TEAM", true), bMCheck = true ,bChecked = JH.nChannel == PLAYER_TALK_CHANNEL.RAID, fnAction = function()
+				JH.nChannel = PLAYER_TALK_CHANNEL.RAID
+			end },
+			{ szOption = g_tStrings.tChannelName["MSG_GUILD"], rgb = GetMsgFontColor("MSG_GUILD", true), bMCheck = true ,bChecked = JH.nChannel == PLAYER_TALK_CHANNEL.TONG, fnAction = function()
+				JH.nChannel = PLAYER_TALK_CHANNEL.TONG
+			end },
+		})
 	end
 	--[[
 	tinsert(menu, { bDevide = true })
