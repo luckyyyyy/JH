@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-13 07:17:48
+-- @Last Modified time: 2015-03-21 12:00:16
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -14,7 +14,8 @@ local setmetatable = setmetatable
 local GetDistance, HasBuff, GetEndTime, IsParty, GetTarget = JH.GetDistance, JH.HasBuff, JH.GetEndTime, JH.IsParty, JH.GetTarget
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
 local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
-local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
+
+local CFG                    = RaidGrid_CTM_Edition
 -- global STR cache
 local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
 local STR_FRIEND_NOT_ON_LINE = g_tStrings.STR_FRIEND_NOT_ON_LINE
@@ -115,7 +116,7 @@ local function OpenRaidDragPanel(dwMemberID)
 	end
 	hMember:Show()
 	hFrame:BringToTop()
-	hFrame:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY)
+	hFrame:Scale(CFG.fScaleX, CFG.fScaleY)
 end
 
 local function CloseRaidDragPanel()
@@ -259,7 +260,7 @@ function CTM:CreatePanel(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
 	if not frame then
 		frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
-		frame:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY)
+		frame:Scale(CFG.fScaleX, CFG.fScaleY)
 	end
 	self:AutoLinkAllPanel()
 	self:RefreshGroupText()
@@ -291,8 +292,8 @@ function CTM:RefreshGroupText()
 		end
 	end
 end
-
-function CTM:AutoLinkAllPanel() --自动连接所有面板
+ -- 连接所有面板
+function CTM:AutoLinkAllPanel()
 	local frameMain = Station.Lookup("Normal/RaidGrid_CTM_Edition")
 	local nX, nY = frameMain:GetRelPos()
 	nY = nY + 24
@@ -304,13 +305,13 @@ function CTM:AutoLinkAllPanel() --自动连接所有面板
 		if hPartyPanel then
 			local nW, nH = hPartyPanel:GetSize()
 
-			if nShownCount < RaidGrid_CTM_Edition.nAutoLinkMode then
-				tPosnSize[nShownCount] = { nX = nX + (128 * RaidGrid_CTM_Edition.fScaleX * nShownCount), nY = nY, nW = nW, nH = nH }
+			if nShownCount < CFG.nAutoLinkMode then
+				tPosnSize[nShownCount] = { nX = nX + (128 * CFG.fScaleX * nShownCount), nY = nY, nW = nW, nH = nH }
 			else
-				local nUpperIndex = math.min(nShownCount - RaidGrid_CTM_Edition.nAutoLinkMode, RaidGrid_CTM_Edition.nAutoLinkMode - 1)
-				local tPS = tPosnSize[nUpperIndex] or {nH = 235 * RaidGrid_CTM_Edition.fScaleY}
+				local nUpperIndex = math.min(nShownCount - CFG.nAutoLinkMode, CFG.nAutoLinkMode - 1)
+				local tPS = tPosnSize[nUpperIndex] or {nH = 235 * CFG.fScaleY}
 				tPosnSize[nShownCount] = {
-					nX = nX + (128 * RaidGrid_CTM_Edition.fScaleX * (nShownCount - RaidGrid_CTM_Edition.nAutoLinkMode)),
+					nX = nX + (128 * CFG.fScaleX * (nShownCount - CFG.nAutoLinkMode)),
 					nY = nY + tPosnSize[nUpperIndex].nH,
 					nW = nW,
 					nH = nH
@@ -365,7 +366,7 @@ function CTM:RefreshTarget()
 		end
 	end
 
-	if RaidGrid_CTM_Edition.bShowTargetTargetAni and dwID then
+	if CFG.bShowTargetTargetAni and dwID then
 		local KObject = GetTarget(dwID)
 		if KObject then
 			local tdwType, tdwID = KObject.GetTarget()
@@ -395,7 +396,7 @@ function CTM:RefreshMark()
 				end
 				v:Lookup("Image_MarkImage"):FromUITex(PARTY_MARK_ICON_PATH, nIconFrame)
 				v:Lookup("Image_MarkImage"):Show()
-				local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+				local fScale = (CFG.fScaleY + CFG.fScaleX) / 2
 				v:Lookup("Image_MarkImage"):SetSize(24 * fScale, 24 * fScale)
 			else
 				v:Lookup("Image_MarkImage"):Hide()
@@ -435,7 +436,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 			for k, v in pairs(hTotal) do
 				if t[k] == dwID then
 					v:Show()
-					local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+					local fScale = (CFG.fScaleY + CFG.fScaleX) / 2
 					v:SetSize(14 * fScale, 14 * fScale)
 				else
 					v:Hide()
@@ -452,7 +453,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 	-- 刷新阵眼
 	if type(bFormationLeader) == "boolean" then
 		if bFormationLeader then
-			local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+			local fScale = (CFG.fScaleY + CFG.fScaleX) / 2
 			h:Lookup("Handle_Icons/Image_Matrix"):SetSize(14 * fScale, 14 * fScale)
 			h:Lookup("Handle_Icons/Image_Matrix"):Show()
 		else
@@ -462,18 +463,18 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 	-- 刷新内功
 	if bIcon then -- 刷新icon
 		local img = h:Lookup("Image_Icon")
-		if RaidGrid_CTM_Edition.nShowIcon ~= 4 then
-			if RaidGrid_CTM_Edition.nShowIcon == 2 then
+		if CFG.nShowIcon ~= 4 then
+			if CFG.nShowIcon == 2 then
 				local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
 				if nIconID == 13 then nIconID = 537 end -- _(:з」∠)_
 				img:FromIconID(nIconID)
-			elseif RaidGrid_CTM_Edition.nShowIcon == 1 then
+			elseif CFG.nShowIcon == 1 then
 				img:FromUITex(GetForceImage(info.dwForceID))
-			elseif RaidGrid_CTM_Edition.nShowIcon == 3 then
+			elseif CFG.nShowIcon == 3 then
 				img:FromUITex("ui/Image/UICommon/CommonPanel2.UITex", GetCampImageFrame(info.nCamp, false) or -1)
 			end
 
-			local fScale = (RaidGrid_CTM_Edition.fScaleY + RaidGrid_CTM_Edition.fScaleX) / 2
+			local fScale = (CFG.fScaleY + CFG.fScaleX) / 2
 			if fScale * 0.9 > 1 then
 				fScale = fScale * 0.9
 			end
@@ -492,17 +493,17 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 		local TextName = h:Lookup("Text_Name")
 		TextName:SetText(info.szName)
 		-- TextName:SetText("测试测试测试")
-		TextName:SetFontScheme(RaidGrid_CTM_Edition.nFont)
-		if RaidGrid_CTM_Edition.bColoredName then
+		TextName:SetFontScheme(CFG.nFont)
+		if CFG.bColoredName then
 			TextName:SetFontColor(GetForceColor(info.dwForceID))
 		else
 			TextName:SetFontColor(255, 255, 255)
 		end
-		if RaidGrid_CTM_Edition.nShowIcon == 4 then
-			TextName:SetRelPos(-6, 0 - (RaidGrid_CTM_Edition.fScaleY - 1) * 8)
+		if CFG.nShowIcon == 4 then
+			TextName:SetRelPos(-6, 0 - (CFG.fScaleY - 1) * 8)
 			TextName:SetText(string.format("%s %s", CTM_KUNGFU_TEXT[info.dwMountKungfuID], info.szName))
 		else
-			TextName:SetRelPos(17 + (RaidGrid_CTM_Edition.fScaleX - 1) * 15, 0 - (RaidGrid_CTM_Edition.fScaleY - 1) * 5)
+			TextName:SetRelPos(17 + (CFG.fScaleX - 1) * 15, 0 - (CFG.fScaleY - 1) * 5)
 		end
 		h:FormatAllItemPos()
 	end
@@ -549,7 +550,7 @@ function CTM:ReloadParty()
 	local dwID, dwType = Target_GetTargetData()
 	if dwType == TARGET.PLAYER and IsParty(dwID) then
 		CTM_TARGET = dwID
-		if RaidGrid_CTM_Edition.bShowTargetTargetAni then
+		if CFG.bShowTargetTargetAni then
 			local tdwType, tdwID = JH.GetTarget(dwID).GetTarget()
 			CTM_TTARGET = tdwID
 		end
@@ -604,7 +605,7 @@ function CTM:DrawParty(nIndex)
 			if not dwID then return	end
 			local team = GetClientTeam()
 			local player = GetClientPlayer()
-			if (IsAltKeyDown() or RaidGrid_CTM_Edition.bEditMode) and player.IsInRaid() and JH.IsLeader() then
+			if (IsAltKeyDown() or CFG.bEditMode) and player.IsInRaid() and JH.IsLeader() then
 				CTM_DRAG = true
 				CTM_DRAG_ID = dwID
 				self:DrawAllParty()
@@ -657,7 +658,7 @@ function CTM:DrawParty(nIndex)
 			local nX, nY = this:GetRoot():GetAbsPos()
 			local nW, nH = this:GetRoot():GetSize()
 			local me = GetClientPlayer()
-			if RaidGrid_CTM_Edition.bTempTargetFightTip and not me.bFightState or not RaidGrid_CTM_Edition.bTempTargetFightTip then
+			if CFG.bTempTargetFightTip and not me.bFightState or not CFG.bTempTargetFightTip then
 				OutputTeamMemberTip(dwID, { nX, nY + 5, nW, nH })
 			end
 			local info = self:GetMemberInfo(dwID)
@@ -710,7 +711,7 @@ function CTM:DrawParty(nIndex)
 				PopupMenu(menu)
 			end
 		end
-		self:Scale(RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY, h)
+		self:Scale(CFG.fScaleX, CFG.fScaleY, h)
 	end
 	handle:FormatAllItemPos()
 	frame.nMemberCount = #tGroup.MemberList
@@ -743,10 +744,10 @@ function CTM:Scale(fX, fY, frame)
 end
 
 function CTM:FormatFrame(frame, nMemberCount)
-	local fX, fY = RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY
-	local helgit, nGrouphelgit = (RaidGrid_CTM_Edition.fScaleY - 1) * 18, 0
+	local fX, fY = CFG.fScaleX, CFG.fScaleY
+	local helgit, nGrouphelgit = (CFG.fScaleY - 1) * 18, 0
 	local h = frame:Lookup("", "Handle_BG")
-	if CTM_DRAG or RaidGrid_CTM_Edition.bShowAllGrid then
+	if CTM_DRAG or CFG.bShowAllGrid then
 		nMemberCount = CTM_MEMBER_COUNT
 		local handle = frame:Lookup("", "Handle_Roles")
 		for i = 0, handle:GetItemCount() - 1 do
@@ -762,7 +763,7 @@ function CTM:FormatFrame(frame, nMemberCount)
 			handle:Lookup(i):Lookup("Image_BG_Slot"):Hide()
 		end
 	end
-	if not RaidGrid_CTM_Edition.bShowGropuNumber then
+	if not CFG.bShowGropuNumber then
 		nGrouphelgit = 21
 	end
 	frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
@@ -772,7 +773,7 @@ function CTM:FormatFrame(frame, nMemberCount)
 	h:Lookup("Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
 	h:Lookup("Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
 	h:Lookup("Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
-	if RaidGrid_CTM_Edition.bShowGropuNumber then
+	if CFG.bShowGropuNumber then
 		h:Lookup("Text_GroupIndex"):SetSize(128 * fX, 26 * fY - helgit)
 		h:Lookup("Text_GroupIndex"):SetRelPos(0, nMemberCount * CTM_BOX_HEIGHT * fY)
 	else
@@ -786,7 +787,7 @@ end
 function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 	if CTM_CACHE[arg0] and CTM_CACHE[arg0]:IsValid() then
 		local h = CTM_CACHE[arg0]:Lookup("Handle_Buff_Boxes")
-		if h:GetItemCount() >= RaidGrid_CTM_Edition.nMaxShowBuff then
+		if h:GetItemCount() >= CFG.nMaxShowBuff then
 			return
 		end
 		for i = 0, h:GetItemCount() - 1 do
@@ -814,13 +815,13 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 				hBox:SetObject(UI_OBJECT_NOT_NEED_KNOWN, arg1, arg2)
 				hBox:SetObjectIcon(nIcon)
 				hBox:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				hBox:SetObjectStaring(RaidGrid_CTM_Edition.bStaring)
-				if RaidGrid_CTM_Edition.bAutoBuffSize then
-					if RaidGrid_CTM_Edition.fScaleY > 1 then
-						hBuff:Scale(RaidGrid_CTM_Edition.fScaleY, RaidGrid_CTM_Edition.fScaleY)
+				hBox:SetObjectStaring(CFG.bStaring)
+				if CFG.bAutoBuffSize then
+					if CFG.fScaleY > 1 then
+						hBuff:Scale(CFG.fScaleY, CFG.fScaleY)
 					end
 				else
-					hBuff:Scale(RaidGrid_CTM_Edition.fBuffScale, RaidGrid_CTM_Edition.fBuffScale)
+					hBuff:Scale(CFG.fBuffScale, CFG.fBuffScale)
 				end
 				h:FormatAllItemPos()
 			end
@@ -842,7 +843,7 @@ function CTM:RefresBuff()
 							local _, dwID, nLevel = hBox:GetObject()
 							local bExist, tBuff = HasBuff(dwID, p)
 							if bExist then
-								if RaidGrid_CTM_Edition.bShowBuffTime then
+								if CFG.bShowBuffTime then
 									local nTime = GetEndTime(tBuff.nEndFrame)
 									if nTime < 5 then
 										if nTime >= 0 then
@@ -872,16 +873,16 @@ function CTM:RefresBuff()
 end
 
 function CTM:RefreshDistance()
-	if RaidGrid_CTM_Edition.bEnableDistance then
+	if CFG.bEnableDistance then
 		for k, v in pairs(CTM_CACHE) do
 			if v:IsValid() then
 				local p = GetPlayer(k) -- info.nPoX 刷新太慢了 对于治疗来说 这个太重要了
 				local Lsha = v:Lookup("Handle_Common/Shadow_Life")
 				if p then
 					local nDistance = GetDistance(p.nX, p.nY) -- 只计算平面
-					if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
+					if CFG.nBGClolrMode == 1 then
 						local find
-						for kk, vv in ipairs(RaidGrid_CTM_Edition.tDistanceLevel) do
+						for kk, vv in ipairs(CFG.tDistanceLevel) do
 							if nDistance <= vv then
 								if Lsha.nLevel ~= kk then
 									Lsha.nLevel = kk
@@ -903,13 +904,13 @@ function CTM:RefreshDistance()
 							self:CallDrawHPMP(k, true)
 						end
 					end
-					if RaidGrid_CTM_Edition.bShowDistance then
+					if CFG.bShowDistance then
 						v:Lookup("Handle_Common/Text_Distance"):SetText(string.format("%.1f", nDistance))
 					else
 						v:Lookup("Handle_Common/Text_Distance"):SetText("")
 					end
 				else
-					if RaidGrid_CTM_Edition.bShowDistance then
+					if CFG.bShowDistance then
 						v:Lookup("Handle_Common/Text_Distance"):SetText("")
 					end
 					if Lsha.nLevel or Lsha.nDistance then
@@ -959,7 +960,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	local Lsha = h:Lookup("Handle_Common/Shadow_Life")
 	local Msha = h:Lookup("Handle_Common/Shadow_Mana")
 	local p, dwMountType
-	if RaidGrid_CTM_Edition.bFasterHP then
+	if CFG.bFasterHP then
 		p = GetPlayer(dwID)
 	end
 	-- 气血计算 因为sync 必须拿出来单独算
@@ -988,8 +989,8 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			bDeathFlag = p.nMoveState == MOVE_STATE_ON_DEATH
 		end
 	end
-	local nAlpha = RaidGrid_CTM_Edition.nAlpha
-	if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
+	local nAlpha = CFG.nAlpha
+	if CFG.nBGClolrMode ~= 1 then
 		if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
 			if info.bIsOnLine then
 				nAlpha = nAlpha * 0.6
@@ -1003,53 +1004,53 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		if not IsPlayerManaHide(info.dwForceID, dwMountType) then -- 内力不需要那么准
 			nPercentage = info.nCurrentMana / info.nMaxMana
 			nManaShow = info.nCurrentMana
-			if not RaidGrid_CTM_Edition.nShowMP then
+			if not CFG.nShowMP then
 				mana:SetText("")
 			else
 				mana:SetText(nManaShow)
 			end
 		end
 		if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
-		local r, g, b = unpack(RaidGrid_CTM_Edition.tManaColor)
-		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, nAlpha, RaidGrid_CTM_Edition.bManaGradient)
+		local r, g, b = unpack(CFG.tManaColor)
+		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, nAlpha, CFG.bManaGradient)
 		Msha:Show()
 	else
 		Msha:Hide()
 	end
 	-- 缓存
-	if not RaidGrid_CTM_Edition.bFasterHP or bRefresh or (RaidGrid_CTM_Edition.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
+	if not CFG.bFasterHP or bRefresh or (CFG.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
 		-- 颜色计算
 		local nNewW = 121 * nLifePercentage
-		local r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[2]) -- 不在线就灰色了
+		local r, g, b = unpack(CFG.tOtherCol[2]) -- 不在线就灰色了
 		if info.bIsOnLine then
-			if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
+			if CFG.nBGClolrMode == 1 then
 				if p or GetPlayer(dwID) then
 					if Lsha.nLevel then
-						r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[Lsha.nLevel])
+						r, g, b = unpack(CFG.tDistanceCol[Lsha.nLevel])
 					else
-						r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3])
+						r, g, b = unpack(CFG.tOtherCol[3])
 					end
 				else
-					r, g, b = unpack(RaidGrid_CTM_Edition.tOtherCol[3]) -- 在线使用白色
+					r, g, b = unpack(CFG.tOtherCol[3]) -- 在线使用白色
 				end
-			elseif RaidGrid_CTM_Edition.nBGClolrMode == 0 then
-				r, g, b = unpack(RaidGrid_CTM_Edition.tDistanceCol[1]) -- 使用用户配色1
-			elseif RaidGrid_CTM_Edition.nBGClolrMode == 2 then
+			elseif CFG.nBGClolrMode == 0 then
+				r, g, b = unpack(CFG.tDistanceCol[1]) -- 使用用户配色1
+			elseif CFG.nBGClolrMode == 2 then
 				r, g, b = JH.GetForceColor(info.dwForceID)
 			end
 		else
-			nAlpha = RaidGrid_CTM_Edition.nAlpha
+			nAlpha = CFG.nAlpha
 		end
-		self:DrawShadow(Lsha, nNewW, 31, r, g, b, nAlpha, RaidGrid_CTM_Edition.bLifeGradient)
+		self:DrawShadow(Lsha, nNewW, 31, r, g, b, nAlpha, CFG.bLifeGradient)
 		Lsha:Show()
-		if RaidGrid_CTM_Edition.bHPHitAlert then
+		if CFG.bHPHitAlert then
 			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
 			if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
 				local alpha = lifeFade:GetAlpha()
 				if alpha == 0 then
-					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * RaidGrid_CTM_Edition.fScaleX, 31 * RaidGrid_CTM_Edition.fScaleY)
+					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * CFG.fScaleX, 31 * CFG.fScaleY)
 				end
-				if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
+				if CFG.nBGClolrMode ~= 1 then
 					if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
 						lifeFade:SetAlpha(0)
 						lifeFade:Hide()
@@ -1086,8 +1087,8 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		end
 		-- 数值绘制
 		local life = h:Lookup("Handle_Common/Text_Life")
-		life:SetFontScheme(RaidGrid_CTM_Edition.nLifeFont)
-		if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 then
+		life:SetFontScheme(CFG.nLifeFont)
+		if CFG.nBGClolrMode ~= 1 then
 			if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
 				life:SetAlpha(150)
 			else
@@ -1099,25 +1100,25 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 
 		if not bDeathFlag and info.bIsOnLine then
 			life:SetFontColor(255, 255, 255)
-			if RaidGrid_CTM_Edition.nHPShownMode2 == 0 then
+			if CFG.nHPShownMode2 == 0 then
 				life:SetText("")
 			else
 				local fnAction = function(val, max)
-					if RaidGrid_CTM_Edition.nHPShownNumMode == 1 then
+					if CFG.nHPShownNumMode == 1 then
 						if val > 9999 then
 							return string.format("%.1fw", val / 10000)
 						else
 							return val
 						end
-					elseif RaidGrid_CTM_Edition.nHPShownNumMode == 2 then
+					elseif CFG.nHPShownNumMode == 2 then
 						return string.format("%.1f", val / max * 100) .. "%"
-					elseif RaidGrid_CTM_Edition.nHPShownNumMode == 3 then
+					elseif CFG.nHPShownNumMode == 3 then
 						return val
 					end
 				end
-				if RaidGrid_CTM_Edition.nHPShownMode2 == 2 then
+				if CFG.nHPShownMode2 == 2 then
 					life:SetText(fnAction(nCurrentLife, nMaxLife))
-				elseif RaidGrid_CTM_Edition.nHPShownMode2 == 1 then
+				elseif CFG.nHPShownMode2 == 1 then
 					local nShownLife = nMaxLife - nCurrentLife
 					if nShownLife > 0 then
 						life:SetText("-" .. fnAction(nShownLife, nMaxLife))
@@ -1142,8 +1143,8 @@ end
 function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) --重绘三角扇
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:ClearTriangleFanPoint()
-	x = x * RaidGrid_CTM_Edition.fScaleX
-	y = y * RaidGrid_CTM_Edition.fScaleY
+	x = x * CFG.fScaleX
+	y = y * CFG.fScaleY
 	if bGradient then
 		sha:AppendTriangleFanPoint(0, 0, 64, 64, 64, a)
 		sha:AppendTriangleFanPoint(x, 0, 64, 64, 64, a)
@@ -1228,7 +1229,7 @@ end
 
 
 function CTM.SetTempTarget(dwMemberID, bEnter)
-	if not RaidGrid_CTM_Edition.bTempTargetEnable then
+	if not CFG.bTempTargetEnable then
 		return
 	end
 	local dwID, dwType = Target_GetTargetData() -- 如果没有目标输出的是 nil, TARGET.NO_TARGET
