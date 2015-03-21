@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-21 03:18:31
+-- @Last Modified time: 2015-03-21 08:45:35
 local _L = JH.LoadLangPack
 
 TS = {
@@ -334,7 +334,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			local nThreatPercentage, fDiff = 0, 0
 			if v.val ~= 0 then
 				fDiff = v.val / nTopRank
-				nThreatPercentage = fDiff * (100 / 124)
+				nThreatPercentage = fDiff * (100 / 120)
 				item:Lookup("Text_ThreatValue"):SetText(math.floor(100 * fDiff) .. "%")
 			else
 				item:Lookup("Text_ThreatValue"):SetText("0%")
