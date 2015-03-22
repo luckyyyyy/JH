@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-21 11:11:59
+-- @Last Modified time: 2015-03-22 10:50:09
 local _L = JH.LoadLangPack
 
 TS = {
@@ -111,27 +111,27 @@ function TS.OnEvent(szEvent)
 		_TS.UpdateAnchor(this)
 	elseif szEvent == "TARGET_CHANGE" then
 		local dwID, dwType = Target_GetTargetData()
+		local dwTargetID
+		-- check tar
 		if dwType == TARGET.NPC or GetNpc(_TS.dwLockTargetID) then
 			if GetNpc(_TS.dwLockTargetID) then
-				_TS.dwTargetID = _TS.dwLockTargetID
+				dwTargetID = _TS.dwLockTargetID
 			else
-				_TS.dwTargetID = dwID
+				dwTargetID = dwID
 			end
+		elseif dwType == TARGET.PLAYER and GetPlayer(dwID) then
+			local tdwTpye, tdwID = GetPlayer(dwID).GetTarget()
+			if tdwTpye == TARGET.NPC then
+				dwTargetID = tdwID
+			end
+		end
+		-- so ...
+		if dwTargetID then
+			_TS.dwTargetID = dwTargetID
 			_TS.frame.nCount = 0
 			JH.BreatheCall("TS", _TS.OnBreathe)
 			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 2000)
 			this:Show()
-		elseif dwType == TARGET.PLAYER and GetPlayer(dwID) then
-			local tdwTpye, tdwID = GetPlayer(dwID).GetTarget()
-			if tdwTpye == TARGET.NPC then
-				_TS.dwTargetID = tdwID
-				_TS.frame.nCount = 0
-				JH.BreatheCall("TS", _TS.OnBreathe)
-				JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 2000)
-				this:Show()
-			else
-				_TS.UnBreathe()
-			end
 		else
 			_TS.UnBreathe()
 		end
