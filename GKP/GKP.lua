@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-21 12:11:37
+-- @Last Modified time: 2015-03-22 12:11:45
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1478,22 +1478,23 @@ _GKP.OnMsg = function()
 					Wnd.CloseWindow(Station.Lookup("Normal/" .. szFrameName))
 					_GKP.info = nil
 				end
-				_GKP.info = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point():RegisterClose()
-				_GKP.info:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
-				_GKP.info:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 })
+				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point():RegisterClose()
+				ui:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
+				ui:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 })
 				:Enable(false):Click(function()
 					local scale = Station.GetUIScale()
-					local left, top = _GKP.info:Pos()
-					local right, bottom = _GKP.info:Pos_()
+					local left, top = ui:Pos()
+					local right, bottom = ui:Pos_()
 					local path = GetRootPath() .. string.format("\\ScreenShot\\GKP_Ticket_%s.png", FormatTime("%Y-%m-%d_%H.%M.%S", GetCurrentTime()))
 					ScreenShot(path, 100, scale * left, scale * top, scale * right, scale * bottom)
 					JH.Sysmsg(_L("Shot screen succeed, file saved as %s .", path))
 				end)
-				_GKP.info:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", arg3), font = 41 })
-				_GKP.info:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
+				ui:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", arg3), font = 41 })
+				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
 				if data[3] == "Information on Debt" and arg3 ~= me.szName then
-					_GKP.info:Toggle(false)
+					ui:Toggle(false)
 				end
+				_GKP.info = ui
 			end
 			if data[2] == "Info" then
 				local frm = Station.Lookup("Normal/GKP_info")
