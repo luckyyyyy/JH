@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-22 10:50:09
+-- @Last Modified time: 2015-03-25 07:39:19
 local _L = JH.LoadLangPack
 
 TS = {
@@ -161,6 +161,7 @@ function _TS.OnDpsBreathe()
 	-- DPS统计 需要茗伊插件
 	if MY_Recount_GetData then
 		local me = GetClientPlayer()
+		if not me then return end
 		if me.bFightState then
 			local dps = MY_Recount_GetData(0)
 			local nTotalEffect = 0
