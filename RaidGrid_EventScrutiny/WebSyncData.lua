@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 04:13:09
+-- @Last Modified time: 2015-03-25 14:26:38
 local _L = JH.LoadLangPack
 
 WebSyncData = {
@@ -24,14 +24,14 @@ local W = {
 	szLoginUrl =    ROOT_URL .. "user/login/",
 }
 -- 打开界面
-W.OpenPanel = function()
+function W.OpenPanel()
 	local wnd = Station.Lookup("Normal/WebSyncData") or Wnd.OpenWindow(W.szIniFile, "WebSyncData")
 	wnd:BringToTop()
 	Station.SetActiveFrame(wnd)
 	W.RequestList()
 end
 
-W.ClosePanel = function()
+function W.ClosePanel()
 	Wnd.CloseWindow(Station.Lookup("Normal/WebSyncData"))
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 	W.Container = nil
@@ -63,7 +63,7 @@ function WebSyncData.OnFrameCreate()
 	W.Container = this:Lookup("PageSet_Menu/Page_FileDownload/WndScroll_FileDownload/WndContainer_FileDownload_List")
 end
 
-W.Login = function()
+function W.Login()
 	local uid =  WebSyncData.uid
 	local pw =  WebSyncData.pw
 	if uid == 0 or not pw then
@@ -82,7 +82,7 @@ W.Login = function()
 	end
 end
 
-W.Logout = function()
+function W.Logout()
 	WebSyncData.uid = nil
 	WebSyncData.pw = nil
 	WebSyncData.bLogin = false
@@ -90,7 +90,7 @@ W.Logout = function()
 	W.OpenPanel()
 end
 
-W.CallLogin = function(uid, pw, fnAction)
+function W.CallLogin(uid, pw, fnAction)
 	-- web传参不安全 但是只能这样
 	if string.len(pw) ~= 32 then
 		pw = JH.MD5(pw)
@@ -117,7 +117,7 @@ W.CallLogin = function(uid, pw, fnAction)
 	end)
 end
 
-W.MyData = function()
+function W.MyData()
 	JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
@@ -134,10 +134,10 @@ W.MyData = function()
 		end
 	end)
 end
-W.CallMyData = function()
+function W.CallMyData()
 	W.RequestList(W.szUser)
 end
-W.Search = function()
+function W.Search()
 	GetUserInput(_L["Enter thread ID"], function(szNum)
 		if not tonumber(szNum) then
 			JH.Alert(_L["Please enter numbers"])
@@ -148,11 +148,12 @@ W.Search = function()
 end
 
 -- 列表请求
-W.RequestList = function(szUrl)
+function W.RequestList(szUrl)
 	szUrl = szUrl or W.szFileList
 	W.Container:Clear()
 	W.AppendItem({ title = "", author = "Laoding..." }, 1)
-	JH.RemoteRequest(szUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG,function(szTitle, szDoc)
+	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 得益于IE缓存 1分钟一次
+	JH.RemoteRequest(szUrl .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG,function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
 			JH.Sysmsg2(_L["request failed"])
@@ -162,7 +163,7 @@ W.RequestList = function(szUrl)
 	end)
 end
 
-W.ListCallBack = function(result)
+function W.ListCallBack(result)
 	if not Station.Lookup("Normal/WebSyncData") then return end
 	W.Container:Clear()
 	W.UseData = nil
@@ -175,7 +176,7 @@ W.ListCallBack = function(result)
 	W.Container:FormatAllContentPos()
 end
 
-W.TimeToDate = function(nTime)
+function W.TimeToDate(nTime)
 	local nNow = GetCurrentTime()
 	local nTime = tonumber(nTime) or nNow
 	local ndifference = nNow - nTime
@@ -193,14 +194,14 @@ W.TimeToDate = function(nTime)
 	end
 end
 
-W.MenuTip = function(hItem, text)
+function W.MenuTip(hItem, text)
 	local x, y = hItem:GetAbsPos()
 	local w, h = hItem:GetSize()
 	local szXml = GetFormatText(text, 47, 255, 255, 255)
 	OutputTip(szXml, 435, {x, y, w, h})
 end
 
-W.AppendItem = function(data, k)
+function W.AppendItem(data, k)
 	local wnd = W.Container:AppendContentFromIni(JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/Data_ListItem.ini", "WndWindow")
 	local item = wnd:Lookup("", "")
 	if k % 2 == 0 then
@@ -268,7 +269,7 @@ W.AppendItem = function(data, k)
 	end
 end
 
-W.DoanloadData = function(data)
+function W.DoanloadData(data)
 	local me = GetClientPlayer()
 	if data.tid then
 	local wnd = GUI.CreateFrame("RGES_Data",{ w = 760,h = 300,title = _L["JH"] ,drag = true,close = true }):RegisterClose()
@@ -286,25 +287,35 @@ W.DoanloadData = function(data)
 	end
 end
 
-W.CallDoanloadData = function(data, bOverride)
+function W.CallDoanloadData(data, bOverride)
 	JH.Alert(g_tStrings.STR_WAIT_UPDATE)
-	JH.RemoteRequest(W.szDownload .. data.tid .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-		local tab, err = JH.JsonToTable(szDoc)
-		if err then
-			return JH.Alert(_L["update failed! Please try again."])
-		end
-		local szFileName = "sync_data_".. data.tid .."_" .. CLIENT_LANG .. ".jx3dat"
-		local szFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/alldat/" .. szFileName
-		pcall(SaveLUAData, szFile, tab)
-		pcall(RaidGrid_Base.LoadSettingsFileNew, szFileName, bOverride)
+	-- 简单本地缓存一下
+	local szPath = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/alldat/"
+	local szFileName = "remote_data_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
+
+	local function fnAction(szFile)
+		pcall(RaidGrid_Base.LoadSettingsFileNew, szFile, bOverride)
 		JH.Alert(g_tStrings.STR_UPDATE_SUCCESS .. "\n\n" .. data.title)
 		WebSyncData.tData = data
 		local me = GetClientPlayer()
 		if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "Load", data.title) end
-	end)
+	end
+
+	if IsFileExist(szPath .. szFileName) then -- 本地文件存在则优先
+		fnAction(szFileName)
+	else -- 否则 remote request
+		JH.RemoteRequest(W.szDownload .. data.tid .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+			local tab, err = JH.JsonToTable(szDoc)
+			if err then
+				return JH.Alert(_L["update failed! Please try again."])
+			end
+			SaveLUAData(szPath .. szFileName, tab) -- 缓存文件
+			fnAction(szFileName)
+		end)
+	end
 end
 
-W.SyncTeam = function()
+function W.SyncTeam()
 	if not W.UseData then
 		return JH.Alert(g_tStrings.MSG_CHOOSE_FILE_EMPTY)
 	end
