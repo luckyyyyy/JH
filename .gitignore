@@ -7,4 +7,5 @@
 releases
 RaidGrid_EventScrutiny/alldat/RGES*
 RaidGrid_EventScrutiny/alldat/sync*
+RaidGrid_EventScrutiny/alldat/remote*
 .DS_Store
