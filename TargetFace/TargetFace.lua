@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-05 22:31:41
+-- @Last Modified time: 2015-03-29 00:39:40
 local _L = JH.LoadLangPack
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
@@ -116,7 +116,7 @@ _TargetFace.DrawShape = function(tar, sha, nDegree, nRadius, nAlpha, col)
 end
 
 _TargetFace.OnBreathe = function()
-	local _t, t,ttar = _TargetFace, TargetFace, nil
+	local _t, t, ttar = _TargetFace, TargetFace, nil
 	local me = GetClientPlayer()
 	if not me then return end
 	local tar = JH.GetTarget()
@@ -177,7 +177,7 @@ _TargetFace.OnBreathe = function()
 
 	-- shoe connect
 	if t.bConnect and tar and tar.dwID ~= me.dwID and (not ttar or (ttar and ttar.dwID ~= me.dwID)) then
-		if _t.bReRender or (ttar and _t.tCache.dwTTID ~= ttar.dwID) or _t.tCache.dwTargetID ~= tar.dwID then
+		if _t.bReRender or (ttar and _t.tCache.dwTTID ~= ttar.dwID) or _t.tCache.dwTargetID ~= tar.dwID or (not ttar and _t.tCache.dwTTID ~= 0) then
 			_TargetFace.DrawLine(me, tar, _t.hTLine, t.tConnColor, t.nConnAlpha)
 		end
 	else
