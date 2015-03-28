@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-22 12:11:45
+-- @Last Modified time: 2015-03-28 16:18:01
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1779,7 +1779,7 @@ _GKP.GetRecordSum = function(bAccurate)
 	if IsEmpty(GKP("GKP_Record")) then
 		return 0, 0
 	end
-	local a ,b = 0, 0
+	local a, b = 0, 0
 	for k, v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if tonumber(v.nMoney) > 0 then

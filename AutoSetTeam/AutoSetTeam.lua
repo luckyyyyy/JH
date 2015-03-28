@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-27 21:03:44
+-- @Last Modified time: 2015-03-28 20:19:25
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -435,25 +435,31 @@ function _RequestList.UpdateFrame()
 		local ui = GUI(wnd)
 		local dat = _RequestList.tDetails[v.szName]
 		if dat then
-			ui:Append("Image",{ x = 5, y = 5, w = 40, h = 40 }):File(Table_GetSkillIconID(dat.dwKungfuID,1))
+			ui:Append("Image", { x = 5, y = 5, w = 40, h = 40 }):File(Table_GetSkillIconID(dat.dwKungfuID, 1))
 			if dat.nGongZhan == 1 then
-				ui:Append("Image",{ x = 25, y = 30, w = 15, h = 15 }):File(Table_GetBuffIconID(3219,1))
+				ui:Append("Image", { x = 25, y = 30, w = 15, h = 15 }):File(Table_GetBuffIconID(3219, 1))
 			end
 		else
-			ui:Append("Image",{ x = 5, y = 5, w = 40, h = 40 }):File(GetForceImage(v.dwForce))
+			ui:Append("Image", { x = 5, y = 5, w = 40, h = 40 }):File(GetForceImage(v.dwForce))
 		end
-		ui:Append("Image",{ x = 215, y = 15, w = 20, h = 20 }):File("UI/Image/Button/ShopButton.uitex",camp[v.nCamp])
-		ui:Append("Image",{ x = 0, y = 42, w = 420, h = 8 }):File("UI/Image/UICommon/CommonPanel.UITex",45)
-		ui:Append("Image", "Cover", { x = 0, y = 0, w = 420, h = 50 }):File(cover,2):Toggle(false)
-		ui:Hover(function()
-			ui:Fetch("Cover"):File(cover,2):Toggle(true)
-		end,function()
-			ui:Fetch("Cover"):Toggle(false)
+		ui:Append("Image", { x = 215, y = 15, w = 20, h = 20 }):File("UI/Image/Button/ShopButton.uitex", camp[v.nCamp])
+		ui:Append("Image", { x = 0, y = 42, w = 420, h = 8 }):File("UI/Image/UICommon/CommonPanel.UITex", 45)
+		ui:Append("Image", "Cover", { x = 0, y = 0, w = 420, h = 50 }):File(cover, 2):Toggle(false)
+		ui:Hover(function(bHover)
+			if bHover then
+				ui:Fetch("Cover"):File(cover, 2):Toggle(true)
+			else
+				ui:Fetch("Cover"):Toggle(false)
+			end
 		end).self.OnRButtonDown = function()
 			JH.SwitchChat(v.szName)
 			Station.SetFocusWindow(Station.Lookup("Lowest2/EditBox/Edit_Input"))
 		end
-		ui:Append("Text",{ x = 47, y = 8, txt = v.szName, font = 15  })
+		if dat and dat.bEx == "Author" then
+			ui:Append("Text",{ x = 47, y = 8, txt = v.szName, font = 15, color = { 255, 255, 0 } })
+		else
+			ui:Append("Text",{ x = 47, y = 8, txt = v.szName, font = 15  })
+		end
 		ui:Append("Text",{ x = 5, y = 25, txt = v.nLevel, font = 215 })
 		wnd.OnLButtonDown = function()
 			if IsCtrlKeyDown() then
@@ -462,43 +468,51 @@ function _RequestList.UpdateFrame()
 				Station.SetFocusWindow(edit)
 			end
 		end
-		ui:Append("WndButton2",{ x = 240, y = 10,w = 60, h = 34, txt = _L["Accept"] }):Click(function()
+		ui:Append("WndButton2", { x = 240, y = 10,w = 60, h = 34, txt = _L["Accept"] }):Click(function()
 			v.fnAction()
 			table.remove(_RequestList.tRequestList,k)
 			_RequestList.tRequestCache[v.szName] = nil
 			_RequestList.UpdateFrame()
-		end):Hover(function()
-			ui:Fetch("Cover"):File(cover,3):Toggle(true)
-		end,function()
-			ui:Fetch("Cover"):Toggle(false)
+		end):Hover(function(bHover)
+			if bHover then
+				ui:Fetch("Cover"):File(cover,3):Toggle(true)
+			else
+				ui:Fetch("Cover"):Toggle(false)
+			end
 		end)
 		ui:Append("WndButton2",{ x = 305, y = 10,w = 60, h = 34, txt = _L["Refuse"] }):Click(function()
 			v.fnCancelAction()
 			table.remove(_RequestList.tRequestList,k)
 			_RequestList.tRequestCache[v.szName] = nil
 			_RequestList.UpdateFrame()
-		end):Hover(function()
-			ui:Fetch("Cover"):File(cover,4):Toggle(true)
-		end,function()
-			ui:Fetch("Cover"):Toggle(false)
+		end):Hover(function(bHover)
+			if bHover then
+				ui:Fetch("Cover"):File(cover,4):Toggle(true)
+			else
+				ui:Fetch("Cover"):Toggle(false)
+			end
 		end)
 		if dat then
 			ui:Append("WndButton2","Details",{ x = 370, y = 10,w = 90, h = 34, txt = _L["View Equip"] }):Click(function()
 				ViewInviteToPlayer(dat.dwID)
-			end):Hover(function()
-				ui:Fetch("Cover"):File(cover,1):Toggle(true)
-			end,function()
-				ui:Fetch("Cover"):Toggle(false)
+			end):Hover(function(bHover)
+				if bHover then
+					ui:Fetch("Cover"):File(cover,1):Toggle(true)
+				else
+					ui:Fetch("Cover"):Toggle(false)
+				end
 			end)
 		else
 			ui:Append("WndButton2","Details",{ x = 370, y = 10,w = 90, h = 34, txt = _L["Details"] }):Click(function()
 				JH.BgTalk(v.szName,"JH_AutoSetTeam","JH_Details")
 				ui:Fetch("Details"):Enable(false):Text(_L["loading..."])
 				JH.Sysmsg(_L["If it is always loading, the target may not install plugin or refuse."])
-			end):Hover(function()
-				ui:Fetch("Cover"):File(cover,1):Toggle(true)
-			end,function()
-				ui:Fetch("Cover"):Toggle(false)
+			end):Hover(function(bHover)
+				if bHover then
+					ui:Fetch("Cover"):File(cover,1):Toggle(true)
+				else
+					ui:Fetch("Cover"):Toggle(false)
+				end
 			end)
 		end
 	end
@@ -506,7 +520,7 @@ function _RequestList.UpdateFrame()
 	local n = container:GetAllContentCount()
 	container:SetSize(w, h * n)
 	_RequestList.frame:SetSize(w, h * n + 30)
-	_RequestList.frame:SetDragArea(0,0,w, h * n + 30)
+	_RequestList.frame:SetDragArea(0, 0, w, h * n + 30)
 	_RequestList.bg:SetSize(w, h * n + 30)
 	container:FormatAllContentPos()
 	_RequestList.frame:Show()
@@ -516,15 +530,17 @@ function _RequestList.OnBgTalk()
 	if data then
 		if data[1] == "JH_Details" then
 			local dwTarget, szTarget = arg0, arg3
-			JH.Confirm(_L("[%s] want to see your info, OK?",szTarget),function()
-				local me,nGongZhan = GetClientPlayer(),0
-				if JH.HasBuff(3219) then
-					nGongZhan = 1
+			JH.Confirm(_L("[%s] want to see your info, OK?", szTarget), function()
+				local me, nGongZhan = GetClientPlayer(), 0
+				if JH.HasBuff(3219) then nGongZhan = 1 end
+				if JH_About.CheckNameEx() then
+					JH.BgTalk(szTarget, "JH_AutoSetTeam", "JH_Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Author")
+				else
+					JH.BgTalk(szTarget, "JH_AutoSetTeam", "JH_Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Player")
 				end
-				JH.BgTalk(szTarget,"JH_AutoSetTeam","JH_Feedback",me.dwID,UI_GetPlayerMountKungfuID(),nGongZhan)
 			end)
 		elseif data[1] == "JH_Feedback" then
-			_RequestList.Feedback(arg3,data)
+			_RequestList.Feedback(arg3, data)
 		end
 	end
 end
@@ -533,6 +549,7 @@ function _RequestList.Feedback(szName,data)
 		dwID = data[2],
 		dwKungfuID = data[3],
 		nGongZhan = data[4],
+		bEx = data[5],
 	}
 	_RequestList.tDetails[szName] = dat
 	pcall(_RequestList.UpdateFrame)
