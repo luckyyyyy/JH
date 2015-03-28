@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-26 10:43:44
+-- @Last Modified time: 2015-03-28 20:59:26
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -215,32 +215,6 @@ function _JH.ParseFaceIcon(t)
 		end
 	end
 	return t2
-end
-
-function JH.SetHotKey(szGroup)
-	HotkeyPanel_Open(szGroup or _JH.szTitle)
-end
-
-function JH.GetVersion()
-	local v = _VERSION_
-	local szVersion = string.format("%d.%d.%d", v/0x1000000,
-		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
-	if  v%0x100 ~= 0 then
-		szVersion = szVersion .. "b" .. tostring(v%0x100)
-	end
-	return szVersion, v
-end
-
-function JH.GetAddonInfo()
-	return {
-		szName = _JH.szTitle,
-		szVersion = JH.GetVersion(),
-		szRootPath = ADDON_PATH,
-		szAuthor = _L['JH @ Double Dream Town'],
-		szShadowIni = SHADOW_PATH,
-		szDataPath = DATA_PATH,
-		szBuildDate = _JH.szBuildDate,
-	}
 end
 
 -------------------------------------
@@ -527,14 +501,67 @@ function JH.OnFrameKeyDown()
 	end
 	return 0
 end
-
-function JH.Debug(szMsg)
-	if JH.bDebug then
-		OutputMessage("MSG_SYS","[JH_DEBUG] " .. szMsg .."\n")
+-- button click
+function JH.OnLButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Close" then
+		_JH.ClosePanel()
+	elseif szName == "Btn_Up" then
+		_JH.hScroll:ScrollPrev(1)
+	elseif szName == "Btn_Down" then
+		_JH.hScroll:ScrollNext(1)
 	end
 end
+-- scrolls
+function JH.OnScrollBarPosChanged()
+	if this:GetName() ~= "Scroll_List" then -- 界面里面的也连带滚动了
+		return
+	end
+	local handle, frame = _JH.hList, this:GetParent()
+	local nPos = this:GetScrollPos()
+	if nPos == 0 then
+		frame:Lookup("Btn_Up"):Enable(0)
+	else
+		frame:Lookup("Btn_Up"):Enable(1)
+	end
+	if nPos == this:GetStepCount() then
+		frame:Lookup("Btn_Down"):Enable(0)
+	else
+		frame:Lookup("Btn_Down"):Enable(1)
+	end
+    handle:SetItemStartRelPos(0, - nPos * 10)
+end
 
--- 根据模板ID获取名字 没有归属
+--------------------------------------- * 常用函数 * ---------------------------------------
+
+-- (void) JH.SetHotKey()               -- 打开快捷键设置面板
+-- (void) JH.SetHotKey(string szGroup) -- 打开快捷键设置面板并定位到 szGroup 分组（不可用）
+function JH.SetHotKey(szGroup)
+	HotkeyPanel_Open(szGroup or _JH.szTitle)
+end
+-- (string, number) JH.GetVersion() -- 打开快捷键设置面板
+function JH.GetVersion()
+	local v = _VERSION_
+	local szVersion = string.format("%d.%d.%d", v/0x1000000,
+		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
+	if  v%0x100 ~= 0 then
+		szVersion = szVersion .. "b" .. tostring(v%0x100)
+	end
+	return szVersion, v
+end
+-- (table) JH.GetAddonInfo() -- 获取插件基础信息
+function JH.GetAddonInfo()
+	return {
+		szName = _JH.szTitle,
+		szVersion = JH.GetVersion(),
+		szRootPath = ADDON_PATH,
+		szAuthor = _L['JH @ Double Dream Town'],
+		szShadowIni = SHADOW_PATH,
+		szDataPath = DATA_PATH,
+		szBuildDate = _JH.szBuildDate,
+	}
+end
+-- (string) JH.GetTemplateName(userdata tar [, boolean bEmployer]) -- 根据对象获取模板名称
 function JH.GetTemplateName(tar, bEmployer)
 	if not tar then
 		return _L["Unknown"]
@@ -558,7 +585,11 @@ function JH.GetTemplateName(tar, bEmployer)
 	end
 	return szName
 end
-
+-- 注册事件，和系统的区别在于可以指定一个 KEY 防止多次加载
+-- (void) JH.RegisterEvent(string szEvent, func fnAction[, string szKey])
+-- szEvent		-- 事件，可在后面加一个点并紧跟一个标识字符串用于防止重复或取消绑定，如 LOADING_END.xxx
+-- fnAction		-- 事件处理函数，arg0 ~ arg9，传入 nil 相当于取消该事件
+--特别注意：当 fnAction 为 nil 并且 szKey 也为 nil 时会取消所有通过本函数注册的事件处理器
 function JH.RegisterEvent(szEvent, fnAction)
 	local szKey = nil
 	local nPos = StringFindW(szEvent, ".")
@@ -587,11 +618,13 @@ function JH.RegisterEvent(szEvent, fnAction)
 		JH.Debug3("UnRegisterEvent # " .. szEvent)
 	end
 end
-
+-- 取消事件处理函数
+-- (void) JH.UnRegisterEvent(string szEvent)
 function JH.UnRegisterEvent(szEvent)
 	JH.RegisterEvent(szEvent, nil)
 end
-
+-- 注册用户定义数据，支持全局变量数组遍历
+-- (void) JH.RegisterCustomData(string szVarPath)
 function JH.RegisterCustomData(szVarPath)
 	if _G and type(_G[szVarPath]) == "table" then
 		for k, _ in pairs(_G[szVarPath]) do
@@ -649,7 +682,7 @@ function JH.GetForceColor(dwForce)
 	if _JH.tForceCol[dwForce] then
 		return unpack(_JH.tForceCol[dwForce])
 	else
-		return 255,255,255
+		return 255, 255, 255
 	end
 end
 
@@ -775,7 +808,7 @@ function JH.WhisperToTeamMember(msg)
 		local team = GetClientTeam()
 		for _,v in ipairs(team.GetTeamMemberList()) do
 			local szName = team.GetClientTeamMemberName(v)
-			JH.Talk(szName,msg)
+			JH.Talk(szName, msg)
 		end
 	end
 end
@@ -900,38 +933,6 @@ function JH.ApplyTopPoint(fnAction, tar, nH, szKey)
 		PostThreadCall(_JH.ApplyPointCallback, { fnAction = fnAction, szKey = szKey },
 			"Scene_GameWorldPositionToScreenPoint", tar.nX, tar.nY, tar.nZ + nH, false)
 	end
-end
-
--- button click
-function JH.OnLButtonClick()
-	local szName = this:GetName()
-	if szName == "Btn_Close" then
-		_JH.ClosePanel()
-	elseif szName == "Btn_Up" then
-		_JH.hScroll:ScrollPrev(1)
-	elseif szName == "Btn_Down" then
-		_JH.hScroll:ScrollNext(1)
-	end
-end
-
--- scrolls
-function JH.OnScrollBarPosChanged()
-	if this:GetName() ~= "Scroll_List" then -- 界面里面的也连带滚动了
-		return
-	end
-	local handle, frame = _JH.hList, this:GetParent()
-	local nPos = this:GetScrollPos()
-	if nPos == 0 then
-		frame:Lookup("Btn_Up"):Enable(0)
-	else
-		frame:Lookup("Btn_Up"):Enable(1)
-	end
-	if nPos == this:GetStepCount() then
-		frame:Lookup("Btn_Down"):Enable(0)
-	else
-		frame:Lookup("Btn_Down"):Enable(1)
-	end
-    handle:SetItemStartRelPos(0, - nPos * 10)
 end
 
 function JH.JsonToTable(szJson)
@@ -1186,6 +1187,74 @@ function JH.IsDistributer()
 	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == GetClientPlayer().dwID
 end
 
+function JH.RemoteRequest(szUrl, fnAction)
+	tinsert(_JH.tRequest, { szUrl = szUrl, fnAction = fnAction })
+end
+
+function JH.DelayCall(nDelay, fnAction)
+	local nTime = nDelay + GetTime()
+	tinsert(_JH.tDelayCall, { nTime = nTime, fnAction = fnAction })
+end
+
+function JH.Split(szFull, szSep)
+	local nOff, tResult = 1, {}
+	while true do
+		local nEnd = StringFindW(szFull, szSep, nOff)
+		if not nEnd then
+			tinsert(tResult, string.sub(szFull, nOff, string.len(szFull)))
+			break
+		else
+			tinsert(tResult, string.sub(szFull, nOff, nEnd - 1))
+			nOff = nEnd + string.len(szSep)
+		end
+	end
+	return tResult
+end
+
+function JH.DoMessageBox(szName, i)
+	local frame = Station.Lookup("Topmost2/MB_" .. szName) or Station.Lookup("Topmost/MB_" .. szName)
+	if frame then
+		i = i or 1
+		local btn = frame:Lookup("Wnd_All/Btn_Option" .. i)
+		if btn and btn:IsEnabled() then
+			if btn.fnAction then
+				if frame.args then
+					btn.fnAction(unpack(frame.args))
+				else
+					btn.fnAction()
+				end
+			elseif frame.fnAction then
+				if frame.args then
+					frame.fnAction(i, unpack(frame.args))
+				else
+					frame.fnAction(i)
+				end
+			end
+			frame.OnFrameDestroy = nil
+			CloseMessageBox(szName)
+		end
+	end
+end
+
+function JH.BreatheCall(szKey, fnAction, nTime)
+	local key = StringLowerW(szKey)
+	if type(fnAction) == "function" then
+		local nFrame = 1
+		if nTime and nTime > 0 then
+			nFrame = mceil(nTime / 62.5)
+		end
+		_JH.tBreatheCall[key] = { fnAction = fnAction, nNext = GetLogicFrameCount() + 1, nFrame = nFrame }
+		JH.Debug3("BreatheCall # " .. szKey .. " # " .. nFrame)
+	else
+		_JH.tBreatheCall[key] = nil
+		JH.Debug3("UnBreatheCall # " .. szKey)
+	end
+end
+
+function JH.UnBreatheCall(szKey)
+	JH.BreatheCall(szKey)
+end
+
 function JH.AddHotKey(szName, szTitle, fnAction)
 	if string.sub(szName, 1, 3) ~= "JH_" then
 		szName = "JH_" .. szName
@@ -1346,15 +1415,14 @@ JH.RegisterEvent("PLAYER_TALK", function()
 	end
 end)
 
----------------------------------------------------------------------
--- 常用函数
----------------------------------------------------------------------
+-- 字符串类
 function JH.Trim(szText)
 	if not szText or szText == "" then
 		return ""
 	end
 	return (string.gsub(szText, "^%s*(.-)%s*$", "%1"))
 end
+
 function JH.UrlEncode(szText)
 	local str = szText:gsub("([^0-9a-zA-Z ])", function (c) return string.format ("%%%02X", string.byte(c)) end)
 	str = str:gsub(" ", "+")
@@ -1371,74 +1439,6 @@ end
 
 function JH.AscIIDecode(szText)
 	return szText:gsub('([0-9a-f][0-9a-f])', function(s) return string.char(tonumber(s, 16)) end)
-end
-
-function JH.RemoteRequest(szUrl, fnAction)
-	tinsert(_JH.tRequest, { szUrl = szUrl, fnAction = fnAction })
-end
-
-function JH.DelayCall(nDelay, fnAction)
-	local nTime = nDelay + GetTime()
-	tinsert(_JH.tDelayCall, { nTime = nTime, fnAction = fnAction })
-end
-
-function JH.Split(szFull, szSep)
-	local nOff, tResult = 1, {}
-	while true do
-		local nEnd = StringFindW(szFull, szSep, nOff)
-		if not nEnd then
-			tinsert(tResult, string.sub(szFull, nOff, string.len(szFull)))
-			break
-		else
-			tinsert(tResult, string.sub(szFull, nOff, nEnd - 1))
-			nOff = nEnd + string.len(szSep)
-		end
-	end
-	return tResult
-end
-
-function JH.DoMessageBox(szName, i)
-	local frame = Station.Lookup("Topmost2/MB_" .. szName) or Station.Lookup("Topmost/MB_" .. szName)
-	if frame then
-		i = i or 1
-		local btn = frame:Lookup("Wnd_All/Btn_Option" .. i)
-		if btn and btn:IsEnabled() then
-			if btn.fnAction then
-				if frame.args then
-					btn.fnAction(unpack(frame.args))
-				else
-					btn.fnAction()
-				end
-			elseif frame.fnAction then
-				if frame.args then
-					frame.fnAction(i, unpack(frame.args))
-				else
-					frame.fnAction(i)
-				end
-			end
-			frame.OnFrameDestroy = nil
-			CloseMessageBox(szName)
-		end
-	end
-end
-
-function JH.BreatheCall(szKey, fnAction, nTime)
-	local key = StringLowerW(szKey)
-	if type(fnAction) == "function" then
-		local nFrame = 1
-		if nTime and nTime > 0 then
-			nFrame = mceil(nTime / 62.5)
-		end
-		_JH.tBreatheCall[key] = { fnAction = fnAction, nNext = GetLogicFrameCount() + 1, nFrame = nFrame }
-		JH.Debug3("BreatheCall # " .. szKey .. " # " .. nFrame)
-	else
-		_JH.tBreatheCall[key] = nil
-		JH.Debug3("UnBreatheCall # " .. szKey)
-	end
-end
-
-function JH.UnBreatheCall(szKey)
-	JH.BreatheCall(szKey)
 end
 
 ---------------------------------------------------------------------
