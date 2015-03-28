@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-28 20:59:26
+-- @Last Modified time: 2015-03-28 21:19:03
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -9,7 +9,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x0090303
+local _VERSION_   = 0x0090304
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
@@ -1304,10 +1304,12 @@ function _JH.GetPlayerAddonMenu()
 	local menu = _JH.GetMainMenu()
 	tinsert(menu, { szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
 	tinsert(menu, { bDevide = true })
-	for i = 1, #_JH.tOption, 1 do
-		local m = _JH.tOption[i]
-		if type(m) == "function" then m = m() end
-		tinsert(menu, m)
+	for k, v in ipairs(_JH.tOption) do
+		if type(v) == "function" then
+			tinsert(menu, v())
+		else
+			tinsert(menu, v)
+		end
 	end
 	if JH.bDebug then
 		tinsert(menu, { bDevide = true })
@@ -1334,14 +1336,6 @@ function _JH.GetPlayerAddonMenu()
 			end },
 		})
 	end
-	--[[
-	tinsert(menu, { bDevide = true })
-	for i = 1, #_JH.tOption2, 1 do
-		local m = _JH.tOption2[i]
-		if type(m) == "function" then m = m() end
-		tinsert(menu, m)
-	end
-	]]
 	return { menu }
 end
 
@@ -1349,22 +1343,23 @@ function _JH.GetAddonMenu()
 	local menu = _JH.GetMainMenu()
 	tinsert(menu,{ szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
 	tinsert(menu,{ bDevide = true })
-	for i = 1, #_JH.tOption2, 1 do
-		local m = _JH.tOption2[i]
-		if type(m) == "function" then m = m() end
-		tinsert(menu, m)
+	for _, v in ipairs(_JH.tOption2) do
+		if type(v) == "function" then
+			tinsert(menu, v())
+		else
+			tinsert(menu, v)
+		end
 	end
 	return { menu }
 end
-
+-- 注册玩家头像的插件菜单
 function JH.PlayerAddonMenu(tMenu)
 	tinsert(_JH.tOption, tMenu)
 end
-
+-- 注册右上角的扳手菜单
 function JH.AddonMenu(tMenu)
 	tinsert(_JH.tOption2, tMenu)
 end
-
 -- 管理全部shadow的容器 这样可以防止前后顺序覆盖
 function JH.GetShadowHandle(szName)
 	local sh = Station.Lookup("Lowest/JH_Shadows") or Wnd.OpenWindow(ROOT_PATH .. "item/JH_Shadows.ini", "JH_Shadows")
@@ -1384,9 +1379,9 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 		Hotkey.AddBinding(v.szName, v.szTitle, "", v.fnAction, nil)
 	end
 	-- 注册玩家头像菜单
-	Player_AppendAddonMenu( { _JH.GetPlayerAddonMenu } )
+	Player_AppendAddonMenu({ _JH.GetPlayerAddonMenu })
 	-- 注册右上角菜单
-	TraceButton_AppendAddonMenu( { _JH.GetAddonMenu } )
+	TraceButton_AppendAddonMenu({ _JH.GetAddonMenu })
 end)
 
 JH.RegisterEvent("LOADING_END", function()
@@ -2788,7 +2783,7 @@ setmetatable(GUI, { __call = function(me, ...) return me.Fetch(...) end, __metat
 --		fnDestroy = function(frame)	-- 关闭销毁窗体时调用，frame 为内容窗体，可在此清理变量
 -- }
 -- 返回值：通用的  GUI 对象，可直接调用封装方法
-GUI.CreateFrame = function(szName, tArg)
+function GUI.CreateFrame(szName, tArg)
 	if type(szName) == "table" then
 		szName, tArg = nil, szName
 	end
@@ -2809,11 +2804,11 @@ GUI.CreateFrame = function(szName, tArg)
 end
 
 -- 创建空窗体
-GUI.CreateFrameEmpty = function(szName, szParent)
+function GUI.CreateFrameEmpty(szName, szParent)
 	return GUI.CreateFrame(szName, { empty  = true, parent = szParent })
 end
 -- 透明的窗口
-GUI.CreateFrame2 = function(szName, tArg)
+function GUI.CreateFrame2(szName, tArg)
 	if type(szName) == "table" then
 		szName, tArg = nil, szName
 	end
@@ -2840,7 +2835,7 @@ end
 -- szName		-- *可选* 对象名称，若不指定则沿用原名称
 -- 返回值：通用的  GUI 对象，可直接调用封装方法，失败或出错返回 nil
 -- 特别注意：这个函数也支持添加窗体对象
-GUI.AppendIni = function(hParent, szFile, szTag, szName)
+function GUI.AppendIni(hParent, szFile, szTag, szName)
 	local raw = nil
 	if hParent:GetType() == "Handle" then
 		if not szName then
@@ -2884,7 +2879,7 @@ end
 -- 返回值：通用的  GUI 对象，可直接调用封装方法，失败或出错返回 nil
 -- 特别注意：为统一接口此函数也可用于 AppendIni 文件，参数与 GUI.AppendIni 一致
 -- (class) GUI.Append(userdata hParent, string szIniFile, string szTag, string szName)
-GUI.Append = function(hParent, szType, szName, tArg)
+function GUI.Append(hParent, szType, szName, tArg)
 	-- compatiable with AppendIni
 	if StringFindW(szType, ".ini") ~= nil then
 		return GUI.AppendIni(hParent, szType, szName, tArg)
@@ -2952,7 +2947,7 @@ end
 -- (class) GUI.Fetch(hRaw)						-- 将 hRaw 原始对象转换为 GUI 封装对象
 -- (class) GUI.Fetch(hParent, szName)	-- 从 hParent 中提取名为 szName 的子元件并转换为 GUI 对象
 -- 返回值：通用的  GUI 对象，可直接调用封装方法，失败或出错返回 nil
-GUI.Fetch = function(hParent, szName)
+function GUI.Fetch(hParent, szName)
 	if type(hParent) == "string" then
 		hParent = Station.Lookup(hParent)
 	end
@@ -2982,7 +2977,7 @@ GUI.Fetch = function(hParent, szName)
 	end
 end
 
-GUI.RegisterPanel = function(szTitle, dwIcon, szClass, fn)
+function GUI.RegisterPanel(szTitle, dwIcon, szClass, fn)
 	-- find class
 	local dwClass = nil
 	if not szClass then
@@ -3018,7 +3013,7 @@ GUI.RegisterPanel = function(szTitle, dwIcon, szClass, fn)
 	end
 end
 
-GUI.UnRegisterPanel = function(szTitle)
+function GUI.UnRegisterPanel(szTitle)
 	local find = false
 	for k, vv in pairs(_JH.tItem) do
 		for _, v in ipairs(vv) do
@@ -3034,8 +3029,8 @@ GUI.UnRegisterPanel = function(szTitle)
 	end
 end
 
--- 字体选择界面
-GUI.OpenFontTablePanel = function(fnAction)
+-- 字体选择器
+function GUI.OpenFontTablePanel(fnAction)
 	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true }):RegisterClose()
 	for i = 0, 236 do
 		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
@@ -3054,7 +3049,7 @@ GUI.OpenFontTablePanel = function(fnAction)
 end
 
 -- 调色板
-GUI.OpenColorTablePanel = function(fnAction)
+function GUI.OpenColorTablePanel(fnAction)
 	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], close = true }):RegisterClose()
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
