@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-11 04:16:36
+-- @Last Modified time: 2015-03-29 18:34:03
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -285,7 +285,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	SetFrameSize(true)
 end
 -------------------------------------------------
--- 拖动窗体
+-- 拖动窗体 OnFrameDrag对于较大的窗口 掉帧严重
 -------------------------------------------------
 function RaidGrid_CTM_Edition.OnFrameDrag() -- 救命小天使
 	Grid_CTM:AutoLinkAllPanel()
