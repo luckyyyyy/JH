@@ -1,25 +1,25 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-28 16:18:01
+-- @Last Modified time: 2015-03-29 17:28:24
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
 GKP = {
-	bDebug2 = false,
-	bOn = true, -- 是分配者就开启
-	bOn2 = false, -- 不是分配者关闭
-	bMoneyTalk = false, -- 金钱变动喊话
-	bAlertMessage = true, -- 进入副本提醒清空数据
-	bCheckScore = true, -- 查看装备分
-	bMoneySystem = false, -- 记录系统金钱变动
-	bDeathWarn = false, -- 重伤提示
-	bAutoSetMoney = false, --自动设置发布时的金钱
-	bAutoBX = true, -- 自动设置碧玺碎片的价格
-	bDisplayEmptyRecords = true, -- show 0 record
-	bAutoSync = true, -- 自动接收分配者的同步信息
-	bLootStyle = true,
-	szLootListTitle = g_tStrings.STR_LOOT_SHOW_LIST,
+	bDebug2              = false,
+	bOn                  = true,  -- 是分配者就开启
+	bOn2                 = false, -- 不是分配者关闭
+	bMoneyTalk           = false, -- 金钱变动喊话
+	bAlertMessage        = true,  -- 进入副本提醒清空数据
+	bCheckScore          = true,  -- 查看装备分
+	bMoneySystem         = false, -- 记录系统金钱变动
+	bDeathWarn           = false, -- 重伤提示
+	bAutoSetMoney        = false, -- 自动设置发布时的金钱
+	bAutoBX              = true,  -- 自动设置碧玺碎片的价格
+	bDisplayEmptyRecords = true,  -- show 0 record
+	bAutoSync            = true,  -- 自动接收分配者的同步信息
+	bLootStyle           = true,
+	szLootListTitle      = g_tStrings.STR_LOOT_SHOW_LIST,
 }
 JH.RegisterCustomData("GKP")
 ---------------------------------------------------------------------->
@@ -600,7 +600,7 @@ function GKP.OnFrameCreate()
 		PopupMenu(menu)
 		Station.SetFocusWindow(me)
 	end
-	record:Append("WndEdit",{x = 135,y = 125,w = 185,h = 25}):Name("Name"):Focus(fnAction_Name,function()
+	record:Append("WndEdit", "Name", {x = 135,y = 125,w = 185,h = 25}):Focus(fnAction_Name,function()
 		if not Station.GetFocusWindow() then return end
 		local szFocusWindow = Station.GetFocusWindow():GetName()
 		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
@@ -614,8 +614,8 @@ function GKP.OnFrameCreate()
 		if IsPopupMenuOpened() and me.txt and me.txt == txt then
 			return
 		end
-		if tonumber(me:GetText()) then
-			me.txt = me:GetText()
+		if tonumber(txt) then
+			me.txt = txt
 			me:SetFontColor(GKP.GetMoneyCol(me:GetText()))
 			if tonumber(me:GetText()) >= 1000 or tonumber(me:GetText()) <= -1000 or tonumber(me:GetText()) == 0 then
 				if IsPopupMenuOpened() then
@@ -651,7 +651,7 @@ function GKP.OnFrameCreate()
 			if IsPopupMenuOpened() then
 				Wnd.CloseWindow("PopupMenuPanel")
 			end
-		else
+		elseif txt ~= "-" then
 			if me.txt then
 				me:SetText(me.txt)
 			else
@@ -659,7 +659,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	record:Append("WndEdit",{ x = 135, y = 185, w = 185, h = 25 }):Type(1):Name("Money"):Focus(fnAction, function()
+	record:Append("WndEdit", "Money", { x = 135, y = 185, w = 185, h = 25 }):Type(1):Focus(fnAction, function()
 		if not Station.GetFocusWindow() then return end
 		local szFocusWindow = Station.GetFocusWindow():GetName()
 		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
@@ -671,12 +671,12 @@ function GKP.OnFrameCreate()
 	-- 排序
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Record")
 	local t = {
-		{"#",false},
-		{"szPlayer",_L["Gainer"]},
-		{"szName",_L["Name of the Items"]},
-		{"nMoney",_L["Auction Price"]},
-		{"szNpcName",_L["Source of the Object"]},
-		{"nTime",_L["Distribution Time"]},
+		{"#",         false},
+		{"szPlayer",  _L["Gainer"]},
+		{"szName",    _L["Name of the Items"]},
+		{"nMoney",    _L["Auction Price"]},
+		{"szNpcName", _L["Source of the Object"]},
+		{"nTime",     _L["Distribution Time"]},
 	}
 	for k ,v in ipairs(t) do
 		if v[2] then
@@ -704,12 +704,12 @@ function GKP.OnFrameCreate()
 	-- 排序2
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Account")
 	local t = {
-		{"#",false},
-		{"szPlayer",_L["Transation Target"]},
-		{"nGold",_L["Changes in Money"]},
-		{"szPlayer",_L["Ways of Money Change"]},
-		{"dwMapID",_L["The Map of Current Location when Money Changes"]},
-		{"nTime",_L["The Change of Time"]},
+		{"#",        false},
+		{"szPlayer", _L["Transation Target"]},
+		{"nGold",    _L["Changes in Money"]},
+		{"szPlayer", _L["Ways of Money Change"]},
+		{"dwMapID",  _L["The Map of Current Location when Money Changes"]},
+		{"nTime",    _L["The Change of Time"]},
 	}
 
 	for k ,v in ipairs(t) do
@@ -727,27 +727,27 @@ function GKP.OnFrameCreate()
 				end
 			end
 			txt.OnItemMouseEnter = function()
-				this:SetFontColor(255,128,0)
+				this:SetFontColor(255, 128, 0)
 			end
 			txt.OnItemMouseLeave = function()
-				this:SetFontColor(255,255,255)
+				this:SetFontColor(255, 255, 255)
 			end
 		end
 	end
 	-- 排序3
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Buff")
 	local t = {
-		{"#",false},
-		{"dwForceID",_L["Team Members"]},
-		{"nScore1",_L["Item Buff"]},
-		{"nScore2",_L["Team Buff"]},
-		{"nEquipScore",_L["Score of the Equiptment"]},
-		{"bFightState",_L["Information on Combat Situation"]},
-		{false,_L["Update time"]}
+		{"#",           false},
+		{"dwForceID",   _L["Team Members"]},
+		{"nScore1",     _L["Item Buff"]},
+		{"nScore2",     _L["Team Buff"]},
+		{"nEquipScore", _L["Score of the Equiptment"]},
+		{"bFightState", _L["Information on Combat Situation"]},
+		{false,         _L["Update time"]}
 	}
 	for k ,v in ipairs(t) do
 		if v[2] then
-			local txt = page:Lookup("","Text_Buff_Break"..k)
+			local txt = page:Lookup("", "Text_Buff_Break"..k)
 			txt:RegisterEvent(786)
 			txt:SetText(v[2])
 			if v[1] then
@@ -761,10 +761,10 @@ function GKP.OnFrameCreate()
 					end
 				end
 				txt.OnItemMouseEnter = function()
-					this:SetFontColor(255,128,0)
+					this:SetFontColor(255, 128, 0)
 				end
 				txt.OnItemMouseLeave = function()
-					this:SetFontColor(255,255,255)
+					this:SetFontColor(255, 255, 255)
 				end
 			end
 		end
