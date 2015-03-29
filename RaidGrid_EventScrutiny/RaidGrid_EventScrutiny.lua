@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-28 23:52:33
+-- @Last Modified time: 2015-03-29 18:27:15
 local _L = JH.LoadLangPack
 
 RaidGrid_EventScrutiny = {}
@@ -222,6 +222,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab[i].fEventTimeStart = nil
 		tTab[i].fEventTimeEnd = nil
 		tTab[i].fMinTime = nil
+		tTab[i].bIsVisible = nil
 	end
 	local tTab2 = RaidGrid_EventScrutiny.tRecords["Casting"]
 	for i = 1, #tTab2 do
@@ -251,6 +252,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab3[i].fKeepTime = nil
 		tTab3[i].fEventTimeStart = nil
 		tTab3[i].fEventTimeEnd = nil
+		tTab3[i].bIsVisible = nil
 	end
 	local tTab4 = RaidGrid_EventScrutiny.tRecords["Debuff"]
 	for i = 1, #tTab4 do
@@ -266,6 +268,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab4[i].fKeepTime = nil
 		tTab4[i].fEventTimeStart = nil
 		tTab4[i].fEventTimeEnd = nil
+		tTab4[i].bIsVisible = nil
 	end
 end
 
@@ -615,14 +618,15 @@ end
 function RaidGrid_EventCache.OnEvent(szEvent)
 	if szEvent == "RENDER_FRAME_UPDATE" then
 		if RaidGrid_EventScrutiny.frameSelf and RaidGrid_EventScrutiny.frameSelf:IsVisible() and RaidGrid_EventCache.frameSelf and RaidGrid_EventCache.frameSelf:IsVisible() then
-			local nW, nH = Station.GetClientSize(true)
+			local cFrame = RaidGrid_EventCache.frameSelf
+			local nW, nH = Station.GetClientSize()
 			local nX, nY = RaidGrid_EventScrutiny.frameSelf:GetRelPos()
-			local nThisW, nThisH = RaidGrid_EventCache.frameSelf:GetSize()
+			local nThisW, nThisH = cFrame:GetSize()
 			local nScrutinyW, nScrutinyH = RaidGrid_EventScrutiny.frameSelf:GetSize()
 			if nX <= nW / 2 then
-				RaidGrid_EventCache.frameSelf:SetRelPos(nX + nScrutinyW, nY)
+				cFrame:SetRelPos(nX + nScrutinyW, nY)
 			else
-				RaidGrid_EventCache.frameSelf:SetRelPos(nX - nThisW, nY)
+				cFrame:SetRelPos(nX - nThisW, nY)
 			end
 		end
 	elseif szEvent == "BUFF_UPDATE" then
@@ -836,7 +840,9 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 			local szSkillName = Table_GetSkillName(dwSkillID, dwSkillLevel)
 			if not szSkillName or szSkillName == "" then
 				szSkillName = _L["NONE"] .. tostring(dwSkillID)
-				return -- ºÍÐ³
+				if not JH.bDebugClient then
+					return -- ºÍÐ³
+				end
 			end
 			if szSkillName then
 				local tRecord = {}
@@ -845,8 +851,7 @@ function RaidGrid_EventCache.OnSkillCastingOrg(dwID, dwSkillID, dwSkillLevel, sz
 				tRecord.dwID = dwSkillID
 				tRecord.nLevel = dwSkillLevel
 				tRecord.szName = szSkillName
-				tRecord.bIsVisible = true
-				tRecord.nIconID = Table_GetSkillIconID(dwSkillID, dwSkillLevel) or Table_GetSkillIconID(608, 1)
+				tRecord.nIconID = Table_GetSkillIconID(dwSkillID, dwSkillLevel) or 332
 				if tRecord.nIconID <= 0 then
 					tRecord.nIconID = 332
 				end
@@ -912,7 +917,6 @@ function RaidGrid_EventCache.CheckEnemyNpcCreationOrg(npc)
 	if not tRecord.szName or tRecord.szName == "" then
 		tRecord.szName = tostring(npc.dwTemplateID)
 	end
-	tRecord.bIsVisible = true
 	local _, nIconFrame = GetNpcHeadImage(npc.dwID)
 	tRecord.nIconFrame = nIconFrame
 
@@ -975,7 +979,9 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	end
 
 	local bIsVisible = Table_BuffIsVisible(dwBuffID, nLevel)
-	if not bIsVisible then return end --ºÍÐ³
+	if not bIsVisible and not JH.bDebugClient then
+		return
+	end
 	local szBuffName = Table_GetBuffName(dwBuffID, nLevel)
 	if not szBuffName or szBuffName == "" then
 		szBuffName = _L["NONE"] .. tostring(dwBuffID)
@@ -995,11 +1001,9 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 		tRecord.szType = "Debuff"
 	end
 
-	-- tRecord.buff = buff
 	tRecord.dwID = dwBuffID
 	tRecord.nLevel = nLevel
 	tRecord.szName = szBuffName
-	tRecord.bIsVisible = bIsVisible
 	tRecord.nIconID = Table_GetBuffIconID(dwBuffID, nLevel) or 1435
 	if tRecord.nIconID <= 0 then
 		tRecord.nIconID = 1435
@@ -1139,9 +1143,7 @@ function RaidGrid_EventCache.ShowRecordHandle(handleRecord, tRecord)
 	handleRecord.tRecord = tRecord
 
 	local szName = tRecord.szName
-	if not tRecord.bIsVisible then
-		szName = szName .. _L["`hide"]
-	elseif tRecord.bIsBuffDispel then
+	if tRecord.bIsBuffDispel then
 		szName = szName .. _L["`dispel"]
 	end
 	handleRecord.text:SetText(szName)
@@ -2857,14 +2859,10 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 
 	handleRecord.dwID = tRecord.dwID
 	handleRecord.tRecord = tRecord
-	if tRecord.bIsVisible then
-		if tRecord.bIsBuffDispel then
-			handleRecord.text:SetText(tRecord.szName .. "(Çý)")
-		else
-			handleRecord.text:SetText(tRecord.szName)
-		end
+	if tRecord.bIsBuffDispel then
+		handleRecord.text:SetText(tRecord.szName .. "(Çý)")
 	else
-		handleRecord.text:SetText(tRecord.szName .. "(Òþ)")
+		handleRecord.text:SetText(tRecord.szName)
 	end
 	if tRecord.bEnemy == true then
 		handleRecord.text:SetFontColor(255, 128, 128)
