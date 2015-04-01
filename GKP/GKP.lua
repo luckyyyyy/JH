@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-29 17:28:24
+-- @Last Modified time: 2015-03-31 19:20:34
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -172,7 +172,7 @@ _GKP.OpenLootPanel = function()
 					for k,v in ipairs(_GKP.aDistributeList) do
 						table.insert(t, GKP.GetFormatLink(v))
 					end
-					table.insert(t, GKP.GetFormatLink(_L["Expression"]))
+					-- table.insert(t, GKP.GetFormatLink(_L["Expression"]))
 					JH.Talk(t)
 				end
 				return
