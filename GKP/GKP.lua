@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-31 19:20:34
+-- @Last Modified time: 2015-04-01 22:53:38
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -2714,7 +2714,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 			item:Lookup("Text_Name"):SetText(_L["System"])
 			item:Lookup("Text_Change"):SetText(_L["Reward & other ways"])
 		end
-		item:Lookup("Text_Map"):SetText(JH.GetMapName(v.dwMapID))
+		item:Lookup("Text_Map"):SetText(Table_GetMapName(v.dwMapID))
 		item:Lookup("Text_Time"):SetText(GKP.GetTimeString(v.nTime))
 		c:Lookup("WndButton_Delete").OnLButtonClick = function()
 			GKP("GKP_Account","del",k)
