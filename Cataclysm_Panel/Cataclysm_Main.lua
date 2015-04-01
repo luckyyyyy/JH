@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-29 18:34:03
+-- @Last Modified time: 2015-04-01 21:15:00
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -40,6 +40,7 @@ local CTM_CONFIG = {
 	bFasterHP            = false,
 	bStaring             = false,
 	bShowBuffTime        = false,
+	bShowBuffNum         = false,
 	bShowGropuNumber     = true,
 	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
 		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
@@ -1001,6 +1002,9 @@ function PS4.OnPanelActive(frame)
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show Buff Time"], checked = RaidGrid_CTM_Edition.bShowBuffTime }):Click(function(bCheck)
 		RaidGrid_CTM_Edition.bShowBuffTime = bCheck
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show Buff Num"], checked = RaidGrid_CTM_Edition.bShowBuffNum }):Click(function(bCheck)
+		RaidGrid_CTM_Edition.bShowBuffNum = bCheck
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 150, limit = 4096, multi = true})

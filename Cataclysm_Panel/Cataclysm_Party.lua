@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-21 12:12:47
+-- @Last Modified time: 2015-04-01 21:13:41
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -852,6 +852,12 @@ function CTM:RefresBuff()
 									end
 								else
 									hBox:SetOverText(0, "")
+								end
+								if CFG.bShowBuffNum and tBuff.nStackNum > 1 then
+									hBox:SetOverTextFontScheme(1, 15)
+									hBox:SetOverText(1, tBuff.nStackNum .. " ")
+								else
+									hBox:SetOverText(1, "")
 								end
 							else
 								handle:RemoveItem(i)
