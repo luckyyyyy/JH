@@ -1,20 +1,20 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-20 07:24:41
+-- @Last Modified time: 2015-04-03 23:25:20
 local _L = JH.LoadLangPack
 
 ScreenHead = {
-	tList = {},
-	tNpcList = {},
-	bEnable = true,
+	tList       = {},
+	tNpcList    = {},
+	bEnable     = true,
 	bEnableRGES = true,
-	bTeamAlert = false,
-	bIsMe = false,
-	nTeamHp = 0.3,--0.3,
-	nTeamMp = 0.1,
-	nTime = 5,
-	nFont = 40,
+	bTeamAlert  = false,
+	bIsMe       = false,
+	nTeamHp     = 0.3,
+	nTeamMp     = 0.1,
+	nTime       = 5,
+	nFont       = 40,
 }
 JH.RegisterCustomData("ScreenHead")
 
