@@ -1,8 +1,24 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-29 18:27:15
+-- @Last Modified time: 2015-04-03 23:51:21
 local _L = JH.LoadLangPack
+
+local function HashChange(tRecords)
+	local Hash = {}
+	local Hash2 = {}
+	for k, v in ipairs(tRecords) do
+		if v.dwID then
+			Hash[v.dwID] = true
+		end
+		if v.nLevel then
+			Hash2[v.dwID] = Hash2[v.dwID] or {}
+			Hash2[v.dwID][v.nLevel] = true
+		end
+	end
+	tRecords.Hash = Hash
+	tRecords.Hash2 = Hash2
+end
 
 RaidGrid_EventScrutiny = {}
 local RaidGrid_EventScrutiny = RaidGrid_EventScrutiny
@@ -14,7 +30,7 @@ local _RE = {
 	szIniPath = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/",
 }
 
-RaidGrid_EventScrutiny.OnFrameCreate = function()
+function RaidGrid_EventScrutiny.OnFrameCreate()
 	this:RegisterEvent("BUFF_UPDATE")
 	this:RegisterEvent("NPC_ENTER_SCENE")
 	this:RegisterEvent("NPC_LEAVE_SCENE")
@@ -34,7 +50,7 @@ end
 
 local bSendDataToTeamStart = false
 local tSyncQueue = {}
-JH.RegisterEvent("ON_BG_CHANNEL_MSG",function()
+JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 	local me = GetClientPlayer()
 	local data = JH.BgHear("RGES")
 	if data then
@@ -78,7 +94,7 @@ function RaidGrid_EventScrutiny.OnFrameDragEnd()
 	RaidGrid_EventScrutiny.tAnchor = GetFrameAnchor(this)
 end
 
-RaidGrid_EventScrutiny.UpdateAnchor = function(frame)
+function RaidGrid_EventScrutiny.UpdateAnchor(frame)
 	local a = RaidGrid_EventScrutiny.tAnchor
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
@@ -131,7 +147,7 @@ function RaidGrid_EventScrutiny.OnEvent(szEvent)
 end
 
 
-_RE.AutoEnable = function(bEnable)
+function _RE.AutoEnable(bEnable)
 	local enable = RaidGrid_EventScrutiny.bEnable
 	if RaidGrid_EventScrutiny.AutoEnable then
 		if JH.IsInDungeon(true) then
@@ -415,15 +431,14 @@ end
 
 function RaidGrid_Base.SaveSettingsNew()
 	local _, _, szLang = GetVersion()
-	local szName = "RGES-" .. szLang .. FormatTime("-%Y-%m-%d_%H.%M.%S",GetCurrentTime()) .. ".jx3dat"
+	local szName = "RGES-" .. szLang .. FormatTime("-%Y-%m-%d_%H.%M.%S", GetCurrentTime()) .. ".jx3dat"
 	RaidGrid_Base.OutputSettingsFileNew(szName)
 end
 
 function RaidGrid_Base.LoadSettingsNew(bOverride)
-	local fnAction = function(szText)
+	GetUserInput(_L["Please enter the file name"], function(szText)
 		RaidGrid_Base.LoadSettingsFileNew(szText, bOverride)
-	end
-	GetUserInput(_L["Please enter the file name"], fnAction)
+	end)
 end
 
 function RaidGrid_Base.OutputSettingsFileNew(szName)
@@ -434,7 +449,7 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 	for k,v in ipairs(RaidGrid_BossCallAlert.tRecords.tWarningMessages) do
 		if not tab[v.szText] then
 			tab[v.szText] = true
-			table.insert(dat,v)
+			table.insert(dat, v)
 		end
 	end
 	RaidGrid_BossCallAlert.tRecords.tWarningMessages = dat
@@ -443,7 +458,7 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 	for k,v in ipairs(RaidGrid_BossCallAlert.tRecords.tBossCall) do
 		if not tab[v.szText] then
 			tab[v.szText] = true
-			table.insert(dat,v)
+			table.insert(dat, v)
 		end
 	end
 	RaidGrid_BossCallAlert.tRecords.tBossCall = dat
@@ -459,8 +474,14 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 	if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 		data.EventCacheRecords = RaidGrid_EventCache.tRecords
 	end
-	SaveLUAData(szFullName, data)
-	JH.Alert(_L("Export complete\nPath:%s",GetRootPath().. szFullName))
+	local __DATA__ = clone(data)
+
+	for k, v in pairs({"Buff", "Debuff", "Casting", "Npc"}) do -- 缩小数据
+		__DATA__.EventScrutinyRecords[v].Hash = nil
+		__DATA__.EventScrutinyRecords[v].Hash2 = nil
+	end
+	SaveLUAData(szFullName, __DATA__)
+	JH.Alert(_L("Export complete\nPath:%s", GetRootPath().. szFullName))
 end
 
 function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
@@ -468,9 +489,15 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 
 	local data = LoadLUAData(szPath)
 	if not data then
-		JH.Sysmsg2(_L["file path:"]..GetRootPath()..szPath)
+		JH.Sysmsg2(_L["file path:"] .. GetRootPath() .. szPath)
 		JH.Sysmsg2(_L["load Failed, Please check the file exists"])
 		return
+	else
+		for k, v in pairs({"Buff", "Debuff", "Casting", "Npc"}) do -- 重建Hash
+			data.EventScrutinyRecords[v].Hash = nil
+			data.EventScrutinyRecords[v].Hash2 = nil
+			HashChange(data.EventScrutinyRecords[v])
+		end
 	end
 
 	if bOverride then
@@ -5440,23 +5467,6 @@ JH.RegisterEvent("LOADING_END",function()
 			RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
 			RaidGrid_Base.version = 2
 		end
-
-		local function HashChange(tRecords)
-			local Hash = {}
-			local Hash2 = {}
-			for k,v in ipairs(tRecords) do
-				if v.dwID then
-					Hash[v.dwID] = true
-				end
-				if v.nLevel then
-					Hash2[v.dwID] = Hash2[v.dwID] or {}
-					Hash2[v.dwID][v.nLevel] = true
-				end
-			end
-			tRecords.Hash = Hash
-			tRecords.Hash2 = Hash2
-		end
-
 		local path = _RE.szDataPath .. _RE.szName .. "/"
 		for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 			local data = JH.LoadLUAData(path .. v)
@@ -5474,8 +5484,8 @@ JH.RegisterEvent("LOADING_END",function()
 				end
 			end
 		end)
-		JH.DelayCall(2500, function()
-			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+		if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+			JH.DelayCall(2500, function()
 				for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 					local data = JH.LoadLUAData(path .. "cache/" .. v)
 					if data then
@@ -5483,8 +5493,9 @@ JH.RegisterEvent("LOADING_END",function()
 						HashChange(RaidGrid_EventCache.tRecords[v])
 					end
 				end
-			end
-		end)
+
+			end)
+		end
 	end
 end)
 
