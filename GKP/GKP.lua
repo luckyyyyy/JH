@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-01 22:53:38
+-- @Last Modified time: 2015-04-03 20:51:50
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -31,6 +31,7 @@ local _GKP = {
 	aDistributeList = {}, -- 当前拾取列表
 	tLootListMoney = {}, -- 发布的金钱cache
 	tDistribute = {}, -- 待记账列表
+	tEquipCache = {},
 	tDistributeRecords = {},
 	tDungeonList = {},
 	tViewInvite = {},
@@ -81,7 +82,7 @@ local _GKP = {
 			[JH.GetItemName(72591)] = true,
 			[JH.GetItemName(68362)] = true,
 			[JH.GetItemName(66189)] = true,
-			[JH.GetItemName(4097)] = true,
+			[JH.GetItemName(4097)]  = true,
 			[JH.GetItemName(73214)] = true,
 			[JH.GetItemName(74368)] = true,
 		},
@@ -140,16 +141,20 @@ end})
 ---------------------------------------------------------------------->
 -- 本地函数
 ----------------------------------------------------------------------<
-_GKP.SaveConfig = function()
-	JH.SaveLUAData("config/gkp.cfg",_GKP.Config)
+function _GKP.SaveConfig()
+	JH.SaveLUAData("config/gkp.cfg", _GKP.Config)
 end
 
-_GKP.GKP_Save = function()
+
+-- Output(FormatTime("%W", GetCurrentTime()))
+-- GKP 记录缓存格式 角色名/副本名称/年份-第几周-副本ID.jx3dat
+-- 这样绝对不怕丢记录
+function _GKP.GKP_Save()
 	local me = GetClientPlayer()
 	local szPath = "GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()) .. ".gkp"
 	JH.SaveLUAData(szPath,{ GKP_Record = GKP("GKP_Record") , GKP_Account = GKP("GKP_Account") })
 end
-_GKP.GKP_LoadData = function(szFile)
+function _GKP.GKP_LoadData(szFile)
 	local me = GetClientPlayer()
 	local szPath = szFile .. ".gkp"
 	local t = JH.LoadLUAData(szPath)
@@ -160,7 +165,7 @@ _GKP.GKP_LoadData = function(szFile)
 	pcall(_GKP.Draw_GKP_Record)
 	pcall(_GKP.Draw_GKP_Account)
 end
-_GKP.OpenLootPanel = function()
+function _GKP.OpenLootPanel()
 	if not Station.Lookup("Normal/GKP_Loot") then
 		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot")
 		loot:Hide()
@@ -185,13 +190,14 @@ _GKP.OpenLootPanel = function()
 	end
 	return Station.Lookup("Normal/GKP_Loot")
 end
-_GKP.OpenPanel = function(bDisableSound)
+function _GKP.OpenPanel(bDisableSound)
 	local frame = Station.Lookup("Normal/GKP") or Wnd.OpenWindow(_GKP.szIniFile, "GKP")
 	frame:Show()
 	frame:BringToTop()
 	Station.SetActiveFrame(frame)
 	JH.BreatheCall("GKPTeamInfo", function()
 		if not _GKP.frame:IsVisible() then
+			_GKP.tEquipCache = {}
 			JH.UnBreatheCall("GKPTeamInfo")
 		else
 			_GKP.Draw_GKP_Buff()
@@ -204,7 +210,7 @@ _GKP.OpenPanel = function(bDisableSound)
 end
 GKP.OpenPanel = _GKP.OpenPanel
 -- close
-_GKP.ClosePanel = function(bRealClose)
+function _GKP.ClosePanel(bRealClose)
 	if _GKP.frame then
 		if not bRealClose then
 			_GKP.frame:Hide()
@@ -216,7 +222,7 @@ _GKP.ClosePanel = function(bRealClose)
 	end
 end
 -- toggle
-_GKP.TogglePanel = function()
+function _GKP.TogglePanel()
 	if _GKP.frame and _GKP.frame:IsVisible() then
 		_GKP.ClosePanel()
 	else
@@ -224,7 +230,7 @@ _GKP.TogglePanel = function()
 	end
 end
 -- initlization
-_GKP.Init = function()
+function _GKP.Init()
 	if not _GKP.bInit then
 		local me = GetClientPlayer()
 		Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Record.ini","GKP_Record"):Hide()
@@ -238,7 +244,7 @@ _GKP.Init = function()
 end
 JH.RegisterEvent("LOADING_END", _GKP.Init) -- LOADING_END 主要是为了获取名字 所以压到最后加载
 -- OnMsgArrive
-_GKP.OnMsgArrive = function(szMsg)
+function _GKP.OnMsgArrive(szMsg)
 	if not Station.Lookup("Normal/GKP_Chat") then return end
 	local me = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat")
 	local h = me:Lookup("", "")
@@ -262,7 +268,7 @@ _GKP.OnMsgArrive = function(szMsg)
 	me:Lookup("Scroll_All"):ScrollEnd()
 end
 -- 点击锤子图标预览 严格判断
-GKP.DistributionItem = function()
+function GKP.DistributionItem()
 	local h, i = this:GetParent(), this:GetIndex()
 	if not h or not i then
 		error("GKP_ERROR -> UI_ERROR")
@@ -346,7 +352,7 @@ GKP.DistributionItem = function()
 	MessageBox(msg)
 end
 
-_GKP.SetChatWindow = function(item, ui)
+function _GKP.SetChatWindow(item, ui)
 	local me = Station.Lookup("Normal/GKP_Chat")
 	if not me then
 		me = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Chat.ini","GKP_Chat")
@@ -372,7 +378,7 @@ _GKP.SetChatWindow = function(item, ui)
 	Station.SetFocusWindow(me)
 end
 
-_GKP.CloseChatWindow = function(bCheck)
+function _GKP.CloseChatWindow(bCheck)
 	local me = Station.Lookup("Normal/GKP_Chat")
 	if not me then return end
 	if type(bCheck) == "userdata" then
@@ -387,13 +393,13 @@ _GKP.CloseChatWindow = function(bCheck)
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 end
 
-_GKP.CloseLootWindow = function()
+function _GKP.CloseLootWindow()
 	Wnd.CloseWindow(Station.Lookup("Normal/GKP_Loot"))
 	_GKP.dwOpenID = nil
 	_GKP.CloseChatWindow(true)
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 end
-_GKP.SetLootTitle = function()
+function _GKP.SetLootTitle()
 	if Station.Lookup("Normal/GKP_Loot") then
 		Station.Lookup("Normal/GKP_Loot"):Lookup("","Text_Title"):SetText(GKP.szLootListTitle)
 	end
@@ -401,7 +407,7 @@ end
 ---------------------------------------------------------------------->
 -- 常用函数
 ----------------------------------------------------------------------<
-GKP.Random = function() -- 生成一个随机字符串 这还能重复我吃翔
+function GKP.Random() -- 生成一个随机字符串 这还能重复我吃翔
 	local a = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,_+;*-"
 	local t = {}
 	for i = 1, 64 do
@@ -411,11 +417,11 @@ GKP.Random = function() -- 生成一个随机字符串 这还能重复我吃翔
 	return table.concat(t, "")
 end
 
-GKP.Sysmsg = function(szMsg)
+function GKP.Sysmsg(szMsg)
 	JH.Sysmsg(szMsg, "[GKP]")
 end
 
-GKP.GetTimeString = function(nTime, year)
+function GKP.GetTimeString(nTime, year)
 	if year then
 		return FormatTime("%H:%M:%S", nTime)
 	else
@@ -423,7 +429,7 @@ GKP.GetTimeString = function(nTime, year)
 	end
 end
 
-GKP.GetMoneyCol = function(Money)
+function GKP.GetMoneyCol(Money)
 	local Money = tonumber(Money)
 	if Money then
 		if Money < 0 then
@@ -447,7 +453,7 @@ end
 ---------------------------------------------------------------------->
 -- 格式化链接
 ----------------------------------------------------------------------<
-GKP.GetFormatLink = function(item, bName)
+function GKP.GetFormatLink(item, bName)
 	if type(item) == "string" then
 		if bName then
 			return { type = "name", name = item, text = "[" .. item .."]" }
@@ -463,7 +469,7 @@ GKP.GetFormatLink = function(item, bName)
 	end
 end
 
-GKP.OnItemLinkDown = function(item,ui)
+function GKP.OnItemLinkDown(item,ui)
 	ui.nVersion = item.nVersion
 	ui.dwTabType = item.dwTabType
 	ui.dwIndex = item.dwIndex
@@ -478,7 +484,7 @@ end
 ---------------------------------------------------------------------->
 -- 获取团队成员 menu
 ----------------------------------------------------------------------<
-GKP.GetTeamList = function()
+function GKP.GetTeamList()
 	local TeamMemberList = GetClientTeam().GetTeamMemberList()
 	local tTeam,menu = {},{}
 	if JH.bDebug then
@@ -929,7 +935,6 @@ end
 -- 绘制团队概况
 ----------------------------------------------------------------------<
 _GKP.Draw_GKP_Buff = function(key,sort)
-
 	local key = key or _GKP.GKP_Buff_Container.key or "nEquipScore"
 	local sort = sort or _GKP.GKP_Buff_Container.sort or "desc"
 	_GKP.GKP_Buff_Container.key = key
@@ -949,7 +954,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 		-- ["樱墨"] = 1301156,
 	}
 	local tab = {}
-	for k,v in ipairs(TeamMemberList) do
+	for k, v in ipairs(TeamMemberList) do
 		local player = GetPlayer(v)
 		local tPlayer = team.GetMemberInfo(v)
 		local t = {
@@ -979,10 +984,16 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 			local nEquipScore = player.GetTotalEquipScore()
 			if GKP.bCheckScore then
 				if nEquipScore == 0 then
-					_GKP.tViewInvite[v] = true
-					local PlayerView = Station.Lookup("Normal/PlayerView")
-					if not PlayerView or not PlayerView:IsVisible() then
-						ViewInviteToPlayer(v)
+					if not _GKP.tEquipCache[v] or (_GKP.tEquipCache[v] and _GKP.tEquipCache[v] < 3) then -- 最多重试3次
+						if not _GKP.tEquipCache[v] then
+							_GKP.tEquipCache[v] = 1
+						end
+						_GKP.tEquipCache[v] = _GKP.tEquipCache[v] + 1
+						_GKP.tViewInvite[v] = true
+						local PlayerView = Station.Lookup("Normal/PlayerView")
+						if not PlayerView or not PlayerView:IsVisible() then
+							ViewInviteToPlayer(v)
+						end
 					end
 				end
 			end
