@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-28 20:19:25
+-- @Last Modified time: 2015-04-04 14:43:54
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -879,7 +879,7 @@ function PS.OnPanelActive(frame)
 	end
 end
 
-GUI.RegisterPanel(_L["AutoSetTeam"], 5962, _L["General"], PS)
+GUI.RegisterPanel(_L["AutoSetTeam"], 5962, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("LOGIN_GAME", function()
 	JH.RegisterInit("RequestList", _RequestList.GetEvent())

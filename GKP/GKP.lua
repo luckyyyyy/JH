@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-03 20:51:50
+-- @Last Modified time: 2015-04-04 14:42:44
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -855,7 +855,7 @@ PS.OnPanelActive = function(frame)
 		end)
 	end
 end
-GUI.RegisterPanel(_L["GKP Golden Team Record"], 95, _L["General"], PS)
+GUI.RegisterPanel(_L["GKP Golden Team Record"], 95, g_tStrings.CHANNEL_CHANNEL, PS)
 
 
 _GKP.GetSettingMenu = function()
