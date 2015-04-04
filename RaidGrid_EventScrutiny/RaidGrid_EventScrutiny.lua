@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-03 23:51:21
+-- @Last Modified time: 2015-04-04 00:06:35
 local _L = JH.LoadLangPack
 
 local function HashChange(tRecords)
@@ -199,27 +199,6 @@ function RaidGrid_Base.TeamMarkOrg(dwID, nMark)
 end
 
 function RaidGrid_Base.SetTargetOrg(dwTargetID)
-	local player = GetClientPlayer()
-	if not player then
-		return
-	end
-
-	local nType = TARGET.NPC
-	if not dwTargetID or (dwTargetID <= 0) then
-		nType = TARGET.NO_TARGET
-		dwTargetID = 0
-	elseif IsPlayer(dwTargetID) then
-		nType = TARGET.PLAYER
-	end
-
-	if SetTarget then
-		local as0, as1 = arg0, arg1
-		-- SetTarget(nType, dwTargetID)
-		arg0, arg1 = as0, as1
-	elseif SelectTarget then
-		-- SelectTarget(nType, dwTargetID)
-	end
-
 end
 
 
@@ -505,7 +484,7 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 			if data.Debuff then
 				data.Scrutiny = RaidGrid_EventScrutiny.tRecords.Scrutiny
 				RaidGrid_EventScrutiny.tRecords = data
-				RaidGrid_Base.Message(_L("Override %s data done"),"RGES")
+				RaidGrid_Base.Message(_L("Override %s data done", "RGES"))
 			end
 		else
 			if RaidGrid_EventScrutiny.bOutputBossFaceData then
@@ -516,18 +495,18 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 			if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then
 				if data.BossCallAlertRecords then
 					RaidGrid_BossCallAlert.tRecords = data.BossCallAlertRecords
-					RaidGrid_Base.Message(_L("Override %s data done","RaidGrid_BossCallAlert"))
+					RaidGrid_Base.Message(_L("Override %s data done", "RaidGrid_BossCallAlert"))
 				end
 			end
 			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 				if data.EventCacheRecords then
 					RaidGrid_EventCache.tRecords = data.EventCacheRecords
-					RaidGrid_Base.Message(_L("Override %s data done","RaidGrid_EventCache"))
+					RaidGrid_Base.Message(_L("Override %s data done", "RaidGrid_EventCache"))
 				end
 			end
 			data.EventScrutinyRecords.Scrutiny = RaidGrid_EventScrutiny.tRecords.Scrutiny
 			RaidGrid_EventScrutiny.tRecords = data.EventScrutinyRecords
-			RaidGrid_Base.Message(_L("Override %s data done","RGES"))
+			RaidGrid_Base.Message(_L("Override %s data done", "RGES"))
 		end
 	else
 		local _data = {}
@@ -1985,11 +1964,9 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 			end
 
 			if tTab[i].bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable then
-				--if math.abs(JH.GetLogicTime() - (tTab[i].fLastMarkCountTime or 0)) > 60 then
 				if tTab[i].nMarkCount and (tTab[i].nMarkCount >= (tTab[i].nMaxMarkCount or 10)) then
 					tTab[i].nMarkCount = nil
 					tTab[i].fLastMarkCountTime = nil
-					--tTab[i].fLastMarkCountTime = JH.GetLogicTime()
 				end
 				local TeamMarkIndex = 1
 				if tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
@@ -5426,12 +5403,12 @@ end)
 ----------------------------------------------------------------
 ----RaidGrid_Launcher.lua----
 ----------------------------------------------------------------
-JH.BreatheCall("CheckNpcLifeAndAlarmOrg",RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg,1000)
-JH.BreatheCall("CheckNpcFightState",RaidGrid_EventScrutiny.CheckNpcFightStateOrg,500)
-JH.BreatheCall("RefreshEventHandle",RaidGrid_EventScrutiny.RefreshEventHandle,250)
-JH.BreatheCall("GetWarningMessage",RaidGrid_BossCallAlert.GetWarningMessageOrg)
+JH.BreatheCall("CheckNpcLifeAndAlarmOrg", RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg, 1000)
+JH.BreatheCall("CheckNpcFightState", RaidGrid_EventScrutiny.CheckNpcFightStateOrg, 500)
+JH.BreatheCall("RefreshEventHandle", RaidGrid_EventScrutiny.RefreshEventHandle, 250)
+JH.BreatheCall("GetWarningMessage", RaidGrid_BossCallAlert.GetWarningMessageOrg)
 
-_RE.Raid_MonitorBuffs = function()
+function _RE.Raid_MonitorBuffs()
 	if not GetClientPlayer() then return end
 	if not RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2 then
 		Raid_MonitorBuffs({})
@@ -5454,7 +5431,7 @@ end
 JH.BreatheCall("Raid_MonitorBuffs", _RE.Raid_MonitorBuffs, 10000)
 ------------------------------------------------------------------
 
-JH.RegisterEvent("LOADING_END",function()
+JH.RegisterEvent("LOADING_END", function()
 	if IsRemotePlayer(UI_GetClientPlayerID()) then
 		return
 	end
@@ -5499,7 +5476,7 @@ JH.RegisterEvent("LOADING_END",function()
 	end
 end)
 
-local SaveRGESData = function()
+local function SaveRGESData()
 	RaidGrid_Base.ResetChatAlertCD()
 	local path = _RE.szDataPath .. _RE.szName .. "/"
 	for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
@@ -5518,10 +5495,7 @@ local SaveRGESData = function()
 			JH.SaveLUAData(path .. "cache/" .. v, JH.JsonEncode(RaidGrid_EventCache.tRecords[v]))
 		end
 	end
-
 end
-
 
 JH.RegisterEvent("GAME_EXIT", SaveRGESData)
 JH.RegisterEvent("PLAYER_EXIT_GAME", SaveRGESData)
-

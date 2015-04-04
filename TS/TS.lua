@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-29 01:01:24
+-- @Last Modified time: 2015-04-04 14:20:32
 local _L = JH.LoadLangPack
 
 TS = {
@@ -173,15 +173,7 @@ function _TS.OnDpsBreathe()
 				local nTotal = nTotalEffect - _TS.DPS_TOTAL
 				local nTime  = GetTime() - _TS.DPS_TIME
 				local nDps   = math.ceil(nTotal / (nTime / 1000))
-				_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%.1fw", nDps / 10000)
-				-- debug ·½±ãÎÒµ÷ÊÔ
-				-- if JH.bDebug then
-					-- JH.Debug(string.format("Total DPS:%.1fw", nDps / 10000))
-					-- local KTarget, KdwType = JH.GetTarget()
-					-- if KdwType == TARGET.NPC and nDps > 0 then
-						-- JH.Debug(string.format("Kill:%d(s)", KTarget.nCurrentLife / nDps))
-					-- end
-				-- end
+				_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%dw", math.floor(nDps / 10000))
 			end
 			_TS.DPS_TIME  = GetTime()
 			_TS.DPS_TOTAL = nTotalEffect
