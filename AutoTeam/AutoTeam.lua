@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2014-11-20 23:34:41
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:37:13
+-- @Last Modified time: 2015-04-04 15:06:30
 local _L = JH.LoadLangPack
 
 local JH_AutoTeam = {
@@ -128,7 +128,7 @@ PS.OnPanelActive = function(frame)
 			JH_AutoSetTeam.bRequestList = false
 			JH.UnRegisterInit("RequestList")
 		end
-		
+
 		for i = 1,3 do
 			ui:Fetch("Check_XyzSelf"..i):Enable(bChecked)
 		end
@@ -153,7 +153,7 @@ PS.OnPanelActive = function(frame)
 		end
 		ReloadUIAddon()
 	end):Pos_()
-	
+
 	nY = 80
 -- auto
 	nX,nY = ui:Append("Text", { txt = "自动喊话", font = 27, x = 0, y = nY }):Pos_()
@@ -185,7 +185,7 @@ PS.OnPanelActive = function(frame)
 	nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 2 })
 	:Text(_L["Import"]):Click(function()
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-		JH.SetEdit(ui:Fetch("Edit_Auto").edit,edit:GetTextStruct())
+		JH.TeamAD.SetEdit(ui:Fetch("Edit_Auto").edit,edit:GetTextStruct())
 		JH_AutoTeam.tMessage.auto = edit:GetTextStruct()
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", "Check_Auto", { txt = "开始喊话", x = nX + 10, y = nY + 2, checked = JH_AutoTeam.bAuto })
@@ -237,7 +237,7 @@ PS.OnPanelActive = function(frame)
 		GetUserInput(_L["Save Name"],function(txt)
 			if #tList == 18 then return end
 			table.insert(tList,{key = txt,txt = ad,ad = data})
-			JH.SetEdit(ui:Fetch("Edit_Auto").edit,data)
+			JH.TeamAD.SetEdit(ui:Fetch("Edit_Auto").edit,data)
 			JH.SaveLUAData(JH_AutoTeam.szDataFile,JH_AutoTeam.LoadData())
 			JH.OpenPanel(JH_AutoTeam.szTitle)
 		end,nil,nil,nil,nil,5)
@@ -260,13 +260,13 @@ PS.OnPanelActive = function(frame)
 				JH.OpenPanel(JH_AutoTeam.szTitle)
 			else
 				local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-				JH.SetEdit(edit,v.ad)
-				JH.SetEdit(ui:Fetch("Edit_Auto").edit,v.ad)
+				JH.TeamAD.SetEdit(edit,v.ad)
+				JH.TeamAD.SetEdit(ui:Fetch("Edit_Auto").edit,v.ad)
 				Station.SetFocusWindow(edit)
 			end
 		end):Pos_()
 	end
-	
+
 end
 
 
