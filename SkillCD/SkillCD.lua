@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-02 00:11:18
+-- @Last Modified time: 2015-04-04 14:43:29
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -438,7 +438,7 @@ PS.OnPanelActive = function(frame)
 		i = i + 1
 	end
 end
-GUI.RegisterPanel(_L["SkillCD"], 13, _L["General"], PS)
+GUI.RegisterPanel(_L["SkillCD"], 13, g_tStrings.CHANNEL_CHANNEL, PS)
 
 _SkillCD.Init = function()
 	JH.RegisterInit("SkillCD",
