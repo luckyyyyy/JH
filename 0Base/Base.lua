@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-28 21:19:03
+-- @Last Modified time: 2015-04-04 18:27:10
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -9,7 +9,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x0090304
+local _VERSION_   = 0x0090305
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
@@ -64,37 +64,37 @@ do
 	local exp = { GetVersion() }
 	if exp and exp[4] == "exp" then
 		JH.bDebug = true
-		JH.bDebugClient = true
+		-- JH.bDebugClient = true
 	end
 end
 
 local _JH = {
-	szBuildDate = "20150326",
-	szTitle = _L["JH, JX3 Plug-in Collection"],
-	tHotkey = {},
-	tDelayCall = {},
-	tRequest = {},
-	tGlobalValue = {},
-	tConflict = {},
-	tEvent = {},
-	tModule = {},
-	szShort = _L["JH"],
-	nDebug = 2,
-	tBuffCache = {},
-	tSkillCache = {},
-	tMapCache = {},
-	tItemCache = {},
-	tDungeonList = {},
-	aPlayer = {},
-	aNpc = {},
-	aDoodad = {},
-	tBreatheCall = {},
+	szBuildDate    = "20150326",
+	szTitle        = _L["JH, JX3 Plug-in Collection"],
+	tHotkey        = {},
+	tDelayCall     = {},
+	tRequest       = {},
+	tGlobalValue   = {},
+	tConflict      = {},
+	tEvent         = {},
+	tModule        = {},
+	szShort        = _L["JH"],
+	nDebug         = 2,
+	tBuffCache     = {},
+	tSkillCache    = {},
+	tMapCache      = {},
+	tItemCache     = {},
+	tDungeonList   = {},
+	aPlayer        = {},
+	aNpc           = {},
+	aDoodad        = {},
+	tBreatheCall   = {},
 	tApplyPointKey = {},
-	tItem = { {}, {}, {} },
-	tOption = { szOption = _L["JH"] },
-	tOption2 = { szOption = _L["JH"] },
-	tClass = { _L["General"], _L["RGES"], _L["Other"] },
-	szIniFile = ROOT_PATH .. "JH.ini",
+	tItem          = { {}, {}, {} },
+	tOption        = { szOption = _L["JH"] },
+	tOption2       = { szOption = _L["JH"] },
+	tClass         = { _L["General"], _L["RGES"], _L["Other"] },
+	szIniFile      = ROOT_PATH .. "JH.ini",
 	tTalkChannelHeader = {
 		[PLAYER_TALK_CHANNEL.NEARBY]        = "/s ",
 		[PLAYER_TALK_CHANNEL.FRIENDS]       = "/o ",

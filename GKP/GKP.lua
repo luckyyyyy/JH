@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-04 14:42:44
+-- @Last Modified time: 2015-04-04 21:30:17
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -565,10 +565,10 @@ function GKP.OnFrameCreate()
 	record:Append("Text",{x = 60,y = 124,font = 65,txt = _L["Name of the Item:"]})
 	record:Append("Text",{x = 60,y = 154,font = 65,txt = _L["Route of Acquiring:"]})
 	record:Append("Text",{x = 60,y = 184,font = 65,txt = _L["Auction Price:"]})
-	record:Append("WndCheckBox",{x = 20,y = 300,font = 65,txt = _L["Equiptment Boss"]}):Name("WndCheckBox")
-	record:Append("WndButton3",{x = 115,y = 300,txt = g_tStrings.STR_HOTKEY_SURE}):Name("btn_ok")
-	record:Append("WndComboBox",{x = 135,y = 53,txt = g_tStrings.PLAYER_NOT_EMPTY}):Name("TeamList"):Menu(GKP.GetTeamList)
-	record:Append("WndEdit",{x = 135,y = 155,w = 185,h = 25}):Name("Source")
+	record:Append("WndCheckBox", "WndCheckBox",{x = 20,y = 300,font = 65,txt = _L["Equiptment Boss"]})
+	record:Append("WndButton3", "btn_ok", {x = 115,y = 300,txt = g_tStrings.STR_HOTKEY_SURE})
+	record:Append("WndComboBox", "TeamList", {x = 135,y = 53,txt = g_tStrings.PLAYER_NOT_EMPTY}):Menu(GKP.GetTeamList)
+	record:Append("WndEdit", "Source", {x = 135,y = 155,w = 185,h = 25})
 
 
 	local fnAction_Name = function()
@@ -665,7 +665,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	record:Append("WndEdit", "Money", { x = 135, y = 185, w = 185, h = 25 }):Type(1):Focus(fnAction, function()
+	record:Append("WndEdit", "Money", { x = 135, y = 185, w = 185, h = 25, limit = 8 }):Type(1):Focus(fnAction, function()
 		if not Station.GetFocusWindow() then return end
 		local szFocusWindow = Station.GetFocusWindow():GetName()
 		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
@@ -1339,8 +1339,9 @@ _GKP.Draw_GKP_Record = function(key,sort)
 
 	_GKP.GKP_Record_Container:FormatAllContentPos()
 	local txt = Station.Lookup("Normal/GKP/PageSet_Menu/Page_GKP_Record"):Lookup("","Text_GKP_RecordSettlement")
-	txt:SetText(_L("Statistic: real salary = %d Gold(By Auction: %d Gold + Extra Allowance: %d Gold) %d record has been deleted.",a+b,a,b,c))
-	txt:SetFontColor(255, 255, 0)
+	-- txt:SetText(FormatString(g_tStrings.GOLD_BID_PAY_STATIC_TEAM, a, b, a + b, 25, 0000))
+	txt:SetText(_L("Statistic: real salary = %d Gold(By Auction: %d Gold + Extra Allowance: %d Gold) %d record has been deleted.", a + b, a, b, c))
+	txt:SetFontColor(GKP.GetMoneyCol(a + b))
 	FireEvent("GKP_RECORD_TOTAL", a, b)
 end
 ---------------------------------------------------------------------->
