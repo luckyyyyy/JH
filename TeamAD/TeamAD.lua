@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:39:00
+-- @Last Modified time: 2015-04-04 14:45:03
 local _L = JH.LoadLangPack
 local TeamAD = {
 	szDataFile = "TeamAD.jx3dat",
@@ -124,7 +124,7 @@ TeamAD.PS.OnPanelActive = function(frame)
 	end
 end
 
-GUI.RegisterPanel(_L["TeamAD"], 5958, _L["General"],TeamAD.PS)
+GUI.RegisterPanel(_L["TeamAD"], 5958, g_tStrings.CHANNEL_CHANNEL, TeamAD.PS)
 -- public
 
 JH.SetEdit = TeamAD.SetEdit
