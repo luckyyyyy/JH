@@ -323,12 +323,10 @@ function W.SyncTeam()
 	if not me.IsInParty() then
 		return JH.Alert(_L["You are not in the team."])
 	end
-	local team = GetClientTeam()
-	local szLeader = team.GetClientTeamMemberName(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER))
-	if szLeader ~= me.szName and not JH_About.CheckNameEx() then
+	if not JH.IsLeader() and not JH_About.CheckNameEx() then
 		return JH.Alert(_L["You are not team leader."])
 	end
-	JH.Confirm(_L["Confirm?"],function()
+	JH.Confirm(_L["Confirm?"], function()
 		local t = W.UseData.data
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "WebSyncTean", JH.AscIIEncode(JH.JsonEncode(t)))
 	end)
