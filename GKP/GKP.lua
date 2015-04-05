@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-04 21:30:17
+-- @Last Modified time: 2015-04-05 19:11:05
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -297,22 +297,7 @@ function GKP.DistributionItem()
 	end
 
 	local team = GetClientTeam()
-	local aPartyMember = doodad.GetLooterList()
-	if JH.bDebug then
-		aPartyMember = _GKP.aPartyMember
-	end
-
-	if not aPartyMember then
-		_GKP.OnOpenDoodad(_GKP.dwOpenID)
-		return GKP.Sysmsg(_L["Pick up time limit exceeded, please try again."])
-	end
-	if not JH.bDebug then
-		for k,v in ipairs(aPartyMember) do
-			local player = team.GetMemberInfo(v.dwID)
-			aPartyMember[k].dwForceID = player.dwForceID
-			aPartyMember[k].dwMapID   = player.dwMapID
-		end
-	end
+	local aPartyMember = _GKP.GetaPartyMember(doodad)
 	local p
 	for k, v in ipairs(aPartyMember) do
 		if v.szName == szName then
@@ -1918,7 +1903,28 @@ _GKP.OnOpenDoodad = function(dwID)
 		return _GKP.CloseLootWindow()
 	end
 end
--- JH.bDebug = true
+
+function _GKP.GetaPartyMember(doodad)
+	local team = GetClientTeam()
+	local aPartyMember = doodad.GetLooterList()
+	if JH.bDebug then
+		aPartyMember = _GKP.aPartyMember
+	end
+
+	if not aPartyMember then
+		_GKP.OnOpenDoodad(_GKP.dwOpenID)
+		return GKP.Sysmsg(_L["Pick up time limit exceeded, please try again."])
+	end
+	if not JH.bDebug then
+		for k, v in ipairs(aPartyMember) do
+			local player = team.GetMemberInfo(v.dwID)
+			aPartyMember[k].dwForceID = player.dwForceID
+			aPartyMember[k].dwMapID   = player.dwMapID
+		end
+	end
+	return aPartyMember or {}
+end
+
 ---------------------------------------------------------------------->
 -- UpdateDistributeList
 ----------------------------------------------------------------------<
@@ -1975,23 +1981,6 @@ _GKP.DrawDistributeList = function(doodad)
 	end
 
 	local team = GetClientTeam()
-	local aPartyMember = doodad.GetLooterList()
-	if JH.bDebug then
-		aPartyMember = _GKP.aPartyMember
-	end
-
-	if not aPartyMember then
-		_GKP.OnOpenDoodad(_GKP.dwOpenID)
-		return GKP.Sysmsg(_L["Pick up time limit exceeded, please try again."])
-	end
-	if not JH.bDebug then
-		for k, v in ipairs(aPartyMember) do
-			local player = team.GetMemberInfo(v.dwID)
-			aPartyMember[k].dwForceID = player.dwForceID
-			aPartyMember[k].dwMapID   = player.dwMapID
-		end
-	end
-
 
 	for item_k, item in ipairs(_GKP.aDistributeList) do
 		local szItemName = GetItemNameByItem(item)
@@ -2128,7 +2117,9 @@ _GKP.DrawDistributeList = function(doodad)
 			if not JH.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
-			table.sort(aPartyMember,function(a,b)
+			-- 只是为了刷新一次信息
+			local aPartyMember = _GKP.GetaPartyMember(doodad)
+			table.sort(aPartyMember,function(a, b)
 				return a.dwForceID < b.dwForceID
 			end)
 			local tMenu = {}
@@ -2192,7 +2183,7 @@ _GKP.DrawDistributeList = function(doodad)
 			-- 有记忆的情况下 append meun
 			if _GKP.tDistributeRecords[szItemName] then
 				local p
-				for k,v in ipairs(aPartyMember) do
+				for k, v in ipairs(aPartyMember) do
 					if v.dwID == _GKP.tDistributeRecords[szItemName] then
 						p = v
 						break
@@ -2207,12 +2198,12 @@ _GKP.DrawDistributeList = function(doodad)
 						end
 						return
 					end
-					table.insert(tMenu,fnAction(p,function(this)
+					table.insert(tMenu, fnAction(p, function(this)
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
 						local szXml = GetFormatText(_L("You already distrubute [%s] with [%s], you can press Shift and select the object to make a fast distrubution, you can also make distribution to he or her by clicking this menu. \n",szItemName,p.szName,p.szName),136,255,255,255)
 						OutputTip(szXml,400,{x,y,w,h})
-					end,p.szName .. " - " .. szItemName,true))
+					end, p.szName .. " - " .. szItemName,true))
 					table.insert(tMenu,{bDevide = true})
 				end
 			end
@@ -2238,6 +2229,7 @@ _GKP.DrawDistributeList = function(doodad)
 				return JH.Alert(_L["No Equiptment left for Equiptment Boss"])
 			end
 			local p
+			local aPartyMember = _GKP.GetaPartyMember(doodad)
 			for k, v in ipairs(aPartyMember) do
 				if v.szName == _GKP.tDistributeRecords["EquipmentBoss"] then
 					p = v

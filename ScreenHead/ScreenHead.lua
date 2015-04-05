@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-03 23:25:20
+-- @Last Modified time: 2015-04-05 18:09:02
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -67,6 +67,9 @@ local _ScreenHead = {
 	},
 	szItemIni = JH.GetAddonInfo().szShadowIni,
 }
+
+_ScreenHead.tFontCol  = LoadLUAData(JH.GetAddonInfo().szRootPath .. "ScreenHead/tFontCol.jx3dat")  or _ScreenHead.tFontCol
+_ScreenHead.tArrowCol = LoadLUAData(JH.GetAddonInfo().szRootPath .. "ScreenHead/tArrowCol.jx3dat") or _ScreenHead.tArrowCol
 
 function _ScreenHead.Init()
 	_ScreenHead.handle = JH.GetShadowHandle("ScreenHead")
