@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-05 18:09:02
+-- @Last Modified time: 2015-04-06 15:46:21
 local _L = JH.LoadLangPack
 
 ScreenHead = {
@@ -358,8 +358,8 @@ function _ScreenHead.OnBreatheFight()
 	else
 		list[1] = me.dwID
 	end
-	for k,v in ipairs(list) do
-		local p,info = _ScreenHead.GetObject(v)
+	for k, v in ipairs(list) do
+		local p, info = _ScreenHead.GetObject(v)
 		if p and info then
 			if p.nMoveState == MOVE_STATE.ON_DEATH then
 				_ScreenHead.tCache["Mana"][v] = nil

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-04 00:06:35
+-- @Last Modified time: 2015-04-09 17:49:55
 local _L = JH.LoadLangPack
 
 local function HashChange(tRecords)
@@ -1564,170 +1564,6 @@ function RaidGrid_EventScrutiny.LinkNpcFightState(tRecord, bLink)
 	RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
 end
 
-
--- RaidGridEx关联
-function RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tRecord, dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
-	if not tRecord or tRecord.bNotAddToCTM or not RaidGridEx or not RaidGridEx.IsOpened or not RaidGridEx.IsOpened() then
-		return
-	end
-
-	local szBuffName = Table_GetBuffName(dwBuffID, nLevel)
-	if not szBuffName or szBuffName == "" then
-		return
-	end
-
-	local handleRole
-	if RaidGridEx.GetRoleHandleByID then
-		handleRole = RaidGridEx.GetRoleHandleByID(dwMemberID)
-	end
-	if not handleRole and RaidGridEx.GetHandleByID then
-		handleRole = RaidGridEx.GetHandleByID(dwMemberID)
-	end
-	if not handleRole then
-		return
-	end
-	local tBoxes = handleRole.tBoxes
-	if not handleRole.tBoxes then
-		RaidGridEx.UpdateMemberBuff(dwMemberID)
-		tBoxes = handleRole.tBoxes
-	end
-
-	-- 如果是删除, 则无条件删除
-	if bIsRemoved then
-		for i = 1, 4 do
-			local box = tBoxes[i]
-			if box.szName == szBuffName then
-				box.szName = nil
-				box.nIconID = -1
-				box.bShow = false
-				box.nEndFrame = 0
-				box.nRate = 9999
-				box.szColor = nil
-				box.nAlpha = RaidGridEx.nBuffFlashAlpha
-				box.nTrend = 1
-				box:ClearObjectIcon()
-				local shadow = handleRole:Lookup("Shadow_Color")
-				if i == 1 then
-					shadow.nEndFrame = 0
-					shadow.nRate = 9999
-					shadow:Hide()
-				end
-			end
-		end
-		return
-	end
-
-	local nRate = tRecord.nPriorityLevel or 1
-	nRate = 6 - nRate
-	local tBuffColor = {}
-	local szColor = ""
-	local tColorCover = {
-	[_L["Red"]] = {255, 0, 0},
-	[_L["Green"]] = {0, 255, 0},
-	[_L["Blue"]] = {0, 0, 255},
-	[_L["Yellow"]] = {255, 255, 0},
-	[_L["Purple"]] = {255, 0, 255},
-	[_L["Cyan"]] = {0, 255, 255},
-	[_L["Orange"]] = {255, 128, 0},
-	[_L["Black"]] = {0, 0, 0},
-	[_L["White"]] = {255, 255, 255},
-	}
-
-	if tRecord.tRGBuffColor then
-		tBuffColor[1] = tRecord.tRGBuffColor[1] or 0
-		tBuffColor[2] = tRecord.tRGBuffColor[2] or 0
-		tBuffColor[3] = tRecord.tRGBuffColor[3] or 0
-		if tBuffColor[1] == 0 and tBuffColor[2] == 0 and tBuffColor[3] == 0 then
-			szColor = ""
-		elseif tBuffColor[1] == 255 and tBuffColor[2] == 0 and tBuffColor[3] == 0 then
-			szColor = _L["Red"]
-		elseif tBuffColor[1] == 0 and tBuffColor[2] == 255 and tBuffColor[3] == 0 then
-			szColor = _L["Green"]
-		elseif tBuffColor[1] == 0 and tBuffColor[2] == 0 and tBuffColor[3] == 255 then
-			szColor = _L["Blue"]
-		elseif tBuffColor[1] == 255 and tBuffColor[2] == 255 and tBuffColor[3] == 0 then
-			szColor = _L["Yellow"]
-		elseif tBuffColor[1] == 255 and tBuffColor[2] == 0 and tBuffColor[3] == 255 then
-			szColor = _L["Purple"]
-		elseif tBuffColor[1] == 0 and tBuffColor[2] == 255 and tBuffColor[3] == 255 then
-			szColor = _L["Cyan"]
-		elseif tBuffColor[1] == 255 and tBuffColor[2] == 128 and tBuffColor[3] == 0 then
-			szColor = _L["Orange"]
-		elseif tBuffColor[1] == 255 and tBuffColor[2] == 255 and tBuffColor[3] == 255 then
-			szColor = _L["White"]
-		end
-	end
-	local tCurrentDebuff = {}
-	local bInserted = false
-	for i = 1, 4, 1 do
-		local box = tBoxes[i]
-		if box:IsVisible() then
-			box.nRate = box.nRate or 9999
-			if nRate <= box.nRate and not bInserted then
-				local nIconID = Table_GetBuffIconID(dwBuffID, nLevel)
-				if nIconID then
-					bInserted = true
-					table.insert(tCurrentDebuff, {szName = szBuffName, nIconID = nIconID, bShow = true, nEndFrame = nEndFrame, nRate = nRate, szColor = szColor, nAlpha = RaidGridEx.nBuffFlashAlpha, nTrend = 1})
-				end
-			end
-			if szBuffName ~= box.szName then
-				table.insert(tCurrentDebuff, {szName = box.szName, nIconID = box.nIconID, bShow = box.bShow, nEndFrame = box.nEndFrame, nRate = box.nRate, szColor = box.szColor, nAlpha = box.nAlpha, nTrend = box.nTrend})
-			end
-		end
-	end
-	if not bInserted then
-		local nIconID = Table_GetBuffIconID(dwBuffID, nLevel)
-		if nIconID then
-			table.insert(tCurrentDebuff, {szName = szBuffName, nIconID = nIconID, bShow = true, nEndFrame = nEndFrame, nRate = nRate, szColor = szColor, nAlpha = RaidGridEx.nBuffFlashAlpha, nTrend = 1})
-		end
-	end
-
-	for i = 4, 1, -1 do
-		if tCurrentDebuff[i] then
-			tBoxes[i].szName = tCurrentDebuff[i].szName
-			tBoxes[i].nIconID = tCurrentDebuff[i].nIconID
-			tBoxes[i].bShow = tCurrentDebuff[i].bShow
-			tBoxes[i].nEndFrame = tCurrentDebuff[i].nEndFrame
-			tBoxes[i].nRate = tCurrentDebuff[i].nRate
-			tBoxes[i].szColor = tCurrentDebuff[i].szColor
-			tBoxes[i].nAlpha = tCurrentDebuff[i].nAlpha
-			tBoxes[i].nTrend = tCurrentDebuff[i].nTrend
-			tBoxes[i]:ClearObjectIcon()
-			tBoxes[i]:SetObjectIcon(tBoxes[i].nIconID)
-
-			local shadow = handleRole:Lookup("Shadow_Color")
-			if shadow and (shadow.nEndFrame == 0 or tBoxes[i].nRate <= shadow.nRate) then
-				local tColor = tColorCover[tBoxes[i].szColor]
-				local r, g, b, a = 255, 255, 255, 0
-				if tColor then
-					r, g, b, a = tColor[1], tColor[2], tColor[3], RaidGridEx.nBuffCoverAlpha
-				end
-				shadow:SetTriangleFan(true)
-				shadow:ClearTriangleFanPoint()
-				shadow:AppendTriangleFanPoint(0, 0, r, g, b, a)
-				shadow:AppendTriangleFanPoint(0, 34, r, g, b, a)
-				shadow:AppendTriangleFanPoint(56, 34, r, g, b, a)
-				shadow:AppendTriangleFanPoint(56, 0, r, g, b, a)
-				shadow:Scale(RaidGridEx.fScale,RaidGridEx.fScale)
-				shadow:Show()
-				shadow.nEndFrame = tBoxes[i].nEndFrame or 0
-				shadow.nRate = tBoxes[i].nRate
-			end
-		else
-			tBoxes[i].szName = nil
-			tBoxes[i].nIconID = -1
-			tBoxes[i].bShow = false
-			tBoxes[i].nEndFrame = 0
-			tBoxes[i].nRate = 9999
-			tBoxes[i].szColor = nil
-			tBoxes[i].nAlpha = RaidGridEx.nBuffFlashAlpha
-			tBoxes[i].nTrend = 1
-			tBoxes[i]:ClearObjectIcon()
-		end
-	end
-end
-
-
 function RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwTargetID, tRecord, msg, bNotSelect)
 	if not tRecord then
 		return
@@ -1848,11 +1684,6 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
 				end
 				tTab[i].fEventTimeEnd = JH.GetLogicTime()
-				if not tTab[i].bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
-					if RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable then
-						RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
-					end
-				end
 			elseif not tTab[i].nEventAlertStackNum or (tTab[i].nEventAlertStackNum <= nStackNum) then
 				tTab[i].fEventTimeStart = JH.GetLogicTime()
 				tTab[i].nEventAlertTime = fLogicTime
@@ -1917,9 +1748,6 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 						if not tTab[i].bNotAddToCTM then
 							FireEvent("JH_RAID_REC_BUFF", dwMemberID, dwBuffID, nLevel, tTab[i].tRGBuffColor)
 						end
-					end
-					if RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable then
-						RaidGrid_EventScrutiny.UpdateExBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
 					end
 				end
 				if tTab[i].bScreenHead then
@@ -4455,8 +4283,6 @@ RaidGrid_EventScrutiny.bCacheEnable = false;				RegisterCustomData("RaidGrid_Eve
 RaidGrid_EventScrutiny.bNotCheckLevel = true;
 RaidGrid_EventScrutiny.tAnchor = {};						RegisterCustomData("RaidGrid_EventScrutiny.tAnchor")
 RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable = true;		RegisterCustomData("RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable")
-RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable = true;	RegisterCustomData("RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable")
-RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2 = false;   RegisterCustomData("RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2")
 RaidGrid_EventScrutiny.bBuffChatAlertEnable = false;			RegisterCustomData("RaidGrid_EventScrutiny.bBuffChatAlertEnable")
 RaidGrid_EventScrutiny.nBuffShowShadowAlpha = 0.6;			RegisterCustomData("RaidGrid_EventScrutiny.nBuffShowShadowAlpha")
 RaidGrid_EventScrutiny.nBuffAutoRemoveCachePage = 50;		RegisterCustomData("RaidGrid_EventScrutiny.nBuffAutoRemoveCachePage")
@@ -4673,20 +4499,12 @@ PS3.OnPanelActive = function(frame)
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = nX + 5, y = 26, txt = _L["times"] }):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY + 10, txt = _L["TeamPanel Bind Buff"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox",{ x = 10, y = nY + 12, checked = RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2 })
+	nX, nY = ui:Append("WndCheckBox",{ x = 10, y = nY + 12, checked =RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable })
 	:Text(_L["System TeamPanel"]):Click(function(bChecked)
-		RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2 = bChecked
+		RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable = bChecked
 		if bChecked then
 			JH.BreatheCall("Raid_MonitorBuffs", _RE.Raid_MonitorBuffs, 10000)
 		end
-	end):Pos_()
-	nX = ui:Append("WndCheckBox",{ x = nX + 15, y = nY + 12, checked = RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable })
-	:Text(_L["RaidGridEx TeamPanel"]):Click(function(bChecked)
-		RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable = bChecked
-	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox",{ x = nX + 15, y = nY + 12, checked = RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable })
-	:Text(_L["Cataclysm Team Panel"]):Click(function(bChecked)
-		RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable = bChecked
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Skill Scrutiny"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndCheckBox",{ x = 10, y = nY + 12, checked = RaidGrid_EventScrutiny.bCastingScrutinyAllEnable })
@@ -5410,7 +5228,7 @@ JH.BreatheCall("GetWarningMessage", RaidGrid_BossCallAlert.GetWarningMessageOrg)
 
 function _RE.Raid_MonitorBuffs()
 	if not GetClientPlayer() then return end
-	if not RaidGrid_EventScrutiny.bBuffTeamExScrutinyEnable2 then
+	if not RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
 		Raid_MonitorBuffs({})
 		return JH.BreatheCall("Raid_MonitorBuffs")
 	end

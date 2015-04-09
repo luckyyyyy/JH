@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-25 14:26:38
+-- @Last Modified time: 2015-04-06 18:06:16
 local _L = JH.LoadLangPack
 
 WebSyncData = {
@@ -272,7 +272,7 @@ end
 function W.DoanloadData(data)
 	local me = GetClientPlayer()
 	if data.tid then
-	local wnd = GUI.CreateFrame("RGES_Data",{ w = 760,h = 300,title = _L["JH"] ,drag = true,close = true }):RegisterClose()
+	local wnd = GUI.CreateFrame("RGES_Data",{ w = 740,h = 300,title = _L["JH"] ,drag = true,close = true }):RegisterClose()
 		data.color = data.color or "ffffff"
 		wnd:Append("Text", { w = 685, h = 60, x = 0, y = 0, txt = data.title, font = 40, multi = true, align = 1, color = { tonumber(string.sub(data.color, 0, 2), 16), tonumber(string.sub(data.color, 2, 4), 16), tonumber(string.sub(data.color, 4, 6), 16) } })
 		wnd:Append("Text", { w = 685, h = 30, x = 0, y = 65, txt = "By:" .. data.author, font = 40, align = 1 })

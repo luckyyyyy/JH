@@ -209,6 +209,7 @@ local function LoginGame()
 		t.dwID = me.dwID
 		t.server = szServer
 		t.SchoolID = me.dwForceID
+		t.author = _JH_About.CheckNameEx() and 1 or nil
 		for k, v in pairs(t) do
 			s = s .. "&" .. k .. "=" .. JH.UrlEncode(tostring(v))
 		end

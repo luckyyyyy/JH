@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-01 21:15:00
+-- @Last Modified time: 2015-04-09 17:38:16
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -526,6 +526,10 @@ function RaidGrid_CTM_Edition.OnFrameDragEnd()
 	RaidGrid_CTM_Edition.tAnchor = GetFrameAnchor(this)
 	Grid_CTM:AutoLinkAllPanel() -- fix screen pos
 	this:SetSize(w, h)
+end
+
+function RaidGrid_CTM_Edition.GetMemberHandle(dwID)
+	return Grid_CTM:GetMemberHandle(dwID)
 end
 
 local EnableTeamPanel = function()

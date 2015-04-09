@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-01 21:13:41
+-- @Last Modified time: 2015-04-09 17:35:35
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -227,6 +227,12 @@ setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, 
 
 -- CODE --
 local CTM = {}
+
+function CTM:GetMemberHandle()
+	if CTM_CACHE[dwID] and CTM_CACHE[dwID]:IsValid() then
+		return CTM_CACHE[dwID]
+	end
+end
 
 function CTM:GetPartyFrame(nIndex) --获得组队面板
 	return Station.Lookup("Normal/RaidGrid_Party_" .. nIndex)
