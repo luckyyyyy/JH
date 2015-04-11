@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 00:51:41
+-- @Last Modified time: 2015-04-12 01:18:01
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -281,6 +281,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("TEAM_VOTE_REQUEST")
 	-- arg0 回应状态 arg1 dwID arg2 同意=1 反对=0
 	this:RegisterEvent("TEAM_VOTE_RESPOND")
+	this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
 	--
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
@@ -372,6 +373,9 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			for k, v in ipairs(team.GetTeamMemberList()) do
 				TEAM_VOTE_REQUEST[v] = false
 			end
+			if JH.IsLeader() then
+				Grid_CTM:Send_RaidReadyConfirm()
+			end
 		end
 	elseif szEvent == "TEAM_VOTE_RESPOND" then
 		if arg0 == 1 then
@@ -389,6 +393,13 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			end
 			OutputMessage("MSG_ANNOUNCE_YELLOW", _L("Team Members: %d, %d agree %d%%", num, agree, agree / num * 100))
 		end
+	elseif szEvent == "TEAM_INCOMEMONEY_CHANGE_NOTIFY" then
+		-- 缺少API
+		-- local nTotalRaidMoney = GetClientTeam().nInComeMoney
+		-- if nTotalRaidMoney == 0 then
+			-- TEAM_VOTE_REQUEST = {}
+			-- OutputMessage("MSG_ANNOUNCE_YELLOW", g_tStrings.GOLD_MONEY_CLEAR)
+		-- end
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		Grid_CTM:ChangeReadyConfirm(arg0, arg1 == 1)
 	elseif szEvent == "TEAM_CHANGE_MEMBER_GROUP" then
@@ -460,8 +471,8 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		if me.IsInRaid() then
 			-- 团队就位
 			table.insert(menu, { szOption = g_tStrings.STR_RAID_MENU_READY_CONFIRM,
-				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Grid_CTM:Send_RaidReadyConfirm() end },
-				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not JH.IsLeader() or not me.IsInRaid(), fnAction = function() Grid_CTM:Clear_RaidReadyConfirm() end }
+				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not JH.IsLeader(), fnAction = function() Grid_CTM:Send_RaidReadyConfirm() end },
+				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not JH.IsLeader(), fnAction = function() Grid_CTM:Clear_RaidReadyConfirm() end }
 			})
 			table.insert(menu, { bDevide = true })
 		end
