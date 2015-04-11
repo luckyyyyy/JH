@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-09 19:56:23
+-- @Last Modified time: 2015-04-11 21:43:06
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -302,7 +302,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_ADD_MEMBER" then
 		if Grid_CTM:GetPartyFrame(arg2) then
-			Grid_CTM:DrawParty(arg2, true)
+			Grid_CTM:DrawParty(arg2)
 		else
 			Grid_CTM:CreatePanel(arg2)
 			Grid_CTM:DrawParty(arg2)
@@ -322,7 +322,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 				Grid_CTM:CloseParty(arg3)
 				Grid_CTM:AutoLinkAllPanel()
 			else
-				Grid_CTM:DrawParty(arg3, true)
+				Grid_CTM:DrawParty(arg3)
 			end
 			if RaidGrid_CTM_Edition.nAutoLinkMode ~= 5 then
 				Grid_CTM:AutoLinkAllPanel()
@@ -371,11 +371,11 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			Grid_CTM:CloseParty(arg1)
 			Grid_CTM:AutoLinkAllPanel()
 		else
-			Grid_CTM:DrawParty(arg1, true)
+			Grid_CTM:DrawParty(arg1)
 		end
 		-- DstGroup
 		if Grid_CTM:GetPartyFrame(arg2) then
-			Grid_CTM:DrawParty(arg2, true)
+			Grid_CTM:DrawParty(arg2)
 		else
 			Grid_CTM:CreatePanel(arg2)
 			Grid_CTM:DrawParty(arg2)
