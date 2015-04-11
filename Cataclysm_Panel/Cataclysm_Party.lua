@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 05:50:27
+-- @Last Modified time: 2015-04-12 07:17:02
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -488,10 +488,18 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 		TextName:SetText(info.szName)
 		-- TextName:SetText("测试测试测试")
 		TextName:SetFontScheme(CFG.nFont)
-		if CFG.bColoredName then
+		if CFG.nColoredName == 1 then
 			TextName:SetFontColor(GetForceColor(info.dwForceID))
-		else
+		elseif CFG.nColoredName == 0 then
 			TextName:SetFontColor(255, 255, 255)
+		elseif CFG.nColoredName == 2 then
+			if info.nCamp == 0 then
+				TextName:SetFontColor(255, 255, 255)
+			elseif info.nCamp == 1 then
+				TextName:SetFontColor(60, 128, 220)
+			elseif info.nCamp == 2 then
+				TextName:SetFontColor(160, 30, 30)
+			end
 		end
 		if CFG.nShowIcon == 4 then
 			TextName:SetRelPos(-6, 0 - (CFG.fScaleY - 1) * 8)
