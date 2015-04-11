@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-09 19:56:56
+-- @Last Modified time: 2015-04-12 00:27:14
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -1199,7 +1199,7 @@ function CTM:ChangeReadyConfirm(dwID, status)
 	if CTM_CACHE[dwID] and CTM_CACHE[dwID]:IsValid() then
 		local h = CTM_CACHE[dwID]
 		h:Lookup("Image_ReadyCover"):Hide()
-		if status == 1 then
+		if status then
 			local key = "CTM_READY_" .. dwID
 			h:Lookup("Animate_Ready"):Show()
 			h:Lookup("Animate_Ready"):SetAlpha(240)
@@ -1212,7 +1212,7 @@ function CTM:ChangeReadyConfirm(dwID, status)
 					end
 				end
 			end)
-		elseif status == 2 then
+		else
 			h:Lookup("Image_NotReady"):Show()
 		end
 	end

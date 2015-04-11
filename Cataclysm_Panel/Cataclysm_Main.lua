@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-11 21:43:06
+-- @Last Modified time: 2015-04-12 00:51:41
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -58,6 +58,7 @@ local CTM_CONFIG = {
 		{ 192, 192, 192 }
 	},
 }
+local TEAM_VOTE_REQUEST = {}
 local GKP_RECORD_TOTAL = 0
 local CTM_CONFIG_PLAYER
 local DEBUG = false
@@ -276,6 +277,10 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("BUFF_UPDATE")
+	-- 拍团部分 arg0 0=T人 1=分工资
+	this:RegisterEvent("TEAM_VOTE_REQUEST")
+	-- arg0 回应状态 arg1 dwID arg2 同意=1 反对=0
+	this:RegisterEvent("TEAM_VOTE_RESPOND")
 	--
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
@@ -360,8 +365,32 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "PARTY_SET_MARK" then
 		Grid_CTM:RefreshMark()
 	-- elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_QUESTION" then
+	elseif szEvent == "TEAM_VOTE_REQUEST" then
+		if arg0 == 1 then
+			TEAM_VOTE_REQUEST = {}
+			local team = GetClientTeam()
+			for k, v in ipairs(team.GetTeamMemberList()) do
+				TEAM_VOTE_REQUEST[v] = false
+			end
+		end
+	elseif szEvent == "TEAM_VOTE_RESPOND" then
+		if arg0 == 1 then
+			Grid_CTM:ChangeReadyConfirm(arg1, arg2 == 1)
+			if arg2 == 1 then
+				TEAM_VOTE_REQUEST[arg1] = true
+			end
+			local team = GetClientTeam()
+			local num = #team.GetTeamMemberList()
+			local agree = 0
+			for k, v in pairs(TEAM_VOTE_REQUEST) do
+				if v then
+					agree = agree + 1
+				end
+			end
+			OutputMessage("MSG_ANNOUNCE_YELLOW", _L("Team Members: %d, %d agree %d%%", num, agree, agree / num * 100))
+		end
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
-		Grid_CTM:ChangeReadyConfirm(arg0, arg1)
+		Grid_CTM:ChangeReadyConfirm(arg0, arg1 == 1)
 	elseif szEvent == "TEAM_CHANGE_MEMBER_GROUP" then
 		local me = GetClientPlayer()
 		local team = GetClientTeam()
