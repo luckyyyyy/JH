@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 06:38:33
+-- @Last Modified time: 2015-04-12 07:24:16
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -18,7 +18,7 @@ local CTM_CONFIG = {
 	nHPShownNumMode      = 1,
 	nShowMP              = false,
 	bHPHitAlert          = true,
-	bColoredName         = true,
+	nColoredName         = 1,
 	nShowIcon            = 2,
 	bShowDistance        = false,
 	bEnableDistance      = true,
@@ -534,10 +534,8 @@ end
 
 function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	local szName = this:GetName()
-	local team = GetClientTeam()
-	local player = GetClientPlayer()
-	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) ~= player.dwID then
-		return
+	if not JH.IsDistributer() then
+		return JH.Sysmsg(_L["You are not the distrubutor."])
 	end
 	if szName == "Image_LootMode" then
 		local menu = {}
@@ -771,7 +769,32 @@ local PS2 = {}
 function PS2.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Grid Style"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show AllGrid"], checked = RaidGrid_CTM_Edition.bShowAllGrid })
+
+	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, group = "namecolor", checked = RaidGrid_CTM_Edition.nColoredName == 1 })
+	:Click(function()
+		RaidGrid_CTM_Edition.nColoredName = 1
+		if CTM_FRAME then
+			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
+			Grid_CTM:CallDrawHPMP(true ,true)
+		end
+	end):Pos_()
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_CAMP, group = "namecolor", checked = RaidGrid_CTM_Edition.nColoredName == 2 })
+	:Click(function()
+		RaidGrid_CTM_Edition.nColoredName = 2
+		if CTM_FRAME then
+			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
+			Grid_CTM:CallDrawHPMP(true ,true)
+		end
+	end):Pos_()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "namecolor", checked = RaidGrid_CTM_Edition.nColoredName == 0 })
+	:Click(function()
+		RaidGrid_CTM_Edition.nColoredName = 0
+		if CTM_FRAME then
+			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
+			Grid_CTM:CallDrawHPMP(true ,true)
+		end
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show AllGrid"], checked = RaidGrid_CTM_Edition.bShowAllGrid })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bShowAllGrid = bCheck
 		if CTM_FRAME then
@@ -779,29 +802,20 @@ function PS2.OnPanelActive(frame)
 			Grid_CTM:ReloadParty()
 		end
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bLifeGradient = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["ManaBar Gradient"], checked = RaidGrid_CTM_Edition.bManaGradient })
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["ManaBar Gradient"], checked = RaidGrid_CTM_Edition.bManaGradient })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bManaGradient = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, checked = RaidGrid_CTM_Edition.bColoredName })
-	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bColoredName = bCheck
-		if CTM_FRAME then
-			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
-			Grid_CTM:CallDrawHPMP(true ,true)
-		end
-	end):Pos_()
-
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = g_tStrings.STR_RAID_DISTANCE, checked = RaidGrid_CTM_Edition.bEnableDistance })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bEnableDistance = bCheck
