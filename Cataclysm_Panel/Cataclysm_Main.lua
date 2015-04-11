@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 01:18:01
+-- @Last Modified time: 2015-04-12 01:53:18
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -281,7 +281,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("TEAM_VOTE_REQUEST")
 	-- arg0 回应状态 arg1 dwID arg2 同意=1 反对=0
 	this:RegisterEvent("TEAM_VOTE_RESPOND")
-	this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
+	-- this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
 	--
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
@@ -378,7 +378,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			end
 		end
 	elseif szEvent == "TEAM_VOTE_RESPOND" then
-		if arg0 == 1 then
+		if arg0 == 1 and not IsEmpty(TEAM_VOTE_REQUEST) then
 			Grid_CTM:ChangeReadyConfirm(arg1, arg2 == 1)
 			if arg2 == 1 then
 				TEAM_VOTE_REQUEST[arg1] = true
@@ -398,7 +398,6 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		-- local nTotalRaidMoney = GetClientTeam().nInComeMoney
 		-- if nTotalRaidMoney == 0 then
 			-- TEAM_VOTE_REQUEST = {}
-			-- OutputMessage("MSG_ANNOUNCE_YELLOW", g_tStrings.GOLD_MONEY_CLEAR)
 		-- end
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		Grid_CTM:ChangeReadyConfirm(arg0, arg1 == 1)
