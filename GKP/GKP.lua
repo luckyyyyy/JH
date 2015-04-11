@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-05 19:11:05
+-- @Last Modified time: 2015-04-12 06:29:25
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -935,8 +935,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 	local tType = { [24] = true,[17] = true,[18] = true,[19] = true,[20] = true }
 	local tType2 = { [362] = true, [673] = true,[112] = true,[382] = true, [3219] = true, [2837] = true }
 	local tNameEx = { -- utf8 not supported
-		-- ["Òþ¾Ó"] = 3694590,
-		-- ["Ó£Ä«"] = 1301156,
+
 	}
 	local tab = {}
 	for k, v in ipairs(TeamMemberList) do
