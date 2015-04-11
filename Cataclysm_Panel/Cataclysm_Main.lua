@@ -1,11 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 01:53:18
+-- @Last Modified time: 2015-04-12 06:38:33
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
 local tostring = tostring
+
 local CTM_CONFIG = {
 	bRaidEnable          = true,
 	bShowInRaid          = false,
@@ -85,22 +86,36 @@ local function SetConfigure()
 end
 
 local CTM_FRAME
-local CTM_LOOT_MODE = {
-	Image_LootMode_Free    = PARTY_LOOT_MODE.FREE_FOR_ALL,
-	Image_LootMode_Looter  = PARTY_LOOT_MODE.DISTRIBUTE,
-	Image_LootMode_Roll    = PARTY_LOOT_MODE.GROUP_LOOT,
-	Image_LootMode_Bidding = PARTY_LOOT_MODE.BIDDING,
-}
 
+local CTM_LOOT_MODE = {
+	[PARTY_LOOT_MODE.FREE_FOR_ALL] = {"ui/Image/TargetPanel/Target.UITex", 60},
+	[PARTY_LOOT_MODE.DISTRIBUTE]   = {"ui/Image/UICommon/CommonPanel2.UITex", 92},
+	[PARTY_LOOT_MODE.GROUP_LOOT]   = {"ui/Image/UICommon/LoginCommon.UITex", 29},
+	[PARTY_LOOT_MODE.BIDDING]      = {"ui/Image/UICommon/GoldTeam.UITex", 6},
+}
+local CTM_LOOT_QUALITY = {
+	[2] = 2401,
+	[3] = 2397,
+	[4] = 2402,
+	[5] = 2400,
+}
 local function UpdateLootImages()
-	local team = GetClientTeam()
-	local nLootMode = team.nLootMode
-	local frame = CTM_FRAME
-	for k, v in pairs(CTM_LOOT_MODE) do
-		if nLootMode == v then
-			frame:Lookup("", "Handle_BG"):Lookup(k):SetAlpha(255)
-		else
-			frame:Lookup("", "Handle_BG"):Lookup(k):SetAlpha(64)
+	local team         = GetClientTeam()
+	local nLootMode    = team.nLootMode
+	local nRollQuality = team.nRollQuality
+	local frame        = CTM_FRAME
+	local hLootMode    = frame:Lookup("", "Handle_BG/Image_LootMode")
+	local hLootQuality = frame:Lookup("", "Handle_BG/Image_LootQuality")
+	local hImageGKP    = frame:Lookup("", "Handle_BG/Image_GKP")
+	hLootMode:FromUITex(unpack(CTM_LOOT_MODE[nLootMode]))
+	if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE then
+		hLootQuality:Hide()
+		hImageGKP:Hide()
+	else
+		hLootQuality:Show()
+		hLootQuality:FromIconID(CTM_LOOT_QUALITY[nRollQuality])
+		if GKP then
+			hImageGKP:Show()
 		end
 	end
 	-- 世界标记
@@ -274,6 +289,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("TEAM_CHANGE_MEMBER_GROUP")
 	this:RegisterEvent("PARTY_SET_FORMATION_LEADER")
 	this:RegisterEvent("PARTY_LOOT_MODE_CHANGED")
+	this:RegisterEvent("PARTY_ROLL_QUALITY_CHANGED")
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("BUFF_UPDATE")
@@ -303,7 +319,7 @@ end
 function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	if szEvent == "RENDER_FRAME_UPDATE" then
 		Grid_CTM:CallDrawHPMP(true)
-	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then -- ??
+	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then
 		Grid_CTM:CallRefreshImages(arg1, true, true, nil, true)
 		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_ADD_MEMBER" then
@@ -383,8 +399,8 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			if arg2 == 1 then
 				TEAM_VOTE_REQUEST[arg1] = true
 			end
-			local team = GetClientTeam()
-			local num = #team.GetTeamMemberList()
+			local team  = GetClientTeam()
+			local num   = team.GetTeamSize()
 			local agree = 0
 			for k, v in pairs(TEAM_VOTE_REQUEST) do
 				if v then
@@ -427,6 +443,8 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "PARTY_LEVEL_UP_RAID" then
 		Grid_CTM:RefreshGroupText()
 	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
+		UpdateLootImages()
+	elseif szEvent == "PARTY_ROLL_QUALITY_CHANGED" then
 		UpdateLootImages()
 	elseif szEvent == "TARGET_CHANGE" then
 		Grid_CTM:RefreshTarget()
@@ -521,11 +539,16 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	if team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) ~= player.dwID then
 		return
 	end
-	if szName:match("Image_LootMode") then
-		if not IsCtrlKeyDown() then
-			return JH.Sysmsg(_L["Please hold down Ctrl, change it"])
-		end
-		team.SetTeamLootMode(CTM_LOOT_MODE[szName])
+	if szName == "Image_LootMode" then
+		local menu = {}
+		InsertDistributeMenu(menu, not JH.IsDistributer())
+		PopupMenu(menu[1])
+	elseif szName == "Image_LootQuality" then
+		local menu = {}
+		InsertDistributeMenu(menu, not JH.IsDistributer())
+		PopupMenu(menu[2])
+	elseif szName == "Image_GKP" and GKP then
+		GKP.OpenPanel()
 	end
 end
 
