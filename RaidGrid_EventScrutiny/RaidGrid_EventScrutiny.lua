@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-09 17:49:55
+-- @Last Modified time: 2015-04-12 20:47:12
 local _L = JH.LoadLangPack
 
 local function HashChange(tRecords)
@@ -64,15 +64,12 @@ JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 		end
 		-- Ω” ’
 		if data[1] == "RE_SyncQueue" and bSendDataToTeamStart then
-			table.insert(tSyncQueue,data[2])
+			table.insert(tSyncQueue, data[2])
 		end
 		-- Ω· ¯
 		if data[1] == "RE_SendClose" and bSendDataToTeamStart then
 			bSendDataToTeamStart = false
-			local str = ""
-			for i = 1, #tSyncQueue do
-				str = str .. tSyncQueue[i]
-			end
+			local str = table.concat(tSyncQueue, "")
 			local tData,err = JH.JsonDecode(JH.AscIIDecode(str))
 			if err then
 				return JH.Debug(err)
