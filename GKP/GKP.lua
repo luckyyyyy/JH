@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 20:55:05
+-- @Last Modified time: 2015-04-12 21:20:35
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1424,7 +1424,7 @@ _GKP.OnMsg = function()
 				table.insert(_GKP.tSyncQueue, data[3])
 				if SYNC_LENG ~= 0 then
 					local percent = #_GKP.tSyncQueue / SYNC_LENG
-					if percent * 100 % 10 == 0 then
+					if (percent * 100) % 5 == 0 then
 						JH.Alert(_L("Sychoronizing data please wait %d%% loaded.", percent * 100))
 					end
 				else
@@ -1437,6 +1437,7 @@ _GKP.OnMsg = function()
 				local str = table.concat(_GKP.tSyncQueue, "")
 				_GKP.tSyncQueue = {}
 				_GKP.bSync = false
+				SYNC_LENG = 0
 				JH.Alert(_L["Sychoronization Complete"])
 				local tData, err = JH.JsonDecode(JH.AscIIDecode(str))
 				if err then
