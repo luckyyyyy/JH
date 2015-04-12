@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-09 18:16:13
+-- @Last Modified time: 2015-04-12 07:35:20
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -69,7 +69,7 @@ do
 end
 
 local _JH = {
-	szBuildDate    = "20150326",
+	szBuildDate    = "20150412",
 	szTitle        = _L["JH, JX3 Plug-in Collection"],
 	tHotkey        = {},
 	tDelayCall     = {},

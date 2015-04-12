@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 07:24:16
+-- @Last Modified time: 2015-04-12 19:50:38
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -534,6 +534,9 @@ end
 
 function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	local szName = this:GetName()
+	if szName == "Image_GKP" and GKP then
+		GKP.OpenPanel()
+	end
 	if not JH.IsDistributer() then
 		return JH.Sysmsg(_L["You are not the distrubutor."])
 	end
@@ -545,8 +548,6 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 		local menu = {}
 		InsertDistributeMenu(menu, not JH.IsDistributer())
 		PopupMenu(menu[2])
-	elseif szName == "Image_GKP" and GKP then
-		GKP.OpenPanel()
 	end
 end
 
