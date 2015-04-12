@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 06:29:25
+-- @Last Modified time: 2015-04-12 20:55:05
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1391,6 +1391,7 @@ _GKP.GKP_Sync = function()
 	end
 	PopupMenu(menu)
 end
+local SYNC_LENG = 0
 _GKP.OnMsg = function()
 	local data = JH.BgHear("GKP", true)
 	local me = GetClientPlayer()
@@ -1405,38 +1406,44 @@ _GKP.OnMsg = function()
 				local str = JH.AscIIEncode(JH.JsonEncode(tab))
 				local nMax = 150
 				local nTotle = math.ceil(#str / nMax)
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Start",arg3)
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Start", arg3, nTotle)
 				for i = 1 , nTotle do
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Content",arg3,string.sub(str ,(i-1) * nMax + 1 , i * nMax))
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Content", arg3, string.sub(str ,(i-1) * nMax + 1, i * nMax))
 				end
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync_Stop",arg3)
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Stop", arg3)
 			end
 
 			if data[1] == "GKP_Sync_Start" and data[2] == me.szName then
 				_GKP.bSync = true
+				if data[3] then
+					SYNC_LENG = tonumber(data[3])
+				end
 				JH.Alert(_L["Start Sychoronizing..."])
 			end
 			if data[1] == "GKP_Sync_Content" and data[2] == me.szName and _GKP.bSync then
-				table.insert(_GKP.tSyncQueue,data[3])
-				if #_GKP.tSyncQueue % 10 == 0 then
-					JH.Alert(_L("Sychoronizing data please wait %d loaded.",#_GKP.tSyncQueue))
+				table.insert(_GKP.tSyncQueue, data[3])
+				if SYNC_LENG ~= 0 then
+					local percent = #_GKP.tSyncQueue / SYNC_LENG
+					if percent * 100 % 10 == 0 then
+						JH.Alert(_L("Sychoronizing data please wait %d%% loaded.", percent * 100))
+					end
+				else
+					if #_GKP.tSyncQueue % 10 == 0 then
+						JH.Alert(_L("Sychoronizing data please wait %d loaded.", #_GKP.tSyncQueue))
+					end
 				end
 			end
-
 			if data[1] == "GKP_Sync_Stop" and data[2] == me.szName then
-				local str = ""
-				for i = 1, #_GKP.tSyncQueue do
-					str = str .. _GKP.tSyncQueue[i]
-				end
+				local str = table.concat(_GKP.tSyncQueue, "")
 				_GKP.tSyncQueue = {}
 				_GKP.bSync = false
 				JH.Alert(_L["Sychoronization Complete"])
-				local tData,err = JH.JsonDecode(JH.AscIIDecode(str))
+				local tData, err = JH.JsonDecode(JH.AscIIDecode(str))
 				if err then
 					return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
 				end
-				JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s",#tData.GKP_Record,#tData.GKP_Account) ,function()
-					_GKP.GKP_Record = tData.GKP_Record
+				JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s", #tData.GKP_Record, #tData.GKP_Account), function()
+					_GKP.GKP_Record  = tData.GKP_Record
 					_GKP.GKP_Account = tData.GKP_Account
 					pcall(_GKP.Draw_GKP_Record)
 					pcall(_GKP.Draw_GKP_Account)
