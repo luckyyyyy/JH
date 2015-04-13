@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 07:35:20
+-- @Last Modified time: 2015-04-13 07:45:11
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -539,7 +539,7 @@ end
 function JH.SetHotKey(szGroup)
 	HotkeyPanel_Open(szGroup or _JH.szTitle)
 end
--- (string, number) JH.GetVersion() -- 打开快捷键设置面板
+-- (string, number) JH.GetVersion() -- 获取插件版本号
 function JH.GetVersion()
 	local v = _VERSION_
 	local szVersion = string.format("%d.%d.%d", v/0x1000000,
