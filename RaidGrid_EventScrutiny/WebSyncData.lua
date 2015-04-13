@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-06 18:06:16
+-- @Last Modified time: 2015-04-13 15:53:29
 local _L = JH.LoadLangPack
 
 WebSyncData = {
@@ -12,7 +12,7 @@ WebSyncData = {
 }
 
 JH.RegisterCustomData("WebSyncData")
-local ROOT_URL = "http://www.j3ui.com/"
+local ROOT_URL = "http://game.j3ui.com/"
 local _, _, CLIENT_LANG = GetVersion()
 local W = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/WebSyncData.ini",
