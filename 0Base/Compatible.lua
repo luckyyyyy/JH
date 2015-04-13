@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-21 12:11:15
+-- @Last Modified time: 2015-04-12 23:55:55
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {
 		LEAVE_BLACK_LIST = 5,
@@ -662,7 +662,7 @@ function OutputNpcTip(dwNpcID, Rect)
 
 	--------------Ãû×Ö-------------------------
 
-	szTip = szTip.."<Text>text="..EncodeComponentsString(npc.szName.."\n").." font=80".." r="..r.." g="..g.." b="..b.." </text>"
+	szTip = szTip.."<Text>text="..EncodeComponentsString(JH.GetTemplateName(npc).."\n").." font=80".." r="..r.." g="..g.." b="..b.." </text>"
 
 	-------------³ÆºÅ----------------------------
 	if npc.szTitle ~= "" then
@@ -679,7 +679,7 @@ function OutputNpcTip(dwNpcID, Rect)
 	------------Ä£°æID-----------------------
 	if IsCtrlKeyDown() then
 		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_NPC_ID, npc.dwID)).."font=102 </text>"
-		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity)).." font=102 </text>"
+		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, GetNpcIntensity(npc))).." font=102 </text>"
 		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, npc.dwModelID)).." font=102 </text>"
 		if IsShiftKeyDown() then
 			local tState = GetNpcQuestState(npc) or {}
@@ -775,8 +775,8 @@ function OutputPlayerTip(dwPlayerID, Rect)
 
 	if IsCtrlKeyDown() then
 		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_PLAYER_ID, player.dwID)).." font=102 </text>"
-		szTip = szTip.."<Text>text="
-		szTip = szTip..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, player.dwModelID.." "..var2str(player.GetRepresentID()))).." font=102 </text>"
+		-- szTip = szTip.."<Text>text="
+		-- szTip = szTip..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, player.dwModelID.." "..var2str(player.GetRepresentID()))).." font=102 </text>"
 	end
 
 	OutputTip(szTip, 345, Rect)
