@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-13 07:45:11
+-- @Last Modified time: 2015-04-14 14:08:45
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -903,6 +903,15 @@ function JH.IsInDungeon(bType)
 		end
 	end
 	return _JH.tDungeonList[me.GetMapID()] or false
+end
+
+function JH.IsInArena()
+	local me = GetClientPlayer()
+	return me and (
+		me.GetScene().bIsArenaMap or -- JJC
+		me.GetMapID() == 173 or      -- 齐物阁
+		me.GetMapID() == 181         -- 狼影殿
+	)
 end
 
 function JH.ApplyTopPoint(fnAction, tar, nH, szKey)
