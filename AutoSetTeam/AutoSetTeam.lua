@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 00:23:53
+-- @Last Modified time: 2015-04-14 00:17:30
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -330,13 +330,15 @@ local function SetMark()
 		for k,v in pairs(tTeamMark) do
 			tMark[v] = true
 		end
-		for k,v in ipairs(AutoSetTeam.Mark) do
-			if tMark[k] then
-				v:SetAlpha(50)
-				v.alpha = 50
-			else
-				v:SetAlpha(180)
-				v.alpha = 180
+		for k, v in ipairs(AutoSetTeam.Mark) do
+			if v and v:IsValid() then
+				if tMark[k] then
+					v:SetAlpha(50)
+					v.alpha = 50
+				else
+					v:SetAlpha(180)
+					v.alpha = 180
+				end
 			end
 		end
 	end
