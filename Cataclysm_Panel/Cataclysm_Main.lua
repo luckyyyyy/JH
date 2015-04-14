@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 17:43:15
+-- @Last Modified time: 2015-04-14 20:51:44
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -297,7 +297,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("TEAM_VOTE_REQUEST")
 	-- arg0 回应状态 arg1 dwID arg2 同意=1 反对=0
 	this:RegisterEvent("TEAM_VOTE_RESPOND")
-	-- this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
+	this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
 	--
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
@@ -410,11 +410,10 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			OutputMessage("MSG_ANNOUNCE_YELLOW", _L("Team Members: %d, %d agree %d%%", num, agree, agree / num * 100))
 		end
 	elseif szEvent == "TEAM_INCOMEMONEY_CHANGE_NOTIFY" then
-		-- 缺少API
-		-- local nTotalRaidMoney = GetClientTeam().nInComeMoney
-		-- if nTotalRaidMoney == 0 then
-			-- TEAM_VOTE_REQUEST = {}
-		-- end
+		local nTotalRaidMoney = GetClientTeam().nInComeMoney
+		if nTotalRaidMoney and nTotalRaidMoney == 0 then
+			TEAM_VOTE_REQUEST = {}
+		end
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		Grid_CTM:ChangeReadyConfirm(arg0, arg1 == 1)
 	elseif szEvent == "TEAM_CHANGE_MEMBER_GROUP" then
@@ -1120,7 +1119,7 @@ end
 JH.RegisterEvent("GAME_EXIT", SaveConfig)
 JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
 JH.RegisterEvent("LOGIN_GAME", SetConfigure)
-
+JH.RegisterEvent("PARTY_LEVEL_UP_RAID", RaidCheckEnable)
 JH.AddonMenu(function()
 	return { szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = EnableTeamPanel }
 end)
