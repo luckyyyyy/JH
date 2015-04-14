@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 15:29:31
+-- @Last Modified time: 2015-04-14 16:23:26
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -5217,6 +5217,9 @@ RegisterEvent("LOADING_END", function()
 	RaidGrid_SkillTimer.RemoveAllTimer()
 	local _, _, szLang = GetVersion()
 	if szLang == "zhcn" and JH.IsInArena() and not JH.bDebugClient then
+		if RaidGrid_EventScrutiny.bEnable then
+			RaidGrid_Base.Message(_L["Arena not use the plug."])
+		end
 		_RE.AutoEnable(false)
 		ARENAMAP = true
 	else
