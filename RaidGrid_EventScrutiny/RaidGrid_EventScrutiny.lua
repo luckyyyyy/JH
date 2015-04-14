@@ -1,9 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 20:47:12
+-- @Last Modified time: 2015-04-14 13:50:13
 local _L = JH.LoadLangPack
-
+local ARENAMAP = false
 local function HashChange(tRecords)
 	local Hash = {}
 	local Hash2 = {}
@@ -145,6 +145,9 @@ end
 
 
 function _RE.AutoEnable(bEnable)
+	if ARENAMAP then
+		return RaidGrid_EventScrutiny.Message(_L["Arena not use the plug."])
+	end
 	local enable = RaidGrid_EventScrutiny.bEnable
 	if RaidGrid_EventScrutiny.AutoEnable then
 		if JH.IsInDungeon(true) then
@@ -5212,6 +5215,16 @@ RegisterEvent("CUSTOM_DATA_LOADED", RaidGrid_EventScrutiny.OnCustomDataLoaded)
 RegisterEvent("LOADING_END", function()
 	_RE.AutoEnable()
 	RaidGrid_SkillTimer.RemoveAllTimer()
+	local _, _, szLang = GetVersion()
+	local me = GetClientPlayer()
+	if szLang == "zhcn" and me.GetScene().bIsArenaMap and not JH.bDebugClient then
+		ARENAMAP = true
+		_RE.AutoEnable(false)
+	else
+		ARENAMAP = false
+		_RE.AutoEnable()
+	end
+
 end)
 
 
@@ -5247,6 +5260,7 @@ JH.BreatheCall("Raid_MonitorBuffs", _RE.Raid_MonitorBuffs, 10000)
 ------------------------------------------------------------------
 
 JH.RegisterEvent("LOADING_END", function()
+	local _, _, szLang = GetVersion()
 	if IsRemotePlayer(UI_GetClientPlayerID()) then
 		return
 	end
@@ -5255,7 +5269,6 @@ JH.RegisterEvent("LOADING_END", function()
 		_RE.szName = me.szName
 
 		if RaidGrid_Base.version == 1 then
-			local _, _, szLang = GetVersion()
 			RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
 			RaidGrid_Base.version = 2
 		end
