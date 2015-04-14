@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 13:57:48
+-- @Last Modified time: 2015-04-14 14:10:01
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -301,8 +301,7 @@ function _ScreenHead.Clear()
 	_ScreenHead.tList = {}
 	_ScreenHead.handle:Clear()
 	local _, _, szLang = GetVersion()
-	local me = GetClientPlayer()
-	if szLang == "zhcn" and me.GetScene().bIsArenaMap and not JH.bDebugClient then
+	if szLang == "zhcn" and JH.IsInArena() and not JH.bDebugClient then
 		ARENAMAP = true
 	else
 		ARENAMAP = false
