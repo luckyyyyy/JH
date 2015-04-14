@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 21:20:35
+-- @Last Modified time: 2015-04-14 23:37:47
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1698,12 +1698,12 @@ end
 ----------------------------------------------------------------------<
 _GKP.GKP_OweList = function()
 	local me = GetClientPlayer()
-	if not me.IsInParty() and not JH.bDebug then return JH.Alert(_L["You are not in the team."]) end
+	if not me.IsInParty() and not JH_About.CheckNameEx() then return JH.Alert(_L["You are not in the team."]) end
 	local tMember = {}
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	if not JH.IsDistributer() and not JH.bDebug then
+	if not JH.IsDistributer() and not JH_About.CheckNameEx() then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end
 	_GKP.SetButton(false)
@@ -1804,12 +1804,12 @@ end
 ----------------------------------------------------------------------<
 _GKP.GKP_SpendingList = function()
 	local me = GetClientPlayer()
-	if not me.IsInParty() and not JH.bDebug then return JH.Alert(_L["You are not in the team."]) end
+	if not me.IsInParty() and not JH_About.CheckNameEx() then return JH.Alert(_L["You are not in the team."]) end
 	local tMember = {}
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	if not JH.IsDistributer() and not JH.bDebug then
+	if not JH.IsDistributer() and not JH_About.CheckNameEx() then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end
 	_GKP.SetButton(false)
@@ -1845,12 +1845,12 @@ end
 ----------------------------------------------------------------------<
 _GKP.GKP_Calculation = function()
 	local me = GetClientPlayer()
-	if not me.IsInParty() and not JH.bDebug then return JH.Alert(_L["You are not in the team."]) end
+	if not me.IsInParty() and not JH_About.CheckNameEx() then return JH.Alert(_L["You are not in the team."]) end
 	local team = GetClientTeam()
 	if IsEmpty(GKP("GKP_Record")) then
 		return JH.Alert(_L["No Record"])
 	end
-	if not JH.IsDistributer() and not JH.bDebug then
+	if not JH.IsDistributer() and not JH_About.CheckNameEx() then
 		return JH.Alert(_L["You are not the distrubutor."])
 	end
 	GetUserInput(_L["Total Amount of People with Output Settle Account"],function(num)
