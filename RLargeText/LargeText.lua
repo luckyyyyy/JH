@@ -1,13 +1,13 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-12 08:57:09
+-- @Last Modified time: 2015-04-14 15:43:52
 local _L = JH.LoadLangPack
 
 LargeText = {
 	bEnable = true,
 	tAnchor = {},
-	fScale = 3,
+	fScale = 2.5,
 	nPause = 1.5,
 	nCount = 15,
 	dwFontScheme = 23,
@@ -116,7 +116,7 @@ PS.OnPanelActive = function(frame)
 	end):Pos_()
 	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX +10, y = nY + 3 })
-	:Range(1,100):Value(LargeText.fScale * 20):Change(function(nVal)
+	:Range(1, 100):Value(LargeText.fScale * 20):Change(function(nVal)
 		LargeText.fScale = nVal / 20
 		ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 	end):Pos_()
