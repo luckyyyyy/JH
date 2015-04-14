@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 14:08:45
+-- @Last Modified time: 2015-04-14 16:41:33
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -62,9 +62,13 @@ RegisterCustomData("JH.nChannel") -- 方便debug切到TONG
 
 do
 	local exp = { GetVersion() }
-	if exp and exp[4] == "exp" then
-		JH.bDebug = true
-		-- JH.bDebugClient = true
+	if exp then
+		if exp[4] == "exp" or exp[4] == "bvt" then -- 体服和内网 默认开启了DEBUG
+			JH.bDebug = true
+			OutputMessage("MSG_SYS", " [-- JH --] test client, enable debug mode!\n")
+			OutputMessage("MSG_SYS", " [-- JH --] client version " .. exp[2] .. "\n")
+			OutputMessage("MSG_SYS", " [-- JH --] client tag " .. exp[4] .. "\n")
+		end
 	end
 end
 
