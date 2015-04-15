@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 16:41:33
+-- @Last Modified time: 2015-04-15 21:05:57
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -76,6 +76,7 @@ local _JH = {
 	szBuildDate    = "20150412",
 	szTitle        = _L["JH, JX3 Plug-in Collection"],
 	tHotkey        = {},
+	tAnchor        = {},
 	tDelayCall     = {},
 	tRequest       = {},
 	tGlobalValue   = {},
@@ -430,6 +431,15 @@ function _JH.EventHandler(szEvent)
 	end
 end
 
+function _JH.UpdateAnchor(frame)
+	local a = _JH.tAnchor
+	if not IsEmpty(a) then
+		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
+	else
+		frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+	end
+end
+
 function JH.OnFrameCreate()
 	-- var
 	_JH.frame = this
@@ -443,10 +453,19 @@ function JH.OnFrameCreate()
 	_JH.hTotal:Lookup("Text_Title"):SetText(szTitle)
 	-- position
 	this:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+	this:RegisterEvent("UI_SCALED")
 	-- update list/detail
 	_JH.UpdateTabBox(this)
 end
-
+function JH.OnEvent(szEvent)
+	if szEvent == "UI_SCALED" then
+		_JH.UpdateAnchor(this)
+	end
+end
+function JH.OnFrameDragEnd()
+	this:CorrectPos()
+	_JH.tAnchor = GetFrameAnchor(this)
+end
 function JH.OnFrameBreathe()
 	-- run breathe calls
 	local nFrame = GetLogicFrameCount()
