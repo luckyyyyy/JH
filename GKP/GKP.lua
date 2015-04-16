@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 23:37:47
+-- @Last Modified time: 2015-04-17 05:06:21
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1971,7 +1971,6 @@ _GKP.DrawDistributeList = function(doodad)
 			frame:Lookup("","Image_Title"):SetSize(6 * 72, 30)
 			frame:SetSize(6 * 72, 8 + 30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
 		end
-
 		-- local fx, fy = Station.GetClientSize()
 		local w, h = frame:GetSize()
 		-- frame:SetAbsPos((fx-w)/2,(fy-h)/2) -- 固定位置在中间 他们说不好就去掉了
@@ -1988,12 +1987,15 @@ _GKP.DrawDistributeList = function(doodad)
 	end
 
 	local team = GetClientTeam()
-
+	local bSpecial = false
 	for item_k, item in ipairs(_GKP.aDistributeList) do
 		local szItemName = GetItemNameByItem(item)
 		local fnSetBox = function(box)
 			box:SetObject(UI_OBJECT_ITEM_ONLY_ID, item.nUiId, item.dwID, item.nVersion, item.dwTabType, item.dwIndex)
 			local iName, iIcon = JH.GetItemName(item.nUiId)
+			if iName == JH.GetItemName(72592) or iName == JH.GetItemName(68363) or iName == JH.GetItemName(66190) then
+				bSpecial = true
+			end
 			box:SetObjectIcon(iIcon)
 			if item.bCanStack and item.nStackNum > 1 then
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
@@ -2222,7 +2224,13 @@ _GKP.DrawDistributeList = function(doodad)
 		end
 	end
 	handle:FormatAllItemPos()
-
+	if bSpecial then -- 玄晶
+		frame:Lookup("","Image_Bg"):FromUITex("ui/Image/OperationActivity/RedEnvelope1.uitex", 9)
+		frame:Lookup("","Image_Title"):FromUITex("ui/Image/OperationActivity/RedEnvelope2.uitex", 2)
+		frame:Lookup("","Text_Title"):SetAlpha(255)
+		handle:SetRelPos(5, 30)
+		handle:GetParent():FormatAllItemPos()
+	end
 	if _GKP.tDistributeRecords["EquipmentBoss"] then
 		frame:Lookup("Btn_Boss"):Show()
 		frame:Lookup("Btn_Boss").OnLButtonClick = function()

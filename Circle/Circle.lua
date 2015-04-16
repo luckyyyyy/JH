@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-16 18:39:11
+-- @Last Modified time: 2015-04-16 18:57:52
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -618,12 +618,12 @@ function C.DrawTable()
 							C.tData[mapid][k], C.tData[mapid][k - 1] = C.tData[mapid][k - 1], C.tData[mapid][k]
 							FireEvent("CIRCLE_CLEAR")
 							FireEvent("CIRCLE_DRAW_UI")
-						end})
+						end })
 						tinsert(menu, 5, { szOption = _L["Move down"], bDisable = k == #tab, fnAction = function()
 							C.tData[mapid][k], C.tData[mapid][k + 1] = C.tData[mapid][k + 1], C.tData[mapid][k]
 							FireEvent("CIRCLE_CLEAR")
 							FireEvent("CIRCLE_DRAW_UI")
-						end})
+						end })
 						tinsert(menu, 6, { bDevide = true })
 					end
 					PopupMenu(menu)
