@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-17 05:06:21
+-- @Last Modified time: 2015-04-17 05:10:10
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1974,13 +1974,13 @@ _GKP.DrawDistributeList = function(doodad)
 		-- local fx, fy = Station.GetClientSize()
 		local w, h = frame:GetSize()
 		-- frame:SetAbsPos((fx-w)/2,(fy-h)/2) -- 固定位置在中间 他们说不好就去掉了
-		frame:Lookup("Btn_Close"):SetRelPos(w - 30, 5)
+		frame:Lookup("Btn_Close"):SetRelPos(w - 30, 4)
 		frame:Lookup("Btn_Boss"):SetRelPos(365, 3)
 		handle:SetHandleStyle(0)
 	else
 		frame:Lookup("", "Image_Bg"):SetSize(280, #_GKP.aDistributeList * 56 + 35)
 		frame:Lookup("", "Image_Title"):SetSize(280, 30)
-		frame:Lookup("Btn_Close"):SetRelPos(250, 5)
+		frame:Lookup("Btn_Close"):SetRelPos(250, 4)
 		frame:SetSize(280, #_GKP.aDistributeList * 56 + 35)
 		handle:SetHandleStyle(3)
 		frame:Lookup("Btn_Boss"):SetRelPos(210, 3)
