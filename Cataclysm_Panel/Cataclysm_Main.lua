@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 20:51:44
+-- @Last Modified time: 2015-04-17 05:18:40
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -395,7 +395,9 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		end
 	elseif szEvent == "TEAM_VOTE_RESPOND" then
 		if arg0 == 1 and not IsEmpty(TEAM_VOTE_REQUEST) then
-			Grid_CTM:ChangeReadyConfirm(arg1, arg2 == 1)
+			if JH.IsLeader() then
+				Grid_CTM:ChangeReadyConfirm(arg1, arg2 == 1)
+			end
 			if arg2 == 1 then
 				TEAM_VOTE_REQUEST[arg1] = true
 			end
