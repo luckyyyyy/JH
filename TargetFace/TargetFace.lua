@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-04 14:45:23
+-- @Last Modified time: 2015-04-16 17:34:22
 local _L = JH.LoadLangPack
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
@@ -60,6 +60,7 @@ _TargetFace.Init = function()
 		_TargetFace[v]  = handle:AppendItemFromIni(_TargetFace.szItemIni, "shadow", v)
 	end
 	_TargetFace.hName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
+	JH.BreatheCall("TargetFace", _TargetFace.OnBreathe)
 end
 
 _TargetFace.DrawText = function(tar, txt, bSelf)
@@ -559,7 +560,6 @@ PS.OnPanelActive = function(frame)
 end
 
 JH.RegisterInit("TargetFace",
-	{ "Breathe", _TargetFace.OnBreathe },
 	{ "LOGIN_GAME", function()
 		_TargetFace.Init()
 		if TargetFace.bDirection then
