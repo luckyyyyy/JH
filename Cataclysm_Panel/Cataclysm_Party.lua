@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 20:16:06
+-- @Last Modified time: 2015-04-18 07:38:53
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -20,6 +20,8 @@ local CFG                    = RaidGrid_CTM_Edition
 local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
 local STR_FRIEND_NOT_ON_LINE = g_tStrings.STR_FRIEND_NOT_ON_LINE
 local FIGHT_DEATH            = g_tStrings.FIGHT_DEATH
+local CAMP_GOOD              = CAMP.GOOD
+local CAMP_EVIL              = CAMP.EVIL
 -- STATE cache
 local MOVE_STATE_ON_STAND    = MOVE_STATE.ON_STAND
 local MOVE_STATE_ON_DEATH    = MOVE_STATE.ON_DEATH
@@ -274,8 +276,8 @@ function CTM:RefreshGroupText()
 				if tGroup and tGroup.MemberList then
 					for k, v in ipairs(tGroup.MemberList) do
 						if v == UI_GetClientPlayerID() then
-							TextGroup:SetFontScheme(2)
-							TextGroup:SetFontColor(255, 255, 0) -- 自己所在的小队 黄色
+							-- TextGroup:SetFontScheme(2)
+							TextGroup:SetFontColor(255, 128, 0) -- 自己所在的小队 黄色
 							break
 						end
 					end
@@ -495,9 +497,9 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 		elseif CFG.nColoredName == 2 then
 			if info.nCamp == 0 then
 				TextName:SetFontColor(255, 255, 255)
-			elseif info.nCamp == 1 then
+			elseif info.nCamp == CAMP_GOOD then
 				TextName:SetFontColor(60, 128, 220)
-			elseif info.nCamp == 2 then
+			elseif info.nCamp == CAMP_EVIL then
 				TextName:SetFontColor(160, 30, 30)
 			end
 		end
