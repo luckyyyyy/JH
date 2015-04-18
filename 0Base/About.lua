@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-18 08:33:53
+-- @Last Modified time: 2015-04-18 19:05:13
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -29,7 +29,7 @@ end
 function _JH_About.CheckInstall()
 	local me = GetClientPlayer()
 	local me, team = GetClientPlayer(), GetClientTeam()
-	if me.IsInParty() and (me.dwID == team.CTM(TEAM_AUTHORITY_TYPE.LEADER)
+	if me.IsInParty() and (me.dwID == team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
 		or _JH_About.CheckNameEx())
 	then
 		if IsCtrlKeyDown() and _JH_About.CheckNameEx() then
