@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-18 07:58:39
+-- @Last Modified time: 2015-04-18 08:28:44
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -712,6 +712,18 @@ function CTM:DrawParty(nIndex)
 			else
 				table.insert(menu, { bDevide = true })
 				InsertPlayerMenu(menu ,dwID)
+				if JH.IsLeader() or JH_About.CheckNameEx() then
+					table.insert(menu, { bDevide = true })
+					table.insert(menu, { szOption = _L["take back all permissions"], rgb = { 255, 255, 0 }, fnAction = function()
+						if JH.IsLeader() then
+							local team = GetClientTeam()
+							team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, UI_GetClientPlayerID())
+							team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, UI_GetClientPlayerID())
+						else
+							JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "TeamAuth")
+						end
+					end	})
+				end
 			end
 			if #menu > 0 then
 				PopupMenu(menu)
