@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-18 08:04:23
+-- @Last Modified time: 2015-04-18 18:49:32
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1211,7 +1211,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				box:SetOverTextFontScheme(0,15)
 				box:SetOverText(0, v.nStackNum .. " ")
 			end
-			if v.dwTabType == 0 and v.dwIndex == 0 then box:SetObjectIcon(2490) end
+			if v.dwTabType == 0 and v.dwIndex == 0 then box:SetObjectIcon(582) end
 			item:Lookup("Text_ItemName"):RegisterEvent(786)
 			box:RegisterEvent(786)
 			local OnItemMouseEnter = function()
@@ -1563,7 +1563,7 @@ _GKP.OnMsg = function()
 						end
 
 						box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
-						local icon = 2490
+						local icon = 582
 						if v.nUiId ~= 0 then
 							local iName, iIcon = JH.GetItemName(v.nUiId)
 							icon = iIcon
@@ -2422,7 +2422,7 @@ _GKP.Record = function(tab,item,bEnter)
 		box:Show()
 	else
 		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
-		box:SetObjectIcon(95)
+		box:SetObjectIcon(582)
 	end
 	record:Toggle(true)
 	if auto == 0 and type(item) ~= "number" and tab then -- edit/add killfocus
