@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-16 18:57:52
+-- @Last Modified time: 2015-04-18 19:11:46
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -339,7 +339,7 @@ function C.Release()
 	-- πÊ‘ÚºÏ≤È
 	if C.tData["mt"] then
 		for k, v in pairs(C.tData["mt"]) do
-			if C.GetMapName(v):match(C.GetMapName(k)) and k ~= v then
+			if CIRCLE_MAP_COUNT[k] == CIRCLE_MAP_COUNT[v] and k ~= v then
 				local a = C.GetMapType(v)
 				local b = C.GetMapType(k)
 				if (a.bDungeon and b.bDungeon) or (not a.bDungeon and not b.bDungeon) then
@@ -969,7 +969,7 @@ function C.OpenMtPanel()
 		if not map or not source then
 			return JH.Alert(_L["The map does not exist"])
 		end
-		if ui:Fetch("source"):Text():match(ui:Fetch("map"):Text()) and ((map.bDungeon and source.bDungeon) or (not map.bDungeon and not source.bDungeon)) then
+		if CIRCLE_MAP_COUNT[map.id] == CIRCLE_MAP_COUNT[source.id] and ((map.bDungeon and source.bDungeon) or (not map.bDungeon and not source.bDungeon)) then
 			C.tData["mt"] = C.tData["mt"] or {}
 			C.tData["mt"][map.id] = source.id
 			ui:Fetch("Btn_Close"):Click()
