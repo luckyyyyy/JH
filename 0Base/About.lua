@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-18 12:31:59
+-- @Last Modified time: 2015-04-18 08:33:53
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -29,7 +29,7 @@ end
 function _JH_About.CheckInstall()
 	local me = GetClientPlayer()
 	local me, team = GetClientPlayer(), GetClientTeam()
-	if me.IsInParty() and (me.dwID == team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
+	if me.IsInParty() and (me.dwID == team.CTM(TEAM_AUTHORITY_TYPE.LEADER)
 		or _JH_About.CheckNameEx())
 	then
 		if IsCtrlKeyDown() and _JH_About.CheckNameEx() then
@@ -85,7 +85,7 @@ function _JH_About.ShowInfo(dat)
 end
 
 function _JH_About.OnBgTalk()
-	local data = JH.BgHear("JH_ABOUT",true)
+	local data = JH.BgHear("JH_ABOUT", true)
 	if data then
 		if data[1] == "JH_CHECK" then
 			-- check plugin
@@ -97,7 +97,7 @@ function _JH_About.OnBgTalk()
 				if not szTong then szTong = "Failed" end
 			end
 			local _,szServer = GetUserServer()
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"JH_ABOUT","info",
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "info",
 				me.GetTotalEquipScore(),
 				me.GetMapID(),
 				szTong,
@@ -108,6 +108,11 @@ function _JH_About.OnBgTalk()
 			)
 		elseif data[1] == "info" and _JH_About.CheckNameEx() then
 			_JH_About.ShowInfo(data)
+		elseif data[1] == "TeamAuth" then -- 防止有人睡着 遇到了不止一次了
+			local team = GetClientTeam()
+			team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER, arg0)
+			team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, arg0)
+			team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, arg0)
 		end
 	end
 end
