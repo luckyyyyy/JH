@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-18 08:28:44
+-- @Last Modified time: 2015-04-19 21:55:56
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -1092,7 +1092,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 					if lifeFade:IsValid() then
 						local nFadeAlpha = math.max(lifeFade:GetAlpha() - CTM_ALPHA_STEP, 0)
 						lifeFade:SetAlpha(nFadeAlpha)
-						if nFadeAlpha == 0 then
+						if nFadeAlpha <= 0 then
 							JH.UnBreatheCall(key)
 						end
 					else
@@ -1164,7 +1164,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	end
 end
 
-function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) --重绘三角扇
+function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) -- 重绘三角扇
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:ClearTriangleFanPoint()
 	x = x * CFG.fScaleX
@@ -1172,13 +1172,13 @@ function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) --重绘三角扇
 	if bGradient then
 		sha:AppendTriangleFanPoint(0, 0, 64, 64, 64, a)
 		sha:AppendTriangleFanPoint(x, 0, 64, 64, 64, a)
-		sha:AppendTriangleFanPoint(x, y, r,	 g,	 b,	 a)
-		sha:AppendTriangleFanPoint(0, y, r,	 g,	 b,	 a)
+		sha:AppendTriangleFanPoint(x, y, r, g, b, a)
+		sha:AppendTriangleFanPoint(0, y, r, g, b, a)
 	else
-		sha:AppendTriangleFanPoint(0, 0, r,	g, b, a)
-		sha:AppendTriangleFanPoint(x, 0, r,	g, b, a)
-		sha:AppendTriangleFanPoint(x, y, r,	g, b, a)
-		sha:AppendTriangleFanPoint(0, y, r,	g, b, a)
+		sha:AppendTriangleFanPoint(0, 0, r, g, b, a)
+		sha:AppendTriangleFanPoint(x, 0, r, g, b, a)
+		sha:AppendTriangleFanPoint(x, y, r, g, b, a)
+		sha:AppendTriangleFanPoint(0, y, r, g, b, a)
 	end
 end
 
@@ -1231,7 +1231,7 @@ function CTM:ChangeReadyConfirm(dwID, status)
 				if h:Lookup("Animate_Ready"):IsValid() then
 					local nAlpha = math.max(h:Lookup("Animate_Ready"):GetAlpha() - 15, 0)
 					h:Lookup("Animate_Ready"):SetAlpha(nAlpha)
-					if nAlpha == 0 then
+					if nAlpha <= 0 then
 						JH.UnBreatheCall(key)
 					end
 				end
