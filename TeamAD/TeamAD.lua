@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-04 15:08:33
+-- @Last Modified time: 2015-04-19 05:07:47
 local _L = JH.LoadLangPack
 local TeamAD = {
 	szDataFile = "TeamAD.jx3dat",
@@ -83,27 +83,28 @@ TeamAD.PS.OnPanelActive = function(frame)
 	if JH_About and JH_About.CheckNameEx() then
 		t = TeamAD.tItem[2]
 	end
-	for k,v in ipairs(t) do
+	for k, v in ipairs(t) do
 		if k % #t == 1 then nX = 10 end
-		nX = ui:Append("Box", { x = nX + 12, y = nY + 5, w = 38, h = 38, icon = Table_GetItemIconID(v.nUiId)})
+		nX = ui:Append("Box", "iteminfolink", { x = nX + 12, y = nY + 5, w = 38, h = 38, icon = Table_GetItemIconID(v.nUiId)})
 		:Click(function()
 			this.nVersion = GLOBAL.CURRENT_ITEM_VERSION
 			this.dwTabType = v.dwTabType
 			this.dwIndex = v.dwIndex
-			this:SetName("iteminfolink")
 			return OnItemLinkDown(this)
-		end):Hover(function()
-			this:SetObjectMouseOver(true)
-			local x, y = this:GetAbsPos()
-			local w, h = this:GetSize()
-			OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,v.dwTabType,v.dwIndex,{x, y, w, h})
-		end,function()
-			this:SetObjectMouseOver(false)
-			HideTip()
+		end):Hover(function(bHover)
+			if bHover then
+				this:SetObjectMouseOver(true)
+				local x, y = this:GetAbsPos()
+				local w, h = this:GetSize()
+				OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, {x, y, w, h})
+			else
+				this:SetObjectMouseOver(false)
+				HideTip()
+			end
 		end):Pos_()
 	end
 	nY = nY + 48
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AD List"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AD List"], font = 27 }):Pos_()
 	nY = nY - 10
 	for k,v in ipairs(TeamAD.tADList) do
 		if k % 4 == 1 then nX = 10 end
