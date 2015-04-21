@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-18 18:49:32
+-- @Last Modified time: 2015-04-21 22:02:54
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -834,8 +834,8 @@ PS.OnPanelActive = function(frame)
 		GKP.bDeathWarn = bChecked
 	end):Pos_()
 	if JH_About.CheckNameEx() then
-		ui:Append("WndCheckBox", { x = 320, y = nY, checked = GKP.bDebug2 })
-		:Text(_L["Show LootList(HEXIE)"]):Click(function(bChecked)
+		ui:Append("WndCheckBox", { x = 360, y = nY, checked = GKP.bDebug2 })
+		:Text(_L["Debug Mode"]):Click(function(bChecked)
 			GKP.bDebug2 = not GKP.bDebug2
 		end)
 	end
