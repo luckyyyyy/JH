@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-19 21:55:56
+-- @Last Modified time: 2015-04-21 23:54:07
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -704,7 +704,9 @@ function CTM:DrawParty(nIndex)
 			end
 			local info = self:GetMemberInfo(dwID)
 			if dwID ~= me.dwID then
-				table.insert(menu, { bDevide = true })
+				if JH.IsLeader() then
+					table.insert(menu, { bDevide = true })
+				end
 				InsertTeammateMenu(menu, dwID)
 				table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function()
 					ViewInviteToPlayer(dwID)
@@ -885,6 +887,7 @@ function CTM:RefresBuff()
 								end
 							else
 								handle:RemoveItem(i)
+								handle:FormatAllItemPos() -- 格式化buff的位置
 							end
 						end
 					end
