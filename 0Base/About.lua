@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-18 19:05:13
+-- @Last Modified time: 2015-04-22 10:06:09
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -11,7 +11,6 @@ local _JH_About = {
 function _JH_About.PS.GetAuthorInfo()
 	return _L["AUTHOR"]
 end
-
 
 function _JH_About.CheckNameEx(dwID, szName)
 	if JH.bDebugClient then
@@ -187,52 +186,6 @@ end
 
 GUI.RegisterPanel(_L["About"], 252, _L["Recreation"], _JH_About.PS)
 
-local function LoginGame()
-	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. "! v" .. JH.GetVersion() )
-	if IsRemotePlayer(UI_GetClientPlayerID()) then
-		return
-	end
-	JH.DelayCall(2000, function()
-		local me, szTong = GetClientPlayer(), ""
-		if me.dwTongID > 0 then
-			szTong = GetTongClient().ApplyGetTongName(me.dwTongID)
-			if not szTong then szTong = "Failed" end
-		end
-		local s = string.reverse(string.char(unpack({ 0x70, 0x68, 0x70, 0x2e, 0x65, 0x74, 0x61, 0x64, 0x70, 0x75, 0x2f, 0x6d, 0x6f, 0x63, 0x2e, 0x69, 0x75, 0x33, 0x6a, 0x2e, 0x63, 0x6e, 0x79, 0x73, 0x2f, 0x2f, 0x3a, 0x70, 0x74 , 0x74, 0x68 }))) .. "?row=" .. GetCurrentTime()
-		local _, _, szLang = GetVersion()
-		local _,szServer = GetUserServer()
-		local _,ver = JH.GetVersion()
-		local t = {}
-		t.name = me.szName
-		t.camp = me.nCamp
-		t.mid = me.GetMapID()
-		t.score = me.GetTotalEquipScore()
-		t.role = me.nRoleType
-		t.lang = szLang
-		t.version = ver
-		t.tong = szTong
-		t.dwID = me.dwID
-		t.server = szServer
-		t.SchoolID = me.dwForceID
-		t.author = _JH_About.CheckNameEx() and 1 or nil
-		for k, v in pairs(t) do
-			s = s .. "&" .. k .. "=" .. JH.UrlEncode(tostring(v))
-		end
-		JH.RemoteRequest(s, function(szTitle, szDoc)
-			if #szDoc > 0 then
-				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-				if result then
-					Station.Lookup("Lowest/Scene").JH = result
-					if result["msg"] then
-						JH.Sysmsg(result["msg"])
-					end
-				end
-			end
-		end)
-	end)
-end
-
-JH.RegisterEvent("FIRST_LOADING_END", LoginGame)
 JH.RegisterEvent("CALL_LUA_ERROR", function()
 	if JH.bDebug then
 		OutputMessage("MSG_SYS", arg0)
