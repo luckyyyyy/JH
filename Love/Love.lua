@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 00:37:48
+-- @Last Modified time: 2015-04-23 15:22:25
 local _L = JH.LoadLangPack
 JH_Love = {
 	bQuiet = false,				-- 免打扰（拒绝其它人的查看请求）
@@ -314,7 +314,7 @@ _JH_Love.SetLover = function(dwID, nType)
 			JH.Talk(_JH_Love.szName, _L["Sorry, I decided to just a swordman, bye my plugin lover"])
 		elseif _JH_Love.nLoveType == 0 then	-- 单向只通知在线的
 			local aInfo = _JH_Love.GetFellowDataByID(_JH_Love.dwID)
-			if aInfo and aInfo.level ~= 0 then
+			if aInfo and aInfo.isonline then
 				JH.BgTalk(_JH_Love.szName, "HM_LOVE", "REMOVE0")
 			end
 		end
@@ -327,7 +327,7 @@ _JH_Love.SetLover = function(dwID, nType)
 	else
 		-- 设置成为情缘（在线好友）
 		local aInfo = _JH_Love.GetFellowDataByID(dwID)
-		if not aInfo or aInfo.level == 0 then
+		if not aInfo or not aInfo.isonline then
 			return JH.Alert(_L["Lover must be a online friend"])
 		end
 		if nType == 0 then
@@ -385,7 +385,7 @@ _JH_Love.GetLoverMenu = function(nType)
 			if vv.attraction >= 200 and (nType ~= 1 or vv.attraction >= 800) then
 				table.insert(m0, {
 					szOption = vv.name,
-					fnDisable = function() return vv.level == 0 end,
+					fnDisable = function() return not vv.isonline end,
 					fnAction = function()
 						JH.Confirm(_L("Do you want to love with [%s]?", vv.name), function()
 							_JH_Love.SetLover(vv.id, nType)
@@ -516,7 +516,7 @@ _JH_Love.AskOtherData = function(dwID)
 	if not tar then
 		return
 	end
-	
+
 	_JH_Love.tOther = {}
 	_JH_Love.UpdatePage()
 	if tar.bFightState and not JH.IsParty(tar.dwID) then
@@ -524,7 +524,7 @@ _JH_Love.AskOtherData = function(dwID)
 		return JH.Sysmsg("[" .. tar.szName .. "] " .. _L[" in fighting, no time for you"])
 	end
 	JH.BgTalk(tar.szName, "HM_LOVE", "VIEW")
-	
+
 end
 
 -------------------------------------
@@ -545,7 +545,7 @@ _JH_Love.OnFellowUpdate = function()
 		_JH_Love.nStartTime = tonumber(data[2]) or GetCurrentTime()
 		_JH_Love.PS.Refresh()
 		-- 上线提示
-		if not _JH_Love.bLoaded and aInfo.level ~= 0 then
+		if not _JH_Love.bLoaded and aInfo.isonline then
 			local szMsg = _L["Warm tip: Your "] .. _JH_Love.GetLoverType() .. _L("Lover <link0> is happy in [%s].\n", Table_GetMapName(aInfo.mapid))
 			_JH_Love.OnLoverMsg(szMsg)
 		end
@@ -813,7 +813,7 @@ _JH_Love.OnBreathe = function()
 	end
 	-- friendrank
 	local hL = Station.Lookup("Normal/FriendRank/Wnd_PRanking", "Handle_RankingMes")
-	
+
 end
 
 -- player enter
@@ -901,7 +901,7 @@ end
 ---------------------------------------------------------------------
 -- 注册事件、初始化
 ---------------------------------------------------------------------
-if not HM_Love then 
+if not HM_Love then
 	JH.RegisterEvent("ON_BG_CHANNEL_MSG", _JH_Love.OnBgTalk)
 	JH.RegisterEvent("PEEK_OTHER_PLAYER", _JH_Love.OnPeekOtherPlayer)
 	JH.RegisterEvent("PLAYER_FELLOWSHIP_LOGIN", _JH_Love.OnFriendLogin)
@@ -921,7 +921,7 @@ function JH_Love.PeekOther(dwID)
 	end
 end
 
-if not HM_Love then 
+if not HM_Love then
 Target_AppendAddonMenu({ function(dwID)
 	return {{
 		szOption = _L["View love info"],
