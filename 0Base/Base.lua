@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-20 15:56:20
+-- @Last Modified time: 2015-04-23 01:03:14
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -1426,7 +1426,9 @@ JH.RegisterEvent("LOADING_END", function()
 		_JH.tGlobalValue[k] = nil
 	end
 end)
-
+JH.RegisterEvent("FIRST_LOADING_END", function()
+	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. "! v" .. JH.GetVersion() )
+end)
 JH.RegisterEvent("PLAYER_ENTER_SCENE", function() _JH.aPlayer[arg0] = true end)
 JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() _JH.aPlayer[arg0] = nil end)
 JH.RegisterEvent("NPC_ENTER_SCENE", function() _JH.aNpc[arg0] = true end)

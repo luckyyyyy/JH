@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-22 10:06:09
+-- @Last Modified time: 2015-04-22 10:07:22
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -152,7 +152,7 @@ function _JH_About.PS.OnPanelActive(frame)
 		if not JH.bDebug then
 			JH.Confirm(_L["Warning: plugin will ignore the authority when the debugging mode is on, showing action can not be operate when cross the authorit, but none of this coud be accept by the server,do not select if you are not the developer, avoid making misunderstanding, please do not try it when set up a team, this may creat problem like messing up the record."],function()
 				JH.bDebug = not JH.bDebug
-			end,function()
+			end, function()
 				ui:Fetch("DEBUG"):Check(JH.bDebug)
 			end)
 		else
