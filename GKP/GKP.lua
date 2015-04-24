@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 17:28:54
+-- @Last Modified time: 2015-04-24 17:34:21
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1261,7 +1261,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				if not JH.IsDistributer() then
 					return JH.Alert(_L["You are not the distrubutor."])
 				end
-				_GKP.Record(v,k)
+				_GKP.Record(v, k)
 			end
 
 			-- tip
@@ -2335,7 +2335,7 @@ end
 ---------------------------------------------------------------------->
 -- º«’À“≥√Ê
 ----------------------------------------------------------------------<
-_GKP.Record = function(tab,item,bEnter)
+_GKP.Record = function(tab, item, bEnter)
 	local record = GUI(Station.Lookup("Normal1/GKP_Record"))
 	local box = record:Fetch("Box"):Pos(170,80).self
 	local text = record:Fetch("TeamList")
@@ -2367,7 +2367,7 @@ _GKP.Record = function(tab,item,bEnter)
 		end
 		record:Fetch("btn_Close").self.userdata = true
 	else
-		text:Text(g_tStrings.PLAYER_NOT_EMPTY):Color(255,255,255)
+		text:Text(g_tStrings.PLAYER_NOT_EMPTY):Color(255, 255, 255)
 		text.self.dwForceID = nil
 		Source:Text(_L["Add Manually"]):Enable(false)
 		Name:Text(""):Enable(true)
@@ -2382,13 +2382,13 @@ _GKP.Record = function(tab,item,bEnter)
 		Money:Text(tab.nMoney)
 	end
 
-	if tab and tab.nVersion and tab.nUiId and tab.dwTabType and tab.dwIndex then
+	if tab and tab.nVersion and tab.nUiId and tab.dwTabType and tab.dwIndex and tab.nUiId ~= 0 then
 		-- Box
 		box:SetObject(UI_OBJECT_ITEM_INFO, tab.nVersion, tab.dwTabType, tab.dwIndex)
 		local _, iIcon = JH.GetItemName(tab.nUiId)
 		box:SetObjectIcon(iIcon)
 		box:SetOverTextPosition(0,ITEM_POSITION.RIGHT_BOTTOM)
-		box:SetOverTextFontScheme(0,15)
+		box:SetOverTextFontScheme(0, 15)
 		if tab.nStackNum and tab.nStackNum > 1 then
 			box:SetOverText(0,tab.nStackNum .. " ")
 		else
@@ -2396,7 +2396,7 @@ _GKP.Record = function(tab,item,bEnter)
 		end
 		box.OnItemLButtonClick = function()
 			if IsCtrlKeyDown() or IsAltKeyDown() then
-				return GKP.OnItemLinkDown(tab,this)
+				return GKP.OnItemLinkDown(tab, this)
 			end
 		end
 		-- MouseEnter
