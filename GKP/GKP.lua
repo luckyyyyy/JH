@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-21 22:02:54
+-- @Last Modified time: 2015-04-24 17:28:54
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1003,9 +1003,9 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 		end
 	end)
 
-	for k,v in ipairs(tab) do
-		local wnd = _GKP.GKP_Buff_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Buff_Item.ini","WndWindow",k)
-		local item = wnd:Lookup("","")
+	for k, v in ipairs(tab) do
+		local wnd = _GKP.GKP_Buff_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Buff_Item.ini", "WndWindow", k)
+		local item = wnd:Lookup("", "")
 		if k % 2 == 0 then
 			item:Lookup("Image_Line"):Hide()
 		end
@@ -1015,10 +1015,10 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 		item:Lookup("Image_NameIcon"):FromIconID(sIcon)
 		item:Lookup("Text_Name"):SetText(v.szName)
 		item:Lookup("Text_Name"):SetFontColor(JH.GetForceColor(v.dwForceID))
-		local ex,r,g,b = _L["Not in the Scope"],255,255,255
+		local ex, r, g, b = _L["Not in the Scope"],255, 255, 255
 		if tNameEx[v.szName] and tNameEx[v.szName] == v.dwID then
 			player = nil
-			ex,r,g,b = "Access denied",255,128,0
+			ex, r, g, b = "Access denied", 255, 128, 0
 		end
 		if player then
 			for kk, vv in pairs(v.Box1) do
@@ -1163,8 +1163,8 @@ _GKP.Draw_GKP_Record = function(key,sort)
 	local c = 0
 	for k, v in ipairs(tab) do
 		if GKP.bDisplayEmptyRecords or v.nMoney ~= 0 then
-			local wnd = _GKP.GKP_Record_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Record_Item.ini","WndWindow",i)
-			local item = wnd:Lookup("","")
+			local wnd = _GKP.GKP_Record_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Record_Item.ini", "WndWindow", k)
+			local item = wnd:Lookup("", "")
 			if k % 2 == 0 then
 				item:Lookup("Image_Line"):Hide()
 			end
@@ -2704,24 +2704,24 @@ _GKP.Draw_GKP_Account = function(key,sort)
 	_GKP.GKP_Account_Container.key = key
 	_GKP.GKP_Account_Container.sort = sort
 	_GKP.GKP_Account_Container:Clear()
-	local a,b = 0,0
+	local a, b = 0,0
 	local tMoney = GetClientPlayer().GetMoney()
-	for k,v in ipairs(tab) do
-		local c = _GKP.GKP_Account_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Account_Item.ini","WndWindow",i)
-		local item = c:Lookup("","")
+	for k, v in ipairs(tab) do
+		local c = _GKP.GKP_Account_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Account_Item.ini", "WndWindow", k)
+		local item = c:Lookup("", "")
 		if k % 2 == 0 then
 			item:Lookup("Image_Line"):Hide()
 		end
 		if v.bDelete then
 			c:SetAlpha(80)
 		end
-		c:Lookup("","Handle_Money"):AppendItemFromString(GetGoldText(v.nGold,3))
+		c:Lookup("", "Handle_Money"):AppendItemFromString(GetGoldText(v.nGold, 3))
 		if v.nGold  < 0 then
-			c:Lookup("","Handle_Money"):Lookup(0):SetFontColor(255,0,0)
+			c:Lookup("", "Handle_Money"):Lookup(0):SetFontColor(255, 0, 0)
 		else
-			c:Lookup("","Handle_Money"):Lookup(0):SetFontColor(0,255,0)
+			c:Lookup("", "Handle_Money"):Lookup(0):SetFontColor(0, 255, 0)
 		end
-		c:Lookup("","Handle_Money"):FormatAllItemPos()
+		c:Lookup("", "Handle_Money"):FormatAllItemPos()
 		item:Lookup("Text_No"):SetText(k)
 		if v.szPlayer and v.szPlayer ~= "System" then
 			item:Lookup("Image_NameIcon"):FromUITex(GetForceImage(v.dwForceID))

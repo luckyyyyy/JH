@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-03-08 05:57:03
+-- @Last Modified time: 2015-04-24 17:23:08
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -44,7 +44,7 @@ function PartyBuffList.OnFrameDragEnd()
 	PartyBuffList.tAnchor = GetFrameAnchor(this, "TOPCENTER")
 end
 function _PartyBuffList.OpenPanel()
-	local frame = _PartyBuffList.frame or Wnd.OpenWindow(_PartyBuffList.szIniFile,"PartyBuffList")
+	local frame = _PartyBuffList.frame or Wnd.OpenWindow(_PartyBuffList.szIniFile, "PartyBuffList")
 	return frame
 end
 function _PartyBuffList.IsPanelOpened()
