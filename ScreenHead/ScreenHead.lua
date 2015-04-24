@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 17:01:50
+-- @Last Modified time: 2015-04-24 17:18:17
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
