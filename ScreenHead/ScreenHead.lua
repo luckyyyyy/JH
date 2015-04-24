@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-20 15:42:28
+-- @Last Modified time: 2015-04-24 17:01:50
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -27,8 +27,8 @@ local GetTime, IsPlayer = GetTime, IsPlayer
 local GetPlayer, GetClientPlayer, GetClientTeam =
 	  GetPlayer, GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
-local GetTarget, HasBuff, GetEndTime, GetBuffName, GetBuffTimeString, GetSkillName, GetDistance, GetTemplateName, IsParty =
-	  JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.GetBuffTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, IsParty
+local GetTarget, HasBuff, GetEndTime, GetBuffName, GetBuffTimeString, GetSkillName, GetDistance, GetTemplateName, JH_IsParty =
+	  JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.GetBuffTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, JH.IsParty
 local SCREEN_SELECT_FIX = 0.3
 
 local _ScreenHead = {
@@ -314,7 +314,7 @@ function _ScreenHead.GetObject(dwID)
 		local me = GetClientPlayer()
 		if dwID == me.dwID then
 			p, info = me, me
-		elseif IsParty(dwID) then
+		elseif JH_IsParty(dwID) then
 			p, info = GetPlayer(dwID), GetClientTeam().GetMemberInfo(dwID)
 		else
 			p, info = GetPlayer(dwID), GetPlayer(dwID)
