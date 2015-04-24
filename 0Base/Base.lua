@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 12:16:24
+-- @Last Modified time: 2015-04-24 19:12:45
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -3107,7 +3107,7 @@ function GUI.OpenColorTablePanel(fnAction)
 				wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b } })
 				:Hover(function(bHover)
 					wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(bHover)
-					fnHover(bHover, r, g, b, img)
+					fnHover(bHover, r, g, b)
 				end)
 				:Click(function()
 					fnClick(r, g, b)

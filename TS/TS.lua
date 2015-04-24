@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-04 14:41:45
+-- @Last Modified time: 2015-04-24 22:43:25
 local _L = JH.LoadLangPack
 
 TS = {
@@ -27,8 +27,10 @@ local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
 local MY_Recount_GetData
 local HATRED_COLLECT = g_tStrings.HATRED_COLLECT
-local HasBuff, GetBuffName, GetEndTime = JH.HasBuff, JH.GetBuffName, JH.GetEndTime
+local HasBuff, GetBuffName, GetEndTime, GetTemplateName, GetForceColo =
+	  JH.HasBuff, JH.GetBuffName, JH.GetEndTime, JH.GetTemplateName, JH.GetForceColo
 local GetNpcIntensity = GetNpcIntensity
+local GetTime = GetTime
 
 local _TS = {
 	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
@@ -201,7 +203,7 @@ function _TS.OnBreathe()
 		else
 			local lifeper = p.nCurrentLife / p.nMaxLife
 			_TS.CastBar:Hide()
-			_TS.txt:SetText(JH.GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
+			_TS.txt:SetText(GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
 			_TS.Life:SetPercentage(lifeper)
 		end
 
@@ -231,7 +233,7 @@ function _TS.OnBreathe()
 						local team = GetClientTeam()
 						local szMember = team.GetClientTeamMemberName(p.dwDropTargetPlayerID)
 						local nGroup = team.GetMemberGroupIndex(p.dwDropTargetPlayerID) + 1
-						local name = JH.GetTemplateName(p)
+						local name = GetTemplateName(p)
 						JH.Sysmsg2(_L("Well done! %s in %d group first to attack %s!!", nGroup, szMember, name), g_tStrings.HATRED_COLLECT, { 150, 250, 230 })
 					end
 				end
@@ -364,7 +366,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 				local p = GetPlayer(v.id)
 				if p then
 					if TS.bForceColor then
-						r, g, b = JH.GetForceColor(p.dwForceID)
+						r, g, b = GetForceColor(p.dwForceID)
 					else
 						r, g, b = 255, 255, 255
 					end
@@ -374,7 +376,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			else
 				local p = GetNpc(v.id)
 				if p then
-					szName = JH.GetTemplateName(p)
+					szName = GetTemplateName(p, true)
 				end
 			end
 			item:Lookup("Text_ThreatName"):SetText(szName)
