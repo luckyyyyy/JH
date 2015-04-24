@@ -1,7 +1,8 @@
 # ignore list
-*.key
+*/manifest.dat
+*/manifest.key
+*/publisher.key
 *.dump
-*.dat
 @DATA
 7z.exe
 releases

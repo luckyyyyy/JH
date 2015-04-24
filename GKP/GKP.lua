@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 17:34:21
+-- @Last Modified time: 2015-04-24 18:50:13
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -591,7 +591,7 @@ function GKP.OnFrameCreate()
 		PopupMenu(menu)
 		Station.SetFocusWindow(me)
 	end
-	record:Append("WndEdit", "Name", {x = 135,y = 125,w = 185,h = 25}):Focus(fnAction_Name,function()
+	record:Append("WndEdit", "Name", {x = 135, y = 125, w = 185, h = 25}):Focus(fnAction_Name, function()
 		if not Station.GetFocusWindow() then return end
 		local szFocusWindow = Station.GetFocusWindow():GetName()
 		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
@@ -615,8 +615,8 @@ function GKP.OnFrameCreate()
 				return
 			end
 			local menu = {}
-			for k,v in ipairs({2,3,4}) do
-				local nMoney = string.format("%0.".. v .."f", me:GetText()):gsub("%.","")
+			for k, v in ipairs({2, 3, 4}) do
+				local nMoney = string.format("%0.".. v .."f", me:GetText()):gsub("%.", "")
 				table.insert(menu,{
 					szOption = nMoney,
 					rgb = {GKP.GetMoneyCol(nMoney)},
@@ -650,7 +650,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	record:Append("WndEdit", "Money", { x = 135, y = 185, w = 185, h = 25, limit = 8 }):Type(1):Focus(fnAction, function()
+	record:Append("WndEdit", "Money", { x = 135, y = 185 ,w = 185, h = 25, limit = 8 }):Type(1):Focus(fnAction, function()
 		if not Station.GetFocusWindow() then return end
 		local szFocusWindow = Station.GetFocusWindow():GetName()
 		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
@@ -669,7 +669,7 @@ function GKP.OnFrameCreate()
 		{"szNpcName", _L["Source of the Object"]},
 		{"nTime",     _L["Distribution Time"]},
 	}
-	for k ,v in ipairs(t) do
+	for k, v in ipairs(t) do
 		if v[2] then
 			local txt = page:Lookup("", "Text_Record_Break" ..k)
 			txt:RegisterEvent(786)
@@ -703,14 +703,14 @@ function GKP.OnFrameCreate()
 		{"nTime",    _L["The Change of Time"]},
 	}
 
-	for k ,v in ipairs(t) do
+	for k, v in ipairs(t) do
 		if v[2] then
-			local txt = page:Lookup("","Text_Account_Break"..k)
+			local txt = page:Lookup("", "Text_Account_Break" .. k)
 			txt:RegisterEvent(786)
 			txt:SetText(v[2])
 			txt.OnItemLButtonClick = function()
 				local sort = txt.sort or "asc"
-				pcall(_GKP.Draw_GKP_Account,v[1],sort)
+				pcall(_GKP.Draw_GKP_Account, v[1], sort)
 				if sort == "asc" then
 					txt.sort = "desc"
 				else
@@ -736,15 +736,15 @@ function GKP.OnFrameCreate()
 		{"bFightState", _L["Information on Combat Situation"]},
 		{false,         _L["Update time"]}
 	}
-	for k ,v in ipairs(t) do
+	for k, v in ipairs(t) do
 		if v[2] then
-			local txt = page:Lookup("", "Text_Buff_Break"..k)
+			local txt = page:Lookup("", "Text_Buff_Break" .. k)
 			txt:RegisterEvent(786)
 			txt:SetText(v[2])
 			if v[1] then
 				txt.OnItemLButtonClick = function()
 					local sort = txt.sort or "asc"
-					pcall(_GKP.Draw_GKP_Buff,v[1],sort)
+					pcall(_GKP.Draw_GKP_Buff, v[1], sort)
 					if sort == "asc" then
 						txt.sort = "desc"
 					else
@@ -855,21 +855,21 @@ end
 -- 获取补贴方案菜单
 ----------------------------------------------------------------------<
 _GKP.GetSubsidiesMenu = function()
-	local menu = { szOption = _L["Edit Allowance Protocols"] , rgb = {255,0,0} }
-	table.insert(menu,{
+	local menu = { szOption = _L["Edit Allowance Protocols"], rgb = { 255, 0, 0 } }
+	table.insert(menu, {
 		szOption = _L["Add New Protocols"],
-		rgb = {255,255,0},
+		rgb = { 255, 255, 0 },
 		fnAction = function()
-			GetUserInput(_L["New Protocol  Format: Protocol's Name, Money"],function(txt)
-				local t = JH.Split(txt,",")
-				table.insert(_GKP.Config.Subsidies,{t[1],tonumber(t[2]) or "",true})
+			GetUserInput(_L["New Protocol  Format: Protocol's Name, Money"], function(txt)
+				local t = JH.Split(txt, ",")
+				table.insert(_GKP.Config.Subsidies, { t[1], tonumber(t[2]) or "", true })
 				pcall(_GKP.SaveConfig)
 			end)
 		end
 	})
-	table.insert(menu,{bDevide = true})
-	for k,v in ipairs(_GKP.Config.Subsidies) do
-		table.insert(menu,{
+	table.insert(menu, { bDevide = true})
+	for k, v in ipairs(_GKP.Config.Subsidies) do
+		table.insert(menu, {
 			szOption = v[1],
 			bCheck = true,
 			bChecked = v[3],
@@ -885,23 +885,23 @@ end
 -- 获取拍卖方案菜单
 ----------------------------------------------------------------------<
 _GKP.GetSchemeMenu = function()
-	local menu = { szOption = _L["Edit Auction Protocols"] , rgb = {255,0,0} }
+	local menu = { szOption = _L["Edit Auction Protocols"], rgb = { 255, 0, 0 } }
 	table.insert(menu,{
 		szOption = _L["Edit All Protocols"],
-		rgb = {255,255,0},
+		rgb = { 255, 255, 0 },
 		fnAction = function()
-			GetUserInput(_L["New Protocol Format: Money, Money, Money"],function(txt)
-				local t = JH.Split(txt,",")
+			GetUserInput(_L["New Protocol Format: Money, Money, Money"], function(txt)
+				local t = JH.Split(txt, ",")
 				_GKP.Config.Scheme = {}
-				for k,v in ipairs(t) do
-					table.insert(_GKP.Config.Scheme,{tonumber(v) or 0,true})
+				for k, v in ipairs(t) do
+					table.insert(_GKP.Config.Scheme, { tonumber(v) or 0, true })
 				end
 				pcall(_GKP.SaveConfig)
 			end)
 		end
 	})
-	table.insert(menu,{bDevide = true})
-	for k,v in ipairs(_GKP.Config.Scheme) do
+	table.insert(menu, { bDevide = true })
+	for k, v in ipairs(_GKP.Config.Scheme) do
 		table.insert(menu,{
 			szOption = v[1],
 			bCheck = true,
@@ -988,7 +988,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 				t.bFightState = 0
 			end
 		end
-		table.insert(tab,t)
+		table.insert(tab, t)
 	end
 
 	table.sort(tab,function(a,b)
@@ -1963,12 +1963,12 @@ _GKP.DrawDistributeList = function(doodad)
 	handle:Clear()
 	if GKP.bLootStyle then
 		if #_GKP.aDistributeList <= 6 then
-			frame:Lookup("","Image_Bg"):SetSize(6 * 72,110)
-			frame:Lookup("","Image_Title"):SetSize(6 * 72,30)
+			frame:Lookup("", "Image_Bg"):SetSize(6 * 72,110)
+			frame:Lookup("", "Image_Title"):SetSize(6 * 72,30)
 			frame:SetSize(6 * 72,110)
 		else
-			frame:Lookup("","Image_Bg"):SetSize(6 * 72,30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
-			frame:Lookup("","Image_Title"):SetSize(6 * 72, 30)
+			frame:Lookup("", "Image_Bg"):SetSize(6 * 72,30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
+			frame:Lookup("", "Image_Title"):SetSize(6 * 72, 30)
 			frame:SetSize(6 * 72, 8 + 30 + math.ceil(#_GKP.aDistributeList / 6) * 75)
 		end
 		-- local fx, fy = Station.GetClientSize()
@@ -2212,8 +2212,8 @@ _GKP.DrawDistributeList = function(doodad)
 						local w, h = this:GetSize()
 						local szXml = GetFormatText(_L("You already distrubute [%s] with [%s], you can press Shift and select the object to make a fast distrubution, you can also make distribution to he or her by clicking this menu. \n",szItemName,p.szName,p.szName),136,255,255,255)
 						OutputTip(szXml,400,{x,y,w,h})
-					end, p.szName .. " - " .. szItemName,true))
-					table.insert(tMenu,{bDevide = true})
+					end, p.szName .. " - " .. szItemName, true))
+					table.insert(tMenu, { bDevide = true })
 				end
 			end
 			-- Create list
@@ -2225,9 +2225,9 @@ _GKP.DrawDistributeList = function(doodad)
 	end
 	handle:FormatAllItemPos()
 	if bSpecial then -- 玄晶
-		frame:Lookup("","Image_Bg"):FromUITex("ui/Image/OperationActivity/RedEnvelope1.uitex", 9)
-		frame:Lookup("","Image_Title"):FromUITex("ui/Image/OperationActivity/RedEnvelope2.uitex", 2)
-		frame:Lookup("","Text_Title"):SetAlpha(255)
+		frame:Lookup("", "Image_Bg"):FromUITex("ui/Image/OperationActivity/RedEnvelope1.uitex", 9)
+		frame:Lookup("", "Image_Title"):FromUITex("ui/Image/OperationActivity/RedEnvelope2.uitex", 2)
+		frame:Lookup("", "Text_Title"):SetAlpha(255)
 		handle:SetRelPos(5, 30)
 		handle:GetParent():FormatAllItemPos()
 	end
@@ -2260,22 +2260,26 @@ _GKP.DrawDistributeList = function(doodad)
 				for k,v in ipairs(tEquipment) do
 					szXml = szXml .. GetFormatText("[".. GetItemNameByItem(v) .."]\n", "166"..GetItemFontColorByQuality(v.nQuality, true))
 				end
-				szXml = szXml .. GetFormatText(_L["All distrubute to"], 162,255,255,255)
-				szXml = szXml .. GetFormatText("[".. p.szName .."]", 162,r,g,b)
+				szXml = szXml .. GetFormatText(_L["All distrubute to"], 162, 255, 255, 255)
+				szXml = szXml .. GetFormatText("[".. p.szName .."]", 162, r, g, b)
 				local msg = {
 					szMessage = szXml,
 					szName = "Distribute_Item_Sure",
 					bRichText = true,
-					{szOption = g_tStrings.STR_HOTKEY_SURE,
-					fnAutoClose = function()
-						return false
-					end,
-					fnAction = function()
-						for k,v in ipairs(tEquipment) do
-							_GKP.DistributeItem(v,p,doodad,true)
+					{
+						szOption = g_tStrings.STR_HOTKEY_SURE,
+						fnAutoClose = function()
+							return false
+						end,
+						fnAction = function()
+							for k, v in ipairs(tEquipment) do
+								_GKP.DistributeItem(v, p, doodad, true)
+							end
 						end
-					end},
-					{szOption = g_tStrings.STR_HOTKEY_CANCEL},
+					},
+					{
+						szOption = g_tStrings.STR_HOTKEY_CANCEL
+					},
 				}
 				MessageBox(msg)
 			else
