@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 00:17:30
+-- @Last Modified time: 2015-04-23 17:40:15
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -360,44 +360,46 @@ local _RequestList = {
 	tDetails = {},
 	szIniFile = JH.GetAddonInfo().szRootPath .. "AutoSetTeam/ui/RequestList.ini",
 }
+
 function RequestList.OnFrameCreate()
 	_RequestList.frame = this
 	_RequestList.bg = this:Lookup("", "Image_Bg")
 	local ui = GUI(this)
-	ui:Point():Title(_L["RequestList"]):RegisterClose(_RequestList.ClosePanel, false, true)
+	ui:Point():Title(g_tStrings.STR_ARENA_INVITE):RegisterClose(_RequestList.ClosePanel, false, true)
 end
+
 function _RequestList.OpenPanel()
 	local frame = _RequestList.frame or Wnd.OpenWindow(_RequestList.szIniFile,"RequestList")
 	frame:Hide()
 	return frame
 end
+
 function _RequestList.ClosePanel(bCompulsory)
-	if bCompulsory then
+	local fnAction = function()
 		Wnd.CloseWindow(_RequestList.frame)
 		_RequestList.tRequestList = {}
 		_RequestList.tRequestCache = {}
 		_RequestList.frame = nil
+	end
+	if bCompulsory then
+		fnAction()
 	else
-		JH.Confirm(_L["Clear list and close?"], function()
-			Wnd.CloseWindow(_RequestList.frame)
-			_RequestList.tRequestList = {}
-			_RequestList.tRequestCache = {}
-			_RequestList.frame = nil
-		end)
+		JH.Confirm(_L["Clear list and close?"], fnAction)
 	end
 end
+
 function _RequestList.OnApplyRequest()
 	if not JH_AutoSetTeam.bRequestList then return end
-	local MsgBox,szName = Station.Lookup("Topmost/MB_ATMP_" .. arg0), "ATMP_" .. arg0
+	local MsgBox, szName = Station.Lookup("Topmost/MB_ATMP_" .. arg0), "ATMP_" .. arg0
 	if not MsgBox then
-		MsgBox,szName = Station.Lookup("Topmost/MB_IMTP_" .. arg0), "IMTP_" .. arg0
+		MsgBox, szName = Station.Lookup("Topmost/MB_IMTP_" .. arg0), "IMTP_" .. arg0
 	end
 	if MsgBox then
 		local btn = MsgBox:Lookup("Wnd_All/Btn_Option1")
 		local btn2 = MsgBox:Lookup("Wnd_All/Btn_Option2")
 		if btn and btn:IsEnabled() then
 			if not _RequestList.tRequestCache[arg0] then
-				table.insert(_RequestList.tRequestList,{
+				table.insert(_RequestList.tRequestList, {
 					szName = arg0,
 					nCamp = arg1,
 					dwForce = arg2,
