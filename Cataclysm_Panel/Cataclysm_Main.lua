@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-25 07:36:22
+-- @Last Modified time: 2015-04-25 22:30:46
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -530,6 +530,10 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 end
 
 function RaidGrid_CTM_Edition.OnLButtonDown()
+	Grid_CTM:BringToTop()
+end
+
+function RaidGrid_CTM_Edition.OnRButtonDown()
 	Grid_CTM:BringToTop()
 end
 
