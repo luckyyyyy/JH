@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 19:12:45
+-- @Last Modified time: 2015-04-24 23:43:23
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -575,12 +575,12 @@ end
 -- (table) JH.GetAddonInfo() -- 获取插件基础信息
 function JH.GetAddonInfo()
 	return {
-		szName = _JH.szTitle,
-		szVersion = JH.GetVersion(),
-		szRootPath = ADDON_PATH,
-		szAuthor = _L['JH @ Double Dream Town'],
+		szName      = _JH.szTitle,
+		szVersion   = JH.GetVersion(),
+		szRootPath  = ADDON_PATH,
+		szAuthor    = _L['JH @ Double Dream Town'],
 		szShadowIni = SHADOW_PATH,
-		szDataPath = DATA_PATH,
+		szDataPath  = DATA_PATH,
 		szBuildDate = _JH.szBuildDate,
 	}
 end
