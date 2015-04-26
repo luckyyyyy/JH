@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-21 23:54:07
+-- @Last Modified time: 2015-04-26 16:53:36
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -708,6 +708,19 @@ function CTM:DrawParty(nIndex)
 					table.insert(menu, { bDevide = true })
 				end
 				InsertTeammateMenu(menu, dwID)
+				local t = {}
+				InsertTargetMenu(t, dwID)
+				for _, v in ipairs(t) do
+					if v.szOption == g_tStrings.LOOKUP_INFO then
+						for _, vv in ipairs(v) do
+							if vv.szOption == g_tStrings.LOOKUP_NEW_TANLENT then
+								table.insert(menu, vv)
+								break
+							end
+						end
+						break
+					end
+				end
 				table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function()
 					ViewInviteToPlayer(dwID)
 				end })
