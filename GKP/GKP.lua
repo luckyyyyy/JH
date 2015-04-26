@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-26 13:15:10
+-- @Last Modified time: 2015-04-26 14:05:59
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1622,6 +1622,10 @@ _GKP.OnMsg = function()
 					ui:Append("Text", { w = 121, h = 30, x = 30, y = 120 + 30 * n + 1, txt = data[3], color = { 255, 255, 0 } })
 					if data[4] then
 						ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * n + 1, txt = string.format("%d/%d = %d", tonumber(data[4]), team.GetTeamSize(), math.floor(tonumber(data[4]) / team.GetTeamSize())), color = { GKP.GetMoneyCol(data[4]) }, align = 2 })
+						if data[5] and tonumber(data[5]) then
+							local nTime = tonumber(data[5])
+							ui:Append("Text", { w = 725, h = 30, x = 0, y = 120 + 30 * n + 1, txt = _L("Spend time approx %d:%d", nTime / 3600, nTime % 3600 / 60), align = 1 })
+						end
 						_GKP.info:Fetch("ScreenShot"):Enable(true)
 						if n >= 4 then
 							ui:Append("Image", { x = 640, y = n * 30 + 10, w = 100, h = 107.5 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/zhcn_img.uitex", 0)
@@ -1816,7 +1820,8 @@ _GKP.GKP_SpendingList = function()
 		return JH.Alert(_L["You are not the distrubutor."])
 	end
 	_GKP.SetButton(false)
-	for k,v in ipairs(GKP("GKP_Record")) do
+	local tTime = {}
+	for k, v in ipairs(GKP("GKP_Record")) do
 		if not v.bDelete then
 			if not tMember[v.szPlayer] then
 				tMember[v.szPlayer] = 0
@@ -1824,8 +1829,14 @@ _GKP.GKP_SpendingList = function()
 			if tonumber(v.nMoney) > 0 then
 				tMember[v.szPlayer] = tMember[v.szPlayer] + v.nMoney
 			end
+			table.insert(tTime, { nTime = v.nTime })
 		end
 	end
+	table.sort(tTime, function(a, b)
+		return a.nTime < b.nTime
+	end)
+	local nTime = tTime[#tTime].nTime - tTime[1].nTime -- 所花费的时间
+
 	JH.Talk(_L["--- Consumption ---"])
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "--- Consumption ---")
 	local sort = {}
@@ -1834,14 +1845,14 @@ _GKP.GKP_SpendingList = function()
 	end
 
 	table.sort(sort,function(a,b) return a.nGold < b.nGold end)
-	for k,v in ipairs(sort) do
+	for k, v in ipairs(sort) do
 		if v.nGold > 0 then
 			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]) })
 		end
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold)
 	end
-	JH.Talk(_L("Toal Auction: %d Gold.",_GKP.GetRecordSum()))
-	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Toal Auction: %d Gold.", _GKP.GetRecordSum()), _GKP.GetRecordSum())
+	JH.Talk(_L("Toal Auction: %d Gold.", _GKP.GetRecordSum()))
+	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "End", _L("Toal Auction: %d Gold.", _GKP.GetRecordSum()), _GKP.GetRecordSum(), nTime)
 end
 ---------------------------------------------------------------------->
 -- 结算工资按钮

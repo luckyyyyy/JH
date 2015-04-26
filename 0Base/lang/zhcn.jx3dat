@@ -428,6 +428,7 @@ data = {
 	["Boardcast of Serious Injure:"] = "重伤提示",
 	["By"] = "被",
 	["Lead to"] = "造成了",
+	["Spend time approx %d:%d"] = "所花时间 ≈ %d小时%d分钟",
 	-- Circle.lua --
 	["Global Map"] = "全局地图",
 	["All Map"] = "副本外全地图",
