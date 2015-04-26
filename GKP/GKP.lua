@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 18:50:13
+-- @Last Modified time: 2015-04-26 13:15:10
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -177,7 +177,6 @@ function _GKP.OpenLootPanel()
 					for k,v in ipairs(_GKP.aDistributeList) do
 						table.insert(t, GKP.GetFormatLink(v))
 					end
-					-- table.insert(t, GKP.GetFormatLink(_L["Expression"]))
 					JH.Talk(t)
 				end
 				return
@@ -512,8 +511,8 @@ function GKP.OnFrameCreate()
 	local PageSet = ui:Fetch("PageSet_Menu")
 	local record = GUI(frm)
 	ui:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(_GKP.ClosePanel)
-	:Append("WndComboBox",{x = 805,y = 52,txt = _L["Setting"]}):Click(_GKP.GetSettingMenu)
-	PageSet:Append("WndButton3",{x = 15,y = 610,txt = _L["Add Manually"]}):Click(function()
+	:Append("WndComboBox", { x = 805, y = 52, txt = _L["Setting"] }):Click(_GKP.GetSettingMenu)
+	PageSet:Append("WndButton3", { x = 15, y = 610, txt = _L["Add Manually"] }):Click(function()
 		if IsCtrlKeyDown() and JH_About.CheckNameEx() then -- ºÍÐ³×ÔÓÃ
 			return _GKP.GKP_Bidding()
 		end
@@ -525,12 +524,12 @@ function GKP.OnFrameCreate()
 		end
 		pcall(_GKP.Record)
 	end)
-	PageSet:Append("WndButton3", {x = 840,y = 570,txt = g_tStrings.GOLD_TEAM_SYLARY_LIST}):Click(_GKP.GKP_Calculation)
-	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840,y = 610,txt = g_tStrings.GOLD_TEAM_BID_LIST}):Click(_GKP.GKP_SpendingList)
-	PageSet:Append("WndButton3", "Debt", {x = 690,y = 610,txt = _L["Debt Issued"]}):Click(_GKP.GKP_OweList)
-	PageSet:Append("WndButton3",{x = 540,y = 610,txt = _L["Wipe Record"]}):Click(_GKP.GKP_Clear)
-	PageSet:Append("WndButton3",{x = 390,y = 610,txt = _L["Loading Record"]}):Click(_GKP.GKP_Recovery)
-	PageSet:Append("WndButton3",{x = 240,y = 610,txt = _L["Manual SYNC"]}):Click(_GKP.GKP_Sync)
+	PageSet:Append("WndButton3", { x = 840, y = 570, txt = g_tStrings.GOLD_TEAM_SYLARY_LIST }):Click(_GKP.GKP_Calculation)
+	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840, y = 610, txt = g_tStrings.GOLD_TEAM_BID_LIST }):Click(_GKP.GKP_SpendingList)
+	PageSet:Append("WndButton3", "Debt", { x = 690, y = 610, txt = _L["Debt Issued"] }):Click(_GKP.GKP_OweList)
+	PageSet:Append("WndButton3", { x = 540, y = 610, txt = _L["Wipe Record"] }):Click(_GKP.GKP_Clear)
+	PageSet:Append("WndButton3", { x = 390, y = 610, txt = _L["Loading Record"] }):Click(_GKP.GKP_Recovery)
+	PageSet:Append("WndButton3", { x = 240, y = 610, txt = _L["Manual SYNC"] }):Click(_GKP.GKP_Sync)
 
 	PageSet:Fetch("WndCheck_GKP_Record"):Fetch("Text_GKP_Record"):Text(g_tStrings.GOLD_BID_RECORD_STATIC_TITLE)
 	PageSet:Fetch("WndCheck_GKP_Account"):Fetch("Text_GKP_Account"):Text(g_tStrings.GOLD_BID_RPAY_STATIC_TITLE)
@@ -1340,21 +1339,25 @@ _GKP.GKP_Bidding = function()
 	if nGold <= 0 then
 		return JH.Alert(_L["Auction Money <=0."])
 	end
+	local t, fnAction = {}, nil
+	InsertDistributeMenu(t, false)
+	for k, v in ipairs(t[1]) do
+		if v.szOption == g_tStrings.STR_LOOTMODE_GOLD_BID_RAID then
+			fnAction = v.fnAction
+			break
+		end
+	end
 	team.SetTeamLootMode(PARTY_LOOT_MODE.BIDDING)
-	local GoldTeam = Wnd.OpenWindow("GoldTeam")
 	local LeaderAddMoney = Wnd.OpenWindow("LeaderAddMoney")
 	local fx, fy = Station.GetClientSize()
-	local w,h = GoldTeam:GetSize()
-	local w2,h2 = LeaderAddMoney:GetSize()
-	GoldTeam:Hide()
-	GoldTeam:SetAbsPos((fx-w)/2,(fy-h)/2)
-	LeaderAddMoney:SetAbsPos((fx-w2)/2,(fy-h2)/2)
+	local w2, h2 = LeaderAddMoney:GetSize()
+	LeaderAddMoney:SetAbsPos((fx - w2) / 2, (fy - h2) / 2)
 	LeaderAddMoney:Lookup("Edit_Price"):SetText(nGold)
 	LeaderAddMoney:Lookup("Edit_Reason"):SetText("Auto Append Money")
 	LeaderAddMoney:Lookup("Btn_Ok").OnLButtonUp = function()
-		GoldTeam:Show()
+		fnAction()
 		Station.SetActiveFrame("GoldTeam")
-		GoldTeam:Lookup("PageSet_Total"):ActivePage(1)
+		Station.Lookup("Normal/GoldTeam"):Lookup("PageSet_Total"):ActivePage(1)
 	end
 end
 ---------------------------------------------------------------------->
