@@ -1,25 +1,22 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 09:20:49
+-- @Last Modified time: 2015-04-27 12:07:34
 
+-- ST class
+local ST = class()
+-- ini path
 local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST_UI.ini"
--- 倒计时类型
-local ST_TYPE = {
-	OTHER       = 0,
-	BUFF_ENTER  = 1,
-	BUFF_LEAVE  = 2,
-	NPC_ENTER   = 3,
-	NPC_LEAVE   = 4,
-	NPC_TALK    = 5,
-	NPC_LIFE    = 6,
-	SKILL_BEGIN = 7,
-	SKILL_END   = 8,
-}
+-- cache
+local type, tonumber, ipairs, pairs = type, tonumber, ipairs, pairs
+local tinsert = table.insert
+local JH_Split, JH_Trim, JH_GetBuffTimeString = JH.Split, JH.Trim, JH.GetBuffTimeString
+local abs, mod   = math.abs, math.mod
+local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 
 local ST_CACHE = {}
 do
-	for k, v in pairs(ST_TYPE) do
+	for k, v in pairs(JH_ST_TYPE) do
 		ST_CACHE[v] = setmetatable({}, { __mode = "v" })
 	end
 end
@@ -27,11 +24,11 @@ end
 -- 解析分段倒计时
 local function GetCountdown(tTime)
 	local tab = {}
-	local t = JH.Split(tTime, ";")
+	local t = JH_Split(tTime, ";")
 	for k, v in ipairs(t) do
-		local _ = JH.Split(v, ",")
-		if _[1] and _[2] and tonumber(JH.Trim(_[1])) and _[2] ~= "" then
-			table.insert(tab, { nTime = tonumber(_[1]), szName = _[2] })
+		local _ = JH_Split(v, ",")
+		if _[1] and _[2] and tonumber(JH_Trim(_[1])) and _[2] ~= "" then
+			tinsert(tab, { nTime = tonumber(_[1]), szName = _[2] })
 		end
 	end
 	if IsEmpty(tab) then
@@ -49,27 +46,35 @@ end
 -- 		nTime  -- 时间,名称; 或 时间
 --      nRefresh -- 多少时间内禁止重复刷新
 --      nIcon -- 倒计时图标ID
+--      bTalk -- 是否发布倒计时
 -- }
 --
 local function CreateCountdown(nType, szKey, tArgs)
 	local t = {}
+	local nTime = GetTime()
 	if type(tArgs.nTime) == "number" then
 		t = tArgs
 	else
 		local tCountdown = GetCountdown(tArgs.nTime)
 		if tCountdown then
-			tArgs.nTime = tCountdown
+			tArgs.nTime    = tCountdown
+			tArgs.nRefresh = tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
 			t = tCountdown[1]
 		else
 			return JH.Sysmsg2("tCountdown ERROR nType: " .. nType .. " szKey:" .. szKey .. " tCountdown:" .. tArgs.nTime)
 		end
 	end
-	ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon)
+	local ui = ST_CACHE[nType][szKey]
+	if ui and ui:IsValid() and ui.nRefresh then
+		if (nTime - ui.nCreate) / 1000 > ui.nRefresh then
+			ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon or 13):Switch(false)
+		end
+	else
+		ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon or 13)
+	end
 end
-
 ST_UI = {
 	bEnable = true,
-	nImportant = 5,
 	tAnchor = {},
 }
 
@@ -80,25 +85,48 @@ function ST_UI.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
-	this:RegisterEvent("JH_CREATE_ST")
+	this:RegisterEvent("JH_ST_CREATE")
+	this:RegisterEvent("JH_ST_DEL")
+	this:RegisterEvent("JH_ST_CLEAR")
 	_ST_UI.UpdateAnchor(this)
 	_ST_UI.handle = this:Lookup("", "Handle_List")
-	_ST_UI.handle:Clear()
 end
 
 function ST_UI.OnEvent(szEvent)
-	if szEvent == "JH_CREATE_ST" then
+	if szEvent == "JH_ST_CREATE" then
 		CreateCountdown(arg0, arg1, arg2)
-	elseif szEvent=="UI_SCALED" then
+	elseif szEvent == "JH_ST_DEL" then
+		local obj = ST.new(arg0, arg1)
+		if obj then
+			if arg2 then -- 强制无条件删除
+				obj:RemoveItem()
+			else -- 只是把重复刷新时间去掉
+				obj.ui.nRefresh = nil
+			end
+		end
+	elseif szEvent == "JH_ST_CLEAR" then
+		_ST_UI.handle:Clear()
+	elseif szEvent =="UI_SCALED" then
 		_ST_UI.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
 		UpdateCustomModeWindow(this, "ST")
+	elseif szEvent == "LOADING_END" then
+		_ST_UI.handle:Clear()
 	end
 end
 
 function ST_UI.OnFrameDragEnd()
 	this:CorrectPos()
 	ST_UI.tAnchor = GetFrameAnchor(this, "TOPLEFT")
+end
+
+local function SetSTAction(obj, nLeft, nPer)
+	if nLeft < 5 then
+		local alpha = 255 * (abs(mod(nLeft * 15, 32) - 7) + 4) / 12
+		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):Switch(true):SetAlpha(alpha)
+	else
+		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer)
+	end
 end
 
 function ST_UI.OnFrameBreathe()
@@ -112,7 +140,7 @@ function ST_UI.OnFrameBreathe()
 				if type(obj.ui.countdown) == "number" then
 					local nLeft  = obj.ui.countdown - ((nNow - obj.ui.nLeft) / 1000)
 					if nLeft >= 0 then
-						obj:SetInfo({ nTime = nLeft }):SetPercentage(nLeft / obj.ui.countdown)
+						SetSTAction(obj, nLeft, nLeft / obj.ui.countdown)
 					else
 						obj:RemoveItem()
 					end
@@ -120,7 +148,7 @@ function ST_UI.OnFrameBreathe()
 					local time = obj.ui.countdown[1]
 					local nLeft = time.nTime - (nNow - obj.ui.nLeft) / 1000
 					if nLeft >= 0 then
-						obj:SetInfo({ nTime = nLeft }):SetPercentage(nLeft / time.nTime)
+						SetSTAction(obj, nLeft, nLeft / time.nTime)
 					else
 						if #obj.ui.countdown == 1 then
 							obj:RemoveItem()
@@ -130,7 +158,7 @@ function ST_UI.OnFrameBreathe()
 							table.remove(obj.ui.countdown, 1)
 							local time = obj.ui.countdown[1]
 							time.nTime = time.nTime - nATime
-							obj:SetInfo(time)
+							obj:SetInfo(time):Switch(false)
 						end
 					end
 				end
@@ -151,30 +179,31 @@ end
 function _ST_UI.Init()
 	local frame = Wnd.OpenWindow(ST_INIFILE, "ST_UI")
 end
-
-JH.RegisterEvent("LOGIN_GAME", _ST_UI.Init)
-JH.RegisterEvent("LOADING_END", function()
-	FireEvent("JH_CREATE_ST", 1, "test", { nTime = "5,aaa;15,bbb;", szName = "test", nIcon = 37 })
-	FireEvent("JH_CREATE_ST", 1, "test1", { nTime = "5,aaa;15,bbb;", szName = "test", nIcon = 37 })
-	FireEvent("JH_CREATE_ST", 1, "test2", { nTime = "5,aaa;15,bbb;", szName = "test", nIcon = 37 })
-	FireEvent("JH_CREATE_ST", 1, "test3", { nTime = "5,aaa;15,bbb;", szName = "test", nIcon = 37 })
-end)
-
-ST = class()
+-- class
 function ST:ctor(nType, szKey, tArgs)
 	local ui = ST_CACHE[nType][szKey]
-	if ui and ui:IsValid() then
+	local nTime = GetTime()
+	if ui and ui:IsValid() and not tArgs then
 		self.ui = ui
 		return self
 	elseif tArgs then
-		self.ui = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item", nType .. szKey)
-		self.ui.nCreate = GetTime()
-		self.ui.nLeft = GetTime()
-		self.ui.countdown = tArgs.nTime
-		self.ui.szKey = szKey
-		self.ui.nRefresh = tArgs.nRefresh
-		_ST_UI.handle:FormatAllItemPos()
-		ST_CACHE[nType][szKey] = self.ui
+		if ui and ui:IsValid() then
+			self.ui           = ui
+			self.ui.nCreate   = nTime
+			self.ui.nLeft     = nTime
+			self.ui.countdown = tArgs.nTime
+			self.ui.nRefresh  = tArgs.nRefresh
+		else -- 没有ui的情况下 创建
+			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item", nType .. szKey)
+			self.ui.nCreate        = nTime
+			self.ui.nLeft          = nTime
+			self.ui.countdown      = tArgs.nTime
+			self.ui.szKey          = szKey
+			self.ui.nRefresh       = tArgs.nRefresh
+			ST_CACHE[nType][szKey] = self.ui
+			self.ui:Show()
+			_ST_UI.handle:FormatAllItemPos()
+		end
 		return self
 	else
 		return nil
@@ -187,7 +216,7 @@ function ST:SetInfo(tArgs, nIcon)
 		self.ui:Lookup("SkillName"):SetText(tArgs.szName)
 	end
 	if tArgs.nTime then
-		self.ui:Lookup("TimeLeft"):SetText(JH.GetBuffTimeString(tArgs.nTime))
+		self.ui:Lookup("TimeLeft"):SetText(JH_GetBuffTimeString(tArgs.nTime))
 	end
 	if nIcon then
 		local box = self.ui:Lookup("Box")
@@ -196,12 +225,40 @@ function ST:SetInfo(tArgs, nIcon)
 	end
 	return self
 end
-
+-- 设置进度条
 function ST:SetPercentage(fPercentage)
 	self.ui:Lookup("Image"):SetPercentage(fPercentage)
+	return self
 end
 
+-- 改变样式 如果true则更改为第二样式 用于时间小于5秒的时候
+function ST:Switch(bSwitch)
+	local SkillName = self.ui:Lookup("SkillName")
+	local TimeLeft  = self.ui:Lookup("TimeLeft")
+	local img       = self.ui:Lookup("Image")
+	if bSwitch then
+		SkillName:SetFontColor(255, 255, 255)
+		TimeLeft:SetFontColor(255, 255, 255)
+		img:SetFrame(26)
+	else
+		SkillName:SetFontColor(255, 255, 0)
+		TimeLeft:SetFontColor(255, 255, 0)
+		img:SetFrame(208)
+		img:SetAlpha(160)
+	end
+	return self
+end
+
+function ST:SetAlpha(nAlpha)
+	self.ui:Lookup("Image"):SetAlpha(nAlpha)
+	return self
+end
+
+-- 删除倒计时
 function ST:RemoveItem()
 	_ST_UI.handle:RemoveItem(self.ui)
 	_ST_UI.handle:FormatAllItemPos()
+	return self
 end
+
+JH.RegisterEvent("LOGIN_GAME", _ST_UI.Init)

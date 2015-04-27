@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-20 15:52:16
+-- @Last Modified time: 2015-04-27 12:03:37
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -171,7 +171,7 @@ function _RE.AutoEnable(bEnable)
 	else
 		if RaidGrid_EventScrutiny.bEnable then
 			RaidGrid_EventScrutiny.bEnable = false
-			RaidGrid_SkillTimer.RemoveAllTimer()
+			FireEvent("JH_ST_CLEAR")
 			RaidGrid_EventScrutiny.ClosePanel()
 		end
 	end
@@ -646,9 +646,6 @@ function RaidGrid_EventCache.OnEvent(szEvent)
 			local dwTemplateID = target.dwTemplateID
 			RaidGrid_EventCache.tSyncCharFightState[dwTemplateID] = RaidGrid_EventCache.tSyncCharFightState[dwTemplateID] or {}
 			RaidGrid_EventCache.tSyncCharFightState[dwTemplateID][arg0] = target.bFightState or false
-			if RaidGrid_EventCache.tSyncCharFightState[dwTemplateID][arg0] ~= true and RaidGrid_EventCache.tSyncCharFightState[dwTemplateID][arg0] ~= false then
-				RaidGrid_EventCache.tSyncCharFightState[dwTemplateID][arg0] = false
-			end
 		end
 	elseif szEvent == "NPC_LEAVE_SCENE" then
 		RaidGrid_EventCache.tSyncEnemyChar[arg0] = nil
@@ -1719,7 +1716,12 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				end
 				if ((tTab[i].bChatAlertCDEnd2 or 0) <= tTab[i].fEventTimeStart) then
 					if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
-						RaidGrid_SkillTimer.StartNewSkillTimerOrg(tTab[i].szSkillName2 or tTab[i].szName,254,1,tTab[i].nSkillTimer2*16,RaidGrid_EventScrutiny.bSkillTimerSay and tTab[i].bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
+						FireEvent("JH_ST_CREATE", JH_ST_TYPE.BUFF_ENTER, tTab[i].dwID .. "." .. tTab[i].nLevel, {
+							nTime  = tTab[i].nSkillTimer2,
+							szName = tTab[i].szSkillName2 or tTab[i].szName,
+							nIcon  = tTab[i].nIconID,
+							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+						})
 					end
 					tTab[i].bChatAlertCDEnd2 = tTab[i].fEventTimeStart + tonumber(tTab[i].nMinEventCD or 10)
 				end
@@ -1855,10 +1857,27 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 
 				if ((tTab[i].bChatAlertCDEnd2 or 0) <= fLogicTime) then
 					if RaidGrid_EventScrutiny.bAutoNewSkillTimer and tTab[i].bAddToSkillTimer then
-						RaidGrid_SkillTimer.StartNewSkillTimerOrg(szNpcName,237,1,tTab[i].nEventAlertTime*16,RaidGrid_EventScrutiny.bSkillTimerSay and tTab[i].bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
+						FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, tTab[i].dwID .. "C", { -- 这个好像是中央倒计时
+							nTime  = tTab[i].nEventAlertTime,
+							szName = tTab[i].szName,
+							nIcon  = tTab[i].nIconID or 2026,
+							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+						})
 					end
 					if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
-						RaidGrid_SkillTimer.StartNewSkillTimerOrg(tTab[i].szSkillName2 or tTab[i].szName,254,1,tTab[i].nSkillTimer2*16,RaidGrid_EventScrutiny.bSkillTimerSay and tTab[i].bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
+						FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, tTab[i].dwID .. "C2", { -- 第二中央倒计时的
+							nTime  = tTab[i].nSkillTimer2,
+							szName = tTab[i].szSkillName2 or tTab[i].szName,
+							nIcon  = tTab[i].nIconID or 2026,
+							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+						})
+					end
+					if tTab[i].szTimerSet then
+						FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, tTab[i].dwID .. "F", { -- 分段倒计时
+							nTime  = tTab[i].szTimerSet,
+							nIcon  = tTab[i].nIconID or 2026,
+							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+						})
 					end
 					tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
 				end
@@ -2043,11 +2062,21 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 
 						if ((tTab[i].bChatAlertCDEnd2 or 0) <= fLogicTime) then
 							if RaidGrid_EventScrutiny.bAutoNewSkillTimer and tTab[i].bAddToSkillTimer then
-								RaidGrid_SkillTimer.StartNewSkillTimerOrg(szSkillName,dwSkillID,dwSkillLevel,tTab[i].nEventAlertTime*16,RaidGrid_EventScrutiny.bSkillTimerSay and tTab[i].bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
+								FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, tTab[i].dwID .. tTab[i].nLevel .. "C", { -- 这个好像是中央倒计时
+									nTime  = tTab[i].nEventAlertTime,
+									szName = tTab[i].szName,
+									nIcon  = tTab[i].nIconID or 13,
+									bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+								})
 								tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
 							end
 							if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
-								RaidGrid_SkillTimer.StartNewSkillTimerOrg(tTab[i].szSkillName2 or tTab[i].szName,254,1,tTab[i].nSkillTimer2*16,RaidGrid_EventScrutiny.bSkillTimerSay and tTab[i].bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
+								FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, tTab[i].dwID .. "_" .. tTab[i].nLevel .. "C2", { -- 这个好像是中央倒计时
+									nTime  = tTab[i].nSkillTimer2,
+									szName = tTab[i].szSkillName2 or tTab[i].szName,
+									nIcon  = tTab[i].nIconID or 13,
+									bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+								})
 								tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
 							end
 						end
@@ -2153,8 +2182,8 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 	for dwTemplateID, tInfos in pairs(RaidGrid_EventCache.tSyncCharFightState) do
 		local npcinfo = GetNpcTemplate(dwTemplateID)
 		local nIntensity = GetNpcIntensity(npcinfo)
-		local bChangeFSFlag = nil
-		if nIntensity >= 4 then
+		local bChangeFSFlag
+		if nIntensity then
 			for dwID, bFightStateOld in pairs(tInfos) do
 				local npc = GetNpc(dwID)
 				local bFightState = false
@@ -2177,7 +2206,6 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 				end
 			end
 		end
-
 		if bChangeFSFlag == true then
 			local tTypes = {"Casting", "Npc"}
 			for k = 1, 2 do
@@ -2186,14 +2214,30 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 					for i = 1, #tTab do
 						local tRecord = tTab[i]
 						if tRecord.bLinkNpcFightState and tRecord.szLinkNpcName and tRecord.dwLinkNpcTID and tRecord.dwLinkNpcTID == dwTemplateID then
-							RaidGrid_Base.Message("【" .. tRecord.szLinkNpcName .. "】（" .. dwTemplateID .. "）进入战斗状态！")
+							if nIntensity > 4 then
+								RaidGrid_Base.Message(_L("[%s] (%d) Enter Fight.", tRecord.szLinkNpcName, dwTemplateID))
+							end
 							tRecord.fEventTimeStart = JH.GetLogicTime()
 							tRecord.fEventTimeEnd = tRecord.fEventTimeStart + (tRecord.nEventAlertTime or 1200)
 							if not tTab[i].bNotAddToScrutiny then
 								RaidGrid_EventScrutiny.AddRecordToList(tRecord, "Scrutiny")
 							end
+
+							if tTab[i].szTimerSet then
+								FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_FIGHT, tTab[i].dwID .. "F", {
+									nTime  = tTab[i].szTimerSet,
+									nIcon  = tTab[i].nIconID or 2026,
+									bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+								})
+							end
+
 							if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
-								RaidGrid_SkillTimer.StartNewSkillTimerOrg(tTab[i].szSkillName2 or tTab[i].szName,254,1,tTab[i].nSkillTimer2*16,RaidGrid_EventScrutiny.bSkillTimerSay and tTab[i].bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
+								FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_FIGHT, tTab[i].dwID .. "C2", {
+									nTime  = tTab[i].nSkillTimer2,
+									szName = tTab[i].szSkillName2 or tTab[i].szName,
+									nIcon  = tTab[i].nIconID or 2026,
+									bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+								})
 							end
 						end
 					end
@@ -2205,7 +2249,10 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 				for i = 1, #tTab do
 					local tRecord = tTab[i]
 					if tRecord.bLinkNpcFightState and tRecord.szLinkNpcName and tRecord.dwLinkNpcTID and tRecord.dwLinkNpcTID == dwTemplateID then
-						RaidGrid_Base.Message("【" .. tRecord.szLinkNpcName .. "】（" .. dwTemplateID .. "）脱离战斗！")
+						if nIntensity > 4 then
+							RaidGrid_Base.Message(_L("[%s] (%d) Leave Fight.", tRecord.szLinkNpcName, dwTemplateID))
+						end
+						FireEvent("JH_ST_DEL", JH_ST_TYPE.NPC_FIGHT, tTab[i].dwID .. "F") -- 重置覆盖时间
 						tRecord.fEventTimeEnd = 0
 					end
 				end
@@ -2247,12 +2294,17 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 						end
 						local nCurrentLife,nMaxLife = target.nCurrentLife,target.nMaxLife
 						local nPercentLife = nCurrentLife / nMaxLife
-						for k , v in pairs(tTab[i].tNpcLife) do
+						for k, v in pairs(tTab[i].tNpcLife) do
 							if nPercentLife < v[1] and not _RE.tNpcLife[dwTemplateID][v[1]] then
 								RaidGrid_RedAlarm.FlashOrg(3,v[2], false, true, 255, 0, 0)
 								FireEvent("JH_LARGETEXT", v[2], { 255, 128, 0 }, true)
 								if v[3] then
-									RaidGrid_SkillTimer.StartNewSkillTimerOrg(v[2],12,1,v[3] * 16,false,RaidGrid_EventScrutiny.nSayChannel,false)
+									FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_LIFE, tTab[i].dwID, {
+										nTime  = v[3],
+										szName = v[2],
+										nIcon  = tTab[i].nIconID or 2026,
+										bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+									})
 								end
 								local fLogicTime = JH.GetLogicTime()
 								if (tTab[i].bChatAlertCDEnd or 0) <= fLogicTime then
@@ -2354,27 +2406,6 @@ function RaidGrid_EventScrutiny.RefreshEventHandle()
 							nFrame = 30
 						elseif fP >= 0.5 then
 							nFrame = 31
-						end
-						if handleRecord.tRecord.tTimerSet and ((handleRecord.tRecord.bChatAlertCDEnd3 or 0) <= fLogicTime) then
-							local tTimerSetTemp = handleRecord.tRecord.tTimerSet
-							for nTimerIndex = 1, #tTimerSetTemp do
-								local nTimePastTemp = fLogicTime - handleRecord.tRecord.fEventTimeStart
-								local nTimeLeftTemp = tTimerSetTemp[nTimerIndex].nTime - nTimePastTemp
-								if nTimeLeftTemp > 0 then
-									if (nTimerIndex == 1 and nTimePastTemp < 4) or (nTimerIndex ~= 1 and nTimePastTemp > tTimerSetTemp[nTimerIndex-1].nTime and nTimePastTemp < tTimerSetTemp[nTimerIndex-1].nTime + 4) then
-										if tTimerSetTemp[nTimerIndex].szAlert then
-											local col = nil
-											if handleRecord.tRecord.tRGAlertColor then
-												local r,g,b = unpack(handleRecord.tRecord.tRGAlertColor)
-												col = {r,g,b}
-											end
-											FireEvent("JH_LARGETEXT", tTimerSetTemp[nTimerIndex].szAlert, col, true)
-										end
-										RaidGrid_SkillTimer.StartNewSkillTimerOrg(tTimerSetTemp[nTimerIndex].szTimerName,254,1,nTimeLeftTemp*16,RaidGrid_EventScrutiny.bSkillTimerSay and handleRecord.tRecord.bChatAlertT,RaidGrid_EventScrutiny.nSayChannel,false)
-										handleRecord.tRecord.bChatAlertCDEnd3 = fLogicTime + 5
-									end
-								end
-							end
 						end
 					end
 				else							-- 时间到了延迟删除
@@ -2829,13 +2860,11 @@ function RaidGrid_SelfBuffAlert.OnFrameBreathe()
 			RaidGrid_SelfBuffAlert.handleMain:Lookup("Image_DragBG_" .. i):Show()
 		end
 		RaidGrid_SelfBuffAlert.frameSelf:SetSize(376*RaidGrid_SelfBuffAlert.nScaleXandY, 46*RaidGrid_SelfBuffAlert.nScaleXandY)
-		Station.Lookup("Normal/RaidGrid_SkillTimerAnchor"):Show()
 	else
 		for i = 1, 8 do
 			RaidGrid_SelfBuffAlert.handleMain:Lookup("Image_DragBG_" .. i):Hide()
 		end
 		RaidGrid_SelfBuffAlert.frameSelf:SetSize(0, 0)
-		Station.Lookup("Normal/RaidGrid_SkillTimerAnchor"):Hide()
 	end
 
 	local nX, nY = RaidGrid_SelfBuffAlert.frameSelf:GetRelPos()
@@ -3282,268 +3311,6 @@ Wnd.OpenWindow(_RE.szIniPath .. "RaidGrid_RedAlarm.ini", "RaidGrid_RedAlarm")
 ----RaidGrid_RedAlarm.lua----
 ----------------------------------------------------------------
 
-
-
-
-
-----------------------------------------------------------------
-----RaidGrid_SkillTimer.lua----
-----------------------------------------------------------------
-
-RaidGrid_SkillTimerAnchor = {
-	bDragable = false,
-	Anchor = {
-		s = "CENTER",
-		r = "CENTER",
-		x = 0,
-		y = -300,
-	},
-}
-
-RegisterCustomData("RaidGrid_SkillTimerAnchor.Anchor")
-RegisterCustomData("RaidGrid_SkillTimerAnchor.bDragable")
-
-function RaidGrid_SkillTimerAnchor.OnFrameCreate()
-	this:RegisterEvent("UI_SCALED")
-	this:RegisterEvent("RaidGridNewSkillTimer")
-	RaidGrid_SkillTimerAnchor.UpdateAnchor(this)
-end
-
-function RaidGrid_SkillTimerAnchor.OnEvent(event)
-	if event == "UI_SCALED" then
-		RaidGrid_SkillTimerAnchor.UpdateAnchor(this)
-		--RaidGrid_SkillTimerAnchor.UpdateDrag()
-	elseif event == "RaidGridNewSkillTimer" then
-		RaidGrid_SkillTimer.StartNewSkillTimerOrg(xarg0,xarg1,xarg2,xarg3,xarg4,xarg5,xarg6)
-	end
-end
-
-function RaidGrid_SkillTimerAnchor.UpdateDrag()
-	if RaidGrid_SkillTimerAnchor.bDragable then
-	 	Station.Lookup("Normal/RaidGrid_SkillTimerAnchor"):Show()
-	else
-		Station.Lookup("Normal/RaidGrid_SkillTimerAnchor"):Hide()
-	end
-end
-
-function RaidGrid_SkillTimerAnchor.OnFrameDragSetPosEnd()
-	this:CorrectPos()
-	RaidGrid_SkillTimerAnchor.Anchor = GetFrameAnchor(this)
-end
-
-function RaidGrid_SkillTimerAnchor.OnFrameDragEnd()
-	this:CorrectPos()
-	RaidGrid_SkillTimerAnchor.Anchor = GetFrameAnchor(this)
-end
-
-function RaidGrid_SkillTimerAnchor.UpdateAnchor(frame)
-	local anchor = RaidGrid_SkillTimerAnchor.Anchor
-	frame:SetPoint(anchor.s, 0, 0, anchor.r, anchor.x, anchor.y)
-	frame:CorrectPos()
-end
-
-Wnd.OpenWindow(_RE.szIniPath .. "RaidGrid_SkillTimerAnchor.ini", "RaidGrid_SkillTimerAnchor")
-Station.Lookup("Normal/RaidGrid_SkillTimerAnchor"):Hide()
-
-local SKILL_TIMER_INI = _RE.szIniPath .. "RaidGrid_SkillTimer.ini"
-local PROGRESS_WIDTH = 300
-
-RaidGrid_SkillTimer = {
-	BOUNDARY = 16 * 4,
-	nCount = 0,
-}
-
-function RaidGrid_SkillTimer.init(frame)
-	local image = frame:Lookup("",""):Lookup("Image")
-	image:SetAlpha(160)
-	image:SetFrame(208)
-	local text = frame:Lookup("",""):Lookup("SkillName")
-	text:SetFontColor(255,255,0)
-	text = frame:Lookup("",""):Lookup("TimeLeft")
-	text:SetFontColor(255,255,0)
-	RaidGrid_SkillTimer.FreshBox(frame)
-	RaidGrid_SkillTimer.FreshPos(frame)
-end
-
-function RaidGrid_SkillTimer.FlashFrame(frame, alpha)
-	local text = frame:Lookup("",""):Lookup("TimeLeft")
-	local image = frame:Lookup("",""):Lookup("Image")
-	image:SetFrame(26)
-	text:SetFontColor(255, 255, 255)
-	text = frame:Lookup("",""):Lookup("SkillName")
-	text:SetFontColor(255, 255, 255)
-	image:SetAlpha(alpha)
-end
-
-function RaidGrid_SkillTimer.OnFrameRender()
-	RaidGrid_SkillTimer.FreshPos(this)
-	local Player = GetClientPlayer()
-	if not Player then
-		return
-	end
-	local currentFrmCount = GetLogicFrameCount()
-	local nLeft = this.nEndFrameCount - currentFrmCount
-	local percentage = nLeft / (this.nEndFrameCount - this.nStartFrameCount)
-	local alpha = 255 * (math.abs(math.mod(nLeft + 8, 32) - 7) + 4) / 12
-	if percentage > 0 then
-		local progress = this:Lookup("",""):Lookup("Image")
-		local _, h = progress:GetSize()
-		progress:SetPercentage(percentage)
-		local text = this:Lookup("",""):Lookup("TimeLeft")
-		local nH, nM, nS = GetTimeToHourMinuteSecond(nLeft, true)
-		if nH > 0 then
-			text:SetText(""..nH.."h "..nM.."m "..nS.."s")
-		elseif nM > 0 then
-			text:SetText(""..nM.."m "..nS.."s")
-		else
-			text:SetText(""..nS.."s")
-			if nS < RaidGrid_EventScrutiny.nSkillTimerCountdown then
-				if this.nLS and nS < this.nLS then
-					if this.bSayTimer then
-						JH.Talk(this.nChannel,{{type="text",text="◆["..this.szSkillName.."]剩余 ".. this.nLS - 1 .."秒！ "}})
-					end
-				end
-				RaidGrid_SkillTimer.FlashFrame(this, alpha)
-			end
-			this.nLS = nS
-		end
-	else
-		RaidGrid_SkillTimer.RemoveTimer(this.nID)
-	end
-end
-
-function RaidGrid_SkillTimer.CopyFrame(pre, post)
-	pre.szSkillName = post.szSkillName
-	pre.nSkillID = post.nSkillID
-	pre.nSkillLV =post.nSkillLV
-	pre.bSayTimer = post.bSayTimer
-	pre.nChannel = post.nChannel
-	pre.bBuff = post.bBuff
-	pre.nStartFrameCount = post.nStartFrameCount
-	pre.nEndFrameCount = post.nEndFrameCount
-	RaidGrid_SkillTimer.init(pre)
-	pre:Show()
-	pre:SetAlpha(post:GetAlpha())
-	pre:Lookup("",""):Lookup("Image"):SetAlpha(160)
-end
-
-function RaidGrid_SkillTimer.RemoveTimer(index)
-	local pre, post
-	for i=index,RaidGrid_SkillTimer.nCount - 1, 1 do
-		pre = RaidGrid_SkillTimer.GetFrame(i)
-		post = RaidGrid_SkillTimer.GetFrame(i+1)
-		RaidGrid_SkillTimer.CopyFrame(pre, post)
-	end
-	post = RaidGrid_SkillTimer.GetFrame(RaidGrid_SkillTimer.nCount)
-	post:Hide()
-	post.szSkillName = ""
-	post.nSkillID = 0
-	post.nSkillLV = 0
-	post.bSayTimer = false
-	post.nChannel = nil
-	post.bBuff = false
-	RaidGrid_SkillTimer.nCount = RaidGrid_SkillTimer.nCount - 1
-end
-
-function RaidGrid_SkillTimer.RemoveAllTimer()
-	local hFrame
-	local nFrmCnt = RaidGrid_SkillTimer.nCount
-	for i=1, nFrmCnt, 1 do
-		hFrame = RaidGrid_SkillTimer.GetFrame(RaidGrid_SkillTimer.nCount)
-		hFrame:Hide()
-		hFrame.szSkillName = ""
-		hFrame.nSkillID = 0
-		hFrame.nSkillLV = 0
-		hFrame.bSayTimer = false
-		hFrame.nChannel = nil
-		hFrame.bBuff = false
-		RaidGrid_SkillTimer.nCount = RaidGrid_SkillTimer.nCount - 1
-	end
-end
-
-function RaidGrid_SkillTimer.FreshBox(frame)
-	local szSkillName = frame.szSkillName
-	local nSkillID = frame.nSkillID
-	local nSkillLV = frame.nSkillLV
-	local box = frame:Lookup("",""):Lookup("Box")
-	box:SetObject(UI_OBJECT_SKILL, nSkillID, nSkillLV)
-	if not frame.bBuff then
-		box:SetObjectIcon(Table_GetSkillIconID(nSkillID, nSkillLV))
-	else
-		box:SetObjectIcon(Table_GetBuffIconID(nSkillID, nSkillLV))
-	end
-	local text = frame:Lookup("",""):Lookup("SkillName")
-	text:SetText(szSkillName)
-end
-
-function RaidGrid_SkillTimer.FreshPos(frame)
-	local y = RaidGrid_SkillTimerAnchor.Anchor.y + (frame.nID) * 33
-	frame:SetPoint(RaidGrid_SkillTimerAnchor.Anchor.s, 0, 0, RaidGrid_SkillTimerAnchor.Anchor.r, RaidGrid_SkillTimerAnchor.Anchor.x, y)
-	frame:CorrectPos()
-end
-
-function RaidGrid_SkillTimer.GetFrame(index)
-	local hTimerFrame = Station.Lookup("Normal/RaidGrid_SkillTimer_" .. index)
-	return hTimerFrame
-end
-
-function RaidGrid_SkillTimer.StartNewSkillTimerOrg(szSkillName, nSkillID, nSkillLV, nFrameCount, bSayTimer, nChannel, bBuff)
-	local nStartFrmCount = GetLogicFrameCount()
-	local nEndFrmCount = nStartFrmCount + nFrameCount
-	RaidGrid_SkillTimer.nCount = RaidGrid_SkillTimer.nCount + 1
-	local hTimerFrame = Station.Lookup("Normal/RaidGrid_SkillTimer_" .. RaidGrid_SkillTimer.nCount)
-	if not hTimerFrame then
-		hTimerFrame = Wnd.OpenWindow(SKILL_TIMER_INI, "RaidGrid_SkillTimer_" .. RaidGrid_SkillTimer.nCount)
-		hTimerFrame.nID = RaidGrid_SkillTimer.nCount
-		hTimerFrame.OnFrameRender = RaidGrid_SkillTimer.OnFrameRender
-	else
-	end
-
-	local index = 1
-	for i=1, RaidGrid_SkillTimer.nCount - 1, 1 do
-		local frm = RaidGrid_SkillTimer.GetFrame(i)
-		if nEndFrmCount < frm.nEndFrameCount then
-			break
-		end
-		index = i + 1
-	end
-	for i=RaidGrid_SkillTimer.nCount, index + 1, -1 do
-		local pre = RaidGrid_SkillTimer.GetFrame(i)
-		local post = RaidGrid_SkillTimer.GetFrame(i-1)
-		RaidGrid_SkillTimer.CopyFrame(pre, post)
-	end
-
-	hTimerFrame = RaidGrid_SkillTimer.GetFrame(index)
-
-	hTimerFrame.szSkillName = szSkillName
-	hTimerFrame.nSkillID = nSkillID
-	hTimerFrame.nSkillLV = nSkillLV
-	hTimerFrame.nStartFrameCount = nStartFrmCount
-	hTimerFrame.nEndFrameCount = nEndFrmCount
-	hTimerFrame.bSayTimer = bSayTimer
-	hTimerFrame.nChannel = nChannel
-	hTimerFrame.bBuff = bBuff
-	RaidGrid_SkillTimer.init(hTimerFrame)
-	hTimerFrame:Show()
-
-	for i=1, RaidGrid_SkillTimer.nCount, 1 do
-		if i ~= index then
-			local hTimerFrame2 = RaidGrid_SkillTimer.GetFrame(i)
-			if hTimerFrame2.szSkillName == szSkillName then
-				RaidGrid_SkillTimer.RemoveTimer(i)
-				return
-			end
-		end
-	end
-
-end
-
-----------------------------------------------------------------
-----RaidGrid_SkillTimer.lua----
-----------------------------------------------------------------
-
-
-
 ----------------------------------------------------------------
 ----RaidGrid_ReadingBar.lua----
 ----------------------------------------------------------------
@@ -3856,10 +3623,20 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 				end
 
 				if tRecord.nTime1 and tRecord.nTime1>0 then
-					RaidGrid_SkillTimer.StartNewSkillTimerOrg(tRecord.szName or tRecord.szText,2000,1,tRecord.nTime1*16,RaidGrid_EventScrutiny.bSkillTimerSay and tRecord.bRAID,RaidGrid_EventScrutiny.nSayChannel,false)
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_TALK, i .. "T1", {
+						szName = tRecord.szName or tRecord.szText,
+						nTime  = tRecord.nTime1,
+						nIcon  = tRecord.nIconID or 340,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
 				end
 				if tRecord.nTime2 and tRecord.nTime2>0 then
-					RaidGrid_SkillTimer.StartNewSkillTimerOrg(tRecord.szName2 or tRecord.szText,2000,1,tRecord.nTime2*16,RaidGrid_EventScrutiny.bSkillTimerSay and tRecord.bRAID,RaidGrid_EventScrutiny.nSayChannel,false)
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_TALK, i .. "T2", {
+						szName = tRecord.szName2 or tRecord.szText,
+						nTime  = tRecord.nTime2,
+						nIcon  = tRecord.nIconID or 340,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
 				end
 				return
 			end
@@ -3954,10 +3731,20 @@ function RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 			end
 
 			if tRecord.nTime1 and tRecord.nTime1>0 then
-				RaidGrid_SkillTimer.StartNewSkillTimerOrg(tRecord.szName or tRecord.szText,2000,1,tRecord.nTime1*16,RaidGrid_EventScrutiny.bSkillTimerSay and tRecord.bRAID,RaidGrid_EventScrutiny.nSayChannel,false)
+				FireEvent("JH_ST_CREATE", JH_ST_TYPE.SYS_TALK, i .. "T1", {
+					szName = tRecord.szName or tRecord.szText,
+					nTime  = tRecord.nTime1,
+					nIcon  = tRecord.nIconID or 340,
+					bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+				})
 			end
 			if tRecord.nTime2 and tRecord.nTime2>0 then
-				RaidGrid_SkillTimer.StartNewSkillTimerOrg(tRecord.szName2 or tRecord.szText,2000,1,tRecord.nTime2*16,RaidGrid_EventScrutiny.bSkillTimerSay and tRecord.bRAID,RaidGrid_EventScrutiny.nSayChannel,false)
+				FireEvent("JH_ST_CREATE", JH_ST_TYPE.SYS_TALK, i .. "T2", {
+					szName = tRecord.szName2 or tRecord.szText,
+					nTime  = tRecord.nTime2,
+					nIcon  = tRecord.nIconID or 340,
+					bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+				})
 			end
 			return
 		end
@@ -5213,7 +5000,6 @@ end
 RegisterEvent("CUSTOM_DATA_LOADED", RaidGrid_EventScrutiny.OnCustomDataLoaded)
 
 RegisterEvent("LOADING_END", function()
-	RaidGrid_SkillTimer.RemoveAllTimer()
 	local _, _, szLang = GetVersion()
 	if szLang == "zhcn" and JH.IsInArena() and not JH.bDebugClient then
 		if RaidGrid_EventScrutiny.bEnable then
