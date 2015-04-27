@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 16:52:25
+-- @Last Modified time: 2015-04-27 17:14:12
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -38,16 +38,15 @@ local function GetCountdown(tTime)
 		return tab
 	end
 end
-
 -- 倒计时模块 事件名称 JH_ST_CREATE
--- nType 倒计时类型
--- szKey 同一类型内唯一标识符
+-- nType 倒计时类型 Compatible.lua 中的 JH_ST_TYPE
+-- szKey 同一类型内唯一标识符 冲突抛出 error 错误
 -- tArgs {
 --      szName   -- 倒计时名称 如果是分段就不需要传名称
 --      nTime    -- 时间  例 10,测试;25,测试2; 或 30
 --      nRefresh -- 多少时间内禁止重复刷新
 --      nIcon    -- 倒计时图标ID
---      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【XX】 剩余 X 秒。
+--      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
 local function CreateCountdown(nType, szKey, tArgs)
 	local t = {}
@@ -230,7 +229,7 @@ function ST:ctor(nType, szKey, tArgs)
 		end
 		return self
 	else
-		return nil
+		error("Conflict! ERROR key:" .. szKey)
 	end
 end
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
