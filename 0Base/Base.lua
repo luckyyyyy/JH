@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 17:24:35
+-- @Last Modified time: 2015-04-28 04:02:02
 ---------------------------------------------------------------------
 -- ¶àÓïÑÔ´¦Àí
 ---------------------------------------------------------------------
@@ -10,7 +10,8 @@
 -- so caching them is worth the effort
 local ipairs, pairs, next, pcall = ipairs, pairs, next, pcall
 local tinsert, tremove, tconcat = table.insert, table.remove, table.concat
-local ssub, slen, schar, srep, sbyte, sformat = string.sub, string.len, string.char, string.rep, string.byte, string.format
+local ssub, slen, schar, srep, sbyte, sformat, sgsub =
+      string.sub, string.len, string.char, string.rep, string.byte, string.format, string.gsub
 local type, tonumber, tostring = type, tonumber, tostring
 local GetTime, GetLogicFrameCount = GetTime, GetLogicFrameCount
 local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
@@ -724,11 +725,11 @@ function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 		tSay = szText
 	else
 		local tar = JH.GetTarget(me.GetTarget())
-		szText = string.gsub(szText, "%$zj", me.szName)
+		szText = sgsub(szText, "%$zj", me.szName)
 		if tar then
-			szText = string.gsub(szText, "%$mb", tar.szName)
+			szText = sgsub(szText, "%$mb", tar.szName)
 		end
-		if wslen(szText) > 150 and not bNotLimit then
+		if wstring.len(szText) > 150 and not bNotLimit then
 			szText = wssub(szText, 1, 150)
 		end
 		tSay = {{ type = "text", text = szText .. "\n"}}
@@ -1419,7 +1420,7 @@ function JH.Trim(szText)
 	if not szText or szText == "" then
 		return ""
 	end
-	return (string.gsub(szText, "^%s*(.-)%s*$", "%1"))
+	return (sgsub(szText, "^%s*(.-)%s*$", "%1"))
 end
 
 function JH.UrlEncode(szText)
