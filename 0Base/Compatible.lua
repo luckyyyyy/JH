@@ -1,7 +1,23 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-12 23:55:55
+-- @Last Modified time: 2015-04-27 11:56:02
+
+-- 倒计时类型
+JH_ST_TYPE = {
+	OTHER       = 0,
+	BUFF_ENTER  = 1,
+	BUFF_LEAVE  = 2,
+	NPC_ENTER   = 3,
+	NPC_LEAVE   = 4,
+	NPC_TALK    = 5,
+	NPC_LIFE    = 6,
+	NPC_FIGHT   = 7,
+	SKILL_BEGIN = 8,
+	SKILL_END   = 9,
+	SYS_TALK    = 10,
+}
+
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {
 		LEAVE_BLACK_LIST = 5,
