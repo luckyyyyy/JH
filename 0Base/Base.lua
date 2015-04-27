@@ -1,13 +1,25 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 15:41:18
+-- @Last Modified time: 2015-04-27 16:53:29
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
+
+-- these global functions are accessed all the time by the event handler
+-- so caching them is worth the effort
+local ipairs, pairs, next, pcall = ipairs, pairs, next, pcall
+local tinsert, tremove, tconcat = table.insert, table.remove, table.concat
+local ssub, slen, schar, srep, sbyte, sformat = string.sub, string.len, string.char, string.rep, string.byte, string.format
+local type, tonumber, tostring = type, tonumber, tostring
+local GetTime, GetLogicFrameCount = GetTime, GetLogicFrameCount
+local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
+local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam
+local setmetatable = setmetatable
+
 local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
-local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
+local SHADOW_PATH = "interface/JH/0BDATAase/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
 local _VERSION_   = 0x00a0000
 local function GetLang()
@@ -27,7 +39,7 @@ local function GetLang()
 	end
 	local mt = {
 		__index = function(t, k) return k end,
-		__call = function(t, k, ...) return string.format(t[k] or k, ...) end,
+		__call = function(t, k, ...) return sformat(t[k] or k, ...) end,
 	}
 	setmetatable(t1, mt)
 	return t1
@@ -130,48 +142,6 @@ local _JH = {
 
 local JH = JH
 JH.LoadLangPack = GetLang()
--- these global functions are accessed all the time by the event handler
--- so caching them is worth the effort
-local ipairs, pairs, next = ipairs, pairs, next
-local pcall = pcall
-local tinsert, tremove, tconcat = table.insert, table.remove, table.concat
-local type, tonumber, tostring = type, tonumber, tostring
-local srep = string.rep
-local GetTime, GetLogicFrameCount = GetTime, GetLogicFrameCount
-local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
-local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam
--- 树形打印一个表
-local function pr(t, name, indent)
-	local tableList = {}
-	function table_r(t, name, indent, full)
-		local id = not full and name or type(name)~="number" and tostring(name) or '['..name..']'
-		local tag = indent .. id .. ' = '
-		local out = {}  -- result
-		if type(t) == "table" then
-			if tableList[t] ~= nil then
-				tinsert(out, tag .. '{} -- ' .. tableList[t] .. ' (self reference)')
-			else
-				tableList[t]= full and (full .. '.' .. id) or id
-				if next(t) then -- Table not empty
-					tinsert(out, tag .. '{')
-					for key,value in pairs(t) do
-						tinsert(out,table_r(value,key,indent .. '|\t',tableList[t]))
-					end
-					tinsert(out,indent .. '}')
-				else tinsert(out,tag .. '{}') end
-			end
-		else
-			local val = type(t)~="number" and type(t)~="boolean" and '"'..tostring(t)..'"' or tostring(t)
-			tinsert(out, tag .. val)
-		end
-		return table.concat(out, '\n')
-	end
-	return table_r(t,name or 'Value',indent or '')
-end
-
-function JH.print_r( ... )
-	return pr( ... )
-end
 
 -- parse faceicon in talking message
 function _JH.ParseFaceIcon(t)
@@ -190,7 +160,7 @@ function _JH.ParseFaceIcon(t)
 			end
 			tinsert(t2, v)
 		else
-			local nOff, nLen = 1, string.len(v.text)
+			local nOff, nLen = 1, slen(v.text)
 			while nOff <= nLen do
 				local szFace, dwFaceID = nil, nil
 				local nPos = StringFindW(v.text, "#", nOff)
@@ -199,7 +169,7 @@ function _JH.ParseFaceIcon(t)
 				else
 					for i = nPos + 7, nPos + 2, -1 do
 						if i <= nLen then
-							local szTest = string.sub(v.text, nPos, i)
+							local szTest = ssub(v.text, nPos, i)
 							if _JH.tFaceIcon[szTest] then
 								szFace, dwFaceID = szTest, _JH.tFaceIcon[szTest]
 								nPos = nPos - 1
@@ -209,12 +179,12 @@ function _JH.ParseFaceIcon(t)
 					end
 				end
 				if nPos >= nOff then
-					tinsert(t2, { type = "text", text = string.sub(v.text, nOff, nPos) })
+					tinsert(t2, { type = "text", text = ssub(v.text, nOff, nPos) })
 					nOff = nPos + 1
 				end
 				if szFace and dwFaceID then
 					tinsert(t2, { type = "emotion", text = szFace, id = dwFaceID })
-					nOff = nOff + string.len(szFace)
+					nOff = nOff + slen(szFace)
 				end
 			end
 		end
@@ -565,7 +535,7 @@ end
 -- (string, number) JH.GetVersion() -- 获取插件版本号
 function JH.GetVersion()
 	local v = _VERSION_
-	local szVersion = string.format("%d.%d.%d", v/0x1000000,
+	local szVersion = sformat("%d.%d.%d", v/0x1000000,
 		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
 	if  v%0x100 ~= 0 then
 		szVersion = szVersion .. "b" .. tostring(v%0x100)
@@ -617,8 +587,8 @@ function JH.RegisterEvent(szEvent, fnAction)
 	local szKey = nil
 	local nPos = StringFindW(szEvent, ".")
 	if nPos then
-		szKey = string.sub(szEvent, nPos + 1)
-		szEvent = string.sub(szEvent, 1, nPos - 1)
+		szKey = ssub(szEvent, nPos + 1)
+		szEvent = ssub(szEvent, 1, nPos - 1)
 	end
 	if not _JH.tEvent[szEvent] then
 		_JH.tEvent[szEvent] = {}
@@ -679,7 +649,7 @@ function JH.RegisterInit(key, ...)
 			if v[1] == "Breathe" then
 				JH.UnBreatheCall(key)
 			else
-				JH.UnRegisterEvent(string.format("%s.%s", v[1], key))
+				JH.UnRegisterEvent(sformat("%s.%s", v[1], key))
 			end
 		end
 		_JH.tModule[key] = nil
@@ -690,7 +660,7 @@ function JH.RegisterInit(key, ...)
 			if v[1] == "Breathe" then
 				JH.BreatheCall(key, v[2], v[3] or nil)
 			else
-				JH.RegisterEvent(string.format("%s.%s", v[1], key), v[2])
+				JH.RegisterEvent(sformat("%s.%s", v[1], key), v[2])
 			end
 		end
 		JH.Debug2("Init # "  .. key .. " # Events # " .. #_JH.tModule[key])
@@ -758,8 +728,8 @@ function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 		if tar then
 			szText = string.gsub(szText, "%$mb", tar.szName)
 		end
-		if wstring.len(szText) > 150 and not bNotLimit then
-			szText = wstring.sub(szText, 1, 150)
+		if wslen(szText) > 150 and not bNotLimit then
+			szText = wssub(szText, 1, 150)
 		end
 		tSay = {{ type = "text", text = szText .. "\n"}}
 	end
@@ -1162,7 +1132,7 @@ function JH.GetBuffTimeString(nTime, limit)
 		nTime = limit
 	end
 	if nTime > 60 then
-		return string.format("%d'%d\"", nTime / 60, nTime % 60)
+		return sformat("%d'%d\"", nTime / 60, nTime % 60)
 	else
 		return floor(nTime) .. "\""
 	end
@@ -1233,11 +1203,11 @@ function JH.Split(szFull, szSep)
 	while true do
 		local nEnd = StringFindW(szFull, szSep, nOff)
 		if not nEnd then
-			tinsert(tResult, string.sub(szFull, nOff, string.len(szFull)))
+			tinsert(tResult, ssub(szFull, nOff, slen(szFull)))
 			break
 		else
-			tinsert(tResult, string.sub(szFull, nOff, nEnd - 1))
-			nOff = nEnd + string.len(szSep)
+			tinsert(tResult, ssub(szFull, nOff, nEnd - 1))
+			nOff = nEnd + slen(szSep)
 		end
 	end
 	return tResult
@@ -1288,7 +1258,7 @@ function JH.UnBreatheCall(szKey)
 end
 
 function JH.AddHotKey(szName, szTitle, fnAction)
-	if string.sub(szName, 1, 3) ~= "JH_" then
+	if ssub(szName, 1, 3) ~= "JH_" then
 		szName = "JH_" .. szName
 	end
 	tinsert(_JH.tHotkey, { szName = szName, szTitle = szTitle, fnAction = fnAction })
@@ -1396,7 +1366,7 @@ end
 function JH.GetShadowHandle(szName)
 	local sh = Station.Lookup("Lowest/JH_Shadows") or Wnd.OpenWindow(ROOT_PATH .. "item/JH_Shadows.ini", "JH_Shadows")
 	if not sh:Lookup("", szName) then
-		sh:Lookup("", ""):AppendItemFromString(string.format("<handle> name=\"%s\" </handle>", szName))
+		sh:Lookup("", ""):AppendItemFromString(sformat("<handle> name=\"%s\" </handle>", szName))
 	end
 	JH.Debug3("Create sh # " .. szName)
 	return sh:Lookup("", szName)
@@ -1453,21 +1423,21 @@ function JH.Trim(szText)
 end
 
 function JH.UrlEncode(szText)
-	local str = szText:gsub("([^0-9a-zA-Z ])", function (c) return string.format ("%%%02X", string.byte(c)) end)
+	local str = szText:gsub("([^0-9a-zA-Z ])", function (c) return sformat("%%%02X", sbyte(c)) end)
 	str = str:gsub(" ", "+")
 	return str
 end
 
 function JH.UrlDecode(szText)
-	return szText:gsub("+", " "):gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
+	return szText:gsub("+", " "):gsub("%%(%x%x)", function(h) return schar(tonumber(h, 16)) end)
 end
 
 function JH.AscIIEncode(szText)
-	return szText:gsub('(.)', function(s) return string.format("%02x", s:byte()) end)
+	return szText:gsub('(.)', function(s) return sformat("%02x", s:byte()) end)
 end
 
 function JH.AscIIDecode(szText)
-	return szText:gsub('([0-9a-f][0-9a-f])', function(s) return string.char(tonumber(s, 16)) end)
+	return szText:gsub('([0-9a-f][0-9a-f])', function(s) return schar(tonumber(s, 16)) end)
 end
 
 ---------------------------------------------------------------------
@@ -1500,7 +1470,7 @@ function _GUI.Base:Remove()
 	end
 	if self.type == "WndFrame" then
 		Wnd.CloseWindow(self.self)
-	elseif string.sub(self.type, 1, 3) == "Wnd" then
+	elseif ssub(self.type, 1, 3) == "Wnd" then
 		self.self:Destroy()
 	else
 		hP:RemoveItem(self.self:GetIndex())
@@ -1553,7 +1523,7 @@ function _GUI.Base:Pos(nX, nY)
 	self.self:SetRelPos(nX, nY)
 	if self.type == "WndFrame" then
 		self.self:CorrectPos()
-	elseif string.sub(self.type, 1, 3) ~= "Wnd" then
+	elseif ssub(self.type, 1, 3) ~= "Wnd" then
 		self.self:GetParent():FormatAllItemPos()
 	end
 	return self
@@ -1570,7 +1540,7 @@ end
 -- 特别注意：仅对通过 :Append() 追加的元素有效，以便用于动态定位
 function _GUI.Base:CPos_()
 	local hP = self.wnd or self.self
-	if not hP.___last and string.sub(hP:GetType(), 1, 3) == "Wnd" then
+	if not hP.___last and ssub(hP:GetType(), 1, 3) == "Wnd" then
 		hP = hP:Lookup("", "")
 	end
 	if hP.___last then
@@ -1586,7 +1556,7 @@ end
 -- NOTICE：only for Handle，WndXXX
 function _GUI.Base:Append(szType, ...)
 	local hP = self.wnd or self.self
-	if string.sub(hP:GetType(), 1, 3) == "Wnd" and string.sub(szType, 1, 3) ~= "Wnd" then
+	if ssub(hP:GetType(), 1, 3) == "Wnd" and ssub(szType, 1, 3) ~= "Wnd" then
 		hP.___last = nil
 		hP = hP:Lookup("", "")
 	end
@@ -2876,11 +2846,11 @@ function GUI.AppendIni(hParent, szFile, szTag, szName)
 			szName = "Child_" .. hParent:GetItemCount()
 		end
 		raw = hParent:AppendItemFromIni(szFile, szTag, szName)
-	elseif string.sub(hParent:GetType(), 1, 3) == "Wnd" then
+	elseif ssub(hParent:GetType(), 1, 3) == "Wnd" then
 		local frame = Wnd.OpenWindow(szFile, "GUI_Virtual")
 		if frame then
 			raw = frame:Lookup(szTag)
-			if raw and string.sub(raw:GetType(), 1, 3) == "Wnd" then
+			if raw and ssub(raw:GetType(), 1, 3) == "Wnd" then
 				raw:ChangeRelation(hParent, true, true)
 				if szName then
 					raw:SetName(szName)
@@ -2933,8 +2903,8 @@ function GUI.Append(hParent, szType, szName, tArg)
 	end
 	-- create ui
 	local ui = nil
-	if string.sub(szType, 1, 3) == "Wnd" then
-		assert(string.sub(hParent:GetType(), 1, 3) == "Wnd", _L["The 1st arg for adding component must be a [WndXxx]"])
+	if ssub(szType, 1, 3) == "Wnd" then
+		assert(ssub(hParent:GetType(), 1, 3) == "Wnd", _L["The 1st arg for adding component must be a [WndXxx]"])
 		ui = _GUI.Wnd.new(hParent, szType, szName)
 	else
 		assert(hParent:GetType() == "Handle", _L["The 1st arg for adding item must be a [Handle]"])
@@ -3000,7 +2970,7 @@ function GUI.Fetch(hParent, szName)
 	local hRaw = hParent:Lookup(szName)
 	if hRaw then
 		local ui
-		if string.sub(hRaw:GetType(), 1, 3) == "Wnd" then
+		if ssub(hRaw:GetType(), 1, 3) == "Wnd" then
 			ui = _GUI.Wnd.new(hRaw)
 		else
 			ui = _GUI.Item.new(hRaw)
@@ -3088,7 +3058,7 @@ function GUI.OpenColorTablePanel(fnAction)
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			wnd:Fetch("Select"):Color(r, g, b)
-			wnd:Fetch("Select_Text"):Text(string.format("r=%d, g=%d, b=%d", r, g, b))
+			wnd:Fetch("Select_Text"):Text(sformat("r=%d, g=%d, b=%d", r, g, b))
 		else
 			wnd:Fetch("Select"):Color(255, 255, 255)
 			wnd:Fetch("Select_Text"):Text(g_tStrings.STR_NONE)

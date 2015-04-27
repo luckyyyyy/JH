@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 15:45:34
+-- @Last Modified time: 2015-04-27 16:52:25
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -26,9 +26,9 @@ local function GetCountdown(tTime)
 	local tab = {}
 	local t = JH_Split(tTime, ";")
 	for k, v in ipairs(t) do
-		local _ = JH_Split(v, ",")
-		if _[1] and _[2] and tonumber(JH_Trim(_[1])) and _[2] ~= "" then
-			tinsert(tab, { nTime = tonumber(_[1]), szName = _[2] })
+		local time = JH_Split(v, ",")
+		if time[1] and time[2] and tonumber(JH_Trim(time[1])) and time[2] ~= "" then
+			tinsert(tab, { nTime = tonumber(time[1]), szName = time[2] })
 		end
 	end
 	if IsEmpty(tab) then
@@ -49,7 +49,6 @@ end
 --      nIcon    -- 倒计时图标ID
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【XX】 剩余 X 秒。
 -- }
---
 local function CreateCountdown(nType, szKey, tArgs)
 	local t = {}
 	local nTime = GetTime()
@@ -80,6 +79,7 @@ ST_UI = {
 	tAnchor = {},
 }
 JH.RegisterCustomData("ST_UI")
+
 local _ST_UI = {}
 
 function ST_UI.OnFrameCreate()
@@ -233,7 +233,6 @@ function ST:ctor(nType, szKey, tArgs)
 		return nil
 	end
 end
-
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
 function ST:SetInfo(tArgs, nIcon)
 	if tArgs.szName then
@@ -254,7 +253,6 @@ function ST:SetPercentage(fPercentage)
 	self.ui.img:SetPercentage(fPercentage)
 	return self
 end
-
 -- 改变样式 如果true则更改为第二样式 用于时间小于5秒的时候
 function ST:Switch(bSwitch)
 	if bSwitch then
@@ -282,7 +280,6 @@ end
 function ST:RemoveItem()
 	_ST_UI.handle:RemoveItem(self.ui)
 	_ST_UI.handle:FormatAllItemPos()
-	return self
 end
 
 JH.RegisterEvent("LOGIN_GAME", _ST_UI.Init)
