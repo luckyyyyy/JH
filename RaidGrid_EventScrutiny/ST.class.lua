@@ -1,8 +1,8 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 12:07:34
-
+-- @Last Modified time: 2015-04-27 12:24:22
+local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
 -- ini path
@@ -11,7 +11,7 @@ local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST
 local type, tonumber, ipairs, pairs = type, tonumber, ipairs, pairs
 local tinsert = table.insert
 local JH_Split, JH_Trim, JH_GetBuffTimeString = JH.Split, JH.Trim, JH.GetBuffTimeString
-local abs, mod   = math.abs, math.mod
+local abs, mod, floor = math.abs, math.mod, math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 
 local ST_CACHE = {}
@@ -38,15 +38,15 @@ local function GetCountdown(tTime)
 	end
 end
 
--- 倒计时模块
+-- 倒计时模块 事件名称 JH_ST_CREATE
 -- nType 倒计时类型
 -- szKey 同一类型内唯一标识符
 -- tArgs {
---      szName -- 倒计时名称 如果是分段就不需要传
--- 		nTime  -- 时间,名称; 或 时间
+--      szName   -- 倒计时名称 如果是分段就不需要传名称
+--      nTime    -- 时间  例 10,测试;25,测试2; 或 30
 --      nRefresh -- 多少时间内禁止重复刷新
---      nIcon -- 倒计时图标ID
---      bTalk -- 是否发布倒计时
+--      nIcon    -- 倒计时图标ID
+--      bTalk    -- 是否发布倒计时 5秒内聊天框
 -- }
 --
 local function CreateCountdown(nType, szKey, tArgs)
@@ -121,9 +121,17 @@ function ST_UI.OnFrameDragEnd()
 end
 
 local function SetSTAction(obj, nLeft, nPer)
+	local me = GetClientPlayer()
 	if nLeft < 5 then
 		local alpha = 255 * (abs(mod(nLeft * 15, 32) - 7) + 4) / 12
 		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):Switch(true):SetAlpha(alpha)
+		if obj.ui.bTalk and me.IsInParty() then
+			if not obj.ui.szTalk or obj.ui.szTalk ~= floor(nLeft) then
+				obj.ui.szTalk = floor(nLeft)
+				Output(obj:GetName(), floor(nLeft))
+				JH.Talk(_L("[%s] left over %d.", obj:GetName(), floor(nLeft)))
+			end
+		end
 	else
 		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer)
 	end
@@ -193,6 +201,7 @@ function ST:ctor(nType, szKey, tArgs)
 			self.ui.nLeft     = nTime
 			self.ui.countdown = tArgs.nTime
 			self.ui.nRefresh  = tArgs.nRefresh
+			self.ui.bTalk     = tArgs.bTalk
 		else -- 没有ui的情况下 创建
 			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item", nType .. szKey)
 			self.ui.nCreate        = nTime
@@ -200,6 +209,7 @@ function ST:ctor(nType, szKey, tArgs)
 			self.ui.countdown      = tArgs.nTime
 			self.ui.szKey          = szKey
 			self.ui.nRefresh       = tArgs.nRefresh
+			self.ui.bTalk          = tArgs.bTalk
 			ST_CACHE[nType][szKey] = self.ui
 			self.ui:Show()
 			_ST_UI.handle:FormatAllItemPos()
@@ -254,6 +264,9 @@ function ST:SetAlpha(nAlpha)
 	return self
 end
 
+function ST:GetName()
+	return self.ui:Lookup("SkillName"):GetText()
+end
 -- 删除倒计时
 function ST:RemoveItem()
 	_ST_UI.handle:RemoveItem(self.ui)
