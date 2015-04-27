@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 16:53:29
+-- @Last Modified time: 2015-04-27 17:24:35
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -19,7 +19,7 @@ local setmetatable = setmetatable
 
 local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
-local SHADOW_PATH = "interface/JH/0BDATAase/item/shadow.ini"
+local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
 local _VERSION_   = 0x00a0000
 local function GetLang()
