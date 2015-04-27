@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 12:03:37
+-- @Last Modified time: 2015-04-27 12:34:55
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -201,7 +201,6 @@ end
 function RaidGrid_Base.SetTargetOrg(dwTargetID)
 end
 
-
 function RaidGrid_Base.ResetChatAlertCD()
 	local tTab = RaidGrid_EventScrutiny.tRecords["Npc"]
 	for i = 1, #tTab do
@@ -218,6 +217,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab[i].fEventTimeEnd = nil
 		tTab[i].fMinTime = nil
 		tTab[i].bIsVisible = nil
+		tTab[i].tTimerSet = nil
 	end
 	local tTab2 = RaidGrid_EventScrutiny.tRecords["Casting"]
 	for i = 1, #tTab2 do
@@ -232,6 +232,7 @@ function RaidGrid_Base.ResetChatAlertCD()
 		tTab2[i].fEventTimeStart = nil
 		tTab2[i].fEventTimeEnd = nil
 		tTab2[i].fMinTime = nil
+		tTab2[i].tTimerSet = nil
 	end
 	local tTab3 = RaidGrid_EventScrutiny.tRecords["Buff"]
 	for i = 1, #tTab3 do
@@ -2443,7 +2444,7 @@ end
 RaidGrid_EventScrutiny.tSkillTimerName = {
 	bSkillTimer2Enable  = "中央倒计时二",
 	bAddToSkillTimer = "中央倒计时",
-	tTimerSet = "分段倒计时",
+	szTimerSet = "分段倒计时",
 }
 
 function RaidGrid_EventScrutiny.SwitchPageType(szListIndex)
@@ -4823,9 +4824,7 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 						end
 
 						if #list > 0 then
-							table.sort(list,function(a,b) return (a.nTime<b.nTime) end)
 							data.szTimerSet = szText
-							data.tTimerSet = list
 						end
 						RaidGrid_EventScrutiny.UpdateRecordList(RaidGrid_EventScrutiny.szListIndex)
 					end

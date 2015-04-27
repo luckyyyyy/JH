@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 12:24:22
+-- @Last Modified time: 2015-04-27 12:36:38
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -128,7 +128,6 @@ local function SetSTAction(obj, nLeft, nPer)
 		if obj.ui.bTalk and me.IsInParty() then
 			if not obj.ui.szTalk or obj.ui.szTalk ~= floor(nLeft) then
 				obj.ui.szTalk = floor(nLeft)
-				Output(obj:GetName(), floor(nLeft))
 				JH.Talk(_L("[%s] left over %d.", obj:GetName(), floor(nLeft)))
 			end
 		end
