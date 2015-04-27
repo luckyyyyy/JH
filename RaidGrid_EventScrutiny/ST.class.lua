@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 15:17:26
+-- @Last Modified time: 2015-04-27 15:45:34
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -192,7 +192,7 @@ end
 function _ST_UI.FormatTimeString(nTime)
 	nTime = tonumber(nTime) or 0
 	if nTime > 60 then
-		return nTime / 60 .. "m" .. nTime % 60 .. "s"
+		return floor(nTime / 60) .. "m" .. floor(nTime % 60) .. "s"
 	else
 		return floor(nTime) .. "s"
 	end
@@ -220,6 +220,10 @@ function ST:ctor(nType, szKey, tArgs)
 			self.ui.szKey          = szKey
 			self.ui.nRefresh       = tArgs.nRefresh
 			self.ui.bTalk          = tArgs.bTalk
+			-- ui
+			self.ui.time           = self.ui:Lookup("TimeLeft")
+			self.ui.txt            = self.ui:Lookup("SkillName")
+			self.ui.img            = self.ui:Lookup("Image")
 			ST_CACHE[nType][szKey] = self.ui
 			self.ui:Show()
 			_ST_UI.handle:FormatAllItemPos()
@@ -233,10 +237,10 @@ end
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
 function ST:SetInfo(tArgs, nIcon)
 	if tArgs.szName then
-		self.ui:Lookup("SkillName"):SetText(tArgs.szName)
+		self.ui.txt:SetText(tArgs.szName)
 	end
 	if tArgs.nTime then
-		self.ui:Lookup("TimeLeft"):SetText(_ST_UI.FormatTimeString(tArgs.nTime))
+		self.ui.time:SetText(_ST_UI.FormatTimeString(tArgs.nTime))
 	end
 	if nIcon then
 		local box = self.ui:Lookup("Box")
@@ -247,35 +251,32 @@ function ST:SetInfo(tArgs, nIcon)
 end
 -- 设置进度条
 function ST:SetPercentage(fPercentage)
-	self.ui:Lookup("Image"):SetPercentage(fPercentage)
+	self.ui.img:SetPercentage(fPercentage)
 	return self
 end
 
 -- 改变样式 如果true则更改为第二样式 用于时间小于5秒的时候
 function ST:Switch(bSwitch)
-	local SkillName = self.ui:Lookup("SkillName")
-	local TimeLeft  = self.ui:Lookup("TimeLeft")
-	local img       = self.ui:Lookup("Image")
 	if bSwitch then
-		SkillName:SetFontColor(255, 255, 255)
-		TimeLeft:SetFontColor(255, 255, 255)
-		img:SetFrame(26)
+		self.ui.txt:SetFontColor(255, 255, 255)
+		self.ui.time:SetFontColor(255, 255, 255)
+		self.ui.img:SetFrame(26)
 	else
-		SkillName:SetFontColor(255, 255, 0)
-		TimeLeft:SetFontColor(255, 255, 0)
-		img:SetFrame(208)
-		img:SetAlpha(160)
+		self.ui.txt:SetFontColor(255, 255, 0)
+		self.ui.time:SetFontColor(255, 255, 0)
+		self.ui.img:SetFrame(208)
+		self.ui.img:SetAlpha(160)
 	end
 	return self
 end
 
 function ST:SetAlpha(nAlpha)
-	self.ui:Lookup("Image"):SetAlpha(nAlpha)
+	self.ui.img:SetAlpha(nAlpha)
 	return self
 end
 
 function ST:GetName()
-	return self.ui:Lookup("SkillName"):GetText()
+	return self.ui.txt:GetText()
 end
 -- 删除倒计时
 function ST:RemoveItem()
