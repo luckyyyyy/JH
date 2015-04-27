@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 12:43:44
+-- @Last Modified time: 2015-04-27 15:17:26
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -10,7 +10,7 @@ local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST
 -- cache
 local type, tonumber, ipairs, pairs = type, tonumber, ipairs, pairs
 local tinsert, tsort = table.insert, table.sort
-local JH_Split, JH_Trim, JH_GetBuffTimeString = JH.Split, JH.Trim, JH.GetBuffTimeString
+local JH_Split, JH_Trim = JH.Split, JH.Trim
 local abs, mod, floor = math.abs, math.mod, math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 
@@ -47,7 +47,7 @@ end
 --      nTime    -- 时间  例 10,测试;25,测试2; 或 30
 --      nRefresh -- 多少时间内禁止重复刷新
 --      nIcon    -- 倒计时图标ID
---      bTalk    -- 是否发布倒计时 5秒内聊天框
+--      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【XX】 剩余 X 秒。
 -- }
 --
 local function CreateCountdown(nType, szKey, tArgs)
@@ -71,14 +71,15 @@ local function CreateCountdown(nType, szKey, tArgs)
 			ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon or 13):Switch(false)
 		end
 	else
-		ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon or 13)
+		ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon or 13):Switch(false)
 	end
 end
+
 ST_UI = {
 	bEnable = true,
 	tAnchor = {},
 }
-
+JH.RegisterCustomData("ST_UI")
 local _ST_UI = {}
 
 function ST_UI.OnFrameCreate()
@@ -110,7 +111,7 @@ function ST_UI.OnEvent(szEvent)
 	elseif szEvent =="UI_SCALED" then
 		_ST_UI.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
-		UpdateCustomModeWindow(this, "ST")
+		UpdateCustomModeWindow(this, _L["Countdown"])
 	elseif szEvent == "LOADING_END" then
 		_ST_UI.handle:Clear()
 	end
@@ -118,7 +119,7 @@ end
 
 function ST_UI.OnFrameDragEnd()
 	this:CorrectPos()
-	ST_UI.tAnchor = GetFrameAnchor(this, "TOPLEFT")
+	ST_UI.tAnchor = GetFrameAnchor(this)
 end
 
 local function SetSTAction(obj, nLeft, nPer)
@@ -187,6 +188,15 @@ end
 function _ST_UI.Init()
 	local frame = Wnd.OpenWindow(ST_INIFILE, "ST_UI")
 end
+
+function _ST_UI.FormatTimeString(nTime)
+	nTime = tonumber(nTime) or 0
+	if nTime > 60 then
+		return nTime / 60 .. "m" .. nTime % 60 .. "s"
+	else
+		return floor(nTime) .. "s"
+	end
+end
 -- class
 function ST:ctor(nType, szKey, tArgs)
 	local ui = ST_CACHE[nType][szKey]
@@ -226,7 +236,7 @@ function ST:SetInfo(tArgs, nIcon)
 		self.ui:Lookup("SkillName"):SetText(tArgs.szName)
 	end
 	if tArgs.nTime then
-		self.ui:Lookup("TimeLeft"):SetText(JH_GetBuffTimeString(tArgs.nTime))
+		self.ui:Lookup("TimeLeft"):SetText(_ST_UI.FormatTimeString(tArgs.nTime))
 	end
 	if nIcon then
 		local box = self.ui:Lookup("Box")

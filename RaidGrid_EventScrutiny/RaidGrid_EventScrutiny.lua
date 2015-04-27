@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 12:34:55
+-- @Last Modified time: 2015-04-27 15:09:44
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -445,7 +445,7 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 
 
 	data.EventScrutinyRecords = RaidGrid_EventScrutiny.tRecords
-	if RaidGrid_EventScrutiny.bOutputBossFaceData and type(Circle ~= "nil") then
+	if RaidGrid_EventScrutiny.bOutputBossFaceData and type(Circle) ~= "nil" then
 		data.Circle = Circle.GetData()
 	end
 	if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then
