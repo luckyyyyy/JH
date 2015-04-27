@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-02-26 01:41:24
+-- @Last Modified time: 2015-04-27 16:33:04
 --
 -- Simple JSON encoding and decoding in pure Lua.
 --
@@ -13,7 +13,7 @@
 -- local pretty_json_text = HM.JsonEncode(lua_table_or_value, true)
 ---------------------------------------------------------------------------
 local pairs, ipairs = pairs, ipairs
-local char = string.char
+local char, srep = string.char, string.rep
 local floor, huge = math.floor, math.huge
 local tonumber, tostring = tonumber, tostring
 local type = type
@@ -416,7 +416,7 @@ local function encode_value(value, parents, indent)
 					tinsert(KEYS, encoded)
 				end
 				local key_indent = indent .. "    "
-				local subtable_indent = indent .. string.rep(" ", max_key_length + 2 + 4)
+				local subtable_indent = indent .. srep(" ", max_key_length + 2 + 4)
 				local FORMAT = "%s%" .. string.format("%d", max_key_length) .. "s: %s"
 				local COMBINED_PARTS = {}
 				for i, key in ipairs(object_keys) do
