@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 12:36:38
+-- @Last Modified time: 2015-04-27 12:43:44
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -9,7 +9,7 @@ local ST = class()
 local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST_UI.ini"
 -- cache
 local type, tonumber, ipairs, pairs = type, tonumber, ipairs, pairs
-local tinsert = table.insert
+local tinsert, tsort = table.insert, table.sort
 local JH_Split, JH_Trim, JH_GetBuffTimeString = JH.Split, JH.Trim, JH.GetBuffTimeString
 local abs, mod, floor = math.abs, math.mod, math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
@@ -34,6 +34,7 @@ local function GetCountdown(tTime)
 	if IsEmpty(tab) then
 		return nil
 	else
+		tsort(tab, function(a, b) return a.nTime < b.nTime end)
 		return tab
 	end
 end
