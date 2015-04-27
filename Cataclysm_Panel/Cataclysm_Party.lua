@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-26 16:53:36
+-- @Last Modified time: 2015-04-26 19:31:04
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -605,6 +605,7 @@ function CTM:DrawParty(nIndex)
 			h:Lookup("Handle_Common/Image_BG_Force"):FromUITex(CTM_IMAGES, 3)
 			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader, true)
 		end
+		-- 其实这么写的性能远不如 OnItemLButtonDrag = fnAction 这种形式，但是数量级不多就算了。
 		h.OnItemLButtonDrag = function()
 			if not dwID then return	end
 			local team = GetClientTeam()
