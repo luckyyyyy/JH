@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 15:11:04
+-- @Last Modified time: 2015-04-28 16:19:29
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -35,6 +35,7 @@ local function GetCountdown(tTime)
 		return nil
 	else
 		tsort(tab, function(a, b) return a.nTime < b.nTime end)
+		-- Output(tab)
 		return tab
 	end
 end
@@ -161,7 +162,8 @@ function ST_UI.OnFrameBreathe()
 						if #obj.ui.countdown == 1 then
 							obj:RemoveItem()
 						else
-							local nATime = (nNow - obj.ui.nLeft) / 1000
+							local nATime = (nNow - obj.ui.nCreate) / 1000
+							-- Output(nATime)
 							obj.ui.nLeft = nNow
 							table.remove(obj.ui.countdown, 1)
 							local time = obj.ui.countdown[1]
