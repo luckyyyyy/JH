@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 07:27:45
+-- @Last Modified time: 2015-04-28 13:17:00
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -229,7 +229,154 @@ setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, 
 -- CODE --
 local CTM = {}
 
-function CTM:GetPartyFrame(nIndex) --获得组队面板
+CTM_Party_Base = class()
+
+function CTM_Party_Base.OnLButtonDown()
+	CTM:BringToTop()
+end
+
+function CTM_Party_Base.OnRButtonDown()
+	CTM:BringToTop()
+end
+
+function CTM_Party_Base.OnItemLButtonDrag()
+	if not this.dwID then return end
+	local team = GetClientTeam()
+	local me = GetClientPlayer()
+	if (IsAltKeyDown() or CFG.bEditMode) and me.IsInRaid() and JH.IsLeader() then
+		CTM_DRAG = true
+		CTM_DRAG_ID = this.dwID
+		CTM:DrawAllParty()
+		CTM:AutoLinkAllPanel()
+		CTM:BringToTop()
+		OpenRaidDragPanel(this.dwID)
+	end
+end
+
+function CTM_Party_Base.OnItemLButtonUp()
+	JH.DelayCall(50, function()
+		if CTM_DRAG then
+			CTM_DRAG, CTM_DRAG_ID = false, nil
+			CTM:CloseParty()
+			CTM:ReloadParty()
+			CloseRaidDragPanel()
+		end
+	end)
+end
+
+function CTM_Party_Base.OnItemLButtonDragEnd()
+	if CTM_DRAG and this.dwID ~= CTM_DRAG_ID then
+		local team = GetClientTeam()
+		team.ChangeMemberGroup(CTM_DRAG_ID, this.nGroup, this.dwID or 0)
+		CTM_DRAG, CTM_DRAG_ID = false, nil
+		CloseRaidDragPanel()
+		CTM:CloseParty()
+		CTM:ReloadParty()
+	end
+end
+
+function CTM_Party_Base.OnItemLButtonDown()
+	if not this.dwID then return end
+	local info = CTM:GetMemberInfo(this.dwID)
+	if IsCtrlKeyDown() then
+		EditBox_AppendLinkPlayer(info.szName)
+	elseif info.bIsOnLine and GetPlayer(this.dwID) then -- 有待考证
+		SetTarget(TARGET.PLAYER, this.dwID)
+		CTM_TAR_TEMP = this.dwID
+	end
+end
+
+function CTM_Party_Base.OnItemMouseEnter()
+	if CTM_DRAG then
+		this:Lookup("Image_Selected"):Show()
+	end
+	if not this.dwID then return end
+	local nX, nY = this:GetRoot():GetAbsPos()
+	local nW, nH = this:GetRoot():GetSize()
+	local me = GetClientPlayer()
+	if CFG.bTempTargetFightTip and not me.bFightState or not CFG.bTempTargetFightTip then
+		OutputTeamMemberTip(this.dwID, { nX, nY + 5, nW, nH })
+	end
+	local info = CTM:GetMemberInfo(this.dwID)
+	if info.bIsOnLine and GetPlayer(this.dwID) and CFG.bTempTargetEnable then
+		JH.SetTempTarget(this.dwID, true)
+	end
+end
+
+function CTM_Party_Base.OnItemMouseLeave()
+	if CTM_DRAG then
+		this:Lookup("Image_Selected"):Hide()
+	end
+	HideTip()
+	if not this.dwID then return	end
+	local info = CTM:GetMemberInfo(this.dwID)
+	if not info then return end -- 退租的问题
+	if info.bIsOnLine and GetPlayer(this.dwID) and CFG.bTempTargetEnable then
+		JH.SetTempTarget(this.dwID, false)
+	end
+end
+
+function CTM_Party_Base.OnItemRButtonClick()
+	if not this.dwID then return end
+	local menu = {}
+	local me = GetClientPlayer()
+	local info = CTM:GetMemberInfo(this.dwID)
+	local szPath, nFrame = GetForceImage(info.dwForceID)
+	table.insert(menu, {
+		szOption = info.szName,
+		szLayer = "ICON_RIGHT",
+		rgb = { JH.GetForceColor(info.dwForceID) },
+		szIcon = szPath,
+		nFrame = nFrame
+	})
+	if JH.IsLeader() and me.IsInRaid() then
+		table.insert(menu, { bDevide = true })
+		InsertChangeGroupMenu(menu, this.dwID)
+	end
+	local info = CTM:GetMemberInfo(this.dwID)
+	if this.dwID ~= me.dwID then
+		if JH.IsLeader() then
+			table.insert(menu, { bDevide = true })
+		end
+		InsertTeammateMenu(menu, this.dwID)
+		local t = {}
+		InsertTargetMenu(t, this.dwID)
+		for _, v in ipairs(t) do
+			if v.szOption == g_tStrings.LOOKUP_INFO then
+				for _, vv in ipairs(v) do
+					if vv.szOption == g_tStrings.LOOKUP_NEW_TANLENT then
+						table.insert(menu, vv)
+						break
+					end
+				end
+				break
+			end
+		end
+		table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function()
+			ViewInviteToPlayer(this.dwID)
+		end })
+	else
+		table.insert(menu, { bDevide = true })
+		InsertPlayerMenu(menu, this.dwID)
+		if JH.IsLeader() or JH_About.CheckNameEx() then
+			table.insert(menu, { bDevide = true })
+			table.insert(menu, { szOption = _L["take back all permissions"], rgb = { 255, 255, 0 }, fnAction = function()
+				if JH.IsLeader() then
+					local team = GetClientTeam()
+					team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, UI_GetClientPlayerID())
+					team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, UI_GetClientPlayerID())
+				else
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "TeamAuth")
+				end
+			end	})
+		end
+	end
+	if #menu > 0 then
+		PopupMenu(menu)
+	end
+end
+
+function CTM:GetPartyFrame(nIndex) -- 获得组队面板
 	return Station.Lookup("Normal/RaidGrid_Party_" .. nIndex)
 end
 
@@ -596,153 +743,13 @@ function CTM:DrawParty(nIndex)
 	for i = 1, CTM_MEMBER_COUNT do
 		local dwID = tGroup.MemberList[i]
 		local h = handle:AppendItemFromIni(CTM_ITEM, "Handle_RoleDummy", i)
+		h.nGroup = nIndex
 		if dwID then
 			h.dwID = dwID
-			h.nGroup = nIndex
 			CTM_CACHE[dwID] = h
 			local info = self:GetMemberInfo(dwID)
 			h:Lookup("Handle_Common/Image_BG_Force"):FromUITex(CTM_IMAGES, 3)
 			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader, true)
-		end
-		-- 其实这么写的性能远不如 OnItemLButtonDrag = fnAction 这种形式，但是数量级不多就算了。
-		h.OnItemLButtonDrag = function()
-			if not dwID then return	end
-			local team = GetClientTeam()
-			local player = GetClientPlayer()
-			if (IsAltKeyDown() or CFG.bEditMode) and player.IsInRaid() and JH.IsLeader() then
-				CTM_DRAG = true
-				CTM_DRAG_ID = dwID
-				self:DrawAllParty()
-				self:AutoLinkAllPanel()
-				self:BringToTop()
-				OpenRaidDragPanel(dwID)
-			end
-		end
-
-		h.OnItemLButtonUp = function() -- fix range bug
-			JH.DelayCall(50, function()
-				if CTM_DRAG then
-					CTM_DRAG, CTM_DRAG_ID = false, nil
-					self:CloseParty()
-					self:ReloadParty()
-					CloseRaidDragPanel()
-				end
-			end)
-		end
-
-		h.OnItemLButtonDragEnd = function()
-			if CTM_DRAG and dwID ~= CTM_DRAG_ID then
-				local team = GetClientTeam()
-				local player = GetClientPlayer()
-				team.ChangeMemberGroup(CTM_DRAG_ID, nIndex, dwID or 0)
-				CTM_DRAG, CTM_DRAG_ID = false, nil
-				CloseRaidDragPanel()
-				self:CloseParty()
-				self:ReloadParty()
-			end
-		end
-		-- 按下 为了效率不用click
-		h.OnItemLButtonDown = function()
-			self:BringToTop()
-			if not dwID then return	end
-			local info = self:GetMemberInfo(dwID)
-			if IsCtrlKeyDown() then
-				EditBox_AppendLinkPlayer(info.szName)
-			elseif info.bIsOnLine and GetPlayer(dwID) then -- 有待考证
-				SetTarget(TARGET.PLAYER, dwID)
-				CTM_TAR_TEMP = dwID
-			end
-		end
-		-- 鼠标进入
-		h.OnItemMouseEnter = function()
-			if CTM_DRAG then
-				this:Lookup("Image_Selected"):Show()
-			end
-			if not dwID then return	end
-			local nX, nY = this:GetRoot():GetAbsPos()
-			local nW, nH = this:GetRoot():GetSize()
-			local me = GetClientPlayer()
-			if CFG.bTempTargetFightTip and not me.bFightState or not CFG.bTempTargetFightTip then
-				OutputTeamMemberTip(dwID, { nX, nY + 5, nW, nH })
-			end
-			local info = self:GetMemberInfo(dwID)
-			if info.bIsOnLine and GetPlayer(dwID) and CFG.bTempTargetEnable then
-				JH.SetTempTarget(dwID, true)
-			end
-		end
-		-- 鼠标离开
-		h.OnItemMouseLeave = function()
-			if CTM_DRAG then
-				this:Lookup("Image_Selected"):Hide()
-			end
-			HideTip()
-			if not dwID then return	end
-			local info = self:GetMemberInfo(dwID)
-			if not info then return end -- 退租的问题
-			if info.bIsOnLine and GetPlayer(dwID) and CFG.bTempTargetEnable then
-				JH.SetTempTarget(dwID, false)
-			end
-		end
-		-- 右键
-		h.OnItemRButtonClick = function()
-			self:BringToTop()
-			if not dwID then return	end
-			local menu = {}
-			local me = GetClientPlayer()
-			local info = self:GetMemberInfo(dwID)
-			local szPath, nFrame = GetForceImage(info.dwForceID)
-			table.insert(menu, {
-				szOption = info.szName,
-				szLayer = "ICON_RIGHT",
-				rgb = { JH.GetForceColor(info.dwForceID) },
-				szIcon = szPath,
-				nFrame = nFrame
-			})
-			if JH.IsLeader() and me.IsInRaid() then
-				table.insert(menu, { bDevide = true })
-				InsertChangeGroupMenu(menu, dwID)
-			end
-			local info = self:GetMemberInfo(dwID)
-			if dwID ~= me.dwID then
-				if JH.IsLeader() then
-					table.insert(menu, { bDevide = true })
-				end
-				InsertTeammateMenu(menu, dwID)
-				local t = {}
-				InsertTargetMenu(t, dwID)
-				for _, v in ipairs(t) do
-					if v.szOption == g_tStrings.LOOKUP_INFO then
-						for _, vv in ipairs(v) do
-							if vv.szOption == g_tStrings.LOOKUP_NEW_TANLENT then
-								table.insert(menu, vv)
-								break
-							end
-						end
-						break
-					end
-				end
-				table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function()
-					ViewInviteToPlayer(dwID)
-				end })
-			else
-				table.insert(menu, { bDevide = true })
-				InsertPlayerMenu(menu ,dwID)
-				if JH.IsLeader() or JH_About.CheckNameEx() then
-					table.insert(menu, { bDevide = true })
-					table.insert(menu, { szOption = _L["take back all permissions"], rgb = { 255, 255, 0 }, fnAction = function()
-						if JH.IsLeader() then
-							local team = GetClientTeam()
-							team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, UI_GetClientPlayerID())
-							team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, UI_GetClientPlayerID())
-						else
-							JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "TeamAuth")
-						end
-					end	})
-				end
-			end
-			if #menu > 0 then
-				PopupMenu(menu)
-			end
 		end
 		self:Scale(CFG.fScaleX, CFG.fScaleY, h)
 	end
