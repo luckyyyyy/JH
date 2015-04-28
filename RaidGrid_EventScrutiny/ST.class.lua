@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-27 06:11:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 17:14:12
+-- @Last Modified time: 2015-04-28 15:11:04
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -203,6 +203,8 @@ function ST:ctor(nType, szKey, tArgs)
 	if ui and ui:IsValid() and not tArgs then
 		self.ui = ui
 		return self
+	elseif (not ui or ui and not ui:IsValid()) and not tArgs then -- ...
+		return nil
 	elseif tArgs then
 		if ui and ui:IsValid() then
 			self.ui           = ui
