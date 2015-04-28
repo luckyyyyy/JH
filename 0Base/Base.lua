@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 07:27:31
+-- @Last Modified time: 2015-04-28 09:39:18
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -1446,7 +1446,7 @@ function JH.AscIIDecode(szText)
 end
 -- 临时选择集中处理
 local JH_TAR_TEMP
-
+local JH_TAR_TEMP_STATUS = false
 local function JH_SetTarget(dwTargetID)
 	if dwTargetID and dwTargetID > 0 then
 		local nType = IsPlayer(dwTargetID) and TARGET.PLAYER or TARGET.NPC
@@ -1457,6 +1457,10 @@ local function JH_SetTarget(dwTargetID)
 end
 
 function JH.SetTempTarget(dwMemberID, bEnter)
+	if JH_TAR_TEMP_STATUS == bEnter then -- 防止偶尔UIBUG
+		return
+	end
+	JH_TAR_TEMP_STATUS = bEnter
 	local dwID, dwType = Target_GetTargetData() -- 如果没有目标输出的是 nil, TARGET.NO_TARGET
 	if bEnter then
 		JH_TAR_TEMP = dwID
