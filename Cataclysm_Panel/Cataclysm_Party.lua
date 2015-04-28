@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 13:52:25
+-- @Last Modified time: 2015-04-28 22:35:40
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -1206,7 +1206,7 @@ function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) -- 重绘三角扇
 	end
 end
 
-function CTM:Send_RaidReadyConfirm()
+function CTM:Send_RaidReadyConfirm(bDisable)
 	if JH.IsLeader() then
 		self:Clear_RaidReadyConfirm()
 		for k, v in pairs(CTM_CACHE) do
@@ -1217,19 +1217,21 @@ function CTM:Send_RaidReadyConfirm()
 				end
 			end
 		end
-		Send_RaidReadyConfirm()
-		JH.DelayCall(5000, function()
-			for k, v in pairs(CTM_CACHE) do
-				if v:IsValid() then
-					if v:Lookup("Image_ReadyCover"):IsVisible() or v:Lookup("Image_NotReady"):IsVisible() then
-						JH.Confirm(g_tStrings.STR_RAID_READY_CONFIRM_RESET .. "?", function()
-							self:Clear_RaidReadyConfirm()
-						end)
-						break
+		if not bDisable then
+			Send_RaidReadyConfirm()
+			JH.DelayCall(5000, function()
+				for k, v in pairs(CTM_CACHE) do
+					if v:IsValid() then
+						if v:Lookup("Image_ReadyCover"):IsVisible() or v:Lookup("Image_NotReady"):IsVisible() then
+							JH.Confirm(g_tStrings.STR_RAID_READY_CONFIRM_RESET .. "?", function()
+								self:Clear_RaidReadyConfirm()
+							end)
+							break
+						end
 					end
 				end
-			end
-		end)
+			end)
+		end
 	end
 end
 
