@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 09:12:08
+-- @Last Modified time: 2015-04-28 14:45:21
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -24,7 +24,7 @@ end
 local RGES_CACHE = {}
 
 do
-	for k, v in ipairs({"Buff", "DeBuff", "Casting", "Npc"}) do
+	for k, v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 		RGES_CACHE[v] = {}
 	end
 end
