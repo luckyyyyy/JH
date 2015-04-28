@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 09:33:18
+-- @Last Modified time: 2015-04-28 13:26:29
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -136,6 +136,7 @@ function _PartyBuffList.UpdateFrame()
 				end
 			end).self.OnLButtonDown = function()
 				SetTarget(TARGET.PLAYER, v.dwID)
+				FireEvent("JH_TAR_TEMP_UPDATE", v.dwID)
 			end
 			ui:Append("Box", "Box", { x = 165, y = 4, w = 30, h = 30,icon = Table_GetBuffIconID(v.dwBuffID, v.nLevel) }):Staring(true)
 			ui:Append("Text", { x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
