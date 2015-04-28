@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-22 10:07:22
+-- @Last Modified time: 2015-04-28 14:31:40
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -159,8 +159,7 @@ function _JH_About.PS.OnPanelActive(frame)
 			JH.bDebug = not JH.bDebug
 		end
 	end)
-	ui:Append("Text", "Memory", { x = 0, y = 340, alpha = 30, txt = _JH_About.GetMemory() })
-	:Click(function()
+	ui:Append("Text", "Memory", { x = 0, y = 340, alpha = 30, txt = _JH_About.GetMemory() }):Click(function()
 		collectgarbage("collect")
 		ui:Fetch("Memory"):Text(_JH_About.GetMemory())
 	end)
@@ -191,12 +190,12 @@ JH.RegisterEvent("CALL_LUA_ERROR", function()
 		OutputMessage("MSG_SYS", arg0)
 	end
 end)
--- protect
+
+-- public
 local _About = {
-	OnTaboxCheck = _JH_About.PS.OnTaboxCheck,
+	OnTaboxCheck  = _JH_About.PS.OnTaboxCheck,
 	OnPanelActive = _JH_About.PS.OnPanelActive,
 	GetAuthorInfo = _JH_About.PS.GetAuthorInfo,
-	CheckNameEx = _JH_About.CheckNameEx,
+	CheckNameEx   = _JH_About.CheckNameEx,
 }
-JH_About = {}
-setmetatable(JH_About, { __metatable = true, __index = _About, __newindex = function() end } )
+JH_About = setmetatable({}, { __metatable = true, __index = _About, __newindex = function() end } )
