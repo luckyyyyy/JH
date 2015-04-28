@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 14:45:21
+-- @Last Modified time: 2015-04-28 15:43:14
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -1794,7 +1794,8 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 	end
 	local fLogicTime = JH.GetLogicTime()
 	local data = GetCacheData("Npc", dwTemplateID)
-	if data then
+
+	if data and not data.bNotAppearScrutiny then
 		local bEventCanFire = true
 		if data.nEventAlertCount and data.nEventAlertCount > 1 then
 			if math.abs(JH.GetLogicTime() - (data.fLastEventCountTime or 0)) > tonumber(data.nMinChatAlertCD or 7) then
