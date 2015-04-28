@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-25 22:30:46
+-- @Last Modified time: 2015-04-28 22:35:46
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -390,7 +390,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 				TEAM_VOTE_REQUEST[v] = false
 			end
 			if JH.IsLeader() then
-				Grid_CTM:Send_RaidReadyConfirm()
+				Grid_CTM:Send_RaidReadyConfirm(true)
 			end
 		end
 	elseif szEvent == "TEAM_VOTE_RESPOND" then

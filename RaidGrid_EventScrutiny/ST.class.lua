@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 16:44:37
+-- @Last Modified time: 2015-04-28 18:47:19
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -35,7 +35,6 @@ local function GetCountdown(tTime)
 		return nil
 	else
 		tsort(tab, function(a, b) return a.nTime < b.nTime end)
-		-- Output(tab)
 		return tab
 	end
 end
@@ -50,16 +49,16 @@ end
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
 local function CreateCountdown(nType, szKey, tArgs)
-	local t = {}
+	local arg = {}
 	local nTime = GetTime()
 	if type(tArgs.nTime) == "number" then
-		t = tArgs
+		arg = tArgs
 	else
 		local tCountdown = GetCountdown(tArgs.nTime)
 		if tCountdown then
 			tArgs.nTime    = tCountdown
 			tArgs.nRefresh = tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
-			t = tCountdown[1]
+			arg            = tCountdown[1]
 		else
 			return JH.Sysmsg2("tCountdown ERROR nType: " .. nType .. " szKey:" .. szKey .. " tCountdown:" .. tArgs.nTime)
 		end
@@ -67,10 +66,10 @@ local function CreateCountdown(nType, szKey, tArgs)
 	local ui = ST_CACHE[nType][szKey]
 	if ui and ui:IsValid() and ui.nRefresh then
 		if (nTime - ui.nCreate) / 1000 > ui.nRefresh then
-			ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon or 13):Switch(false)
+			ST.new(nType, szKey, tArgs):SetInfo(arg, tArgs.nIcon or 13):Switch(false)
 		end
 	else
-		ST.new(nType, szKey, tArgs):SetInfo(t, tArgs.nIcon or 13):Switch(false)
+		ST.new(nType, szKey, tArgs):SetInfo(arg, tArgs.nIcon or 13):Switch(false)
 	end
 end
 
@@ -233,7 +232,7 @@ function ST:ctor(nType, szKey, tArgs)
 		end
 		return self
 	else
-		error("Conflict! ERROR key:" .. szKey)
+		error("Conflict! ERROR nType: " .. nType .. " szKey:" .. szKey)
 	end
 end
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
