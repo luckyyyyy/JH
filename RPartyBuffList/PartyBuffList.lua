@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 07:28:41
+-- @Last Modified time: 2015-04-28 09:33:18
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -118,15 +118,19 @@ function _PartyBuffList.UpdateFrame()
 			local ui = GUI(wnd)
 			local nMaxLife = info.nMaxLife
 			if nMaxLife == 0 then nMaxLife = 1 end -- fix bug
-			ui:Append("Image","Life",{ x = 0, y = 0, w = 200, h = 40}):File("ui/Image/Common/money.uitex",215):Percentage(info.nCurrentLife / nMaxLife)
+			ui:Append("Image", "Life",{ x = 0, y = 0, w = 200, h = 40}):File("ui/Image/Common/money.uitex", 215):Percentage(info.nCurrentLife / nMaxLife)
 			local nDistance = JH.GetDistance(p)
 			if nDistance > 20 then
 				ui:Fetch("Life"):Alpha(120)
 			else
 				ui:Fetch("Life"):Alpha(255)
 			end
-			ui:Append("Image",{ x = 2, y = 2, w = 34, h = 34, icon = Table_GetSkillIconID(info.dwMountKungfuID) or 1435 })
+			ui:Append("Image", { x = 2, y = 2, w = 34, h = 34, icon = Table_GetSkillIconID(info.dwMountKungfuID) or 1435 })
 			ui:Hover(function(bHover)
+				local dwID, dwType = Target_GetTargetData()
+				if dwID == v.dwID and bHover then
+					return
+				end
 				if PartyBuffList.bHoverSelect then
 					JH.SetTempTarget(v.dwID, bHover)
 				end
@@ -134,8 +138,10 @@ function _PartyBuffList.UpdateFrame()
 				SetTarget(TARGET.PLAYER, v.dwID)
 			end
 			ui:Append("Box", "Box", { x = 165, y = 4, w = 30, h = 30,icon = Table_GetBuffIconID(v.dwBuffID, v.nLevel) }):Staring(true)
-			ui:Append("Text",{ x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
-			ui:Append("Animate","Animate",{ x = -50, y = 2, w = 300, h = 36}):Animate("ui/Image/Common/Box.UITex",17,-1):Toggle(dwID == v.dwID)
+			ui:Append("Text", { x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
+			if dwID == v.dwID then
+				ui:Append("Image", { x = 0, y = 0, w = 200, h = 39, alpha = 100 }):File("ui/Image/Common/TempBox.UITex", 5)
+			end
 			local bExist, tBuff = JH.HasBuff(v.dwBuffID, p)
 			if bExist then
 				local nSec = JH.GetEndTime(tBuff.nEndFrame)
@@ -202,7 +208,7 @@ function _PartyBuffList.OnBreathe()
 				ui:Fetch("Box"):OverText(ITEM_POSITION.RIGHT_BOTTOM, math.floor(nSec) .. "\"", 0, 8)
 			end
 		else
-			table.remove(_PartyBuffList.tList,v.k)
+			table.remove(_PartyBuffList.tList, v.k)
 			return pcall(_PartyBuffList.UpdateFrame)
 		end
 	end
