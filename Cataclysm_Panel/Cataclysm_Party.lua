@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 13:24:05
+-- @Last Modified time: 2015-04-28 13:52:25
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -318,9 +318,10 @@ end
 
 function CTM_Party_Base.OnItemRButtonClick()
 	if not this.dwID then return end
+	local dwID = this.dwID
 	local menu = {}
 	local me = GetClientPlayer()
-	local info = CTM:GetMemberInfo(this.dwID)
+	local info = CTM:GetMemberInfo(dwID)
 	local szPath, nFrame = GetForceImage(info.dwForceID)
 	table.insert(menu, {
 		szOption = info.szName,
@@ -331,16 +332,16 @@ function CTM_Party_Base.OnItemRButtonClick()
 	})
 	if JH.IsLeader() and me.IsInRaid() then
 		table.insert(menu, { bDevide = true })
-		InsertChangeGroupMenu(menu, this.dwID)
+		InsertChangeGroupMenu(menu, dwID)
 	end
-	local info = CTM:GetMemberInfo(this.dwID)
+	local info = CTM:GetMemberInfo(dwID)
 	if this.dwID ~= me.dwID then
 		if JH.IsLeader() then
 			table.insert(menu, { bDevide = true })
 		end
-		InsertTeammateMenu(menu, this.dwID)
+		InsertTeammateMenu(menu, dwID)
 		local t = {}
-		InsertTargetMenu(t, this.dwID)
+		InsertTargetMenu(t, dwID)
 		for _, v in ipairs(t) do
 			if v.szOption == g_tStrings.LOOKUP_INFO then
 				for _, vv in ipairs(v) do
@@ -353,11 +354,11 @@ function CTM_Party_Base.OnItemRButtonClick()
 			end
 		end
 		table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function()
-			ViewInviteToPlayer(this.dwID)
+			ViewInviteToPlayer(dwID)
 		end })
 	else
 		table.insert(menu, { bDevide = true })
-		InsertPlayerMenu(menu, this.dwID)
+		InsertPlayerMenu(menu, dwID)
 		if JH.IsLeader() or JH_About.CheckNameEx() then
 			table.insert(menu, { bDevide = true })
 			table.insert(menu, { szOption = _L["take back all permissions"], rgb = { 255, 255, 0 }, fnAction = function()
