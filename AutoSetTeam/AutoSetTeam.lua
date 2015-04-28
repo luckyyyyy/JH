@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 16:57:59
+-- @Last Modified time: 2015-04-28 17:04:13
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -765,8 +765,7 @@ function WorldMark.GetEvent()
 				JH.GetShadowHandle("Handle_World_Mark"):Clear()
 			end }
 	else
-		WorldMark.tPoint = {}
-		JH.GetShadowHandle("Handle_World_Mark"):Clear()
+		WorldMark.OnCast(4906)
 	end
 end
 
