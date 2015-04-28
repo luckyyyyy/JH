@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-26 19:31:04
+-- @Last Modified time: 2015-04-28 07:27:45
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -35,7 +35,6 @@ local CTM_INIFILE            = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/
 local CTM_ITEM               = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini"
 local CTM_BUFF_ITEM          = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini"
 local CTM_IMAGES             = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/images/ForceColorBox.UITex"
-local CTM_TAR_TEMP
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET
@@ -667,8 +666,8 @@ function CTM:DrawParty(nIndex)
 				OutputTeamMemberTip(dwID, { nX, nY + 5, nW, nH })
 			end
 			local info = self:GetMemberInfo(dwID)
-			if info.bIsOnLine and GetPlayer(dwID) then
-				CTM.SetTempTarget(dwID, true)
+			if info.bIsOnLine and GetPlayer(dwID) and CFG.bTempTargetEnable then
+				JH.SetTempTarget(dwID, true)
 			end
 		end
 		-- 鼠标离开
@@ -680,8 +679,8 @@ function CTM:DrawParty(nIndex)
 			if not dwID then return	end
 			local info = self:GetMemberInfo(dwID)
 			if not info then return end -- 退租的问题
-			if info.bIsOnLine and GetPlayer(dwID) then
-				CTM.SetTempTarget(dwID, false)
+			if info.bIsOnLine and GetPlayer(dwID) and CFG.bTempTargetEnable then
+				JH.SetTempTarget(dwID, false)
 			end
 		end
 		-- 右键
@@ -1256,30 +1255,6 @@ function CTM:ChangeReadyConfirm(dwID, status)
 		else
 			h:Lookup("Image_NotReady"):Show()
 		end
-	end
-end
-
-local function CTM_SetTarget(dwTargetID)
-	if dwTargetID and dwTargetID > 0 then
-		local nType = IsPlayer(dwTargetID) and TARGET.PLAYER or TARGET.NPC
-		SetTarget(nType, dwTargetID)
-	else
-		SetTarget(TARGET.NO_TARGET, 0)
-	end
-end
-
-function CTM.SetTempTarget(dwMemberID, bEnter)
-	if not CFG.bTempTargetEnable then
-		return
-	end
-	local dwID, dwType = Target_GetTargetData() -- 如果没有目标输出的是 nil, TARGET.NO_TARGET
-	if bEnter then
-		CTM_TAR_TEMP = dwID
-		if dwMemberID ~= dwID then
-			CTM_SetTarget(dwMemberID)
-		end
-	else
-		CTM_SetTarget(CTM_TAR_TEMP)
 	end
 end
 

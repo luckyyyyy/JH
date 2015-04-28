@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 17:23:08
+-- @Last Modified time: 2015-04-28 07:28:41
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -98,7 +98,7 @@ function _PartyBuffList.UpdateFrame()
 	local container = _PartyBuffList.frame:Lookup("WndContainer_List")
 	container:Clear()
 	local dwID, dwType = Target_GetTargetData()
-	for k,v in ipairs(data) do
+	for k, v in ipairs(data) do
 		local p,info
 		if v.dwID == me.dwID then
 			p = me
@@ -126,9 +126,10 @@ function _PartyBuffList.UpdateFrame()
 				ui:Fetch("Life"):Alpha(255)
 			end
 			ui:Append("Image",{ x = 2, y = 2, w = 34, h = 34, icon = Table_GetSkillIconID(info.dwMountKungfuID) or 1435 })
-			ui:Hover(function()
-				if not PartyBuffList.bHoverSelect then return end
-				SetTarget(TARGET.PLAYER, v.dwID)
+			ui:Hover(function(bHover)
+				if PartyBuffList.bHoverSelect then
+					JH.SetTempTarget(v.dwID, bHover)
+				end
 			end).self.OnLButtonDown = function()
 				SetTarget(TARGET.PLAYER, v.dwID)
 			end

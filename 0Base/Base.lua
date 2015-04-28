@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 04:02:02
+-- @Last Modified time: 2015-04-28 07:27:31
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -15,7 +15,7 @@ local ssub, slen, schar, srep, sbyte, sformat, sgsub =
 local type, tonumber, tostring = type, tonumber, tostring
 local GetTime, GetLogicFrameCount = GetTime, GetLogicFrameCount
 local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
-local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam
+local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam, UI_GetClientPlayerID = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam, UI_GetClientPlayerID
 local setmetatable = setmetatable
 
 local ROOT_PATH   = "interface/JH/0Base/"
@@ -730,7 +730,7 @@ function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 			szText = sgsub(szText, "%$mb", tar.szName)
 		end
 		if wstring.len(szText) > 150 and not bNotLimit then
-			szText = wssub(szText, 1, 150)
+			szText = wstring.sub(szText, 1, 150)
 		end
 		tSay = {{ type = "text", text = szText .. "\n"}}
 	end
@@ -1182,12 +1182,16 @@ function JH.LoadLUAData(szPath)
 	return LoadLUAData(DATA_PATH .. szPath)
 end
 
+function JH.IsMark()
+	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) == UI_GetClientPlayerID()
+end
+
 function JH.IsLeader()
-	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == GetClientPlayer().dwID
+	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER) == UI_GetClientPlayerID()
 end
 
 function JH.IsDistributer()
-	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == GetClientPlayer().dwID
+	return GetClientTeam().GetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE) == UI_GetClientPlayerID()
 end
 
 function JH.RemoteRequest(szUrl, fnAction)
@@ -1439,6 +1443,29 @@ end
 
 function JH.AscIIDecode(szText)
 	return szText:gsub('([0-9a-f][0-9a-f])', function(s) return schar(tonumber(s, 16)) end)
+end
+-- 临时选择集中处理
+local JH_TAR_TEMP
+
+local function JH_SetTarget(dwTargetID)
+	if dwTargetID and dwTargetID > 0 then
+		local nType = IsPlayer(dwTargetID) and TARGET.PLAYER or TARGET.NPC
+		SetTarget(nType, dwTargetID)
+	else
+		SetTarget(TARGET.NO_TARGET, 0)
+	end
+end
+
+function JH.SetTempTarget(dwMemberID, bEnter)
+	local dwID, dwType = Target_GetTargetData() -- 如果没有目标输出的是 nil, TARGET.NO_TARGET
+	if bEnter then
+		JH_TAR_TEMP = dwID
+		if dwMemberID ~= dwID then
+			JH_SetTarget(dwMemberID)
+		end
+	else
+		JH_SetTarget(JH_TAR_TEMP)
+	end
 end
 
 ---------------------------------------------------------------------
