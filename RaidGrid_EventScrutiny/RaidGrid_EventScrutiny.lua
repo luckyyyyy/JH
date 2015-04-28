@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 15:09:44
+-- @Last Modified time: 2015-04-28 09:12:08
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -20,11 +20,48 @@ local function HashChange(tRecords)
 	tRecords.Hash2 = Hash2
 end
 
+-- 获取内容
+local RGES_CACHE = {}
+
+do
+	for k, v in ipairs({"Buff", "DeBuff", "Casting", "Npc"}) do
+		RGES_CACHE[v] = {}
+	end
+end
+
+local function GetData(tab, szType, dwID, nLevel)
+	for i = 1, #tab do
+		if tab[i].dwID == dwID and (not tab[i].bAlwaysCheckLevel or tab[i].nLevel == nLevel) then
+			RGES_CACHE[szType][dwID] = i
+			return tab[i]
+		end
+	end
+end
+
+local function GetCacheData(szType, dwID, nLevel)
+	local tab = RaidGrid_EventScrutiny.tRecords[szType]
+	if tab.Hash[dwID] then
+		if RGES_CACHE[szType][dwID] then
+			local data = tab[RGES_CACHE[szType][dwID]]
+			if data.dwID == dwID and (not data.bAlwaysCheckLevel or data.nLevel == nLevel) then
+				-- JH.Debug(szType .. " " .. dwID .. "_" .. (nLevel or 0) ..  " HIT")
+				return data
+			else
+				-- JH.Debug(szType .. " " .. dwID .. "_" .. (nLevel or 0) ..  " RELOOKUP")
+				return GetData(tab, szType, dwID, nLevel)
+			end
+		else
+			-- JH.Debug(szType .. " " .. dwID .. "_" .. (nLevel or 0) ..  " LOOKUP")
+			return GetData(tab, szType, dwID, nLevel)
+		end
+	end
+end
+
+
 RaidGrid_EventScrutiny = {}
 local RaidGrid_EventScrutiny = RaidGrid_EventScrutiny
 local _RE = {
 	tNpcLife = {},
-	tRequest = {},
 	szDataPath = "RGES/",
 	szName = "NONE",
 	szIniPath = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/",
@@ -76,10 +113,10 @@ JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 			end
 			local author = arg3
 			local szDataName = tData["szName"] or _L["Unknown"]
-			JH.Confirm(_L("Data Update TIPS\nTeammate: %s sent a [%s] for you, whether to join the monitoring list?",author,szDataName),function()
+			JH.Confirm(_L("Data Update TIPS\nTeammate: %s sent a [%s] for you, whether to join the monitoring list?", author, szDataName), function()
 				JH.Talk(author,_L["Joined your data"])
 				RaidGrid_EventScrutiny.Macro(tData,data[2])
-			end,function()
+			end, function()
 				JH.Talk(author,_L["Ignore your data"])
 			end)
 		end
@@ -88,7 +125,7 @@ end)
 
 function RaidGrid_EventScrutiny.OnFrameDragEnd()
 	this:CorrectPos()
-	RaidGrid_EventScrutiny.tAnchor = GetFrameAnchor(this)
+	RaidGrid_EventScrutiny.tAnchor = GetFrameAnchor(this, "TOPLEFT")
 end
 
 function RaidGrid_EventScrutiny.UpdateAnchor(frame)
@@ -187,13 +224,11 @@ RegisterCustomData("RaidGrid_Base.version")
 
 function RaidGrid_Base.TeamMarkOrg(dwID, nMark)
 	local me = GetClientPlayer()
-	if me.IsInParty() then
-		local team = GetClientTeam()
-		if me.dwID == team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK) then -- Party Mark
-			local tPartyMark = team.GetTeamMark()
-			if not tPartyMark[dwID] or tPartyMark[dwID] == 0 then
-				team.SetTeamMark(nMark, dwID)
-			end
+	local team = GetClientTeam()
+	if me.IsInParty() and JH.IsMark() then
+		local tPartyMark = team.GetTeamMark()
+		if not tPartyMark[dwID] or tPartyMark[dwID] == 0 then
+			team.SetTeamMark(nMark, dwID)
 		end
 	end
 end
@@ -286,11 +321,11 @@ function RaidGrid_Base.SendDataToTeam(data,szDataType,szClientName)
 		local str = JH.AscIIEncode(JH.JsonEncode(data))
 		local nMax = 200
 		local nTotle = math.ceil(#str / nMax)
-		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"RGES","RE_SendSOpen",szClientName)
-		for i = 1 , nTotle do
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"RGES","RE_SyncQueue",string.sub(str ,(i-1) * nMax + 1 , i * nMax))
+		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "RGES", "RE_SendSOpen", szClientName)
+		for i = 1, nTotle do
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"RGES", "RE_SyncQueue", string.sub(str ,(i-1) * nMax + 1, i * nMax))
 		end
-		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"RGES","RE_SendClose",szDataType)
+		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"RGES", "RE_SendClose", szDataType)
 		RaidGrid_Base.Message(_L["Send success, please wait 5 seconds."])
 	else
 		return JH.Alert(_L["You are not team leader or not in team"])
@@ -351,23 +386,24 @@ function RaidGrid_Base.LowAverage(tNumbers)
 end
 
 function RaidGrid_Base.GetNameAndTypeFromId(dwID)
-	local playerMember
-	local szType = _L["Unknown"]
+	local KGTarget
 	if dwID <= 0 then
-		return _L["Unknown"], szType
+		return _L["Unknown"]
 	end
 	if IsPlayer(dwID) then
-		playerMember = GetPlayer(dwID)
-		szType = "Player"
+		KGTarget = GetPlayer(dwID)
 	else
-		playerMember = GetNpc(dwID)
-		szType = "Npc"
+		KGTarget = GetNpc(dwID)
 	end
-	if not playerMember then
-		return _L["Unknown"], szType
+	if not KGTarget then
+		return _L["Unknown"]
+	else
+		if IsPlayer(dwID) then
+			return _L["(player)"] .. KGTarget.szName
+		else
+			return JH.GetTemplateName(KGTarget)
+		end
 	end
-	local szName = playerMember.szName
-	return szName or _L["Unknown"], szType
 end
 
 
@@ -1020,11 +1056,7 @@ function RaidGrid_EventCache.OnUpdateBuffDataOrg(dwMemberID, bIsRemoved, nIndex,
 	tRecord.szMapName = Table_GetMapName(player.GetMapID()) or _L["Unknown"]
 
 	if buff.dwSkillSrcID and buff.dwSkillSrcID>0 then
-		local szSkillSrcType = ""
-		tRecord.szCasterName, szSkillSrcType = RaidGrid_Base.GetNameAndTypeFromId(buff.dwSkillSrcID)
-		if szSkillSrcType == "Player" then
-			tRecord.szCasterName = _L["(player)"] .. tRecord.szCasterName
-		end
+		tRecord.szCasterName = RaidGrid_Base.GetNameAndTypeFromId(buff.dwSkillSrcID)
 	end
 
 	if IsBuffDispel then
@@ -1258,9 +1290,6 @@ end
 ----------------------------------------------------------------
 ----RaidGrid_EventCache.lua----
 ----------------------------------------------------------------
-
-
-
 
 ----------------------------------------------------------------
 ----RaidGrid_EventScrutiny.lua----
@@ -1645,119 +1674,111 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 	if not bIsRemoved then
 		fLogicTime = (nEndFrame - nLogicFrame) / GLOBAL.GAME_FPS
 	end
-
-	local tTab = RaidGrid_EventScrutiny.tRecords[szType]
-	for i = 1, #tTab do
-		if tTab[i].dwID == dwBuffID and ((RaidGrid_EventScrutiny.bNotCheckLevel and (not tTab[i].bAlwaysCheckLevel)) or tTab[i].nLevel == nLevel) then
-			if tTab[i].nRelScrutinyType then
-				if tTab[i].nRelScrutinyType == 1 then
-					--szRelScrutinyType = "只监控自己"
-					if player.dwID ~= dwMemberID then
-						return
+	local data = GetCacheData(szType, dwBuffID, nLevel)
+	if data then
+		if data.nRelScrutinyType then
+			if data.nRelScrutinyType == 1 then
+				--szRelScrutinyType = "只监控自己"
+				if player.dwID ~= dwMemberID then
+					return
+				end
+			elseif data.nRelScrutinyType == 2 then
+				--szRelScrutinyType = "队友和自己"
+				if player.dwID ~= dwMemberID and not player.IsPlayerInMyParty(dwMemberID) then
+					return
+				end
+			elseif data.nRelScrutinyType == -1 then
+				--szRelScrutinyType = "只监控敌方"
+				if not IsEnemy(player.dwID, dwMemberID) then
+					return
+				end
+			elseif data.nRelScrutinyType == -2 then
+				--szRelScrutinyType = "只监控非队友"
+				if player.dwID == dwMemberID or player.IsPlayerInMyParty(dwMemberID) then
+					return
+				end
+			end
+		end
+		local szBuffName = Table_GetBuffName(dwBuffID, nLevel)
+		if not szBuffName then return end -- 和谐
+		if not szBuffName or szBuffName == "" then
+			szBuffName = data.szName or "????"
+		end
+		if fLogicTime <= 0 then
+			if player.dwID == dwMemberID then
+				RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(data, dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
+			end
+			data.fEventTimeEnd = JH.GetLogicTime()
+		elseif not data.nEventAlertStackNum or (data.nEventAlertStackNum <= nStackNum) then
+			data.fEventTimeStart = JH.GetLogicTime()
+			data.nEventAlertTime = fLogicTime
+			data.fEventTimeEnd = data.fEventTimeStart + data.nEventAlertTime
+			if player.dwID == dwMemberID then
+				if not data.bNotAddSelfBuffAlert then
+					RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(data, dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
+				end
+				RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(data)
+			end
+			if playerMember and ((not data.bManyMembers) or ((data.bChatAlertCDEnd or 0) <= data.fEventTimeStart)) then
+				local sztInfoadd = ""
+				if data.bManyMembers then
+					data.bChatAlertCDEnd = data.fEventTimeStart + tonumber(data.nMinChatAlertCD or 7)
+					sztInfoadd = "（多人或连续）"
+				end
+				if RaidGrid_EventScrutiny.bBuffChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
+					local msg = "★ [" .. playerMember.szName .. "]" .. sztInfoadd .. "获得效果: " .. szBuffName .. " x" .. nStackNum .. "。" .. (data.tAlarmAddInfo or "")
+					if data.bChatAlertW then
+						if player.dwID == dwMemberID or (IsPlayer(dwMemberID) and player.IsPlayerInMyParty(dwMemberID)) then
+							local tInfo2 = 	{{type = "text", text = "★你★获得效果: " .. szBuffName .. " x" .. nStackNum .. "。" .. (data.tAlarmAddInfo or "")},}
+							JH.Talk(playerMember.szName,tInfo2)
+						else
+							JH.WhisperToTeamMember(msg)
+						end
 					end
-				elseif tTab[i].nRelScrutinyType == 2 then
-					--szRelScrutinyType = "队友和自己"
-					if player.dwID ~= dwMemberID and not player.IsPlayerInMyParty(dwMemberID) then
-						return
-					end
-				elseif tTab[i].nRelScrutinyType == -1 then
-					--szRelScrutinyType = "只监控敌方"
-					if not IsEnemy(player.dwID, dwMemberID) then
-						return
-					end
-				elseif tTab[i].nRelScrutinyType == -2 then
-					--szRelScrutinyType = "只监控非队友"
-					if player.dwID == dwMemberID or player.IsPlayerInMyParty(dwMemberID) then
-						return
+					if data.bChatAlertT and player.IsInParty() then
+						JH.Talk(msg)
 					end
 				end
 			end
-			local szBuffName = Table_GetBuffName(dwBuffID, nLevel)
-			if not szBuffName then return end -- 和谐
-			if not szBuffName or szBuffName == "" then
-				szBuffName = tTab[i].szName or "????"
+			if ((data.bChatAlertCDEnd2 or 0) <= data.fEventTimeStart) then
+				if data.bSkillTimer2Enable and data.nSkillTimer2 and data.nSkillTimer2>0 then
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.BUFF_ENTER, data.dwID .. "." .. data.nLevel, {
+						nTime  = data.nSkillTimer2,
+						szName = data.szSkillName2 or data.szName,
+						nIcon  = data.nIconID,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
+				end
+				data.bChatAlertCDEnd2 = data.fEventTimeStart + tonumber(data.nMinEventCD or 10)
 			end
-			if fLogicTime <= 0 then
-				if player.dwID == dwMemberID then
-					RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
+			local szmsgpre = "[" .. playerMember.szName .. "]获得效果: "
+			if player.dwID == dwMemberID then
+				szmsgpre = "★你★获得效果: "
+			end
+			local msg = szmsgpre .. szBuffName .. " x" .. nStackNum .. "。".. (data.tAlarmAddInfo or "")
+			RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwMemberID, data, msg)
+			if data.bBigFontAlarm then
+				if data.tAlarmAddInfo then
+					msg = data.tAlarmAddInfo
 				end
-				tTab[i].fEventTimeEnd = JH.GetLogicTime()
-			elseif not tTab[i].nEventAlertStackNum or (tTab[i].nEventAlertStackNum <= nStackNum) then
-				tTab[i].fEventTimeStart = JH.GetLogicTime()
-				tTab[i].nEventAlertTime = fLogicTime
-				tTab[i].fEventTimeEnd = tTab[i].fEventTimeStart + tTab[i].nEventAlertTime
-
-				if player.dwID == dwMemberID then
-					if not tTab[i].bNotAddSelfBuffAlert then
-						RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tTab[i], dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
+				FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
+			end
+			if RaidGrid_EventScrutiny.bAutoMarkEnable and data.tAutoTeamMark and data.tAutoTeamMark ~= 0 then
+				RaidGrid_Base.TeamMarkOrg(dwMemberID, data.tAutoTeamMark)
+			end
+			if IsPlayer(dwMemberID) and data.bPartyBuffList and (GetClientPlayer().IsPlayerInMyParty(dwMemberID) or dwMemberID == player.dwID) then
+				FireEvent("JH_PARTYBUFFLIST", dwMemberID, data.dwID, data.nLevel)
+			end
+			if not data.bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
+				if RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
+					if not data.bNotAddToCTM then
+						FireEvent("JH_RAID_REC_BUFF", dwMemberID, dwBuffID, nLevel, data.tRGBuffColor)
 					end
-					RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tTab[i])
-				end
-
-				if playerMember and ((not tTab[i].bManyMembers) or ((tTab[i].bChatAlertCDEnd or 0) <= tTab[i].fEventTimeStart)) then
-					local sztInfoadd = ""
-					if tTab[i].bManyMembers then
-						tTab[i].bChatAlertCDEnd = tTab[i].fEventTimeStart + tonumber(tTab[i].nMinChatAlertCD or 7)
-						sztInfoadd = "（多人或连续）"
-					end
-					if RaidGrid_EventScrutiny.bBuffChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
-						local msg = "★ [" .. playerMember.szName .. "]" .. sztInfoadd .. "获得效果: " .. szBuffName .. " x" .. nStackNum .. "。" .. (tTab[i].tAlarmAddInfo or "")
-						if tTab[i].bChatAlertW then
-							if player.dwID == dwMemberID or (IsPlayer(dwMemberID) and player.IsPlayerInMyParty(dwMemberID)) then
-								local tInfo2 = 	{{type = "text", text = "★你★获得效果: " .. szBuffName .. " x" .. nStackNum .. "。" .. (tTab[i].tAlarmAddInfo or "")},}
-								JH.Talk(playerMember.szName,tInfo2)
-							else
-								JH.WhisperToTeamMember(msg)
-							end
-						end
-						if tTab[i].bChatAlertT and player.IsInParty() then
-							JH.Talk(msg)
-						end
-					end
-				end
-				if ((tTab[i].bChatAlertCDEnd2 or 0) <= tTab[i].fEventTimeStart) then
-					if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
-						FireEvent("JH_ST_CREATE", JH_ST_TYPE.BUFF_ENTER, tTab[i].dwID .. "." .. tTab[i].nLevel, {
-							nTime  = tTab[i].nSkillTimer2,
-							szName = tTab[i].szSkillName2 or tTab[i].szName,
-							nIcon  = tTab[i].nIconID,
-							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
-						})
-					end
-					tTab[i].bChatAlertCDEnd2 = tTab[i].fEventTimeStart + tonumber(tTab[i].nMinEventCD or 10)
-				end
-				local szmsgpre = "[" .. playerMember.szName .. "]获得效果: "
-				if player.dwID == dwMemberID then
-					szmsgpre = "★你★获得效果: "
-				end
-				local msg = szmsgpre .. szBuffName .. " x" .. nStackNum .. "。".. (tTab[i].tAlarmAddInfo or "")
-
-				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwMemberID, tTab[i], msg)
-				if tTab[i].bBigFontAlarm then
-					if tTab[i].tAlarmAddInfo then
-						msg = tTab[i].tAlarmAddInfo
-					end
-					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
-				end
-
-				if RaidGrid_EventScrutiny.bAutoMarkEnable and tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
-					RaidGrid_Base.TeamMarkOrg(dwMemberID, tTab[i].tAutoTeamMark)
-				end
-				if IsPlayer(dwMemberID) and tTab[i].bPartyBuffList and (GetClientPlayer().IsPlayerInMyParty(dwMemberID) or dwMemberID == player.dwID) then
-					FireEvent("JH_PARTYBUFFLIST", dwMemberID, tTab[i].dwID, tTab[i].nLevel)
-				end
-				if not tTab[i].bOnlySelfSrcAddCTM or dwSkillSrcID == player.dwID then
-					if RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable then
-						if not tTab[i].bNotAddToCTM then
-							FireEvent("JH_RAID_REC_BUFF", dwMemberID, dwBuffID, nLevel, tTab[i].tRGBuffColor)
-						end
-					end
-				end
-				if tTab[i].bScreenHead then
-					FireEvent("JH_SCREENHEAD", dwMemberID, { type = tTab[i].szType, dwID = tTab[i].dwID, szName = tTab[i].szName, col = tTab[i].tRGBuffColor })
 				end
 			end
-			return
+			if data.bScreenHead then
+				FireEvent("JH_SCREENHEAD", dwMemberID, { type = data.szType, dwID = data.dwID, szName = data.szName, col = data.tRGBuffColor })
+			end
 		end
 	end
 end
@@ -1771,140 +1792,126 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 	if not RaidGrid_EventScrutiny.bEnable then
 		return
 	end
-
-	if not RaidGrid_EventScrutiny.IsRecordInList({dwID = dwTemplateID}, "Npc") then
-		return
-	end
 	local fLogicTime = JH.GetLogicTime()
-	local tTab = RaidGrid_EventScrutiny.tRecords["Npc"]
-	for i = 1, #tTab do
-		if tTab[i].dwID == dwTemplateID and not tTab[i].bNotAppearScrutiny then
-			local bEventCanFire = true
-			if tTab[i].nEventAlertCount and tTab[i].nEventAlertCount > 1 then
-				if math.abs(JH.GetLogicTime() - (tTab[i].fLastEventCountTime or 0)) > tonumber(tTab[i].nMinChatAlertCD or 7) then
-					tTab[i].nEventCount = nil
-				end
-				tTab[i].fLastEventCountTime = JH.GetLogicTime()
-				tTab[i].nEventCount = (tTab[i].nEventCount or 0) + 1
-				if tTab[i].nEventCount == tTab[i].nEventAlertCount then
-					tTab[i].nEventCount = nil
-					bEventCanFire = true
-				else
-					bEventCanFire = false
-				end
+	local data = GetCacheData("Npc", dwTemplateID)
+	if data then
+		local bEventCanFire = true
+		if data.nEventAlertCount and data.nEventAlertCount > 1 then
+			if math.abs(JH.GetLogicTime() - (data.fLastEventCountTime or 0)) > tonumber(data.nMinChatAlertCD or 7) then
+				data.nEventCount = nil
 			end
-
-			if tTab[i].bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable then
-				if tTab[i].nMarkCount and (tTab[i].nMarkCount >= (tTab[i].nMaxMarkCount or 10)) then
-					tTab[i].nMarkCount = nil
-					tTab[i].fLastMarkCountTime = nil
-				end
-				local TeamMarkIndex = 1
-				if tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
-					TeamMarkIndex = tTab[i].tAutoTeamMark
-				end
-				tTab[i].nMarkCount = (tTab[i].nMarkCount or 0) + 1
-				if (TeamMarkIndex + tTab[i].nMarkCount - 1) <= 10 then
-					TeamMarkIndex = TeamMarkIndex + tTab[i].nMarkCount - 1
-				else
-					tTab[i].nMarkCount = 1
-				end
-				if TeamMarkIndex>=1 and TeamMarkIndex<=10 then
-					RaidGrid_Base.TeamMarkOrg(npc.dwID, TeamMarkIndex)
-				end
+			data.fLastEventCountTime = JH.GetLogicTime()
+			data.nEventCount = (data.nEventCount or 0) + 1
+			if data.nEventCount == data.nEventAlertCount then
+				data.nEventCount = nil
+				bEventCanFire = true
+			else
+				bEventCanFire = false
 			end
-
-			if tTab[i].bScreenHead then
-				FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = tTab[i].tAlarmAddInfo, col = tTab[i].tRGBuffColor })
+		end
+		if data.bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable then
+			if data.nMarkCount and (data.nMarkCount >= (data.nMaxMarkCount or 10)) then
+				data.nMarkCount = nil
+				data.fLastMarkCountTime = nil
 			end
-			if bEventCanFire and tTab[i].nEventAlertTime and tTab[i].nEventAlertTime > 0 then
-				-- 记录平均数
-				if dwTemplateID and tTab[i].fLastNpcAppearTime and fLogicTime >= tonumber(tTab[i].nMinChatAlertCD or 7) + tTab[i].fLastNpcAppearTime and fLogicTime <= 1200 + tTab[i].fLastNpcAppearTime then
-					local npc2 = GetNpcTemplate(dwTemplateID)
-					if npc2 then
-						local fTimeLast = fLogicTime - tTab[i].fLastNpcAppearTime
-						tTab[i].tEventTimeCache = tTab[i].tEventTimeCache or {}
-						table.insert(tTab[i].tEventTimeCache, 1, fTimeLast)
-						tTab[i].tEventTimeCache[11] = nil
-						if fTimeLast < (tTab[i].fMinTime or 999999) then
-							tTab[i].fMinTime = fTimeLast
+			local TeamMarkIndex = 1
+			if data.tAutoTeamMark and data.tAutoTeamMark ~= 0 then
+				TeamMarkIndex = data.tAutoTeamMark
+			end
+			data.nMarkCount = (data.nMarkCount or 0) + 1
+			if (TeamMarkIndex + data.nMarkCount - 1) <= 10 then
+				TeamMarkIndex = TeamMarkIndex + data.nMarkCount - 1
+			else
+				data.nMarkCount = 1
+			end
+			if TeamMarkIndex>=1 and TeamMarkIndex<=10 then
+				RaidGrid_Base.TeamMarkOrg(npc.dwID, TeamMarkIndex)
+			end
+		end
+		if data.bScreenHead then
+			FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.tAlarmAddInfo, col = data.tRGBuffColor })
+		end
+		if bEventCanFire and data.nEventAlertTime and data.nEventAlertTime > 0 then
+			-- 记录平均数
+			if dwTemplateID and data.fLastNpcAppearTime and fLogicTime >= tonumber(data.nMinChatAlertCD or 7) + data.fLastNpcAppearTime and fLogicTime <= 1200 + data.fLastNpcAppearTime then
+				local npc2 = GetNpcTemplate(dwTemplateID)
+				if npc2 then
+					local fTimeLast = fLogicTime - data.fLastNpcAppearTime
+					data.tEventTimeCache = data.tEventTimeCache or {}
+					table.insert(data.tEventTimeCache, 1, fTimeLast)
+					data.tEventTimeCache[11] = nil
+					if fTimeLast < (data.fMinTime or 999999) then
+						data.fMinTime = fTimeLast
+					end
+					if data.nAutoEventTimeMode == AUTO_EVENTTIME_MODE.MIN then
+						if data.fMinTime and data.fMinTime > 0 then
+							data.nEventAlertTime = math.floor(data.fMinTime)
 						end
-						if tTab[i].nAutoEventTimeMode == AUTO_EVENTTIME_MODE.MIN then
-							if tTab[i].fMinTime and tTab[i].fMinTime > 0 then
-								tTab[i].nEventAlertTime = math.floor(tTab[i].fMinTime)
-							end
-						elseif tTab[i].nAutoEventTimeMode == AUTO_EVENTTIME_MODE.AVG then
-							local nAvg = RaidGrid_Base.LowAverage(tTab[i].tEventTimeCache or {})
-							if nAvg and nAvg > 0 then
-								tTab[i].nEventAlertTime = math.floor(nAvg)
-							end
+					elseif data.nAutoEventTimeMode == AUTO_EVENTTIME_MODE.AVG then
+						local nAvg = RaidGrid_Base.LowAverage(data.tEventTimeCache or {})
+						if nAvg and nAvg > 0 then
+							data.nEventAlertTime = math.floor(nAvg)
 						end
 					end
 				end
-
-				tTab[i].fLastNpcAppearTime = fLogicTime
-
-				-- 事件监控倒计时触发设置
-				if (tTab[i].nEventScrutinyCDEnd or 0) <= fLogicTime then
-					tTab[i].fEventTimeStart = fLogicTime
-					tTab[i].fEventTimeEnd = tTab[i].fEventTimeStart + tTab[i].nEventAlertTime
-					if not tTab[i].bNotAddToScrutiny then
-						RaidGrid_EventScrutiny.AddRecordToList(tTab[i], "Scrutiny")
-					end
-					tTab[i].nEventScrutinyCDEnd = fLogicTime + tonumber(tTab[i].nMinEventScrutinyCD or 7)
-				end
-
-				local szNpcName = JH.GetTemplateName(npc)
-
-				if ((tTab[i].bChatAlertCDEnd2 or 0) <= fLogicTime) then
-					if RaidGrid_EventScrutiny.bAutoNewSkillTimer and tTab[i].bAddToSkillTimer then
-						FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, tTab[i].dwID .. "C", { -- 这个好像是中央倒计时
-							nTime  = tTab[i].nEventAlertTime,
-							szName = tTab[i].szName,
-							nIcon  = tTab[i].nIconID or 2026,
-							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
-						})
-					end
-					if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
-						FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, tTab[i].dwID .. "C2", { -- 第二中央倒计时的
-							nTime  = tTab[i].nSkillTimer2,
-							szName = tTab[i].szSkillName2 or tTab[i].szName,
-							nIcon  = tTab[i].nIconID or 2026,
-							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
-						})
-					end
-					if tTab[i].szTimerSet then
-						FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, tTab[i].dwID .. "F", { -- 分段倒计时
-							nTime  = tTab[i].szTimerSet,
-							nIcon  = tTab[i].nIconID or 2026,
-							bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
-						})
-					end
-					tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
-				end
-				if (tTab[i].bChatAlertCDEnd or 0) <= fLogicTime then
-
-					if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
-						local msg = _L("* [%s] enter %s",szNpcName,tTab[i].tAlarmAddInfo or "")
-						if tTab[i].bChatAlertW then
-							JH.WhisperToTeamMember(msg)
-						end
-						if tTab[i].bChatAlertT then
-							JH.Talk(msg)
-						end
-					end
-					local msg = _L("[%s] enter %s",szNpcName,tTab[i].tAlarmAddInfo or "")
-					RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, tTab[i], msg)
-					if tTab[i].bBigFontAlarm then
-						FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID) }, true)
-					end
-					if not tTab[i].bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable and tTab[i].tAutoTeamMark and tTab[i].tAutoTeamMark ~= 0 then
-						RaidGrid_Base.TeamMarkOrg(npc.dwID, tTab[i].tAutoTeamMark)
-					end
-					tTab[i].bChatAlertCDEnd = fLogicTime + tonumber(tTab[i].nMinChatAlertCD or 7)
-				end
 			end
-			return
+			data.fLastNpcAppearTime = fLogicTime
+			-- 事件监控倒计时触发设置
+			if (data.nEventScrutinyCDEnd or 0) <= fLogicTime then
+				data.fEventTimeStart = fLogicTime
+				data.fEventTimeEnd = data.fEventTimeStart + data.nEventAlertTime
+				if not data.bNotAddToScrutiny then
+					RaidGrid_EventScrutiny.AddRecordToList(data, "Scrutiny")
+				end
+				data.nEventScrutinyCDEnd = fLogicTime + tonumber(data.nMinEventScrutinyCD or 7)
+			end
+			local szNpcName = JH.GetTemplateName(npc)
+			if ((data.bChatAlertCDEnd2 or 0) <= fLogicTime) then
+				if RaidGrid_EventScrutiny.bAutoNewSkillTimer and data.bAddToSkillTimer then
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, data.dwID .. "C", { -- 这个好像是中央倒计时
+						nTime  = data.nEventAlertTime,
+						szName = data.szName,
+						nIcon  = data.nIconID or 2026,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
+				end
+				if data.bSkillTimer2Enable and data.nSkillTimer2 and data.nSkillTimer2>0 then
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, data.dwID .. "C2", { -- 第二中央倒计时的
+						nTime  = data.nSkillTimer2,
+						szName = data.szSkillName2 or data.szName,
+						nIcon  = data.nIconID or 2026,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
+				end
+				if data.szTimerSet then
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, data.dwID .. "F", { -- 分段倒计时
+						nTime  = data.szTimerSet,
+						nIcon  = data.nIconID or 2026,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
+				end
+				data.bChatAlertCDEnd2 = fLogicTime + tonumber(data.nMinEventCD or 10)
+			end
+			if (data.bChatAlertCDEnd or 0) <= fLogicTime then
+				if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
+					local msg = _L("* [%s] enter %s",szNpcName,data.tAlarmAddInfo or "")
+					if data.bChatAlertW then
+						JH.WhisperToTeamMember(msg)
+					end
+					if data.bChatAlertT then
+						JH.Talk(msg)
+					end
+				end
+				local msg = _L("[%s] enter %s",szNpcName,data.tAlarmAddInfo or "")
+				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, data, msg)
+				if data.bBigFontAlarm then
+					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID) }, true)
+				end
+				if not data.bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable and data.tAutoTeamMark and data.tAutoTeamMark ~= 0 then
+					RaidGrid_Base.TeamMarkOrg(npc.dwID, data.tAutoTeamMark)
+				end
+				data.bChatAlertCDEnd = fLogicTime + tonumber(data.nMinChatAlertCD or 7)
+			end
 		end
 	end
 end
@@ -1919,58 +1926,45 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 		return
 	end
 
-	if not RaidGrid_EventScrutiny.IsRecordInList({dwID = dwTemplateID}, "Npc") then
-		return
-	end
-
-	local tTab = RaidGrid_EventScrutiny.tRecords["Npc"]
-	for i = 1, #tTab do
-		if tTab[i].dwID == dwTemplateID then
-			if not tTab[i].bNpcLeaveScrutiny then return end
-			local bEventCanFire = true
-			if tTab[i].bNpcAllLeave then
-				local aNpc = JH.GetAllNpc()
-				for k, v in pairs(aNpc) do
-					if v.dwTemplateID == dwTemplateID and v.dwID ~= npc.dwID then
-						bEventCanFire = false
-						return
-					end
+	local data = GetCacheData("Npc", dwTemplateID)
+	if data then
+		if not data.bNpcLeaveScrutiny then return end
+		local bEventCanFire = true
+		if data.bNpcAllLeave then
+			local aNpc = JH.GetAllNpc()
+			for k, v in pairs(aNpc) do
+				if v.dwTemplateID == dwTemplateID and v.dwID ~= npc.dwID then
+					bEventCanFire = false
+					return
 				end
 			end
-
-			if bEventCanFire then
-				RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tTab[i])
-				local szNpcName = JH.GetTemplateName(npc)
-
-				if not szNpcName or szNpcName == "" then
-					szNpcName = tTab[i].szName
-					if szNpcName == "" then
-						szNpcName = tostring(dwTemplateID)
-					end
-				end
-
-				if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
-					local msg = _L("* [%s] leave",szNpcName)
-					if tTab[i].bChatAlertW then
-						JH.WhisperToTeamMember(msg)
-					end
-					if tTab[i].bChatAlertT then
-						JH.Talk(msg)
-					end
-				end
-				local msg = _L("[%s] leave",szNpcName)
-				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, tTab[i], msg, true)
-				if tTab[i].bBigFontAlarm then
-					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID ) }, true)
+		end
+		if bEventCanFire then
+			RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(data)
+			local szNpcName = JH.GetTemplateName(npc)
+			if not szNpcName or szNpcName == "" then
+				szNpcName = data.szName
+				if szNpcName == "" then
+					szNpcName = tostring(dwTemplateID)
 				end
 			end
-			return
+			if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
+				local msg = _L("* [%s] leave",szNpcName)
+				if data.bChatAlertW then
+					JH.WhisperToTeamMember(msg)
+				end
+				if data.bChatAlertT then
+					JH.Talk(msg)
+				end
+			end
+			local msg = _L("[%s] leave",szNpcName)
+			RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, data, msg, true)
+			if data.bBigFontAlarm then
+				FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID ) }, true)
+			end
 		end
 	end
 end
-
-
-
 
 function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSkillLevel, szTargetIDOrName)
 	local player = GetClientPlayer()
@@ -1981,198 +1975,166 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 		return
 	end
 
-	if not RaidGrid_EventScrutiny.bCastingScrutinyAllEnable and not JH.IsInDungeon(true) then
-		return
-	end
-
 	local fLogicTime = JH.GetLogicTime()
-	local tTab = RaidGrid_EventScrutiny.tRecords["Casting"]
 
-	local target
-	local ISTargetNPC = false
-	if RaidGrid_EventScrutiny.bCastingScrutinyAllEnable and GetPlayer(dwID) then
-		target = GetPlayer(dwID)
-	elseif GetNpc(dwID) then
-		target = GetNpc(dwID)
-		ISTargetNPC = true
-	else
-		return
-	end
-
+	local target = IsPlayer(dwID) and GetPlayer(dwID) or GetNpc(dwID)
 	local sarg0 = arg0
-
-	if target then
-		if RaidGrid_EventScrutiny.IsRecordInList({dwID = dwSkillID,nLevel = dwSkillLevel}, "Casting") then
-			for i = 1, #tTab do
-				if tTab[i].dwID == dwSkillID and ((RaidGrid_EventScrutiny.bNotCheckLevel and (not tTab[i].bAlwaysCheckLevel)) or tTab[i].nLevel == dwSkillLevel) then
-					if tTab[i].bTargetSkillOnly then
-						local tarType, tardwID = player.GetTarget()
-						if not tardwID or dwID ~= tardwID then
-							return
-						end
-					end
-					if tTab[i].nRelScrutinyType then
-						if tTab[i].nRelScrutinyType == 1 then
-							--szRelScrutinyType = "只监控自己"
-							if player.dwID ~= dwID then
-								return
-							end
-						elseif tTab[i].nRelScrutinyType == 2 then
-							--szRelScrutinyType = "队友和自己"
-							if player.dwID ~= dwID and not player.IsPlayerInMyParty(dwID) then
-								return
-							end
-						elseif tTab[i].nRelScrutinyType == -1 then
-							--szRelScrutinyType = "只监控敌方"
-							if not IsEnemy(player.dwID, dwID) then
-								return
-							end
-						elseif tTab[i].nRelScrutinyType == -2 then
-							--szRelScrutinyType = "只监控非队友"
-							if player.dwID == dwID or player.IsPlayerInMyParty(dwID) then
-								return
-							end
-						end
-					end
-					local szSkillName = Table_GetSkillName(dwSkillID, dwSkillLevel)
-					if not szSkillName then return end -- 和谐
-					if not szSkillName or szSkillName == "" then
-						szSkillName = tTab[i].szName or "????"
-					end
-					if tTab[i].nEventAlertTime and tTab[i].nEventAlertTime > 0 then
-						-- 记录平均数
-						if dwSkillID and tTab[i].fLastSkillAppearTime and fLogicTime >= tonumber(tTab[i].nMinChatAlertCD or 7) + tTab[i].fLastSkillAppearTime and fLogicTime <= 1200 + tTab[i].fLastSkillAppearTime then
-							local fTimeLast = fLogicTime - tTab[i].fLastSkillAppearTime
-							tTab[i].tEventTimeCache = tTab[i].tEventTimeCache or {}
-							table.insert(tTab[i].tEventTimeCache, 1, fTimeLast)
-							tTab[i].tEventTimeCache[11] = nil
-							if fTimeLast < (tTab[i].fMinTime or 999999) then
-								tTab[i].fMinTime = fTimeLast
-							end
-							if tTab[i].nAutoEventTimeMode == AUTO_EVENTTIME_MODE.MIN then
-								if tTab[i].fMinTime and tTab[i].fMinTime > 0 then
-									tTab[i].nEventAlertTime = math.floor(tTab[i].fMinTime)
-								end
-							elseif tTab[i].nAutoEventTimeMode == AUTO_EVENTTIME_MODE.AVG then
-								local nAvg = RaidGrid_Base.LowAverage(tTab[i].tEventTimeCache or {})
-								if nAvg and nAvg > 0 then
-									tTab[i].nEventAlertTime = math.floor(nAvg)
-								end
-							end
-						end
-
-						if ((tTab[i].bChatAlertCDEnd2 or 0) <= fLogicTime) then
-							if RaidGrid_EventScrutiny.bAutoNewSkillTimer and tTab[i].bAddToSkillTimer then
-								FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, tTab[i].dwID .. tTab[i].nLevel .. "C", { -- 这个好像是中央倒计时
-									nTime  = tTab[i].nEventAlertTime,
-									szName = tTab[i].szName,
-									nIcon  = tTab[i].nIconID or 13,
-									bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
-								})
-								tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
-							end
-							if tTab[i].bSkillTimer2Enable and tTab[i].nSkillTimer2 and tTab[i].nSkillTimer2>0 then
-								FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, tTab[i].dwID .. "_" .. tTab[i].nLevel .. "C2", { -- 这个好像是中央倒计时
-									nTime  = tTab[i].nSkillTimer2,
-									szName = tTab[i].szSkillName2 or tTab[i].szName,
-									nIcon  = tTab[i].nIconID or 13,
-									bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
-								})
-								tTab[i].bChatAlertCDEnd2 = fLogicTime + tonumber(tTab[i].nMinEventCD or 10)
-							end
-						end
-						tTab[i].fLastSkillAppearTime = fLogicTime
-
-						-- 事件监控倒计时触发设置
-						if (tTab[i].nEventScrutinyCDEnd or 0) <= fLogicTime then
-							tTab[i].fEventTimeStart = fLogicTime
-							tTab[i].fEventTimeEnd = tTab[i].fEventTimeStart + tTab[i].nEventAlertTime
-							if not tTab[i].bNotAddToScrutiny then
-								RaidGrid_EventScrutiny.AddRecordToList(tTab[i], "Scrutiny")
-							end
-							tTab[i].nEventScrutinyCDEnd = fLogicTime + tonumber(tTab[i].nMinEventScrutinyCD or 7)
-						end
-
-						if ((tTab[i].bChatAlertCDEnd or 0) <= fLogicTime) then
-
-							RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tTab[i])
-
-							local szTargetName = _L["Unknown"]
-							local bTargetNameIsPlayer = false
-							if RaidGrid_EventScrutiny.bCastingTargetScrutinyEnable and (not tTab[i].bNotCastTargetScrutinyEnable) then
-								if (not szTargetIDOrName or tonumber(szTargetIDOrName) <= 0) then
-									local nTargetTargetType, dwTargetTargetID = target.GetTarget()
-									if not (not dwTargetTargetID or dwTargetTargetID <= 0) then
-										if IsPlayer(dwTargetTargetID) then
-											if GetPlayer(dwTargetTargetID) then
-												szTargetName = GetPlayer(dwTargetTargetID).szName
-												bTargetNameIsPlayer = true
-											end
-										else
-											szTargetName = JH.GetTemplateName(GetNpc(dwTargetTargetID))
-										end
-									end
-								else
-									local dwTargetTargetID = tonumber(szTargetIDOrName)
-									if not (not dwTargetTargetID or dwTargetTargetID <= 0) then
-										if IsPlayer(dwTargetTargetID) then
-											if GetPlayer(dwTargetTargetID) then
-												szTargetName = GetPlayer(dwTargetTargetID).szName
-												bTargetNameIsPlayer = true
-											end
-										else
-											szTargetName = JH.GetTemplateName(GetNpc(dwTargetTargetID))
-										end
-									end
-								end
-							end
-
-							local szInfoTemp = "。"
-							if szTargetName and szTargetName ~= "" and szTargetName ~= _L["Unknown"] then
-								szInfoTemp = "，目标：[" .. szTargetName .. "]。"
-								if player.szName == szTargetName then
-									szInfoTemp = "，目标：★" .. szTargetName .. "★。"
-								end
-							end
-
-							local szInfoTemp2 = "]释放了："
-							if szCastType == "UI_OME_SKILL_CAST_LOG" then
-								szInfoTemp2 = "]开始吟唱："
-							end
-							local szName = JH.GetTemplateName(target)
-							if RaidGrid_EventScrutiny.bCastingChatAlertEnable and RaidGrid_EventScrutiny.bCastTargetChatAlertEnable and bTargetNameIsPlayer and szInfoTemp ~= "。" and tTab[i].bCastTargetChatAlertW then
-								local tInfo2 = {{type = "text", text = "★ [" .. szName .. szInfoTemp2 .. szSkillName .. "，目标为：★你★。" .. (tTab[i].tAlarmAddInfo or "")},}
-								JH.Talk(szTargetName,tInfo2)
-							end
-
-							if player.IsInParty() and RaidGrid_EventScrutiny.bCastingChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
-								local tInfo =  "★ [" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (tTab[i].tAlarmAddInfo or "")
-								if tTab[i].bChatAlertW then
-									JH.WhisperToTeamMember(tInfo)
-								end
-								if tTab[i].bChatAlertT then
-									JH.Talk(tInfo)
-								end
-							end
-
-							local msg = "[" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (tTab[i].tAlarmAddInfo or "")
-							RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwID, tTab[i], msg)
-							if tTab[i].bBigFontAlarm then
-								FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
-							end
-							tTab[i].bChatAlertCDEnd = fLogicTime + tonumber(tTab[i].nMinChatAlertCD or 7)
-
-						end
-					end
-					if sarg0 == "UI_OME_SKILL_CAST_LOG" and tTab[i].bScreenHead then
-						FireEvent("JH_SCREENHEAD", target.dwID, { type = "Skill", txt = tTab[i].szName, col = tTab[i].tRGBuffColor })
-					end
-					if RaidGrid_EventScrutiny.bCastingReadingBar and sarg0 == "UI_OME_SKILL_CAST_LOG" and not tTab[i].bNotReadingBar then
-						RaidGrid_ReadingBar.putOrg(target)
-					end
-					break
+	local data = GetCacheData("Casting", dwSkillID, dwSkillLevel)
+	if target and data then
+		if data.bTargetSkillOnly then
+			local tarType, tardwID = player.GetTarget()
+			if not tardwID or dwID ~= tardwID then
+				return
+			end
+		end
+		if data.nRelScrutinyType then
+			if data.nRelScrutinyType == 1 then
+				--szRelScrutinyType = "只监控自己"
+				if player.dwID ~= dwID then
+					return
+				end
+			elseif data.nRelScrutinyType == 2 then
+				--szRelScrutinyType = "队友和自己"
+				if player.dwID ~= dwID and not player.IsPlayerInMyParty(dwID) then
+					return
+				end
+			elseif data.nRelScrutinyType == -1 then
+				--szRelScrutinyType = "只监控敌方"
+				if not IsEnemy(player.dwID, dwID) then
+					return
+				end
+			elseif data.nRelScrutinyType == -2 then
+				--szRelScrutinyType = "只监控非队友"
+				if player.dwID == dwID or player.IsPlayerInMyParty(dwID) then
+					return
 				end
 			end
+		end
+		local szSkillName = Table_GetSkillName(dwSkillID, dwSkillLevel)
+		if not szSkillName then return end -- 和谐
+		if not szSkillName or szSkillName == "" then
+			szSkillName = data.szName or "????"
+		end
+		if data.nEventAlertTime and data.nEventAlertTime > 0 then
+			-- 记录平均数
+			if dwSkillID and data.fLastSkillAppearTime and fLogicTime >= tonumber(data.nMinChatAlertCD or 7) + data.fLastSkillAppearTime and fLogicTime <= 1200 + data.fLastSkillAppearTime then
+				local fTimeLast = fLogicTime - data.fLastSkillAppearTime
+				data.tEventTimeCache = data.tEventTimeCache or {}
+				table.insert(data.tEventTimeCache, 1, fTimeLast)
+				data.tEventTimeCache[11] = nil
+				if fTimeLast < (data.fMinTime or 999999) then
+					data.fMinTime = fTimeLast
+				end
+				if data.nAutoEventTimeMode == AUTO_EVENTTIME_MODE.MIN then
+					if data.fMinTime and data.fMinTime > 0 then
+						data.nEventAlertTime = math.floor(data.fMinTime)
+					end
+				elseif data.nAutoEventTimeMode == AUTO_EVENTTIME_MODE.AVG then
+					local nAvg = RaidGrid_Base.LowAverage(data.tEventTimeCache or {})
+					if nAvg and nAvg > 0 then
+						data.nEventAlertTime = math.floor(nAvg)
+					end
+				end
+			end
+			if ((data.bChatAlertCDEnd2 or 0) <= fLogicTime) then
+				if RaidGrid_EventScrutiny.bAutoNewSkillTimer and data.bAddToSkillTimer then
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, data.dwID .. data.nLevel .. "C", { -- 这个好像是中央倒计时
+						nTime  = data.nEventAlertTime,
+						szName = data.szName,
+						nIcon  = data.nIconID or 13,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
+					data.bChatAlertCDEnd2 = fLogicTime + tonumber(data.nMinEventCD or 10)
+				end
+				if data.bSkillTimer2Enable and data.nSkillTimer2 and data.nSkillTimer2>0 then
+					FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, data.dwID .. "_" .. data.nLevel .. "C2", { -- 这个好像是中央倒计时
+						nTime  = data.nSkillTimer2,
+						szName = data.szSkillName2 or data.szName,
+						nIcon  = data.nIconID or 13,
+						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+					})
+					data.bChatAlertCDEnd2 = fLogicTime + tonumber(data.nMinEventCD or 10)
+				end
+			end
+			data.fLastSkillAppearTime = fLogicTime
+			-- 事件监控倒计时触发设置
+			if (data.nEventScrutinyCDEnd or 0) <= fLogicTime then
+				data.fEventTimeStart = fLogicTime
+				data.fEventTimeEnd = data.fEventTimeStart + data.nEventAlertTime
+				if not data.bNotAddToScrutiny then
+					RaidGrid_EventScrutiny.AddRecordToList(data, "Scrutiny")
+				end
+				data.nEventScrutinyCDEnd = fLogicTime + tonumber(data.nMinEventScrutinyCD or 7)
+			end
+			if ((data.bChatAlertCDEnd or 0) <= fLogicTime) then
+				RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(data)
+				local szTargetName = _L["Unknown"]
+				local bTargetNameIsPlayer = false
+				if RaidGrid_EventScrutiny.bCastingTargetScrutinyEnable and (not data.bNotCastTargetScrutinyEnable) then
+					if (not szTargetIDOrName or tonumber(szTargetIDOrName) <= 0) then
+						local nTargetTargetType, dwTargetTargetID = target.GetTarget()
+						if not (not dwTargetTargetID or dwTargetTargetID <= 0) then
+							if IsPlayer(dwTargetTargetID) then
+								if GetPlayer(dwTargetTargetID) then
+									szTargetName = GetPlayer(dwTargetTargetID).szName
+									bTargetNameIsPlayer = true
+								end
+							else
+								szTargetName = JH.GetTemplateName(GetNpc(dwTargetTargetID))
+							end
+						end
+					else
+						local dwTargetTargetID = tonumber(szTargetIDOrName)
+						if not (not dwTargetTargetID or dwTargetTargetID <= 0) then
+							if IsPlayer(dwTargetTargetID) then
+								if GetPlayer(dwTargetTargetID) then
+									szTargetName = GetPlayer(dwTargetTargetID).szName
+									bTargetNameIsPlayer = true
+								end
+							else
+								szTargetName = JH.GetTemplateName(GetNpc(dwTargetTargetID))
+							end
+						end
+					end
+				end
+				local szInfoTemp = "。"
+				if szTargetName and szTargetName ~= "" and szTargetName ~= _L["Unknown"] then
+					szInfoTemp = "，目标：[" .. szTargetName .. "]。"
+					if player.szName == szTargetName then
+						szInfoTemp = "，目标：★" .. szTargetName .. "★。"
+					end
+				end
+				local szInfoTemp2 = "]释放了："
+				if szCastType == "UI_OME_SKILL_CAST_LOG" then
+					szInfoTemp2 = "]开始吟唱："
+				end
+				local szName = JH.GetTemplateName(target)
+				if RaidGrid_EventScrutiny.bCastingChatAlertEnable and RaidGrid_EventScrutiny.bCastTargetChatAlertEnable and bTargetNameIsPlayer and szInfoTemp ~= "。" and data.bCastTargetChatAlertW then
+					local tInfo2 = {{type = "text", text = "★ [" .. szName .. szInfoTemp2 .. szSkillName .. "，目标为：★你★。" .. (data.tAlarmAddInfo or "")},}
+					JH.Talk(szTargetName,tInfo2)
+				end
+				if player.IsInParty() and RaidGrid_EventScrutiny.bCastingChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
+					local tInfo =  "★ [" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (data.tAlarmAddInfo or "")
+					if data.bChatAlertW then
+						JH.WhisperToTeamMember(tInfo)
+					end
+					if data.bChatAlertT then
+						JH.Talk(tInfo)
+					end
+				end
+				local msg = "[" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (data.tAlarmAddInfo or "")
+				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwID, data, msg)
+				if data.bBigFontAlarm then
+					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
+				end
+				data.bChatAlertCDEnd = fLogicTime + tonumber(data.nMinChatAlertCD or 7)
+			end
+		end
+		if sarg0 == "UI_OME_SKILL_CAST_LOG" and data.bScreenHead then
+			FireEvent("JH_SCREENHEAD", target.dwID, { type = "Skill", txt = data.szName, col = data.tRGBuffColor })
+		end
+		if RaidGrid_EventScrutiny.bCastingReadingBar and sarg0 == "UI_OME_SKILL_CAST_LOG" and not data.bNotReadingBar then
+			RaidGrid_ReadingBar.putOrg(target)
 		end
 	end
 end
@@ -2253,7 +2215,7 @@ function RaidGrid_EventScrutiny.CheckNpcFightStateOrg()
 						if nIntensity > 4 then
 							RaidGrid_Base.Message(_L("[%s] (%d) Leave Fight.", tRecord.szLinkNpcName, dwTemplateID))
 						end
-						FireEvent("JH_ST_DEL", JH_ST_TYPE.NPC_FIGHT, tTab[i].dwID .. "F") -- 重置覆盖时间
+						FireEvent("JH_ST_DEL", JH_ST_TYPE.NPC_FIGHT, tTab[i].dwID .. "F", true) -- kill
 						tRecord.fEventTimeEnd = 0
 					end
 				end
@@ -2282,56 +2244,49 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 		_RE.tNpcLife = {}
 		return
 	end
-	local tTab = RaidGrid_EventScrutiny.tRecords["Npc"]
-
 	for dwID, target in pairs(RaidGrid_EventCache.tSyncEnemyChar) do
 		local dwTemplateID = target.dwTemplateID
-		if RaidGrid_EventScrutiny.IsRecordInList({dwID = dwTemplateID}, "Npc") then
-			for i = 1, #tTab do
-				if tTab[i].dwID == dwTemplateID then
-					if tTab[i].tNpcLife then
-						if not _RE.tNpcLife[dwTemplateID] then
-							_RE.tNpcLife[dwTemplateID] = {}
+		local data = GetCacheData("Npc", dwTemplateID)
+		if data then
+			if data.tNpcLife then
+				if not _RE.tNpcLife[dwTemplateID] then
+					_RE.tNpcLife[dwTemplateID] = {}
+				end
+				local nCurrentLife,nMaxLife = target.nCurrentLife,target.nMaxLife
+				local nPercentLife = nCurrentLife / nMaxLife
+				for k, v in pairs(data.tNpcLife) do
+					if nPercentLife < v[1] and not _RE.tNpcLife[dwTemplateID][v[1]] then
+						RaidGrid_RedAlarm.FlashOrg(3,v[2], false, true, 255, 0, 0)
+						FireEvent("JH_LARGETEXT", v[2], { 255, 128, 0 }, true)
+						if v[3] then
+							FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_LIFE, data.dwID, {
+								nTime  = v[3],
+								szName = v[2],
+								nIcon  = data.nIconID or 2026,
+								bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
+							})
 						end
-						local nCurrentLife,nMaxLife = target.nCurrentLife,target.nMaxLife
-						local nPercentLife = nCurrentLife / nMaxLife
-						for k, v in pairs(tTab[i].tNpcLife) do
-							if nPercentLife < v[1] and not _RE.tNpcLife[dwTemplateID][v[1]] then
-								RaidGrid_RedAlarm.FlashOrg(3,v[2], false, true, 255, 0, 0)
-								FireEvent("JH_LARGETEXT", v[2], { 255, 128, 0 }, true)
-								if v[3] then
-									FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_LIFE, tTab[i].dwID, {
-										nTime  = v[3],
-										szName = v[2],
-										nIcon  = tTab[i].nIconID or 2026,
-										bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
-									})
+						local fLogicTime = JH.GetLogicTime()
+						if (data.bChatAlertCDEnd or 0) <= fLogicTime then
+							if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
+								local tInfo = v[2]
+								if data.bChatAlertW then
+									JH.WhisperToTeamMember(tInfo)
 								end
-								local fLogicTime = JH.GetLogicTime()
-								if (tTab[i].bChatAlertCDEnd or 0) <= fLogicTime then
-									if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (tTab[i].bChatAlertW or tTab[i].bChatAlertT) then
-										local tInfo = v[2]
-										if tTab[i].bChatAlertW then
-											JH.WhisperToTeamMember(tInfo)
-										end
-										if tTab[i].bChatAlertT then
-											JH.Talk(tInfo)
-										end
-									end
-									tTab[i].bChatAlertCDEnd = fLogicTime + tonumber(tTab[i].nMinChatAlertCD or 7)
+								if data.bChatAlertT then
+									JH.Talk(tInfo)
 								end
-								_RE.tNpcLife[dwTemplateID][v[1]] = true
-								break
 							end
+							data.bChatAlertCDEnd = fLogicTime + tonumber(data.nMinChatAlertCD or 7)
 						end
+						_RE.tNpcLife[dwTemplateID][v[1]] = true
+						break
 					end
-					break
 				end
 			end
 		end
 	end
 end
-
 
 function RaidGrid_EventScrutiny.RefreshEventHandle()
 	local player = GetClientPlayer()
@@ -2573,7 +2528,7 @@ function RaidGrid_EventScrutiny.IsRecordInList(tRecord, szListIndex)
 	if not tListTable or not tListTable.Hash or not tListTable.Hash[tRecord.dwID] then
 		return
 	end
-	if not RaidGrid_EventScrutiny.bNotCheckLevel and tRecord.nLevel then
+	if tRecord.nLevel then
 		if not tListTable.Hash2[tRecord.dwID] or not tListTable.Hash2[tRecord.dwID][tRecord.nLevel] then
 			return
 		end
@@ -3091,7 +3046,7 @@ function RaidGrid_SelfBuffAlert.InitBuffBoxes()
 				end
 				local bExist, tBuff = JH.HasBuff(tRecord.dwID,player)
 				local bCanceled = false
-				if bExist and (RaidGrid_EventScrutiny.bNotCheckLevel or tRecord.nLevel == tBuff.nLevel) and tBuff.bCanCancel then
+				if bExist and tBuff.bCanCancel then
 					bCanceled = true
 					player.CancelBuff(tBuff.nIndex)
 				end
@@ -4068,7 +4023,6 @@ end
 ----------------------------------------------------------------------------------------------------------------------------------
 RaidGrid_EventScrutiny.bEnable = true;						RegisterCustomData("RaidGrid_EventScrutiny.bEnable")
 RaidGrid_EventScrutiny.bCacheEnable = false;				RegisterCustomData("RaidGrid_EventScrutiny.bCacheEnable")
-RaidGrid_EventScrutiny.bNotCheckLevel = true;
 RaidGrid_EventScrutiny.tAnchor = {};						RegisterCustomData("RaidGrid_EventScrutiny.tAnchor")
 RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable = true;		RegisterCustomData("RaidGrid_EventScrutiny.bBuffTeamScrutinyEnable")
 RaidGrid_EventScrutiny.bBuffChatAlertEnable = false;			RegisterCustomData("RaidGrid_EventScrutiny.bBuffChatAlertEnable")
