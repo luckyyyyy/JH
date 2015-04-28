@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 09:39:18
+-- @Last Modified time: 2015-04-28 13:26:04
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -1447,6 +1447,11 @@ end
 -- 临时选择集中处理
 local JH_TAR_TEMP
 local JH_TAR_TEMP_STATUS = false
+
+JH.RegisterEvent("JH_TAR_TEMP_UPDATE", function()
+	JH_TAR_TEMP = arg0
+end)
+
 local function JH_SetTarget(dwTargetID)
 	if dwTargetID and dwTargetID > 0 then
 		local nType = IsPlayer(dwTargetID) and TARGET.PLAYER or TARGET.NPC
