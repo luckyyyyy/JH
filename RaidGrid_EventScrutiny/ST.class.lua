@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 05:54:32
+-- @Last Modified time: 2015-04-30 06:17:01
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -40,7 +40,7 @@ local function GetCountdown(tTime)
 end
 -- 倒计时模块 事件名称 JH_ST_CREATE
 -- nType 倒计时类型 Compatible.lua 中的 JH_ST_TYPE
--- szKey 同一类型内唯一标识符 冲突抛出 error 错误
+-- szKey 同一类型内唯一标识符
 -- tArgs {
 --      szName   -- 倒计时名称 如果是分段就不需要传名称
 --      nTime    -- 时间  例 10,测试;25,测试2; 或 30
@@ -49,6 +49,7 @@ end
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
 -- 例子：FireEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
+-- 性能测试：for i = 10, 100 do FireEvent("JH_ST_CREATE", 0, i, { nTime = 0.1*i, nIcon = i }) end
 local function CreateCountdown(nType, szKey, tArgs)
 	local arg = {}
 	local nTime = GetTime()
