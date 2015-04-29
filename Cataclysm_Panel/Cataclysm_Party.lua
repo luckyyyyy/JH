@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 22:35:40
+-- @Last Modified time: 2015-04-29 11:19:29
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -14,7 +14,7 @@ local setmetatable = setmetatable
 local GetDistance, HasBuff, GetEndTime, IsParty, GetTarget = JH.GetDistance, JH.HasBuff, JH.GetEndTime, JH.IsParty, JH.GetTarget
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
 local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
-
+local Table_BuffIsVisible = Table_BuffIsVisible
 local CFG                    = RaidGrid_CTM_Edition
 -- global STR cache
 local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
@@ -829,6 +829,9 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 	if CTM_CACHE[arg0] and CTM_CACHE[arg0]:IsValid() then
 		local h = CTM_CACHE[arg0]:Lookup("Handle_Buff_Boxes")
 		if h:GetItemCount() >= CFG.nMaxShowBuff then
+			return
+		end
+		if not Table_BuffIsVisible(arg1, arg2) then
 			return
 		end
 		for i = 0, h:GetItemCount() - 1 do

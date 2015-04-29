@@ -1,13 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 22:35:46
+-- @Last Modified time: 2015-04-29 11:19:25
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
 local tostring = tostring
 
 local CTM_CONFIG = {
+	bDrag                = true,
 	bRaidEnable          = true,
 	bShowInRaid          = false,
 	bEditMode            = false,
@@ -306,6 +307,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 		Grid_CTM:AutoLinkAllPanel()
 	end
 	SetFrameSize(true)
+	this:EnableDrag(RaidGrid_CTM_Edition.bDrag)
 end
 -------------------------------------------------
 -- 拖动窗体 OnFrameDrag对于较大的窗口 掉帧严重
@@ -556,6 +558,19 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	end
 end
 
+function RaidGrid_CTM_Edition.OnItemMouseEnter()
+	local szName = this:GetName()
+	if szName == "Image_GKP" or szName == "Image_LootMode" or szName == "Image_LootQuality" then
+		this:SetAlpha(255)
+	end
+end
+function RaidGrid_CTM_Edition.OnItemMouseLeave()
+	local szName = this:GetName()
+	if szName == "Image_GKP" or szName == "Image_LootMode" or szName == "Image_LootQuality" then
+		this:SetAlpha(220)
+	end
+end
+
 function RaidGrid_CTM_Edition.OnMouseEnter()
 	local me = GetClientPlayer()
 	local nGroup = GetGroupTotal()
@@ -610,13 +625,20 @@ function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Cataclysm Team Panel"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable Cataclysm Team Panel"], checked = RaidGrid_CTM_Edition.bRaidEnable }):Click(EnableTeamPanel):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Only in team"], checked = RaidGrid_CTM_Edition.bShowInRaid })
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Only in team"], checked = RaidGrid_CTM_Edition.bShowInRaid })
 	:Click(function(bCheck)
 		RaidGrid_CTM_Edition.bShowInRaid = bCheck
 		RaidCheckEnable()
 		local me = GetClientPlayer()
 		if me.IsInParty() and not me.IsInRaid() then
 			FireEvent("CTM_PANEL_TEAMATE", RaidGrid_CTM_Edition.bShowInRaid)
+		end
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x= nX + 5, y = nY + 10, txt = g_tStrings.WINDOW_LOCK, checked = not RaidGrid_CTM_Edition.bDrag })
+	:Click(function(bCheck)
+		RaidGrid_CTM_Edition.bDrag = not bCheck
+		if CTM_FRAME then
+			CTM_FRAME:EnableDrag(not bCheck)
 		end
 	end):Pos_()
 	-- 提醒框
@@ -1123,7 +1145,11 @@ end
 JH.RegisterEvent("GAME_EXIT", SaveConfig)
 JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
 JH.RegisterEvent("LOGIN_GAME", SetConfigure)
-JH.RegisterEvent("PARTY_LEVEL_UP_RAID", RaidCheckEnable)
+JH.RegisterEvent("PARTY_LEVEL_UP_RAID", function()
+	if not CTM_FRAME then
+		RaidCheckEnable()
+	end
+end)
 JH.AddonMenu(function()
 	return { szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = EnableTeamPanel }
 end)
