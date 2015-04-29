@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-29 18:54:36
+-- @Last Modified time: 2015-04-30 05:54:32
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -48,6 +48,7 @@ end
 --      nIcon    -- 倒计时图标ID
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
+-- 例子：FireEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
 local function CreateCountdown(nType, szKey, tArgs)
 	local arg = {}
 	local nTime = GetTime()
@@ -197,16 +198,13 @@ function _ST_UI.FormatTimeString(nTime)
 		return floor(nTime) .. "s"
 	end
 end
--- class
+-- 构造函数
 function ST:ctor(nType, szKey, tArgs)
 	local ui = ST_CACHE[nType][szKey]
 	local nTime = GetTime()
-	if ui and ui:IsValid() and not tArgs then
-		self.ui = ui
-		return self
-	elseif (not ui or ui and not ui:IsValid()) and not tArgs then -- ...
-		return nil
-	elseif tArgs then
+	local key = nType .. "_" .. szKey
+	if tArgs then
+		tArgs.szName = tArgs.szName or key
 		if ui and ui:IsValid() then
 			self.ui           = ui
 			self.ui.nCreate   = nTime
@@ -215,11 +213,11 @@ function ST:ctor(nType, szKey, tArgs)
 			self.ui.nRefresh  = tArgs.nRefresh or 1
 			self.ui.bTalk     = tArgs.bTalk
 		else -- 没有ui的情况下 创建
-			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item", nType .. szKey)
+			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item", key)
 			self.ui.nCreate        = nTime
 			self.ui.nLeft          = nTime
 			self.ui.countdown      = tArgs.nTime
-			self.ui.szKey          = szKey
+			self.ui.szKey          = key
 			self.ui.nRefresh       = tArgs.nRefresh or 1
 			self.ui.bTalk          = tArgs.bTalk
 			-- ui
@@ -232,7 +230,13 @@ function ST:ctor(nType, szKey, tArgs)
 		end
 		return self
 	else
-		error("Conflict! ERROR nType: " .. nType .. " szKey:" .. szKey)
+		if ui and ui:IsValid() then
+			self.ui = ui
+			return self
+		else
+			-- Log("[JH_DEBUG] ST == nil! nType: " .. nType .. " szKey:" .. szKey)
+			return nil
+		end
 	end
 end
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
