@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 07:14:08
+-- @Last Modified time: 2015-04-30 07:40:03
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -148,17 +148,17 @@ function _SkillCD.SwitchPanel(bMini)
 	SkillCD.bMini = bMini
 	if bMini then
 		_SkillCD.frame:Lookup("Wnd_List"):Hide()
-		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 30)
-		_SkillCD.frame:Lookup("","Image_Bg"):SetSize(240, 30)
+		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 29)
+		_SkillCD.frame:Lookup("", "Image_Bg"):SetSize(240, 30)
 	else
 		_SkillCD.frame:Lookup("Wnd_List"):Show()
-		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 230)
-		_SkillCD.frame:Lookup("","Image_Bg"):SetSize(240, 230)
+		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 229)
+		_SkillCD.frame:Lookup("", "Image_Bg"):SetSize(240, 230)
 	end
 end
 
 function _SkillCD.OpenPanel()
-	local frame = _SkillCD.frame or Wnd.OpenWindow(_SkillCD.szIniFile,"SkillCD")
+	local frame = _SkillCD.frame or Wnd.OpenWindow(_SkillCD.szIniFile, "SkillCD")
 	return frame
 end
 
@@ -176,9 +176,7 @@ function _SkillCD.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not SkillCD.bEnable then
 		return _SkillCD.ClosePanel()
 	end
-	if szEvent == "UI_OME_SKILL_CAST_LOG" then
-		return
-	end
+
 	if not IsPlayer(dwCaster) then
 		return
 	end
@@ -207,10 +205,13 @@ function _SkillCD.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	local nEnd = GetLogicFrameCount() + nTotal
 	local find = false
 	local data = {
-		nEnd = nEnd, nTotal = nTotal,
-		dwSkillID = dwSkillID, dwLevel = dwLevel,
-		dwIconID = dwIconID, szName = szName,
-		szPlayer = p.szName
+		nEnd      = nEnd,
+		nTotal    = nTotal,
+		dwSkillID = dwSkillID,
+		dwLevel   = dwLevel,
+		dwIconID  = dwIconID,
+		szName    = szName,
+		szPlayer  = p.szName
 	}
 	for k, v in ipairs(_SkillCD.tCD[dwCaster]) do
 		if v.dwSkillID == dwSkillID then
@@ -235,7 +236,7 @@ function _SkillCD.UpdateMonitorCache()
 					if not kungfu[kk] then
 						kungfu[kk] = {}
 					end
-					tinsert(kungfu[kk],k)
+					tinsert(kungfu[kk], k)
 					break
 				end
 			end
@@ -319,10 +320,10 @@ function _SkillCD.UpdateCount()
 					box:SetObjectMouseOver(true)
 					local x, y = box:GetAbsPos()
 					local w, h = box:GetSize()
-					local szXml = GetFormatText("[" .. szName .. "]" .. "\n", 23 ,255 ,255 ,255)
+					local szXml = GetFormatText("[" .. szName .. "]\n", 23 ,255 ,255 ,255)
 					for k, v in ipairs(v.tList) do
 						local dwMountKungfuID = v.info.dwMountKungfuID or 0
-						szXml = szXml .. GetFormatText(string.format("[%s] %s",_L["KUNGFU_" .. dwMountKungfuID] ,v.info.szName), 23, 255, 255, 0)
+						szXml = szXml .. GetFormatText(string.format("[%s] %s", _L["KUNGFU_" .. dwMountKungfuID], v.info.szName), 23, 255, 255, 0)
 						local szDeath = GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0) -- 离线是bIsOnLine 其实也一样 无所谓
 						if v.info.bDeathFlag then
 							szXml = szXml .. szDeath
@@ -333,7 +334,7 @@ function _SkillCD.UpdateCount()
 							local szSec = floor(JH.GetEndTime(v.nSec))
 							local txt = szSec .. _L["s"]
 							if szSec > 60 then
-								txt = _L("%dm%ds",szSec / 60, szSec % 60)
+								txt = _L("%dm%ds", szSec / 60, szSec % 60)
 							end
 							szXml = szXml .. GetFormatText("\t" .. txt, 24, 255, 0, 0)
 						end
@@ -373,18 +374,21 @@ function _SkillCD.UpdateCount()
 				HideTip()
 			end
 		end
-		if #v.tList == 0 then
-			item:SetAlpha(100)
-		end
 		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN) -- 其实是技能 不过用不到
 		box:SetObjectIcon(dwIconID)
 		-- box:SetObjectSparking(true)
-		item:Lookup("Text_Count"):SetText( v.nCount )
+		item:Lookup("Text_Count"):SetText(v.nCount)
 		if v.nCount > 0 then
 			item:Lookup("Text_Count"):SetFontColor(0, 255, 0)
 		else
 			item:Lookup("Text_Count"):SetFontColor(255, 0, 0)
 		end
+		if #v.tList == 0 then
+			item:SetAlpha(100)
+			box:IconToGray()
+			item:Lookup("Text_Count"):SetFontColor(156, 156, 156)
+		end
+
 		item:Show()
 		item:FormatAllItemPos()
 	end
@@ -392,14 +396,14 @@ function _SkillCD.UpdateCount()
 	handle:FormatAllItemPos()
 	local w, h = handle:GetAllItemSize()
 	_SkillCD.frame:Lookup("Wnd_Count"):SetSize(240, h + 5)
-	_SkillCD.frame:Lookup("Wnd_Count"):Lookup("","Image_CBg"):SetSize(240, h + 5)
+	_SkillCD.frame:Lookup("Wnd_Count"):Lookup("", "Image_CBg"):SetSize(240, h + 5)
 end
 
 local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SkillCD"], font = 27 }):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = SkillCD.bEnable, txt = _L["Enable SkillCD"] }):Click(function(bChecked)
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SkillCD"], font = 27 }):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = SkillCD.bEnable, txt = _L["Enable SkillCD"] }):Click(function(bChecked)
 		SkillCD.bEnable = bChecked
 		ui:Fetch("bSelf"):Enable(bChecked)
 		ui:Fetch("bInDungeon"):Enable(bChecked)
@@ -416,14 +420,14 @@ function PS.OnPanelActive(frame)
 		end
 		JH.OpenPanel(_L["SkillCD"])
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", "bSelf", { x = 25, y = nY, checked = SkillCD.bSelf })
+	nX, nY = ui:Append("WndCheckBox", "bSelf", { x = 25, y = nY, checked = SkillCD.bSelf })
 	:Enable(SkillCD.bEnable):Text(_L["only Monitor self"]):Click(function(bChecked)
 		SkillCD.bSelf = bChecked
 		if _SkillCD.IsPanelOpened() then
 			_SkillCD.UpdateCount()
 		end
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = SkillCD.bInDungeon })
+	nX, nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = SkillCD.bInDungeon })
 	:Enable(SkillCD.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
 		SkillCD.bInDungeon = bChecked
 		if bChecked then
@@ -438,7 +442,7 @@ function PS.OnPanelActive(frame)
 		JH.OpenPanel(_L["SkillCD"])
 	end):Pos_()
 
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
 	local i = 0
 	for k, v in pairs(_SkillCD.tSkill) do
 		local a = 100
