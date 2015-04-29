@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 15:43:14
+-- @Last Modified time: 2015-04-29 11:29:33
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)
@@ -5010,36 +5010,67 @@ JH.RegisterEvent("LOADING_END", function()
 
 		if RaidGrid_Base.version == 1 then
 			RaidGrid_Base.LoadSettingsFileNew(szLang .. "_default.jx3dat", true)
-			RaidGrid_Base.version = 2
+			RaidGrid_Base.version = 3
 		end
 		local path = _RE.szDataPath .. _RE.szName .. "/"
-		for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
-			local data = JH.LoadLUAData(path .. v)
-			if data then
-				RaidGrid_EventScrutiny.tRecords[v] = JH.JsonDecode(data)
-				HashChange(RaidGrid_EventScrutiny.tRecords[v])
-			end
-		end
-		RaidGrid_Base.ResetChatAlertCD()
-		JH.DelayCall(1000, function()
-			for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
+		if RaidGrid_Base.version == 2 then
+			for k, v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 				local data = JH.LoadLUAData(path .. v)
 				if data then
-					RaidGrid_BossCallAlert.tRecords[v] = JH.JsonDecode(data)
+					RaidGrid_EventScrutiny.tRecords[v] = JH.JsonDecode(data)
+					HashChange(RaidGrid_EventScrutiny.tRecords[v])
 				end
 			end
-		end)
-		if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
-			JH.DelayCall(2500, function()
-				for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
-					local data = JH.LoadLUAData(path .. "cache/" .. v)
+			JH.DelayCall(1000, function()
+				for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
+					local data = JH.LoadLUAData(path .. v)
 					if data then
-						RaidGrid_EventCache.tRecords[v] = JH.JsonDecode(data)
-						HashChange(RaidGrid_EventCache.tRecords[v])
+						RaidGrid_BossCallAlert.tRecords[v] = JH.JsonDecode(data)
 					end
 				end
-
 			end)
+			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+				JH.DelayCall(2500, function()
+					for k, v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+						local data = JH.LoadLUAData(path .. "cache/" .. v)
+						if data then
+							RaidGrid_EventCache.tRecords[v] = JH.JsonDecode(data)
+							HashChange(RaidGrid_EventCache.tRecords[v])
+						end
+					end
+
+				end)
+			end
+			RaidGrid_Base.version = 3
+		else
+			for k, v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+				JH.DelayCall(300 * k, function()
+					local data = JH.LoadLUAData(path .. v)
+					if data then
+						RaidGrid_EventScrutiny.tRecords[v] = data
+						HashChange(RaidGrid_EventScrutiny.tRecords[v])
+					end
+				end)
+			end
+			for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
+				JH.DelayCall(1200 * k, function()
+					local data = JH.LoadLUAData(path .. v)
+					if data then
+						RaidGrid_BossCallAlert.tRecords[v] = data
+					end
+				end)
+			end
+			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+				JH.DelayCall(2500, function()
+					for k, v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
+						local data = JH.LoadLUAData(path .. "cache/" .. v)
+						if data then
+							RaidGrid_EventCache.tRecords[v] = data
+							HashChange(RaidGrid_EventCache.tRecords[v])
+						end
+					end
+				end)
+			end
 		end
 	end
 end)
@@ -5050,17 +5081,17 @@ local function SaveRGESData()
 	for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 		RaidGrid_EventScrutiny.tRecords[v].Hash = nil
 		RaidGrid_EventScrutiny.tRecords[v].Hash2 = nil
-		JH.SaveLUAData(path .. v, JH.JsonEncode(RaidGrid_EventScrutiny.tRecords[v]))
+		JH.SaveLUAData(path .. v, RaidGrid_EventScrutiny.tRecords[v])
 	end
 	for k, v in ipairs({"tWarningMessages", "tBossCall"}) do
-		JH.SaveLUAData(path .. v, JH.JsonEncode(RaidGrid_BossCallAlert.tRecords[v]))
+		JH.SaveLUAData(path .. v, RaidGrid_BossCallAlert.tRecords[v])
 	end
 
 	if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
 		for k,v in ipairs({"Buff", "Debuff", "Casting", "Npc"}) do
 			RaidGrid_EventCache.tRecords[v].Hash = nil
 			RaidGrid_EventCache.tRecords[v].Hash2 = nil
-			JH.SaveLUAData(path .. "cache/" .. v, JH.JsonEncode(RaidGrid_EventCache.tRecords[v]))
+			JH.SaveLUAData(path .. "cache/" .. v, RaidGrid_EventCache.tRecords[v])
 		end
 	end
 end
