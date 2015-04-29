@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 18:47:19
+-- @Last Modified time: 2015-04-29 16:02:07
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -56,9 +56,11 @@ local function CreateCountdown(nType, szKey, tArgs)
 	else
 		local tCountdown = GetCountdown(tArgs.nTime)
 		if tCountdown then
-			tArgs.nTime    = tCountdown
-			tArgs.nRefresh = tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
-			arg            = tCountdown[1]
+			arg = tCountdown[1]
+			tArgs.nTime = tCountdown
+			if not tArgs.nRefresh then
+				tArgs.nRefresh = tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
+			end
 		else
 			return JH.Sysmsg2("tCountdown ERROR nType: " .. nType .. " szKey:" .. szKey .. " tCountdown:" .. tArgs.nTime)
 		end
