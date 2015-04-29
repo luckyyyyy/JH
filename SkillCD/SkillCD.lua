@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 07:40:03
+-- @Last Modified time: 2015-04-30 07:54:09
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -46,6 +46,7 @@ function SkillCD.OnFrameCreate()
 	this:RegisterEvent("PARTY_DELETE_MEMBER")
 	this:RegisterEvent("PARTY_ADD_MEMBER")
 	this:RegisterEvent("PARTY_UPDATE_MEMBER_INFO")
+	this:RegisterEvent("PARTY_SET_MEMBER_ONLINE_FLAG")
 	this:RegisterEvent("SKILL_MOUNT_KUNG_FU")
 	this:RegisterEvent("LOADING_END")
     _SkillCD.UpdateAnchor(this)
@@ -263,16 +264,19 @@ function _SkillCD.UpdateCount()
 	for k, v in ipairs(member) do
 		tKungfu[v] = {}
 		if JH.IsParty(v) then
+			local info = team.GetMemberInfo(v)
 			tKungfu[v] = {
-				bDeathFlag = team.GetMemberInfo(v).bDeathFlag,
+				bDeathFlag      = info.bDeathFlag,
+				bIsOnLine       = info.bIsOnLine,
 				dwMountKungfuID = team.GetMemberInfo(v).dwMountKungfuID,
-				szName = team.GetClientTeamMemberName(v),
+				szName          = team.GetClientTeamMemberName(v),
 			}
 		else
 			tKungfu[v] = {
-				bDeathFlag = me.nMoveState == MOVE_STATE.ON_DEATH,
+				bDeathFlag      = me.nMoveState == MOVE_STATE.ON_DEATH,
+				bIsOnLine       = true,
 				dwMountKungfuID = UI_GetPlayerMountKungfuID(),
-				szName = me.szName
+				szName          = me.szName
 			}
 		end
 	end
@@ -324,9 +328,10 @@ function _SkillCD.UpdateCount()
 					for k, v in ipairs(v.tList) do
 						local dwMountKungfuID = v.info.dwMountKungfuID or 0
 						szXml = szXml .. GetFormatText(string.format("[%s] %s", _L["KUNGFU_" .. dwMountKungfuID], v.info.szName), 23, 255, 255, 0)
-						local szDeath = GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0) -- 离线是bIsOnLine 其实也一样 无所谓
 						if v.info.bDeathFlag then
-							szXml = szXml .. szDeath
+							szXml = szXml .. GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0)
+						elseif not v.info.bIsOnLine then
+							szXml = szXml .. GetFormatText(" (" .. g_tStrings.STR_FRIEND_NOT_ON_LINE .. ")", 23, 192, 192, 192)
 						end
 						if v.nSec == 0 then
 							szXml = szXml .. GetFormatText("\t" .. _L["ready"], 24, 0, 255, 0)
@@ -351,7 +356,9 @@ function _SkillCD.UpdateCount()
 						local tSay = {}
 						tinsert(tSay, { type = "name", name = v.info.szName })
 						if v.info.bDeathFlag then
-							tinsert(tSay, { type = "text", text = " (" .. _L["Death"] .. ")" })
+							tinsert(tSay, { type = "text", text = " (" .. g_tStrings.FIGHT_DEATH .. ")" })
+						elseif not v.info.bIsOnLine then
+							tinsert(tSay, { type = "text", text = " (" .. g_tStrings.STR_FRIEND_NOT_ON_LINE .. ")" })
 						end
 						if v.nSec == 0 then
 							tinsert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. _L["ready"] })
