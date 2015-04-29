@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-18 19:11:46
+-- @Last Modified time: 2015-04-29 11:35:35
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -57,9 +57,13 @@ local CIRCLE_COLOR = {
 
 local function Confuse(tCode)
 	if type(tCode) == "table" then
-		return JsonEncode(tCode)
+		return tCode
 	else
-		return JsonDecode(tCode)
+		if type(tCode) == "string" then
+			return JsonDecode(tCode)
+		else
+			return tCode
+		end
 	end
 end
 
