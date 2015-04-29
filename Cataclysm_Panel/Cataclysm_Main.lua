@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-29 11:19:25
+-- @Last Modified time: 2015-04-30 06:18:16
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -352,14 +352,14 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 				Grid_CTM:AutoLinkAllPanel()
 			end
 		end
-		JH.DelayCall(1000, function()
-			collectgarbage("collect")
-		end)
+		-- JH.DelayCall(1000, function()
+		-- 	collectgarbage("collect")
+		-- end)
 	elseif szEvent == "PARTY_DISBAND" then
 		RaidClosePanel()
-		JH.DelayCall(1000, function()
-			collectgarbage("collect")
-		end)
+		-- JH.DelayCall(1000, function()
+		-- 	collectgarbage("collect")
+		-- end)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_LMR" then
 		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_INFO" then
