@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 16:49:30
+-- @Last Modified time: 2015-04-30 07:14:08
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -36,9 +36,18 @@ do
 	_SkillCD.tBuffEx = dat["tBuffEx"]
 	_SkillCD.tKungfu = dat["tKungfu"]
 end
--- setmetatable(_SkillCD.tSkill,{ __index = function() return 60 end })
+
 function SkillCD.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
+	this:RegisterEvent("SYS_MSG")
+	this:RegisterEvent("BUFF_UPDATE")
+	this:RegisterEvent("DO_SKILL_CAST")
+	this:RegisterEvent("PARTY_DISBAND")
+	this:RegisterEvent("PARTY_DELETE_MEMBER")
+	this:RegisterEvent("PARTY_ADD_MEMBER")
+	this:RegisterEvent("PARTY_UPDATE_MEMBER_INFO")
+	this:RegisterEvent("SKILL_MOUNT_KUNG_FU")
+	this:RegisterEvent("LOADING_END")
     _SkillCD.UpdateAnchor(this)
 	_SkillCD.frame = this
 	_SkillCD.handle = this:Lookup("Wnd_List"):Lookup("","")
@@ -49,14 +58,77 @@ function SkillCD.OnFrameCreate()
 		JH.OpenPanel(_L["SkillCD"])
 	end
 	_SkillCD.UpdateMonitorCache()
-	_SkillCD.Init()
 	_SkillCD.UpdateCount()
 end
 
 function SkillCD.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		_SkillCD.UpdateAnchor(this)
+	elseif szEvent == "SYS_MSG" then
+		if arg0 == "UI_OME_SKILL_HIT_LOG" and arg3 == SKILL_EFFECT_TYPE.SKILL then
+			_SkillCD.OnSkillCast(arg1, arg4, arg5, arg0)
+		elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" and arg4 == SKILL_EFFECT_TYPE.SKILL then
+			_SkillCD.OnSkillCast(arg1, arg5, arg6, arg0)
+		elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG" or arg0 == "UI_OME_SKILL_SHIELD_LOG"
+				or arg0 == "UI_OME_SKILL_MISS_LOG" or arg0 == "UI_OME_SKILL_DODGE_LOG")
+			and arg3 == SKILL_EFFECT_TYPE.SKILL
+		then
+			_SkillCD.OnSkillCast(arg1, arg4, arg5, arg0)
+		end
+	elseif szEvent == "BUFF_UPDATE" then
+		if _SkillCD.tBuffEx[arg4] and not arg1 then
+			_SkillCD.OnSkillCast(arg9, _SkillCD.tBuffEx[arg4], arg8, "BUFF_UPDATE")
+		end
+	elseif szEvent == "DO_SKILL_CAST" then
+		_SkillCD.OnSkillCast(arg0, arg1, arg2, "DO_SKILL_CAST")
+	elseif szEvent == "LOADING_END" then
+		_SkillCD.tCD = {}
+		_SkillCD.UpdateCount()
+	else
+		_SkillCD.UpdateCount()
 	end
+end
+
+function SkillCD.OnFrameBreathe()
+	local data = {}
+	-- 排序
+	for k, v in pairs(_SkillCD.tCD) do
+		for kk, vv in ipairs(v) do
+			local nSec = _SkillCD.tSkill[vv.dwSkillID]
+			local pre = min(1, JH.GetEndTime(vv.nEnd) / nSec)
+			if pre > 0 then
+				vv.pre = pre
+				tinsert(data, vv)
+			else
+				tremove(_SkillCD.tCD[k], kk)
+				_SkillCD.UpdateCount()
+			end
+		end
+	end
+	-- 更新倒计时条
+	if SkillCD.bMini then return end
+	local handle = _SkillCD.handle
+	handle:Clear()
+	tsort(data, function(a, b) return a.nEnd < b.nEnd end)
+	for k, v in ipairs(data) do
+		local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", k)
+		local nSec = _SkillCD.tSkill[v.dwSkillID]
+		local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
+		local szSec = floor(JH.GetEndTime(v.nEnd))
+		if fP < 0.15 then
+			item:Lookup("Image_LPlayer"):FromUITex("ui/Image/Common/money.uitex",215)
+		end
+		local txt = szSec .. _L["s"]
+		if szSec > 60 then
+			txt = _L("%dm%ds",szSec / 60, szSec % 60)
+		end
+		item:Lookup("Image_LPlayer"):SetPercentage(fP)
+		item:Lookup("Text_LLife"):SetText(txt)
+		item:Lookup("Text_Player"):SetText(v.szPlayer .. "_" .. v.szName)
+		item:Lookup("Skill_Icon"):FromIconID(v.dwIconID)
+		item:Show()
+	end
+	handle:FormatAllItemPos()
 end
 
 function SkillCD.OnFrameDragEnd()
@@ -64,7 +136,7 @@ function SkillCD.OnFrameDragEnd()
 	SkillCD.tAnchor = GetFrameAnchor(this)
 end
 
-_SkillCD.UpdateAnchor = function(frame)
+function _SkillCD.UpdateAnchor(frame)
 	local a = SkillCD.tAnchor
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
@@ -72,33 +144,35 @@ _SkillCD.UpdateAnchor = function(frame)
 		frame:SetPoint("CENTER", 0, 0, "CENTER", 450, -150)
 	end
 end
-_SkillCD.SwitchPanel = function(bMini)
+function _SkillCD.SwitchPanel(bMini)
 	SkillCD.bMini = bMini
 	if bMini then
 		_SkillCD.frame:Lookup("Wnd_List"):Hide()
-		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0,30)
-		_SkillCD.frame:Lookup("","Image_Bg"):SetSize(240,30)
+		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 30)
+		_SkillCD.frame:Lookup("","Image_Bg"):SetSize(240, 30)
 	else
 		_SkillCD.frame:Lookup("Wnd_List"):Show()
-		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0,230)
-		_SkillCD.frame:Lookup("","Image_Bg"):SetSize(240,230)
+		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 230)
+		_SkillCD.frame:Lookup("","Image_Bg"):SetSize(240, 230)
 	end
 end
-_SkillCD.OpenPanel = function()
+
+function _SkillCD.OpenPanel()
 	local frame = _SkillCD.frame or Wnd.OpenWindow(_SkillCD.szIniFile,"SkillCD")
 	return frame
 end
 
-_SkillCD.ClosePanel = function()
-	JH.UnRegisterInit("SkillCD")
+function _SkillCD.ClosePanel()
 	Wnd.CloseWindow(_SkillCD.frame)
 	_SkillCD.frame = nil
 	_SkillCD.tCD = {}
 end
-_SkillCD.IsPanelOpened = function()
+
+function _SkillCD.IsPanelOpened()
 	return _SkillCD.frame and _SkillCD.frame:IsVisible()
 end
-_SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
+
+function _SkillCD.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not SkillCD.bEnable then
 		return _SkillCD.ClosePanel()
 	end
@@ -108,6 +182,7 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not IsPlayer(dwCaster) then
 		return
 	end
+
 	if not SkillCD.tMonitor[dwSkillID] then
 		return
 	end
@@ -116,7 +191,6 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not nSec then
 		return
 	end
-
 	if SkillCD.bSelf and dwCaster ~= UI_GetClientPlayerID() then
 		return
 	end
@@ -148,12 +222,11 @@ _SkillCD.OnSkillCast = function(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not find then
 		tinsert(_SkillCD.tCD[dwCaster], data)
 	end
-	_SkillCD.UpdateFrame()
 	_SkillCD.UpdateCount()
 end
 
 -- 生成监控列表
-_SkillCD.UpdateMonitorCache = function()
+function _SkillCD.UpdateMonitorCache()
 	local kungfu = {}
 	for k, v in pairs(SkillCD.tMonitor) do
 		for kk, vv in pairs(_SkillCD.tKungfu) do
@@ -171,7 +244,7 @@ _SkillCD.UpdateMonitorCache = function()
 	_SkillCD.tCache = kungfu
 end
 
-_SkillCD.UpdateCount = function()
+function _SkillCD.UpdateCount()
 	local me, team = GetClientPlayer(), GetClientTeam()
 	if not me then return end
 	local tMonitor, member, tKungfu, tCount = _SkillCD.tCache, {}, {}, {}
@@ -322,49 +395,8 @@ _SkillCD.UpdateCount = function()
 	_SkillCD.frame:Lookup("Wnd_Count"):Lookup("","Image_CBg"):SetSize(240, h + 5)
 end
 
-_SkillCD.UpdateFrame = function()
-	local handle = _SkillCD.handle
-	handle:Clear()
-	local data = {}
-	-- 排序
-	for k,v in pairs(_SkillCD.tCD) do
-		for kk,vv in ipairs(v) do
-			local nSec = _SkillCD.tSkill[vv.dwSkillID]
-			local pre = min(1, JH.GetEndTime(vv.nEnd) / nSec)
-			if pre > 0 then
-				vv.pre = pre
-				tinsert(data, vv)
-			else
-				tremove(_SkillCD.tCD[k], kk)
-				_SkillCD.UpdateCount()
-			end
-		end
-	end
-	tsort(data, function(a,b) return a.nEnd < b.nEnd end)
-	for k,v in ipairs(data) do
-		local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", k)
-		local nSec = _SkillCD.tSkill[v.dwSkillID]
-		local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
-		local szSec = floor(JH.GetEndTime(v.nEnd))
-		if fP < 0.15 then
-			item:Lookup("Image_LPlayer"):FromUITex("ui/Image/Common/money.uitex",215)
-		end
-		local txt = szSec .. _L["s"]
-		if szSec > 60 then
-			txt = _L("%dm%ds",szSec / 60, szSec % 60)
-		end
-		item:Lookup("Image_LPlayer"):SetPercentage(fP)
-		item:Lookup("Text_LLife"):SetText(txt)
-		item:Lookup("Text_Player"):SetText(v.szPlayer .. "_" .. v.szName)
-		item:Lookup("Skill_Icon"):FromIconID(v.dwIconID)
-		item:Show()
-	end
-	handle:FormatAllItemPos()
-	-- Output(handle:GetItemCount())
-end
-
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SkillCD"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = SkillCD.bEnable, txt = _L["Enable SkillCD"] }):Click(function(bChecked)
@@ -440,37 +472,6 @@ PS.OnPanelActive = function(frame)
 end
 GUI.RegisterPanel(_L["SkillCD"], 13, g_tStrings.CHANNEL_CHANNEL, PS)
 
-_SkillCD.Init = function()
-	JH.RegisterInit("SkillCD",
-		{ "Breathe", _SkillCD.UpdateFrame, 1000 },
-		{ "SYS_MSG", function()
-			if arg0 == "UI_OME_SKILL_HIT_LOG" and arg3 == SKILL_EFFECT_TYPE.SKILL then
-				_SkillCD.OnSkillCast(arg1, arg4, arg5, arg0)
-			elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" and arg4 == SKILL_EFFECT_TYPE.SKILL then
-				_SkillCD.OnSkillCast(arg1, arg5, arg6, arg0)
-			elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG" or arg0 == "UI_OME_SKILL_SHIELD_LOG"
-					or arg0 == "UI_OME_SKILL_MISS_LOG" or arg0 == "UI_OME_SKILL_DODGE_LOG")
-				and arg3 == SKILL_EFFECT_TYPE.SKILL
-			then
-				_SkillCD.OnSkillCast(arg1, arg4, arg5, arg0)
-			end
-		end },
-		{ "BUFF_UPDATE", function()
-			if _SkillCD.tBuffEx[arg4] and not arg1 then
-				_SkillCD.OnSkillCast(arg9, _SkillCD.tBuffEx[arg4], arg8, "BUFF_UPDATE")
-			end
-		end },
-		{ "DO_SKILL_CAST", function()
-			_SkillCD.OnSkillCast(arg0, arg1, arg2, "DO_SKILL_CAST")
-		end },
-		{ "PARTY_DISBAND", _SkillCD.UpdateCount },
-		{ "PARTY_DELETE_MEMBER", _SkillCD.UpdateCount },
-		{ "PARTY_ADD_MEMBER", _SkillCD.UpdateCount },
-		{ "PARTY_UPDATE_MEMBER_INFO", _SkillCD.UpdateCount },
-		{ "SKILL_MOUNT_KUNG_FU", _SkillCD.UpdateCount }
-	)
-end
-
 JH.RegisterEvent("LOADING_END", function()
 	if not SkillCD.bEnable then return end
 	if SkillCD.bInDungeon then
@@ -481,10 +482,6 @@ JH.RegisterEvent("LOADING_END", function()
 		end
 	else
 		_SkillCD.OpenPanel()
-	end
-	if _SkillCD.frame then
-		_SkillCD.tCD = {}
-		_SkillCD.UpdateCount()
 	end
 end)
 
