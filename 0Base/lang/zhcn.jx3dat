@@ -141,7 +141,6 @@ data = {
 	["Npc"] = "Npc",
 	["[%s] (%d) Enter Fight."] = "【%s】（%d）进入战斗状态。",
 	["[%s] (%d) Leave Fight."] = "【%s】（%d）脱离战斗。",
-	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",
 	[" * cover data %s (%s)"] = "★ 覆盖%s数据 （%s）",
 	[" * import data %s (%s)"] = "★ 导入%s数据 （%s）",
 	["%s Call Name"] = "被【%s】点名了",
@@ -182,6 +181,9 @@ data = {
 	["Clear"] = "清空颜色",
 	["He has been in the scene, Until killed or leave, Sure to add?"] = "头顶会一直存在于画面中，直到目标死亡或者消失，确定添加？（建议仅适用于集火目标）",
 	["Delete"] = "删除",
+	-- ST.class.lua --
+	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",
+	["Countdown"] = "倒计时",
 	-- WebSyncData.lua --
 	["sync team"] = "同步团队",
 	["standard data"] = "推荐数据",

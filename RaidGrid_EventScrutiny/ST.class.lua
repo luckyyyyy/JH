@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-29 16:02:07
+-- @Last Modified time: 2015-04-29 18:54:36
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -58,9 +58,7 @@ local function CreateCountdown(nType, szKey, tArgs)
 		if tCountdown then
 			arg = tCountdown[1]
 			tArgs.nTime = tCountdown
-			if not tArgs.nRefresh then
-				tArgs.nRefresh = tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
-			end
+			tArgs.nRefresh = tArgs.nRefresh or tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
 		else
 			return JH.Sysmsg2("tCountdown ERROR nType: " .. nType .. " szKey:" .. szKey .. " tCountdown:" .. tArgs.nTime)
 		end
@@ -214,7 +212,7 @@ function ST:ctor(nType, szKey, tArgs)
 			self.ui.nCreate   = nTime
 			self.ui.nLeft     = nTime
 			self.ui.countdown = tArgs.nTime
-			self.ui.nRefresh  = tArgs.nRefresh
+			self.ui.nRefresh  = tArgs.nRefresh or 1
 			self.ui.bTalk     = tArgs.bTalk
 		else -- 没有ui的情况下 创建
 			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item", nType .. szKey)
@@ -222,7 +220,7 @@ function ST:ctor(nType, szKey, tArgs)
 			self.ui.nLeft          = nTime
 			self.ui.countdown      = tArgs.nTime
 			self.ui.szKey          = szKey
-			self.ui.nRefresh       = tArgs.nRefresh
+			self.ui.nRefresh       = tArgs.nRefresh or 1
 			self.ui.bTalk          = tArgs.bTalk
 			-- ui
 			self.ui.time           = self.ui:Lookup("TimeLeft")
