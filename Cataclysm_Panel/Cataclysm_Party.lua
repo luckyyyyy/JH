@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-29 11:19:29
+-- @Last Modified time: 2015-04-30 09:14:18
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -139,7 +139,7 @@ local function OutputTeamMemberTip(dwID, rc)
 				szTip = szTip .. GetFormatText("[" .. GetTongClient().ApplyGetTongName(p.dwTongID) .. "]\n", 41)
 			end
 		end
-    	szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, tMemberInfo.nLevel), 82)
+		szTip = szTip .. GetFormatText(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, tMemberInfo.nLevel), 82)
 		szTip = szTip .. GetFormatText(JH.GetSkillName(tMemberInfo.dwMountKungfuID, 1) .. "\n", 82)
 		local szMapName = Table_GetMapName(tMemberInfo.dwMapID)
 		if szMapName then
@@ -308,7 +308,7 @@ function CTM_Party_Base.OnItemMouseLeave()
 		this:Lookup("Image_Selected"):Hide()
 	end
 	HideTip()
-	if not this.dwID then return	end
+	if not this.dwID then return end
 	local info = CTM:GetMemberInfo(this.dwID)
 	if not info then return end -- 退租的问题
 	if info.bIsOnLine and GetPlayer(this.dwID) and CFG.bTempTargetEnable then
@@ -335,7 +335,7 @@ function CTM_Party_Base.OnItemRButtonClick()
 		InsertChangeGroupMenu(menu, dwID)
 	end
 	local info = CTM:GetMemberInfo(dwID)
-	if this.dwID ~= me.dwID then
+	if dwID ~= me.dwID then
 		if JH.IsLeader() then
 			table.insert(menu, { bDevide = true })
 		end
