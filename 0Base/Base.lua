@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 13:26:04
+-- @Last Modified time: 2015-04-30 15:06:01
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -565,16 +565,16 @@ function JH.GetTemplateName(tar, bEmployer)
 		if szName == "" then
 			szName = Table_GetNpcTemplateName(tar.dwTemplateID)
 		end
+		if JH.Trim(szName) == "" then
+			szName = tostring(tar.dwTemplateID)
+		end
 		if tar.dwEmployer and tar.dwEmployer ~= 0 and szName == Table_GetNpcTemplateName(tar.dwTemplateID) and bEmployer then
 			local emp = GetPlayer(tar.dwEmployer)
 			if not emp then
-				szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. tar.szName
+				szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. szName
 			else
-				szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. tar.szName
+				szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. szName
 			end
-		end
-		if JH.Trim(szName) == "" then
-			szName = tostring(tar.dwTemplateID)
 		end
 	end
 	return szName

@@ -56,7 +56,6 @@ data = {
 	["s"] = "秒",
 	["%dm%ds"] = "%d分%d秒",
 	["Team %s info"] = "团队 %s 情况",
-	["Death"] = "重伤",
 	["Enable SkillCD"] = "启用团队技能CD监控",
 	["only Monitor self"] = "只监控自己",
 	["Monitor"] = "监控",
