@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-29 11:29:33
+-- @Last Modified time: 2015-04-30 22:26:53
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 local function HashChange(tRecords)

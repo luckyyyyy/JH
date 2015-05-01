@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 06:17:01
+-- @Last Modified time: 2015-05-01 08:50:31
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -51,6 +51,7 @@ end
 -- 例子：FireEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
 -- 性能测试：for i = 10, 100 do FireEvent("JH_ST_CREATE", 0, i, { nTime = 0.1*i, nIcon = i }) end
 local function CreateCountdown(nType, szKey, tArgs)
+	assert(type(tArgs == "table"), "CreateCountdown failed!")
 	local arg = {}
 	local nTime = GetTime()
 	if type(tArgs.nTime) == "number" then
