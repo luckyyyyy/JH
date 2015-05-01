@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-01 08:50:31
+-- @Last Modified time: 2015-05-01 14:55:51
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -10,7 +10,7 @@ local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST
 -- cache
 local type, tonumber, ipairs, pairs = type, tonumber, ipairs, pairs
 local tinsert, tsort = table.insert, table.sort
-local JH_Split, JH_Trim = JH.Split, JH.Trim
+local JH_Split, JH_Trim, JH_FormatTimeString = JH.Split, JH.Trim, JH.FormatTimeString
 local abs, mod, floor = math.abs, math.mod, math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 
@@ -51,7 +51,7 @@ end
 -- 例子：FireEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
 -- 性能测试：for i = 10, 100 do FireEvent("JH_ST_CREATE", 0, i, { nTime = 0.1*i, nIcon = i }) end
 local function CreateCountdown(nType, szKey, tArgs)
-	assert(type(tArgs == "table"), "CreateCountdown failed!")
+	assert(type(tArgs) == "table", "CreateCountdown failed!")
 	local arg = {}
 	local nTime = GetTime()
 	if type(tArgs.nTime) == "number" then
@@ -192,14 +192,6 @@ function _ST_UI.Init()
 	local frame = Wnd.OpenWindow(ST_INIFILE, "ST_UI")
 end
 
-function _ST_UI.FormatTimeString(nTime)
-	nTime = tonumber(nTime) or 0
-	if nTime > 60 then
-		return floor(nTime / 60) .. "m" .. floor(nTime % 60) .. "s"
-	else
-		return floor(nTime) .. "s"
-	end
-end
 -- 构造函数
 function ST:ctor(nType, szKey, tArgs)
 	local ui = ST_CACHE[nType][szKey]
@@ -247,7 +239,7 @@ function ST:SetInfo(tArgs, nIcon)
 		self.ui.txt:SetText(tArgs.szName)
 	end
 	if tArgs.nTime then
-		self.ui.time:SetText(_ST_UI.FormatTimeString(tArgs.nTime))
+		self.ui.time:SetText(JH_FormatTimeString(tArgs.nTime))
 	end
 	if nIcon then
 		local box = self.ui:Lookup("Box")
