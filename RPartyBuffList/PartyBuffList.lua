@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 13:26:29
+-- @Last Modified time: 2015-04-30 17:35:11
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -15,7 +15,7 @@ JH.RegisterCustomData("PartyBuffList")
 local PartyBuffList = PartyBuffList
 local ipairs, pairs = ipairs, pairs
 local GetPlayer = GetPlayer
-local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
+local GetClientPlayer, GetClientTeam, UI_GetPlayerMountKungfuID = GetClientPlayer, GetClientTeam, UI_GetPlayerMountKungfuID
 
 local _PartyBuffList = {
 	tList = {},
@@ -94,6 +94,7 @@ function _PartyBuffList.UpdateFrame()
 	end
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
+	local dwKungfuID = UI_GetPlayerMountKungfuID()
 	if not me or not team then return end
 	local container = _PartyBuffList.frame:Lookup("WndContainer_List")
 	container:Clear()
@@ -120,7 +121,13 @@ function _PartyBuffList.UpdateFrame()
 			if nMaxLife == 0 then nMaxLife = 1 end -- fix bug
 			ui:Append("Image", "Life",{ x = 0, y = 0, w = 200, h = 40}):File("ui/Image/Common/money.uitex", 215):Percentage(info.nCurrentLife / nMaxLife)
 			local nDistance = JH.GetDistance(p)
-			if nDistance > 20 then
+			local DISTANCE = 20
+			if dwKungfuID == 10080 then -- ÄÌÐãÐÞÕý
+				DISTANCE = 22
+			elseif dwKungfuID == 10028 then -- ÄÌ»¨ÐÞÕý
+				DISTANCE = 24
+			end
+			if nDistance > DISTANCE then
 				ui:Fetch("Life"):Alpha(120)
 			else
 				ui:Fetch("Life"):Alpha(255)
