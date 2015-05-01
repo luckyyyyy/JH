@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 15:06:01
+-- @Last Modified time: 2015-05-01 14:55:23
 ---------------------------------------------------------------------
 -- ¶àÓïÑÔ´¦Àí
 ---------------------------------------------------------------------
@@ -1124,6 +1124,15 @@ function JH.HasBuff(dwBuffID, bCanCancel, me)
 		end
 	end
 	return false, {}
+end
+
+function JH.FormatTimeString(nTime)
+	nTime = tonumber(nTime) or 0
+	if nTime > 60 then
+		return floor(nTime / 60) .. "m" .. floor(nTime % 60) .. "s"
+	else
+		return floor(nTime) .. "s"
+	end
 end
 
 function JH.GetBuffTimeString(nTime, limit)
