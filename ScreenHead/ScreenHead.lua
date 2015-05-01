@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-24 17:18:17
+-- @Last Modified time: 2015-05-01 08:40:43
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -138,7 +138,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 				txt = g_tStrings.STR_SKILL_H_MANA_COST .. sFormat("%d/%d", info.nCurrentMana, info.nMaxMana)
 			end
 		elseif data.type == "Skill" then
-			tManaCol = { 255,128,0 }
+			tManaCol = { 255, 128, 0 }
 			local bIsPrepare, dwSkillID, dwSkillLevel
 			bIsPrepare, dwSkillID, dwSkillLevel, manaper = obj.GetSkillPrepareState()
 			if bIsPrepare then
