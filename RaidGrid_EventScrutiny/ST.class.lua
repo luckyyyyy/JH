@@ -1,14 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-01 14:55:51
+-- @Last Modified time: 2015-05-02 11:21:12
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
 -- ini path
 local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST_UI.ini"
 -- cache
-local type, tonumber, ipairs, pairs = type, tonumber, ipairs, pairs
+local type, tonumber, ipairs, pairs, assert = type, tonumber, ipairs, pairs, assert
 local tinsert, tsort = table.insert, table.sort
 local JH_Split, JH_Trim, JH_FormatTimeString = JH.Split, JH.Trim, JH.FormatTimeString
 local abs, mod, floor = math.abs, math.mod, math.floor
