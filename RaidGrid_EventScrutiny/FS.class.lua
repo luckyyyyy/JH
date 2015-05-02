@@ -1,13 +1,18 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-02 11:04:16
-FS_UI = {}
+-- @Last Modified time: 2015-05-02 11:35:33
+local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
+local min, max = math.min, math.max
+local HasBuff = JH.HasBuff
+
 local FS = class()
 local FS_CACHE = setmetatable({}, { __mode = "v" })
+local FS_UI_CACHE = setmetatable({}, { __mode = "v" })
 local FS_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/FS_UI.ini"
 local SHADOW = JH.GetAddonInfo().szShadowIni
-
+FS_UI = {}
+-- FireEvent("JH_FS_CREATE", "test", { nTime = 5, col = { 255, 255, 0 }, bFlash = true, tBindBuff = { 103, 1 }})
 local function CreateFullScreen(szKey, tArgs)
 	assert(type(arg1) == "table", "CreateFullScreen failed!")
 	tArgs.nTime = tArgs.nTime or 3
@@ -25,6 +30,7 @@ end
 function FS_UI.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("JH_FS_CREATE")
+	this:RegisterEvent("UI_SCALED")
 	FS_UI.handle = this:Lookup("", "")
 	FS_UI.handle:Clear()
 end
@@ -32,6 +38,13 @@ end
 function FS_UI.OnEvent(szEvent)
 	if szEvent == "JH_FS_CREATE" then
 		CreateFullScreen(arg0, arg1)
+	elseif szEvent == "UI_SCALED" then
+		for k, v in pairs(FS_UI_CACHE) do
+			local obj = FS.new(k)
+			if obj then
+				obj:DrawEdge()
+			end
+		end
 	elseif szEvent == "LOADING_END" then
 		FS_UI.handle:Clear()
 	end
@@ -47,19 +60,18 @@ function FS_UI.OnFrameBreathe()
 			if nLeft > 0 then
 				if v.bFlash then
 					if v.bUp then
-						v.nAlpha = math.min(150, v.nAlpha + 15)
+						v.nAlpha = min(150, v.nAlpha + 15)
 						if v.nAlpha == 150 then
 							v.bUp = false
 						end
 					else
-						v.nAlpha = math.max(0, v.nAlpha - 15)
+						v.nAlpha = max(0, v.nAlpha - 15)
 						if v.nAlpha == 0 then
 							v.bUp = true
 						end
 					end
 					obj:DrawFullScreen(v.nAlpha)
 				else
-
 					local nAlpha = 150 - (150 / v.nTime) * nTime
 					obj:DrawFullScreen(nAlpha)
 				end
@@ -72,10 +84,9 @@ function FS_UI.OnFrameBreathe()
 					end
 				end
 			end
-			-- FireEvent("JH_FS_CREATE", "test", { nTime = 5, col = { 255, 255, 0 }, bFlash = true, tBindBuff = { 103, 1 }})
 			if v.tBindBuff then
 				local dwID, nLevel = unpack(v.tBindBuff)
-				local bExist = JH.HasBuff(dwID)
+				local bExist = HasBuff(dwID)
 				if not bExist then
 					obj:RemoveItem()
 				end
@@ -87,6 +98,7 @@ end
 function FS:ctor(szKey, tArgs)
 	local ui = FS_CACHE[szKey]
 	local nTime = GetTime()
+	self.key = szKey
 	if tArgs then
 		local h
 		if ui and ui:IsValid() then
@@ -112,16 +124,21 @@ function FS:ctor(szKey, tArgs)
 		if ui and ui:IsValid() then
 			self.ui = ui
 			return self
+		else
+			return nil
 		end
 	end
 end
 
 function FS:DrawFullScreen( ... )
 	self:DrawShadow(self.ui.sha1, ...)
+	return self
 end
 
 function FS:DrawEdge()
 	self:DrawShadow(self.ui.sha2, 180, 10, 10)
+	FS_UI_CACHE[self.key] = self.ui
+	return self
 end
 
 function FS:DrawShadow(sha, nAlpha, fScreenX, fScreenY)
@@ -142,10 +159,12 @@ function FS:DrawShadow(sha, nAlpha, fScreenX, fScreenY)
 	sha:AppendTriangleFanPoint(w, 0, r, g, b, nAlpha)
 	sha:AppendTriangleFanPoint(bW, bH, r, g, b, 0)
 	sha:AppendTriangleFanPoint(0, 0, r, g, b, nAlpha)
+	return self
 end
 
 function FS:RemoveFullScreen()
 	self.ui:RemoveItem(self.ui.sha1)
+	return self
 end
 
 function FS:RemoveItem()
