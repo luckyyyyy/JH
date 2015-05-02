@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-01 15:23:45
+-- @Last Modified time: 2015-05-02 11:12:18
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -82,6 +82,10 @@ local function ClearCacheData()
 		tTab[i].tTimerSet = nil
 		tTab[i].szLinkNpcName = nil
 		tTab[i].dwLinkNpcTID = nil
+		if tTab[i].tRGAlertColor then
+			tTab[i].tRGAlertColor = nil
+			tTab[i].bFullScreenAlert = true
+		end
 	end
 	local tTab2 = RaidGrid_EventScrutiny.tRecords["Casting"]
 	for i = 1, #tTab2 do
@@ -97,6 +101,10 @@ local function ClearCacheData()
 		tTab2[i].fEventTimeEnd = nil
 		tTab2[i].fMinTime = nil
 		tTab2[i].tTimerSet = nil
+		if tTab2[i].tRGAlertColor then
+			tTab2[i].tRGAlertColor = nil
+			tTab2[i].bFullScreenAlert = true
+		end
 	end
 	local tTab3 = RaidGrid_EventScrutiny.tRecords["Buff"]
 	for i = 1, #tTab3 do
@@ -113,6 +121,10 @@ local function ClearCacheData()
 		tTab3[i].fEventTimeStart = nil
 		tTab3[i].fEventTimeEnd = nil
 		tTab3[i].bIsVisible = nil
+		if tTab3[i].tRGAlertColor then
+			tTab3[i].tRGAlertColor = nil
+			tTab3[i].bFullScreenAlert = true
+		end
 	end
 	local tTab4 = RaidGrid_EventScrutiny.tRecords["Debuff"]
 	for i = 1, #tTab4 do
@@ -129,6 +141,10 @@ local function ClearCacheData()
 		tTab4[i].fEventTimeStart = nil
 		tTab4[i].fEventTimeEnd = nil
 		tTab4[i].bIsVisible = nil
+		if tTab4[i].tRGAlertColor then
+			tTab4[i].tRGAlertColor = nil
+			tTab4[i].bFullScreenAlert = true
+		end
 	end
 end
 
@@ -292,7 +308,6 @@ function RaidGrid_EventScrutiny.OnEvent(szEvent)
 	elseif szEvent == "LOADING_END" then
 		RaidGrid_EventScrutiny.UpdateAnchor(this)
 	elseif szEvent == "UI_SCALED" then
-		RaidGrid_SelfBuffAlert.RescaleBG()
 		RaidGrid_EventScrutiny.UpdateAnchor(this)
 	elseif szEvent == "DO_SKILL_CAST" then
 		RaidGrid_EventScrutiny.OnSkillCasting("DO_SKILL_CAST", arg0, arg1, arg2)--arg3 == Target.szName
@@ -1377,11 +1392,6 @@ function RaidGrid_EventScrutiny._SetItemUI(szName,obj,boolean)
 			obj:Lookup(_U[szName][1]):SetFontColor(_U[szName][2][1],_U[szName][2][2],_U[szName][2][3])
 		else
 			local r,g,b = _U[szName][3][1],_U[szName][3][2],_U[szName][3][3]
-			if szName == "Image_ASBox" then
-				if obj.tRecord.tRGAlertColor then
-					r,g,b,_ = unpack(obj.tRecord.tRGAlertColor)
-				end
-			end
 			obj:Lookup(_U[szName][1]):SetFontColor(r,g,b)
 		end
 	end
@@ -1404,18 +1414,7 @@ tRaidGrid_EventScrutinyTextUI = {
 		"Text_ABox",{120,120,120},{250,100,15},"tRGCenterAlarm",nil,_L["CenterAlarm"]
 	},
 	Image_ASBox = {
-		"Text_ASBox",{120,120,120},{250,100,15},"tRGAlertColor",function(szName,obj,tRecord)
-		PopupMenu({
-			{szOption = _L["Red []"], bCheck = false, bChecked = false, r = 255, g = 0, b = 0, fnAction = function() tRecord.tRGAlertColor = {255, 0, 0, 3}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
-			{szOption = _L["Green []"], bCheck = false, bChecked = false, r = 0, g = 255, b = 0, fnAction = function() tRecord.tRGAlertColor = {0, 255, 0, 1}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
-			{szOption = _L["Blue []"], bCheck = false, bChecked = false, r = 0, g = 0, b = 255, fnAction = function() tRecord.tRGAlertColor = {0, 0, 255, 0}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
-			{szOption = _L["Yellow []"], bCheck = false, bChecked = false, r = 255, g = 255, b = 0, fnAction = function() tRecord.tRGAlertColor = {255, 255, 0, 5}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
-			{szOption = _L["Purple []"], bCheck = false, bChecked = false, r = 255, g = 0, b = 255, fnAction = function() tRecord.tRGAlertColor = {255, 0, 255, 2}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
-			{szOption = _L["White []"], bCheck = false, bChecked = false, r = 255, g = 255, b = 255, fnAction = function() tRecord.tRGAlertColor = {255, 255, 255, 4}; RaidGrid_EventScrutiny._SetItemUI(szName,obj,true) end},
-			{szOption = g_tStrings.STR_CLOSE, bCheck = false, bChecked = false, r = 210, g = 210, b = 210, fnAction = function() tRecord.tRGAlertColor = nil; RaidGrid_EventScrutiny._SetItemUI(szName,obj,false) end},
-		})
-		end
-	,_L["FlashAlert"]},
+		"Text_ASBox",{120,120,120},{250,100,15},"bFullScreenAlert",nil,_L["FlashAlert"]},
 }
 
 function RaidGrid_EventScrutiny.OnItemMouseEnter()
@@ -1427,11 +1426,6 @@ function RaidGrid_EventScrutiny.OnItemMouseEnter()
 	if _U[szName] then
 		local szText="<text>text=\"".._U[szName][6].."\" font=15 </text>"
 		local r,g,b = _U[szName][3][1],_U[szName][3][2],_U[szName][3][3]
-		if szName == "Image_ASBox" then
-			if handleRecord.tRecord.tRGAlertColor then
-				r,g,b,_ = unpack(handleRecord.tRecord.tRGAlertColor)
-			end
-		end
 		handleRecord:Lookup(_U[szName][1]):SetFontColor(r,g,b)
 		OutputTip(szText, 450, {x, y, w, h})
 	end
@@ -1450,11 +1444,6 @@ function RaidGrid_EventScrutiny.SetItemUI(szName,obj,tRecord,action)
 				end
 			end
 			local r,g,b = _U[szName][3][1],_U[szName][3][2],_U[szName][3][3]
-			if szName == "Image_ASBox" then
-				if tRecord.tRGAlertColor then
-					r,g,b,_ = unpack(tRecord.tRGAlertColor)
-				end
-			end
 			obj:Lookup(_U[szName][1]):SetFontColor(r,g,b)
 		else
 			if action == "OnItemLButtonClick" then
@@ -1609,7 +1598,6 @@ function RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwTargetID, tRecord, msg
 			bCenterAlarm = false
 		end
 		if bRedAlarm or bCenterAlarm then
-			--RaidGrid_RedAlarm.FlashOrg(t, msg, bRed, bCenter, r, g, b)
 			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, msg, bRedAlarm, bCenterAlarm, nRGRAR, nRGRAG, nRGRAB)
 		end
 	end
@@ -1701,7 +1689,13 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				if not data.bNotAddSelfBuffAlert then
 					RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(data, dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel)
 				end
-				RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(data)
+				if data.bFullScreenAlert and RaidGrid_EventScrutiny.bColorAlertEnable then
+					FireEvent("JH_FS_CREATE", "bUFF"--[[data.dwID .. "_"  ..data.nLevel]], {
+						nTime = 3,
+						col = data.tRGBuffColor,
+						tBindBuff = { data.dwID, data.nLevel }
+					})
+				end
 			end
 			if playerMember and ((not data.bManyMembers) or ((data.bChatAlertCDEnd or 0) <= data.fEventTimeStart)) then
 				local sztInfoadd = ""
@@ -1925,7 +1919,6 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 			end
 		end
 		if bEventCanFire then
-			RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(data)
 			local szNpcName = JH.GetTemplateName(npc)
 			if not szNpcName or szNpcName == "" then
 				szNpcName = data.szName
@@ -2052,7 +2045,9 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 				data.nEventScrutinyCDEnd = fLogicTime + tonumber(data.nMinEventScrutinyCD or 7)
 			end
 			if ((data.bChatAlertCDEnd or 0) <= fLogicTime) then
-				RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(data)
+				if data.bFullScreenAlert and RaidGrid_EventScrutiny.bColorAlertEnable then
+					FireEvent("JH_FS_CREATE", "Casting"--[[data.dwID .. "_" .. data.nLevel]], { nTime = 3, col = data.tRGBuffColor })
+				end
 				local szTargetName = _L["Unknown"]
 				local bTargetNameIsPlayer = false
 				if RaidGrid_EventScrutiny.bCastingTargetScrutinyEnable and (not data.bNotCastTargetScrutinyEnable) then
@@ -2637,11 +2632,6 @@ function RaidGrid_EventScrutiny.ShowRecordHandle(handleRecord, tRecord)
 	for _, v in pairs(tRaidGrid_EventScrutinyTextUI) do
 		if handleRecord.tRecord[v[4]] then
 			local r,g,b = v[3][1],v[3][2],v[3][3]
-			if _ == "Image_ASBox" then
-				if handleRecord.tRecord.tRGAlertColor then
-					r,g,b,_ = unpack(handleRecord.tRecord.tRGAlertColor)
-				end
-			end
 			handleRecord:Lookup(v[1]):SetFontColor(r,g,b)
 		else
 			handleRecord:Lookup(v[1]):SetFontColor(v[2][1],v[2][2],v[2][3])
@@ -2703,7 +2693,6 @@ function RaidGrid_SelfBuffAlert.OnFrameBreathe()
 	end
 
 	RaidGrid_SelfBuffAlert.RefreshSelfBuffHandle()
-	RaidGrid_SelfBuffAlert.RefreshAlertColornSound()
 
 	if RaidGrid_EventScrutiny.bCtrlandAltMove and IsCtrlKeyDown() and IsAltKeyDown() then
 		for i = 1, 8 do
@@ -2720,91 +2709,6 @@ function RaidGrid_SelfBuffAlert.OnFrameBreathe()
 	local nX, nY = RaidGrid_SelfBuffAlert.frameSelf:GetRelPos()
 	if RaidGrid_SelfBuffAlert.tLastLoc.nX ~= nX and RaidGrid_SelfBuffAlert.tLastLoc.nY ~= nY then
 		RaidGrid_SelfBuffAlert.SetPanelPos(nX, nY)
-	end
-end
-
-function RaidGrid_SelfBuffAlert.RefreshAlertColornSound()
-	local imageAlertBG = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertBG")
-	imageAlertBG:SetAlpha(math.max(0, imageAlertBG:GetAlpha() - 3))
-
-	local imageAlertGrid = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertGrid")
-	if RaidGrid_EventScrutiny.bColorAlertEnable then
-		local nKeepBuffColorGrid = -1
-		for i = 1, RaidGrid_SelfBuffAlert.nBoxMax do
-			local handleBox = RaidGrid_SelfBuffAlert.handleMain:Lookup("Handle_Box_" .. i)
-			if handleBox.tInfo and handleBox.tInfo.tRGAlertColor then
-				nKeepBuffColorGrid = handleBox.tInfo.tRGAlertColor[4] or 4
-				break
-			end
-		end
-
-		if nKeepBuffColorGrid and nKeepBuffColorGrid >= 0 then
-			imageAlertGrid:SetFrame(nKeepBuffColorGrid)
-			imageAlertGrid:SetAlpha(200)
-		else
-			imageAlertGrid:SetAlpha(0)
-		end
-	else
-		imageAlertGrid:SetAlpha(0)
-	end
-end
-
--- RaidGrid_EventScrutiny.nSoundAlertCDEnd = 0
-
-local __RaidGrid_Sound = {} --...
-
-
-function RaidGrid_EventScrutiny.SoundFileCommon(tRecord)
-	local szLevel = 0
-	local szType = tRecord.szType or "Alert"
-	local dwID = tRecord.dwID or tRecord.szName
-	if tRecord.bAlwaysCheckLevel then
-		szLevel = tRecord.nLevel
-	end
-	local szSoundFileCommon = "\\Interface\\JH\\RaidGrid_EventScrutiny\\AlertSound\\" .. szType .. "\\" .. tRecord.szName .."_" .. szLevel .. ".mp3"
-	local bFExist = IsFileExist(szSoundFileCommon)
-	if not bFExist then
-		szSoundFileCommon = "\\Interface\\JH\\RaidGrid_EventScrutiny\\AlertSound\\" .. szType .. "\\" .. dwID .."_" .. szLevel .. ".mp3"
-	end
-	bFExist = IsFileExist(szSoundFileCommon)
-	-- return bFExist,szSoundFileCommon
-	return false,nil
-end
-
-function RaidGrid_SelfBuffAlert.UpdateAlertColornSoundOrg(tRecord)
-	if not tRecord then
-		return
-	end
-	local szSoundFile = tRecord.szSoundFile
-	local tRGAlertColor = tRecord.tRGAlertColor
-	local imageAlertBG = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertBG")
-	local imageAlertGrid = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertGrid")
-	local nW, nH = Station.GetClientSize(true)
-	imageAlertBG:SetSize(nW, nH)
-	imageAlertGrid:SetSize(nW, nH)
-
-	if tRGAlertColor and RaidGrid_EventScrutiny.bColorAlertEnable then
-		local nColorIndex = tRGAlertColor[4] or 4
-		imageAlertBG:SetFrame(nColorIndex)
-		imageAlertBG:SetAlpha(128)
-	end
-
-	local bFExist,szSoundFileCommon = RaidGrid_EventScrutiny.SoundFileCommon(tRecord)
-
-	if szSoundFile and szSoundFile ~= "" or bFExist then
-		local fLogicTime = JH.GetLogicTime()
-		if __RaidGrid_Sound[tRecord.dwID] and __RaidGrid_Sound[tRecord.dwID] + 2 > fLogicTime then
-			return
-		end
-		__RaidGrid_Sound[tRecord.dwID] = fLogicTime
-		-- RaidGrid_EventScrutiny.nSoundAlertCDEnd = fLogicTime + 2
-		if szSoundFile and szSoundFile ~= "" then
-			PlaySound(RaidGrid_EventScrutiny.nSoundChannel, szSoundFile)
-		elseif bFExist then
-			PlaySound(RaidGrid_EventScrutiny.nSoundChannel, szSoundFileCommon)
-		end
-		--local fLogicTime = JH.GetLogicTime()
-		--tRecord.bChatAlertCDEnd = fLogicTime + 5
 	end
 end
 
@@ -2884,13 +2788,6 @@ function RaidGrid_SelfBuffAlert.UpdateSelfBuffAlertOrg(tRecord, dwMemberID, bIsR
 	end
 end
 
-function RaidGrid_SelfBuffAlert.RescaleBG()
-	local nW, nH = Station.GetClientSize(true)
-	local imageAlertBG = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertBG")
-	local imageAlertGrid = RaidGrid_SelfBuffAlert.handleMainBG:Lookup("Image_AlertGrid")
-	imageAlertBG:SetSize(nW, nH)
-	imageAlertGrid:SetSize(nW, nH)
-end
 
 function RaidGrid_SelfBuffAlert.InitBuffBoxes()
 	for i = 1, RaidGrid_SelfBuffAlert.nBoxMax do
@@ -2985,18 +2882,8 @@ function RaidGrid_SelfBuffAlert.OpenPanel()
 	RaidGrid_SelfBuffAlert.frameSelf = frame
 	RaidGrid_SelfBuffAlert.handleMain = frame:Lookup("", "")
 	RaidGrid_SelfBuffAlert.handleMain:Lookup("Handle_BuffBoxDummy"):Hide()
-
-	local frameBG = Station.Lookup("Topmost2/RaidGrid_SelfBuffAlertBG")
-	if not frameBG then
-		frameBG = Wnd.OpenWindow(RGES_INI_PATH .. "RaidGrid_SelfBuffAlertBG.ini", "RaidGrid_SelfBuffAlertBG")
-	end
-	frameBG:Show()
-	RaidGrid_SelfBuffAlert.frameBG = frameBG
-	RaidGrid_SelfBuffAlert.handleMainBG = frameBG:Lookup("", "")
-
 	----------------------------------------------------------------------------------------------------------------------------
 	RaidGrid_SelfBuffAlert.InitBuffBoxes()
-	RaidGrid_SelfBuffAlert.RescaleBG()
 	if RaidGrid_SelfBuffAlert.nScaleXandY > 0 and RaidGrid_SelfBuffAlert.nScaleXandY ~= 1 then
 		frame:Scale(RaidGrid_SelfBuffAlert.nScaleXandY, RaidGrid_SelfBuffAlert.nScaleXandY)
 	end
@@ -3388,8 +3275,6 @@ function RaidGrid_BossCallAlert.ChannelSay(szTargetTargetName, szTargetName)
 	local playerClient = GetClientPlayer()
 
 	local r, g, b = unpack(RaidGrid_BossCallAlert.tRGRedAlarm)
-	--if RaidGrid_BossCallAlert.Flash then
-		--RaidGrid_RedAlarm.FlashOrg(t, msg, bRed, bCenter, r, g, b)
 		if playerClient.szName == szTargetTargetName then
 			if RaidGrid_BossCallAlert.Flash or RaidGrid_BossCallAlert.CenterAlarm then
 				RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, szTargetName.."点【你】名了！！！", RaidGrid_BossCallAlert.Flash, RaidGrid_BossCallAlert.CenterAlarm, r, g, b)
@@ -3397,17 +3282,12 @@ function RaidGrid_BossCallAlert.ChannelSay(szTargetTargetName, szTargetName)
 		elseif RaidGrid_BossCallAlert.CenterAlarm then
 			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, szTargetName.."点【"..szTargetTargetName.."】名了！！！", false, true, r, g, b)
 		end
-	--end
 	if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.WHISPER then
-		--if playerClient.szName ~= szTargetTargetName or RaidGrid_BossCallAlert.Flash == false then
-			JH.Talk(szTargetTargetName, {{type = "text", text = szTargetName.."点【你】名了！！！"}})
-		--end
+		JH.Talk(szTargetTargetName, {{type = "text", text = szTargetName.."点【你】名了！！！"}})
 	end
 
 	if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.RAID then
-		--if playerClient.szName ~= szTargetTargetName or RaidGrid_BossCallAlert.Flash == false then
-			JH.Talk({{type = "text", text = szTargetName.."点【"..szTargetTargetName.."】名了！！！"}})
-		--end
+		JH.Talk({{type = "text", text = szTargetName.."点【"..szTargetTargetName.."】名了！！！"}})
 	end
 end
 
@@ -4551,24 +4431,8 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 			data.bChatAlertW = bChecked
 			RaidGrid_EventScrutiny.UpdateRecordList(szType)
 		end):Pos_()
-		nX,nY = ui:Append("WndComboBox","tRGAlertColor",{ x = 0, y = _nY,w = 85,h = 30,color = data.tRGAlertColor or {255,255,255}})
-		:Text("泛光"):Menu(function()
-			local tRGAlertColor = clone(data.tRGAlertColor or nil)
-			if not tRGAlertColor then
-				tRGAlertColor = {}
-			end
-			local SetColor = function(r,g,b)
-				ui:Fetch("tRGAlertColor"):Color(r,g,b)
-			end
-			return {
-				{szOption = g_tStrings.STR_CLOSE, bCheck = false, bChecked = tRGAlertColor[4] == nil, r = 210, g = 210, b = 210, fnAction = function() data.tRGAlertColor = nil;SetColor(255,255,255);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
-				{szOption = _L["Red []"], bMCheck = true, bChecked = tRGAlertColor[4] == 3, r = 255, g = 0, b = 0, fnAction = function() data.tRGAlertColor = {255, 0, 0, 3};SetColor(255,0,0);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
-				{szOption = _L["Green []"], bMCheck = true, bChecked = tRGAlertColor[4] == 1, r = 0, g = 255, b = 0, fnAction = function() data.tRGAlertColor = {0, 255, 0, 1};SetColor(0,255,0);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
-				{szOption = _L["Blue []"], bMCheck = true, bChecked = tRGAlertColor[4] == 0, r = 0, g = 0, b = 255, fnAction = function() data.tRGAlertColor = {0, 0, 255, 0};SetColor(0,0,255);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
-				{szOption = _L["Yellow []"], bMCheck = true, bChecked = tRGAlertColor[4] == 5, r = 255, g = 255, b = 0, fnAction = function() data.tRGAlertColor = {255, 255, 0, 5};SetColor(255,255,0);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
-				{szOption = _L["Purple []"], bMCheck = true, bChecked = tRGAlertColor[4] == 2, r = 255, g = 0, b = 255, fnAction = function() data.tRGAlertColor = {255, 0, 255, 2};SetColor(255,0,255);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
-				{szOption = _L["White []"], bMCheck = true, bChecked = tRGAlertColor[4] == 4, r = 255, g = 255, b = 255, fnAction = function() data.tRGAlertColor = {255, 255, 255, 4};SetColor(255,255,255);RaidGrid_EventScrutiny.UpdateRecordList(type) end},
-			}
+		nX,nY = ui:Append("WndCheckBox", { x = 0, y = _nY, txt = "泛光",  checked = data.bFullScreenAlert or false}):Click(function(bChecked)
+			data.bFullScreenAlert = bChecked
 		end):Pos_()
 		if szType == "Npc" then
 			nX = ui:Append("WndButton2",{ x = nX + 10, y = _nY + 5})
@@ -4943,7 +4807,7 @@ JH.RegisterEvent("LOADING_END", function()
 			RaidGrid_Base.version = 3
 		else
 			for k, v in ipairs(RGES_ALL_TYPE) do
-				JH.DelayCall(300 * k, function()
+				JH.DelayCall(500 * k, function()
 					local data = JH.LoadLUAData(path .. v)
 					if data then
 						RaidGrid_EventScrutiny.tRecords[v] = data
@@ -4960,7 +4824,7 @@ JH.RegisterEvent("LOADING_END", function()
 				end)
 			end
 			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
-				JH.DelayCall(2500, function()
+				JH.DelayCall(3000, function()
 					for k, v in ipairs(RGES_ALL_TYPE) do
 						local data = JH.LoadLUAData(path .. "cache/" .. v)
 						if data then
@@ -4970,6 +4834,7 @@ JH.RegisterEvent("LOADING_END", function()
 					end
 				end)
 			end
+			JH.DelayCall(10000, ClearCacheData)
 		end
 	end
 end)
