@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 17:40:08
+-- @Last Modified time: 2015-05-04 18:16:59
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -1689,33 +1689,27 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				end
 				data.bChatAlertCDEnd2 = data.fEventTimeStart + tonumber(data.nMinEventCD or 10)
 			end
-
+			local xml = {}
+			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			if player.dwID == dwMemberID then
+				table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+			else
+				table.insert(xml, GetFormatText(playerMember.szName, 44, 255, 255, 0))
+			end
+			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			table.insert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
+			table.insert(xml, GetFormatText(szBuffName .. " x" .. nStackNum .. " ", 44, 255, 255, 0))
+			if data.tAlarmAddInfo then
+				table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+			end
+			local txt = GetPureText(table.concat(xml))
 			if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
-				local xml = {}
-				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-				if player.dwID == dwMemberID then
-					table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
-				else
-					table.insert(xml, GetFormatText(playerMember.szName, 44, 255, 255, 0))
-				end
-				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(szBuffName .. " x" .. nStackNum .. " ", 44, 255, 255, 0))
-				if data.tAlarmAddInfo then
-					table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
-				end
 				FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
 			end
 			if data.tRGAutoSelect then
 				RaidGrid_Base.SetTargetOrg(dwMemberID)
 			end
 			if data.bBigFontAlarm then
-				local txt = _L["["]
-				if player.dwID == dwMemberID then
-					txt = txt .. g_tStrings.STR_YOU .. _L["]"] .. _L["Get Buff"] .. szBuffName .. " x" .. nStackNum .. " ".. (data.tAlarmAddInfo or "")
-				else
-					txt = txt .. playerMember.szName .. _L["]"] .. _L["Get Buff"] .. szBuffName .. " x" .. nStackNum .. " ".. (data.tAlarmAddInfo or "")
-				end
 				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
 			end
 			if RaidGrid_EventScrutiny.bAutoMarkEnable and data.tAutoTeamMark and data.tAutoTeamMark ~= 0 then
@@ -1849,34 +1843,34 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 				data.bChatAlertCDEnd2 = fLogicTime + tonumber(data.nMinEventCD or 10)
 			end
 			if (data.bChatAlertCDEnd or 0) <= fLogicTime then
-				local msg = _L("* [%s] enter %s", szNpcName, data.tAlarmAddInfo or "")
+				local xml = {}
+				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(szNpcName, 44, 255, 255, 0))
+				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
+				if data.tAlarmAddInfo then
+					table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+				end
+				local txt = GetPureText(table.concat(xml))
 				if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
 					if data.bChatAlertW then
-						JH.WhisperToTeamMember(msg)
+						JH.WhisperToTeamMember(txt)
 					end
 					if data.bChatAlertT then
-						JH.Talk(msg)
+						JH.Talk(txt)
 					end
 				end
 				if RaidGrid_EventScrutiny.bRedAlarmEnable and data.bFullScreenAlert then
 					FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.tRGBuffColo, bFlash = true })
 				end
 				if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
-					local xml = {}
-					table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-					table.insert(xml, GetFormatText(szNpcName, 44, 255, 255, 0))
-					table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-					table.insert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
-					if data.tAlarmAddInfo then
-						table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
-					end
 					FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
 				end
 				if data.tRGAutoSelect then
 					RaidGrid_Base.SetTargetOrg(npc.dwID)
 				end
 				if data.bBigFontAlarm then
-					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID) }, true)
+					FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(npc.dwID, player.dwID) }, true)
 				end
 				if not data.bAutoTeamMarkAll and RaidGrid_EventScrutiny.bAutoMarkEnable and data.tAutoTeamMark and data.tAutoTeamMark ~= 0 then
 					RaidGrid_Base.TeamMarkOrg(npc.dwID, data.tAutoTeamMark)
@@ -1918,31 +1912,31 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 					szNpcName = tostring(dwTemplateID)
 				end
 			end
-			local msg = _L("* [%s] leave", szNpcName)
+			local xml = {}
+			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			table.insert(xml, GetFormatText(szNpcName, 44, 255, 255, 0))
+			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			table.insert(xml, GetFormatText(_L["disappear"], 44, 255, 255, 255))
+			if data.tAlarmAddInfo then
+				table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+			end
+			local txt = GetPureText(table.concat(xml))
 			if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
 				if data.bChatAlertW then
-					JH.WhisperToTeamMember(msg)
+					JH.WhisperToTeamMember(txt)
 				end
 				if data.bChatAlertT then
-					JH.Talk(msg)
+					JH.Talk(txt)
 				end
 			end
 			if RaidGrid_EventScrutiny.bRedAlarmEnable and data.bFullScreenAlert then
 				FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.tRGBuffColo, bFlash = true })
 			end
 			if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
-				local xml = {}
-				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(szNpcName, 44, 255, 255, 0))
-				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(_L["disappear"], 44, 255, 255, 255))
-				if data.tAlarmAddInfo then
-					table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
-				end
 				FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
 			end
 			if data.bBigFontAlarm then
-				FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID ) }, true)
+				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(npc.dwID, player.dwID ) }, true)
 			end
 		end
 	end
@@ -2083,28 +2077,24 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 				end
 
 				local szName = JH.GetTemplateName(target)
-				local txt = _L["["] .. szName .. _L["]"]
-				if szCastType == "UI_OME_SKILL_CAST_LOG" then
-					txt = txt .. _L["Building"]
-				else
-					txt = txt .. _L["use of"]
-				end
-				txt = txt .. _L["["] .. szSkillName .. _L["]"]
 
-				if szTargetName then
-					if RaidGrid_EventScrutiny.bCastingChatAlertEnable and RaidGrid_EventScrutiny.bCastTargetChatAlertEnable and bTargetNameIsPlayer and data.bCastTargetChatAlertW then
-						JH.Talk(szTargetName, txt .. g_tStrings.TARGET .. _L["["] .. g_tStrings.STR_YOU .. _L["]"])
-					end
-					if player.szName == szTargetName then
-						txt = g_tStrings.TARGET .. _L["["] .. g_tStrings.STR_YOU .. _L["]"]
-					else
-						txt = g_tStrings.TARGET .. _L["["] .. szTargetName .. _L["]"]
-					end
+				local xml = {}
+				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
+				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+				if szCastType == "UI_OME_SKILL_CAST_LOG" then
+					table.insert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
+				else
+					table.insert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
 				end
-				if data.bBigFontAlarm then
-					FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
-				end
+				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(szSkillName, 44, 255, 255, 0))
+				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 				if player.IsInParty() and RaidGrid_EventScrutiny.bCastingChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
+					if data.tAlarmAddInfo then
+						table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+					end
+					local txt = GetPureText(table.concat(xml))
 					if data.bChatAlertW then
 						JH.WhisperToTeamMember(txt .. (data.tAlarmAddInfo or ""))
 					end
@@ -2112,28 +2102,33 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 						JH.Talk(txt .. (data.tAlarmAddInfo or ""))
 					end
 				end
-				if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
-					local xml = {}
+				if szTargetName then
+					local txt = GetPureText(table.concat(xml))
+					if RaidGrid_EventScrutiny.bCastingChatAlertEnable and RaidGrid_EventScrutiny.bCastTargetChatAlertEnable and bTargetNameIsPlayer and data.bCastTargetChatAlertW then
+						JH.Talk(szTargetName, txt .. g_tStrings.TARGET .. _L["["] .. g_tStrings.STR_YOU .. _L["]"])
+					end
+					table.insert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
 					table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-					table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
-					table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-					if szCastType == "UI_OME_SKILL_CAST_LOG" then
-						table.insert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
+					if player.szName == szTargetName then
+						table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
 					else
-						table.insert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
+						table.insert(xml, GetFormatText(szTargetName, 44, 255, 255, 0))
 					end
-					table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-					table.insert(xml, GetFormatText(szSkillName, 44, 255, 255, 0))
 					table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-					if data.tAlarmAddInfo then
-						table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
-					end
+				end
+				if data.tAlarmAddInfo then
+					table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+				end
+				local txt = GetPureText(table.concat(xml))
+				if data.bBigFontAlarm then
+					FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
+				end
+				if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
 					FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
 				end
 				if data.tRGAutoSelect then
 					RaidGrid_Base.SetTargetOrg(dwID)
 				end
-
 				data.bChatAlertCDEnd = fLogicTime + tonumber(data.nMinChatAlertCD or 7)
 			end
 		end
