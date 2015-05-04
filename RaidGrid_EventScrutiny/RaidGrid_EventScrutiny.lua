@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 18:16:59
+-- @Last Modified time: 2015-05-04 18:55:47
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -101,6 +101,7 @@ local function ClearCacheData()
 		tTab2[i].fEventTimeEnd = nil
 		tTab2[i].fMinTime = nil
 		tTab2[i].tTimerSet = nil
+		tTab2[i].bManyMembers = nil
 		if tTab2[i].tRGAlertColor then
 			tTab2[i].tRGAlertColor = nil
 			tTab2[i].bFullScreenAlert = true
@@ -121,6 +122,7 @@ local function ClearCacheData()
 		tTab3[i].fEventTimeStart = nil
 		tTab3[i].fEventTimeEnd = nil
 		tTab3[i].bIsVisible = nil
+		tTab3[i].bManyMembers = nil
 		if tTab3[i].tRGAlertColor then
 			tTab3[i].tRGAlertColor = nil
 			tTab3[i].bFullScreenAlert = true
@@ -1587,14 +1589,6 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 		return
 	end
 
-	if not dwBuffID or dwBuffID <= 0 then
-		return
-	end
-
-	if nLevel <= 0 then
-		return
-	end
-
 	local szType = "Debuff"
 	if Arg3 then
 		szType = "Buff"
@@ -1657,25 +1651,17 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 					})
 				end
 			end
-			if playerMember and ((not data.bManyMembers) or ((data.bChatAlertCDEnd or 0) <= data.fEventTimeStart)) then
-				local sztInfoadd = ""
-				if data.bManyMembers then
-					data.bChatAlertCDEnd = data.fEventTimeStart + tonumber(data.nMinChatAlertCD or 7)
-					sztInfoadd = "（多人或连续）"
+			if RaidGrid_EventScrutiny.bBuffChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
+				local msg = _L["["] .. playerMember.szName .. _L["]"] .. _L["Get Buff"] .. szBuffName .. " x" .. nStackNum .. " " .. (data.tAlarmAddInfo or "")
+				if data.bChatAlertW then
+					if player.dwID == dwMemberID or (IsPlayer(dwMemberID) and player.IsPlayerInMyParty(dwMemberID)) then
+						JH.Talk(playerMember.szName, _L["["] .. g_tStrings.STR_YOU .. _L["]"] .. _L["Get Buff"] .. szBuffName .. " x" .. nStackNum .. " " .. (data.tAlarmAddInfo or ""))
+					else
+						JH.WhisperToTeamMember(msg)
+					end
 				end
-				if RaidGrid_EventScrutiny.bBuffChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
-					local msg = "★ [" .. playerMember.szName .. "]" .. sztInfoadd .. "获得效果: " .. szBuffName .. " x" .. nStackNum .. "。" .. (data.tAlarmAddInfo or "")
-					if data.bChatAlertW then
-						if player.dwID == dwMemberID or (IsPlayer(dwMemberID) and player.IsPlayerInMyParty(dwMemberID)) then
-							local tInfo2 = 	{{type = "text", text = "★你★获得效果: " .. szBuffName .. " x" .. nStackNum .. "。" .. (data.tAlarmAddInfo or "")},}
-							JH.Talk(playerMember.szName,tInfo2)
-						else
-							JH.WhisperToTeamMember(msg)
-						end
-					end
-					if data.bChatAlertT and player.IsInParty() then
-						JH.Talk(msg)
-					end
+				if data.bChatAlertT and player.IsInParty() then
+					JH.Talk(msg)
 				end
 			end
 			if ((data.bChatAlertCDEnd2 or 0) <= data.fEventTimeStart) then
@@ -1860,8 +1846,8 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 						JH.Talk(txt)
 					end
 				end
-				if RaidGrid_EventScrutiny.bRedAlarmEnable and data.bFullScreenAlert then
-					FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.tRGBuffColo, bFlash = true })
+				if RaidGrid_EventScrutiny.bColorAlertEnable and data.bFullScreenAlert then
+					FireEvent("JH_FS_CREATE", "NPC", { nTime = 3, col = data.tRGBuffColor, bFlash = true })
 				end
 				if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
 					FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
@@ -1929,8 +1915,8 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 					JH.Talk(txt)
 				end
 			end
-			if RaidGrid_EventScrutiny.bRedAlarmEnable and data.bFullScreenAlert then
-				FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.tRGBuffColo, bFlash = true })
+			if RaidGrid_EventScrutiny.bColorAlertEnable and data.bFullScreenAlert then
+				FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.tRGBuffColor, bFlash = true })
 			end
 			if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
 				FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
@@ -2075,9 +2061,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 						end
 					end
 				end
-
 				local szName = JH.GetTemplateName(target)
-
 				local xml = {}
 				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
 				table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
@@ -3702,7 +3686,6 @@ RaidGrid_EventScrutiny.nNpcAutoRemoveCachePage = 50;		RegisterCustomData("RaidGr
 RaidGrid_EventScrutiny.bBuffListExEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bBuffListExEnable")
 RaidGrid_EventScrutiny.bColorAlertEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bColorAlertEnable")
 
-RaidGrid_EventScrutiny.bRedAlarmEnable = false;				RegisterCustomData("RaidGrid_EventScrutiny.bRedAlarmEnable")
 RaidGrid_EventScrutiny.bCenterAlarmEnable = true;			RegisterCustomData("RaidGrid_EventScrutiny.bCenterAlarmEnable")
 RaidGrid_EventScrutiny.bAutoMarkEnable = true;				RegisterCustomData("RaidGrid_EventScrutiny.bAutoMarkEnable")
 
@@ -4349,13 +4332,8 @@ function RaidGrid_EventScrutiny.PopRBOptions(handle)
 				GetUserInput(data.szName.."格式：0.11,Part3;0.41,Part2;0.71,Part1; ...", Recall, nil, function() end, nil, data.szNpcLife or "", 310)
 			end):Pos_()
 		end
-		if szType == "Buff" or szType == "Debuff" then
-			nX = ui:Append("WndCheckBox",{ x = nX + 10, y = _nY + 5, checked = data.bManyMembers or false })
-			:Text("聊天框防刷屏"):Click(function(bChecked)
-				data.bManyMembers = bChecked
-			end):Pos_()
-		end
-		nX,nY = ui:Append("Text",{ x = 0, y = nY, txt = "倒计时相关", font = 27}):Pos_()
+
+		nX, nY = ui:Append("Text",{ x = 0, y = nY, txt = "倒计时相关", font = 27}):Pos_()
 
 		nX = ui:Append("WndCheckBox","bSkillTimer2Enable",{ x = 10, y = nY + 10, checked = data.bSkillTimer2Enable or false })
 		:Text("第二中央倒计时"):Click(function(bChecked)

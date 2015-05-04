@@ -1,11 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 14:53:22
+-- @Last Modified time: 2015-05-04 18:58:54
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/CA_UI.ini"
-
+local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
+local min, max = math.min, math.max
 local CA = {}
 
 CA_UI = {
@@ -60,15 +61,15 @@ function CA_UI.OnFrameBreathe()
 			CA.frame:Hide()
 		else
 			if msg.bUp then
-				local nAlpha = math.min(255, CA.frame:GetAlpha() + 15)
+				local nAlpha = min(255, CA.frame:GetAlpha() + 10)
 				CA.frame:SetAlpha(nAlpha)
 				if nAlpha == 255 then
 					msg.bUp = false
 				end
 			else
-				local nAlpha = math.max(160, CA.frame:GetAlpha() - 15)
+				local nAlpha = max(150, CA.frame:GetAlpha() - 10)
 				CA.frame:SetAlpha(nAlpha)
-				if nAlpha == 160 then
+				if nAlpha == 150 then
 					msg.bUp = true
 				end
 			end

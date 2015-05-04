@@ -145,6 +145,7 @@ data = {
 	["[%s] Leave Fight, time:%s."] = "【%s】 脱离战斗，耗时：%s。",
 	[" * cover data %s (%s)"] = "★ 覆盖%s数据 （%s）",
 	[" * import data %s (%s)"] = "★ 导入%s数据 （%s）",
+	["Multiplayer"] = "多人",
 	["is calling"] = "点",
 	["'s name."] = "名了。",
 	["calling"] = "被点名了",
