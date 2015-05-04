@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-29 11:35:35
+-- @Last Modified time: 2015-05-04 15:57:20
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -9,7 +9,7 @@ local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
 local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
-local tinsert = table.insert
+local tinsert, tconcat = table.insert, table.concat
 local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 local GetClientPlayer = GetClientPlayer
@@ -763,18 +763,34 @@ function C.OnBreathe()
 					end
 					if me.IsInRaid() then
 						if Circle.bWhisperChat and data.bWhisperChat then
-							JH.Talk(szName, _L("Warning: %s staring at you", data.szNote or data.key))
+							JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, g_tStrings.STR_YOU))
 						end
 						if Circle.bTeamChat and data.bTeamChat then
 							JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
 						end
 					end
-					-- RaidGrid_RedAlarm这个还没重构 先这样
 					if data.bFlash and RaidGrid_RedAlarm then
 						if me.dwID == dwID then
-							RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at you", data.szNote or data.key), true, true, 255, 0, 0)
+							local xml = {}
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+							FireEvent("JH_FS_CREATE", "Circle", { nTime  = 3, col = { 255, 0, 0 }, bFlash = true })
 						else
-							RaidGrid_RedAlarm.FlashOrg(2, _L("%s staring at %s", data.szNote or data.key, szName), false, true, 255, 0, 0)
+							local xml = {}
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 						end
 					end
 				end

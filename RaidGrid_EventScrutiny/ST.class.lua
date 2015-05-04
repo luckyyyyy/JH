@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-02 11:21:12
+-- @Last Modified time: 2015-05-04 14:31:51
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -110,7 +110,7 @@ function ST_UI.OnEvent(szEvent)
 		end
 	elseif szEvent == "JH_ST_CLEAR" then
 		_ST_UI.handle:Clear()
-	elseif szEvent =="UI_SCALED" then
+	elseif szEvent == "UI_SCALED" then
 		_ST_UI.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
 		UpdateCustomModeWindow(this, _L["Countdown"])

@@ -1,17 +1,18 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-02 11:35:33
+-- @Last Modified time: 2015-05-04 11:36:35
+local FS = class()
+
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
 local min, max = math.min, math.max
 local HasBuff = JH.HasBuff
 
-local FS = class()
-local FS_CACHE = setmetatable({}, { __mode = "v" })
+local FS_CACHE    = setmetatable({}, { __mode = "v" })
 local FS_UI_CACHE = setmetatable({}, { __mode = "v" })
-local FS_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/FS_UI.ini"
-local SHADOW = JH.GetAddonInfo().szShadowIni
-FS_UI = {}
+local FS_INIFILE  = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/FS_UI.ini"
+local SHADOW      = JH.GetAddonInfo().szShadowIni
+
 -- FireEvent("JH_FS_CREATE", "test", { nTime = 5, col = { 255, 255, 0 }, bFlash = true, tBindBuff = { 103, 1 }})
 local function CreateFullScreen(szKey, tArgs)
 	assert(type(arg1) == "table", "CreateFullScreen failed!")
@@ -26,6 +27,8 @@ end
 local function Init()
 	local frame = Wnd.OpenWindow(FS_INIFILE, "FS_UI")
 end
+
+FS_UI    = {}
 
 function FS_UI.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
@@ -136,7 +139,7 @@ function FS:DrawFullScreen( ... )
 end
 
 function FS:DrawEdge()
-	self:DrawShadow(self.ui.sha2, 180, 10, 10)
+	self:DrawShadow(self.ui.sha2, 220, 15, 15)
 	FS_UI_CACHE[self.key] = self.ui
 	return self
 end

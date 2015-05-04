@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 07:54:09
+-- @Last Modified time: 2015-05-04 14:39:38
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -25,7 +25,7 @@ local tinsert, tsort, tremove = table.insert, table.sort, table.remove
 local floor, min = math.floor, math.min
 local GetPlayer, IsPlayer, UI_GetClientPlayerID = GetPlayer, IsPlayer, UI_GetClientPlayerID
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
-
+local GetLogicFrameCount = GetLogicFrameCount
 local _SkillCD = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "SkillCD/ui/SkillCD.ini",
 	tCD = {},
@@ -51,7 +51,7 @@ function SkillCD.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
     _SkillCD.UpdateAnchor(this)
 	_SkillCD.frame = this
-	_SkillCD.handle = this:Lookup("Wnd_List"):Lookup("","")
+	_SkillCD.handle = this:Lookup("Wnd_List"):Lookup("", "")
 	GUI(this):Title(_L["SkillCD"]):Fetch("Check_Minimize"):Click(function(bChecked)
 		_SkillCD.SwitchPanel(bChecked)
 	end):Check(SkillCD.bMini)
@@ -108,33 +108,36 @@ function SkillCD.OnFrameBreathe()
 	end
 	-- 更新倒计时条
 	if SkillCD.bMini then return end
-	local handle = _SkillCD.handle
-	handle:Clear()
-	tsort(data, function(a, b) return a.nEnd < b.nEnd end)
-	for k, v in ipairs(data) do
-		local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", k)
-		local nSec = _SkillCD.tSkill[v.dwSkillID]
-		local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
-		local szSec = floor(JH.GetEndTime(v.nEnd))
-		if fP < 0.15 then
-			item:Lookup("Image_LPlayer"):FromUITex("ui/Image/Common/money.uitex",215)
+	if GetLogicFrameCount() % 4 == 0 then -- 其实也只是防止倒计时太多占用性能 ...
+		local handle = _SkillCD.handle
+		handle:Clear()
+		tsort(data, function(a, b) return a.nEnd < b.nEnd end)
+		for k, v in ipairs(data) do
+			local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", k)
+			local nSec = _SkillCD.tSkill[v.dwSkillID]
+			local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
+			local szSec = floor(JH.GetEndTime(v.nEnd))
+			if fP < 0.15 then
+				item:Lookup("Image_LPlayer"):SetFrame(215)
+			end
+			local txt = szSec .. _L["s"]
+			if szSec > 60 then
+				txt = _L("%dm%ds", szSec / 60, szSec % 60)
+			end
+			item:Lookup("Image_LPlayer"):SetPercentage(fP)
+			item:Lookup("Text_LLife"):SetText(txt)
+			item:Lookup("Text_Player"):SetText(v.szPlayer .. "_" .. v.szName)
+			item:Lookup("Skill_Icon"):FromIconID(v.dwIconID)
+			item:Show()
 		end
-		local txt = szSec .. _L["s"]
-		if szSec > 60 then
-			txt = _L("%dm%ds",szSec / 60, szSec % 60)
-		end
-		item:Lookup("Image_LPlayer"):SetPercentage(fP)
-		item:Lookup("Text_LLife"):SetText(txt)
-		item:Lookup("Text_Player"):SetText(v.szPlayer .. "_" .. v.szName)
-		item:Lookup("Skill_Icon"):FromIconID(v.dwIconID)
-		item:Show()
+		handle:FormatAllItemPos()
+		_SkillCD.SetUISize(#data)
 	end
-	handle:FormatAllItemPos()
 end
 
 function SkillCD.OnFrameDragEnd()
 	this:CorrectPos()
-	SkillCD.tAnchor = GetFrameAnchor(this)
+	SkillCD.tAnchor = GetFrameAnchor(this, "TOPLEFT")
 end
 
 function _SkillCD.UpdateAnchor(frame)
@@ -145,6 +148,7 @@ function _SkillCD.UpdateAnchor(frame)
 		frame:SetPoint("CENTER", 0, 0, "CENTER", 450, -150)
 	end
 end
+
 function _SkillCD.SwitchPanel(bMini)
 	SkillCD.bMini = bMini
 	if bMini then
@@ -153,8 +157,15 @@ function _SkillCD.SwitchPanel(bMini)
 		_SkillCD.frame:Lookup("", "Image_Bg"):SetSize(240, 30)
 	else
 		_SkillCD.frame:Lookup("Wnd_List"):Show()
-		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 229)
-		_SkillCD.frame:Lookup("", "Image_Bg"):SetSize(240, 230)
+	end
+end
+
+function _SkillCD.SetUISize(nCount)
+	if not SkillCD.bMinit then
+		local h = min(200, nCount * 20)
+		_SkillCD.frame:Lookup("Wnd_List"):SetH(h)
+		_SkillCD.frame:Lookup("", "Image_Bg"):SetH(30 + h)
+		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 29 + h)
 	end
 end
 
