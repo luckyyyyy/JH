@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 18:55:47
+-- @Last Modified time: 2015-05-04 19:49:01
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -1684,9 +1684,9 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 			end
 			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			table.insert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
-			table.insert(xml, GetFormatText(szBuffName .. " x" .. nStackNum .. " ", 44, 255, 255, 0))
+			table.insert(xml, GetFormatText(szBuffName .. " x" .. nStackNum, 44, 255, 255, 0))
 			if data.tAlarmAddInfo then
-				table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(" " .. data.tAlarmAddInfo, 44, 255, 255, 255))
 			end
 			local txt = GetPureText(table.concat(xml))
 			if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
@@ -1835,7 +1835,7 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 				table.insert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
 				if data.tAlarmAddInfo then
-					table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+					table.insert(xml, GetFormatText(" " .. data.tAlarmAddInfo, 44, 255, 255, 255))
 				end
 				local txt = GetPureText(table.concat(xml))
 				if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
@@ -2076,7 +2076,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 				if player.IsInParty() and RaidGrid_EventScrutiny.bCastingChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
 					if data.tAlarmAddInfo then
-						table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+						table.insert(xml, " " .. GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
 					end
 					local txt = GetPureText(table.concat(xml))
 					if data.bChatAlertW then
