@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-02 11:12:18
+-- @Last Modified time: 2015-05-04 17:40:08
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -1564,46 +1564,6 @@ function RaidGrid_EventScrutiny.OnCheckBoxUncheck()
 	end
 end
 
-function RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwTargetID, tRecord, msg, bNotSelect)
-	if not tRecord then
-		return
-	end
-
-	if not bNotSelect and tRecord.tRGAutoSelect then
-		RaidGrid_Base.SetTargetOrg(dwTargetID)
-	end
-
-	if RaidGrid_EventScrutiny.bRedAlarmEnable or RaidGrid_EventScrutiny.bCenterAlarmEnable then
-		local player = GetClientPlayer()
-		local bOtherPlayer = false
-		if player.dwID ~= dwTargetID and IsPlayer(dwTargetID) and player.IsPlayerInMyParty(dwTargetID) then
-			bOtherPlayer = true
-		end
-
-		local nRGRAR, nRGRAG, nRGRAB = 255, 0, 0
-		local bRedAlarm = false
-		local bCenterAlarm = false
-		if RaidGrid_EventScrutiny.bRedAlarmEnable and tRecord.tRGRedAlarm then
-			nRGRAR, nRGRAG, nRGRAB = tRecord.tRGRedAlarm[1], tRecord.tRGRedAlarm[2], tRecord.tRGRedAlarm[3]
-			bRedAlarm = true
-		end
-		if RaidGrid_EventScrutiny.bCenterAlarmEnable and tRecord.tRGCenterAlarm then
-			bCenterAlarm = true
-		end
-
-		if tRecord.tRGRedAlarmSelf and bOtherPlayer then
-			bRedAlarm = false
-		end
-		if tRecord.tRGCenterAlarmSelf and bOtherPlayer then
-			bCenterAlarm = false
-		end
-		if bRedAlarm or bCenterAlarm then
-			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, msg, bRedAlarm, bCenterAlarm, nRGRAR, nRGRAG, nRGRAB)
-		end
-	end
-
-end
-
 -- On BUFF_UPDATE [dwMemberID:arg0, bIsRemoved:arg1, nIndex:arg2, dwBuffID:arg4, nStackNum:arg5, nEndFrame:arg6, nLevel:arg8]
 function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex, dwBuffID, nStackNum, nEndFrame, nLevel, dwSkillSrcID, Arg3)
 	nLevel = nLevel or 1
@@ -1729,17 +1689,34 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				end
 				data.bChatAlertCDEnd2 = data.fEventTimeStart + tonumber(data.nMinEventCD or 10)
 			end
-			local szmsgpre = "[" .. playerMember.szName .. "]获得效果: "
-			if player.dwID == dwMemberID then
-				szmsgpre = "★你★获得效果: "
-			end
-			local msg = szmsgpre .. szBuffName .. " x" .. nStackNum .. "。".. (data.tAlarmAddInfo or "")
-			RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwMemberID, data, msg)
-			if data.bBigFontAlarm then
-				if data.tAlarmAddInfo then
-					msg = data.tAlarmAddInfo
+
+			if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
+				local xml = {}
+				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+				if player.dwID == dwMemberID then
+					table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+				else
+					table.insert(xml, GetFormatText(playerMember.szName, 44, 255, 255, 0))
 				end
-				FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
+				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(szBuffName .. " x" .. nStackNum .. " ", 44, 255, 255, 0))
+				if data.tAlarmAddInfo then
+					table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+				end
+				FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
+			end
+			if data.tRGAutoSelect then
+				RaidGrid_Base.SetTargetOrg(dwMemberID)
+			end
+			if data.bBigFontAlarm then
+				local txt = _L["["]
+				if player.dwID == dwMemberID then
+					txt = txt .. g_tStrings.STR_YOU .. _L["]"] .. _L["Get Buff"] .. szBuffName .. " x" .. nStackNum .. " ".. (data.tAlarmAddInfo or "")
+				else
+					txt = txt .. playerMember.szName .. _L["]"] .. _L["Get Buff"] .. szBuffName .. " x" .. nStackNum .. " ".. (data.tAlarmAddInfo or "")
+				end
+				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwMemberID,player.dwID) }, player.dwID == dwMemberID )
 			end
 			if RaidGrid_EventScrutiny.bAutoMarkEnable and data.tAutoTeamMark and data.tAutoTeamMark ~= 0 then
 				RaidGrid_Base.TeamMarkOrg(dwMemberID, data.tAutoTeamMark)
@@ -1872,8 +1849,8 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 				data.bChatAlertCDEnd2 = fLogicTime + tonumber(data.nMinEventCD or 10)
 			end
 			if (data.bChatAlertCDEnd or 0) <= fLogicTime then
+				local msg = _L("* [%s] enter %s", szNpcName, data.tAlarmAddInfo or "")
 				if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
-					local msg = _L("* [%s] enter %s",szNpcName,data.tAlarmAddInfo or "")
 					if data.bChatAlertW then
 						JH.WhisperToTeamMember(msg)
 					end
@@ -1881,8 +1858,23 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 						JH.Talk(msg)
 					end
 				end
-				local msg = _L("[%s] enter %s",szNpcName,data.tAlarmAddInfo or "")
-				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, data, msg)
+				if RaidGrid_EventScrutiny.bRedAlarmEnable and data.bFullScreenAlert then
+					FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.tRGBuffColo, bFlash = true })
+				end
+				if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
+					local xml = {}
+					table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+					table.insert(xml, GetFormatText(szNpcName, 44, 255, 255, 0))
+					table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+					table.insert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
+					if data.tAlarmAddInfo then
+						table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+					end
+					FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
+				end
+				if data.tRGAutoSelect then
+					RaidGrid_Base.SetTargetOrg(npc.dwID)
+				end
 				if data.bBigFontAlarm then
 					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID) }, true)
 				end
@@ -1926,8 +1918,8 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 					szNpcName = tostring(dwTemplateID)
 				end
 			end
+			local msg = _L("* [%s] leave", szNpcName)
 			if player.IsInParty() and RaidGrid_EventScrutiny.bNpcChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
-				local msg = _L("* [%s] leave",szNpcName)
 				if data.bChatAlertW then
 					JH.WhisperToTeamMember(msg)
 				end
@@ -1935,8 +1927,20 @@ function RaidGrid_EventScrutiny.OnNpcLeaveEvent(dwTemplateID, npc)
 					JH.Talk(msg)
 				end
 			end
-			local msg = _L("[%s] leave",szNpcName)
-			RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(npc.dwID, data, msg, true)
+			if RaidGrid_EventScrutiny.bRedAlarmEnable and data.bFullScreenAlert then
+				FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.tRGBuffColo, bFlash = true })
+			end
+			if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
+				local xml = {}
+				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(szNpcName, 44, 255, 255, 0))
+				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(_L["disappear"], 44, 255, 255, 255))
+				if data.tAlarmAddInfo then
+					table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+				end
+				FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
+			end
 			if data.bBigFontAlarm then
 				FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(npc.dwID, player.dwID ) }, true)
 			end
@@ -2048,7 +2052,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 				if data.bFullScreenAlert and RaidGrid_EventScrutiny.bColorAlertEnable then
 					FireEvent("JH_FS_CREATE", "Casting"--[[data.dwID .. "_" .. data.nLevel]], { nTime = 3, col = data.tRGBuffColor })
 				end
-				local szTargetName = _L["Unknown"]
+				local szTargetName
 				local bTargetNameIsPlayer = false
 				if RaidGrid_EventScrutiny.bCastingTargetScrutinyEnable and (not data.bNotCastTargetScrutinyEnable) then
 					if (not szTargetIDOrName or tonumber(szTargetIDOrName) <= 0) then
@@ -2077,36 +2081,59 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 						end
 					end
 				end
-				local szInfoTemp = "。"
-				if szTargetName and szTargetName ~= "" and szTargetName ~= _L["Unknown"] then
-					szInfoTemp = "，目标：[" .. szTargetName .. "]。"
+
+				local szName = JH.GetTemplateName(target)
+				local txt = _L["["] .. szName .. _L["]"]
+				if szCastType == "UI_OME_SKILL_CAST_LOG" then
+					txt = txt .. _L["Building"]
+				else
+					txt = txt .. _L["use of"]
+				end
+				txt = txt .. _L["["] .. szSkillName .. _L["]"]
+
+				if szTargetName then
+					if RaidGrid_EventScrutiny.bCastingChatAlertEnable and RaidGrid_EventScrutiny.bCastTargetChatAlertEnable and bTargetNameIsPlayer and data.bCastTargetChatAlertW then
+						JH.Talk(szTargetName, txt .. g_tStrings.TARGET .. _L["["] .. g_tStrings.STR_YOU .. _L["]"])
+					end
 					if player.szName == szTargetName then
-						szInfoTemp = "，目标：★" .. szTargetName .. "★。"
+						txt = g_tStrings.TARGET .. _L["["] .. g_tStrings.STR_YOU .. _L["]"]
+					else
+						txt = g_tStrings.TARGET .. _L["["] .. szTargetName .. _L["]"]
 					end
 				end
-				local szInfoTemp2 = "]释放了："
-				if szCastType == "UI_OME_SKILL_CAST_LOG" then
-					szInfoTemp2 = "]开始吟唱："
-				end
-				local szName = JH.GetTemplateName(target)
-				if RaidGrid_EventScrutiny.bCastingChatAlertEnable and RaidGrid_EventScrutiny.bCastTargetChatAlertEnable and bTargetNameIsPlayer and szInfoTemp ~= "。" and data.bCastTargetChatAlertW then
-					local tInfo2 = {{type = "text", text = "★ [" .. szName .. szInfoTemp2 .. szSkillName .. "，目标为：★你★。" .. (data.tAlarmAddInfo or "")},}
-					JH.Talk(szTargetName,tInfo2)
+				if data.bBigFontAlarm then
+					FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
 				end
 				if player.IsInParty() and RaidGrid_EventScrutiny.bCastingChatAlertEnable and (data.bChatAlertW or data.bChatAlertT) then
-					local tInfo =  "★ [" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (data.tAlarmAddInfo or "")
 					if data.bChatAlertW then
-						JH.WhisperToTeamMember(tInfo)
+						JH.WhisperToTeamMember(txt .. (data.tAlarmAddInfo or ""))
 					end
 					if data.bChatAlertT then
-						JH.Talk(tInfo)
+						JH.Talk(txt .. (data.tAlarmAddInfo or ""))
 					end
 				end
-				local msg = "[" .. szName .. szInfoTemp2 .. szSkillName .. szInfoTemp .. (data.tAlarmAddInfo or "")
-				RaidGrid_EventScrutiny.UpdateAlarmAndSelectOrg(dwID, data, msg)
-				if data.bBigFontAlarm then
-					FireEvent("JH_LARGETEXT", msg, { GetHeadTextForceFontColor(dwID, player.dwID) }, true)
+				if RaidGrid_EventScrutiny.bCenterAlarmEnable  and data.tRGCenterAlarm then
+					local xml = {}
+					table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+					table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
+					table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+					if szCastType == "UI_OME_SKILL_CAST_LOG" then
+						table.insert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
+					else
+						table.insert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
+					end
+					table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+					table.insert(xml, GetFormatText(szSkillName, 44, 255, 255, 0))
+					table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+					if data.tAlarmAddInfo then
+						table.insert(xml, GetFormatText(data.tAlarmAddInfo, 44, 255, 255, 255))
+					end
+					FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
 				end
+				if data.tRGAutoSelect then
+					RaidGrid_Base.SetTargetOrg(dwID)
+				end
+
 				data.bChatAlertCDEnd = fLogicTime + tonumber(data.nMinChatAlertCD or 7)
 			end
 		end
@@ -2145,7 +2172,7 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 				local nPercentLife = nCurrentLife / nMaxLife
 				for k, v in pairs(data.tNpcLife) do
 					if nPercentLife < v[1] and not _RE.tNpcLife[dwTemplateID][v[1]] then
-						RaidGrid_RedAlarm.FlashOrg(3,v[2], false, true, 255, 0, 0)
+						FireEvent("JH_CA_CREATE", v[2], 3)
 						FireEvent("JH_LARGETEXT", v[2], { 255, 128, 0 }, true)
 						if v[3] then
 							FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_LIFE, data.dwID, {
@@ -2667,9 +2694,6 @@ end
 ----RaidGrid_EventScrutiny.lua----
 ----------------------------------------------------------------
 
-
-
-
 ----------------------------------------------------------------
 ----RaidGrid_SelfBuffAlert.lua----
 ----------------------------------------------------------------
@@ -2891,161 +2915,6 @@ end
 
 ----------------------------------------------------------------
 ----RaidGrid_SelfBuffAlert.lua----
-----------------------------------------------------------------
-
-
-----------------------------------------------------------------
-----RaidGrid_CenterAlarm.lua----
-----------------------------------------------------------------
-
-RaidGrid_CenterAlarm ={
-	Anchor = {
-		s = "CENTER",
-		r = "CENTER",
-		x = 0,
-		y = -150,
-	}
-}
-RegisterCustomData("RaidGrid_CenterAlarm.Anchor")
-
-function RaidGrid_CenterAlarm.OnFrameCreate()
-	this:RegisterEvent("UI_SCALED")
-	this:RegisterEvent("CUSTOM_DATA_LOADED")
-	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
-	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
-
-end
-
-
-function RaidGrid_CenterAlarm.UpdateText(msg)
-	Station.Lookup("Normal/RaidGrid_CenterAlarm"):Lookup("",""):Lookup("Text_CampText"):SetText(msg)
-end
-
-function RaidGrid_CenterAlarm.UpdateAlpha(alpha)
-	Station.Lookup("Normal/RaidGrid_CenterAlarm"):Lookup("",""):SetAlpha(alpha)
-end
-
-function RaidGrid_CenterAlarm.UpdateAnchor(frame)
-	local anchor = RaidGrid_CenterAlarm.Anchor
-	frame:SetPoint(anchor.s, 0, 0, anchor.r, anchor.x, anchor.y)
-	frame:CorrectPos()
-end
-function RaidGrid_CenterAlarm.OnFrameDragEnd()
-	this:CorrectPos()
-	RaidGrid_CenterAlarm.Anchor = GetFrameAnchor(this)
-end
-
-function RaidGrid_CenterAlarm.OnEvent(event)
-	if event=="UI_SCALED" or (event=="CUSTOM_DATA_LOADED" and arg0=="Role") then
-		RaidGrid_CenterAlarm.UpdateAnchor(this)
-	elseif event == "ON_ENTER_CUSTOM_UI_MODE" or event == "ON_LEAVE_CUSTOM_UI_MODE" then
-		UpdateCustomModeWindow(this, _L["CenterAlarm"], true)
-	end
-end
-
-
-Wnd.OpenWindow(RGES_INI_PATH .. "RaidGrid_CenterAlarm.ini", "RaidGrid_CenterAlarm")
-
-----------------------------------------------------------------
-----RaidGrid_CenterAlarm.lua----
-----------------------------------------------------------------
-
-
-
-
-----------------------------------------------------------------
-----RaidGrid_RedAlarm.lua----
-----------------------------------------------------------------
-
-RaidGrid_RedAlarm = {
-	bRedAlarm = true,
-	bCenterAlarm = true,
-	r = 255,
-	g = 0,
-	b = 0,
-	pRed = nil,
-	bUp = true,
-	nMaxAlpha = 128,
-	nAlpha = 0,
-	nTime = 0,
-	nSpeed = 16,
-}
-
-
-function RaidGrid_RedAlarm.OnFrameCreate()
-	local frame = Station.Lookup("Topmost/RaidGrid_RedAlarm")
-	local handle = frame:Lookup("", "")
-	RaidGrid_RedAlarm.pRed = handle:Lookup("Shadow_Info")
-end
-
-function RaidGrid_RedAlarm.OnFrameRender()
-	local fps = GetFPS()
-	local passed_time = 1000.0 / fps
-
-	if RaidGrid_RedAlarm.nTime > 0 then
-		if RaidGrid_RedAlarm.bUp then
-			RaidGrid_RedAlarm.nAlpha = RaidGrid_RedAlarm.nAlpha + RaidGrid_RedAlarm.nSpeed * passed_time / 67
-		else
-			RaidGrid_RedAlarm.nAlpha = RaidGrid_RedAlarm.nAlpha - RaidGrid_RedAlarm.nSpeed * passed_time / 67
-		end
-		if RaidGrid_RedAlarm.nAlpha > RaidGrid_RedAlarm.nMaxAlpha then
-			RaidGrid_RedAlarm.nAlpha = RaidGrid_RedAlarm.nMaxAlpha
-			RaidGrid_RedAlarm.bUp = false
-		end
-		if RaidGrid_RedAlarm.nAlpha < 0 then
-			RaidGrid_RedAlarm.nAlpha = 0
-			RaidGrid_RedAlarm.bUp = true
-			RaidGrid_RedAlarm.nTime = RaidGrid_RedAlarm.nTime - 1
-		end
-		local red_alpha = RaidGrid_RedAlarm.nAlpha
-		local center_alpha = RaidGrid_RedAlarm.nAlpha + 128
-		if not RaidGrid_RedAlarm.bRedAlarm then
-			red_alpha = 0
-		end
-		if not RaidGrid_RedAlarm.bCenterAlarm then
-			center_alpha = 0
-		end
-		RaidGrid_RedAlarm.Draw( red_alpha )
-		RaidGrid_CenterAlarm.UpdateAlpha( center_alpha )
-	else
-		RaidGrid_RedAlarm.Draw( 0 )
-		RaidGrid_CenterAlarm.UpdateAlpha( 0 )
-	end
-end
-
-
-function RaidGrid_RedAlarm.FlashOrg(t, msg, bRed, bCenter, r, g, b)
-	if not t or tonumber(t)<=0 then
-		return
-	end
-	RaidGrid_RedAlarm.r = r
-	RaidGrid_RedAlarm.g = g
-	RaidGrid_RedAlarm.b = b
-	RaidGrid_RedAlarm.bRedAlarm = bRed
-	RaidGrid_RedAlarm.bCenterAlarm = bCenter
-	RaidGrid_RedAlarm.nTime = t
-	RaidGrid_RedAlarm.bUp = true
-	RaidGrid_RedAlarm.nAlpha = 0
-	RaidGrid_CenterAlarm.UpdateText(msg)
-end
-
-function RaidGrid_RedAlarm.Draw(alpha)
-	local xScreen, yScreen = Station.GetClientSize()
-	local nR, nG, nB = RaidGrid_RedAlarm.r, RaidGrid_RedAlarm.g, RaidGrid_RedAlarm.b
-	RaidGrid_RedAlarm.pRed:SetTriangleFan(true)
-	RaidGrid_RedAlarm.pRed:ClearTriangleFanPoint()
-	RaidGrid_RedAlarm.pRed:AppendTriangleFanPoint(xScreen/2, 	yScreen/2, 	nR, nG, nB, 0)
-	RaidGrid_RedAlarm.pRed:AppendTriangleFanPoint(0, 					0, 					nR, nG, nB, alpha)
-	RaidGrid_RedAlarm.pRed:AppendTriangleFanPoint(0, 					yScreen, 		nR, nG, nB, alpha)
-	RaidGrid_RedAlarm.pRed:AppendTriangleFanPoint(xScreen, 		yScreen, 		nR, nG, nB, alpha)
-	RaidGrid_RedAlarm.pRed:AppendTriangleFanPoint(xScreen, 		0, 					nR, nG, nB, alpha)
-	RaidGrid_RedAlarm.pRed:AppendTriangleFanPoint(0, 					0, 					nR, nG, nB, alpha)
-end
-
-Wnd.OpenWindow(RGES_INI_PATH .. "RaidGrid_RedAlarm.ini", "RaidGrid_RedAlarm")
-
-----------------------------------------------------------------
-----RaidGrid_RedAlarm.lua----
 ----------------------------------------------------------------
 
 ----------------------------------------------------------------
@@ -3275,19 +3144,34 @@ function RaidGrid_BossCallAlert.ChannelSay(szTargetTargetName, szTargetName)
 	local playerClient = GetClientPlayer()
 
 	local r, g, b = unpack(RaidGrid_BossCallAlert.tRGRedAlarm)
-		if playerClient.szName == szTargetTargetName then
-			if RaidGrid_BossCallAlert.Flash or RaidGrid_BossCallAlert.CenterAlarm then
-				RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, szTargetName.."点【你】名了！！！", RaidGrid_BossCallAlert.Flash, RaidGrid_BossCallAlert.CenterAlarm, r, g, b)
-			end
-		elseif RaidGrid_BossCallAlert.CenterAlarm then
-			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, szTargetName.."点【"..szTargetTargetName.."】名了！！！", false, true, r, g, b)
+	if playerClient.szName == szTargetTargetName then
+		if RaidGrid_BossCallAlert.Flash then
+			FireEvent("JH_FS_CREATE", "BossCallAlert", { nTime  = 3, col = { r, g, b }, bFlash = true })
 		end
-	if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.WHISPER then
-		JH.Talk(szTargetTargetName, {{type = "text", text = szTargetName.."点【你】名了！！！"}})
 	end
-
-	if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.RAID then
-		JH.Talk({{type = "text", text = szTargetName.."点【"..szTargetTargetName.."】名了！！！"}})
+	if RaidGrid_BossCallAlert.CenterAlarm then
+		local xml = {}
+		table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+		table.insert(xml, GetFormatText(szTargetName, 44, 255, 255, 0))
+		table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+		table.insert(xml, GetFormatText(_L["is calling"], 44, 255, 255, 255))
+		table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+		if playerClient.szName == szTargetTargetName then
+			table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+		else
+			table.insert(xml, GetFormatText(szTargetTargetName, 44, 255, 255, 0))
+		end
+		table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+		table.insert(xml, GetFormatText(_L["'s name."], 44, 255, 255, 255))
+		FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
+	end
+	if RaidGrid_BossCallAlert.bChatAlertEnable then
+		if RaidGrid_BossCallAlert.WHISPE then
+			JH.Talk(szTargetTargetName, {{type = "text", text = _L["["] .. szTargetName .. _L["]"] .. _L["is calling"] .. _L["["] .. g_tStrings.STR_YOU .. _L["]"] .. _L["'s name."] }})
+		end
+		if RaidGrid_BossCallAlert.RAID then
+			JH.Talk(szTargetTargetName, {{type = "text", text = _L["["] .. szTargetName .. _L["]"] .. _L["is calling"] .. _L["["] .. szTargetTargetName .. _L["]"] .. _L["'s name."] }})
+		end
 	end
 end
 
@@ -3341,9 +3225,12 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 		local tRecord = RaidGrid_BossCallAlert.tRecords.tBossCall[i]
 		if tRecord.bOn and tRecord.szText and tRecord.szText ~= "" and string.find(saydata,tRecord.szText) then
 			if not tRecord.szBossName or tRecord.szBossName == "" or tRecord.szBossName == bossname then
-				local nRGRAR, nRGRAG, nRGRAB = RaidGrid_BossCallAlert.tRGRedAlarm[1], RaidGrid_BossCallAlert.tRGRedAlarm[2], RaidGrid_BossCallAlert.tRGRedAlarm[3]
-				RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, tRecord.szName or saydata, tRecord.bFlash, tRecord.bCenterAlarm, nRGRAR, nRGRAG, nRGRAB)
-
+				if tRecord.bCenterAlarm then
+					FireEvent("JH_CA_CREATE", tRecord.szName or saydata, 3)
+				end
+				if tRecord.bFlash then
+					FireEvent("JH_FS_CREATE", "ProcessBossCallSet", { nTime  = 3, col = RaidGrid_BossCallAlert.tRGRedAlarm, bFlash = true })
+				end
 				local tInfo = tRecord.szName or saydata
 				if RaidGrid_BossCallAlert.bChatAlertEnable and tRecord.bRAID then
 					JH.Talk(tInfo)
@@ -3449,9 +3336,12 @@ function RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 	for i = 1, #RaidGrid_BossCallAlert.tRecords.tWarningMessages, 1 do
 		local tRecord = RaidGrid_BossCallAlert.tRecords.tWarningMessages[i]
 		if tRecord.bOn and tRecord.szText and tRecord.szText ~= "" and string.find(saydata,tRecord.szText) then
-			local nRGRAR, nRGRAG, nRGRAB = RaidGrid_BossCallAlert.tRGRedAlarm[1], RaidGrid_BossCallAlert.tRGRedAlarm[2], RaidGrid_BossCallAlert.tRGRedAlarm[3]
-			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, tRecord.szName or saydata, tRecord.bFlash, tRecord.bCenterAlarm, nRGRAR, nRGRAG, nRGRAB)
-
+			if tRecord.bCenterAlarm then
+				FireEvent("JH_CA_CREATE", tRecord.szName or saydata, 3)
+			end
+			if tRecord.bFlash then
+				FireEvent("JH_FS_CREATE", "ProcessWarningMessagesSet", { nTime  = 3, col = RaidGrid_BossCallAlert.tRGRedAlarm, bFlash = true })
+			end
 			local tInfo = tRecord.szName or saydata
 			if RaidGrid_BossCallAlert.bChatAlertEnable and tRecord.bRAID then
 				JH.Talk(tInfo)
@@ -3533,28 +3423,29 @@ function RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
 	end
 end
 
-function RaidGrid_BossCallAlert.WarningMessageAlarm(szTargetTargetName, saydata)
+function RaidGrid_BossCallAlert.WarningMessageAlarm(szTargetTargetName)
 	local playerClient = GetClientPlayer()
-
-	local r, g, b = unpack(RaidGrid_BossCallAlert.tRGRedAlarm)
 	if playerClient.szName == szTargetTargetName then
-		if RaidGrid_BossCallAlert.Flash or RaidGrid_BossCallAlert.CenterAlarm then
-			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, "【你】被点名了！！！", RaidGrid_BossCallAlert.Flash, RaidGrid_BossCallAlert.CenterAlarm, r, g, b)
-		end
-	else
-		if RaidGrid_BossCallAlert.CenterAlarm then
-			RaidGrid_RedAlarm.FlashOrg(RaidGrid_EventScrutiny.nCenterAlarmTime, "【"..szTargetTargetName.."】被点名了！！！", false, true, r, g, b)
-		end
-
-		if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.WHISPER then
-			JH.Talk(szTargetTargetName,{{type = "text", text = "【你】被点名了！！！"}})
-		end
-
-		if RaidGrid_BossCallAlert.bChatAlertEnable and RaidGrid_BossCallAlert.RAID then
-			JH.Talk({{type = "text", text = "【"..szTargetTargetName.."】被点名了！！！"}})
+		if RaidGrid_BossCallAlert.Flash then
+			FireEvent("JH_FS_CREATE", "WarningMessageAlarm", { nTime  = 3, col =RaidGrid_BossCallAlert.tRGRedAlarm, bFlash = true })
 		end
 	end
-
+	if RaidGrid_BossCallAlert.CenterAlarm then
+		local xml = {}
+		table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+		table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+		table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+		table.insert(xml, GetFormatText(_L["calling"], 44, 255, 255, 255))
+		FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
+	end
+	if RaidGrid_BossCallAlert.bChatAlertEnable then
+		if RaidGrid_BossCallAlert.WHISPE then
+			JH.Talk(szTargetTargetName, {{type = "text", text = _L["["] .. g_tStrings.STR_YOU .. _L["]"] .. _L["calling"] }})
+		end
+		if RaidGrid_BossCallAlert.RAID then
+			JH.Talk(szTargetTargetName, {{type = "text", text = _L["["] .. g_tStrings.STR_YOU .. _L["]"] .. _L["calling"]  }})
+		end
+	end
 end
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3824,7 +3715,6 @@ RaidGrid_EventScrutiny.bCtrlandAltMove = true;				RegisterCustomData("RaidGrid_E
 RaidGrid_EventScrutiny.bAutoNewSkillTimer = true;			RegisterCustomData("RaidGrid_EventScrutiny.bAutoNewSkillTimer")
 
 RaidGrid_EventScrutiny.bSkillTimerSay = false;				RegisterCustomData("RaidGrid_EventScrutiny.bSkillTimerSay")
-RaidGrid_EventScrutiny.nCenterAlarmTime = 2;				RegisterCustomData("RaidGrid_EventScrutiny.nCenterAlarmTime")
 RaidGrid_EventScrutiny.nSkillTimerCountdown = 5;			RegisterCustomData("RaidGrid_EventScrutiny.nSkillTimerCountdown")
 RaidGrid_EventScrutiny.nSayChannel = PLAYER_TALK_CHANNEL.RAID; RegisterCustomData("RaidGrid_EventScrutiny.nSayChannel")
 
