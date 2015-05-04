@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 11:36:35
+-- @Last Modified time: 2015-05-04 23:24:49
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
@@ -147,7 +147,7 @@ end
 function FS:DrawShadow(sha, nAlpha, fScreenX, fScreenY)
 	local r, g, b = unpack(self.ui.col)
 	local w, h = Station.GetClientSize()
-	local bW, bH = fScreenX or w * 0.1, fScreenY or h * 0.1
+	local bW, bH = fScreenX or w * 0.15, fScreenY or h * 0.15
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:SetD3DPT(D3DPT.TRIANGLESTRIP)
 	sha:ClearTriangleFanPoint()
