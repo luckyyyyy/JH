@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-05 09:46:19
+-- @Last Modified time: 2015-05-05 22:21:12
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/CA_UI.ini"
@@ -37,8 +37,8 @@ local function CreateCentralAlert(szMsg, nTime, bXml)
 	end
 	msg.nTime = nTime
 	msg.nCreate = GetTime()
-	msg.nUp = false
-	CA.frame:SetAlpha(255)
+	msg.nUp = true
+	CA.frame:SetAlpha(155)
 	CA.frame:Show()
 end
 
@@ -68,9 +68,9 @@ function CA_UI.OnFrameBreathe()
 					msg.bUp = false
 				end
 			else
-				local nAlpha = max(150, CA.frame:GetAlpha() - 10)
+				local nAlpha = max(155, CA.frame:GetAlpha() - 10)
 				CA.frame:SetAlpha(nAlpha)
-				if nAlpha == 150 then
+				if nAlpha == 155 then
 					msg.bUp = true
 				end
 			end

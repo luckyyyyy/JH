@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-19 05:07:47
+-- @Last Modified time: 2015-05-05 17:22:18
 local _L = JH.LoadLangPack
 local TeamAD = {
 	szDataFile = "TeamAD.jx3dat",
@@ -33,7 +33,7 @@ local TeamAD = {
 		}
 	}
 }
-TeamAD.tADList = JH.LoadLUAData(TeamAD.szDataFile) or {}
+
 
 TeamAD.SetEdit = function(edit,tab) -- 略奇葩 看不懂。。。 神经病一样的设置
 	edit:ClearText()
@@ -50,6 +50,7 @@ TeamAD.SetEdit = function(edit,tab) -- 略奇葩 看不懂。。。 神经病一样的设置
 end
 TeamAD.PS = {}
 TeamAD.PS.OnPanelActive = function(frame)
+	TeamAD.tADList = JH.LoadLUAData(TeamAD.szDataFile) or {}
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["TeamAD"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndEdit","WndEditAD", { x = 10, y = 28,w = 500, h = 80,multi = true,limit = 164 }):Pos_()
