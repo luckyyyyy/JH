@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-26 14:05:59
+-- @Last Modified time: 2015-05-05 17:59:23
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -919,16 +919,15 @@ end
 -- 绘制团队概况
 ----------------------------------------------------------------------<
 _GKP.Draw_GKP_Buff = function(key,sort)
+	local me = GetClientPlayer()
+	if not me or not me.IsInParty() then
+		return
+	end
 	local key = key or _GKP.GKP_Buff_Container.key or "nEquipScore"
 	local sort = sort or _GKP.GKP_Buff_Container.sort or "desc"
 	_GKP.GKP_Buff_Container.key = key
 	_GKP.GKP_Buff_Container.sort = sort
 	_GKP.GKP_Buff_Container:Clear()
-	local me = GetClientPlayer()
-	if not me then return end
-	if not me.IsInParty() then
-		return
-	end
 	local team = GetClientTeam()
 	local TeamMemberList = team.GetTeamMemberList()
 	local tType = { [24] = true,[17] = true,[18] = true,[19] = true,[20] = true }
@@ -1246,18 +1245,18 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			box.OnItemLButtonClick = OnItemLButtonClick
 
 			wnd:Lookup("WndButton_Delete").OnLButtonClick = function()
-				if not JH.IsDistributer() then
+				if not JH.IsDistributer() and not JH_About.CheckNameEx() then
 					return JH.Alert(_L["You are not the distrubutor."])
 				end
 				local tab = GKP("GKP_Record","del",k)
 				if JH.IsDistributer() then
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","del",JH.AscIIEncode(JH.JsonEncode(tab)))
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "del", JH.AscIIEncode(JH.JsonEncode(tab)))
 				end
 				pcall(_GKP.Draw_GKP_Record)
 			end
 
 			wnd:Lookup("WndButton_Edit").OnLButtonClick = function()
-				if not JH.IsDistributer() then
+				if not JH.IsDistributer() and not JH_About.CheckNameEx() then
 					return JH.Alert(_L["You are not the distrubutor."])
 				end
 				_GKP.Record(v, k)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 23:24:49
+-- @Last Modified time: 2015-05-05 17:03:11
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
@@ -111,8 +111,8 @@ function FS:ctor(szKey, tArgs)
 		end
 		ui.sha1 = ui:AppendItemFromIni(SHADOW, "shadow")
 		ui.bFlash = tArgs.bFlash
-		ui.nUp = false
-		ui.nAlpha = 150
+		ui.nUp = true
+		ui.nAlpha = 0
 		ui.nTime = tArgs.nTime
 		ui.nCreate = nTime
 		ui.col = tArgs.col or { 255, 128, 0 }
