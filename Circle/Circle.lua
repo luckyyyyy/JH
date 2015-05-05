@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 15:57:20
+-- @Last Modified time: 2015-05-05 11:15:24
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -769,7 +769,7 @@ function C.OnBreathe()
 							JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
 						end
 					end
-					if data.bFlash and RaidGrid_RedAlarm then
+					if data.bFlash then
 						if me.dwID == dwID then
 							local xml = {}
 							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
