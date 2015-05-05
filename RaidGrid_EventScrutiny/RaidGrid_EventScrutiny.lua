@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 19:49:01
+-- @Last Modified time: 2015-05-05 09:57:09
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -586,43 +586,28 @@ function RaidGrid_Base.LoadSettingsFileNew(szName, bOverride)
 	end
 
 	if bOverride then
-		if not data.EventScrutinyRecords then
-			if data.Debuff then
-				data.Scrutiny = RaidGrid_EventScrutiny.tRecords.Scrutiny
-				RaidGrid_EventScrutiny.tRecords = data
-				JH.Sysmsg(_L("Override %s data done", "RGES"))
+		if RaidGrid_EventScrutiny.bOutputBossFaceData then
+			if data.Circle and type(Circle) ~= "nil" then
+				Circle.LoadCircleData(data, true)
 			end
-		else
-			if RaidGrid_EventScrutiny.bOutputBossFaceData then
-				if data.Circle and type(Circle) ~= "nil" then
-					Circle.LoadCircleData(data, true)
-				end
-			end
-			if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then
-				if data.BossCallAlertRecords then
-					RaidGrid_BossCallAlert.tRecords = data.BossCallAlertRecords
-					JH.Sysmsg(_L("Override %s data done", "RaidGrid_BossCallAlert"))
-				end
-			end
-			if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
-				if data.EventCacheRecords then
-					RaidGrid_EventCache.tRecords = data.EventCacheRecords
-					JH.Sysmsg(_L("Override %s data done", "RaidGrid_EventCache"))
-				end
-			end
-			data.EventScrutinyRecords.Scrutiny = RaidGrid_EventScrutiny.tRecords.Scrutiny
-			RaidGrid_EventScrutiny.tRecords = data.EventScrutinyRecords
-			JH.Sysmsg(_L("Override %s data done", "RGES"))
 		end
+		if RaidGrid_EventScrutiny.bOutputBossCallAlertRecords then
+			if data.BossCallAlertRecords then
+				RaidGrid_BossCallAlert.tRecords = data.BossCallAlertRecords
+				JH.Sysmsg(_L("Override %s data done", "RaidGrid_BossCallAlert"))
+			end
+		end
+		if RaidGrid_EventScrutiny.bOutputEventCacheRecords then
+			if data.EventCacheRecords then
+				RaidGrid_EventCache.tRecords = data.EventCacheRecords
+				JH.Sysmsg(_L("Override %s data done", "RaidGrid_EventCache"))
+			end
+		end
+		data.EventScrutinyRecords.Scrutiny = RaidGrid_EventScrutiny.tRecords.Scrutiny
+		RaidGrid_EventScrutiny.tRecords = data.EventScrutinyRecords
+		JH.Sysmsg(_L("Override %s data done", "RGES"))
 	else
-		local _data = {}
-		if not data.EventScrutinyRecords then -- 兼容之前的版本数据
-			if data.Debuff then
-				_data = data
-			end
-		else
-			_data = data.EventScrutinyRecords
-		end
+		local _data = data.EventScrutinyRecords
 		_data.Scrutiny = RaidGrid_EventScrutiny.tRecords.Scrutiny
 		for szType, tInfo in pairs(_data) do
 			if szType ~= "Scrutiny" then
