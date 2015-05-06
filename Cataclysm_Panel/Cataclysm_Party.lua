@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-06 18:37:52
+-- @Last Modified time: 2015-05-06 20:11:19
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -820,13 +820,13 @@ function CTM:FormatFrame(frame, nMemberCount)
 	end
 	frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
 	h:Lookup("Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
-	h:Lookup("Image_BG_L"):SetSize(15 * fX, nMemberCount * (CTM_BOX_HEIGHT + 3) * fY - helgit - nGrouphelgit)
-	h:Lookup("Image_BG_R"):SetSize(15 * fX, nMemberCount * (CTM_BOX_HEIGHT + 3) * fY - helgit - nGrouphelgit)
-	h:Lookup("Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
-	h:Lookup("Image_BG_T"):SetSize(110 * fX, 16 * fY)
-	h:Lookup("Image_BG_B"):SetSize(110 * fX, 16 * fY)
-	h:Lookup("Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
-	h:Lookup("Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_L"):SetSize(18 * fX, nMemberCount * (CTM_BOX_HEIGHT + 3) * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_R"):SetSize(18 * fX, nMemberCount * (CTM_BOX_HEIGHT + 3) * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_BL"):SetRelPos(0, (11 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_T"):SetSize(110 * fX, 18 * fY)
+	h:Lookup("Image_BG_B"):SetSize(110 * fX, 18 * fY)
+	h:Lookup("Image_BG_B"):SetRelPos(14 * fX, (11 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_BR"):SetRelPos(112 * fX, (11 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
 	if CFG.bShowGropuNumber then
 		h:Lookup("Text_GroupIndex"):SetSize(128 * fX, 26 * fY - helgit)
 		h:Lookup("Text_GroupIndex"):SetRelPos(0, nMemberCount * CTM_BOX_HEIGHT * fY)
