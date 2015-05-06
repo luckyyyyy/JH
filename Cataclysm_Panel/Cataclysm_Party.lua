@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 09:14:18
+-- @Last Modified time: 2015-05-06 18:37:52
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -230,6 +230,17 @@ setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, 
 local CTM = {}
 
 CTM_Party_Base = class()
+
+function CTM_Party_Base.OnFrameCreate()
+	this:Lookup("", "Handle_BG/Shadow_BG"):SetAlpha(CFG.nAlpha)
+	this:RegisterEvent("CTM_SET_ALPHA")
+end
+
+function CTM_Party_Base.OnEvent(szEvent)
+	if szEvent == "CTM_SET_ALPHA" then
+		this:Lookup("", "Handle_BG/Shadow_BG"):SetAlpha(CFG.nAlpha)
+	end
+end
 
 function CTM_Party_Base.OnLButtonDown()
 	CTM:BringToTop()
@@ -809,9 +820,11 @@ function CTM:FormatFrame(frame, nMemberCount)
 	end
 	frame:SetSize(128 * fX, (25 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
 	h:Lookup("Shadow_BG"):SetSize(120 * fX, (20 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
-	h:Lookup("Image_BG_L"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY - helgit - nGrouphelgit)
-	h:Lookup("Image_BG_R"):SetSize(15 * fX, nMemberCount * CTM_BOX_HEIGHT * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_L"):SetSize(15 * fX, nMemberCount * (CTM_BOX_HEIGHT + 3) * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_R"):SetSize(15 * fX, nMemberCount * (CTM_BOX_HEIGHT + 3) * fY - helgit - nGrouphelgit)
 	h:Lookup("Image_BG_BL"):SetRelPos(0, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
+	h:Lookup("Image_BG_T"):SetSize(110 * fX, 16 * fY)
+	h:Lookup("Image_BG_B"):SetSize(110 * fX, 16 * fY)
 	h:Lookup("Image_BG_B"):SetRelPos(15 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
 	h:Lookup("Image_BG_BR"):SetRelPos(113 * fX, (12 + nMemberCount * CTM_BOX_HEIGHT) * fY - helgit - nGrouphelgit)
 	if CFG.bShowGropuNumber then
@@ -1040,7 +1053,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			bDeathFlag = p.nMoveState == MOVE_STATE_ON_DEATH
 		end
 	end
-	local nAlpha = CFG.nAlpha
+	local nAlpha = 255
 	if CFG.nBGClolrMode ~= 1 then
 		if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
 			if info.bIsOnLine then
@@ -1090,7 +1103,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 				r, g, b = JH.GetForceColor(info.dwForceID)
 			end
 		else
-			nAlpha = CFG.nAlpha
+			nAlpha = 255
 		end
 		self:DrawShadow(Lsha, nNewW, 31, r, g, b, nAlpha, CFG.bLifeGradient)
 		Lsha:Show()
