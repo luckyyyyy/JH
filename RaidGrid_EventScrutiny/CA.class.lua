@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-05 22:21:12
+-- @Last Modified time: 2015-05-06 13:48:09
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/CA_UI.ini"
@@ -14,7 +14,7 @@ CA_UI = {
 	tAnchor = {}
 }
 JH.RegisterCustomData("CA_UI")
-
+-- FireEvent("JH_CA_CREATE", "test", 3)
 local function CreateCentralAlert(szMsg, nTime, bXml)
 	nTime = nTime or 3
 	CA.nTime = nTime
