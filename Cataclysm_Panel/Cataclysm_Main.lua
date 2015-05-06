@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 08:34:21
+-- @Last Modified time: 2015-05-06 18:39:18
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -30,7 +30,7 @@ local CTM_CONFIG = {
 	nMaxShowBuff         = 4,
 	bLifeGradient        = true,
 	bManaGradient        = true,
-	nAlpha               = 255,
+	nAlpha               = 220,
 	fBuffScale           = 1,
 	bAutoBuffSize        = true,
 	bTempTargetFightTip  = false,
@@ -855,7 +855,7 @@ function PS2.OnPanelActive(frame)
 	:Range(1, 100, 99):Value(RaidGrid_CTM_Edition.nAlpha / 255 * 100):Change(function(nVal)
 		RaidGrid_CTM_Edition.nAlpha = nVal / 100 * 255
 		if CTM_FRAME then
-			Grid_CTM:CallDrawHPMP(true, true)
+			FireEvent("CTM_SET_ALPHA")
 		end
 	end):Pos_()
 
