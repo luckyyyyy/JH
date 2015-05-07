@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-05 09:57:09
+-- @Last Modified time: 2015-05-07 14:08:34
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -4615,7 +4615,7 @@ JH.RegisterEvent("LOADING_END", function()
 	if IsRemotePlayer(UI_GetClientPlayerID()) then
 		return
 	end
-	if RGES_CLIENT_PLAYER then
+	if RGES_CLIENT_PLAYER == "NONE" then
 		local me = GetClientPlayer()
 		RGES_CLIENT_PLAYER = me.szName
 
