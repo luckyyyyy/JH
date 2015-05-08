@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 14:39:38
+-- @Last Modified time: 2015-05-08 11:32:17
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -10,6 +10,7 @@ SkillCD = {
 	bMini = true,
 	bInDungeon = true,
 	tAnchor = {},
+	nMaxCountdown = 10,
 	tMonitor = {
 		[371] = true,
 		[551] = true,
@@ -29,6 +30,7 @@ local GetLogicFrameCount = GetLogicFrameCount
 local _SkillCD = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "SkillCD/ui/SkillCD.ini",
 	tCD = {},
+	tIgnore = {},
 }
 do
 	local dat = LoadLUAData(JH.GetAddonInfo().szRootPath .. "SkillCD/Skill.jx3dat")
@@ -113,25 +115,27 @@ function SkillCD.OnFrameBreathe()
 		handle:Clear()
 		tsort(data, function(a, b) return a.nEnd < b.nEnd end)
 		for k, v in ipairs(data) do
-			local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", k)
-			local nSec = _SkillCD.tSkill[v.dwSkillID]
-			local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
-			local szSec = floor(JH.GetEndTime(v.nEnd))
-			if fP < 0.15 then
-				item:Lookup("Image_LPlayer"):SetFrame(215)
+			if not _SkillCD.tIgnore[v.dwSkillID] then
+				local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", i)
+				local nSec = _SkillCD.tSkill[v.dwSkillID]
+				local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
+				local szSec = floor(JH.GetEndTime(v.nEnd))
+				if fP < 0.15 then
+					item:Lookup("Image_LPlayer"):SetFrame(215)
+				end
+				local txt = szSec .. _L["s"]
+				if szSec > 60 then
+					txt = _L("%dm%ds", szSec / 60, szSec % 60)
+				end
+				item:Lookup("Image_LPlayer"):SetPercentage(fP)
+				item:Lookup("Text_LLife"):SetText(txt)
+				item:Lookup("Text_Player"):SetText(v.szPlayer .. "_" .. v.szName)
+				item:Lookup("Skill_Icon"):FromIconID(v.dwIconID)
+				item:Show()
 			end
-			local txt = szSec .. _L["s"]
-			if szSec > 60 then
-				txt = _L("%dm%ds", szSec / 60, szSec % 60)
-			end
-			item:Lookup("Image_LPlayer"):SetPercentage(fP)
-			item:Lookup("Text_LLife"):SetText(txt)
-			item:Lookup("Text_Player"):SetText(v.szPlayer .. "_" .. v.szName)
-			item:Lookup("Skill_Icon"):FromIconID(v.dwIconID)
-			item:Show()
 		end
 		handle:FormatAllItemPos()
-		_SkillCD.SetUISize(#data)
+		_SkillCD.SetUISize(handle:GetItemCount())
 	end
 end
 
@@ -162,8 +166,11 @@ end
 
 function _SkillCD.SetUISize(nCount)
 	if not SkillCD.bMinit then
-		local h = min(200, nCount * 20)
-		_SkillCD.frame:Lookup("Wnd_List"):SetH(h)
+		local h = min(SkillCD.nMaxCountdown * 20, nCount * 20)
+		local wnd = _SkillCD.frame:Lookup("Wnd_List")
+		wnd:SetH(h)
+		wnd:Lookup("Scroll_List"):SetH(h)
+		wnd:Lookup("", ""):SetH(h)
 		_SkillCD.frame:Lookup("", "Image_Bg"):SetH(30 + h)
 		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 29 + h)
 	end
@@ -329,6 +336,14 @@ function _SkillCD.UpdateCount()
 				return a.nSec < b.nSec
 			end
 		end)
+		if #v.tList > 0 then
+			if _SkillCD.tIgnore[k] then
+				box:SetObjectCoolDown(true)
+				box:SetCoolDownPercentage(0)
+			else
+				box:SetObjectCoolDown(false)
+			end
+		end
 		item.OnItemRefreshTip = function()
 			if box:IsValid() then
 				if #v.tList > 0 then
@@ -359,6 +374,20 @@ function _SkillCD.UpdateCount()
 				end
 			end
 		end
+
+		item.OnItemRButtonClick = function()
+			if #v.tList > 0 then
+				if _SkillCD.tIgnore[k] then
+					_SkillCD.tIgnore[k] = nil
+					box:SetObjectCoolDown(false)
+				else
+					_SkillCD.tIgnore[k] = true
+					box:SetObjectCoolDown(true)
+					box:SetCoolDownPercentage(0)
+				end
+			end
+		end
+
 		item.OnItemLButtonClick = function()
 			if #v.tList > 0 then
 				if me.IsInParty() then
@@ -459,7 +488,28 @@ function PS.OnPanelActive(frame)
 		end
 		JH.OpenPanel(_L["SkillCD"])
 	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Countdown"], font = 27 }):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = not SkillCD.bMini, txt = _L["Show Countdown"] }):Click(function(bChecked)
+		_SkillCD.SwitchPanel(not bChecked)
+		ui:Fetch("nMaxCountdown"):Enable(bChecked)
+	end):Pos_()
+	nX, nY = ui:Append("WndComboBox", "nMaxCountdown", { x = nX + 10, y = nY + 10, txt = g_tStrings.STR_SHOW_HATRE_COUNTS })
+	:Enable(not SkillCD.bMini):Menu(function()
+		local t = {}
+		for k, v in ipairs({3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50}) do
+			table.insert(t, {
+				szOption = v,
+				bMCheck = true,
+				bChecked = SkillCD.nMaxCountdown == v,
+				fnAction = function()
+					SkillCD.nMaxCountdown = v
+				end,
+			})
+		end
+		return t
+	end):Pos_()
 
+	-- nMaxCountdown
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
 	local i = 0
 	for k, v in pairs(_SkillCD.tSkill) do
