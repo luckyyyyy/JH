@@ -59,6 +59,7 @@ data = {
 	["Enable SkillCD"] = "启用团队技能CD监控",
 	["only Monitor self"] = "只监控自己",
 	["Monitor"] = "监控",
+	["Show Countdown"] = "显示倒计时",
 	-- ScreenHead.lua --
 	["aim"] = "★速速集火★",
 	["Call Alert"] = "你被点名了",

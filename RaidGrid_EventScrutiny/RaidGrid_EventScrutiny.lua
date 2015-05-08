@@ -3079,9 +3079,6 @@ RaidGrid_BossCallAlert = {}
 
 RaidGrid_BossCallAlert.TalkMonitor = true
 RaidGrid_BossCallAlert.bWarningMessageMonitor = true
-RaidGrid_BossCallAlert.bDungeonOnly = false
-RaidGrid_BossCallAlert.bBossOnly = false
-RaidGrid_BossCallAlert.bPartyOnly = false
 RaidGrid_BossCallAlert.macthall = true
 RaidGrid_BossCallAlert.WHISPER = false
 RaidGrid_BossCallAlert.RAID = false
@@ -3093,9 +3090,6 @@ RaidGrid_BossCallAlert.tRGRedAlarm = {0, 255, 0, 1}
 
 RegisterCustomData("RaidGrid_BossCallAlert.TalkMonitor")
 RegisterCustomData("RaidGrid_BossCallAlert.bWarningMessageMonitor")
-RegisterCustomData("RaidGrid_BossCallAlert.bDungeonOnly")
-RegisterCustomData("RaidGrid_BossCallAlert.bBossOnly")
-RegisterCustomData("RaidGrid_BossCallAlert.bPartyOnly")
 RegisterCustomData("RaidGrid_BossCallAlert.macthall")
 RegisterCustomData("RaidGrid_BossCallAlert.WHISPER")
 RegisterCustomData("RaidGrid_BossCallAlert.RAID")
@@ -3142,10 +3136,6 @@ end
 function RaidGrid_BossCallAlert.CallProcess(bossname, saydata)
 	local Clientplayer = GetClientPlayer()
 	if not Clientplayer then return end
-	if not Clientplayer.IsInParty() and RaidGrid_BossCallAlert.bPartyOnly then
-		--OutputMessage("MSG_ANNOUNCE_YELLOW","Äã²¢Î´×é¶Ó")
-		return
-	end
 
 	if string.find(saydata,Clientplayer.szName) then
 		RaidGrid_BossCallAlert.ChannelSay(Clientplayer.szName, bossname)
@@ -3231,12 +3221,9 @@ function RaidGrid_BossCallAlert.BossCall(event)
 		if RaidGrid_EventScrutiny.bEnable and RaidGrid_BossCallAlert.TalkMonitor then
 			local npc=GetNpc(arg1)
 			if not npc then return end
-			if RaidGrid_BossCallAlert.bDungeonOnly and not JH.IsInDungeon(true) then return end
-			if RaidGrid_BossCallAlert.bBossOnly and GetNpcIntensity(npc)<4 then return end
-			local bossname = JH.GetTemplateName(npc) or tostring(arg3)
-			local saydata = arg0
-			RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
-			RaidGrid_BossCallAlert.CallProcess(bossname, saydata)
+			local szName = JH.GetTemplateName(npc)
+			RaidGrid_BossCallAlert.ProcessBossCallSet(szName, arg0)
+			RaidGrid_BossCallAlert.CallProcess(szName, arg0)
 		end
 	end
 end
@@ -3338,14 +3325,6 @@ end
 function RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
 	local Clientplayer = GetClientPlayer()
 	if not Clientplayer then
-		return
-	end
-
-	if RaidGrid_BossCallAlert.bDungeonOnly and not JH.IsInDungeon(true) then
-		return
-	end
-
-	if RaidGrid_BossCallAlert.bPartyOnly and not Clientplayer.IsInParty() then
 		return
 	end
 
