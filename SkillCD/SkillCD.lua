@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-08 11:32:17
+-- @Last Modified time: 2015-05-08 15:28:01
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -22,11 +22,11 @@ JH.RegisterCustomData("SkillCD")
 
 local SkillCD = SkillCD
 local ipairs, pairs = ipairs, pairs
-local tinsert, tsort, tremove = table.insert, table.sort, table.remove
+local tinsert, tsort, tremove, tconcat = table.insert, table.sort, table.remove, table.concat
 local floor, min = math.floor, math.min
 local GetPlayer, IsPlayer, UI_GetClientPlayerID = GetPlayer, IsPlayer, UI_GetClientPlayerID
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
-local GetLogicFrameCount = GetLogicFrameCount
+local GetLogicFrameCount, GetFormatText = GetLogicFrameCount, GetFormatText
 local _SkillCD = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "SkillCD/ui/SkillCD.ini",
 	tCD = {},
@@ -155,6 +155,9 @@ end
 
 function _SkillCD.SwitchPanel(bMini)
 	SkillCD.bMini = bMini
+	if not _SkillCD.frame then
+		return
+	end
 	if bMini then
 		_SkillCD.frame:Lookup("Wnd_List"):Hide()
 		_SkillCD.frame:Lookup("Wnd_Count"):SetRelPos(0, 29)
@@ -350,27 +353,28 @@ function _SkillCD.UpdateCount()
 					box:SetObjectMouseOver(true)
 					local x, y = box:GetAbsPos()
 					local w, h = box:GetSize()
-					local szXml = GetFormatText("[" .. szName .. "]\n", 23 ,255 ,255 ,255)
+					local xml = {}
+					tinsert(xml, GetFormatText("[" .. szName .. "]\n", 23 ,255 ,255 ,255))
 					for k, v in ipairs(v.tList) do
 						local dwMountKungfuID = v.info.dwMountKungfuID or 0
-						szXml = szXml .. GetFormatText(string.format("[%s] %s", _L["KUNGFU_" .. dwMountKungfuID], v.info.szName), 23, 255, 255, 0)
+						tinsert(xml, GetFormatText(string.format("[%s] %s", _L["KUNGFU_" .. dwMountKungfuID], v.info.szName), 23, 255, 255, 0))
 						if v.info.bDeathFlag then
-							szXml = szXml .. GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0)
+							tinsert(xml, GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0))
 						elseif not v.info.bIsOnLine then
-							szXml = szXml .. GetFormatText(" (" .. g_tStrings.STR_FRIEND_NOT_ON_LINE .. ")", 23, 192, 192, 192)
+							tinsert(xml, GetFormatText(" (" .. g_tStrings.STR_FRIEND_NOT_ON_LINE .. ")", 23, 192, 192, 192))
 						end
 						if v.nSec == 0 then
-							szXml = szXml .. GetFormatText("\t" .. _L["ready"], 24, 0, 255, 0)
+							tinsert(xml, GetFormatText("\t" .. _L["ready"], 24, 0, 255, 0))
 						else
 							local szSec = floor(JH.GetEndTime(v.nSec))
 							local txt = szSec .. _L["s"]
 							if szSec > 60 then
 								txt = _L("%dm%ds", szSec / 60, szSec % 60)
 							end
-							szXml = szXml .. GetFormatText("\t" .. txt, 24, 255, 0, 0)
+							tinsert(xml, GetFormatText("\t" .. txt, 24, 255, 0, 0))
 						end
 					end
-					OutputTip(szXml, 300, { x, y, w, h })
+					OutputTip(tconcat(xml), 300, { x, y, w, h })
 				end
 			end
 		end

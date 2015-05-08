@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-07 14:23:19
+-- @Last Modified time: 2015-05-08 17:41:44
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -602,14 +602,12 @@ function JH.RegisterEvent(szEvent, fnAction)
 		else
 			tEvent[szKey] = fnAction
 		end
-		JH.Debug3("RegisterEvent # " .. szEvent)
 	else
 		if not szKey then
 			_JH.tEvent[szEvent] = {}
 		else
 			tEvent[szKey] = nil
 		end
-		JH.Debug3("UnRegisterEvent # " .. szEvent)
 	end
 end
 -- 取消事件处理函数
@@ -1182,13 +1180,16 @@ function JH.WalkAllBuff(tar, fnAction)
 end
 
 function JH.SaveLUAData(szPath, data)
-	JH.Debug3(_L["SaveLUAData # "] ..  DATA_PATH .. szPath)
-	return SaveLUAData(DATA_PATH .. szPath, data)
+	local nTime = GetTime()
+	SaveLUAData(DATA_PATH .. szPath, data)
+	JH.Debug3(_L["SaveLUAData # "] ..  DATA_PATH .. szPath .. " " .. GetTime() - nTime .. "ms")
 end
 
 function JH.LoadLUAData(szPath)
-	JH.Debug3(_L["LoadLUAData # "] ..  DATA_PATH .. szPath)
-	return LoadLUAData(DATA_PATH .. szPath)
+	local nTime = GetTime()
+	local data = LoadLUAData(DATA_PATH .. szPath)
+	JH.Debug3(_L["LoadLUAData # "] ..  DATA_PATH .. szPath .. " " .. GetTime() - nTime .. "ms")
+	return data
 end
 
 function JH.IsMark()
@@ -2031,6 +2032,8 @@ function _GUI.Wnd:Enable(bEnable)
 	if bEnable then
 		if self.type == "WndTrackBar" then
 			wnd:Lookup("Scroll_Track/Btn_Track"):Enable(1)
+		elseif self.type == "WndComboBox" then
+			wnd:Lookup("Btn_ComboBox"):Enable(1)
 		end
 		wnd:Enable(1)
 		if txt then
@@ -2045,6 +2048,8 @@ function _GUI.Wnd:Enable(bEnable)
 	else
 		if self.type == "WndTrackBar" then
 			wnd:Lookup("Scroll_Track/Btn_Track"):Enable(0)
+		elseif self.type == "WndComboBox" then
+			wnd:Lookup("Btn_ComboBox"):Enable(0)
 		end
 		wnd:Enable(0)
 		if txt and self.enable ~= false then
