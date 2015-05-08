@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-07 14:08:34
+-- @Last Modified time: 2015-05-07 14:12:53
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -4625,6 +4625,7 @@ JH.RegisterEvent("LOADING_END", function()
 		end
 		local path = RGES_DATA_PATH .. RGES_CLIENT_PLAYER .. "/"
 		if RaidGrid_Base.version == 2 then
+			RaidGrid_Base.version = 3
 			for k, v in ipairs(RGES_ALL_TYPE) do
 				local data = JH.LoadLUAData(path .. v)
 				if data then
@@ -4652,7 +4653,6 @@ JH.RegisterEvent("LOADING_END", function()
 
 				end)
 			end
-			RaidGrid_Base.version = 3
 		else
 			for k, v in ipairs(RGES_ALL_TYPE) do
 				JH.DelayCall(500 * k, function()

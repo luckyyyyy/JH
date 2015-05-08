@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-05 17:30:14
+-- @Last Modified time: 2015-05-07 14:23:19
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -22,7 +22,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x00b0003
+local _VERSION_   = 0x00b0200
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
