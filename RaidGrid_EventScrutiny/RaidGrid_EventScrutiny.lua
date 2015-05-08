@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-07 14:12:53
+-- @Last Modified time: 2015-05-08 18:24:03
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -3227,17 +3227,8 @@ function RaidGrid_BossCallAlert.BossCall(event)
 		end
 	end
 end
-RegisterEvent("PLAYER_SAY",RaidGrid_BossCallAlert.BossCall)
-
-
-RaidGrid_BossCallAlert.szGetMessageText1 = ""
-RaidGrid_BossCallAlert.szGetMessageTimeEnd1 = 0
-RaidGrid_BossCallAlert.szGetMessageText2 = ""
-RaidGrid_BossCallAlert.szGetMessageTimeEnd2 = 0
-RaidGrid_BossCallAlert.nGetMessageTimeCD = 5
-
-
-function RaidGrid_BossCallAlert.GetWarningMessageOrg()
+JH.RegisterEvent("PLAYER_SAY",RaidGrid_BossCallAlert.BossCall)
+JH.RegisterEvent("ON_WARNING_MESSAGE", function()
 	if not RaidGrid_EventScrutiny.bEnable then
 		return
 	end
@@ -3245,40 +3236,9 @@ function RaidGrid_BossCallAlert.GetWarningMessageOrg()
 	if not RaidGrid_BossCallAlert.bWarningMessageMonitor then
 		return
 	end
-	local szText = ""
-	local fLogicTime = JH.GetLogicTime()
-	local hFrame = Station.Lookup("Topmost/WarningTipPanel1")
-	if hFrame then
-		local hText = hFrame:Lookup("", "Text_Tip")
-		if hText then
-			szText = hText:GetText()
-			if szText and szText ~= "" then
-				if (szText ~= RaidGrid_BossCallAlert.szGetMessageText1) or (RaidGrid_BossCallAlert.szGetMessageTimeEnd1 <= fLogicTime) then
-					RaidGrid_BossCallAlert.szGetMessageText1 = szText
-					RaidGrid_BossCallAlert.szGetMessageTimeEnd1 = fLogicTime + RaidGrid_BossCallAlert.nGetMessageTimeCD
-					RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText)
-				end
-			end
-		end
-	end
-	local szText2 = ""
-	local hFrame2 = Station.Lookup("Topmost/WarningTipPanel2")
-	if hFrame2 then
-		local hText2 = hFrame2:Lookup("", "Text_Tip")
-		if hText2 then
-			szText2 = hText2:GetText()
-			if szText2 and szText2 ~= "" then
-				if (szText2 ~= RaidGrid_BossCallAlert.szGetMessageText2) or (RaidGrid_BossCallAlert.szGetMessageTimeEnd2 <= fLogicTime) then
-					RaidGrid_BossCallAlert.szGetMessageText2 = szText2
-					RaidGrid_BossCallAlert.szGetMessageTimeEnd2 = fLogicTime + RaidGrid_BossCallAlert.nGetMessageTimeCD
-					RaidGrid_BossCallAlert.OutputWarningMessageAdd(szText2)
-				end
-			end
-		end
-	end
-end
+	RaidGrid_BossCallAlert.OutputWarningMessageAdd(arg1)
+end)
 
-RaidGrid_BossCallAlert.tWarningMessages = {}
 function RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 	local Clientplayer = GetClientPlayer()
 	if not Clientplayer or not RaidGrid_BossCallAlert.tRecords or not RaidGrid_BossCallAlert.tRecords.tWarningMessages then
@@ -4564,7 +4524,6 @@ end)
 JH.BreatheCall("CheckNpcLifeAndAlarmOrg", RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg, 1000)
 
 JH.BreatheCall("RefreshEventHandle", RaidGrid_EventScrutiny.RefreshEventHandle, 250)
-JH.BreatheCall("GetWarningMessage", RaidGrid_BossCallAlert.GetWarningMessageOrg)
 
 function _RE.Raid_MonitorBuffs()
 	if not GetClientPlayer() then return end
