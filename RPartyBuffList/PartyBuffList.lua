@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-10 12:50:58
+-- @Last Modified time: 2015-05-10 14:54:31
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -100,7 +100,7 @@ function PartyBuffList.OnFrameBreathe()
 				local box = h:Lookup("Box_Icon")
 				local nSec = JH.GetEndTime(tBuff.nEndFrame)
 				if nSec < 60 then
-					box:SetOverText(1, 1 .. "\"")
+					box:SetOverText(1, nSec .. "\"")
 				end
 				if tBuff.nStackNum > 1 then
 					box:SetOverText(0, tBuff.nStackNum)
@@ -224,7 +224,7 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel)
 	box:SetOverTextFontScheme(0, 7)
 	local nSec = JH.GetEndTime(tBuff.nEndFrame)
 	if nSec < 60 then
-		box:SetOverText(1, 1 .. "\"")
+		box:SetOverText(1, nSec .. "\"")
 	end
 	if tBuff.nStackNum > 1 then
 		box:SetOverText(0, tBuff.nStackNum)
