@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-06 13:48:09
+-- @Last Modified time: 2015-05-09 15:48:40
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/CA_UI.ini"
@@ -95,7 +95,7 @@ end
 
 function CA_UI.OnFrameDragEnd()
 	this:CorrectPos()
-	ST_UI.tAnchor = GetFrameAnchor(this)
+	FA_UI.tAnchor = GetFrameAnchor(this)
 end
 
 function CA.UpdateAnchor(frame)
