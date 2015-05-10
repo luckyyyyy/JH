@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 17:35:11
+-- @Last Modified time: 2015-05-10 12:45:11
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -16,49 +16,113 @@ local PartyBuffList = PartyBuffList
 local ipairs, pairs = ipairs, pairs
 local GetPlayer = GetPlayer
 local GetClientPlayer, GetClientTeam, UI_GetPlayerMountKungfuID = GetClientPlayer, GetClientTeam, UI_GetPlayerMountKungfuID
-
-local _PartyBuffList = {
-	tList = {},
-	tTempTarget = {},
-	szIniFile = "interface/JH/RPartyBuffList/ui/PartyBuffList.ini"
-}
+local CACHE_LIST = setmetatable({}, { __mode = "v" })
+local PBL_INI_FILE = JH.GetAddonInfo().szRootPath ..  "RPartyBuffList/ui/PartyBuffList.ini"
+local PBL = {}
 
 function PartyBuffList.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
-	_PartyBuffList.frame = this
-	_PartyBuffList.bg = this:Lookup("", "Image_Bg")
+	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
+	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
+	this:RegisterEvent("BUFF_UPDATE")
+	this:RegisterEvent("TARGET_CHANGE")
+	this:RegisterEvent("JH_PARTYBUFFLIST")
+	PBL.UpdateAnchor(this)
+	PBL.frame = this
+	PBL.handle = this:Lookup("", "Handle_List")
+	PBL.bg = this:Lookup("", "Image_Bg")
+	PBL.handle:Clear()
 	local ui = GUI(this)
-	ui:Title(_L["PartyBuffList"]):RegisterClose(_PartyBuffList.ClosePanel, false, true)
-	_PartyBuffList.UpdateAnchor(this)
+	ui:Title(_L["PartyBuffList"])
+	ui:Fetch("Btn_Close"):Click(function()
+		PBL.handle:Clear()
+		PBL.SwitchPanel(0)
+	end)
 	ui:Fetch("Btn_Style"):Click(function()
 		JH.OpenPanel(_L["PartyBuffList"])
 	end)
 end
+
 function PartyBuffList.OnEvent(event)
 	if event == "UI_SCALED" then
-		_PartyBuffList.UpdateAnchor(this)
+		PBL.UpdateAnchor(this)
+	elseif event == "BUFF_UPDATE" then
+		if arg1 then return end
+		local szName = JH.GetBuffName(arg4, arg8)
+		if PartyBuffList.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
+			PBL.OnTableInsert(arg0, arg4, arg8)
+		end
+	elseif event == "TARGET_CHANGE" then
+		PBL.SwitchSelect()
+	elseif event == "JH_PARTYBUFFLIST" then
+		if not PartyBuffList.bEnableRGES then return end
+		PBL.OnTableInsert(arg0, arg1, arg2)
+	elseif event == "ON_ENTER_CUSTOM_UI_MODE" or event == "ON_LEAVE_CUSTOM_UI_MODE" then
+		if event == "ON_ENTER_CUSTOM_UI_MODE" then
+			PBL.frame:Show()
+		else
+			PBL.SwitchPanel(PBL.handle:GetItemCount())
+		end
+		UpdateCustomModeWindow(this, _L["PartyBuffList"])
 	end
 end
+
+function PartyBuffList.OnFrameBreathe()
+	local me = GetClientPlayer()
+	if not me then return end
+	local dwKungfuID = UI_GetPlayerMountKungfuID()
+	local DISTANCE = 20
+	if dwKungfuID == 10080 then -- 奶秀修正
+		DISTANCE = 22
+	elseif dwKungfuID == 10028 then -- 奶花修正
+		DISTANCE = 24
+	end
+	for i = PBL.handle:GetItemCount() -1, 0, -1 do
+		local h = PBL.handle:Lookup(i)
+		if h and h:IsValid() then
+			local data = h.data
+			local p, info = PBL.GetPlayer(data.dwID)
+			local bExist, tBuff
+			if p then
+				bExist, tBuff = JH.HasBuff(data.dwBuffID, p)
+			end
+			if p and info and bExist then
+				local nDistance = JH.GetDistance(p)
+				h:Lookup("Image_life"):SetPercentage(info.nCurrentLife / math.max(info.nMaxLife, 1))
+				h:Lookup("Text_Name"):SetText(i + 1 .. " " .. info.szName)
+				if nDistance > DISTANCE then
+					h:Lookup("Image_life"):SetAlpha(150)
+				else
+					h:Lookup("Image_life"):SetAlpha(255)
+				end
+				local box = h:Lookup("Box_Icon")
+				local nSec = JH.GetEndTime(tBuff.nEndFrame)
+				if nSec < 60 then
+					box:SetOverText(1, 1 .. "\"")
+				end
+				if tBuff.nStackNum > 1 then
+					box:SetOverText(0, tBuff.nStackNum)
+				end
+			else
+				PBL.handle:RemoveItem(h)
+				PBL.handle:FormatAllItemPos()
+				PBL.SwitchPanel(PBL.handle:GetItemCount())
+			end
+		end
+	end
+end
+
 function PartyBuffList.OnFrameDragEnd()
 	this:CorrectPos()
 	PartyBuffList.tAnchor = GetFrameAnchor(this, "TOPCENTER")
 end
-function _PartyBuffList.OpenPanel()
-	local frame = _PartyBuffList.frame or Wnd.OpenWindow(_PartyBuffList.szIniFile, "PartyBuffList")
-	return frame
-end
-function _PartyBuffList.IsPanelOpened()
-	return _PartyBuffList.frame
+
+function PBL.OpenPanel()
+	local frame = PBL.frame or Wnd.OpenWindow(PBL_INI_FILE, "PartyBuffList")
+	PBL.SwitchPanel(0)
 end
 
-function _PartyBuffList.UiMode(szEvent)
-	if szEvent == "ON_ENTER_CUSTOM_UI_MODE" and not _PartyBuffList.IsPanelOpened() then
-		_PartyBuffList.OpenPanel()
-	elseif szEvent == "ON_LEAVE_CUSTOM_UI_MODE" and IsEmpty(_PartyBuffList.tList) then
-		_PartyBuffList.ClosePanel()
-	end
-end
-function _PartyBuffList.UpdateAnchor(frame)
+function PBL.UpdateAnchor(frame)
 	local a = PartyBuffList.tAnchor
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
@@ -67,13 +131,38 @@ function _PartyBuffList.UpdateAnchor(frame)
 	end
 end
 
-function _PartyBuffList.ClosePanel()
-	Wnd.CloseWindow(_PartyBuffList.frame)
-	_PartyBuffList.frame = nil
-	_PartyBuffList.tList = {}
+function PBL.SwitchSelect()
+	local dwID, dwType = Target_GetTargetData()
+	for i = PBL.handle:GetItemCount() -1, 0, -1 do
+		local h = PBL.handle:Lookup(i)
+		if h and h:IsValid() then
+			if dwID == h.data.dwID then
+				h:Lookup("Image_Select"):Show()
+			else
+				h:Lookup("Image_Select"):Hide()
+			end
+		end
+	end
 end
 
-function _PartyBuffList.GetListText()
+function PBL.SwitchPanel(nCount)
+	local h = 40
+	PBL.frame:SetH(h * nCount + 30)
+	PBL.bg:SetH(h * nCount + 30)
+	PBL.handle:SetH(h * nCount)
+	if nCount == 0 then
+		PBL.frame:Hide()
+	else
+		PBL.frame:Show()
+	end
+end
+
+function PBL.ClosePanel()
+	Wnd.CloseWindow(PBL.frame)
+	PBL.frame = nil
+end
+
+function PBL.GetListText()
 	local tName = {}
 	for k, _ in pairs(PartyBuffList.tList) do
 		if type(k) == "string" then
@@ -83,166 +172,80 @@ function _PartyBuffList.GetListText()
 	return table.concat(tName, "\n")
 end
 
-function _PartyBuffList.UpdateFrame()
-	if not PartyBuffList.bEnable then return end
-	local data = _PartyBuffList.tList
-	if #data == 0 then
-		return _PartyBuffList.ClosePanel()
-	end
-	if not _PartyBuffList.frame then
-		_PartyBuffList.OpenPanel()
-	end
+function PBL.GetPlayer(dwID)
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
-	local dwKungfuID = UI_GetPlayerMountKungfuID()
-	if not me or not team then return end
-	local container = _PartyBuffList.frame:Lookup("WndContainer_List")
-	container:Clear()
-	local dwID, dwType = Target_GetTargetData()
-	for k, v in ipairs(data) do
-		local p,info
-		if v.dwID == me.dwID then
-			p = me
-			info = {
-				dwMountKungfuID = UI_GetPlayerMountKungfuID(),
-				szName = me.szName,
-				nMaxLife = me.nMaxLife,
-				nCurrentLife = me.nCurrentLife,
-				dwForce = me.dwForce,
-			}
-		else
-			p = GetPlayer(v.dwID)
-			info = team.GetMemberInfo(v.dwID)
-		end
-		if p and info then
-			local wnd = container:AppendContentFromIni(_PartyBuffList.szIniFile, "WndWindow_Item", k)
-			local ui = GUI(wnd)
-			local nMaxLife = info.nMaxLife
-			if nMaxLife == 0 then nMaxLife = 1 end -- fix bug
-			ui:Append("Image", "Life",{ x = 0, y = 0, w = 200, h = 40}):File("ui/Image/Common/money.uitex", 215):Percentage(info.nCurrentLife / nMaxLife)
-			local nDistance = JH.GetDistance(p)
-			local DISTANCE = 20
-			if dwKungfuID == 10080 then -- 奶秀修正
-				DISTANCE = 22
-			elseif dwKungfuID == 10028 then -- 奶花修正
-				DISTANCE = 24
-			end
-			if nDistance > DISTANCE then
-				ui:Fetch("Life"):Alpha(120)
-			else
-				ui:Fetch("Life"):Alpha(255)
-			end
-			ui:Append("Image", { x = 2, y = 2, w = 34, h = 34, icon = Table_GetSkillIconID(info.dwMountKungfuID) or 1435 })
-			ui:Hover(function(bHover)
-				local dwID, dwType = Target_GetTargetData()
-				if dwID == v.dwID and bHover then
-					return
-				end
-				if PartyBuffList.bHoverSelect then
-					JH.SetTempTarget(v.dwID, bHover)
-				end
-			end).self.OnLButtonDown = function()
-				SetTarget(TARGET.PLAYER, v.dwID)
-				FireEvent("JH_TAR_TEMP_UPDATE", v.dwID)
-			end
-			ui:Append("Box", "Box", { x = 165, y = 4, w = 30, h = 30,icon = Table_GetBuffIconID(v.dwBuffID, v.nLevel) }):Staring(true)
-			ui:Append("Text", { x = 37, y = 5, txt = k .. " " .. info.szName, font = 15  })
-			if dwID == v.dwID then
-				ui:Append("Image", { x = 0, y = 0, w = 200, h = 39, alpha = 100 }):File("ui/Image/Common/TempBox.UITex", 5)
-			end
-			local bExist, tBuff = JH.HasBuff(v.dwBuffID, p)
-			if bExist then
-				local nSec = JH.GetEndTime(tBuff.nEndFrame)
-				if nSec < 60 then
-					ui:Fetch("Box"):OverText(ITEM_POSITION.RIGHT_BOTTOM, math.floor(nSec) .. "\"", 0, 8)
-				end
-			end
-			v.k = k
-			ui.self.tab = v
-		else
-			table.remove(data, k)
-			return pcall(_PartyBuffList.UpdateFrame)
-		end
+	local p, info
+	if dwID == UI_GetClientPlayerID() then
+		p = me
+		info = {
+			dwMountKungfuID = UI_GetPlayerMountKungfuID(),
+			szName = me.szName,
+			nMaxLife = me.nMaxLife,
+			nCurrentLife = me.nCurrentLife,
+			dwForce = me.dwForce,
+		}
+	else
+		p = GetPlayer(dwID)
+		info = team.GetMemberInfo(dwID)
 	end
-	local w, h = 200, 40
-	local n = container:GetAllContentCount()
-	container:SetSize(w, h * n)
-	_PartyBuffList.frame:SetSize(w, h * n + 30)
-	_PartyBuffList.bg:SetSize(w, h * n + 30)
-	container:FormatAllContentPos()
-	_PartyBuffList.frame:Show()
+	return p, info
 end
 
-function _PartyBuffList.OnBreathe()
-	if not PartyBuffList.bEnable then return end
-	if not _PartyBuffList.frame then return end
-	local me = GetClientPlayer()
+function PBL.OnTableInsert(dwID, dwBuffID, nLevel)
 	local team = GetClientTeam()
-	if not me or not team then return end
-	local container = _PartyBuffList.frame:Lookup("WndContainer_List")
-	local n = container:GetAllContentCount()
-	for i = n, 1, -1 do
-		local wnd = container:Lookup(i)
-		if not wnd then return end
-		local v = wnd.tab
-		local p,info
-		if v.dwID == me.dwID then
-			p = me
-			info = {
-				dwMountKungfuID = UI_GetPlayerMountKungfuID(),
-				szName = me.szName,
-				nMaxLife = me.nMaxLife,
-				nCurrentLife = me.nCurrentLife,
-				dwForce = me.dwForce,
-			}
-		else
-			p = GetPlayer(v.dwID)
-			info = team.GetMemberInfo(v.dwID)
-		end
-		local bExist, tBuff = JH.HasBuff(v.dwBuffID, p)
-		if p and info and bExist then
-			local ui = GUI(wnd)
-			local nMaxLife = info.nMaxLife
-			if nMaxLife == 0 then nMaxLife = 1 end -- fix bug
-			ui:Fetch("Life"):Percentage(info.nCurrentLife / nMaxLife)
-			local nDistance = JH.GetDistance(p)
-			if nDistance > 20 then
-				ui:Fetch("Life"):Alpha(120)
-			else
-				ui:Fetch("Life"):Alpha(255)
-			end
-			local nSec = JH.GetEndTime(tBuff.nEndFrame)
-			if nSec < 60 then
-				ui:Fetch("Box"):OverText(ITEM_POSITION.RIGHT_BOTTOM, math.floor(nSec) .. "\"", 0, 8)
-			end
-		else
-			table.remove(_PartyBuffList.tList, v.k)
-			return pcall(_PartyBuffList.UpdateFrame)
-		end
+	local p, info = PBL.GetPlayer(dwID)
+	if not p or not info then
+		return
 	end
-end
-
--- buff update
--- arg0：dwPlayerID，arg1：bDelete，arg2：nIndex，arg3：bCanCancel
--- arg4：dwBuffID，arg5：nStackNum，arg6：nEndFrame，arg7：？update all?
--- arg8：nLevel，arg9：dwSkillSrcID
-function _PartyBuffList.OnBuffUpdate()
-	if not PartyBuffList.bEnable then return end
-	if arg1 then return end
-	local szName = JH.GetBuffName(arg4, arg8)
-	if PartyBuffList.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
-		_PartyBuffList.OnTableInsert(arg0, arg4, arg8)
+	local key = dwID .. "_" .. dwBuffID .. "_" .. nLevel -- 主要担心窗口名称太长
+	if CACHE_LIST[key] and CACHE_LIST[key]:IsValid() then
+		return
 	end
-end
-
-function _PartyBuffList.OnTableInsert(dwID, dwBuffID, nLevel)
-	for k,v in ipairs(_PartyBuffList.tList) do
-		if v.dwID == dwID and v.dwBuffID == dwBuffID and v.nLevel == nLevel then
-			return
+	local bExist, tBuff = JH.HasBuff(dwBuffID, p)
+	if not bExist then
+		return
+	end
+	local data = { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel }
+	local h = PBL.handle:AppendItemFromIni(PBL_INI_FILE, "Handle_Item")
+	local nCount = PBL.handle:GetItemCount()
+	h:Lookup("Image_KungFu"):FromIconID(Table_GetSkillIconID(info.dwMountKungfuID) or 1435)
+	h:Lookup("Text_Name"):SetText(nCount .. " " .. info.szName)
+	h:Lookup("Image_life"):SetPercentage(info.nCurrentLife / math.max(info.nMaxLife, 1))
+	local box = h:Lookup("Box_Icon")
+	box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
+	box:SetObjectIcon(Table_GetBuffIconID(dwBuffID, nLevel))
+	box:SetObjectStaring(true)
+	box:SetOverTextPosition(1, ITEM_POSITION.LEFT_TOP)
+	box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+	box:SetOverTextFontScheme(1, 8)
+	box:SetOverTextFontScheme(0, 7)
+	local nSec = JH.GetEndTime(tBuff.nEndFrame)
+	if nSec < 60 then
+		box:SetOverText(1, 1 .. "\"")
+	end
+	if tBuff.nStackNum > 1 then
+		box:SetOverText(0, tBuff.nStackNum)
+	end
+	h.OnItemLButtonDown = function()
+		SetTarget(TARGET.PLAYER, dwID)
+		FireEvent("JH_TAR_TEMP_UPDATE", dwID)
+	end
+	h.OnItemMouseLeave = function()
+		if PartyBuffList.bHoverSelect then
+			JH.SetTempTarget(dwID, false)
 		end
 	end
-	table.insert(_PartyBuffList.tList, { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel })
-	pcall(_PartyBuffList.UpdateFrame)
+	h.OnItemMouseEnter = function()
+		if PartyBuffList.bHoverSelect then
+			JH.SetTempTarget(dwID, true)
+		end
+	end
+	h.data = data
+	h:Show()
+	PBL.handle:FormatAllItemPos()
+	PBL.SwitchPanel(nCount)
+	CACHE_LIST[key] = h
 end
 
 local PS = {}
@@ -252,8 +255,10 @@ function PS.OnPanelActive(frame)
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = PartyBuffList.bEnable })
 	:Text(_L["Enable PartyBuffList"]):Click(function(bChecked)
 		PartyBuffList.bEnable = bChecked
-		if not bChecked then
-			_PartyBuffList.ClosePanel()
+		if bChecked then
+			PBL.OpenPanel()
+		else
+			PBL.ClosePanel()
 		end
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = PartyBuffList.bEnableRGES })
@@ -267,7 +272,7 @@ function PS.OnPanelActive(frame)
 
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 100, limit = 4096,multi = true})
-	:Text(_PartyBuffList.GetListText()):Change(function(szText)
+	:Text(PBL.GetListText()):Change(function(szText)
 		local t = {}
 		for _, v in ipairs(JH.Split(szText, "\n")) do
 			v = JH.Trim(v)
@@ -281,28 +286,17 @@ function PS.OnPanelActive(frame)
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 40, multi = true, txt = _L["PartyBuffList_TIPS"] }):Pos_()
 end
 
-JH.RegisterInit("PartyBuffList",
-	{ "ON_ENTER_CUSTOM_UI_MODE", function() _PartyBuffList.UiMode("ON_ENTER_CUSTOM_UI_MODE") end },
-	{ "ON_LEAVE_CUSTOM_UI_MODE", function() _PartyBuffList.UiMode("ON_LEAVE_CUSTOM_UI_MODE") end },
-	{ "BUFF_UPDATE", _PartyBuffList.OnBuffUpdate },
-	{ "TARGET_CHANGE", _PartyBuffList.UpdateFrame },
-	{ "Breathe", _PartyBuffList.OnBreathe },
-	{ "JH_PARTYBUFFLIST", function()
-		if not PartyBuffList.bEnableRGES then return end
-		_PartyBuffList.OnTableInsert(arg0, arg1, arg2)
-	end }
-)
-
 GUI.RegisterPanel(_L["PartyBuffList"], 1453, _L["RGES"], PS)
-
+JH.RegisterEvent("LOGIN_GAME", PBL.OpenPanel)
 JH.AddonMenu(function()
 	return {
 		szOption = _L["PartyBuffList"], bCheck = true, bChecked = PartyBuffList.bEnable, fnAction = function()
 			if not PartyBuffList.bEnable then
 				PartyBuffList.bEnable = true
+				PBL.OpenPanel()
 			else
 				PartyBuffList.bEnable = false
-				_PartyBuffList.ClosePanel()
+				PBL.ClosePanel()
 			end
 		end
 	}
