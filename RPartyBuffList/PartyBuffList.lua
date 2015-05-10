@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-10 12:45:11
+-- @Last Modified time: 2015-05-10 12:50:58
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -58,12 +58,14 @@ function PartyBuffList.OnEvent(event)
 		if not PartyBuffList.bEnableRGES then return end
 		PBL.OnTableInsert(arg0, arg1, arg2)
 	elseif event == "ON_ENTER_CUSTOM_UI_MODE" or event == "ON_LEAVE_CUSTOM_UI_MODE" then
+		UpdateCustomModeWindow(this, _L["PartyBuffList"])
 		if event == "ON_ENTER_CUSTOM_UI_MODE" then
 			PBL.frame:Show()
 		else
 			PBL.SwitchPanel(PBL.handle:GetItemCount())
+			PBL.frame:EnableDrag(true) -- 还是支持拖动的
+			PBL.frame:SetDragArea(0, 0, 200, 30)
 		end
-		UpdateCustomModeWindow(this, _L["PartyBuffList"])
 	end
 end
 
