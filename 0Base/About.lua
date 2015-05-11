@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 14:31:40
+-- @Last Modified time: 2015-05-11 11:35:50
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -28,14 +28,12 @@ end
 function _JH_About.CheckInstall()
 	local me = GetClientPlayer()
 	local me, team = GetClientPlayer(), GetClientTeam()
-	if me.IsInParty() and (me.dwID == team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
-		or _JH_About.CheckNameEx())
-	then
+	if me.IsInParty() and JH.IsLeader() or _JH_About.CheckNameEx() then
 		if IsCtrlKeyDown() and _JH_About.CheckNameEx() then
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"JH_ABOUT","Author")
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "Author")
 			JH.Sysmsg2(_L["Checking command sent, please see talk channel"])
 		else
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"JH_ABOUT","JH_CHECK")
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "JH_CHECK")
 			JH.Sysmsg(_L["Checking command sent, please see talk channel"])
 		end
 	else
