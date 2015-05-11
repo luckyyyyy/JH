@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-08 18:24:03
+-- @Last Modified time: 2015-05-11 13:44:19
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -3215,19 +3215,14 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 	end
 end
 
-function RaidGrid_BossCallAlert.BossCall(event)
-	--event=PLAYER_SAY arg0=喊话内容 arg1=喊话者ID arg2=频道 arg3=喊话者名称
-	if event == "PLAYER_SAY" then
-		if RaidGrid_EventScrutiny.bEnable and RaidGrid_BossCallAlert.TalkMonitor then
-			local npc=GetNpc(arg1)
-			if not npc then return end
-			local szName = JH.GetTemplateName(npc)
-			RaidGrid_BossCallAlert.ProcessBossCallSet(szName, arg0)
-			RaidGrid_BossCallAlert.CallProcess(szName, arg0)
-		end
+JH.RegisterEvent("PLAYER_SAY", function()
+	if RaidGrid_EventScrutiny.bEnable and RaidGrid_BossCallAlert.TalkMonitor then
+		local npc = GetNpc(arg1)
+		local szName = JH.GetTemplateName(npc)
+		RaidGrid_BossCallAlert.ProcessBossCallSet(szName, arg0)
+		RaidGrid_BossCallAlert.CallProcess(szName, arg0)
 	end
-end
-JH.RegisterEvent("PLAYER_SAY",RaidGrid_BossCallAlert.BossCall)
+end)
 JH.RegisterEvent("ON_WARNING_MESSAGE", function()
 	if not RaidGrid_EventScrutiny.bEnable then
 		return
