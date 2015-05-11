@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-11 16:32:02
+-- @Last Modified time: 2015-05-11 21:08:49
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
