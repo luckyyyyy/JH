@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-08 17:41:44
+-- @Last Modified time: 2015-05-11 13:56:29
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -394,7 +394,7 @@ function _JH.EventHandler(szEvent)
 	local tEvent = 	_JH.tEvent[szEvent]
 	if tEvent then
 		for k, v in pairs(tEvent) do
-			local res, err = pcall(v)
+			local res, err = pcall(v, szEvent)
 			if not res then
 				JH.Debug("EVENT#" .. szEvent .. "." .. k .." ERROR: " .. err)
 			end
