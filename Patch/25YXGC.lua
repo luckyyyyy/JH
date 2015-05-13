@@ -1,3 +1,4 @@
+--[[
 local map = {
 	[198] = true,
 	[211] = true,
@@ -30,3 +31,4 @@ JH.RegisterEvent("LOADING_END", function()
 		JH.UnRegisterEvent("BUFF_UPDATE.25YX")
 	end
 end)
+]]

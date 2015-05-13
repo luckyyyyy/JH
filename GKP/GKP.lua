@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-05 17:59:23
+-- @Last Modified time: 2015-05-13 12:05:57
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -99,20 +99,12 @@ setmetatable(GKP,{ __call = function(me, key, value, sort)
 			pcall(_GKP.GKP_Save)
 		elseif value and type(value) == "string" then
 			if sort == "asc" or sort == "desc" then
-				table.sort(_GKP[key],function(a,b)
+				table.sort(_GKP[key], function(a, b)
 					if a[value] and b[value] then
-						if a[value] == b[value] then
-							if sort == "asc" then
-								return a.nTime < b.nTime
-							else
-								return a.nTime > b.nTime
-							end
+						if sort == "asc" then
+							return a[value] < b[value] or ( a[value] == b[value] and a.nTime < b.nTime )
 						else
-							if sort == "asc" then
-								return a[value] < b[value]
-							else
-								return a[value] > b[value]
-							end
+							return a[value] > b[value] or ( a[value] == b[value] and a.nTime > b.nTime )
 						end
 					else
 						return false
