@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 16:38:06
+-- @Last Modified time: 2015-05-13 17:28:26
 --[[
 DBM_TYPE = {
 	OTHER       = 0,
@@ -32,6 +32,7 @@ local DBM_SCRUTINY_TYPE = {
 	TEAM  = 2,
 	ENEMY = 3
 }
+local DBM_DATAPATH = JH.GetAddonInfo().szDataPath
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 local D = {}
 
@@ -51,6 +52,7 @@ function DBM.OnFrameCreate()
 end
 
 function DBM.OnEvent(szEvent)
+	-- Output(szEvent)
 end
 
 function D.GetFrame()
