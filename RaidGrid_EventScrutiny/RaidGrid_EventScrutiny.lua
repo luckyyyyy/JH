@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-11 21:08:49
+-- @Last Modified time: 2015-05-13 16:54:02
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -184,14 +184,14 @@ local function CheckNpcFightState()
 			JH.Sysmsg(_L("[%s] Enter Fight.", data.szName))
 			v.nSec = GetTime()
 			if data.szTimerSet then
-				FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_FIGHT, data.dwID .. "F", {
+				FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_FIGHT, data.dwID .. "F", {
 					nTime  = data.szTimerSet,
 					nIcon  = data.nIconID or 2026,
 					bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
 				})
 			end
 			if data.bSkillTimer2Enable and data.nSkillTimer2 and data.nSkillTimer2>0 then
-				FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_FIGHT, data.dwID .. "C2", {
+				FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_FIGHT, data.dwID .. "C2", {
 					nTime  = data.nSkillTimer2,
 					szName = data.szSkillName2 or data.szName,
 					nIcon  = data.nIconID or 2026,
@@ -203,7 +203,7 @@ local function CheckNpcFightState()
 			local nTime = GetTime() - (v.nSec or GetTime())
 			v.nSec = nil
 			JH.Sysmsg(_L("[%s] Leave Fight, time:%s.", data.szName, JH.FormatTimeString(nTime / 1000)))
-			FireEvent("JH_ST_DEL", JH_ST_TYPE.NPC_FIGHT, data.dwID .. "F", true) -- kill
+			FireEvent("JH_ST_DEL", DBM_TYPE.NPC_FIGHT, data.dwID .. "F", true) -- kill
 		end
 	end
 end
@@ -1651,7 +1651,7 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 			end
 			if ((data.bChatAlertCDEnd2 or 0) <= data.fEventTimeStart) then
 				if data.bSkillTimer2Enable and data.nSkillTimer2 and data.nSkillTimer2>0 then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.BUFF_ENTER, data.dwID .. "." .. data.nLevel, {
+					FireEvent("JH_ST_CREATE", DBM_TYPE.BUFF_GET, data.dwID .. "." .. data.nLevel, {
 						nTime  = data.nSkillTimer2,
 						szName = data.szSkillName2 or data.szName,
 						nIcon  = data.nIconID,
@@ -1789,7 +1789,7 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 			local szNpcName = JH.GetTemplateName(npc)
 			if ((data.bChatAlertCDEnd2 or 0) <= fLogicTime) then
 				if RaidGrid_EventScrutiny.bAutoNewSkillTimer and data.bAddToSkillTimer then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, data.dwID .. "C", { -- 这个好像是中央倒计时
+					FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_ENTER, data.dwID .. "C", { -- 这个好像是中央倒计时
 						nTime  = data.nEventAlertTime,
 						szName = data.szName,
 						nIcon  = data.nIconID or 2026,
@@ -1797,7 +1797,7 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					})
 				end
 				if data.bSkillTimer2Enable and data.nSkillTimer2 and data.nSkillTimer2>0 then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, data.dwID .. "C2", { -- 第二中央倒计时的
+					FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_ENTER, data.dwID .. "C2", { -- 第二中央倒计时的
 						nTime  = data.nSkillTimer2,
 						szName = data.szSkillName2 or data.szName,
 						nIcon  = data.nIconID or 2026,
@@ -1805,7 +1805,7 @@ function RaidGrid_EventScrutiny.OnNpcCreationEvent(dwTemplateID, npc)
 					})
 				end
 				if data.szTimerSet then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_ENTER, data.dwID .. "F", { -- 分段倒计时
+					FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_ENTER, data.dwID .. "F", { -- 分段倒计时
 						nTime  = data.szTimerSet,
 						nIcon  = data.nIconID or 2026,
 						bTalk  = RaidGrid_EventScrutiny.bSkillTimerSay
@@ -1985,7 +1985,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 			end
 			if ((data.bChatAlertCDEnd2 or 0) <= fLogicTime) then
 				if RaidGrid_EventScrutiny.bAutoNewSkillTimer and data.bAddToSkillTimer then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, data.dwID .. data.nLevel .. "C", { -- 这个好像是中央倒计时
+					FireEvent("JH_ST_CREATE", DBM_TYPE.SKILL_END, data.dwID .. data.nLevel .. "C", { -- 这个好像是中央倒计时
 						nTime  = data.nEventAlertTime,
 						szName = data.szName,
 						nIcon  = data.nIconID or 13,
@@ -1994,7 +1994,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 					data.bChatAlertCDEnd2 = fLogicTime + tonumber(data.nMinEventCD or 10)
 				end
 				if data.bSkillTimer2Enable and data.nSkillTimer2 and data.nSkillTimer2>0 then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.SKILL_END, data.dwID .. "_" .. data.nLevel .. "C2", { -- 这个好像是中央倒计时
+					FireEvent("JH_ST_CREATE", DBM_TYPE.SKILL_END, data.dwID .. "_" .. data.nLevel .. "C2", { -- 这个好像是中央倒计时
 						nTime  = data.nSkillTimer2,
 						szName = data.szSkillName2 or data.szName,
 						nIcon  = data.nIconID or 13,
@@ -2139,7 +2139,7 @@ function RaidGrid_EventScrutiny.CheckNpcLifeAndAlarmOrg()
 						FireEvent("JH_CA_CREATE", v[2], 3)
 						FireEvent("JH_LARGETEXT", v[2], { 255, 128, 0 }, true)
 						if v[3] then
-							FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_LIFE, data.dwID, {
+							FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, data.dwID, {
 								nTime  = v[3],
 								szName = v[2],
 								nIcon  = data.nIconID or 2026,
@@ -3194,7 +3194,7 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 				end
 
 				if tRecord.nTime1 and tRecord.nTime1>0 then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_TALK, i .. "T1", {
+					FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_TALK, i .. "T1", {
 						szName = tRecord.szName or tRecord.szText,
 						nTime  = tRecord.nTime1,
 						nIcon  = tRecord.nIconID or 340,
@@ -3202,7 +3202,7 @@ function RaidGrid_BossCallAlert.ProcessBossCallSet(bossname, saydata)
 					})
 				end
 				if tRecord.nTime2 and tRecord.nTime2>0 then
-					FireEvent("JH_ST_CREATE", JH_ST_TYPE.NPC_TALK, i .. "T2", {
+					FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_TALK, i .. "T2", {
 						szName = tRecord.szName2 or tRecord.szText,
 						nTime  = tRecord.nTime2,
 						nIcon  = tRecord.nIconID or 340,
@@ -3258,7 +3258,7 @@ function RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 			end
 
 			if tRecord.nTime1 and tRecord.nTime1>0 then
-				FireEvent("JH_ST_CREATE", JH_ST_TYPE.SYS_TALK, i .. "T1", {
+				FireEvent("JH_ST_CREATE", DBM_TYPE.SYS_TALK, i .. "T1", {
 					szName = tRecord.szName or tRecord.szText,
 					nTime  = tRecord.nTime1,
 					nIcon  = tRecord.nIconID or 340,
@@ -3266,7 +3266,7 @@ function RaidGrid_BossCallAlert.ProcessWarningMessagesSet(saydata)
 				})
 			end
 			if tRecord.nTime2 and tRecord.nTime2>0 then
-				FireEvent("JH_ST_CREATE", JH_ST_TYPE.SYS_TALK, i .. "T2", {
+				FireEvent("JH_ST_CREATE", DBM_TYPE.SYS_TALK, i .. "T2", {
 					szName = tRecord.szName2 or tRecord.szText,
 					nTime  = tRecord.nTime2,
 					nIcon  = tRecord.nIconID or 340,

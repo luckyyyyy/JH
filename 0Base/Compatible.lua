@@ -1,13 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-27 11:56:02
+-- @Last Modified time: 2015-05-13 16:32:59
 
--- 倒计时类型
-JH_ST_TYPE = {
+DBM_TYPE = {
 	OTHER       = 0,
-	BUFF_ENTER  = 1,
-	BUFF_LEAVE  = 2,
+	BUFF_GET    = 1,
+	BUFF_LOSE   = 2,
 	NPC_ENTER   = 3,
 	NPC_LEAVE   = 4,
 	NPC_TALK    = 5,

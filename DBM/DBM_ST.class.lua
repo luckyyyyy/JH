@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 16:28:29
+-- @Last Modified time: 2015-05-04 14:31:51
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -16,7 +16,7 @@ local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 
 local ST_CACHE = {}
 do
-	for k, v in pairs(DBM_TYPE) do
+	for k, v in pairs(JH_ST_TYPE) do
 		ST_CACHE[v] = setmetatable({}, { __mode = "v" })
 	end
 end
@@ -39,7 +39,7 @@ local function GetCountdown(tTime)
 	end
 end
 -- 倒计时模块 事件名称 JH_ST_CREATE
--- nType 倒计时类型 Compatible.lua 中的 DBM_TYPE
+-- nType 倒计时类型 Compatible.lua 中的 JH_ST_TYPE
 -- szKey 同一类型内唯一标识符
 -- tArgs {
 --      szName   -- 倒计时名称 如果是分段就不需要传名称
