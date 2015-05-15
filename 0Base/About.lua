@@ -12,17 +12,8 @@ function _JH_About.PS.GetAuthorInfo()
 	return _L["AUTHOR"]
 end
 
-function _JH_About.CheckNameEx(dwID, szName)
-	if JH.bDebugClient then
-		return true
-	end
-	local me = GetClientPlayer()
-	dwID = dwID or me.dwID
-	szName = szName or me.szName
-	local tab = Station.Lookup("Lowest/Scene").JH or {}
-	if tab["NAME_EX"] and tab["NAME_EX"][szName] then
-		return tab["NAME_EX"][szName] == dwID
-	end
+function _JH_About.CheckNameEx()
+	return JH.bDebugClient
 end
 
 function _JH_About.CheckInstall()
