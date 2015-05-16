@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-10 15:01:34
+-- @Last Modified time: 2015-05-13 20:03:09
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bEnable = true,
@@ -138,10 +138,13 @@ function PBL.SwitchSelect()
 	for i = PBL.handle:GetItemCount() -1, 0, -1 do
 		local h = PBL.handle:Lookup(i)
 		if h and h:IsValid() then
-			if dwID == h.data.dwID then
-				h:Lookup("Image_Select"):Show()
-			else
-				h:Lookup("Image_Select"):Hide()
+			local sel = h:Lookup("Image_Select")
+			if sel and sel:IsValid() then
+				if dwID == h.data.dwID then
+					sel:Show()
+				else
+					sel:Hide()
+				end
 			end
 		end
 	end
