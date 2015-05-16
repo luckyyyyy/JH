@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-15 20:21:45
+-- @Last Modified time: 2015-05-16 21:00:07
 --[[
 DBM_TYPE = {
 	OTHER       = 0,
@@ -24,24 +24,78 @@ local DBM_SCRUTINY_TYPE = {
 	TEAM  = 2,
 	ENEMY = 3
 }
+local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
+local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
 local DBM_DATAPATH = JH.GetAddonInfo().szDataPath
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 local CACHE = {
-	TEMP = {
+	TEMP = { -- 近期事件记录MAP 这里用弱表 方便处理
 		BUFF    = setmetatable({}, { __mode = "v" }),
 		DEBUFF  = setmetatable({}, { __mode = "v" }),
 		CASTING = setmetatable({}, { __mode = "v" }),
 		NPC     = setmetatable({}, { __mode = "v" }),
-	}
-}
-local D = {
-	TEMP = {
+	},
+	MAP = { -- 需要监控的数据MAP
 		BUFF    = {},
 		DEBUFF  = {},
 		CASTING = {},
 		NPC     = {},
 	}
 }
+local D = {
+	tDungeonList = {},
+	FILE = { -- 文件原始数据
+		BUFF    = {
+			[-1] = {
+				{ dwID = 103, nLevel = 1 },
+				{ dwID = 208, nLevel = 1 },
+				{ dwID = 208, nLevel = 2 },
+				{ dwID = 208, nLevel = 3 },
+				{ dwID = 208, nLevel = 4 },
+				{ dwID = 208, nLevel = 5 },
+				{ dwID = 208, nLevel = 6 },
+				{ dwID = 208, nLevel = 7 },
+				{ dwID = 208, nLevel = 8 },
+				{ dwID = 208, nLevel = 9 },
+				{ dwID = 208, nLevel = 10 },
+				{ dwID = 208, nLevel = 11 },
+				{ dwID = 6243, nLevel = 1 },
+				{ dwID = 112, nLevel = 4 },
+				{ dwID = 112, nLevel = 1 },
+				{ dwID = 208, nLevel = 3 },
+				{ dwID = 208, nLevel = 5 },
+			}
+		},
+		DEBUFF  = {},
+		CASTING = {},
+		NPC     = {},
+		TALK    = {},
+	},
+	TEMP = { -- 近期事件记录
+		BUFF    = {},
+		DEBUFF  = {},
+		CASTING = {},
+		NPC     = {},
+	},
+	DATA = { -- 需要监控的数据合集
+		BUFF    = {},
+		DEBUFF  = {},
+		CASTING = {},
+		NPC     = {},
+		TALK    = {},
+	}
+}
+setmetatable(D.FILE, { __index = function(me, index)
+	if index == "ALL" then
+		local t = {}
+		for k, v in pairs(D.FILE) do
+			for _, vv in ipairs(v) do
+				t[#t +1] = vv
+			end
+		end
+		return t
+	end
+end })
 
 DBM = {
 	bEnable = true,
@@ -54,6 +108,7 @@ function DBM.OnFrameCreate()
 	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("DO_SKILL_CAST")
 	this:RegisterEvent("LOADING_END")
+	this:RegisterEvent("DBM_CREATE_CACHE")
 	this:RegisterEvent("PLAYER_SAY")
 	this:RegisterEvent("ON_WARNING_MESSAGE")
 end
@@ -78,8 +133,60 @@ function DBM.OnEvent(szEvent)
 		D.OnNpcEvent(arg0, true)
 	elseif szEvent == "NPC_LEAVE_SCENE" then
 		D.OnNpcEvent(arg0, false)
+	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" then
+		D.CreateData()
 	end
 end
+
+
+local function CreateCache(szType, tab)
+	local data  = D.DATA[szType]
+	local cache = CACHE.MAP[szType]
+	for k, v in ipairs(tab) do
+		data[#data + 1] = v
+		cache[v.dwID] = cache[v.dwID] or {}
+		cache[v.dwID][v.nLevel] = k
+	end
+	Log("[DBM] Create " .. szType .. " data Success!")
+end
+
+function D.CreateData()
+	local me = GetClientPlayer()
+	local dwMapID = me.GetMapID()
+	local nTime = GetTime()
+	-- 清空当前数据和MAP
+	for k, v in pairs(D.DATA) do
+		D.DATA[k] = {}
+	end
+	for k, v in pairs(CACHE.MAP) do
+		CACHE.MAP[k] = {}
+	end
+	for _, szType in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "TALK" }) do
+		local data  = D.DATA[szType]
+		local cache = CACHE.MAP[szType]
+		if D.FILE[szType][-1] then -- 通用数据
+			CreateCache(szType, D.FILE[szType][-1])
+		end
+		if D.FILE[szType][dwMapID] then -- 本地图数据
+			CreateCache(szType, D.FILE[szType][dwMapID])
+		end
+	end
+	Log("[DBM] MAPID: " .. dwMapID ..  " Create data Success:" .. GetTime() - nTime  .. "ms")
+	Output(CACHE.MAP, D.DATA)
+end
+
+function D.FreeCache(szType)
+	Log("[DBM] " .. szType .. " cache clear!")
+	local t = {}
+	local tTemp = D.TEMP[szType]
+	for i = DBM_DEL_CACHE, #tTemp do
+		t[#t + 1] = tTemp[i]
+	end
+	D.TEMP[szType] = t
+	collectgarbage("collect")
+	FireEvent("DBMUI_TEMP_RELOAD", szType)
+end
+
 -- 事件操作
 function D.OnBuff(dwPlayerID, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndFrame, bInit, nBuffLevel, dwSkillSrcID)
 	local key = dwBuffID .. "_" .. nBuffLevel
@@ -101,11 +208,11 @@ function D.OnBuff(dwPlayerID, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEn
 			}
 			tWeak[key] = t
 			tTemp[#tTemp + 1] = tWeak[key]
-			local count = #tTemp
-			if #tTemp > 500 then
-				table.remove(tTemp, 1)
+			if #tTemp > DBM_MAX_CACHE then
+				D.FreeCache(szType)
+			else
+				FireEvent("DBMUI_TEMP_UPDATE", szType, t)
 			end
-			FireEvent("DBMUI_TEMP_UPDATE", szType, t)
 		end
 	end
 end
@@ -123,11 +230,11 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		}
 		tWeak[key] = t
 		tTemp[#tTemp + 1] = tWeak[key]
-		local count = #tTemp
-		if #tTemp > 500 then
-			table.remove(tTemp, 1)
+		if #tTemp > DBM_MAX_CACHE then
+			D.FreeCache("CASTING")
+		else
+			FireEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
 		end
-		FireEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
 	end
 end
 -- NPC事件
@@ -146,11 +253,11 @@ function D.OnNpcEvent(dwID, bEnter)
 				}
 				tWeak[npc.dwTemplateID] = t
 				tTemp[#tTemp + 1] = tWeak[npc.dwTemplateID]
-				local count = #tTemp
-				if #tTemp > 500 then
-					table.remove(tTemp, 1)
+				if #tTemp > DBM_MAX_CACHE then
+					D.FreeCache("NPC")
+				else
+					FireEvent("DBMUI_TEMP_UPDATE", "NPC", t)
 				end
-				FireEvent("DBMUI_TEMP_UPDATE", "NPC", t)
 			end
 		else
 		end
@@ -187,6 +294,26 @@ end
 function D.Init()
 	D.Enable(DBM.bEnable)
 end
+
+function D.GetDungeon()
+	if IsEmpty(D.tDungeonList) then
+		for k, v in ipairs(GetMapList()) do
+			local a = g_tTable.DungeonInfo:Search(v)
+			if a and a.dwClassID == 3 then
+				table.insert(D.tDungeonList, {
+					dwMapID      = a.dwMapID,
+					szLayer3Name = a.szLayer3Name
+				})
+			end
+		end
+		table.sort(D.tDungeonList, function(a, b)
+			return a.dwMapID > b.dwMapID
+		end)
+	end
+	return D.tDungeonList
+end
+
+-- 获取整个表
 function D.GetTable(szType, bTemp)
 	if bTemp then
 		if szType == "CIRCLE" then -- 如果请求圈圈的近期数据 返回NPC的
@@ -194,12 +321,49 @@ function D.GetTable(szType, bTemp)
 		end
 		return D.TEMP[szType]
 	else
+		return D.FILE[szType]
+	end
+end
+
+local function GetData(tab, szType, dwID, nLevel)
+	for k, v in ipairs(tab) do
+		if v.dwID == dwID and (not v.bAlwaysCheckLevel or v.nLevel == nLevel) then
+			CACHE.MAP[szType][dwID][nLevel] = k
+			return v
+		end
+	end
+end
+
+-- 获取监控数据
+function D.GetData(szType, dwID, nLevel)
+	local tab = D.DATA[szType]
+	local cache = CACHE.MAP[szType][dwID]
+	if cache then
+		if cache[nLevel] then -- 如果可以直接命中
+			local data = tab[cache[nLevel]]
+			if data and data.dwID == dwID and (not data.bheckLevel or data.nLevel == nLevel) then
+				return data
+			else
+				return GetData(tab, szType, dwID, nLevel)
+			end
+		else -- 不能直接命中的情况下 检索下面的所有level
+			for k, v in pairs(cache) do
+				local data = tab[cache[k]]
+				if data and data.dwID == dwID and (not data.bheckLevel or data.nLevel == nLevel) then
+					return data
+				else
+					return GetData(tab, szType, dwID, nLevel)
+				end
+			end
+		end
 	end
 end
 
 -- 公开接口
 local ui = {
-	GetTable = D.GetTable
+	GetTable = D.GetTable,
+	GetDungeon = D.GetDungeon,
+	GetData = GetData
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
