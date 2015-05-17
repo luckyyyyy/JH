@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-16 20:57:24
+-- @Last Modified time: 2015-05-17 19:37:38
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE    = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -127,7 +127,9 @@ function DBM.SetNpcItemAction(h, dat)
 		szName = tostring(dwID)
 	end
 	h:Lookup("Text"):SetText(szName)
-	h:Lookup("Text"):SetFontColor(unpack(dat.col))
+	if dat.col then
+		h:Lookup("Text"):SetFontColor(unpack(dat.col))
+	end
 	local box = h:Lookup("Box")
 	box:ClearObjectIcon()
 	box:SetExtentImage("ui/Image/TargetPanel/Target.UITex", dat.nFrame)

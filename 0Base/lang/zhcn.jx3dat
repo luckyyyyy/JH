@@ -132,6 +132,7 @@ data = {
 	["Black"] = "黑",
 	["White"] = "白",
 	["Get Buff"] = "获得效果 ",
+	["Lose Buff"] = "失去效果 ",
 	["Appear"] = "出现",
 	["disappear"] = "消失",
 	["* [%s] enter %s"] = "★ [%s]出现！%s",
