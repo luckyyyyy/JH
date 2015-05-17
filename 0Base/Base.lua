@@ -696,7 +696,7 @@ function JH.SwitchChat(nChannel)
 	end
 end
 
-function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
+function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	local szTarget, me = "", GetClientPlayer()
 	-- channel
 	if not nChannel then
@@ -735,6 +735,16 @@ function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 	if not bNoEmotion then
 		tSay = _JH.ParseFaceIcon(tSay)
 	end
+	-- add addon msg header
+	if not tSay[1] or tSay[1].name ~= "" or tSay[1].type ~= "eventlink" then
+		tinsert(tSay, 1, {
+			type = "eventlink", name = "",
+			linkinfo = JH.JsonEncode({
+				via = "JH",
+				uuid = tostring(szUUID),
+			}),
+		})
+	end
 	me.Talk(nChannel, szTarget, tSay)
 	if bSaveDeny and not JH.CanTalk(nChannel) then
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
@@ -751,8 +761,8 @@ function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 	end
 end
 
-function JH.Talk2(nChannel, szText, bNoEmotion)
-	JH.Talk(nChannel, szText, bNoEmotion, true)
+function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
+	JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
 end
 function JH.BgTalk(nChannel, ...)
 	local tSay = { { type = "text", text = _L["Addon comm."] } }
@@ -767,7 +777,7 @@ function JH.BgTalk(nChannel, ...)
 		end
 		tinsert(tSay, { type = "eventlink", name = "", linkinfo = tostring(v) })
 	end
-	JH.Talk(nChannel, tSay, true)
+	JH.Talk(nChannel, tSay, nil, true)
 end
 
 function JH.BgHear(szKey,bIgnore)
