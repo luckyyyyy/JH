@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 12:38:13
+-- @Last Modified time: 2015-05-17 21:15:35
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -2681,6 +2681,9 @@ _GKP.TradingTarget = {}
 
 _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 	if nGold > -20 and nGold < 20  then
+		return
+	end
+	if not _GKP.TradingTarget then
 		return
 	end
 	if not _GKP.TradingTarget.szName and not GKP.bMoneySystem then

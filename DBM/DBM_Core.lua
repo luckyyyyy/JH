@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-17 19:43:18
+-- @Last Modified time: 2015-05-17 20:17:30
 local _L = JH.LoadLangPack
 local DEBUG = true
 local DBM_TYPE = DBM_TYPE or {
@@ -142,9 +142,9 @@ function DBM.OnEvent(szEvent)
 	elseif szEvent == "SYS_MSG" then
 		if arg0 == "UI_OME_SKILL_CAST_LOG" then
 			D.OnSkillCast(arg1, arg2, arg3, arg0)
-		elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG" or arg0 == "UI_OME_SKILL_SHIELD_LOG"
-		or arg0 == "UI_OME_SKILL_MISS_LOG" or arg0 == "UI_OME_SKILL_DODGE_LOG"
-		or arg0 == "UI_OME_SKILL_HIT_LOG")
+		elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG"
+		or arg0 == "UI_OME_SKILL_SHIELD_LOG" or arg0 == "UI_OME_SKILL_MISS_LOG"
+		or arg0 == "UI_OME_SKILL_DODGE_LOG"	or arg0 == "UI_OME_SKILL_HIT_LOG")
 		and arg3 == SKILL_EFFECT_TYPE.SKILL then
 			D.OnSkillCast(arg1, arg4, arg5, arg0)
 		elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" and arg4 == SKILL_EFFECT_TYPE.SKILL then
@@ -252,10 +252,11 @@ function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
 	if cfg.tCountdown then
 		for k, v in ipairs(cfg.tCountdown) do
 			FireEvent("JH_ST_CREATE", nClass, k .. "." .. data.dwID .. "." .. (data.nLevel or 0), {
-				nTime  = v.nTime,
-				szName = v.szName or data.szName,
-				nIcon  = v.nIocn or data.nIocn,
-				bTalk  = DBM.bPushTeamChannel and v.bTeamChannel
+				nTime    = v.nTime,
+				nRefresh = v.nRefresh,
+				szName   = v.szName or data.szName,
+				nIcon    = v.nIocn or data.nIocn,
+				bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
 			})
 		end
 	end
