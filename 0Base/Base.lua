@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-16 04:35:29
+-- @Last Modified time: 2015-05-18 22:32:34
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -22,7 +22,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x00c0000
+local _VERSION_   = 0x00d0000
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
@@ -741,7 +741,7 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 			type = "eventlink", name = "",
 			linkinfo = JH.JsonEncode({
 				via = "JH",
-				uuid = tostring(szUUID),
+				uuid = szUUID and tostring(szUUID),
 			}),
 		})
 	end
