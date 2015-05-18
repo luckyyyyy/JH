@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 22:32:34
+-- @Last Modified time: 2015-05-19 02:28:59
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -695,8 +695,8 @@ function JH.SwitchChat(nChannel)
 		SwitchChatChannel("/w " .. nChannel .. " ")
 	end
 end
-
-function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
+function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
+-- function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	local szTarget, me = "", GetClientPlayer()
 	-- channel
 	if not nChannel then
@@ -736,15 +736,16 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		tSay = _JH.ParseFaceIcon(tSay)
 	end
 	-- add addon msg header
-	if not tSay[1] or tSay[1].name ~= "" or tSay[1].type ~= "eventlink" then
-		tinsert(tSay, 1, {
-			type = "eventlink", name = "",
-			linkinfo = JH.JsonEncode({
-				via = "JH",
-				uuid = szUUID and tostring(szUUID),
-			}),
-		})
-	end
+	-- if not tSay[1] or tSay[1].name ~= "" or tSay[1].type ~= "eventlink" then
+	-- 	tinsert(tSay, 1, {
+	-- 		type = "eventlink",
+	-- 		name = "",
+	-- 		linkinfo = JH.JsonEncode({
+	-- 			via = "JH",
+	-- 			uuid = szUUID and tostring(szUUID),
+	-- 		}),
+	-- 	})
+	-- end
 	me.Talk(nChannel, szTarget, tSay)
 	if bSaveDeny and not JH.CanTalk(nChannel) then
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
@@ -760,10 +761,12 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		JH.SwitchChat(nChannel)
 	end
 end
-
-function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
-	JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
+function JH.Talk2(nChannel, szText, bNoEmotion)
+	JH.Talk(nChannel, szText, bNoEmotion, true)
+-- function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
+	-- JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
 end
+
 function JH.BgTalk(nChannel, ...)
 	local tSay = { { type = "text", text = _L["Addon comm."] } }
 	local tArg = { ... }
@@ -777,7 +780,7 @@ function JH.BgTalk(nChannel, ...)
 		end
 		tinsert(tSay, { type = "eventlink", name = "", linkinfo = tostring(v) })
 	end
-	JH.Talk(nChannel, tSay, nil, true)
+	JH.Talk(nChannel, tSay, true)
 end
 
 function JH.BgHear(szKey,bIgnore)
@@ -2268,7 +2271,7 @@ end
 -- (self) Instance:Focus()
 -- (self) Instance:Focus(func fnAction)
 -- NOTICE：only for WndEdit
-function _GUI.Wnd:Focus(SetfnAction,KillfnAction)
+function _GUI.Wnd:Focus(SetfnAction, KillfnAction)
 	if type(SetfnAction) == "function" then
 		local wnd = self.edit
 		if SetfnAction then
@@ -3198,4 +3201,66 @@ function GUI.OpenColorTablePanel(fnAction)
 			JH.Sysmsg("RGB value error")
 		end
 	end)
+end
+-- icon选择器
+function GUI.OpenIconPanel(fnAction)
+	local nMaxIocn, nPage, boxs, txts = 6891, 0, {}, {}
+	local ui = GUI.CreateFrame2("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], close = true }):RegisterClose()
+	local function GetPage(nPage)
+		local nStart = nPage * 144 - 1
+		for i = 1, 144 do
+			local x = ((i - 1) % 18) * 50 + 10
+			local y = math.floor((i - 1) / 18) * 70 + 10
+			if boxs[i] then
+				local nIocn = nStart + i
+				if nIocn > nMaxIocn then
+					boxs[i]:Toggle(false)
+					txts[i]:Toggle(false)
+				else
+					boxs[i]:Icon(nIocn):Toggle(true)
+					txts[i]:Text(nIocn):Toggle(true)
+				end
+			else
+				boxs[i] = ui:Append("Box", { w = 48, h = 48, x = x, y = y, icon = nStart + i}):Hover(function(bHover)
+					this:SetObjectMouseOver(bHover)
+				end):Click(function()
+					if fnAction then
+						fnAction(this:GetObjectIcon())
+					end
+					ui:Remove()
+				end)
+				txts[i] = ui:Append("Text", { w = 48, h = 20, x = x, y = y + 48, txt = nStart + i, align = 1 })
+			end
+		end
+	end
+	ui:Append("WndEdit", "Icon", { x = 730, y = 580, w = 50, h = 25 }):Type(0)
+	ui:Append("WndButton2", { txt = g_tStrings.STR_HOTKEY_SURE, x = 800, y = 580 }):Click(function()
+		local nIocn = tonumber(ui:Fetch("Icon"):Text())
+		if nIocn then
+			if fnAction then
+				fnAction(nIocn)
+			end
+			ui:Remove()
+		end
+	end)
+	local btn1 = ui:Append("WndButton2", { txt = _L["Up"], x = 350, y = 580 }):Enable(false)
+	local nX, _ = btn1:Pos_()
+	local btn2 = ui:Append("WndButton2", { txt = _L["Next"], x = 470, y = 580 })
+	btn1:Click(function()
+		if nPage == 1 then
+			this:Enable(false)
+		end
+		nPage = nPage - 1
+		btn2:Enable(true)
+		GetPage(nPage)
+	end)
+	btn2:Click(function()
+		nPage = nPage + 1
+		if (nPage + 1) * 144 > nMaxIocn then
+			this:Enable(false)
+		end
+		btn1:Enable(true)
+		GetPage(nPage)
+	end)
+	GetPage(nPage)
 end

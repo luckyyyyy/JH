@@ -193,6 +193,16 @@ data = {
 	["He has been in the scene, Until killed or leave, Sure to add?"] = "头顶会一直存在于画面中，直到目标死亡或者消失，确定添加？（建议仅适用于集火目标）",
 	["Delete"] = "删除",
 	-- DBM_UI.lua --
+	["Building"] = "正在释放",
+	["use of"] = "释放了",
+	["Get Buff"] = "获得效果 ",
+	["Lose Buff"] = "失去效果 ",
+	["Appear"] = "出现",
+	["leave"] = "消失",
+	["[%s] enter %s"] = "[%s]出现！%s",
+	["[%s] leave"] = "[%s]消失",
+	["Skills using a success"] = "技能成功释放",
+	["Skills began to release"] = "技能开始释放",
 	["Team"] = "团队",
 	["Enemy"] = "敌对",
 	["Scrutiny Type"] = "监控对象类型",
@@ -225,6 +235,7 @@ data = {
 	["Countdown TYPE 12"] = "NPC死亡",
 	["Countdown TYPE 13"] = "NPC全部死亡",
 	-- ST.class.lua --
+	["Countdown format Error"] = "倒计时格式错误",
 	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",
 	["Countdown"] = "倒计时",
 	-- WebSyncData.lua --
