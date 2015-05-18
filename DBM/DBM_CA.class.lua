@@ -1,10 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 14:05:35
+-- @Last Modified time: 2015-05-18 21:39:07
 
 local _L = JH.LoadLangPack
-local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/CA_UI.ini"
+local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/CA_UI.ini"
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
 local min, max = math.min, math.max
 local GetTime = GetTime

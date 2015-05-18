@@ -1,21 +1,25 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 16:32:59
+-- @Last Modified time: 2015-05-18 22:02:33
 
-DBM_TYPE = {
-	OTHER       = 0,
-	BUFF_GET    = 1,
-	BUFF_LOSE   = 2,
-	NPC_ENTER   = 3,
-	NPC_LEAVE   = 4,
-	NPC_TALK    = 5,
-	NPC_LIFE    = 6,
-	NPC_FIGHT   = 7,
-	SKILL_BEGIN = 8,
-	SKILL_END   = 9,
-	SYS_TALK    = 10,
+DBM_TYPE     = {
+	OTHER        = 0,
+	BUFF_GET     = 1,
+	BUFF_LOSE    = 2,
+	NPC_ENTER    = 3,
+	NPC_LEAVE    = 4,
+	NPC_TALK     = 5,
+	NPC_LIFE     = 6,
+	NPC_FIGHT    = 7,
+	SKILL_BEGIN  = 8,
+	SKILL_END    = 9,
+	SYS_TALK     = 10,
+	NPC_ALLLEAVE = 11,
+	NPC_DEATH    = 12,
+	NPC_ALLDEATH = 13,
 }
+DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3 }
 
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-05 17:03:11
+-- @Last Modified time: 2015-05-18 21:38:56
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
@@ -10,7 +10,7 @@ local HasBuff = JH.HasBuff
 
 local FS_CACHE    = setmetatable({}, { __mode = "v" })
 local FS_UI_CACHE = setmetatable({}, { __mode = "v" })
-local FS_INIFILE  = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/FS_UI.ini"
+local FS_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/FS_UI.ini"
 local SHADOW      = JH.GetAddonInfo().szShadowIni
 
 -- FireEvent("JH_FS_CREATE", "test", { nTime = 5, col = { 255, 255, 0 }, bFlash = true, tBindBuff = { 103, 1 }})
