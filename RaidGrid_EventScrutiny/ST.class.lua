@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 21:25:35
+-- @Last Modified time: 2015-05-18 22:29:04
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -100,7 +100,6 @@ function ST_UI.OnEvent(szEvent)
 	if szEvent == "JH_ST_CREATE" then
 		CreateCountdown(arg0, arg1, arg2)
 	elseif szEvent == "JH_ST_DEL" then
-		Output(arg0, arg1)
 		local obj = ST.new(arg0, arg1)
 		if obj then
 			if arg2 then -- 强制无条件删除
