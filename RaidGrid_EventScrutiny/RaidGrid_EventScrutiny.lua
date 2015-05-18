@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 16:54:02
+-- @Last Modified time: 2015-05-19 00:35:59
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -1697,7 +1697,8 @@ function RaidGrid_EventScrutiny.OnUpdateBuffData(dwMemberID, bIsRemoved, nIndex,
 				end
 			end
 			if data.bScreenHead then
-				FireEvent("JH_SCREENHEAD", dwMemberID, { type = data.szType, dwID = data.dwID, szName = data.szName, col = data.tRGBuffColor })
+				local fix = data.szType == "Debuff" and "DEBUFF" or "BUFF"
+				FireEvent("JH_SCREENHEAD", dwMemberID, { type = fix, dwID = data.dwID, szName = data.szName, col = data.tRGBuffColor })
 			end
 		end
 	end
@@ -2102,7 +2103,7 @@ function RaidGrid_EventScrutiny.OnSkillCasting(szCastType, dwID, dwSkillID, dwSk
 			end
 		end
 		if sarg0 == "UI_OME_SKILL_CAST_LOG" and data.bScreenHead then
-			FireEvent("JH_SCREENHEAD", target.dwID, { type = "Skill", txt = data.szName, col = data.tRGBuffColor })
+			FireEvent("JH_SCREENHEAD", target.dwID, { type = "CASTING", txt = data.szName, col = data.tRGBuffColor })
 		end
 		if RaidGrid_EventScrutiny.bCastingReadingBar and sarg0 == "UI_OME_SKILL_CAST_LOG" and not data.bNotReadingBar then
 			RaidGrid_ReadingBar.putOrg(target)

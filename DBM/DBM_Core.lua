@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 22:00:33
+-- @Last Modified time: 2015-05-19 02:42:43
 local _L = JH.LoadLangPack
 local DEBUG = true
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
@@ -23,17 +23,23 @@ local CACHE = {
 		NPC     = {},
 	},
 	NPC_LIST = {},
+	SKILL_LIST = {},
 }
 local D = {
 	tDungeonList = {},
 	FILE = { -- 文件原始数据
 		BUFF    = {
 			[-1] = {
-				{ dwID = 103, nLevel = 1, [DBM_TYPE.BUFF_GET] = { bCenterAlarm = true }, [DBM_TYPE.BUFF_LOSE] = { bCenterAlarm = true } },
+				-- { dwID = 103, nLevel = 1, [DBM_TYPE.BUFF_GET] = { bCenterAlarm = true }, [DBM_TYPE.BUFF_LOSE] = { bCenterAlarm = true } },
 			}
 		},
 		DEBUFF  = {},
-		CASTING = {},
+		CASTING = {
+			[-1] = {
+				{ dwID = 17, nLevel = 1, [DBM_TYPE.SKILL_END] = { bCenterAlarm = true } },
+				{ dwID = 4097, nLevel = 1, },
+			}
+		},
 		NPC     = {
 			[-1] = {
 				{ dwID = 17189, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
@@ -86,8 +92,8 @@ DBM = {
 	bBigFontAlarm = true,
 	bPushTeamPanel = true, -- 面板buff监控
 	bPushFullScreen = true, -- 全屏泛光
-	bPushTeamChannel = false, -- 团队报警
-	bPushWhisperChannel = false, -- 密聊报警
+	bPushTeamChannel = true, -- 团队报警
+	bPushWhisperChannel = true, -- 密聊报警
 	bMonSkillTarget = false,
 }
 
@@ -218,7 +224,7 @@ function D.FireCountdownEvent(data, nClass)
 					nTime    = v.nTime,
 					nRefresh = v.nRefresh,
 					szName   = v.szName or data.szName,
-					nIcon    = v.nIocn or data.nIocn,
+					nIcon    = v.nIcon or data.nIcon,
 					bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
 				})
 			end
@@ -339,14 +345,20 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			JH.Talk(txt)
 		end
 		if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-			JH.Talk(szSrcName, txt:gsub(szSrcName, g_tString.STR_NAME_YOU))
+			JH.Talk(szSrcName, txt:gsub(szSrcName, g_tStrings.STR_NAME_YOU))
 		end
 	end
 end
 -- 技能事件
 function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
-	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
 	local key = dwCastID .. "_" .. dwLevel
+	local nTime = GetTime()
+	CACHE.SKILL_LIST[dwCaster] = CACHE.SKILL_LIST[dwCaster] or {}
+	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 100 then -- 0.1秒内 直接忽略
+		return
+	end
+	CACHE.SKILL_LIST[dwCaster][key] = nTime
+	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
 	local me = GetClientPlayer()
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
 	if not tWeak[key] then
@@ -363,74 +375,73 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		else
 			FireEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
 		end
-		-- 监控数据
-		if data then
-			if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
-				return
-			end
-			local szName, nIcon = JH.GetSkillName(dwCastID, dwLevel)
-			local KObject = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
-			if not KObject then
-				return D.Log("ERROR CASTING object:" .. dwCaster .. " does not exist!")
-			end
-			szName = data.szName or szName
-			nIcon  = data.nIcon or nIcon
-			local szSrcName = JH.GetTemplateName(KObject)
-			local dwTargetType, dwTargetID = KObject.GetTarget()
-			local szTargetName
-			if dwTargetID > 0 then
-				szTargetName = JH.GetTemplateName(IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID))
-			end
-			local cfg, nClass
-			if szEvent == "UI_OME_SKILL_CAST_LOG" then
-				cfg, nClass = data[DBM_TYPE.SKILL_BEGIN], DBM_TYPE.SKILL_BEGIN
+	end
+	-- 监控数据
+	if data then
+		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
+			return
+		end
+		local szName, nIcon = JH.GetSkillName(dwCastID, dwLevel)
+		local KObject = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
+		if not KObject then
+			return D.Log("ERROR CASTING object:" .. dwCaster .. " does not exist!")
+		end
+		szName = data.szName or szName
+		nIcon  = data.nIcon or nIcon
+		local szSrcName = JH.GetTemplateName(KObject)
+		local dwTargetType, dwTargetID = KObject.GetTarget()
+		local szTargetName
+		if dwTargetID > 0 then
+			szTargetName = JH.GetTemplateName(IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID))
+		end
+		local cfg, nClass
+		if szEvent == "UI_OME_SKILL_CAST_LOG" then
+			cfg, nClass = data[DBM_TYPE.SKILL_BEGIN], DBM_TYPE.SKILL_BEGIN
+		else
+			cfg, nClass = data[DBM_TYPE.SKILL_END], DBM_TYPE.SKILL_END
+		end
+		D.FireCountdownEvent(data, nClass)
+		if cfg then
+			local xml = {}
+			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			table.insert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
+			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			if nClass == DBM_TYPE.SKILL_END then
+				table.insert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
 			else
-				cfg, nClass = data[DBM_TYPE.SKILL_END], DBM_TYPE.SKILL_END
+				table.insert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
 			end
-			if cfg then
-				local cfg = data[DBM_TYPE.SKILL_BEGIN]
-				local xml = {}
+			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
+			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			if DBM.bMonSkillTarget and szTargetName then
+				table.insert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
 				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
-				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-				if nClass == DBM_TYPE.SKILL_END then
-					table.insert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
+				if me.dwID == dwTargetID then
+					table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
 				else
-					table.insert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
+					table.insert(xml, GetFormatText(szTargetName, 44, 255, 255, 0))
 				end
-				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
 				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-				if DBM.bMonSkillTarget and szTargetName then
-					table.insert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
-					table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-					if me.dwID == dwTargetID then
-						table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
-					else
-						table.insert(xml, GetFormatText(szTargetName, 44, 255, 255, 0))
-					end
-					table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-				end
-				if data.szNote then
-					table.insert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
-				end
-				-- 通用的报警事件处理
-				D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
-				D.FireCountdownEvent(data, nClass)
-				-- 头顶报警
-				if DBM.bPushbScreenHead and cfg.bScreenHead then
-					FireEvent("JH_SCREENHEAD", dwCaster, { type = "CASTING", txt = data.szName or szName, col = data.col })
-				end
-				-- 全屏泛光
-				if DBM.bPushFullScreen and cfg.bFullScreen then
-					FireEvent("JH_FS_CREATE", data.dwID .. "#SKILL#"  .. data.nLevel, { nTime = 3, col = data.col})
-				end
-				if DBM.bPushTeamChannel and cfg.bTeamChannel then
-					JH.Talk(txt)
-				end
-				if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-					--TODO 全团密聊
-				end
+			end
+			if data.szNote then
+				table.insert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
+			end
+			-- 通用的报警事件处理
+			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
+			-- 头顶报警
+			if DBM.bPushbScreenHead and cfg.bScreenHead then
+				FireEvent("JH_SCREENHEAD", dwCaster, { type = "CASTING", txt = data.szName or szName, col = data.col })
+			end
+			-- 全屏泛光
+			if DBM.bPushFullScreen and cfg.bFullScreen then
+				FireEvent("JH_FS_CREATE", data.dwID .. "#SKILL#"  .. data.nLevel, { nTime = 3, col = data.col})
+			end
+			if DBM.bPushTeamChannel and cfg.bTeamChannel then
+				JH.Talk(txt)
+			end
+			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
+				--TODO 全团密聊
 			end
 		end
 	end
@@ -486,9 +497,10 @@ function D.OnNpcEvent(npc, bEnter)
 		else
 			cfg, nClass = data[DBM_TYPE.NPC_LEAVE], DBM_TYPE.NPC_LEAVE
 		end
+		D.FireCountdownEvent(data, nClass)
 		if cfg then
 			if nClass == DBM_TYPE.NPC_LEAVE then
-				if cfg.bAllLeave and CACHE.NPC_LIST[npc.dwTemplateID] then
+				if data.bAllLeave and CACHE.NPC_LIST[npc.dwTemplateID] then
 					return
 				end
 			else
@@ -513,12 +525,9 @@ function D.OnNpcEvent(npc, bEnter)
 					table.insert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
 				end
 			else
-				table.insert(xml, GetFormatText(_L["disappear"], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
 			end
 			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
-			if not cfg.bAllLeave or nClass ~= DBM_TYPE.NPC_LEAVE then -- 全部消失倒计时由事件单独控制
-				D.FireCountdownEvent(data, nClass)
-			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
 				JH.Talk(txt)
 			end

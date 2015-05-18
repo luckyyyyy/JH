@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 22:09:10
+-- @Last Modified time: 2015-05-19 02:34:51
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE    = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -83,19 +83,22 @@ function DBMUI.GetClassMenu()
 	return menu
 end
 
-function DBM.GetBoxInfo(data, szType)
-	local fnAction = JH.GetBuffName
+function DBMUI.GetBoxInfo(data, szType)
+	local szName, nIcon
 	if szType == "CASTING" then
-		fnAction = JH.GetSkillName
+		szName, nIcon = JH.GetSkillName(data.dwID, data.nLevel)
+	elseif szTye == "NPC" then
+		szName, nIocn = GetNpcTemplate(data.dwID), data.nFrame
+	else
+		szName, nIcon = JH.GetBuffName(data.dwID, data.nLevel)
 	end
-	local szName, nIcon = fnAction(data.dwID, data.nLevel)
 	nIcon = data.nIcon or nIcon
 	szName = data.szName or szName
 	return szName, nIcon
 end
 
 function DBMUI.SetBuffItemAction(h, dat)
-	local szName, nIcon = DBM.GetBoxInfo(dat)
+	local szName, nIcon = DBMUI.GetBoxInfo(dat)
 	h:Lookup("Text"):SetText(szName)
 	local box = h:Lookup("Box")
 	box:SetObjectIcon(nIcon)
@@ -112,7 +115,7 @@ function DBMUI.SetBuffItemAction(h, dat)
 end
 
 function DBMUI.SetCastingItemAction(h, dat)
-	local szName, nIcon = DBM.GetBoxInfo(dat.dwID, dat.nLevel)
+	local szName, nIcon = DBMUI.GetBoxInfo(dat, "CASTING")
 	h:Lookup("Text"):SetText(szName)
 	local box = h:Lookup("Box")
 	box:SetObjectIcon(nIcon)
@@ -181,6 +184,12 @@ function DBMUI.SetLBuffItemAction(h, t)
 	end
 end
 
+function DBMUI.SetLCastingItemAction(h, t)
+	h.OnItemLButtonClick = function()
+		DBMUI.OpenSettingPanel(t, "CASTING")
+	end
+end
+
 function DBMUI.DrawTableL(szType, data, bInsert)
 	local page = DBMUI.pageset:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_L", "Handle_" .. szType .. "_List_L")
@@ -190,6 +199,7 @@ function DBMUI.DrawTableL(szType, data, bInsert)
 			DBMUI.SetLBuffItemAction(h, t)
 		elseif szType == "CASTING" then
 			DBMUI.SetCastingItemAction(h, t)
+			DBMUI.SetLCastingItemAction(h, t)
 		elseif szType == "NPC" or szType == "CIRCLE" then
 			DBMUI.SetNpcItemAction(h, t)
 		end
@@ -284,6 +294,7 @@ local function UI_tonumber(szNum, nDefault)
 		return nDefault
 	end
 end
+
 local function GetSettingPanelAnchor()
 	local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")
@@ -294,9 +305,11 @@ local function GetSettingPanelAnchor()
 end
 -- 设置面板
 function DBMUI.OpenSettingPanel(data, szType)
+	local tSkillInfo
+	local me = GetClientPlayer()
 	local a = GetSettingPanelAnchor()
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
-	local szNam, nIcon = DBM.GetBoxInfo(data, szType)
+	local szNam, nIcon = DBMUI.GetBoxInfo(data, szType)
 	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 750, h = 450, title = szNam, close = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
 	local ui = GUI(Station.Lookup("Normal/DBM_SettingPanel"))
 	local nX, nY = 0, 0
@@ -361,6 +374,54 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
 			SetDataClass(data, DBM_TYPE.BUFF_LOSE, "bBigFontAlarm", bCheck)
 		end):Pos_()
+	elseif szType == "CASTING" then
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 351, y = 40, icon = nIcon }):Pos_()
+		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
+		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
+			return GetScrutinyTypeMenu(data)
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bCheckLevel, txt = _L["Check Level"] }):Click(function(bCheck)
+			data.bCheckLevel = bCheck and true or nil
+		end):Pos_()
+		nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Skills using a success"], font = 27 }):Pos_()
+		local cfg = data[DBM_TYPE.SKILL_END] or {}
+		nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
+			SetDataClass(data, DBM_TYPE.SKILL_END, "bTeamChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bWhisperChannel, txt = _L["Whisper Channel Alarm"], color = GetMsgFontColor("MSG_WHISPER", true) }):Click(function(bCheck)
+			SetDataClass(data, DBM_TYPE.SKILL_END, "bWhisperChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bCenterAlarm, txt = _L["Center Alarm"] }):Click(function(bCheck)
+			SetDataClass(data, DBM_TYPE.SKILL_END, "bCenterAlarm", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
+			SetDataClass(data, DBM_TYPE.SKILL_END, "bBigFontAlarm", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bScreenHead, txt = _L["Screen Head Alert"] }):Click(function(bCheck)
+			SetDataClass(data, DBM_TYPE.SKILL_END, "bScreenHead", bCheck)
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
+			SetDataClass(data, DBM_TYPE.SKILL_END, "bFullScreen", bCheck)
+		end):Pos_()
+		--TODO 可能需要标记
+		local tRecipeKey = me.GetSkillRecipeKey(data.dwID, data.nLevel)
+		tSkillInfo = GetSkillInfo(tRecipeKey)
+		if tSkillInfo and tSkillInfo.CastTime ~= 0 then
+			nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Skills began to release"], font = 27 }):Pos_()
+			local cfg = data[DBM_TYPE.SKILL_BEGIN] or {}
+			nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
+				SetDataClass(data, DBM_TYPE.SKILL_BEGIN, "bTeamChannel", bCheck)
+			end):Pos_()
+			nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bWhisperChannel, txt = _L["Whisper Channel Alarm"], color = GetMsgFontColor("MSG_WHISPER", true) }):Click(function(bCheck)
+				SetDataClass(data, DBM_TYPE.SKILL_BEGIN, "bWhisperChannel", bCheck)
+			end):Pos_()
+			nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bCenterAlarm, txt = _L["Center Alarm"] }):Click(function(bCheck)
+				SetDataClass(data, DBM_TYPE.SKILL_BEGIN, "bCenterAlarm", bCheck)
+			end):Pos_()
+			nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
+				SetDataClass(data, DBM_TYPE.SKILL_BEGIN, "bBigFontAlarm", bCheck)
+			end):Pos_()
+		end
 	end
 	-- 倒计时
 	nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Countdown"], font = 27 }):Pos_()
@@ -388,10 +449,12 @@ function DBMUI.OpenSettingPanel(data, szType)
 					v.nClass = DBM_TYPE.SKILL_END
 					ui:Fetch("Countdown" .. k):Text(_L["Countdown TYPE " ..  v.nClass])
 				end })
-				table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_BEGIN], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_BEGIN, fnAction = function()
-					v.nClass = DBM_TYPE.SKILL_BEGIN
-					ui:Fetch("Countdown" .. k):Text(_L["Countdown TYPE " ..  v.nClass])
-				end })
+				if tSkillInfo and tSkillInfo.CastTime ~= 0 then
+					table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_BEGIN], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_BEGIN, fnAction = function()
+						v.nClass = DBM_TYPE.SKILL_BEGIN
+						ui:Fetch("Countdown" .. k):Text(_L["Countdown TYPE " ..  v.nClass])
+					end })
+				end
 			elseif szType == "NPC" then
 				table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.NPC_ENTER], bMCheck = true, bChecked = v.nClass == DBM_TYPE.NPC_ENTER, fnAction = function()
 					v.nClass = DBM_TYPE.NPC_ENTER
@@ -417,7 +480,13 @@ function DBMUI.OpenSettingPanel(data, szType)
 			-- TODO 其他类型
 			return menu
 		end):Pos_()
-		nX = ui:Append("Box", { x = nX + 5, y = nY, w = 24, h = 24, icon = v.nIcon or nIcon }):Pos_()
+		nX = ui:Append("Box", { x = nX + 5, y = nY, w = 24, h = 24, icon = v.nIcon or nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
+			local box = this
+			GUI.OpenIconPanel(function(nIcon)
+				v.nIcon = nIcon
+				box:SetObjectIcon(nIcon)
+			end)
+		end):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 5, y = nY, w = 400, h = 25, txt = v.nTime }):Change(function(szNum)
 			v.nTime = UI_tonumber(szNum, szNum)
 		end):Pos_()
@@ -441,11 +510,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 		wnd:Size(w, h + #data.tCountdown * 25):Point(a.s, 0, 0, a.r, a.x, a.y)
 	end
 	ui:Append("WndButton2", { x = 30, y = nY + 5, txt = _L["Add Countdown"] }):Enable(not (data.tCountdown and #data.tCountdown > 10)):Click(function()
-		if szType == "BUFF" or szType == "DEBUFF" then
-			data.tCountdown = data.tCountdown or {}
-			table.insert(data.tCountdown, { nTime = "10,Countdown Name;", nClass = -1 })
-			DBMUI.OpenSettingPanel(data, szType)
-		end
+		data.tCountdown = data.tCountdown or {}
+		table.insert(data.tCountdown, { nTime = "10,Countdown Name;", nClass = -1 })
+		DBMUI.OpenSettingPanel(data, szType)
 	end)
 end
 

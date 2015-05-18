@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 21:46:22
+-- @Last Modified time: 2015-05-19 02:47:14
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -63,7 +63,7 @@ local function CreateCountdown(nType, szKey, tArgs)
 			tArgs.nTime = tCountdown
 			tArgs.nRefresh = tArgs.nRefresh or tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
 		else
-			return JH.Sysmsg2("tCountdown ERROR nType: " .. nType .. " szKey:" .. szKey .. " tCountdown:" .. tArgs.nTime)
+			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tArgs.nTime)
 		end
 	end
 	local ui = ST_CACHE[nType][szKey]

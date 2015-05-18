@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 22:32:56
+-- @Last Modified time: 2015-05-18 22:56:32
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -483,13 +483,9 @@ end
 
 function CTM:GetMemberInfo(dwID)
 	local team = GetClientTeam()
-<<<<<<< HEAD
-	if not team then return end
-=======
 	if not team then
 		return
 	end
->>>>>>> master
 	return team.GetMemberInfo(dwID)
 end
 

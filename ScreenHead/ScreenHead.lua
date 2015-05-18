@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-01 08:40:43
+-- @Last Modified time: 2015-05-19 00:37:17
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -48,22 +48,22 @@ local _ScreenHead = {
 		{ 15, 25, 180 },
 	},
 	tFontCol = { -- font col
-		["Buff"]   = { 255, 128, 0   },
-		["Debuff"] = { 255, 0,   255 },
+		["BUFF"]   = { 255, 128, 0   },
+		["DEBUFF"] = { 255, 0,   255 },
 		["Life"]   = { 130, 255, 130 },
 		["Mana"]   = { 255, 255, 128 },
 		["Other"]  = { 128, 255, 255 },
 		["Object"] = { 0,   255, 255 },
-		["Skill"]  = { 150, 200, 255 },
+		["CASTING"]  = { 150, 200, 255 },
 	},
 	tArrowCol = {
-		["Buff"]   = { 0,   255, 0   },
-		["Debuff"] = { 255, 0,   0   },
+		["BUFF"]   = { 0,   255, 0   },
+		["DEBUFF"] = { 255, 0,   0   },
 		["Life"]   = { 255, 0,   0   },
 		["Mana"]   = { 0,   0,   255 },
 		["Other"]  = { 255, 0,   0   },
 		["Object"] = { 0,   128, 255 },
-		["Skill"]  = { 255, 128, 0   },
+		["CASTING"]  = { 255, 128, 0   },
 	},
 	szItemIni = JH.GetAddonInfo().szShadowIni,
 }
@@ -104,7 +104,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	if lifeper > 1 then lifeper = 1 end
 	local _r, _g, _b
 	if data.type and data.type ~= "Other" then
-		if data.type == "Buff" or data.type == "Debuff" then
+		if data.type == "BUFF" or data.type == "DEBUFF" then
 			local bExist, tBuff = HasBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
 			if bExist then
 				local nSec = GetEndTime(tBuff.nEndFrame)
@@ -137,7 +137,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 				end
 				txt = g_tStrings.STR_SKILL_H_MANA_COST .. sFormat("%d/%d", info.nCurrentMana, info.nMaxMana)
 			end
-		elseif data.type == "Skill" then
+		elseif data.type == "CASTING" then
 			tManaCol = { 255, 128, 0 }
 			local bIsPrepare, dwSkillID, dwSkillLevel
 			bIsPrepare, dwSkillID, dwSkillLevel, manaper = obj.GetSkillPrepareState()
@@ -411,7 +411,7 @@ function _ScreenHead.RegisterHead(dwID, tab)
 		_ScreenHead.tList[dwID] = {}
 	end
 	if not tab then tab = {} end
-	if tab.type and tab.type == "Buff" or tab.type == "Debuff" then
+	if tab.type and tab.type == "BUFF" or tab.type == "DEBUFF" then
 		for k, v in ipairs(_ScreenHead.tList[dwID]) do
 			if v.type == tab.type and v.dwID == tab.dwID then
 				return
@@ -430,7 +430,7 @@ function _ScreenHead.OnBuffUpdate()
 	if arg1 then return end
 	local szName = GetBuffName(arg4,arg8)
 	if ScreenHead.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
-		local type = arg3 and "Buff" or "Debuff"
+		local type = arg3 and "BUFF" or "DEBUFF"
 		_ScreenHead.RegisterHead(arg0, { type = type, dwID = arg4 })
 	end
 end
