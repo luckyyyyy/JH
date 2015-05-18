@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 11:48:03
+-- @Last Modified time: 2015-05-18 02:24:01
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -56,15 +56,7 @@ local CIRCLE_COLOR = {
 }
 
 local function Confuse(tCode)
-	if type(tCode) == "table" then
-		return tCode
-	else
-		if type(tCode) == "string" then
-			return JsonDecode(tCode)
-		else
-			return tCode
-		end
-	end
+	return tCode
 end
 
 -- 获取数据路径
@@ -161,8 +153,7 @@ function C.SaveFile(szFullPath, bMsg)
 			end
 		end
 	end
-	local code = Confuse(data)
-	SaveLUAData(szFullPath, code)
+	SaveLUAData(szFullPath, data)
 	if bMsg then
 		JH.Alert(_L("Save success.\n Path:%s", szFullPath))
 	end
@@ -173,9 +164,8 @@ function C.LoadFile(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
 	if code then
-		local data = Confuse(code)
-		if type(data) == "table" then
-			C.LoadCircleData(data, bMsg)
+		if type(code) == "table" then
+			C.LoadCircleData(code, bMsg)
 		else
 			if bMsg then
 				JH.Sysmsg2(_L["content errors."])
