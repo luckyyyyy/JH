@@ -1,12 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 17:25:11
+-- @Last Modified time: 2015-05-18 21:46:22
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
 -- ini path
-local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST_UI.ini"
+local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/ST_UI.ini"
 -- cache
 local type, tonumber, ipairs, pairs, assert = type, tonumber, ipairs, pairs, assert
 local tinsert, tsort = table.insert, table.sort
@@ -194,6 +194,9 @@ end
 
 -- 构造函数
 function ST:ctor(nType, szKey, tArgs)
+	if not ST_CACHE[nType] then
+		return
+	end
 	local ui = ST_CACHE[nType][szKey]
 	local nTime = GetTime()
 	local key = nType .. "_" .. szKey
