@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 16:44:31
+-- @Last Modified time: 2015-05-18 17:19:32
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -741,7 +741,7 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 			type = "eventlink", name = "",
 			linkinfo = JH.JsonEncode({
 				via = "JH",
-				uuid = tostring(szUUID),
+				uuid = szUUID and tostring(szUUID),
 			}),
 		})
 	end
