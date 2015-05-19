@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 02:28:59
+-- @Last Modified time: 2015-05-19 18:43:44
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -640,6 +640,7 @@ function JH.SetGlobalValue(szVarPath, Val)
 		tab = tab[v]
 	end
 end
+
 -- 初始化一个模块
 function JH.RegisterInit(key, ...)
 	local events = { ... }
@@ -801,6 +802,27 @@ function JH.BgHear(szKey,bIgnore)
 
 		return tData
 	end
+end
+
+function JH.CanUseSkill(dwSkillID, dwLevel)
+	local me, box = GetClientPlayer(), _JH.hBox
+	if me and box then
+		if not dwLevel then
+			if dwSkillID ~= 9007 then
+				dwLevel = me.GetSkillLevel(dwSkillID)
+			else
+				dwLevel = 1
+			end
+		end
+		if dwLevel > 0 then
+			box:EnableObject(false)
+			box:SetObjectCoolDown(1)
+			box:SetObject(UI_OBJECT_SKILL, dwSkillID, dwLevel)
+			UpdataSkillCDProgress(me, box)
+			return box:IsObjectEnable() and not box:IsObjectCoolDown()
+		end
+	end
+	return false
 end
 
 function JH.IsParty(dwID)
@@ -1557,8 +1579,9 @@ function _GUI.Base:Toggle(bShow)
 			self.self:BringToTop()
 		end
 	end
-	return self.self
+	return self
 end
+
 function _GUI.Base:IsVisible()
 	return self.self:IsVisible()
 end
@@ -2633,13 +2656,24 @@ function _GUI.Item:File(szFile, nFrame)
 	elseif self.type == "BoxButton" then
 		img = self.img
 	end
-	if img then
+	if self.type == "Box" then
+		self.self:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 		if type(szFile) == "number" then
-			img:FromIconID(szFile)
-		elseif not nFrame then
-			img:FromTextureFile(szFile)
+			self.self:ClearExtentImage()
+			self.self:SetObjectIcon(szFile)
 		else
-			img:FromUITex(szFile, nFrame)
+			self.self:ClearObjectIcon()
+			self.self:SetExtentImage(szFile, nFrame)
+		end
+	else
+		if img then
+			if type(szFile) == "number" then
+				img:FromIconID(szFile)
+			elseif not nFrame then
+				img:FromTextureFile(szFile)
+			else
+				img:FromUITex(szFile, nFrame)
+			end
 		end
 	end
 	return self
@@ -3202,9 +3236,10 @@ function GUI.OpenColorTablePanel(fnAction)
 		end
 	end)
 end
+local ICON_PAGE = 0
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
-	local nMaxIocn, nPage, boxs, txts = 6891, 0, {}, {}
+	local nMaxIocn, boxs, txts = 6891, {}, {}
 	local ui = GUI.CreateFrame2("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], close = true }):RegisterClose()
 	local function GetPage(nPage)
 		local nStart = nPage * 144 - 1
@@ -3243,24 +3278,23 @@ function GUI.OpenIconPanel(fnAction)
 			ui:Remove()
 		end
 	end)
-	local btn1 = ui:Append("WndButton2", { txt = _L["Up"], x = 350, y = 580 }):Enable(false)
-	local nX, _ = btn1:Pos_()
-	local btn2 = ui:Append("WndButton2", { txt = _L["Next"], x = 470, y = 580 })
+	local btn1 = ui:Append("WndButton2", { txt = _L["Up"], x = 350, y = 580 }):Enable(ICON_PAGE ~= 0)
+	local btn2 = ui:Append("WndButton2", { txt = _L["Next"], x = 470, y = 580 }):Enable((ICON_PAGE + 1) * 144 < nMaxIocn)
 	btn1:Click(function()
-		if nPage == 1 then
+		if ICON_PAGE == 1 then
 			this:Enable(false)
 		end
-		nPage = nPage - 1
+		ICON_PAGE = ICON_PAGE - 1
 		btn2:Enable(true)
-		GetPage(nPage)
+		GetPage(ICON_PAGE)
 	end)
 	btn2:Click(function()
-		nPage = nPage + 1
-		if (nPage + 1) * 144 > nMaxIocn then
+		ICON_PAGE = ICON_PAGE + 1
+		if (ICON_PAGE + 1) * 144 > nMaxIocn then
 			this:Enable(false)
 		end
 		btn1:Enable(true)
-		GetPage(nPage)
+		GetPage(ICON_PAGE)
 	end)
-	GetPage(nPage)
+	GetPage(ICON_PAGE)
 end
