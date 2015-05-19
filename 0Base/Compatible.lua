@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 01:24:30
+-- @Last Modified time: 2015-05-19 18:49:42
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -12,8 +12,8 @@ DBM_TYPE     = {
 	NPC_TALK     = 5,
 	NPC_LIFE     = 6,
 	NPC_FIGHT    = 7,
-	SKILL_BEGIN  = 8, -- ×÷·Ï
-	SKILL_END    = 9, -- ×÷·Ï
+	SKILL_BEGIN  = 8,
+	SKILL_END    = 9,
 	SYS_TALK     = 10,
 	NPC_ALLLEAVE = 11,
 	NPC_DEATH    = 12,
