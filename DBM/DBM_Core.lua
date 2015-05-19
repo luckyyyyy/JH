@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 18:26:04
+-- @Last Modified time: 2015-05-20 00:10:25
 local _L = JH.LoadLangPack
 local DEBUG = true
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
@@ -46,7 +46,7 @@ local D = {
 		},
 		NPC     = {
 			[-1] = {
-				{ dwID = 24537, nFrame = 52 },
+				{ dwID = 11051, nFrame = 52 },
 			}
 		},
 		TALK    = {},
@@ -65,22 +65,6 @@ local D = {
 		TALK    = {},
 	}
 }
-
-do
-	for k, v in pairs(D.FILE)  do
-		setmetatable(D.FILE[k], { __index = function(me, index)
-			if index == "ALL" then
-				local t = {}
-				for k, v in pairs(D.FILE[k]) do
-					for _, vv in ipairs(v) do
-						t[#t +1] = vv
-					end
-				end
-				return t
-			end
-		end })
-	end
-end
 
 DBM = {
 	bEnable             = true,
@@ -108,17 +92,20 @@ function DBM.OnFrameCreate()
 	this:RegisterEvent("JH_NPC_FIGHT")
 	this:RegisterEvent("JH_NPC_ALLLEAVE_SCENE")
 	this:RegisterEvent("ON_WARNING_MESSAGE")
+	this:RegisterEvent("JH_NPC_LIFE_CHANGE")
 end
 
 function DBM.OnFrameBreathe()
-	D.CheckNpcFightState()
+	D.CheckNpcState()
 end
 
 function DBM.OnEvent(szEvent)
 	if szEvent == "BUFF_UPDATE" then
 		D.OnBuff(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 	elseif szEvent == "SYS_MSG" then
-		if arg0 == "UI_OME_SKILL_CAST_LOG" then
+		if arg0 == "UI_OME_DEATH_NOTIFY" then
+			D.OnDeath(arg1, arg3)
+		elseif arg0 == "UI_OME_SKILL_CAST_LOG" then
 			D.OnSkillCast(arg1, arg2, arg3, arg0)
 		elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG"
 		or arg0 == "UI_OME_SKILL_SHIELD_LOG" or arg0 == "UI_OME_SKILL_MISS_LOG"
@@ -144,6 +131,8 @@ function DBM.OnEvent(szEvent)
 		D.OnNpcAllLeave(arg0)
 	elseif szEvent == "JH_NPC_FIGHT" then
 		D.OnNpcFight(arg0, arg1)
+	elseif szEvent == "JH_NPC_LIFE_CHANGE" then
+		D.OnNpcLife(arg0, arg1)
 	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" then
 		D.CreateData()
 	end
@@ -190,6 +179,19 @@ function D.CreateData()
 		if D.FILE[szType][dwMapID] then -- 本地图数据
 			CreateCache(szType, D.FILE[szType][dwMapID])
 		end
+	end
+	for k, v in pairs(D.FILE)  do
+		setmetatable(D.FILE[k], { __index = function(me, index)
+			if index == _L["All Data"] then
+				local t = {}
+				for k, v in pairs(D.FILE[k]) do
+					for _, vv in ipairs(v) do
+						t[#t +1] = vv
+					end
+				end
+				return t
+			end
+		end })
 	end
 	D.Log("MAPID: " .. dwMapID ..  " Create data Success:" .. GetTime() - nTime  .. "ms")
 end
@@ -457,7 +459,7 @@ function D.OnNpcEvent(npc, bEnter)
 	local nTime = GetTime()
 	local cfg, nClass
 	if bEnter then
-		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { bFightState = false, tList = {}, nTime = -1 }
+		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { bFightState = false, tList = {}, nTime = -1, nLife = math.floor(npc.nCurrentLife / npc.nMaxLife * 100) }
 		table.insert(CACHE.NPC_LIST[npc.dwTemplateID].tList, npc.dwID)
 		local tWeak, tTemp = CACHE.TEMP.NPC, D.TEMP.NPC
 		if not tWeak[npc.dwTemplateID] then
@@ -554,14 +556,27 @@ function D.OnNpcEvent(npc, bEnter)
 	end
 end
 
--- NPC 进出战斗事件
+-- NPC死亡事件 触发倒计时
+function D.OnDeath(dwCharacterID, szKiller)
+	if IsPlayer(dwCharacterID) then
+		return
+	end
+	local npc = GetNpc(dwCharacterID)
+	if npc then
+		local data = D.GetData("NPC", npc.dwTemplateID)
+		if data then
+			D.FireCountdownEvent(data, DBM_TYPE.NPC_DEATH)
+		end
+	end
+end
+
+-- NPC进出战斗事件 触发倒计时
 function D.OnNpcFight(dwTemplateID, bFight)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data then
 		if bFight then
 			D.FireCountdownEvent(data, DBM_TYPE.NPC_FIGHT)
 		else
-
 			if data.tCountdown then
 				for k, v in ipairs(data.tCountdown) do
 					if v.nClass == DBM_TYPE.NPC_FIGHT then
@@ -573,6 +588,31 @@ function D.OnNpcFight(dwTemplateID, bFight)
 	end
 end
 
+-- NPC 血量倒计时处理 这个很可能以后会是 最大的性能消耗 格外留意
+function D.OnNpcLife(dwTemplateID, nLife)
+	local data = D.GetData("NPC", dwTemplateID)
+	if data and data.tCountdown then
+		for k, v in ipairs(data.tCountdown) do
+			if v.nClass == DBM_TYPE.NPC_LIFE then
+				local t = JH.Split(tTime, ";")
+				for kk, vv in ipairs(t) do
+					local time = JH.Split(v, ",")
+					if time[1] and time[2] and time[3] and tonumber(JH.Trim(time[1])) and tonumber(JH.Trim(time[2])) and JH.Trim(time[3]) ~= "" then
+						if tonumber(JH.Trim(time[1])) == nLife then -- hit
+							FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, k .. "." .. dwTemplateID .. "." .. kk, {
+								nTime    = tonumber(JH.Trim(time[2])),
+								szName   = time[3],
+								nIcon    = v.nIcon,
+								bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
+							})
+							break
+						end
+					end
+				end
+			end
+		end
+	end
+end
 -- NPC 全部消失的倒计时处理
 function D.OnNpcAllLeave(dwTemplateID)
 	local data = D.GetData("NPC", dwTemplateID)
@@ -581,33 +621,50 @@ function D.OnNpcAllLeave(dwTemplateID)
 	end
 end
 
-function D.CheckNpcFightState()
+function D.CheckNpcState()
 	for k, v in pairs(CACHE.NPC_LIST) do
 		local data = D.GetData("NPC", k)
 		if data then
-			local bChangeFSFlag
+			local bFightFlag
+			local fNpcPer = 1
 			for kk, vv in ipairs(v.tList) do
 				local npc = GetNpc(vv)
 				if npc then
+					local fPer = npc.nCurrentLife / npc.nMaxLife
+					if fPer < fNpcPer then -- 取血量最少的NPC
+						fNpcPer = fPer
+					end
+					-- 战斗标记检查
 					if npc.bFightState then
 						if npc.bFightState ~= v.bFightState then
-							bChangeFSFlag = true
+							bFightFlag = true
 							v.bFightState = true
 							break
 						end
 					else
 						if kk == #v.tList and npc.bFightState ~= v.bFightState then
-							bChangeFSFlag = false
+							bFightFlag = false
 							v.bFightState = false
 						end
 					end
 				end
 			end
-			if bChangeFSFlag then
+			fNpcPer = math.floor(fNpcPer * 100)
+			if v.nLife > fNpcPer then
+				local nCount, step = v.nLife - fNpcPer, 1
+				if nCount > 50 then -- 如果boss血量一下被干掉50%以上 那直接步进2 【鄙视秒BOSS的 小心扯着蛋
+					step = 2
+				end
+				for i = 1, nCount, step do
+					FireEvent("JH_NPC_LIFE_CHANGE", k, v.nLife - i)
+				end
+			end
+			v.nLife = fNpcPer
+			if bFightFlag then
 				local nTime = GetTime()
 				v.nSec = GetTime()
 				FireEvent("JH_NPC_FIGHT", k, true, nTime)
-			elseif bChangeFSFlag == false then
+			elseif bFightFlag == false then
 				local nTime = GetTime() - (v.nSec or GetTime())
 				v.nSec = nil
 				FireEvent("JH_NPC_FIGHT", k, false, nTime)
@@ -674,6 +731,9 @@ function D.GetTable(szType, bTemp)
 		end
 		return D.TEMP[szType]
 	else
+		if szType == "CIRCLE" then -- 如果请求圈圈
+			return Circle.GetData()
+		end
 		return D.FILE[szType]
 	end
 end
