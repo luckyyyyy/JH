@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 17:19:32
+-- @Last Modified time: 2015-05-19 20:55:58
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -736,7 +736,10 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		tSay = _JH.ParseFaceIcon(tSay)
 	end
 	-- add addon msg header
-	if not tSay[1] or tSay[1].name ~= "" or tSay[1].type ~= "eventlink" then
+ 	if not tSay[1] or (
+		not (tSay[1].type == "text" and (tSay[1].text == _L["Addon comm."] or tSay[1].text == "BG_CHANNEL_MSG")) -- bgmsg
+ 		and not (tSay[1].name == "" and tSay[1].type == "eventlink") -- header already added
+ 	) then
 		tinsert(tSay, 1, {
 			type = "eventlink", name = "",
 			linkinfo = JH.JsonEncode({
