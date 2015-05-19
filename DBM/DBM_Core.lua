@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 02:42:43
+-- @Last Modified time: 2015-05-19 18:26:04
 local _L = JH.LoadLangPack
 local DEBUG = true
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
@@ -30,25 +30,23 @@ local D = {
 	FILE = { -- 文件原始数据
 		BUFF    = {
 			[-1] = {
-				-- { dwID = 103, nLevel = 1, [DBM_TYPE.BUFF_GET] = { bCenterAlarm = true }, [DBM_TYPE.BUFF_LOSE] = { bCenterAlarm = true } },
+				{ dwID = 103, nLevel = 1, },
 			}
 		},
-		DEBUFF  = {},
+		DEBUFF  = {
+			[-1] = {
+				{ dwID = 1674, nLevel = 1, },
+			}
+		},
 		CASTING = {
 			[-1] = {
-				{ dwID = 17, nLevel = 1, [DBM_TYPE.SKILL_END] = { bCenterAlarm = true } },
+				{ dwID = 17, nLevel = 1, },
 				{ dwID = 4097, nLevel = 1, },
 			}
 		},
 		NPC     = {
 			[-1] = {
-				{ dwID = 17189, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
-				{ dwID = 4980, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
-				{ dwID = 4981, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
-				{ dwID = 4976, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
-				{ dwID = 9891, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
-				{ dwID = 14310, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
-				{ dwID = 14311, nFrame = 1, [DBM_TYPE.NPC_ENTER] = { bCenterAlarm = true }, [DBM_TYPE.NPC_LEAVE] = { bCenterAlarm = true } },
+				{ dwID = 24537, nFrame = 52 },
 			}
 		},
 		TALK    = {},
@@ -85,16 +83,17 @@ do
 end
 
 DBM = {
-	bEnable = true,
-	bPushbScreenHead = true,
-	bPushCenterAlarm = true,
-	bPushbBigFontAlarm = true,
-	bBigFontAlarm = true,
-	bPushTeamPanel = true, -- 面板buff监控
-	bPushFullScreen = true, -- 全屏泛光
-	bPushTeamChannel = true, -- 团队报警
+	bEnable             = true,
+	bPushbScreenHead    = true,
+	bPushCenterAlarm    = true,
+	bPushbBigFontAlarm  = true,
+	bBigFontAlarm       = true,
+	bPushTeamPanel      = true, -- 面板buff监控
+	bPushFullScreen     = true, -- 全屏泛光
+	bPushTeamChannel    = true, -- 团队报警
 	bPushWhisperChannel = true, -- 密聊报警
-	bMonSkillTarget = false,
+	bPushBuffList       = true,
+	bMonSkillTarget     = true,
 }
 
 function DBM.OnFrameCreate()
@@ -141,8 +140,10 @@ function DBM.OnEvent(szEvent)
 		if npc then
 			D.OnNpcEvent(npc, false)
 		end
+	elseif szEvent == "JH_NPC_ALLLEAVE_SCENE" then
+		D.OnNpcAllLeave(arg0)
 	elseif szEvent == "JH_NPC_FIGHT" then
-
+		D.OnNpcFight(arg0, arg1)
 	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" then
 		D.CreateData()
 	end
@@ -272,80 +273,82 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 		end
 	end
 	if data then
-		if bDelete then
-			cfg, nClass = data[DBM_TYPE.BUFF_LOSE], DBM_TYPE.BUFF_LOSE
-		else
-			cfg, nClass = data[DBM_TYPE.BUFF_GET], DBM_TYPE.BUFF_GET
-		end
-	end
-	if cfg then
 		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
 			return
 		end
 		if data.nCount and nCount < data.nCount then -- 层数检查
 			return
 		end
-		local szName, nIcon = JH.GetBuffName(dwBuffID, nBuffLevel)
-		local KObject = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
-		if not KObject then
-			return D.Log("ERROR " .. szType .. " object:" .. dwCaster .. " does not exist!")
-		end
-		szName = data.szName or szName
-		nIcon  = data.nIcon or nIcon
-		local szSrcName = JH.GetTemplateName(KObject)
-		local xml = {}
-		table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-		if UI_GetClientPlayerID() == dwMemberID then
-			table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+		if bDelete then
+			cfg, nClass = data[DBM_TYPE.BUFF_LOSE], DBM_TYPE.BUFF_LOSE
 		else
-			table.insert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
+			cfg, nClass = data[DBM_TYPE.BUFF_GET], DBM_TYPE.BUFF_GET
 		end
-		table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-		if nClass == DBM_TYPE.BUFF_GET then
-			table.insert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
-			table.insert(xml, GetFormatText(szName .. " x" .. nCount, 44, 255, 255, 0))
-			if data.szNote then
-				table.insert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
-			end
-		else
-			table.insert(xml, GetFormatText(_L["Lose Buff"], 44, 255, 255, 255))
-			table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
-		end
-		local txt = GetPureText(table.concat(xml))
-		-- 通用的报警事件处理
-		D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
 		D.FireCountdownEvent(data, nClass)
-		-- 获得处理
-		if nClass == DBM_TYPE.BUFF_GET then
-			-- 重要Buff列表
-			if IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or UI_GetClientPlayerID() == dwCaster) then
-				FireEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
+		if cfg then
+			local szName, nIcon = JH.GetBuffName(dwBuffID, nBuffLevel)
+			local KObject = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
+			if not KObject then
+				return D.Log("ERROR " .. szType .. " object:" .. dwCaster .. " does not exist!")
 			end
-			-- 头顶报警
-			if DBM.bPushbScreenHead and cfg.bScreenHead then
-				FireEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, szName = data.szName or szName, col = data.col })
+			szName = data.szName or szName
+			nIcon  = data.nIcon or nIcon
+			local szSrcName = JH.GetTemplateName(KObject)
+			local xml = {}
+			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			if UI_GetClientPlayerID() == dwMemberID then
+				table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+			else
+				table.insert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
 			end
-			if UI_GetClientPlayerID() == dwCaster then
-				-- TODO push BUFF状态栏
-				-- 全屏泛光
-				if DBM.bPushFullScreen and cfg.bFullScreen then
-					FireEvent("JH_FS_CREATE", data.dwID .. "_"  .. data.nLevel, {
-						nTime = 3,
-						col = data.col,
-						tBindBuff = { data.dwID, data.nLevel }
-					})
+			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			if nClass == DBM_TYPE.BUFF_GET then
+				table.insert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(szName .. " x" .. nCount, 44, 255, 255, 0))
+				if data.szNote then
+					table.insert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
+				end
+			else
+				table.insert(xml, GetFormatText(_L["Lose Buff"], 44, 255, 255, 255))
+				table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
+			end
+			local txt = GetPureText(table.concat(xml))
+			-- 通用的报警事件处理
+			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
+			-- 获得处理
+			if nClass == DBM_TYPE.BUFF_GET then
+				-- 重要Buff列表
+				if IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or UI_GetClientPlayerID() == dwCaster) then
+					FireEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
+				end
+				-- 头顶报警
+				if DBM.bPushbScreenHead and cfg.bScreenHead then
+					FireEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, szName = data.szName or szName, col = data.col })
+				end
+				if UI_GetClientPlayerID() == dwCaster then
+					if DBM.bPushBuffList and cfg.bBuffList then
+						-- TODO push BUFF状态栏
+					end
+					-- 全屏泛光
+					if DBM.bPushFullScreen and cfg.bFullScreen then
+						FireEvent("JH_FS_CREATE", data.dwID .. "_"  .. data.nLevel, {
+							nTime = 3,
+							col = data.col,
+							tBindBuff = { data.dwID, data.nLevel }
+						})
+					end
+				end
+				-- 添加到团队面板
+				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == UI_GetClientPlayerID()) then
+					FireEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col)
 				end
 			end
-			-- 添加到团队面板
-			if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == UI_GetClientPlayerID()) then
-				FireEvent("JH_RAID_REC_BUFF", dwCaster, dwBuffID, nLevel, data.col)
+			if DBM.bPushTeamChannel and cfg.bTeamChannel then
+				JH.Talk(txt)
 			end
-		end
-		if DBM.bPushTeamChannel and cfg.bTeamChannel then
-			JH.Talk(txt)
-		end
-		if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-			JH.Talk(szSrcName, txt:gsub(szSrcName, g_tStrings.STR_NAME_YOU))
+			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
+				JH.Talk(szSrcName, txt:gsub(szSrcName, g_tStrings.STR_NAME_YOU))
+			end
 		end
 	end
 end
@@ -454,7 +457,7 @@ function D.OnNpcEvent(npc, bEnter)
 	local nTime = GetTime()
 	local cfg, nClass
 	if bEnter then
-		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { bFightState = false, tList = {}, nTime = nTime }
+		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { bFightState = false, tList = {}, nTime = -1 }
 		table.insert(CACHE.NPC_LIST[npc.dwTemplateID].tList, npc.dwID)
 		local tWeak, tTemp = CACHE.TEMP.NPC, D.TEMP.NPC
 		if not tWeak[npc.dwTemplateID] then
@@ -497,23 +500,30 @@ function D.OnNpcEvent(npc, bEnter)
 		else
 			cfg, nClass = data[DBM_TYPE.NPC_LEAVE], DBM_TYPE.NPC_LEAVE
 		end
-		D.FireCountdownEvent(data, nClass)
-		if cfg then
-			if nClass == DBM_TYPE.NPC_LEAVE then
-				if data.bAllLeave and CACHE.NPC_LIST[npc.dwTemplateID] then
-					return
-				end
-			else
+		if nClass == DBM_TYPE.NPC_LEAVE then
+			if data.bAllLeave and CACHE.NPC_LIST[npc.dwTemplateID] then
+				return
+			end
+		else
+			-- 场地上的NPC数量没达到预期数量
+			if data.nCount and data.nCount > #CACHE.NPC_LIST[npc.dwTemplateID].tList then
+				return
+			end
+			-- 这些需要全部mark 所以单独列出来
+			if cfg then
 				if cfg.bScreenHead then
 					FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col })
 				end
 				-- TODO NPC需要标记
-				if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5秒内进入相同的NPC直接忽略
-					return
-				else
-					CACHE.NPC_LIST[npc.dwTemplateID].nTime = nTime
-				end
 			end
+			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5秒内进入相同的NPC直接忽略
+				return D.Log("IGNORE NPC ENTER SCENE ID:" .. npc.dwTemplateID .. " TIME:" .. nTime .. " TIME2:" .. CACHE.NPC_LIST[npc.dwTemplateID].nTime)
+			else
+				CACHE.NPC_LIST[npc.dwTemplateID].nTime = nTime
+			end
+		end
+		D.FireCountdownEvent(data, nClass)
+		if cfg then
 			local szName = JH.GetTemplateName(npc)
 			local xml = {}
 			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
@@ -543,14 +553,29 @@ function D.OnNpcEvent(npc, bEnter)
 		end
 	end
 end
+
 -- NPC 进出战斗事件
 function D.OnNpcFight(dwTemplateID, bFight)
-	-- TODO ...
+	local data = D.GetData("NPC", dwTemplateID)
+	if data then
+		if bFight then
+			D.FireCountdownEvent(data, DBM_TYPE.NPC_FIGHT)
+		else
+
+			if data.tCountdown then
+				for k, v in ipairs(data.tCountdown) do
+					if v.nClass == DBM_TYPE.NPC_FIGHT then
+						FireEvent("JH_ST_DEL", v.nClass, k .. "."  .. data.dwID .. "." .. (data.nLevel or 0), true) -- try kill
+					end
+				end
+			end
+		end
+	end
 end
 
 -- NPC 全部消失的倒计时处理
 function D.OnNpcAllLeave(dwTemplateID)
-	local data = D.GetData("NPC", npc.dwTemplateID)
+	local data = D.GetData("NPC", dwTemplateID)
 	if data then
 		D.FireCountdownEvent(data, DBM_TYPE.NPC_ALLLEAVE)
 	end
@@ -720,10 +745,10 @@ end
 
 -- 公开接口
 local ui = {
-	GetTable = D.GetTable,
-	GetDungeon = D.GetDungeon,
-	GetData = GetData,
-	GetFileData = GetFileData,
+	GetTable    = D.GetTable,
+	GetDungeon  = D.GetDungeon,
+	GetData     = D.GetData,
+	GetFileData = D.GetFileData,
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
