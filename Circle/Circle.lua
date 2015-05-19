@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 02:24:01
+-- @Last Modified time: 2015-05-19 22:48:58
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -98,6 +98,7 @@ local C = {
 		[_L["All Map"]] = { id = -1, bDungeon = true },
 	},
 }
+
 -- 获取地图名
 local MAP_CACHE = {
 	[-1] = _L["All Map"],
@@ -359,6 +360,16 @@ function C.Release()
 		__index = function(me, mapid)
 			if tonumber(mapid) and C.tMt[mapid] then
 				return me[C.tMt[mapid]]
+			elseif mapid == _L["All Data"] then
+				local dat = {}
+				for k, v in pairs(me) do
+					if k ~= "mt" then
+						for kk, vv in ipairs(v) do
+							tinsert(dat, { key = vv.key, szNote = vv.szNote, id = k, index = kk, bEnable = vv.bEnable })
+						end
+					end
+				end
+				return dat
 			end
 		end
 	}
@@ -518,20 +529,22 @@ end
 
 -- 绘制设置UI表格
 function C.DrawTable()
-	if arg0 ~= "OPEN" and Station.Lookup("Normal/C_Data") then
+	if Station.Lookup("Normal/C_Data") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
+	end
+	if not C.hSelect then
+		return
+	end
+	if type(arg0) == "string" then
+		C.hSelect:Text(arg0)
+	elseif type(arg0) == "number" then
+		C.hSelect:Text(C.GetMapName(arg0))
 	end
 	if C.hTable and C.hTable:IsValid() then
 		local h, tab = C.hTable:Lookup("", "Handle_List"), {}
 		local mapid = C.dwSelMapID or C.GetMapID()
-		if mapid == _L["All Circle"] then
-			for k, v in pairs(C.tData) do
-				if k ~= "mt" then
-					for kk, vv in ipairs(v) do
-						tinsert(tab, { key = vv.key, szNote = vv.szNote, id = k, index = kk, bEnable = vv.bEnable })
-					end
-				end
-			end
+		if mapid == _L["All Data"] then
+			tab = C.tData[_L["All Data"]]
 		else
 			tab = C.tData[mapid] or tab
 		end
@@ -546,7 +559,7 @@ function C.DrawTable()
 				local text = item:Lookup("Text_I_Name")
 				text:SetText(v.szNote and string.format("%s (%s)", v.key, v.szNote) or v.key)
 				local r, g, b = 255, 255, 255
-				local vv = mapid == _L["All Circle"] and C.tData[v.id][v.index] or C.tData[mapid][k]
+				local vv = mapid == _L["All Data"] and C.tData[v.id][v.index] or C.tData[mapid][k]
 				if vv.tCircles then
 					r, g, b = unpack(vv.tCircles[1].col)
 				end
@@ -579,7 +592,7 @@ function C.DrawTable()
 					FireEvent("CIRCLE_DRAW_UI")
 				end
 				item.OnItemLButtonClick = function()
-					C.OpenDataPanel(C.tData[v.id or mapid][v.index or k], v.id or mapid, v.index or k)
+					C.OpenDataPanel(v.id or mapid, v.index or k)
 				end
 				item.OnItemRButtonClick = function()
 					local szNote = v.szNote or g_tStrings.STR_NONE
@@ -591,7 +604,7 @@ function C.DrawTable()
 							C.RemoveData(v.id or mapid, v.index or k, not IsAltKeyDown())
 						end }
 					}
-					if mapid ~= _L["All Circle"] then
+					if mapid ~= _L["All Data"] then
 						tinsert(menu, 4, { szOption = _L["Move up"], bDisable = k == 1, fnAction = function()
 							C.tData[mapid][k], C.tData[mapid][k - 1] = C.tData[mapid][k - 1], C.tData[mapid][k]
 							FireEvent("CIRCLE_CLEAR")
@@ -856,7 +869,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 					C.RemoveData(data.id, data.index, not IsCtrlKeyDown())
 				end,
 				fnAction = function()
-					C.OpenDataPanel(C.tData[data.id][data.index], data.id, data.index)
+					C.OpenDataPanel(data.id, data.index)
 				end
 			}}
 		else
@@ -918,14 +931,14 @@ function C.OpenAddPanel(szName, dwType, szMap)
 				tinsert(C.tData[map.id], data)
 				FireEvent("CIRCLE_CLEAR")
 				FireEvent("CIRCLE_DRAW_UI")
-				C.OpenDataPanel(C.tData[map.id][#C.tData[map.id]], map.id, #C.tData[map.id])
+				C.OpenDataPanel(map.id, #C.tData[map.id])
 				ui:Fetch("Btn_Close"):Click()
 			end
 			if C.tData[map.id] then
 				for k, v in ipairs(C.tData[map.id]) do
 					if v.key == key and v.dwType == dwType then
 						JH.Confirm(_L["Data already exists, whether editor?"], function()
-							C.OpenDataPanel(C.tData[map.id][k], map.id, k)
+							C.OpenDataPanel(map.id, k)
 							ui:Fetch("Btn_Close"):Click()
 						end)
 						return
@@ -987,7 +1000,11 @@ function C.OpenMtPanel()
 	end)
 end
 
-function C.OpenDataPanel(data, id, index)
+function C.OpenDataPanel(id, index)
+	if not C.tData[id] then
+		return
+	end
+	local data = C.tData[id][index]
 	local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 	if Station.Lookup("Normal/C_Data") then
 		a = GetFrameAnchor(Station.Lookup("Normal/C_Data"))
@@ -1004,13 +1021,13 @@ function C.OpenDataPanel(data, id, index)
 	ui:Append("WndRadioBox", { x = 100, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC })
 	:Click(function()
 		data.dwType = TARGET.NPC
-		C.OpenDataPanel(data, id, index)
+		C.OpenDataPanel(id, index)
 		FireEvent("CIRCLE_CLEAR")
 	end)
 	local nX, nY = ui:Append("WndRadioBox", { x = 180, y = nY + 5, txt = _L["DOODAD"], group = "type", checked = data.dwType == TARGET.DOODAD })
 	:Click(function()
 		data.dwType = TARGET.DOODAD
-		C.OpenDataPanel(data, id, index)
+		C.OpenDataPanel(id, index)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	for k, v in ipairs(data.tCircles or {}) do
@@ -1047,7 +1064,6 @@ function C.OpenDataPanel(data, id, index)
 				ui:Fetch("Color_" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				FireEvent("CIRCLE_RESERT_DRAW")
-				FireEvent("CIRCLE_DRAW_UI", "OPEN")
 			end, nil, nil, CIRCLE_COLOR)
 			end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = nX + 2, y = nY + 1, txt = _L["Draw Border"], checked = v.bBorder })
@@ -1062,9 +1078,8 @@ function C.OpenDataPanel(data, id, index)
 			else
 				table.remove(data.tCircles, k)
 			end
-			C.OpenDataPanel(data, id, index)
+			C.OpenDataPanel(id, index)
 			FireEvent("CIRCLE_CLEAR")
-			FireEvent("CIRCLE_DRAW_UI", "OPEN")
 		end):Pos_()
 	end
 	nX, nY = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
@@ -1135,14 +1150,115 @@ function C.OpenDataPanel(data, id, index)
 		data.tCircles = data.tCircles or {}
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
-		C.OpenDataPanel(data, id, index)
+		C.OpenDataPanel(id, index)
 		FireEvent("CIRCLE_CLEAR")
-		FireEvent("CIRCLE_DRAW_UI", "OPEN")
 	end)
 	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
 	:Click(function()
 		C.RemoveData(id, index, not IsAltKeyDown())
 	end)
+end
+
+function C.GetMemu()
+	local menu = {
+		{ szOption = _L["All Data"], fnAction = function()
+			C.dwSelMapID = _L["All Data"]
+			FireEvent("CIRCLE_DRAW_UI", _L["All Data"])
+		end },
+		{ bDevide = true },
+		{ szOption = _L["Dungeon"] },
+		{ szOption = _L["Other"] },
+	}
+	for i = -1, -2, -1 do
+		if C.tData[i] then
+			tinsert(menu, { szOption = C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i]),
+				rgb = { 255, 180, 0 },
+				szLayer = "ICON_RIGHT",
+				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+				nFrame = 86,
+				nMouseOverFrame = 87,
+				fnClickIcon = function()
+					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i])), function()
+						C.tData[i] = nil
+						FireEvent("CIRCLE_DRAW_UI")
+						FireEvent("CIRCLE_CLEAR")
+					end)
+				end,
+				fnAction = function()
+					C.dwSelMapID = i
+					FireEvent("CIRCLE_DRAW_UI", i)
+				end
+			})
+		end
+	end
+	for k, v in pairs(C.tData) do
+		if k ~= -1 and k ~= -2 and k ~= "mt" and C.GetMapType(k) then
+			local tm, txt = menu[4], string.format(" (%d)", #v)
+			if C.GetMapType(k).bDungeon then
+				tm = menu[3]
+				txt = string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k])
+			end
+			tinsert(tm, { szOption = C.GetMapName(k) .. txt,
+				rgb = { 255, 180, 0 },
+				szLayer = "ICON_RIGHT",
+				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+				nFrame = 86,
+				nMouseOverFrame = 87,
+				fnClickIcon = function()
+					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(k) .. txt), function()
+						C.tData[k] = nil
+						FireEvent("CIRCLE_DRAW_UI")
+						FireEvent("CIRCLE_CLEAR")
+					end)
+				end,
+				fnAction = function()
+					C.dwSelMapID = k
+					FireEvent("CIRCLE_DRAW_UI", k)
+				end
+			})
+			if k == C.GetMapID() then
+				tm[#tm].szIcon = "ui/Image/Minimap/Minimap.uitex"
+				tm[#tm].szLayer = "ICON_RIGHT"
+				tm[#tm].nFrame = 10
+				tm[#tm].nMouseOverFrame = nil
+			end
+		end
+	end
+	tinsert(menu, { bDevide = true })
+	tinsert(menu, { szOption = _L["Mapping"], rgb = { 255, 0, 0 } ,
+		{ szOption = _L["Add Mapping"], fnAction = C.OpenMtPanel },
+		{ bDevide = true },
+	})
+	if not IsTableEmpty(C.tData["mt"]) then
+		for k, v in pairs(C.tData["mt"]) do
+			local n, r, g, b = 0, 255, 0, 128
+			if C.tData[v] then
+				n = #C.tData[v]
+			end
+			if not C.tMt[k] then -- 数据非法
+				r, g, b = 128, 128, 128
+			end
+			tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]),
+				rgb = { r, g, b },
+				szLayer = "ICON_RIGHT",
+				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+				nFrame = 86,
+				nMouseOverFrame = 87,
+				fnClickIcon = function()
+					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, string.format("%s -> %s", C.GetMapName(k), C.GetMapName(v))), function()
+						C.tData["mt"][k] = nil
+						if IsEmpty(C.tData["mt"]) then C.tData["mt"] = nil end
+						FireEvent("CIRCLE_CLEAR")
+					end)
+				end,
+				fnAction = function()
+					C.dwSelMapID = v
+					FireEvent("CIRCLE_DRAW_UI", v)
+				end,
+			})
+		end
+	end
+	return menu
 end
 
 local PS = {}
@@ -1176,112 +1292,8 @@ function PS.OnPanelActive(frame)
 		Circle.bBorder = bChecked
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	if not C.dwSelMapID then C.dwSelMapID = _L["All Circle"] end
-	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C.GetMapName(C.dwSelMapID) }):Menu(function()
-		local menu = {
-			{ szOption = _L["All Circle"], fnAction = function()
-				C.dwSelMapID = _L["All Circle"]
-				FireEvent("CIRCLE_DRAW_UI")
-				ui:Fetch("Select"):Text(_L["All Circle"])
-			end },
-			{ bDevide = true },
-			{ szOption = _L["Dungeon"] },
-			{ szOption = _L["Other"] },
-		}
-		for i = -1, -2, -1 do
-			if C.tData[i] then
-				tinsert(menu, { szOption = C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i]),
-					rgb = { 255, 180, 0 },
-					szLayer = "ICON_RIGHT",
-					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
-					nFrame = 86,
-					nMouseOverFrame = 87,
-					fnClickIcon = function()
-						JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i])), function()
-							C.tData[i] = nil
-							FireEvent("CIRCLE_DRAW_UI")
-							FireEvent("CIRCLE_CLEAR")
-						end)
-					end,
-					fnAction = function()
-						C.dwSelMapID = i
-						FireEvent("CIRCLE_DRAW_UI")
-						ui:Fetch("Select"):Text(C.GetMapName(i))
-					end
-				})
-			end
-		end
-		for k, v in pairs(C.tData) do
-			if k ~= -1 and k ~= -2 and k ~= "mt" and C.GetMapType(k) then
-				local tm, txt = menu[4], string.format(" (%d)", #v)
-				if C.GetMapType(k).bDungeon then
-					tm = menu[3]
-					txt = string.format(" (%d/%d)", #v, CIRCLE_MAP_COUNT[k])
-				end
-				tinsert(tm, { szOption = C.GetMapName(k) .. txt,
-					rgb = { 255, 180, 0 },
-					szLayer = "ICON_RIGHT",
-					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
-					nFrame = 86,
-					nMouseOverFrame = 87,
-					fnClickIcon = function()
-						JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(k) .. txt), function()
-							C.tData[k] = nil
-							FireEvent("CIRCLE_DRAW_UI")
-							FireEvent("CIRCLE_CLEAR")
-						end)
-					end,
-					fnAction = function()
-						C.dwSelMapID = k
-						FireEvent("CIRCLE_DRAW_UI")
-						ui:Fetch("Select"):Text(C.GetMapName(k))
-					end
-				})
-				if k == C.GetMapID() then
-					tm[#tm].szIcon = "ui/Image/Minimap/Minimap.uitex"
-					tm[#tm].szLayer = "ICON_RIGHT"
-					tm[#tm].nFrame = 10
-					tm[#tm].nMouseOverFrame = nil
-				end
-			end
-		end
-		tinsert(menu, { bDevide = true })
-		tinsert(menu, { szOption = _L["Mapping"], rgb = { 255, 0, 0 } ,
-			{ szOption = _L["Add Mapping"], fnAction = C.OpenMtPanel },
-			{ bDevide = true },
-		})
-		if not IsTableEmpty(C.tData["mt"]) then
-			for k, v in pairs(C.tData["mt"]) do
-				local n, r, g, b = 0, 255, 0, 128
-				if C.tData[v] then
-					n = #C.tData[v]
-				end
-				if not C.tMt[k] then -- 数据非法
-					r, g, b = 128, 128, 128
-				end
-				tinsert(menu[#menu], { szOption = string.format("%s => %s (%d/%d)", C.GetMapName(k), C.GetMapName(v), n, CIRCLE_MAP_COUNT[v]),
-					rgb = { r, g, b },
-					szLayer = "ICON_RIGHT",
-					szIcon = "ui/Image/UICommon/Feedanimials.uitex",
-					nFrame = 86,
-					nMouseOverFrame = 87,
-					fnClickIcon = function()
-						JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, string.format("%s -> %s", C.GetMapName(k), C.GetMapName(v))), function()
-							C.tData["mt"][k] = nil
-							if IsEmpty(C.tData["mt"]) then C.tData["mt"] = nil end
-							FireEvent("CIRCLE_CLEAR")
-						end)
-					end,
-					fnAction = function()
-						C.dwSelMapID = v
-						FireEvent("CIRCLE_DRAW_UI")
-						ui:Fetch("Select"):Text(C.GetMapName(v))
-					end,
-				})
-			end
-		end
-		return menu
-	end):Pos_()
+	if not C.dwSelMapID then C.dwSelMapID = _L["All Data"] end
+	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C.GetMapName(C.dwSelMapID) }):Menu(C.GetMemu):Pos_()
 
 	ui:Append("WndEdit", "Search", { x = 330, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
 		if ui:Fetch("Search"):Text() == g_tStrings.SEARCH then
@@ -1299,6 +1311,7 @@ function PS.OnPanelActive(frame)
 	Wnd.CloseWindow(fx)
 	win:SetRelPos(0, 80)
 	C.hTable = win
+	C.hSelect = ui:Fetch("Select")
 	C.szSearch = nil
 	FireEvent("CIRCLE_DRAW_UI")
 end
@@ -1355,9 +1368,12 @@ end })
 
 -- public
 local ui = {
-	OpenAddPanel = C.OpenAddPanel,
-	LoadCircleData = C.LoadCircleData,
+	OpenAddPanel        = C.OpenAddPanel,
+	LoadCircleData      = C.LoadCircleData,
 	LoadCircleMergeData = C.LoadCircleMergeData,
-	GetData = C.GetData,
+	GetData             = C.GetData,
+	GetMemu             = C.GetMemu,
+	GetMapName          = C.GetMapName,
+	OpenDataPanel       = C.OpenDataPanel,
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )
