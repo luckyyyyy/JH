@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 18:43:44
+-- @Last Modified time: 2015-05-19 19:05:59
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -696,8 +696,8 @@ function JH.SwitchChat(nChannel)
 		SwitchChatChannel("/w " .. nChannel .. " ")
 	end
 end
-function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
--- function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
+
+function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	local szTarget, me = "", GetClientPlayer()
 	-- channel
 	if not nChannel then
@@ -737,16 +737,19 @@ function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 		tSay = _JH.ParseFaceIcon(tSay)
 	end
 	-- add addon msg header
-	-- if not tSay[1] or tSay[1].name ~= "" or tSay[1].type ~= "eventlink" then
-	-- 	tinsert(tSay, 1, {
-	-- 		type = "eventlink",
-	-- 		name = "",
-	-- 		linkinfo = JH.JsonEncode({
-	-- 			via = "JH",
-	-- 			uuid = szUUID and tostring(szUUID),
-	-- 		}),
-	-- 	})
-	-- end
+	if not tSay[1] or (
+		not (tSay[1].type == "text" and (tSay[1].text == _L["Addon comm."] or tSay[1].text == "BG_CHANNEL_MSG")) -- bgmsg
+ 		and not (tSay[1].name == "" and tSay[1].type == "eventlink") -- header already added
+ 	) then
+		tinsert(tSay, 1, {
+			type = "eventlink",
+			name = "",
+			linkinfo = JH.JsonEncode({
+				via = "JH",
+				uuid = szUUID and tostring(szUUID),
+			}),
+		})
+	end
 	me.Talk(nChannel, szTarget, tSay)
 	if bSaveDeny and not JH.CanTalk(nChannel) then
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
@@ -762,10 +765,8 @@ function JH.Talk(nChannel, szText, bNoEmotion, bSaveDeny, bNotLimit)
 		JH.SwitchChat(nChannel)
 	end
 end
-function JH.Talk2(nChannel, szText, bNoEmotion)
-	JH.Talk(nChannel, szText, bNoEmotion, true)
--- function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
-	-- JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
+function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
+	JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
 end
 
 function JH.BgTalk(nChannel, ...)
@@ -781,7 +782,7 @@ function JH.BgTalk(nChannel, ...)
 		end
 		tinsert(tSay, { type = "eventlink", name = "", linkinfo = tostring(v) })
 	end
-	JH.Talk(nChannel, tSay, true)
+	JH.Talk(nChannel, tSay, nil, true)
 end
 
 function JH.BgHear(szKey,bIgnore)
