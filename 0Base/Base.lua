@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 19:05:59
+-- @Last Modified time: 2015-05-20 01:51:57
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -1080,7 +1080,7 @@ function JH.GetBuffName(dwBuffID, dwLevel)
 			if dwLevel then
 				szName = szName .. ":" .. dwLevel
 			end
-			_JH.tBuffCache[xKey] = { szName, -1 }
+			_JH.tBuffCache[xKey] = { szName, 1436 }
 		end
 	end
 	return unpack(_JH.tBuffCache[xKey])
