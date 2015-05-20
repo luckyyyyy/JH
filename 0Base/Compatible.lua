@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 18:49:42
+-- @Last Modified time: 2015-05-20 07:23:47
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -18,6 +18,7 @@ DBM_TYPE     = {
 	NPC_ALLLEAVE = 11,
 	NPC_DEATH    = 12,
 	NPC_ALLDEATH = 13,
+	TALK_MONITOR = 14,
 }
 DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3 }
 

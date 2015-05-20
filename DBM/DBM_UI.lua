@@ -1,12 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 23:25:04
+-- @Last Modified time: 2015-05-20 08:21:06
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
 local DBMUI_ITEM_L      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_L.ini"
+local DBMUI_TALK_L      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_TALK_L.ini"
 local DBMUI_ITEM_R      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_R.ini"
+local DBMUI_TALK_R      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_TALK_R.ini"
 local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "CIRCLE", "TALK" }
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local CIRCLE_SELECT_MAP = _L["All Data"]
@@ -26,6 +28,11 @@ function DBM_UI.OnFrameCreate()
 	DBMUI.frame = this
 	DBMUI.pageset = this:Lookup("PageSet_Main")
 	DBMUI.pageset.szType = DBMUI_TYPE[1]
+	GUI(this):Title(_L["JX3 DBM Plug-in"]):RegisterClose(DBMUI.ClosePanel)
+	for k, v in ipairs(DBMUI_TYPE) do
+		local txt = DBMUI.pageset:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
+		txt:SetText(_L[v])
+	end
 	this:Lookup("Btn_Close").OnLButtonClick = DBMUI.ClosePanel
 	DBMUI.UpdateAnchor(this)
 	local ui = GUI(this)
@@ -34,6 +41,7 @@ function DBM_UI.OnFrameCreate()
 	local nPage = DBMUI.pageset:GetActivePageIndex()
 	FireEvent("DBMUI_TEMP_RELOAD")
 	FireEvent("DBMUI_DATA_RELOAD")
+	ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
 end
 
 function DBM_UI.OnEvent(szEvent)
@@ -61,7 +69,7 @@ function DBM_UI.OnEvent(szEvent)
 end
 
 function DBM_UI.OnFrameDragEnd()
-	this:CorrectPos()
+	-- this:CorrectPos() -- 允许拽出屏幕外
 	DBMUI.tAnchor = GetFrameAnchor(this)
 end
 
@@ -115,6 +123,29 @@ function DBMUI.GetClassMenu()
 	end
 	-- TODO： 元表，并且要根据分类来获取菜单
 	return menu
+end
+
+-- 更新监控数据
+function DBMUI.UpdateLList(szEvent, szType, data)
+	szType = szType or DBMUI.pageset.szType
+	if szType ~= DBMUI.pageset.szType then
+		return
+	end
+	if szEvent == "DBMUI_DATA_UPDATE" then
+		DBMUI.DrawTableL(szType, data, true)
+	elseif szEvent == "DBMUI_DATA_RELOAD" then
+		local tab = DBM_API.GetTable(szType)
+		if tab then
+			local dat = tab[DBMUI_SELECT_MAP] or {}
+			DBMUI.DrawTableL(szType, dat)
+		end
+	elseif szEvent == "CIRCLE_DRAW_UI" then
+		local tab = DBM_API.GetTable(szType)
+		if tab then
+			local dat = tab[CIRCLE_SELECT_MAP] or {}
+			DBMUI.DrawTableL(szType, dat)
+		end
+	end
 end
 
 function DBMUI.GetBoxInfo(data, szType)
@@ -221,25 +252,25 @@ function DBMUI.SetCircleItemAction(h, dat)
 		end
 	end
 end
--- 更新监控数据
-function DBMUI.UpdateLList(szEvent, szType, data)
-	szType = szType or DBMUI.pageset.szType
-	if szType ~= DBMUI.pageset.szType then
-		return
+
+function DBMUI.SetTalkItemAction(h, t, i)
+	h:Lookup("Text_Name"):SetText(t.szTarget or _L["Warning Box"])
+	if not t.szTarget then
+		h:Lookup("Text_Name"):SetFontColor(255, 255, 0)
 	end
-	if szEvent == "DBMUI_DATA_UPDATE" then
-		DBMUI.DrawTableL(szType, data, true)
-	elseif szEvent == "DBMUI_DATA_RELOAD" then
-		local tab = DBM_API.GetTable(szType)
-		if tab then
-			local dat = tab[CIRCLE_SELECT_MAP] or {}
-			DBMUI.DrawTableL(szType, dat)
+	h:Lookup("Text_Content"):SetText(t.szContent)
+	h.OnItemMouseEnter = function()
+		if this:IsValid() then
+			this:Lookup("Image_Light"):Show()
+			local x, y = this:GetAbsPos()
+			local w, h = this:GetSize()
+			OutputTip(GetFormatText(t.szContent, 41, 255, 255, 255), 300, { x, y, w, h })
 		end
-	elseif szEvent == "CIRCLE_DRAW_UI" then
-		local tab = DBM_API.GetTable(szType)
-		if tab then
-			local dat = tab[CIRCLE_SELECT_MAP] or {}
-			DBMUI.DrawTableL(szType, dat)
+	end
+	h.OnItemMouseLeave = function()
+		if this:IsValid() then
+			this:Lookup("Image_Light"):Hide()
+			HideTip()
 		end
 	end
 end
@@ -267,7 +298,9 @@ function DBMUI.SetLCircleItemAction(h, t, i)
 		Circle.OpenDataPanel(t.id or CIRCLE_SELECT_MAP, t.index or i)
 	end
 end
-
+function DBMUI.SetLTalkItemAction(h, t, i)
+	-- body
+end
 function DBMUI.DrawTableL(szType, data, bInsert)
 	local page = DBMUI.pageset:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_L", "Handle_" .. szType .. "_List_L")
@@ -284,19 +317,23 @@ function DBMUI.DrawTableL(szType, data, bInsert)
 		elseif szType == "CIRCLE" then
 			DBMUI.SetCircleItemAction(h, t)
 			DBMUI.SetLCircleItemAction(h, t, i)
+		elseif szType == "TALK" then
+			DBMUI.SetTalkItemAction(h, t, i)
+			DBMUI.SetLTalkItemAction(h, t, i)
 		end
 	end
+	local ini = szType == "TALK" and DBMUI_TALK_L or DBMUI_ITEM_L
 	if not bInsert then
 		handle:Clear()
 		if #data > 0 then
 			for i = #data, 1, -1 do
 				local dat = data[i]
-				local h = handle:AppendItemFromIni(DBMUI_ITEM_L, "Handle_L")
+				local h = handle:AppendItemFromIni(ini, "Handle_L")
 				SetDataAction(h, dat, i)
 			end
 		end
 	else
-		handle:InsertItemFromIni(0, false, DBMUI_ITEM_R, "Handle_R")
+		handle:InsertItemFromIni(0, false, ini, "Handle_L")
 		SetDataAction(handle:Lookup(0), data)
 	end
 	handle:FormatAllItemPos()
@@ -321,110 +358,115 @@ end
 function DBMUI.DrawTableR(szType, data, bInsert)
 	local page = DBMUI.pageset:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_R", "Handle_" .. szType .. "_List_R")
-	local function SetDataAction(h, t)
+	local function SetDataAction(h, t, i)
 		if szType == "BUFF" or szType == "DEBUFF" then
 			DBMUI.SetBuffItemAction(h, t)
 		elseif szType == "CASTING" then
 			DBMUI.SetCastingItemAction(h, t)
 		elseif szType == "NPC" or szType == "CIRCLE" then
 			DBMUI.SetNpcItemAction(h, t)
+		elseif szType == "TALK" then
+			DBMUI.SetTalkItemAction(h, t, i)
+			-- DBMUI.SetLTalkItemAction(h, t, i)
 		end
 	end
+	local ini = szType == "TALK" and DBMUI_TALK_R or DBMUI_ITEM_R
 	if not bInsert then
 		handle:Clear()
 		if #data > 0 then
 			for i = #data, 1, -1 do
 				local dat = data[i]
-				local h = handle:AppendItemFromIni(DBMUI_ITEM_R, "Handle_R")
-				SetDataAction(h, dat)
+				local h = handle:AppendItemFromIni(ini, "Handle_R")
+				SetDataAction(h, dat, i)
 			end
 		end
 	else
-		handle:InsertItemFromIni(0, false, DBMUI_ITEM_R, "Handle_R")
-		SetDataAction(handle:Lookup(0), data)
+		handle:InsertItemFromIni(0, false, ini, "Handle_R")
+		SetDataAction(handle:Lookup(0), data, 0)
 	end
 	handle:FormatAllItemPos()
 end
 
-local function GetScrutinyTypeMenu(data)
-	local menu = {
-		{ szOption = g_tStrings.STR_GUILD_ALL, bMCheck = true, bChecked = type(data.nScrutinyType) == "nil", fnAction = function() data.nScrutinyType = nil end },
-		-- { bDevide = true },
-		{ szOption = g_tStrings.MENTOR_SELF, bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.SELF, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.SELF end },
-		{ szOption = _L["Team"], bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.TEAM, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.TEAM end },
-		{ szOption = _L["Enemy"], bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.ENEMY end },
-	}
-	return menu
-end
-
-local function SetDataClass(data, nClass, key, value)
-	if value then
-		data[nClass] = data[nClass] or {}
-		data[nClass][key] = value
-	else
-		data[nClass][key] = nil
-		if IsEmpty(data[nClass]) then
-			data[nClass] = nil
-		end
-	end
-end
-
-local function UI_tonumber(szNum, nDefault)
-	if tonumber(szNum) then
-		return tonumber(szNum)
-	else
-		return nDefault
-	end
-end
-
-local function GetSettingPanelAnchor()
-	local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-	local frame = Station.Lookup("Normal/DBM_SettingPanel")
-	if frame then
-		a = GetFrameAnchor(frame, "LEFTTOP")
-	end
-	return a
-end
-
-local function SetCountdownType(dat, val, ui)
-	dat.nClass = val
-	ui:Text(_L["Countdown TYPE " ..  dat.nClass])
-	GetPopupMenu():Hide()
-end
-
-local function CheckCountdown(tTime)
-	if tonumber(tTime) then
-		return true
-	else
-		local tab = {}
-		local t = JH.Split(tTime, ";")
-		for k, v in ipairs(t) do
-			local time = JH.Split(v, ",")
-			if time[1] and time[2] and tonumber(JH.Trim(time[1])) and time[2] ~= "" then
-				table.insert(tab, { nTime = tonumber(time[1]), szName = time[2] })
-			else
-				return false
-			end
-		end
-		if IsEmpty(tab) then
-			return false
-		else
-			return true
-		end
-	end
-end
 -- 设置面板
 function DBMUI.OpenSettingPanel(data, szType)
+	local function GetScrutinyTypeMenu(data)
+		local menu = {
+			{ szOption = g_tStrings.STR_GUILD_ALL, bMCheck = true, bChecked = type(data.nScrutinyType) == "nil", fnAction = function() data.nScrutinyType = nil end },
+			-- { bDevide = true },
+			{ szOption = g_tStrings.MENTOR_SELF, bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.SELF, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.SELF end },
+			{ szOption = _L["Team"], bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.TEAM, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.TEAM end },
+			{ szOption = _L["Enemy"], bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.ENEMY end },
+		}
+		return menu
+	end
+
+	local function SetDataClass(data, nClass, key, value)
+		if value then
+			data[nClass] = data[nClass] or {}
+			data[nClass][key] = value
+		else
+			data[nClass][key] = nil
+			if IsEmpty(data[nClass]) then
+				data[nClass] = nil
+			end
+		end
+	end
+
+	local function UI_tonumber(szNum, nDefault)
+		if tonumber(szNum) then
+			return tonumber(szNum)
+		else
+			return nDefault
+		end
+	end
+
+	local function GetSettingPanelAnchor()
+		local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
+		local frame = Station.Lookup("Normal/DBM_SettingPanel")
+		if frame then
+			a = GetFrameAnchor(frame, "LEFTTOP")
+		end
+		return a
+	end
+
+	local function SetCountdownType(dat, val, ui)
+		dat.nClass = val
+		ui:Text(_L["Countdown TYPE " ..  dat.nClass])
+		GetPopupMenu():Hide()
+	end
+
+	local function CheckCountdown(tTime)
+		if tonumber(tTime) then
+			return true
+		else
+			local tab = {}
+			local t = JH.Split(tTime, ";")
+			for k, v in ipairs(t) do
+				local time = JH.Split(v, ",")
+				if time[1] and time[2] and tonumber(JH.Trim(time[1])) and time[2] ~= "" then
+					table.insert(tab, { nTime = tonumber(time[1]), szName = time[2] })
+				else
+					return false
+				end
+			end
+			if IsEmpty(tab) then
+				return false
+			else
+				return true
+			end
+		end
+	end
+
 	local tSkillInfo
 	local me = GetClientPlayer()
 	local a = GetSettingPanelAnchor()
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
 	local szName, nIcon = DBMUI.GetBoxInfo(data, szType)
-	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 750, h = 450, title = szName, close = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
+	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
 	local ui = GUI(Station.Lookup("Normal/DBM_SettingPanel"))
 	local nX, nY = 0, 0
 	if szType == "BUFF" or szType == "DEBUFF" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 351, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
 			local box = this
 			GUI.OpenIconPanel(function(nIcon)
 				data.nIcon = nIcon
@@ -491,7 +533,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			SetDataClass(data, DBM_TYPE.BUFF_LOSE, "bBigFontAlarm", bCheck)
 		end):Pos_()
 	elseif szType == "CASTING" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 351, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
 			local box = this
 			GUI.OpenIconPanel(function(nIcon)
 				data.nIcon = nIcon
@@ -545,7 +587,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end):Pos_()
 		end
 	elseif szType == "NPC" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 351, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
 			return JH.Sysmsg(_L["NPC can not change the icon"])
 		end):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
@@ -600,7 +642,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 	nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Countdown"], font = 27 }):Pos_()
 	nY = nY + 10
 	for k, v in ipairs(data.tCountdown or {}) do
-		nX = ui:Append("WndComboBox", "Countdown" .. k, { x = 30, y = nY, txt = v.nClass == -1 and _L["Please Select Type"] or _L["Countdown TYPE " ..  v.nClass] }):Menu(function()
+		nX = ui:Append("WndComboBox", "Countdown" .. k, { x = 30, w = 155, h = 25, y = nY, txt = v.nClass == -1 and _L["Please Select Type"] or _L["Countdown TYPE " ..  v.nClass] }):Menu(function()
 			local menu = {}
 			table.insert(menu, { szOption = _L["Please Select Type"], bDisable = true, bChecked = v.nClass == -1 })
 			table.insert(menu, { bDevide = true })
@@ -636,6 +678,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 				table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.NPC_DEATH], bMCheck = true, bChecked = v.nClass == DBM_TYPE.NPC_DEATH, fnAction = function()
 					SetCountdownType(v, DBM_TYPE.NPC_DEATH, ui:Fetch("Countdown" .. k))
 				end })
+				table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.NPC_ALLDEATH], bMCheck = true, bChecked = v.nClass == DBM_TYPE.NPC_ALLDEATH, fnAction = function()
+					SetCountdownType(v, DBM_TYPE.NPC_ALLDEATH, ui:Fetch("Countdown" .. k))
+				end })
 				table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.NPC_LIFE], bMCheck = true, bChecked = v.nClass == DBM_TYPE.NPC_LIFE, fnAction = function()
 					SetCountdownType(v, DBM_TYPE.NPC_LIFE, ui:Fetch("Countdown" .. k))
 				end })
@@ -649,6 +694,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 				v.nIcon = nIcon
 				box:SetObjectIcon(nIcon)
 			end)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX +5, y = nY, txt = _L["TC"], color = GetMsgFontColor("MSG_TEAM", true), checked = v.bTeamChannel }):Click(function(bCheck)
+			v.bTeamChannel = bCheck and true or nil
 		end):Pos_()
 		ui:Append("WndEdit", "CountdownName" .. k, { x = nX + 5, y = nY, w = 295, h = 25, txt = v.szName }):Toggle(tonumber(v.nTime) and true or false):Change(function(szNum)
 			v.szName = szNum
