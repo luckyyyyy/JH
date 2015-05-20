@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 22:48:58
+-- @Last Modified time: 2015-05-20 20:16:30
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -141,20 +141,8 @@ function C.GetData()
 	return C.tData
 end
 
-function C.SaveFile(szFullPath, bMsg)
-	szFullPath = szFullPath or GetDataPath()
-	local data = {
-		Circle = {},
-	}
-	for k, v in pairs(C.tData) do -- fix encode
-		data.Circle[tostring(k) or k] = v
-		if k == "mt" then
-			for kk, vv in pairs(v) do
-				data.Circle["mt"][tostring(kk)] = vv
-			end
-		end
-	end
-	SaveLUAData(szFullPath, data)
+function C.SaveFile(bMsg)
+	SaveLUAData(GetDataPath(), { Circle = C.tData })
 	if bMsg then
 		JH.Alert(_L("Save success.\n Path:%s", szFullPath))
 	end
