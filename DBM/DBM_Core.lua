@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-20 00:10:25
+-- @Last Modified time: 2015-05-20 07:33:23
 local _L = JH.LoadLangPack
 local DEBUG = true
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
@@ -15,6 +15,7 @@ local CACHE = {
 		DEBUFF  = setmetatable({}, { __mode = "v" }),
 		CASTING = setmetatable({}, { __mode = "v" }),
 		NPC     = setmetatable({}, { __mode = "v" }),
+		TALK    = setmetatable({}, { __mode = "v" }),
 	},
 	MAP = { -- 需要监控的数据MAP
 		BUFF    = {},
@@ -49,13 +50,18 @@ local D = {
 				{ dwID = 11051, nFrame = 52 },
 			}
 		},
-		TALK    = {},
+		TALK    = {
+			[-1] = {
+				{ szContent = "$me" }
+			}
+		},
 	},
 	TEMP = { -- 近期事件记录
 		BUFF    = {},
 		DEBUFF  = {},
 		CASTING = {},
 		NPC     = {},
+		TALK    = {},
 	},
 	DATA = { -- 需要监控的数据合集
 		BUFF    = {},
@@ -117,6 +123,12 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "DO_SKILL_CAST" then
 		D.OnSkillCast(arg0, arg1, arg2, szEvent)
+	elseif szEvent == "PLAYER_SAY" then
+		if not IsPlayer(arg1) then
+			D.OnCallMessage(GetPureText(arg0), arg3)
+		end
+	elseif szEvent == "ON_WARNING_MESSAGE" then
+		D.OnCallMessage(arg1)
 	elseif szEvent == "NPC_ENTER_SCENE" then
 		local npc = GetNpc(arg0)
 		if npc then
@@ -134,7 +146,7 @@ function DBM.OnEvent(szEvent)
 	elseif szEvent == "JH_NPC_LIFE_CHANGE" then
 		D.OnNpcLife(arg0, arg1)
 	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" then
-		D.CreateData()
+		D.CreateData(szEvent)
 	end
 end
 
@@ -159,7 +171,7 @@ local function CreateCache(szType, tab)
 	D.Log("Create " .. szType .. " data Success!")
 end
 
-function D.CreateData()
+function D.CreateData(szEvent)
 	local me = GetClientPlayer()
 	local dwMapID = me.GetMapID()
 	local nTime = GetTime()
@@ -170,7 +182,8 @@ function D.CreateData()
 	for k, v in pairs(CACHE.MAP) do
 		CACHE.MAP[k] = {}
 	end
-	for _, szType in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "TALK" }) do
+	-- 重建MAP
+	for _, szType in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC" }) do
 		local data  = D.DATA[szType]
 		local cache = CACHE.MAP[szType]
 		if D.FILE[szType][-1] then -- 通用数据
@@ -180,6 +193,23 @@ function D.CreateData()
 			CreateCache(szType, D.FILE[szType][dwMapID])
 		end
 	end
+	-- 单独重建TALK数据
+	local talk = D.FILE["TALK"]
+	if talk and #talk > 0 then
+		if talk[-1] then -- 通用数据
+			for k, v in ipairs(talk[-1]) do
+				talk[#talk + 1] = v
+			end
+		end
+		if talk[dwMapID] then -- 本地图数据
+			for k, v in ipairs(talk[-1]) do
+				talk[#talk + 1] = v
+			end
+		end
+		D.Log("Create TALK data Success!")
+	end
+
+	-- 重建metatable
 	for k, v in pairs(D.FILE)  do
 		setmetatable(D.FILE[k], { __index = function(me, index)
 			if index == _L["All Data"] then
@@ -192,6 +222,11 @@ function D.CreateData()
 				return t
 			end
 		end })
+	end
+	-- 清空缓存
+	if szEvent == "LOADING_END" then
+		CACHE.NPC_LIST   = {}
+		CACHE.SKILL_LIST = {}
 	end
 	D.Log("MAPID: " .. dwMapID ..  " Create data Success:" .. GetTime() - nTime  .. "ms")
 end
@@ -223,7 +258,7 @@ function D.FireCountdownEvent(data, nClass)
 	if data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				FireEvent("JH_ST_CREATE", nClass, k .. "." .. data.dwID .. "." .. (data.nLevel or 0), {
+				FireEvent("JH_ST_CREATE", nClass, v.key or (k .. "." .. data.dwID .. "." .. (data.nLevel or 0)), {
 					nTime    = v.nTime,
 					nRefresh = v.nRefresh,
 					szName   = v.szName or data.szName,
@@ -556,6 +591,56 @@ function D.OnNpcEvent(npc, bEnter)
 	end
 end
 
+-- 系统和NPC喊话处理
+function D.OnCallMessage(szContent, szNpcName)
+	-- 近期记录
+	local me = GetClientPlayer()
+	local key = (szNpcName or "sys") .. "::" .. szContent
+	local tWeak, tTemp = CACHE.TEMP.TALK, D.TEMP.TALK
+	if not tWeak[key] then
+		local t = {
+			dwMapID   = me.GetMapID(),
+			szContent = szContent,
+			szTarget  = szNpcName
+		}
+		tWeak[key] = t
+		tTemp[#tTemp + 1] = tWeak[key]
+		if #tTemp > DBM_MAX_CACHE then
+			D.FreeCache("TALK")
+		else
+			FireEvent("DBMUI_TEMP_UPDATE", "TALK", t)
+		end
+	end
+	for k, v in ipairs(D.DATA.TALK) do
+		local content = v.szContent:gsub("$me", me.szName) -- 转换me是自己名字
+		if szContent:match(content) and v.szTarget == szNpcName then -- hit
+			D.FireCountdownEvent(v, DBM_TYPE.TALK_MONITOR)
+			local cfg = v[DBM_TYPE.TALK_MONITOR]
+			if cfg then
+				local txt = v.szNote or szContent
+				-- 中央报警
+				if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
+					FireEvent("JH_CA_CREATE", txt or szContent, 3, true)
+				end
+				-- 特大文字
+				if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
+					FireEvent("JH_LARGETEXT", txt or szContent, { 255, 128, 0 }, true )
+				end
+				if DBM.bPushFullScreen and cfg.bFullScreen then
+					FireEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = data.col or { 0, 255, 0 }, bFlash = true })
+				end
+				if DBM.bPushTeamChannel and cfg.bTeamChannel then
+					JH.Talk(txt)
+				end
+				if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
+					--TODO 全团密聊
+				end
+			end
+			break
+		end
+	end
+end
+
 -- NPC死亡事件 触发倒计时
 function D.OnDeath(dwCharacterID, szKiller)
 	if IsPlayer(dwCharacterID) then
@@ -565,7 +650,13 @@ function D.OnDeath(dwCharacterID, szKiller)
 	if npc then
 		local data = D.GetData("NPC", npc.dwTemplateID)
 		if data then
+			local dwTemplateID = npc.dwTemplateID
 			D.FireCountdownEvent(data, DBM_TYPE.NPC_DEATH)
+			JH.DelayCall(100, function() -- 因为击杀的时候并没有直接消失
+				if not CACHE.NPC_LIST[dwTemplateID] then
+					D.FireCountdownEvent(data, DBM_TYPE.NPC_ALLDEATH)
+				end
+			end)
 		end
 	end
 end
@@ -580,7 +671,7 @@ function D.OnNpcFight(dwTemplateID, bFight)
 			if data.tCountdown then
 				for k, v in ipairs(data.tCountdown) do
 					if v.nClass == DBM_TYPE.NPC_FIGHT then
-						FireEvent("JH_ST_DEL", v.nClass, k .. "."  .. data.dwID .. "." .. (data.nLevel or 0), true) -- try kill
+						FireEvent("JH_ST_DEL", v.nClass, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
 					end
 				end
 			end
@@ -599,7 +690,7 @@ function D.OnNpcLife(dwTemplateID, nLife)
 					local time = JH.Split(v, ",")
 					if time[1] and time[2] and time[3] and tonumber(JH.Trim(time[1])) and tonumber(JH.Trim(time[2])) and JH.Trim(time[3]) ~= "" then
 						if tonumber(JH.Trim(time[1])) == nLife then -- hit
-							FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, k .. "." .. dwTemplateID .. "." .. kk, {
+							FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
 								nTime    = tonumber(JH.Trim(time[2])),
 								szName   = time[3],
 								nIcon    = v.nIcon,
@@ -759,9 +850,9 @@ end
 
 -- 获取监控数据 注意 不是获取文件内的 如果想找文件内的 请使用 GetFileData
 function D.GetData(szType, dwID, nLevel)
-	local tab = D.DATA[szType]
 	local cache = CACHE.MAP[szType][dwID]
 	if cache then
+		local tab = D.DATA[szType]
 		if nLevel then
 			if cache[nLevel] then -- 如果可以直接命中 O(∩_∩)O
 				local data = tab[cache[nLevel]]

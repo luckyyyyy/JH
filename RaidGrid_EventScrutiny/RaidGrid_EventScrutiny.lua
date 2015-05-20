@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 00:35:59
+-- @Last Modified time: 2015-05-20 07:08:43
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -3219,10 +3219,8 @@ end
 JH.RegisterEvent("PLAYER_SAY", function()
 	if RaidGrid_EventScrutiny.bEnable and RaidGrid_BossCallAlert.TalkMonitor then
 		if IsPlayer(arg1) then return end
-		local npc = GetNpc(arg1)
-		local szName = JH.GetTemplateName(npc)
-		RaidGrid_BossCallAlert.ProcessBossCallSet(szName, arg0)
-		RaidGrid_BossCallAlert.CallProcess(szName, arg0)
+		RaidGrid_BossCallAlert.ProcessBossCallSet(arg3, arg0)
+		RaidGrid_BossCallAlert.CallProcess(arg3, arg0)
 	end
 end)
 JH.RegisterEvent("ON_WARNING_MESSAGE", function()
