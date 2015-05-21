@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-21 15:47:36
+-- @Last Modified time: 2015-05-21 18:42:08
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -60,7 +60,10 @@ local D = {
 		BUFF    = {
 			[-1] = {
 				{ dwID = 103, nLevel = 1, },
-			}
+			},
+			[205] = {
+				{ dwID = 4436, nLevel = 1, },
+			},
 		},
 		DEBUFF  = {
 			[-1] = {
@@ -138,7 +141,9 @@ function DBM.OnEvent(szEvent)
 		D.OnBuff(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 	elseif szEvent == "SYS_MSG" then
 		if arg0 == "UI_OME_DEATH_NOTIFY" then
-			D.OnDeath(arg1, arg3)
+			if not IsPlayer(arg1) then
+				D.OnDeath(arg1, arg3)
+			end
 		elseif arg0 == "UI_OME_SKILL_CAST_LOG" then
 			D.OnSkillCast(arg1, arg2, arg3, arg0)
 		elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG"
@@ -246,7 +251,7 @@ function D.CreateData(szEvent)
 			if index == _L["All Data"] then
 				local t = {}
 				for k, v in pairs(D.FILE[k]) do
-					for _, vv in ipairs(v) do
+					for kk, vv in ipairs(v) do
 						t[#t +1] = setmetatable(vv, { __index = function(me, val)
 							if val == "dwMapID" then
 								return k
@@ -290,7 +295,12 @@ function D.CheckScrutinyType(nScrutinyType, dwID)
 	end
 	return true
 end
--- 效验和标记
+
+-- 智能标记逻辑
+-- 例 勾选了 白云 红谷 棒槌
+-- 如果是NPC   从头抓到尾 比如白云不是这个NPC  那就把白云给他 如果是的话 就给红谷 以此类推
+-- 如果是BUFF  从头抓到尾 比如白云没有这个BUFF 那就把白云给他 如果是的话 就给红谷 以此类推
+-- 如果是技能 无条件给标记
 function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 	if not JH.IsMark() then
 		return
@@ -794,9 +804,6 @@ end
 
 -- NPC死亡事件 触发倒计时
 function D.OnDeath(dwCharacterID, szKiller)
-	if IsPlayer(dwCharacterID) then
-		return
-	end
 	local npc = GetNpc(dwCharacterID)
 	if npc then
 		local data = D.GetData("NPC", npc.dwTemplateID)
@@ -1048,12 +1055,64 @@ function D.GetFileData()
 	return D.FILE
 end
 
+function D.RemoveData(szType, dwMapID, nIndex)
+	if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
+		table.remove(D.FILE[szType][dwMapID], nIndex)
+		if #D.FILE[szType][dwMapID] == 0 then
+			D.FILE[szType][dwMapID] = nil
+		end
+		if dwMapID == -1 or dwMapID == GetClientPlayer().GetMapID() then
+			FireEvent("DBM_CREATE_CACHE")
+		end
+		FireEvent("DBMUI_DATA_RELOAD", szType)
+	end
+end
+
+function D.CheckRepeatData(szType, dwMapID, dwID, nLevel)
+	if D.FILE[szType][dwMapID] then
+		for k, v in ipairs(D.FILE[szType][dwMapID]) do
+			if type(dwID) == "string" then
+				if dwID == v.szContent and nLevel == v.szTarget then
+					return true
+				end
+			else
+				if dwID == v.dwID and nLevel == v.nLevel then
+					return true
+				end
+			end
+		end
+	end
+end
+
+function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
+	if dwMapID == dwTargetMapID then
+		return
+	end
+	if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
+		local data = D.FILE[szType][dwMapID][nIndex]
+		if D.CheckRepeatData(szType, dwTargetMapID, data.dwID or data.szContent, data.nLevel or data.szTarget) then
+			return JH.Alert(_L["same data Exist"])
+		end
+		D.FILE[szType][dwTargetMapID] = D.FILE[szType][dwTargetMapID] or {}
+		table.insert(D.FILE[szType][dwTargetMapID], clone(D.FILE[szType][dwMapID][nIndex]))
+		if not bCopy then
+			D.RemoveData(szType, dwMapID, nIndex)
+		end
+		FireEvent("DBM_CREATE_CACHE")
+		FireEvent("DBMUI_DATA_RELOAD", szType)
+		JH.Sysmsg(_L["Succeed"])
+	end
+end
+
 -- 公开接口
 local ui = {
-	GetTable    = D.GetTable,
-	GetDungeon  = D.GetDungeon,
-	GetData     = D.GetData,
-	GetFileData = D.GetFileData,
+	GetTable        = D.GetTable,
+	GetDungeon      = D.GetDungeon,
+	GetData         = D.GetData,
+	GetFileData     = D.GetFileData,
+	RemoveData      = D.RemoveData,
+	MoveData        = D.MoveData,
+	CheckRepeatData = D.CheckRepeatData
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 

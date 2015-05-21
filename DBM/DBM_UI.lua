@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-21 03:24:37
+-- @Last Modified time: 2015-05-21 18:54:34
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -21,7 +21,6 @@ DBM_UI = {}
 
 function DBM_UI.OnFrameCreate()
 	this:RegisterEvent("DBMUI_TEMP_UPDATE")
-	this:RegisterEvent("DBMUI_DATA_UPDATE")
 	this:RegisterEvent("DBMUI_TEMP_RELOAD")
 	this:RegisterEvent("DBMUI_DATA_RELOAD")
 	this:RegisterEvent("CIRCLE_DRAW_UI")
@@ -33,6 +32,10 @@ function DBM_UI.OnFrameCreate()
 	for k, v in ipairs(DBMUI_TYPE) do
 		local txt = DBMUI.pageset:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
 		txt:SetText(_L[v])
+		if v == "CIRCLE" and type(Circle) == "nil" then
+			DBMUI.pageset:Lookup("CheckBox_" .. v):Enable(false)
+			txt:SetFontColor(192, 192, 192)
+		end
 	end
 	this:Lookup("Btn_Close").OnLButtonClick = DBMUI.ClosePanel
 	DBMUI.UpdateAnchor(this)
@@ -50,7 +53,6 @@ function DBM_UI.OnEvent(szEvent)
 		DBMUI.UpdateAnchor(this)
 	elseif szEvent == "DBMUI_TEMP_UPDATE" then
 		DBMUI.UpdateRList(szEvent, arg0, arg1)
-	elseif szEvent == "DBMUI_DATA_UPDATE" then
 	elseif szEvent == "DBMUI_TEMP_RELOAD" then
 		DBMUI.UpdateRList(szEvent, arg0, arg1)
 	elseif szEvent == "DBMUI_DATA_RELOAD" then
@@ -93,6 +95,28 @@ function DBM_UI.OnActivePage()
 	end
 end
 
+function DBMUI.InsertDungeonMenu(menu, fnAction)
+	local tClass, tDungeon, nCount = {}, DBM_API.GetDungeon()
+	local data = DBM_API.GetTable(DBMUI_SELECT_TYPE)
+	table.insert(menu, { szOption = g_tStrings.CHANNEL_COMMON .. " (" .. (data[-1] and #data[-1] or 0) .. ")", fnAction = function()
+		if fnAction then
+			fnAction(-1)
+		end
+	end })
+	table.insert(menu, { bDevide = true })
+	for k, v in ipairs(tDungeon) do
+		if not tClass[v.szLayer3Name] then
+			tClass[v.szLayer3Name] = { szOption = v.szLayer3Name }
+			table.insert(menu, tClass[v.szLayer3Name])
+		end
+		table.insert(tClass[v.szLayer3Name], { szOption = Table_GetMapName(v.dwMapID) .. " (" .. (data[v.dwMapID] and #data[v.dwMapID] or 0) .. ")", rgb = { 255, 128, 0 }, fnAction = function()
+			if fnAction then
+				fnAction(v.dwMapID)
+			end
+		end })
+	end
+end
+
 function DBMUI.GetClassMenu()
 	if DBMUI_SELECT_TYPE == "CIRCLE" then
 		return Circle.GetMemu()
@@ -105,25 +129,30 @@ function DBMUI.GetClassMenu()
 		FireEvent("DBMUI_DATA_RELOAD")
 	end })
 	table.insert(menu, { bDevide = true })
-	table.insert(menu, { szOption = g_tStrings.CHANNEL_COMMON, fnAction = function()
-		txt:SetText(g_tStrings.CHANNEL_COMMON)
-		DBMUI_SELECT_MAP = -1
+	DBMUI.InsertDungeonMenu(menu, function(dwMapID)
+		txt:SetText(DBMUI.GetMapName(dwMapID))
+		DBMUI_SELECT_MAP = dwMapID
 		FireEvent("DBMUI_DATA_RELOAD")
-	end })
-	table.insert(menu, { bDevide = true })
-	for k, v in ipairs(tDungeon) do
-		if not tClass[v.szLayer3Name] then
-			tClass[v.szLayer3Name] = { szOption = v.szLayer3Name }
-			table.insert(menu, tClass[v.szLayer3Name])
-		end
-		table.insert(tClass[v.szLayer3Name], { szOption = Table_GetMapName(v.dwMapID), rgb = { 255, 128, 0 }, fnAction = function()
-			txt:SetText(Table_GetMapName(v.dwMapID))
-			DBMUI_SELECT_MAP = v.dwMapID
-			FireEvent("DBMUI_DATA_RELOAD")
-		end })
-	end
+	end)
+
 	-- TODO： 元表，并且要根据分类来获取菜单
 	return menu
+end
+
+-- 移动数据
+function DBMUI.MoveData( ... )
+	DBM_API.MoveData(DBMUI_SELECT_TYPE, ... )
+end
+
+function DBMUI.RemoveData(dwMapID, nIndex, szMsg, bConfirm)
+	local function fnAction()
+		DBM_API.RemoveData(DBMUI_SELECT_TYPE, dwMapID, nIndex)
+	end
+	if bConfirm then
+		JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, szMsg), fnAction)
+	else
+		fnAction()
+	end
 end
 
 -- 更新监控数据
@@ -132,9 +161,7 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 	if szType ~= DBMUI_SELECT_TYPE then
 		return
 	end
-	if szEvent == "DBMUI_DATA_UPDATE" then
-		DBMUI.DrawTableL(szType, data, true)
-	elseif szEvent == "DBMUI_DATA_RELOAD" then
+	if szEvent == "DBMUI_DATA_RELOAD" then
 		local tab = DBM_API.GetTable(szType)
 		if tab then
 			local dat = tab[DBMUI_SELECT_MAP] or {}
@@ -276,21 +303,34 @@ function DBMUI.SetTalkItemAction(h, t, i)
 	end
 end
 
-function DBMUI.SetLBuffItemAction(h, t)
-	h.OnItemLButtonClick = function()
-		DBMUI.OpenSettingPanel(t, "BUFF")
+function DBMUI.GetMapName(mapid)
+	if mapid == -1 then
+		return g_tStrings.CHANNEL_COMMON
+	else
+		return Table_GetMapName(mapid) or mapid
 	end
 end
 
-function DBMUI.SetLCastingItemAction(h, t)
+function DBMUI.SetLItemAction(szType, h, t)
 	h.OnItemLButtonClick = function()
-		DBMUI.OpenSettingPanel(t, "CASTING")
+		DBMUI.OpenSettingPanel(t, szType)
 	end
-end
-
-function DBMUI.SetLNpcItemAction(h, t)
-	h.OnItemLButtonClick = function()
-		DBMUI.OpenSettingPanel(t, "NPC")
+	h.OnItemRButtonClick = function()
+		local menu = {}
+		if szType ~= "TALK" then
+			table.insert(menu, { szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. h:Lookup("Text"):GetText(), bDisable = true })
+		end
+		table.insert(menu, { szOption = _L["Class"] .. g_tStrings.STR_COLON .. DBMUI.GetMapName(t.dwMapID), bDisable = true })
+		table.insert(menu, { bDevide = true })
+		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_MOVE_TO })
+		DBMUI.InsertDungeonMenu(menu[#menu], function(dwMapID)
+			DBMUI.MoveData(t.dwMapID, t.nIndex, dwMapID, IsCtrlKeyDown())
+		end)
+		table.insert(menu, { bDevide = true })
+		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
+			DBMUI.RemoveData(t.dwMapID, t.nIndex, h:Lookup("Text"):GetText(), true)
+		end })
+		PopupMenu(menu)
 	end
 end
 
@@ -298,48 +338,48 @@ function DBMUI.SetLCircleItemAction(h, t, i)
 	h.OnItemLButtonClick = function()
 		Circle.OpenDataPanel(t.id or CIRCLE_SELECT_MAP, t.index or i)
 	end
+	h.OnItemRButtonClick = h.OnItemLButtonClick
 end
 
-function DBMUI.SetLTalkItemAction(h, t, i)
-	h.OnItemLButtonClick = function()
-		DBMUI.OpenSettingPanel(t, "TALK")
-	end
-end
-
-function DBMUI.DrawTableL(szType, data, bInsert)
+function DBMUI.DrawTableL(szType, data)
 	local page = DBMUI.pageset:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_L", "Handle_" .. szType .. "_List_L")
 	local function SetDataAction(h, t, i)
+		if not t.dwMapID then
+			setmetatable(t, { __index = function(me, val)
+				if val == "dwMapID" then
+					return DBMUI_SELECT_MAP
+				elseif val == "nIndex" then
+					return i
+				end
+			end })
+		end
+
 		if szType == "BUFF" or szType == "DEBUFF" then
 			DBMUI.SetBuffItemAction(h, t)
-			DBMUI.SetLBuffItemAction(h, t)
+			DBMUI.SetLItemAction(szType, h, t)
 		elseif szType == "CASTING" then
 			DBMUI.SetCastingItemAction(h, t)
-			DBMUI.SetLCastingItemAction(h, t)
+			DBMUI.SetLItemAction(szType, h, t)
 		elseif szType == "NPC" then
 			DBMUI.SetNpcItemAction(h, t)
-			DBMUI.SetLNpcItemAction(h, t)
+			DBMUI.SetLItemAction(szType, h, t)
 		elseif szType == "CIRCLE" then
 			DBMUI.SetCircleItemAction(h, t)
 			DBMUI.SetLCircleItemAction(h, t, i)
 		elseif szType == "TALK" then
 			DBMUI.SetTalkItemAction(h, t, i)
-			DBMUI.SetLTalkItemAction(h, t, i)
+			DBMUI.SetLItemAction(szType, h, t)
 		end
 	end
 	local ini = szType == "TALK" and DBMUI_TALK_L or DBMUI_ITEM_L
-	if not bInsert then
-		handle:Clear()
-		if #data > 0 then
-			for i = #data, 1, -1 do
-				local dat = data[i]
-				local h = handle:AppendItemFromIni(ini, "Handle_L")
-				SetDataAction(h, dat, i)
-			end
+	handle:Clear()
+	if #data > 0 then
+		for i = #data, 1, -1 do
+			local dat = data[i]
+			local h = handle:AppendItemFromIni(ini, "Handle_L")
+			SetDataAction(h, dat, i)
 		end
-	else
-		handle:InsertItemFromIni(0, false, ini, "Handle_L")
-		SetDataAction(handle:Lookup(0), data)
 	end
 	handle:FormatAllItemPos()
 end
@@ -497,12 +537,19 @@ function DBMUI.OpenSettingPanel(data, szType)
 	local me = GetClientPlayer()
 	local a = GetSettingPanelAnchor()
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
-	local szName, nIcon = g_tStrings.STR_CUSTOM_TEAM, 340
+	local szName, nIcon = _L["TALK"], 340
 	if szType ~= "TALK" then
 		szName, nIcon = DBMUI.GetBoxInfo(data, szType)
 	end
 	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
-	local ui = GUI(Station.Lookup("Normal/DBM_SettingPanel"))
+	local frame = Station.Lookup("Normal/DBM_SettingPanel")
+	local ui = GUI(frame)
+	frame:RegisterEvent("DBMUI_DATA_RELOAD")
+	frame.OnEvent = function(szEvent)
+		if szEvent == "DBMUI_DATA_RELOAD" then
+			ui:Remove()
+		end
+	end
 	local nX, nY, _ = 0, 0, 0
 	if szType == "BUFF" or szType == "DEBUFF" then
 		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
@@ -766,6 +813,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 				for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE }) do
 					table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
 						SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
+						if vv == DBM_TYPE.NPC_LIFE then
+							JH.Alert(_L["Npc Life Alarm, different format, Recommended reading Help!"])
+						end
 					end })
 				end
 			elseif szType == "TALK" then
@@ -839,10 +889,14 @@ function DBMUI.OpenSettingPanel(data, szType)
 		table.insert(data.tCountdown, { nTime = "10,Countdown Name;", nClass = -1, nIcon = nIcon ~= -1 and nIcon or 13 })
 		DBMUI.OpenSettingPanel(data, szType)
 	end):Pos_()
+	ui:Append("WndButton2", { x = 335, y = nY + 10, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } }):Click(function()
+		DBMUI.RemoveData(data.dwMapID, data.nIndex, szName or _L["This data"], true)
+	end)
 	nX, nY = ui:Append("WndButton2", { x = 620, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
 		-- OpenInternetExplorer("")
 		-- TODO github markdown
 	end):Pos_()
+
 	local w, h = wnd:Size()
 	local a = GetSettingPanelAnchor()
 	wnd:Size(w, nY + 25):Point(a.s, 0, 0, a.r, a.x, a.y)
