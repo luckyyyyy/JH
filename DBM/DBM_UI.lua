@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-20 23:29:03
+-- @Last Modified time: 2015-05-21 03:24:37
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -404,18 +404,33 @@ function DBMUI.OpenSettingPanel(data, szType)
 		}
 		return menu
 	end
-	local function GetMarkMenu(cfg)
-		local tMark = cfg.tMark or {}
+	local function GetMarkMenu(nClass)
 		local menu = {}
 		local tMarkName = { _L["Cloud"], _L["Sword"], _L["Ax"], _L["Hook"], _L["Drum"], _L["Shear"], _L["Stick"], _L["Jade"], _L["Dart"], _L["Fan"] }
 		for k, v in ipairs(PARTY_MARK_ICON_FRAME_LIST) do
-			table.insert(menu, { szOption = tMarkName[k], szIcon = PARTY_MARK_ICON_PATH, nFrame = v, szLayer = "ICON_RIGHT", bCheck = true, bChecked = tMark[k], fnAction = function(_, bCheck)
+			table.insert(menu, { szOption = tMarkName[k], szIcon = PARTY_MARK_ICON_PATH, nFrame = v, szLayer = "ICON_RIGHT", bCheck = true, bChecked = data[nClass] and data[nClass].tMark[k], fnAction = function(_, bCheck)
 				if bCheck then
-					cfg.tMark = cfg.tMark or {}
-					cfg.tMark[k] = true
+					data[nClass] = data[nClass] or {}
+					if not data[nClass].tMark then
+						data[nClass].tMark = {}
+						for kk, vv in ipairs(PARTY_MARK_ICON_FRAME_LIST) do
+							data[nClass].tMark[kk] = false
+						end
+					end
+					data[nClass].tMark[k] = true
 				else
-					cfg.tMark[k] = nil
-					if #cfg.tMark == 0 then cfg.tMark = nil end
+					data[nClass].tMark[k] = false
+					local bDelete = true
+					for k, v in ipairs(data[nClass].tMark) do
+						if v then
+							bDelete = false
+							break
+						end
+					end
+					if bDelete then
+						data[nClass].tMark = nil
+					end
+					if IsEmpty(data[nClass]) then data[nClass] = nil end
 				end
 			end })
 		end
@@ -512,7 +527,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		local cfg = data[DBM_TYPE.BUFF_GET] or {}
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Get Buff"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
-			return GetMarkMenu(cfg)
+			return GetMarkMenu(DBM_TYPE.BUFF_GET)
 		end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bTeamChannel", bCheck)
@@ -578,7 +593,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		local cfg = data[DBM_TYPE.SKILL_END] or {}
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Skills using a success"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
-			return GetMarkMenu(cfg)
+			return GetMarkMenu(DBM_TYPE.SKILL_END)
 		end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.SKILL_END, "bTeamChannel", bCheck)
@@ -601,7 +616,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			local cfg = data[DBM_TYPE.SKILL_BEGIN] or {}
 			nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Skills began to release"], font = 27 }):Pos_()
 			nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
-				return GetMarkMenu(cfg)
+				return GetMarkMenu(DBM_TYPE.SKILL_BEGIN)
 			end):Pos_()
 			nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
 				SetDataClass(DBM_TYPE.SKILL_BEGIN, "bTeamChannel", bCheck)
@@ -642,7 +657,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		local cfg = data[DBM_TYPE.NPC_ENTER] or {}
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Npc Enter scene"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
-			return GetMarkMenu(cfg)
+			return GetMarkMenu(DBM_TYPE.NPC_ENTE)
 		end):Pos_()
 
 		nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
