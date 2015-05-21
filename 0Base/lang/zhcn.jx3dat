@@ -256,6 +256,11 @@ data = {
 	["is calling"] = "点",
 	["'s name."] = "名了。",
 	["JX3"] = "剑网3",
+	["Npc Life Alarm, different format, Recommended reading Help!"] = "NPC血量报警设置格式不同，建议阅读帮助。",
+	["Class"] = "分类",
+	["Succeed"] = "操作成功",
+	["same data Exist"] = "存在相同的数据",
+	["This data"] = "这个数据",
 	-- ST.class.lua --
 	["Countdown format Error"] = "倒计时格式错误",
 	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",
