@@ -1,9 +1,37 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-20 22:57:12
+-- @Last Modified time: 2015-05-21 15:47:36
+
+-- 简单性能测试统计：
+-- +------------------------------------------------------------------+
+-- |   测试项目   | 插件名称 | 执行次数 | 耗时(ms) |       备注       |
+-- +------------------------------------------------------------------+
+-- | BUFF_UPDATE  |   DBM    |  1,0000  |  32      |  命中缓存        |
+-- | BUFF_UPDATE  |   DBM    |  1,0000  |  63      |  创建报警        |
+-- | BUFF_UPDATE  |   RGES   |  1,0000  |  217     |  创建报警        |
+-- | BUFF_UPDATE  |   RGES   |  1,0000  |  422     |  优化之前的版本  |
+-- | 近期记录     |   DBM    |  1,0000  |  71      |                  |
+-- | 近期记录     |   DBM    |  1,0000  |  636     |  自动执行gc      |
+-- | 近期记录     |   RGES   |  1,0000  |  2134    |                  |
+-- | 近期记录     |   RGES   |  1,0000  |  2676    |  优化之前的版本  |
+-- | 内存占用     |   DBM    |   ----   |          |  约 100  KB      |
+-- | 内存占用     |   RGES   |   ----   |          |  约 1300 KB      |
+-- +------------------------------------------------------------------+
+
+-- 性能测试总结：
+-- 由于 RGES 也经过我的优化 性能差距不是非常大
+-- 但是 DBM 功能和灵活度远超于 RGES
+-- RGES 是时候退出历史舞台了
+
 local _L = JH.LoadLangPack
-local DEBUG = true
+local ipairs, pairs = ipairs, pairs
+local setmetatable, tonumber, type, tostring, unpack = setmetatable, tonumber, type, tostring, unpack
+local tinsert, tconcat = table.insert, table.concat
+local GetTime, IsPlayer = GetTime, IsPlayer
+local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
+local FireEvent = FireEvent
+local DEBUG = false
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
 local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
@@ -85,7 +113,7 @@ DBM = {
 	bPushBuffList       = true,
 	bMonSkillTarget     = true,
 }
-
+local DBM = DBM
 function DBM.OnFrameCreate()
 	this:RegisterEvent("NPC_ENTER_SCENE")
 	this:RegisterEvent("NPC_LEAVE_SCENE")
@@ -262,6 +290,71 @@ function D.CheckScrutinyType(nScrutinyType, dwID)
 	end
 	return true
 end
+-- 效验和标记
+function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
+	if not JH.IsMark() then
+		return
+	end
+	local team = GetClientTeam()
+	local tTeamMark, tMarkList = team.GetTeamMark(), {} -- tmd 什么鬼结构。。。
+	for k, v in pairs(tTeamMark) do
+		tMarkList[v] = k
+	end
+	if szType == "NPC" then
+		for k, v in ipairs(tMark) do
+			if v then
+				if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
+					break
+				end
+				local p = GetNpc(tMarkList[k])
+				if not tMarkList[k] or tMarkList[k] == 0 or not p then
+					team.SetTeamMark(k, dwCharacterID)
+					break
+				elseif p then
+					if p.dwTemplateID ~= dwID then
+						team.SetTeamMark(k, dwCharacterID)
+						break
+					end
+				end
+			end
+		end
+	elseif szType == "BUFF" or szType == "DEBUFF" then
+		for k, v in ipairs(tMark) do
+			if v then
+				if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
+					break
+				end
+				local bMark = false
+				if tMarkList[k] and tMarkList[k] ~= 0 then
+					local p = IsPlayer(tMarkList[k]) and GetPlayer(tMarkList[k]) or GetNpc(tMarkList[k])
+					if p then
+						if not JH.HasBuff(dwID, p) then
+							bMark = true
+						end
+					else
+						bMark = true
+					end
+				else
+					bMark = true
+				end
+				if bMark then
+					team.SetTeamMark(k, dwCharacterID)
+					break
+				end
+			end
+		end
+	elseif szType == "CASTING" then
+		for k, v in ipairs(tMark) do
+			if v then
+				if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
+					break
+				end
+				team.SetTeamMark(k, dwCharacterID)
+				break
+			end
+		end
+	end
+end
 -- 倒计时处理 支持定义无限的倒计时
 function D.FireCountdownEvent(data, nClass)
 	if data.tCountdown then
@@ -283,11 +376,11 @@ end
 function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
 	-- 中央报警
 	if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-		FireEvent("JH_CA_CREATE", table.concat(xml), 3, true)
+		FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 	end
 	-- 特大文字
 	if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
-		local txt = GetPureText(table.concat(xml))
+		local txt = GetPureText(tconcat(xml))
 		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, UI_GetClientPlayerID() == dwID )
 	end
 end
@@ -341,28 +434,27 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			nIcon  = data.nIcon or nIcon
 			local szSrcName = JH.GetTemplateName(KObject)
 			local xml = {}
-			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-			if UI_GetClientPlayerID() == dwMemberID then
-				table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
-			else
-				table.insert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
-			end
-			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(szSrcName == me.szName and g_tStrings.STR_YOU or szSrcName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			if nClass == DBM_TYPE.BUFF_GET then
-				table.insert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(szName .. " x" .. nCount, 44, 255, 255, 0))
+				tinsert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(szName .. " x" .. nCount, 44, 255, 255, 0))
 				if data.szNote then
-					table.insert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
+					tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
 				end
 			else
-				table.insert(xml, GetFormatText(_L["Lose Buff"], 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
+				tinsert(xml, GetFormatText(_L["Lose Buff"], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
 			end
-			local txt = GetPureText(table.concat(xml))
+			local txt = GetPureText(tconcat(xml))
 			-- 通用的报警事件处理
 			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
 			-- 获得处理
 			if nClass == DBM_TYPE.BUFF_GET then
+				if cfg.tMark then
+					D.SetTeamMark(szType, cfg.tMark, dwCaster, dwBuffID, nBuffLevel)
+				end
 				-- 重要Buff列表
 				if IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or UI_GetClientPlayerID() == dwCaster) then
 					FireEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
@@ -390,7 +482,8 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				end
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
-				JH.Talk(txt)
+				local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. szSrcName .. _L["]"])
+				JH.Talk(talk)
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
 				JH.Talk(szSrcName, txt:gsub(szSrcName, g_tStrings.STR_NAME_YOU))
@@ -452,32 +545,32 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		D.FireCountdownEvent(data, nClass)
 		if cfg then
 			local xml = {}
-			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-			table.insert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
-			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			if nClass == DBM_TYPE.SKILL_END then
-				table.insert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
 			else
-				table.insert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
 			end
-			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-			table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
-			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			if DBM.bMonSkillTarget and szTargetName then
-				table.insert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
-				table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-				if me.dwID == dwTargetID then
-					table.insert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
-				else
-					table.insert(xml, GetFormatText(szTargetName, 44, 255, 255, 0))
-				end
-				table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(szTargetName == me.szName and g_tStrings.STR_YOU or szTargetName, 44, 255, 255, 0))
+				tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			end
 			if data.szNote then
-				table.insert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
+				tinsert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
 			end
+			local txt = GetPureText(tconcat(xml))
 			-- 通用的报警事件处理
 			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
+			if cfg.tMark then
+				D.SetTeamMark("CASTING", cfg.tMark, dwCaster, dwSkillID, dwLevel)
+			end
 			-- 头顶报警
 			if DBM.bPushbScreenHead and cfg.bScreenHead then
 				FireEvent("JH_SCREENHEAD", dwCaster, { type = "CASTING", txt = data.szName or szName, col = data.col })
@@ -487,7 +580,12 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				FireEvent("JH_FS_CREATE", data.dwID .. "#SKILL#"  .. data.nLevel, { nTime = 3, col = data.col})
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
-				JH.Talk(txt)
+				if szTargetName then
+					local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. szTargetName .. _L["]"])
+					JH.Talk(talk)
+				else
+					JH.Talk(txt)
+				end
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
 				--TODO 全团密聊
@@ -504,7 +602,7 @@ function D.OnNpcEvent(npc, bEnter)
 	local cfg, nClass
 	if bEnter then
 		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { bFightState = false, tList = {}, nTime = -1, nLife = math.floor(npc.nCurrentLife / npc.nMaxLife * 100) }
-		table.insert(CACHE.NPC_LIST[npc.dwTemplateID].tList, npc.dwID)
+		tinsert(CACHE.NPC_LIST[npc.dwTemplateID].tList, npc.dwID)
 		local tWeak, tTemp = CACHE.TEMP.NPC, D.TEMP.NPC
 		if not tWeak[npc.dwTemplateID] then
 			local t = {
@@ -555,12 +653,13 @@ function D.OnNpcEvent(npc, bEnter)
 			if data.nCount and data.nCount > #CACHE.NPC_LIST[npc.dwTemplateID].tList then
 				return
 			end
-			-- 这些需要全部mark 所以单独列出来
 			if cfg then
+				if cfg.tMark then
+					D.SetTeamMark("NPC", cfg.tMark, npc.dwID, npc.dwTemplateID)
+				end
 				if cfg.bScreenHead then
 					FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col })
 				end
-				-- TODO NPC需要标记
 			end
 			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5秒内进入相同的NPC直接忽略
 				return D.Log("IGNORE NPC ENTER SCENE ID:" .. npc.dwTemplateID .. " TIME:" .. nTime .. " TIME2:" .. CACHE.NPC_LIST[npc.dwTemplateID].nTime)
@@ -572,16 +671,16 @@ function D.OnNpcEvent(npc, bEnter)
 		if cfg then
 			local szName = JH.GetTemplateName(npc)
 			local xml = {}
-			table.insert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-			table.insert(xml, GetFormatText(szName, 44, 255, 255, 0))
-			table.insert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			if nClass == DBM_TYPE.NPC_ENTER then
-				table.insert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
 				if data.szNote then
-					table.insert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
+					tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
 				end
 			else
-				table.insert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
+				tinsert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
 			end
 			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -590,7 +689,7 @@ function D.OnNpcEvent(npc, bEnter)
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
 				--TODO 全团密聊
 			end
-			local txt = GetPureText(table.concat(xml))
+			local txt = GetPureText(tconcat(xml))
 			if nClass == DBM_TYPE.NPC_ENTER then
 				if DBM.bPushFullScreen and cfg.bFullScreen then
 					FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.col, bFlash = true })
@@ -630,9 +729,9 @@ function D.OnCallMessage(szContent, szNpcName)
 		if me.IsInParty() and content:find("$team") then
 			local team = GetClientTeam()
 			local c = content
-			for k, v in ipairs(team.GetTeamMemberList()) do
-				if szContent:match(c:gsub("$team", team.GetClientTeamMemberName(v))) and v.szTarget == szNpcName then -- hit
-					tInfo = { dwID = v, szName = team.GetClientTeamMemberName(v) }
+			for kk, vv in ipairs(team.GetTeamMemberList()) do
+				if szContent:match(c:gsub("$team", team.GetClientTeamMemberName(vv))) and v.szTarget == szNpcName then -- hit
+					tInfo = { dwID = vv, szName = team.GetClientTeamMemberName(vv) }
 					bHit = true
 					break
 				end
@@ -646,12 +745,23 @@ function D.OnCallMessage(szContent, szNpcName)
 			D.FireCountdownEvent(v, DBM_TYPE.TALK_MONITOR)
 			local cfg = v[DBM_TYPE.TALK_MONITOR]
 			if cfg then
-				local txt = v.szNote or szContent
+				local xml, txt = {}, v.szNote
+				if tInfo and not v.szNote then
+					tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+					tinsert(xml, GetFormatText(szNpcName or _L["JX3"], 44, 255, 255, 0))
+					tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+					tinsert(xml, GetFormatText(_L["is calling"], 44, 255, 255, 255))
+					tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+					tinsert(xml, GetFormatText(tInfo.szName == me.szName and g_tStrings.STR_YOU or tInfo.szName, 44, 255, 255, 0))
+					tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+					tinsert(xml, GetFormatText(_L["'s name."], 44, 255, 255, 255))
+					txt = GetPureText(tconcat(xml))
+				end
 				txt = txt:gsub("$me", me.szName)
 				if tInfo then
 					txt = txt:gsub("$team", tInfo.szName)
 					if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-						JH.Talk(tInfo.szName, txt)
+						JH.Talk(tInfo.szName, txt:gsub(tInfo.szName, g_tStrings.STR_YOU))
 					end
 					if cfg.bScreenHead then
 						FireEvent("JH_SCREENHEAD", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
@@ -659,7 +769,7 @@ function D.OnCallMessage(szContent, szNpcName)
 				end
 				-- 中央报警
 				if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-					FireEvent("JH_CA_CREATE", txt, 3)
+					FireEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)
 				end
 				-- 特大文字
 				if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
@@ -669,7 +779,12 @@ function D.OnCallMessage(szContent, szNpcName)
 					FireEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = v.col or { 0, 255, 0 }, bFlash = true })
 				end
 				if DBM.bPushTeamChannel and cfg.bTeamChannel then
-					JH.Talk(txt)
+					if tInfo and not v.szNote then
+						local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. tInfo.szName .. _L["]"])
+						JH.Talk(talk)
+					else
+						JH.Talk(txt)
+					end
 				end
 			end
 			break
@@ -840,7 +955,7 @@ function D.GetDungeon()
 		for k, v in ipairs(GetMapList()) do
 			local a = g_tTable.DungeonInfo:Search(v)
 			if a and a.dwClassID == 3 then
-				table.insert(D.tDungeonList, {
+				tinsert(D.tDungeonList, {
 					dwMapID      = a.dwMapID,
 					szLayer3Name = a.szLayer3Name
 				})
