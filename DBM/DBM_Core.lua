@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 21:58:47
+-- @Last Modified time: 2015-05-22 22:55:03
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -31,12 +31,16 @@ local tinsert, tconcat = table.insert, table.concat
 local GetTime, IsPlayer = GetTime, IsPlayer
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
 local FireEvent, Table_BuffIsVisible, Table_IsSkillShow = FireEvent, Table_BuffIsVisible, Table_IsSkillShow
-local DEBUG = false
+local GetPureText = GetPureText
+local JH_Split, JH_Trim = JH.Split, JH.Trim
+local DBM_PLAYER_NAME = "NONE"
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
 local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
-local DBM_DATAPATH = JH.GetAddonInfo().szDataPath
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
+local function GetDataPath()
+	return "DBM/" .. DBM_PLAYER_NAME .. "/DBM.jx3dat"
+end
 local CACHE = {
 	TEMP = { -- 近期事件记录MAP 这里用弱表 方便处理
 		BUFF    = setmetatable({}, { __mode = "v" }),
@@ -54,38 +58,15 @@ local CACHE = {
 	NPC_LIST = {},
 	SKILL_LIST = {},
 }
+
 local D = {
 	tDungeonList = {},
 	FILE = { -- 文件原始数据
-		BUFF    = {
-			[-1] = {
-				{ dwID = 103, nLevel = 1, },
-			},
-			[205] = {
-				{ dwID = 4436, nLevel = 1, },
-			},
-		},
-		DEBUFF  = {
-			[-1] = {
-				{ dwID = 1674, nLevel = 1, },
-			}
-		},
-		CASTING = {
-			[-1] = {
-				{ dwID = 17, nLevel = 1, },
-				{ dwID = 4097, nLevel = 1, },
-			}
-		},
-		NPC     = {
-			[-1] = {
-				{ dwID = 11051, nFrame = 52 },
-			}
-		},
-		TALK    = {
-			[-1] = {
-				{ szContent = "$me" }
-			}
-		},
+		BUFF    = {},
+		DEBUFF  = {},
+		CASTING = {},
+		NPC     = {},
+		TALK    = {},
 	},
 	TEMP = { -- 近期事件记录
 		BUFF    = {},
@@ -116,7 +97,9 @@ DBM = {
 	bPushBuffList       = true,
 	bMonSkillTarget     = true,
 }
+
 local DBM = DBM
+
 function DBM.OnFrameCreate()
 	this:RegisterEvent("NPC_ENTER_SCENE")
 	this:RegisterEvent("NPC_LEAVE_SCENE")
@@ -184,8 +167,19 @@ function DBM.OnEvent(szEvent)
 end
 
 function D.Log(szMsg)
-	if DEBUG then
+	if JH.bDebug then
 		Log("[DBM] " .. szMsg)
+	end
+end
+
+function D.FireTeamWhisper(szMsg)
+	local me = GetClientPlayer()
+	if me and me.IsInParty() then
+		local team = GetClientTeam()
+		for _, v in ipairs(team.GetTeamMemberList()) do
+			local szName = team.GetClientTeamMemberName(v)
+			JH.Talk(szName, szMsg:gsub(_L["["] .. szName .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"]))
+		end
 	end
 end
 
@@ -498,7 +492,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 					end
 				end
 				-- 添加到团队面板
-				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID then
+				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID) then
 					FireEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col)
 				end
 			end
@@ -614,7 +608,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				end
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-				--TODO 全团密聊
+				D.FireTeamWhisper(txt)
 			end
 		end
 	end
@@ -713,7 +707,7 @@ function D.OnNpcEvent(npc, bEnter)
 				JH.Talk(txt)
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-				--TODO 全团密聊
+				D.FireTeamWhisper(txt)
 			end
 			local txt = GetPureText(tconcat(xml))
 			if nClass == DBM_TYPE.NPC_ENTER then
@@ -866,13 +860,13 @@ function D.OnNpcLife(dwTemplateID, nLife)
 	if data and data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
 			if v.nClass == DBM_TYPE.NPC_LIFE then
-				local t = JH.Split(tTime, ";")
+				local t = JH_Split(tTime, ";")
 				for kk, vv in ipairs(t) do
-					local time = JH.Split(v, ",")
-					if time[1] and time[2] and time[3] and tonumber(JH.Trim(time[1])) and tonumber(JH.Trim(time[2])) and JH.Trim(time[3]) ~= "" then
-						if tonumber(JH.Trim(time[1])) == nLife then -- hit
+					local time = JH_Split(v, ",")
+					if time[1] and time[2] and time[3] and tonumber(JH_Trim(time[1])) and tonumber(JH_Trim(time[2])) and JH_Trim(time[3]) ~= "" then
+						if tonumber(JH_Trim(time[1])) == nLife then -- hit
 							FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
-								nTime    = tonumber(JH.Trim(time[2])),
+								nTime    = tonumber(JH_Trim(time[2])),
 								szName   = time[3],
 								nIcon    = v.nIcon,
 								bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
@@ -977,7 +971,23 @@ function D.Enable(bEnable)
 end
 
 function D.Init()
+	if DBM_PLAYER_NAME == "NONE" then
+		local me = GetClientPlayer()
+		if me and not IsRemotePlayer(me.dwID) then
+			DBM_PLAYER_NAME = me.szName
+			local data = JH.LoadLUAData(GetDataPath())
+			if data then
+				for k, v in pairs(D.FILE) do
+					D.FILE[k] = data[k] or {}
+				end
+			end
+		end
+	end
 	D.Enable(DBM.bEnable)
+end
+
+function D.SaveData()
+	JH.SaveLUAData(GetDataPath(), D.FILE)
 end
 
 function D.GetDungeon()
@@ -1161,3 +1171,5 @@ local ui = {
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
 JH.RegisterEvent("LOADING_END", D.Init)
+JH.RegisterEvent("GAME_EXIT", D.SaveData)
+JH.RegisterEvent("PLAYER_EXIT_GAME", D.SaveData)
