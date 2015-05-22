@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-21 18:54:34
+-- @Last Modified time: 2015-05-22 19:58:37
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -13,6 +13,7 @@ local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "CIRCLE", "TALK"
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local CIRCLE_SELECT_MAP = _L["All Data"]
+local DBMUI_SEARCH      = ""
 local DBMUI = {
 	tAnchor = {}
 }
@@ -42,10 +43,30 @@ function DBM_UI.OnFrameCreate()
 	local ui = GUI(this)
 	ui:Append("WndComboBox", "Select_Class", { x = 700, y = 52, txt = _L["All Data"] }):Menu(DBMUI.GetClassMenu)
 	-- 首次加载
-	local nPage = DBMUI.pageset:GetActivePageIndex()
+	-- local nPage = DBMUI.pageset:GetActivePageIndex()
 	FireEvent("DBMUI_TEMP_RELOAD")
 	FireEvent("DBMUI_DATA_RELOAD")
 	ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
+	ui:Fetch("PageSet_Main"):Append("WndEdit", "WndEdit_Search", { x = 50, y = 38, txt = g_tStrings.SEARCH, w = 500, h = 25 }):Focus(function()
+		if this:GetText() == g_tStrings.SEARCH then
+			this:SetText("")
+		end
+	end):Change(function(szText)
+		if JH.Trim(szText) == "" then
+			DBMUI_SEARCH = nil
+		else
+			DBMUI_SEARCH = JH.Trim(szText)
+		end
+		FireEvent("DBMUI_TEMP_RELOAD")
+		if DBMUI_SELECT_TYPE == "CIRCLE" then
+			FireEvent("CIRCLE_DRAW_UI")
+		else
+			FireEvent("DBMUI_DATA_RELOAD")
+		end
+	end)
+	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 760, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
+		DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
+	end)
 end
 
 function DBM_UI.OnEvent(szEvent)
@@ -164,14 +185,33 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 	if szEvent == "DBMUI_DATA_RELOAD" then
 		local tab = DBM_API.GetTable(szType)
 		if tab then
-			local dat = tab[DBMUI_SELECT_MAP] or {}
-			DBMUI.DrawTableL(szType, dat)
+			local dat, dat2 = tab[DBMUI_SELECT_MAP] or {}, {}
+			if DBMUI_SEARCH then
+				for k, v in ipairs(dat) do
+					local szName = DBMUI.GetBoxInfo(v, szType)
+					if szName:match(DBMUI_SEARCH) or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH)) then
+						table.insert(dat2, v)
+					end
+				end
+			else
+				dat2 = dat
+			end
+			DBMUI.DrawTableL(szType, dat2)
 		end
 	elseif szEvent == "CIRCLE_DRAW_UI" then
 		local tab = DBM_API.GetTable(szType)
 		if tab then
-			local dat = tab[CIRCLE_SELECT_MAP] or {}
-			DBMUI.DrawTableL(szType, dat)
+			local dat, dat2 = tab[CIRCLE_SELECT_MAP] or {}, {}
+			if DBMUI_SEARCH then
+				for k, v in ipairs(dat) do
+					if tostring(v.key):match(DBMUI_SEARCH) or (v.szNote and tostring(v.szNote):match(DBMUI_SEARCH)) then
+						table.insert(dat2, v)
+					end
+				end
+			else
+				dat2 = dat
+			end
+			DBMUI.DrawTableL(szType, dat2)
 		end
 	end
 end
@@ -180,7 +220,7 @@ function DBMUI.GetBoxInfo(data, szType)
 	local szName, nIcon
 	if szType == "CASTING" then
 		szName, nIcon = JH.GetSkillName(data.dwID, data.nLevel)
-	elseif szType == "NPC" then
+	elseif szType == "NPC" or szType == "CIRCLE" then
 		local KTemplate = GetNpcTemplate(data.dwID)
 		szName = KTemplate.szName
 		if szName == "" then
@@ -190,6 +230,8 @@ function DBMUI.GetBoxInfo(data, szType)
 			szName = tostring(data.dwID)
 		end
 		nIocn = data.nFrame
+	elseif szType == "TALK" then
+		szName = data.szContent
 	else
 		szName, nIcon = JH.GetBuffName(data.dwID, data.nLevel)
 	end
@@ -207,7 +249,7 @@ function DBMUI.SetBuffItemAction(h, dat)
 		box:SetObjectMouseOver(true)
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
-		OutputBuffTip(0, dat.dwID, dat.nLevel, nil, nil, nil, { x, y, w, h })
+		OutputBuffTipA(dat.dwID, dat.nLevel, { x, y, w, h })
 	end
 	h.OnItemMouseLeave = function()
 		box:SetObjectMouseOver(false)
@@ -328,7 +370,7 @@ function DBMUI.SetLItemAction(szType, h, t)
 		end)
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
-			DBMUI.RemoveData(t.dwMapID, t.nIndex, h:Lookup("Text"):GetText(), true)
+			DBMUI.RemoveData(t.dwMapID, t.nIndex, h:Lookup("Text") and h:Lookup("Text"):GetText() or t.szContent, true)
 		end })
 		PopupMenu(menu)
 	end
@@ -387,17 +429,36 @@ end
 -- 更新临时数据
 function DBMUI.UpdateRList(szEvent, szType, data)
 	szType = szType or DBMUI_SELECT_TYPE
+	szType = (DBMUI_SELECT_TYPE == "CIRCLE" and szType == "NPC") and "CIRCLE" or szType
 	if szType ~= DBMUI_SELECT_TYPE then
 		return
 	end
 	if szEvent == "DBMUI_TEMP_UPDATE" then
 		DBMUI.DrawTableR(szType, data, true)
 	elseif szEvent == "DBMUI_TEMP_RELOAD" then
-		local tab = DBM_API.GetTable(szType, true)
+		local tab, tab2 = DBM_API.GetTable(szType, true), {}
 		if tab then
-			DBMUI.DrawTableR(szType, tab)
+			if DBMUI_SEARCH then
+				for k, v in ipairs(tab) do
+					local szName = DBMUI.GetBoxInfo(v, szType)
+					if szName:match(DBMUI_SEARCH) or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH)) then
+						table.insert(tab2, v)
+					end
+				end
+			else
+				tab2 = tab
+			end
+			DBMUI.DrawTableR(szType, tab2)
 		end
 	end
+end
+
+
+function DBMUI.SetRItemAction(szType, h, t)
+	h.OnItemLButtonClick = function()
+		DBMUI.OpenAddPanel(szType, t)
+	end
+	h.OnItemRButtonClick = h.OnItemLButtonClick
 end
 
 function DBMUI.DrawTableR(szType, data, bInsert)
@@ -412,8 +473,8 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 			DBMUI.SetNpcItemAction(h, t)
 		elseif szType == "TALK" then
 			DBMUI.SetTalkItemAction(h, t, i)
-			-- DBMUI.SetLTalkItemAction(h, t, i)
 		end
+		DBMUI.SetRItemAction(szType, h, t)
 	end
 	local ini = szType == "TALK" and DBMUI_TALK_R or DBMUI_ITEM_R
 	if not bInsert then
@@ -431,7 +492,61 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 	end
 	handle:FormatAllItemPos()
 end
-
+-- 添加面板
+function DBMUI.OpenAddPanel(szType, data)
+	if szType == "CIRCLE" then
+		Circle.OpenAddPanel(DBMUI.GetBoxInfo(data, "NPC"), TARGET.NPC, Table_GetMapName(data.dwMapID))
+	else
+		if Station.Lookup("Normal/DBM_NewData") then
+			Wnd.CloseWindow(Station.Lookup("Normal/DBM_NewData"))
+		end
+		local szName, nIcon = DBMUI.GetBoxInfo(data, szType)
+		local nClass
+		GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, close = true }):RegisterClose()
+		local frame = Station.Lookup("Normal/DBM_NewData")
+		local nX, nY, ui = 0, 0, GUI(frame)
+		frame:RegisterEvent("DBMUI_TEMP_RELOAD")
+		frame.OnEvent = function(szEvent)
+			if szEvent == "DBMUI_TEMP_RELOAD" then
+				ui:Remove()
+			end
+		end
+		if szType ~= "NPC" then
+			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Pos_()
+		else
+			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Pos_()
+		end
+		nX, nY = ui:Append("WndComboBox", "Select_Class", { x = 97, y = nY + 15, txt = _L["Please Select Class"] }):Menu(function()
+			local t = {}
+			local txt = ui:Fetch("Select_Class")
+			DBMUI.InsertDungeonMenu(t, function(dwMapID)
+				txt:Text(DBMUI.GetMapName(dwMapID))
+				nClass = dwMapID
+			end)
+			return t
+		end):Pos_()
+		ui:Append("WndButton3", { x = 120, y = nY + 15, txt = _L["Add"] }):Click(function()
+			if not nClass then
+				return JH.Alert(_L["Please Select Class"])
+			end
+			if DBM_API.CheckRepeatData(szType, nClass, data.dwID, data.nLevel) then
+				return JH.Confirm(_L["Data already exists, whether editor?"], function()
+					DBMUI.OpenSettingPanel(select(2, DBM_API.CheckRepeatData(szType, nClass, data.dwID, data.nLevel)), szType)
+					ui:Remove()
+				end)
+			end
+			local dat = {
+				dwID      = data.dwID,
+				nLevel    = data.nLevel,
+				nFrame    = data.nFrame,
+				szContent = data.szContent,
+				szTarget  = data.szTarget
+			}
+			DBMUI.OpenSettingPanel(DBM_API.AddData(szType, nClass, dat), szType)
+			ui:Remove()
+		end)
+	end
+end
 -- 设置面板
 function DBMUI.OpenSettingPanel(data, szType)
 	local function GetScrutinyTypeMenu()
@@ -704,7 +819,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		local cfg = data[DBM_TYPE.NPC_ENTER] or {}
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Npc Enter scene"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
-			return GetMarkMenu(DBM_TYPE.NPC_ENTE)
+			return GetMarkMenu(DBM_TYPE.NPC_ENTER)
 		end):Pos_()
 
 		nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
@@ -886,13 +1001,13 @@ function DBMUI.OpenSettingPanel(data, szType)
 	end
 	nX = ui:Append("WndButton2", { x = 30, y = nY + 10, txt = _L["Add Countdown"] }):Enable(not (data.tCountdown and #data.tCountdown > 10)):Click(function()
 		data.tCountdown = data.tCountdown or {}
-		table.insert(data.tCountdown, { nTime = "10,Countdown Name;", nClass = -1, nIcon = nIcon ~= -1 and nIcon or 13 })
+		table.insert(data.tCountdown, { nTime = _L["10,Countdown Name;25,Countdown Name"], nClass = -1, nIcon = nIcon ~= -1 and nIcon or 13 })
 		DBMUI.OpenSettingPanel(data, szType)
 	end):Pos_()
 	ui:Append("WndButton2", { x = 335, y = nY + 10, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } }):Click(function()
 		DBMUI.RemoveData(data.dwMapID, data.nIndex, szName or _L["This data"], true)
 	end)
-	nX, nY = ui:Append("WndButton2", { x = 620, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
+	nX, nY = ui:Append("WndButton2", { x = 640, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
 		-- OpenInternetExplorer("")
 		-- TODO github markdown
 	end):Pos_()
@@ -931,5 +1046,12 @@ function DBMUI.ClosePanel()
 	Wnd.CloseWindow(DBMUI.frame)
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 end
-DBM_UI.TogglePanel = DBMUI.TogglePanel
+
+JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePanel })
+
+local ui = {
+	TogglePanel = DBMUI.TogglePanel
+}
+setmetatable(DBM_UI, { __index = ui, __newindex = function() end, __metatable = true })
+
 JH.RegisterEvent("LOADING_END", DBMUI.OpenPanel)

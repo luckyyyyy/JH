@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-20 20:16:30
+-- @Last Modified time: 2015-05-22 19:22:43
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -871,13 +871,13 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 end })
 
 function C.OpenAddPanel(szName, dwType, szMap)
-	if Station.Lookup("Normal/C_NewFace") then
-		Wnd.CloseWindow(Station.Lookup("Normal/C_NewFace"))
+	if Station.Lookup("Normal/DBM_NewData") then
+		Wnd.CloseWindow(Station.Lookup("Normal/DBM_NewData"))
 	end
 	dwType = dwType or TARGET.NPC
-	GUI.CreateFrame("C_NewFace", { w = 380, h = 250, title = _L["Add Face"], close = true }):RegisterClose()
+	GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = _L["Add Face"], close = true }):RegisterClose()
 	-- update ui = wnd
-	local ui = GUI(Station.Lookup("Normal/C_NewFace"))
+	local ui = GUI(Station.Lookup("Normal/DBM_NewData"))
 	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 48, w = 380, h = 30, x = 0, y = 45, align = 1 })
 	ui:Append("Text", { txt = _L["Key:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
 	ui:Append("WndEdit", "Key", { txt = szName, x = 115, y = 83, enable = szName == nil })
