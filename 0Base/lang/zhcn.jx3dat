@@ -87,7 +87,6 @@ data = {
 	["preview"] = "预览",
 	["Hello World"] = "你好，世界。",
 	-- RaidGrid_EventScrutiny.lua --
-	["Arena not use the plug."] = "竞技场中无法使用团队事件监控，插件已关闭。",
 	["Unknown"] = "未知",
 	["Data Update TIPS\nTeammate: %s sent a [%s] for you, whether to join the monitoring list?"] = "《团队事件监控》数据更新提示\n团队成员：[%s] 发送给你一个 %s 数据，是否加入监控列表？",
 	["Joined your data"] = "加入了你的共享数据",
@@ -266,6 +265,11 @@ data = {
 	["Clear Temp Record"] = "清空记录",
 	["Please Select Class"] = "请选择分类",
 	["Add"] = "添加",
+	["Edit Iocn"] = "修改图标",
+	["Edit Color"] = "修改颜色（报警通用颜色）",
+	["Clear Color"] = "清空颜色",
+	["Edit Name"] = "修改名称",
+	["Arena not use the plug."] = "竞技场中无法使用DBM，插件暂时关闭。",
 	-- ST.class.lua --
 	["Countdown format Error"] = "倒计时格式错误",
 	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",
