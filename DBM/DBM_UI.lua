@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 21:34:50
+-- @Last Modified time: 2015-05-22 22:34:23
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -155,8 +155,6 @@ function DBMUI.GetClassMenu()
 		DBMUI_SELECT_MAP = dwMapID
 		FireEvent("DBMUI_DATA_RELOAD")
 	end)
-
-	-- TODO： 元表，并且要根据分类来获取菜单
 	return menu
 end
 
@@ -1040,7 +1038,6 @@ function DBMUI.OpenSettingPanel(data, szType)
 					SetCountdownType(v, DBM_TYPE.TALK_MONITOR, ui:Fetch("Countdown" .. k))
 				end })
 			end
-			-- TODO 其他类型
 			return menu
 		end):Pos_()
 		nX = ui:Append("Box", { x = nX + 5, y = nY, w = 24, h = 24, icon = v.nIcon or nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
