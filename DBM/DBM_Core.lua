@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 22:55:03
+-- @Last Modified time: 2015-05-22 23:29:32
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -768,7 +768,7 @@ function D.OnCallMessage(szContent, szNpcName)
 			D.FireCountdownEvent(v, DBM_TYPE.TALK_MONITOR)
 			local cfg = v[DBM_TYPE.TALK_MONITOR]
 			if cfg then
-				local xml, txt = {}, v.szNote
+				local xml, txt = {}, v.szNote or szContent
 				if tInfo and not v.szNote then
 					tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
 					tinsert(xml, GetFormatText(szNpcName or _L["JX3"], 44, 255, 255, 0))
