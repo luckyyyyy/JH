@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 19:59:20
+-- @Last Modified time: 2015-05-22 21:58:47
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -30,7 +30,7 @@ local setmetatable, tonumber, type, tostring, unpack = setmetatable, tonumber, t
 local tinsert, tconcat = table.insert, table.concat
 local GetTime, IsPlayer = GetTime, IsPlayer
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
-local FireEvent = FireEvent
+local FireEvent, Table_BuffIsVisible, Table_IsSkillShow = FireEvent, Table_BuffIsVisible, Table_IsSkillShow
 local DEBUG = false
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
 local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
@@ -206,7 +206,6 @@ end
 
 local function CreateTalkData(dwMapID)
 	-- 单独重建TALK数据
-	D.DATA.TALK = {}
 	local talk = D.FILE.TALK
 	if talk[-1] then -- 通用数据
 		for k, v in ipairs(talk[-1]) do
@@ -221,6 +220,7 @@ local function CreateTalkData(dwMapID)
 end
 
 function D.CreateData(szEvent)
+	local szLang = select(3, GetVersion())
 	local me = GetClientPlayer()
 	local dwMapID = me.GetMapID()
 	local nTime = GetTime()
@@ -230,6 +230,12 @@ function D.CreateData(szEvent)
 	end
 	for k, v in pairs(CACHE.MAP) do
 		CACHE.MAP[k] = {}
+	end
+	D.DATA.TALK = {}
+	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
+		JH.Sysmsg(_L["Arena not use the plug."])
+		D.Log("MAPID: " .. dwMapID ..  " Create data Failed:" .. GetTime() - nTime  .. "ms")
+		return
 	end
 	-- 重建MAP
 	for _, szType in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC" }) do
@@ -243,7 +249,7 @@ function D.CreateData(szEvent)
 		end
 	end
 	CreateTalkData(dwMapID)
-	D.Log("Create TALK data Success!")
+	D.Log("Create TALK data Succeed!")
 
 	-- 重建metatable
 	for k, v in pairs(D.FILE)  do
@@ -270,7 +276,7 @@ function D.CreateData(szEvent)
 		CACHE.NPC_LIST   = {}
 		CACHE.SKILL_LIST = {}
 	end
-	D.Log("MAPID: " .. dwMapID ..  " Create data Success:" .. GetTime() - nTime  .. "ms")
+	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
 
 function D.FreeCache(szType)
@@ -403,21 +409,23 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 	local cfg, nClass
 	if not bDelete then
 		-- 近期记录
-		local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
-		local key = dwBuffID .. "_" .. nBuffLevel
-		if not tWeak[key] then
-			local t = {
-				dwMapID   = me.GetMapID(),
-				dwID      = dwBuffID,
-				nLevel    = nBuffLevel,
-				bIsPlayer = IsPlayer(dwSkillSrcID)
-			}
-			tWeak[key] = t
-			tTemp[#tTemp + 1] = tWeak[key]
-			if #tTemp > DBM_MAX_CACHE then
-				D.FreeCache(szType)
-			else
-				FireEvent("DBMUI_TEMP_UPDATE", szType, t)
+		if Table_BuffIsVisible(dwBuffID, nBuffLevel) or JH.bDebugClient then
+			local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
+			local key = dwBuffID .. "_" .. nBuffLevel
+			if not tWeak[key] then
+				local t = {
+					dwMapID   = me.GetMapID(),
+					dwID      = dwBuffID,
+					nLevel    = nBuffLevel,
+					bIsPlayer = IsPlayer(dwSkillSrcID)
+				}
+				tWeak[key] = t
+				tTemp[#tTemp + 1] = tWeak[key]
+				if #tTemp > DBM_MAX_CACHE then
+					D.FreeCache(szType)
+				else
+					FireEvent("DBMUI_TEMP_UPDATE", szType, t)
+				end
 			end
 		end
 	end
@@ -462,18 +470,21 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
 			-- 获得处理
 			if nClass == DBM_TYPE.BUFF_GET then
+				if JH.bDebugClient and cfg.bSelect then
+					SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
+				end
 				if cfg.tMark then
 					D.SetTeamMark(szType, cfg.tMark, dwCaster, dwBuffID, nBuffLevel)
 				end
 				-- 重要Buff列表
-				if IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or UI_GetClientPlayerID() == dwCaster) then
+				if IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or me.dwID == dwCaster) then
 					FireEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
 				end
 				-- 头顶报警
 				if DBM.bPushbScreenHead and cfg.bScreenHead then
 					FireEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, szName = data.szName or szName, col = data.col })
 				end
-				if UI_GetClientPlayerID() == dwCaster then
+				if me.dwID == dwCaster then
 					if DBM.bPushBuffList and cfg.bBuffList then
 						-- TODO push BUFF状态栏
 					end
@@ -487,7 +498,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 					end
 				end
 				-- 添加到团队面板
-				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == UI_GetClientPlayerID()) then
+				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID then
 					FireEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col)
 				end
 			end
@@ -514,18 +525,20 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	local me = GetClientPlayer()
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
 	if not tWeak[key] then
-		local t = {
-			dwMapID   = me.GetMapID(),
-			dwID      = dwCastID,
-			nLevel    = dwLevel,
-			bIsPlayer = IsPlayer(dwCaster)
-		}
-		tWeak[key] = t
-		tTemp[#tTemp + 1] = tWeak[key]
-		if #tTemp > DBM_MAX_CACHE then
-			D.FreeCache("CASTING")
-		else
-			FireEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
+		if Table_IsSkillShow(dwCastID, dwLevel) or JH.bDebugClient then
+			local t = {
+				dwMapID   = me.GetMapID(),
+				dwID      = dwCastID,
+				nLevel    = dwLevel,
+				bIsPlayer = IsPlayer(dwCaster)
+			}
+			tWeak[key] = t
+			tTemp[#tTemp + 1] = tWeak[key]
+			if #tTemp > DBM_MAX_CACHE then
+				D.FreeCache("CASTING")
+			else
+				FireEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
+			end
 		end
 	end
 	-- 监控数据
@@ -578,6 +591,9 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			local txt = GetPureText(tconcat(xml))
 			-- 通用的报警事件处理
 			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
+			if JH.bDebugClient and cfg.bSelect then
+				SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
+			end
 			if cfg.tMark then
 				D.SetTeamMark("CASTING", cfg.tMark, dwCaster, dwSkillID, dwLevel)
 			end
@@ -701,6 +717,9 @@ function D.OnNpcEvent(npc, bEnter)
 			end
 			local txt = GetPureText(tconcat(xml))
 			if nClass == DBM_TYPE.NPC_ENTER then
+				if JH.bDebugClient and cfg.bSelect then
+					SetTarget(TARGET.NPC, npc.dwID)
+				end
 				if DBM.bPushFullScreen and cfg.bFullScreen then
 					FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.col, bFlash = true })
 				end
@@ -776,7 +795,11 @@ function D.OnCallMessage(szContent, szNpcName)
 					if cfg.bScreenHead then
 						FireEvent("JH_SCREENHEAD", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
 					end
+					if JH.bDebugClient and cfg.bSelect then
+						SetTarget(TARGET.PLAYER, tInfo.dwID)
+					end
 				end
+
 				-- 中央报警
 				if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
 					FireEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)

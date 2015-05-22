@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-11 11:35:50
+-- @Last Modified time: 2015-05-22 21:27:25
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -133,10 +133,6 @@ function _JH_About.PS.OnPanelActive(frame)
 		OpenInternetExplorer("https://github.com/Webster-jx3/JH")
 	end, { 255, 255, 255 }):Pos_()
 	nX = ui:Append("WndButton2", { x = 10, y = nY + 12, txt = _L["Check Install"] }):Click(_JH_About.CheckInstall):Pos_()
-	if type(RaidGrid_Base) ~= "nil" then
-		nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 12 })
-		:Text(_L["Input Json"]):Click(RaidGrid_Base.OutputRecord)
-	end
 	ui:Append("WndCheckBox", "DEBUG", { x = 380, y = 340, checked = JH.bDebug, txt = "Enable Debug" }):Click(function(bChecked)
 		if not JH.bDebug then
 			JH.Confirm(_L["Warning: plugin will ignore the authority when the debugging mode is on, showing action can not be operate when cross the authorit, but none of this coud be accept by the server,do not select if you are not the developer, avoid making misunderstanding, please do not try it when set up a team, this may creat problem like messing up the record."],function()
