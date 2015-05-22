@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 11:46:45
+-- @Last Modified time: 2015-05-22 21:04:27
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -717,6 +717,9 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	elseif type(nChannel) == "table" then
 		szText = nChannel
 		nChannel = JH.nChannel
+	end
+	if nChannel == PLAYER_TALK_CHANNEL.RAID and not me.IsInParty() then
+		return
 	end
 	-- say body
 	local tSay = nil

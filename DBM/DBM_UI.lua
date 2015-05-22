@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 19:58:37
+-- @Last Modified time: 2015-05-22 21:34:50
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -13,7 +13,7 @@ local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "CIRCLE", "TALK"
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local CIRCLE_SELECT_MAP = _L["All Data"]
-local DBMUI_SEARCH      = ""
+local DBMUI_SEARCH
 local DBMUI = {
 	tAnchor = {}
 }
@@ -396,7 +396,6 @@ function DBMUI.DrawTableL(szType, data)
 				end
 			end })
 		end
-
 		if szType == "BUFF" or szType == "DEBUFF" then
 			DBMUI.SetBuffItemAction(h, t)
 			DBMUI.SetLItemAction(szType, h, t)
@@ -452,7 +451,6 @@ function DBMUI.UpdateRList(szEvent, szType, data)
 		end
 	end
 end
-
 
 function DBMUI.SetRItemAction(szType, h, t)
 	h.OnItemLButtonClick = function()
@@ -511,10 +509,34 @@ function DBMUI.OpenAddPanel(szType, data)
 				ui:Remove()
 			end
 		end
-		if szType ~= "NPC" then
-			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Pos_()
+		if szType == "NPC" then
+			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover)
+				this:SetObjectMouseOver(bHover)
+				if bHover then
+					local x, y = this:GetAbsPos()
+					local w, h = this:GetSize()
+					OutputNpcTip2(data.dwID, { x, y, w, h })
+				else
+					HideTip()
+				end
+			end):Pos_()
+		elseif szType == "TALK" then
+			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40, icon = 340 }):Pos_()
 		else
-			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Pos_()
+			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):Hover(function(bHover)
+				this:SetObjectMouseOver(bHover)
+				if bHover then
+					local x, y = this:GetAbsPos()
+					local w, h = this:GetSize()
+					if szType == "CASTING" then
+						OutputSkillTip(data.dwID, data.nLevel, { x, y, w, h })
+					else
+						OutputBuffTipA(data.dwID, data.nLevel, { x, y, w, h })
+					end
+				else
+					HideTip()
+				end
+			end):Pos_()
 		end
 		nX, nY = ui:Append("WndComboBox", "Select_Class", { x = 97, y = nY + 15, txt = _L["Please Select Class"] }):Menu(function()
 			local t = {}
@@ -525,13 +547,14 @@ function DBMUI.OpenAddPanel(szType, data)
 			end)
 			return t
 		end):Pos_()
-		ui:Append("WndButton3", { x = 120, y = nY + 15, txt = _L["Add"] }):Click(function()
+		ui:Append("WndButton3", { x = 120, y = nY + 40, txt = _L["Add"] }):Click(function()
 			if not nClass then
 				return JH.Alert(_L["Please Select Class"])
 			end
-			if DBM_API.CheckRepeatData(szType, nClass, data.dwID, data.nLevel) then
+			local tab = select(2, DBM_API.CheckRepeatData(szType, nClass, data.dwID or data.szContent, data.nLevel or data.szTarget))
+			if tab then
 				return JH.Confirm(_L["Data already exists, whether editor?"], function()
-					DBMUI.OpenSettingPanel(select(2, DBM_API.CheckRepeatData(szType, nClass, data.dwID, data.nLevel)), szType)
+					DBMUI.OpenSettingPanel(tab, szType)
 					ui:Remove()
 				end)
 			end
@@ -546,6 +569,20 @@ function DBMUI.OpenAddPanel(szType, data)
 			ui:Remove()
 		end)
 	end
+end
+-- 数据调试面板
+function DBMUI.OpenJosnPanel(data, fnAction)
+	local json = JH.JsonEncode(data, true)
+	local wnd = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = _L["Json Data"], close = true }):RegisterClose()
+	wnd:Append("WndEdit", "WndEdit",{ w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999,txt = json })
+	wnd:Append("WndButton3",{ x = 10, y = 370,txt = _L["import"] }):Click(function()
+		local json = wnd:Fetch("WndEdit"):Text()
+		local data = JH.JsonToTable(json)
+		if fnAction then
+			fnAction(data)
+		end
+		wnd:Remove()
+	end)
 end
 -- 设置面板
 function DBMUI.OpenSettingPanel(data, szType)
@@ -647,7 +684,6 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end
 		end
 	end
-
 	local tSkillInfo
 	local me = GetClientPlayer()
 	local a = GetSettingPanelAnchor()
@@ -666,14 +702,70 @@ function DBMUI.OpenSettingPanel(data, szType)
 		end
 	end
 	local nX, nY, _ = 0, 0, 0
-	if szType == "BUFF" or szType == "DEBUFF" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
-			local box = this
-			GUI.OpenIconPanel(function(nIcon)
-				data.nIcon = nIcon
-				box:SetObjectIcon(nIcon)
+
+	local function ClickBox()
+		local menu, box = {}, this
+		if szType ~= "TALK" then
+			table.insert(menu, { szOption = _L["Edit Name"], fnAction = function()
+				GetUserInput(_L["Edit Name"], function(szText)
+					if JH.Trim(szText) == "" then
+						data.szName = nil
+						wnd:Title(szName)
+					else
+						data.szName = szText
+						wnd:Title(szText)
+					end
+				end, nil, nil, nil, data.szName or szName)
+			end})
+			table.insert(menu, { bDevide = true })
+		end
+		if szType ~= "NPC" and szType ~= "TALK" then
+			table.insert(menu, { szOption = _L["Edit Iocn"], fnAction = function()
+				GUI.OpenIconPanel(function(nIcon)
+					data.nIcon = nIcon
+					box:SetObjectIcon(nIcon)
+				end)
+			end})
+			table.insert(menu, { bDevide = true })
+		end
+		table.insert(menu, { szOption = _L["Edit Color"], fnAction = function()
+			GUI.OpenColorTablePanel(function(r, g, b)
+				data.col = { r, g, b }
+				ui:Fetch("Shadow_Color"):Color(r, g, b):Alpha(255)
 			end)
-		end):Pos_()
+		end })
+		if data.col then
+			table.insert(menu, { szOption = _L["Clear Color"], fnAction = function()
+				data.col = nil
+				ui:Fetch("Shadow_Color"):Alpha(0)
+			end })
+		end
+		if JH.bDebugClient then
+			table.insert(menu, { bDevide = true })
+			table.insert(menu, { szOption = _L["Edit raw data, Please be careful"], color = { 255, 255, 0 }, fnAction = function()
+				DBMUI.OpenJosnPanel(data, function(dat)
+					if dat then
+						data = dat
+						DBMUI.OpenSettingPanel(data, szType)
+					end
+				end)
+			end })
+		end
+		PopupMenu(menu)
+	end
+
+	ui:Append("Shadow", "Shadow_Color", { w = 52, h = 52, x = 359, y = 38, color = data.col, alpha = data.col and 255 or 0 })
+	if szType == "BUFF" or szType == "DEBUFF" then
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover)
+			this:SetObjectMouseOver(bHover)
+			if bHover then
+				local x, y = this:GetAbsPos()
+				local w, h = this:GetSize()
+				OutputBuffTipA(data.dwID, data.nLevel, { x, y, w, h })
+			else
+				HideTip()
+			end
+		end):Click(ClickBox):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
 			return GetScrutinyTypeMenu(data)
@@ -738,13 +830,16 @@ function DBMUI.OpenSettingPanel(data, szType)
 			SetDataClass(DBM_TYPE.BUFF_LOSE, "bBigFontAlarm", bCheck)
 		end):Pos_()
 	elseif szType == "CASTING" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
-			local box = this
-			GUI.OpenIconPanel(function(nIcon)
-				data.nIcon = nIcon
-				box:SetObjectIcon(nIcon)
-			end)
-		end):Pos_()
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover)
+			this:SetObjectMouseOver(bHover)
+			if bHover then
+				local x, y = this:GetAbsPos()
+				local w, h = this:GetSize()
+				OutputSkillTip(data.dwID, data.nLevel, { x, y, w, h })
+			else
+				HideTip()
+			end
+		end):Click(ClickBox):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
 			return GetScrutinyTypeMenu(data)
@@ -800,9 +895,16 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end):Pos_()
 		end
 	elseif szType == "NPC" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(function()
-			return JH.Sysmsg(_L["NPC can not change the icon"])
-		end):Pos_()
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover)
+			this:SetObjectMouseOver(bHover)
+			if bHover then
+				local x, y = this:GetAbsPos()
+				local w, h = this:GetSize()
+					OutputNpcTip2(data.dwID, { x, y, w, h })
+			else
+				HideTip()
+			end
+		end):Click(ClickBox):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("Text", { x = 30, y = nY + 10, txt = _L["Npc Count Achieve"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
@@ -855,7 +957,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			SetDataClass(DBM_TYPE.NPC_LEAVE, "bBigFontAlarm", bCheck)
 		end):Pos_()
 	elseif szType == "TALK" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Pos_()
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(ClickBox):Pos_()
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Alert Content"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndEdit", { x = nX + 5, y = nY + 8, txt = data.szNote, w = 650, h = 25 }):Change(function(txt)
 			local szText = JH.Trim(txt)
@@ -954,7 +1056,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		ui:Append("WndEdit", "CountdownName" .. k, { x = nX + 5, y = nY, w = 295, h = 25, txt = v.szName }):Toggle(tonumber(v.nTime) and true or false):Change(function(szNum)
 			v.szName = szNum
 		end):Pos_()
-		nX = ui:Append("WndEdit", "CountdownTime" .. k, { x = nX + 5 + (tonumber(v.nTime) and 300 or 0), y = nY, w = tonumber(v.nTime) and 100 or 400, h = 25, txt = v.nTime }):Change(function(szNum)
+		nX = ui:Append("WndEdit", "CountdownTime" .. k, { x = nX + 5 + (tonumber(v.nTime) and 300 or 0), y = nY, w = tonumber(v.nTime) and 100 or 400, h = 25, txt = v.nTime, color = not CheckCountdown(v.nTime) and { 255, 0, 0 } }):Change(function(szNum)
 			v.nTime = UI_tonumber(szNum, szNum)
 			local edit = ui:Fetch("CountdownTime" .. k)
 			if szNum == "" then
