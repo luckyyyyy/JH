@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 23:29:32
+-- @Last Modified time: 2015-05-23 01:13:06
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -158,6 +158,7 @@ function DBM.OnEvent(szEvent)
 	elseif szEvent == "JH_NPC_ALLLEAVE_SCENE" then
 		D.OnNpcAllLeave(arg0)
 	elseif szEvent == "JH_NPC_FIGHT" then
+		-- Output(arg0, arg1)
 		D.OnNpcFight(arg0, arg1)
 	elseif szEvent == "JH_NPC_LIFE_CHANGE" then
 		D.OnNpcLife(arg0, arg1)
@@ -894,7 +895,7 @@ function D.CheckNpcState()
 	for k, v in pairs(CACHE.NPC_LIST) do
 		local data = D.GetData("NPC", k)
 		if data then
-			local bFightFlag
+			local bFightFlag = false
 			local fNpcPer = 1
 			for kk, vv in ipairs(v.tList) do
 				local npc = GetNpc(vv)
@@ -905,18 +906,15 @@ function D.CheckNpcState()
 					end
 					-- 战斗标记检查
 					if npc.bFightState then
-						if npc.bFightState ~= v.bFightState then
-							bFightFlag = true
-							v.bFightState = true
-							break
-						end
-					else
-						if kk == #v.tList and npc.bFightState ~= v.bFightState then
-							bFightFlag = false
-							v.bFightState = false
-						end
+						bFightFlag = true
+						break
 					end
 				end
+			end
+			if bFightFlag ~= v.bFightState then
+				CACHE.NPC_LIST[k].bFightState = bFightFlag
+			else
+				bFightFlag = nil
 			end
 			fNpcPer = math.floor(fNpcPer * 100)
 			if v.nLife > fNpcPer then
