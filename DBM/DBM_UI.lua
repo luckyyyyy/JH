@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 22:34:23
+-- @Last Modified time: 2015-05-23 00:11:56
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -93,7 +93,6 @@ function DBM_UI.OnEvent(szEvent)
 end
 
 function DBM_UI.OnFrameDragEnd()
-	-- this:CorrectPos() -- 允许拽出屏幕外
 	DBMUI.tAnchor = GetFrameAnchor(this)
 end
 
@@ -113,6 +112,18 @@ function DBM_UI.OnActivePage()
 		end
 	else
 		FireEvent("CIRCLE_DRAW_UI", CIRCLE_SELECT_MAP)
+	end
+end
+
+function DBMUI.OutputTip(szType, data, rect)
+	if szType == "BUFF" or szType == "DEBUFF" then
+		OutputBuffTipA(data.dwID, data.nLevel, rect)
+	elseif szType == "CASTING" then
+		OutputSkillTip(data.dwID, data.nLevel, rect)
+	elseif szType == "NPC" then
+		OutputNpcTip2(data.dwID, rect)
+	elseif szType == "TALK" then
+		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText(DBMUI.GetMapName(data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
 	end
 end
 
@@ -247,7 +258,7 @@ function DBMUI.SetBuffItemAction(h, dat)
 		box:SetObjectMouseOver(true)
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
-		OutputBuffTipA(dat.dwID, dat.nLevel, { x, y, w, h })
+		DBMUI.OutputTip("BUFF", dat, { x, y, w, h })
 	end
 	h.OnItemMouseLeave = function()
 		box:SetObjectMouseOver(false)
@@ -264,7 +275,7 @@ function DBMUI.SetCastingItemAction(h, dat)
 		box:SetObjectMouseOver(true)
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
-		OutputSkillTip(dat.dwID, dat.nLevel, { x, y, w, h })
+		DBMUI.OutputTip("SKILL", dat, { x, y, w, h })
 	end
 	h.OnItemMouseLeave = function()
 		box:SetObjectMouseOver(false)
@@ -286,7 +297,7 @@ function DBMUI.SetNpcItemAction(h, dat)
 			box:SetObjectMouseOver(true)
 			local x, y = this:GetAbsPos()
 			local w, h = this:GetSize()
-			OutputNpcTip2(dat.dwID, { x, y, w, h })
+			DBMUI.OutputTip("NPC", dat, { x, y, w, h })
 		end
 	end
 	h.OnItemMouseLeave = function()
@@ -307,7 +318,7 @@ function DBMUI.SetCircleItemAction(h, dat)
 			local x, y = this:GetAbsPos()
 			local w, h = this:GetSize()
 			if tonumber(dat.key) then
-				OutputNpcTip2(dat.key, { x, y, w, h })
+				DBMUI.OutputTip("NPC", data, { x, y, w, h })
 			else
 				OutputTip(GetFormatText((dat.szNote and string.format("%s (%s)", dat.key, dat.szNote) or dat.key) .. "\n" .. Circle.GetMapName(dat.id or CIRCLE_SELECT_MAP), 41, 255, 255, 255), 300, { x, y, w, h })
 			end
@@ -332,7 +343,7 @@ function DBMUI.SetTalkItemAction(h, t, i)
 			this:Lookup("Image_Light"):Show()
 			local x, y = this:GetAbsPos()
 			local w, h = this:GetSize()
-			OutputTip(GetFormatText(t.szContent, 41, 255, 255, 255), 300, { x, y, w, h })
+			DBMUI.OutputTip("TALK", t, { x, y, w, h })
 		end
 	end
 	h.OnItemMouseLeave = function()
@@ -496,7 +507,10 @@ function DBMUI.OpenAddPanel(szType, data)
 		if Station.Lookup("Normal/DBM_NewData") then
 			Wnd.CloseWindow(Station.Lookup("Normal/DBM_NewData"))
 		end
-		local szName, nIcon = DBMUI.GetBoxInfo(data, szType)
+		local szName, nIcon = _L["TALK"], 340
+		if szType ~= "TALK" then
+			szName, nIcon = DBMUI.GetBoxInfo(data, szType)
+		end
 		local nClass
 		GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, close = true }):RegisterClose()
 		local frame = Station.Lookup("Normal/DBM_NewData")
@@ -507,36 +521,24 @@ function DBMUI.OpenAddPanel(szType, data)
 				ui:Remove()
 			end
 		end
-		if szType == "NPC" then
-			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover)
-				this:SetObjectMouseOver(bHover)
-				if bHover then
-					local x, y = this:GetAbsPos()
-					local w, h = this:GetSize()
-					OutputNpcTip2(data.dwID, { x, y, w, h })
-				else
-					HideTip()
-				end
-			end):Pos_()
-		elseif szType == "TALK" then
-			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40, icon = 340 }):Pos_()
+
+		if szType ~= "NPC" then
+			nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):Pos_()
 		else
-			nX, nY = ui:Append("Box", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):Hover(function(bHover)
-				this:SetObjectMouseOver(bHover)
-				if bHover then
-					local x, y = this:GetAbsPos()
-					local w, h = this:GetSize()
-					if szType == "CASTING" then
-						OutputSkillTip(data.dwID, data.nLevel, { x, y, w, h })
-					else
-						OutputBuffTipA(data.dwID, data.nLevel, { x, y, w, h })
-					end
-				else
-					HideTip()
-				end
-			end):Pos_()
+			nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Pos_()
 		end
-		nX, nY = ui:Append("WndComboBox", "Select_Class", { x = 97, y = nY + 15, txt = _L["Please Select Class"] }):Menu(function()
+		ui:Fetch("Box_Icon"):Hover(function(bHover)
+			this:SetObjectMouseOver(bHover)
+			if bHover then
+				local x, y = this:GetAbsPos()
+				local w, h = this:GetSize()
+				DBMUI.OutputTip(szType, data, { x, y, w, h })
+			else
+				HideTip()
+			end
+		end)
+
+		nX, nY = ui:Append("WndComboBox", "Select_Class", { x = 100, y = nY + 15, txt = _L["Please Select Class"] }):Menu(function()
 			local t = {}
 			local txt = ui:Fetch("Select_Class")
 			DBMUI.InsertDungeonMenu(t, function(dwMapID)
@@ -582,6 +584,7 @@ function DBMUI.OpenJosnPanel(data, fnAction)
 		wnd:Remove()
 	end)
 end
+
 -- 设置面板
 function DBMUI.OpenSettingPanel(data, szType)
 	local function GetScrutinyTypeMenu()
@@ -753,17 +756,22 @@ function DBMUI.OpenSettingPanel(data, szType)
 	end
 
 	ui:Append("Shadow", "Shadow_Color", { w = 52, h = 52, x = 359, y = 38, color = data.col, alpha = data.col and 255 or 0 })
+	if szType ~= "NPC" then
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Pos_()
+	else
+		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Pos_()
+	end
+	ui:Fetch("Box_Icon"):Hover(function(bHover)
+		this:SetObjectMouseOver(bHover)
+		if bHover then
+			local x, y = this:GetAbsPos()
+			local w, h = this:GetSize()
+			DBMUI.OutputTip(szType, data, { x, y, w, h })
+		else
+			HideTip()
+		end
+	end):Click(ClickBox)
 	if szType == "BUFF" or szType == "DEBUFF" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover)
-			this:SetObjectMouseOver(bHover)
-			if bHover then
-				local x, y = this:GetAbsPos()
-				local w, h = this:GetSize()
-				OutputBuffTipA(data.dwID, data.nLevel, { x, y, w, h })
-			else
-				HideTip()
-			end
-		end):Click(ClickBox):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
 			return GetScrutinyTypeMenu(data)
@@ -828,16 +836,6 @@ function DBMUI.OpenSettingPanel(data, szType)
 			SetDataClass(DBM_TYPE.BUFF_LOSE, "bBigFontAlarm", bCheck)
 		end):Pos_()
 	elseif szType == "CASTING" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover)
-			this:SetObjectMouseOver(bHover)
-			if bHover then
-				local x, y = this:GetAbsPos()
-				local w, h = this:GetSize()
-				OutputSkillTip(data.dwID, data.nLevel, { x, y, w, h })
-			else
-				HideTip()
-			end
-		end):Click(ClickBox):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
 			return GetScrutinyTypeMenu(data)
@@ -893,16 +891,6 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end):Pos_()
 		end
 	elseif szType == "NPC" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40 }):File("ui/Image/TargetPanel/Target.uitex", data.nFrame):Hover(function(bHover)
-			this:SetObjectMouseOver(bHover)
-			if bHover then
-				local x, y = this:GetAbsPos()
-				local w, h = this:GetSize()
-					OutputNpcTip2(data.dwID, { x, y, w, h })
-			else
-				HideTip()
-			end
-		end):Click(ClickBox):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("Text", { x = 30, y = nY + 10, txt = _L["Npc Count Achieve"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
@@ -955,7 +943,6 @@ function DBMUI.OpenSettingPanel(data, szType)
 			SetDataClass(DBM_TYPE.NPC_LEAVE, "bBigFontAlarm", bCheck)
 		end):Pos_()
 	elseif szType == "TALK" then
-		nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 361, y = 40, icon = nIcon }):Hover(function(bHover) this:SetObjectMouseOver(bHover) end):Click(ClickBox):Pos_()
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Alert Content"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndEdit", { x = nX + 5, y = nY + 8, txt = data.szNote, w = 650, h = 25 }):Change(function(txt)
 			local szText = JH.Trim(txt)
