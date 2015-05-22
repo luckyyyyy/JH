@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-21 18:42:08
+-- @Last Modified time: 2015-05-22 19:59:20
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -1055,6 +1055,7 @@ function D.GetFileData()
 	return D.FILE
 end
 
+-- 删除 移动 添加 清空
 function D.RemoveData(szType, dwMapID, nIndex)
 	if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
 		table.remove(D.FILE[szType][dwMapID], nIndex)
@@ -1073,11 +1074,11 @@ function D.CheckRepeatData(szType, dwMapID, dwID, nLevel)
 		for k, v in ipairs(D.FILE[szType][dwMapID]) do
 			if type(dwID) == "string" then
 				if dwID == v.szContent and nLevel == v.szTarget then
-					return true
+					return k, v
 				end
 			else
 				if dwID == v.dwID and nLevel == v.nLevel then
-					return true
+					return k, v
 				end
 			end
 		end
@@ -1104,6 +1105,24 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 	end
 end
 
+function D.AddData(szType, dwMapID, data)
+	D.FILE[szType][dwMapID] = D.FILE[szType][dwMapID] or {}
+	table.insert(D.FILE[szType][dwMapID], data)
+	FireEvent("DBM_CREATE_CACHE")
+	FireEvent("DBMUI_DATA_RELOAD", szType)
+	JH.Sysmsg(_L["Succeed"])
+	return D.FILE[szType][dwMapID][#D.FILE[szType][dwMapID]]
+end
+
+function D.ClearTemp(szType)
+	if szType == "CIRCLE" then -- 如果请求圈圈的近期数据 返回NPC的
+		szType = "NPC"
+	end
+	D.Log(szType .. " cache clear!")
+	D.TEMP[szType] = {}
+	collectgarbage("collect")
+	FireEvent("DBMUI_TEMP_RELOAD")
+end
 -- 公开接口
 local ui = {
 	GetTable        = D.GetTable,
@@ -1112,7 +1131,9 @@ local ui = {
 	GetFileData     = D.GetFileData,
 	RemoveData      = D.RemoveData,
 	MoveData        = D.MoveData,
-	CheckRepeatData = D.CheckRepeatData
+	CheckRepeatData = D.CheckRepeatData,
+	ClearTemp       = D.ClearTemp,
+	AddData         = D.AddData
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 

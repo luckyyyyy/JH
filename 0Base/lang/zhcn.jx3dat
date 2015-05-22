@@ -261,6 +261,11 @@ data = {
 	["Succeed"] = "操作成功",
 	["same data Exist"] = "存在相同的数据",
 	["This data"] = "这个数据",
+	["10,Countdown Name;25,Countdown Name"] = "10,倒计时名称;25,这是个分段倒计时",
+	["Open DBM Panel"] = "打开DBM面板",
+	["Clear Temp Record"] = "清空记录",
+	["Please Select Class"] = "请选择分类",
+	["Add"] = "添加",
 	-- ST.class.lua --
 	["Countdown format Error"] = "倒计时格式错误",
 	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",

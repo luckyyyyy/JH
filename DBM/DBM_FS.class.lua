@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 21:38:56
+-- @Last Modified time: 2015-05-22 20:05:46
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
@@ -105,19 +105,19 @@ function FS:ctor(szKey, tArgs)
 	if tArgs then
 		local h
 		if ui and ui:IsValid() then
-			ui:Clear()
+			-- ui:Clear()
 		else
 			ui = FS_UI.handle:AppendItemFromIni(FS_INIFILE, "Handle_Item")
+			ui.nUp = true
+			ui.nAlpha = 0
 		end
-		ui.sha1 = ui:AppendItemFromIni(SHADOW, "shadow")
+		ui.sha1 = ui.sha1 or ui:AppendItemFromIni(SHADOW, "shadow")
 		ui.bFlash = tArgs.bFlash
-		ui.nUp = true
-		ui.nAlpha = 0
 		ui.nTime = tArgs.nTime
 		ui.nCreate = nTime
 		ui.col = tArgs.col or { 255, 128, 0 }
 		if tArgs.tBindBuff then
-			ui.sha2 = ui:AppendItemFromIni(SHADOW, "shadow")
+			ui.sha2 = ui.sha2 or ui:AppendItemFromIni(SHADOW, "shadow")
 			ui.tBindBuff = tArgs.tBindBuff
 		end
 		self.ui = ui

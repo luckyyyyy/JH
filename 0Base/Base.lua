@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-20 01:51:57
+-- @Last Modified time: 2015-05-22 11:46:45
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -1456,15 +1456,6 @@ JH.RegisterEvent("NPC_ENTER_SCENE", function() _JH.aNpc[arg0] = true end)
 JH.RegisterEvent("NPC_LEAVE_SCENE", function() _JH.aNpc[arg0] = nil end)
 JH.RegisterEvent("DOODAD_ENTER_SCENE", function() _JH.aDoodad[arg0] = true end)
 JH.RegisterEvent("DOODAD_LEAVE_SCENE", function() _JH.aDoodad[arg0] = nil end)
-JH.RegisterEvent("PLAYER_TALK", function()
-	local me = GetClientPlayer()
-	if not me then return end
-	local t = me.GetTalkData()
-	if t and arg0 ~= me.dwID and #t> 1 and t[1].text == _L["Addon comm."] and t[2].type == "eventlink" then
-		FireUIEvent("ON_BG_CHANNEL_MSG", arg0, arg1, arg2, arg3)
-	end
-end)
-
 -- 字符串类
 function JH.Trim(szText)
 	if not szText or szText == "" then

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-20 07:23:47
+-- @Last Modified time: 2015-05-22 18:43:56
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -719,7 +719,13 @@ function OutputNpcTip2(dwNpcTemplateID, Rect)
 	if not npc then
 		return
 	end
-	local szName = JH.GetTemplateName(npc)
+	local szName = npc.szName
+	if szName == "" then
+		szName = Table_GetNpcTemplateName(dwNpcTemplateID)
+	end
+	if JH.Trim(szName) == "" then
+		szName = tostring(dwNpcTemplateID)
+	end
 	local szTip = ""
     szTip = szTip.."<Text>text="..EncodeComponentsString(szName.."\n").." font=80".." r=255 g=255 b=255 </text>"
     -------------µÈ¼¶----------------------------
@@ -829,5 +835,70 @@ function EditBox_AppendLinkPlayer(szName)
 	edit:InsertObj("[".. szName .."]", { type = "name", text = "[".. szName .."]", name = szName })
 	Station.SetFocusWindow(edit)
 	return true
+end
+end
+
+if not CompatibleBgTalk then
+local _L = JH.LoadLangPack
+function CompatibleBgTalk()
+	local me = GetClientPlayer()
+	if not me then return end
+	local t = me.GetTalkData()
+	if t and arg0 ~= me.dwID and #t> 1 and t[1].text == _L["Addon comm."] and t[2].type == "eventlink" then
+		FireUIEvent("ON_BG_CHANNEL_MSG", arg0, arg1, arg2, arg3)
+	end
+end
+JH.RegisterEvent("PLAYER_TALK", CompatibleBgTalk)
+end
+
+if not OutputBuffTipA then
+local XML_LINE_BREAKER = GetFormatText("\n")
+function OutputBuffTipA(dwID, nLevel, Rect, nTime)
+	local t = {}
+
+	table.insert(t, GetFormatText(Table_GetBuffName(dwID, nLevel) .. "\t", 65))
+	local buffInfo = GetBuffInfo(dwID, nLevel, {})
+	if buffInfo and buffInfo.nDetachType and g_tStrings.tBuffDetachType[buffInfo.nDetachType] then
+		table.insert(t, GetFormatText(g_tStrings.tBuffDetachType[buffInfo.nDetachType], 106))
+	end
+	table.insert(t, XML_LINE_BREAKER)
+
+	local szDesc = GetBuffDesc(dwID, nLevel, "desc")
+	if szDesc then
+		table.insert(t, GetFormatText(szDesc .. g_tStrings.STR_FULL_STOP, 106))
+	end
+
+	if nTime then
+		if nTime == 0 then
+			table.insert(t, GetFormatText(g_tStrings.STR_BUFF_H_TIME_ZERO, 102))
+		else
+			local H, M, S = "", "", ""
+			local h = math.floor(nTime / 3600)
+			local m = math.floor(nTime / 60) % 60
+			local s = math.floor(nTime % 60)
+			if h > 0 then
+				H = h .. g_tStrings.STR_BUFF_H_TIME_H .. " "
+			end
+			if h > 0 or m > 0 then
+				M = m .. g_tStrings.STR_BUFF_H_TIME_M_SHORT .. " "
+			end
+			S = s..g_tStrings.STR_BUFF_H_TIME_S
+
+			table.insert(GetFormatText(FormatString(g_tStrings.STR_BUFF_H_LEFT_TIME_MSG, H, M, S), 102))
+		end
+	end
+
+	-- For test
+	if IsCtrlKeyDown() then
+		table.insert(t, XML_LINE_BREAKER)
+		table.insert(t, GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP, 102))
+		table.insert(t, XML_LINE_BREAKER)
+		table.insert(t, GetFormatText("ID:     " .. dwID, 102))
+		table.insert(t, XML_LINE_BREAKER)
+		table.insert(t, GetFormatText("Level:  " .. nLevel, 102))
+		table.insert(t, XML_LINE_BREAKER)
+		table.insert(t, GetFormatText("IconID: " .. tostring(Table_GetBuffIconID(dwID, nLevel)), 102))
+	end
+	OutputTip(table.concat(t), 300, Rect)
 end
 end
