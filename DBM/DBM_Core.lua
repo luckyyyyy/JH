@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 20:17:25
+-- @Last Modified time: 2015-05-23 20:46:31
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -95,7 +95,6 @@ DBM = {
 	bPushTeamChannel    = false, -- 团队报警
 	bPushWhisperChannel = false, -- 密聊报警
 	bPushBuffList       = true,
-	bMonSkillTarget     = true,
 }
 
 local DBM = DBM
@@ -404,7 +403,7 @@ function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
 	-- 特大文字
 	if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
 		local txt = GetPureText(tconcat(xml))
-		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, (IsPlayer(dwID) and UI_GetClientPlayerID() == dwID) or (not IsPlayer(dwID)) )
+		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, UI_GetClientPlayerID() == dwID or not IsPlayer(dwID) )
 	end
 end
 
@@ -588,7 +587,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
 			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
 			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-			if DBM.bMonSkillTarget and szTargetName then
+			if data.bMonTarget and szTargetName then
 				tinsert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
 				tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
 				tinsert(xml, GetFormatText(szTargetName == me.szName and g_tStrings.STR_YOU or szTargetName, 44, 255, 255, 0))
@@ -994,6 +993,8 @@ function D.Init()
 				for k, v in pairs(D.FILE) do
 					D.FILE[k] = data[k] or {}
 				end
+			else
+				-- TODO 加载初始数据
 			end
 		end
 	end

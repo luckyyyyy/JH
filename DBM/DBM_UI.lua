@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 20:03:59
+-- @Last Modified time: 2015-05-23 20:47:43
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -965,9 +965,13 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
 			return GetScrutinyTypeMenu(data)
 		end):Pos_()
-		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bCheckLevel, txt = _L["Check Level"] }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bCheckLevel, txt = _L["Check Level"] }):Click(function(bCheck)
 			data.bCheckLevel = bCheck and true or nil
 		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bMonTarget, txt = _L["Show Target Name"] }):Click(function(bCheck)
+			data.bMonTarget = bCheck and true or nil
+		end):Pos_()
+
 		local cfg = data[DBM_TYPE.SKILL_END] or {}
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Skills using a success"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
