@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 19:35:27
+-- @Last Modified time: 2015-05-23 20:04:52
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -404,7 +404,7 @@ function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
 	-- 特大文字
 	if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
 		local txt = GetPureText(tconcat(xml))
-		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, UI_GetClientPlayerID() == dwID )
+		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, (IsPlayer(dwID) and UI_GetClientPlayerID() == dwID) or true )
 	end
 end
 
