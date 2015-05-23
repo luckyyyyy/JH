@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 20:46:31
+-- @Last Modified time: 2015-05-23 21:03:26
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -878,16 +878,16 @@ function D.OnNpcLife(dwTemplateID, nLife)
 				for kk, vv in ipairs(t) do
 					local time = JH_Split(vv, ",")
 					if time[1] and time[2] and tonumber(JH_Trim(time[1])) and JH_Trim(time[2]) ~= "" then
-						if tonumber(JH_Trim(time[1])) == nLife then -- hit
+						if tonumber(JH_Trim(time[1])) * 100 == nLife then -- hit
 							if DBM.bPushCenterAlarm then
 								FireEvent("JH_CA_CREATE", time[2], 3, true)
 							end
 							if time[3] and tonumber(time[3]) then
 								FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
-									nTime    = tonumber(JH_Trim(time[3])),
-									szName   = time[2],
-									nIcon    = v.nIcon,
-									bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
+									nTime  = tonumber(JH_Trim(time[3])),
+									szName = time[2],
+									nIcon  = v.nIcon,
+									bTalk  = DBM.bPushTeamChannel and v.bTeamChannel
 								})
 							end
 							break
