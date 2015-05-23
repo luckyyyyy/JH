@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 00:28:16
+-- @Last Modified time: 2015-05-23 08:25:05
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -121,7 +121,7 @@ function DBMUI.OutputTip(szType, data, rect)
 	elseif szType == "CASTING" then
 		OutputSkillTip(data.dwID, data.nLevel, rect)
 	elseif szType == "NPC" then
-		OutputNpcTip2(data.dwID, rect)
+		OutputNpcTip2(data.dwID or data.key, rect)
 	elseif szType == "TALK" then
 		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText(DBMUI.GetMapName(data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
 	end
@@ -149,6 +149,96 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 	end
 end
 
+function DBMUI.OpenImportPanel(szFileName)
+	if Station.Lookup("Normal/DBM_DatatPanel") then
+		Wnd.CloseWindow(Station.Lookup("Normal/DBM_DatatPanel"))
+	end
+	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Import Data"], close = true }):RegisterClose()
+	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
+	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
+	nX = 25
+	for k, v in ipairs(DBMUI_TYPE) do
+		nX = ui:Append("WndCheckBox", v, { x = nX + 5, y = nY + 5, checked = true, txt = _L[v] }):Pos_()
+	end
+	nY = 100
+	local szFileName = szFileName or ""
+	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Name"], font = 27 }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, w = 500, h = 25, txt = szFileName }):Change(function(szText)
+		szFileName = szText
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Import mode"], font = 27 }):Pos_()
+	local nType = 1
+	nX = ui:Append("WndRadioBox", { x = 30, y = nY + 10, txt = _L["Cover"], group = "type", checked = true }):Click(function()
+		nType = 1
+	end):Pos_()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Merge"], group = "type" }):Click(function()
+		nType = 2
+	end):Pos_()
+	ui:Append("WndButton3", { x = 205, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
+		local config = {
+			szFileName = szFileName,
+			nMode = nType,
+			tList = {}
+		}
+		for k, v in ipairs(DBMUI_TYPE) do
+			if ui:Fetch(v):Check() then
+				config.tList[v] = true
+			end
+		end
+		local bStatus, path = DBM_API.LoadConfigureFile(config)
+		if bStatus then
+			JH.Sysmsg(_L("Import success %s", path))
+			ui:Remove()
+		else
+			JH.Sysmsg2(_L("Import failed %s", path))
+		end
+	end)
+end
+
+function DBMUI.OpenExportPanel()
+	if Station.Lookup("Normal/DBM_DatatPanel") then
+		Wnd.CloseWindow(Station.Lookup("Normal/DBM_DatatPanel"))
+	end
+	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Export Data"], close = true }):RegisterClose()
+	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
+	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
+	nX = 25
+	for k, v in ipairs(DBMUI_TYPE) do
+		nX = ui:Append("WndCheckBox", v, { x = nX + 5, y = nY + 5, checked = true, txt = _L[v] }):Pos_()
+	end
+	nY = 100
+	local szFileName = "DBM-" .. select(3, GetVersion()) .. FormatTime("-%Y-%m-%d_%H.%M.%S", GetCurrentTime()) .. ".jx3dat"
+	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Name"], font = 27 }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, w = 500, h = 25, txt = szFileName }):Change(function(szText)
+		szFileName = szText
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Format"], font = 27 }):Pos_()
+	local nType = 1
+	nX = ui:Append("WndRadioBox", { x = 30, y = nY + 10, txt = _L["LUA TABLE"], group = "type", checked = true }):Click(function()
+		nType = 1
+	end):Pos_()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["JSON"], group = "type" }):Click(function()
+		nType = 2
+	end):Pos_()
+	ui:Append("WndCheckBox", "Format", { x = 20, y = nY + 50, txt = _L["Format content"] })
+	ui:Append("WndButton3", { x = 205, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
+		local config = {
+			bFormat = ui:Fetch("Format"):Check(),
+			szFileName = szFileName,
+			bJson = nType == 2,
+			tList = {}
+		}
+		for k, v in ipairs(DBMUI_TYPE) do
+			if ui:Fetch(v):Check() then
+				config.tList[v] = true
+			end
+		end
+		local path = DBM_API.SaveConfigureFile(config)
+		JH.Alert(_L("Export success %s", path))
+		ui:Remove()
+	end)
+end
+
 function DBMUI.GetClassMenu()
 	if DBMUI_SELECT_TYPE == "CIRCLE" then
 		return Circle.GetMemu()
@@ -166,6 +256,9 @@ function DBMUI.GetClassMenu()
 		DBMUI_SELECT_MAP = dwMapID
 		FireEvent("DBMUI_DATA_RELOAD")
 	end)
+	table.insert(menu, { bDevide = true })
+	table.insert(menu, { szOption = _L["Import Data"], fnAction = DBMUI.OpenImportPanel })
+	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
 	return menu
 end
 
@@ -198,7 +291,7 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 			if DBMUI_SEARCH then
 				for k, v in ipairs(dat) do
 					local szName = DBMUI.GetBoxInfo(v, szType)
-					if szName:match(DBMUI_SEARCH) or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH)) then
+					if szName:match(DBMUI_SEARCH) or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH)) or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH)) then
 						table.insert(dat2, v)
 					end
 				end
@@ -252,6 +345,9 @@ end
 function DBMUI.SetBuffItemAction(h, dat)
 	local szName, nIcon = DBMUI.GetBoxInfo(dat)
 	h:Lookup("Text"):SetText(szName)
+	if dat.col then
+		h:Lookup("Text"):SetFontColor(unpack(dat.col))
+	end
 	local box = h:Lookup("Box")
 	box:SetObjectIcon(nIcon)
 	h.OnItemMouseEnter = function()
@@ -269,13 +365,16 @@ end
 function DBMUI.SetCastingItemAction(h, dat)
 	local szName, nIcon = DBMUI.GetBoxInfo(dat, "CASTING")
 	h:Lookup("Text"):SetText(szName)
+	if dat.col then
+		h:Lookup("Text"):SetFontColor(unpack(dat.col))
+	end
 	local box = h:Lookup("Box")
 	box:SetObjectIcon(nIcon)
 	h.OnItemMouseEnter = function()
 		box:SetObjectMouseOver(true)
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
-		DBMUI.OutputTip("SKILL", dat, { x, y, w, h })
+		DBMUI.OutputTip("CASTING", dat, { x, y, w, h })
 	end
 	h.OnItemMouseLeave = function()
 		box:SetObjectMouseOver(false)
@@ -318,7 +417,7 @@ function DBMUI.SetCircleItemAction(h, dat)
 			local x, y = this:GetAbsPos()
 			local w, h = this:GetSize()
 			if tonumber(dat.key) then
-				DBMUI.OutputTip("NPC", data, { x, y, w, h })
+				DBMUI.OutputTip("NPC", dat, { x, y, w, h })
 			else
 				OutputTip(GetFormatText((dat.szNote and string.format("%s (%s)", dat.key, dat.szNote) or dat.key) .. "\n" .. Circle.GetMapName(dat.id or CIRCLE_SELECT_MAP), 41, 255, 255, 255), 300, { x, y, w, h })
 			end
@@ -338,6 +437,9 @@ function DBMUI.SetTalkItemAction(h, t, i)
 		h:Lookup("Text_Name"):SetFontColor(255, 255, 0)
 	end
 	h:Lookup("Text_Content"):SetText(t.szContent)
+	if t.col then
+		h:Lookup("Text_Content"):SetFontColor(unpack(t.col))
+	end
 	h.OnItemMouseEnter = function()
 		if this:IsValid() then
 			this:Lookup("Image_Light"):Show()
@@ -465,7 +567,20 @@ function DBMUI.SetRItemAction(szType, h, t)
 	h.OnItemLButtonClick = function()
 		DBMUI.OpenAddPanel(szType, t)
 	end
-	h.OnItemRButtonClick = h.OnItemLButtonClick
+	h.OnItemRButtonClick = function()
+		local menu = {}
+		local szName = DBMUI.GetBoxInfo(t, szType)
+		table.insert(menu, { szOption = _L["Add to monitor list"], fnAction = h.OnItemLButtonClick })
+		table.insert(menu, { bDevide = true })
+		if szType ~= "TALK" then
+			table.insert(menu, { szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. szName, bDisable = true })
+		end
+		table.insert(menu, { szOption = g_tStrings.MAP_TALK .. g_tStrings.STR_COLON .. Table_GetMapName(t.dwMapID), bDisable = true })
+		if szType ~= "NPC" and szType ~= "CIRCLE" and szType ~= "TALK" then
+			table.insert(menu, { szOption = g_tStrings.STR_SKILL_H_CAST_TIME .. (t.bIsPlayer and _L["(player)"]) .. (t.szSrcName or g_tStrings.STR_CRAFT_NONE), bDisable = true })
+		end
+		PopupMenu(menu)
+	end
 end
 
 function DBMUI.DrawTableR(szType, data, bInsert)
@@ -512,6 +627,9 @@ function DBMUI.OpenAddPanel(szType, data)
 			szName, nIcon = DBMUI.GetBoxInfo(data, szType)
 		end
 		local nClass
+		if DBMUI_SELECT_MAP ~= _L["All Data"] then
+			nClass = DBMUI_SELECT_MAP
+		end
 		GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, close = true }):RegisterClose()
 		local frame = Station.Lookup("Normal/DBM_NewData")
 		local nX, nY, ui = 0, 0, GUI(frame)
@@ -537,8 +655,7 @@ function DBMUI.OpenAddPanel(szType, data)
 				HideTip()
 			end
 		end)
-
-		nX, nY = ui:Append("WndComboBox", "Select_Class", { x = 100, y = nY + 15, txt = _L["Please Select Class"] }):Menu(function()
+		nX, nY = ui:Append("WndComboBox", "Select_Class", { x = 100, y = nY + 15, txt = nClass and DBMUI.GetMapName(nClass) or _L["Please Select Class"] }):Menu(function()
 			local t = {}
 			local txt = ui:Fetch("Select_Class")
 			DBMUI.InsertDungeonMenu(t, function(dwMapID)
@@ -817,7 +934,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bTeamPanel", bCheck)
 			ui:Fetch("bOnlySelfSrc"):Enable(bCheck)
 		end):Pos_()
-		nX, nY = ui:Append("WndCheckBox", "bOnlySelfSrc", { x = nX + 5, y = nY, checked = cfg.bOnlySelfSrc, txt = _L["Only Source Self"] }):Enable(cfg.bTeamPane == true):Click(function(bCheck)
+		nX, nY = ui:Append("WndCheckBox", "bOnlySelfSrc", { x = nX + 5, y = nY, checked = cfg.bOnlySelfSrc, txt = _L["Only Source Self"] }):Enable(cfg.bTeamPanel == true):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bOnlySelfSrc", bCheck)
 		end):Pos_()
 		-- 失去buff
@@ -1124,20 +1241,24 @@ function DBMUI.TogglePanel()
 	end
 end
 function DBMUI.OpenPanel()
-	Wnd.OpenWindow(DBMUI_INIFILE, "DBM_UI")
-	PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+	if not DBMUI.IsOpened() then
+		Wnd.OpenWindow(DBMUI_INIFILE, "DBM_UI")
+		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+	end
 end
 
 function DBMUI.ClosePanel()
-	Wnd.CloseWindow(DBMUI.frame)
-	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+	if DBMUI.IsOpened() then
+		Wnd.CloseWindow(DBMUI.frame)
+		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+	end
 end
 
 JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePanel })
-
+JH.AddHotKey("JH_DBMUI", _L["Open DBM Panel"], DBMUI.TogglePanel)
 local ui = {
 	TogglePanel = DBMUI.TogglePanel
 }
 setmetatable(DBM_UI, { __index = ui, __newindex = function() end, __metatable = true })
 
-JH.RegisterEvent("LOADING_END", DBMUI.OpenPanel)
+-- JH.RegisterEvent("LOADING_END", DBMUI.OpenPanel)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 01:13:06
+-- @Last Modified time: 2015-05-23 08:26:40
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -383,6 +383,18 @@ function D.FireCountdownEvent(data, nClass)
 	end
 end
 
+function D.GetSrcName(dwID)
+	if not dwID then
+		return nil
+	end
+	local KObject = IsPlayer(dwID) and GetPlayer(dwID) or GetNpc(dwID)
+	if KObject then
+		return JH.GetTemplateName(KObject)
+	else
+		return dwID
+	end
+end
+
 -- 通用的事件发送
 function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
 	-- 中央报警
@@ -412,7 +424,8 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 					dwMapID   = me.GetMapID(),
 					dwID      = dwBuffID,
 					nLevel    = nBuffLevel,
-					bIsPlayer = IsPlayer(dwSkillSrcID)
+					bIsPlayer = IsPlayer(dwSkillSrcID),
+					szSrcName = D.GetSrcName(dwSkillSrcID)
 				}
 				tWeak[key] = t
 				tTemp[#tTemp + 1] = tWeak[key]
@@ -525,7 +538,8 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				dwMapID   = me.GetMapID(),
 				dwID      = dwCastID,
 				nLevel    = dwLevel,
-				bIsPlayer = IsPlayer(dwCaster)
+				bIsPlayer = IsPlayer(dwCaster),
+				szSrcName = D.GetSrcName(dwCaster)
 			}
 			tWeak[key] = t
 			tTemp[#tTemp + 1] = tWeak[key]
@@ -1000,7 +1014,7 @@ function D.GetDungeon()
 			end
 		end
 		table.sort(D.tDungeonList, function(a, b)
-			return a.dwMapID > b.dwMapID
+			return a.dwMapID < b.dwMapID
 		end)
 	end
 	return D.tDungeonList
@@ -1082,6 +1096,76 @@ function D.GetData(szType, dwID, nLevel)
 	end
 end
 
+function D.LoadConfigureFile(config)
+	local data = LoadLUAData("interface/JH/DBM/data/" .. config.szFileName)
+	local path =  GetRootPath() .."/interface/JH/DBM/data/" .. config.szFileName
+	if not data then
+		return false, path
+	else
+		if config.nMode == 1 then
+			if config.tList["CIRCLE"] then
+				if type(Circle) ~= "nil" then
+					local dat = { Circle = data["CIRCLE"] }
+					Circle.LoadCircleData(dat)
+				end
+				config.tList["CIRCLE"] = nil
+			end
+			for k, v in pairs(config.tList) do
+				D.FILE[k] = data[k] or {}
+			end
+			FireEvent("DBM_CREATE_CACHE")
+			FireEvent("DBMUI_DATA_RELOAD")
+			collectgarbage("collect")
+			return true, path
+		elseif config.nMode == 2 then -- 原文件优先
+			if config.tList["CIRCLE"] then
+				if type(Circle) ~= "nil" then
+					local dat = { Circle = data["CIRCLE"] }
+					Circle.LoadCircleMergeData(dat)
+				end
+				config.tList["CIRCLE"] = nil
+			end
+			for szType, _ in pairs(config.tList) do
+				if data[szType] then
+					for k, v in pairs(data[szType]) do
+						for kk, vv in ipairs(v) do
+							if not D.CheckRepeatData(szType, k, vv.dwID or vv.szContent, vv.nLevel or vv.szTarget) then
+								D.FILE[szType][k] = D.FILE[szType][k] or {}
+								table.insert(D.FILE[szType][k], vv)
+							end
+						end
+					end
+				end
+			end
+			FireEvent("DBM_CREATE_CACHE")
+			FireEvent("DBMUI_DATA_RELOAD")
+			collectgarbage("collect")
+			return true, path
+		end
+	end
+end
+
+function D.SaveConfigureFile(config)
+	local data = {}
+	for k, v in pairs(config.tList) do
+		data[k] = D.FILE[k]
+	end
+	if config.tList["CIRCLE"] then
+		if type(Circle) ~= "nil" then
+			data["CIRCLE"] = Circle.GetData()
+		end
+	end
+	local root, path = GetRootPath(), "/interface/JH/DBM/data/" .. config.szFileName
+	root = root:gsub("\\", "/")
+	if config.bJson then
+		SaveLUAData(path, JH.JsonEncode(data, config.bFormat))
+	else
+		SaveLUAData(path, data, config.bFormat and "\t")
+	end
+	collectgarbage("collect")
+	return root .. path
+end
+
 function D.GetFileData()
 	return D.FILE
 end
@@ -1155,16 +1239,18 @@ function D.ClearTemp(szType)
 	FireEvent("DBMUI_TEMP_RELOAD")
 end
 -- 公开接口
-local ui = {
-	GetTable        = D.GetTable,
-	GetDungeon      = D.GetDungeon,
-	GetData         = D.GetData,
-	GetFileData     = D.GetFileData,
-	RemoveData      = D.RemoveData,
-	MoveData        = D.MoveData,
-	CheckRepeatData = D.CheckRepeatData,
-	ClearTemp       = D.ClearTemp,
-	AddData         = D.AddData
+local ui          = {
+	GetTable          = D.GetTable,
+	GetDungeon        = D.GetDungeon,
+	GetData           = D.GetData,
+	GetFileData       = D.GetFileData,
+	RemoveData        = D.RemoveData,
+	MoveData          = D.MoveData,
+	CheckRepeatData   = D.CheckRepeatData,
+	ClearTemp         = D.ClearTemp,
+	AddData           = D.AddData,
+	SaveConfigureFile = D.SaveConfigureFile,
+	LoadConfigureFile = D.LoadConfigureFile,
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
