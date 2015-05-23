@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 19:22:43
+-- @Last Modified time: 2015-05-23 08:23:17
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -520,7 +520,7 @@ function C.DrawTable()
 	if Station.Lookup("Normal/C_Data") then
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
 	end
-	if not C.hSelect then
+	if not C.hSelect or not C.hSelect.self:IsValid() then
 		return
 	end
 	if type(arg0) == "string" then

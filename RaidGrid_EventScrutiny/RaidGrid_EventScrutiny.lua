@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-20 20:16:00
+-- @Last Modified time: 2015-05-23 06:26:29
 local _L = JH.LoadLangPack
 -- val
 local ARENAMAP             = false
@@ -565,7 +565,7 @@ function RaidGrid_Base.OutputSettingsFileNew(szName)
 		__DATA__.EventScrutinyRecords[v].Hash = nil
 		__DATA__.EventScrutinyRecords[v].Hash2 = nil
 	end
-	SaveLUAData(szFullName, __DATA__)
+	SaveLUAData(szFullName, __DATA__, "\t")
 	JH.Alert(_L("Export complete\nPath:%s", GetRootPath().. szFullName))
 end
 
