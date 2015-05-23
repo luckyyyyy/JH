@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 08:25:05
+-- @Last Modified time: 2015-05-23 10:12:53
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -46,7 +46,14 @@ function DBM_UI.OnFrameCreate()
 	-- local nPage = DBMUI.pageset:GetActivePageIndex()
 	FireEvent("DBMUI_TEMP_RELOAD")
 	FireEvent("DBMUI_DATA_RELOAD")
+	-- debug
 	ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
+	ui:Append("WndButton", { txt = "true", x = 110, y = 10 }):Click(function()
+		DBM_API.Enable(true)
+	end)
+	ui:Append("WndButton", { txt = "false", x = 210, y = 10 }):Click(function()
+		DBM_API.Enable(false)
+	end)
 	ui:Fetch("PageSet_Main"):Append("WndEdit", "WndEdit_Search", { x = 50, y = 38, txt = g_tStrings.SEARCH, w = 500, h = 25 }):Focus(function()
 		if this:GetText() == g_tStrings.SEARCH then
 			this:SetText("")

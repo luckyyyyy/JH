@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-23 06:20:42
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 09:27:51
+-- @Last Modified time: 2015-05-23 19:30:41
 
 
 function RGESToDBM(szPath)
@@ -410,6 +410,14 @@ function RGESToDBM(szPath)
 					nIcon = 346,
 					nClass = dwType,
 					nTime = v.szTimerSet,
+				})
+			end
+			if v.szNpcLife then
+				dat.tCountdown = dat.tCountdown or {}
+				table.insert(dat.tCountdown, {
+					nIcon = 346,
+					nClass = DBM_TYPE.NPC_LIFE,
+					nTime = v.szNpcLife,
 				})
 			end
 			data["NPC"][-1] = data["NPC"][-1] or {}

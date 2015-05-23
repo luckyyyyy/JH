@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 08:34:26
+-- @Last Modified time: 2015-05-23 19:35:27
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -167,11 +167,11 @@ function DBM.OnEvent(szEvent)
 	end
 end
 
-function D.Log(szMsg)
-	if JH.bDebug then
-		Log("[DBM] " .. szMsg)
-	end
-end
+-- function D.Log(szMsg)
+	-- if JH.bDebug then
+		-- Log("[DBM] " .. szMsg)
+	-- end
+-- end
 
 function D.FireTeamWhisper(szMsg)
 	local me = GetClientPlayer()
@@ -196,7 +196,7 @@ local function CreateCache(szType, tab)
 			cache[v.dwID] = k
 		end
 	end
-	D.Log("Create " .. szType .. " data Success!")
+	-- D.Log("Create " .. szType .. " data Success!")
 end
 
 local function CreateTalkData(dwMapID)
@@ -229,7 +229,7 @@ function D.CreateData(szEvent)
 	D.DATA.TALK = {}
 	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
-		D.Log("MAPID: " .. dwMapID ..  " Create data Failed:" .. GetTime() - nTime  .. "ms")
+		-- D.Log("MAPID: " .. dwMapID ..  " Create data Failed:" .. GetTime() - nTime  .. "ms")
 		return
 	end
 	-- 重建MAP
@@ -244,7 +244,7 @@ function D.CreateData(szEvent)
 		end
 	end
 	CreateTalkData(dwMapID)
-	D.Log("Create TALK data Succeed!")
+	-- D.Log("Create TALK data Succeed!")
 
 	-- 重建metatable
 	for k, v in pairs(D.FILE)  do
@@ -271,11 +271,11 @@ function D.CreateData(szEvent)
 		CACHE.NPC_LIST   = {}
 		CACHE.SKILL_LIST = {}
 	end
-	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
+	-- D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
 
 function D.FreeCache(szType)
-	D.Log(szType .. " cache clear!")
+	-- D.Log(szType .. " cache clear!")
 	local t = {}
 	local tTemp = D.TEMP[szType]
 	for i = DBM_DEL_CACHE, #tTemp do
@@ -454,7 +454,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			local szName, nIcon = JH.GetBuffName(dwBuffID, nBuffLevel)
 			local KObject = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
 			if not KObject then
-				return D.Log("ERROR " .. szType .. " object:" .. dwCaster .. " does not exist!")
+				return -- D.Log("ERROR " .. szType .. " object:" .. dwCaster .. " does not exist!")
 			end
 			szName = data.szName or szName
 			nIcon  = data.nIcon or nIcon
@@ -558,7 +558,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		local szName, nIcon = JH.GetSkillName(dwCastID, dwLevel)
 		local KObject = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
 		if not KObject then
-			return D.Log("ERROR CASTING object:" .. dwCaster .. " does not exist!")
+			return -- D.Log("ERROR CASTING object:" .. dwCaster .. " does not exist!")
 		end
 		szName = data.szName or szName
 		nIcon  = data.nIcon or nIcon
@@ -697,7 +697,7 @@ function D.OnNpcEvent(npc, bEnter)
 				end
 			end
 			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5秒内进入相同的NPC直接忽略
-				return D.Log("IGNORE NPC ENTER SCENE ID:" .. npc.dwTemplateID .. " TIME:" .. nTime .. " TIME2:" .. CACHE.NPC_LIST[npc.dwTemplateID].nTime)
+				return -- D.Log("IGNORE NPC ENTER SCENE ID:" .. npc.dwTemplateID .. " TIME:" .. nTime .. " TIME2:" .. CACHE.NPC_LIST[npc.dwTemplateID].nTime)
 			else
 				CACHE.NPC_LIST[npc.dwTemplateID].nTime = nTime
 			end
@@ -875,19 +875,21 @@ function D.OnNpcLife(dwTemplateID, nLife)
 	if data and data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
 			if v.nClass == DBM_TYPE.NPC_LIFE then
-				local t = JH_Split(tTime, ";")
+				local t = JH_Split(v.nTime, ";")
 				for kk, vv in ipairs(t) do
 					local time = JH_Split(v, ",")
-					if time[1] and time[2] and time[3] and tonumber(JH_Trim(time[1])) and tonumber(JH_Trim(time[2])) and JH_Trim(time[3]) ~= "" then
+					if time[1] and time[2] and tonumber(JH_Trim(time[1])) and JH_Trim(time[2]) ~= "" then
 						if tonumber(JH_Trim(time[1])) == nLife then -- hit
-							FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
-								nTime    = tonumber(JH_Trim(time[2])),
-								szName   = time[3],
-								nIcon    = v.nIcon,
-								bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
-							})
 							if DBM.bPushCenterAlarm then
-								FireEvent("JH_CA_CREATE", time[3], 3, true)
+								FireEvent("JH_CA_CREATE", time[2], 3, true)
+							end
+							if time[3] and tonumber(time[3]) then
+								FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
+									nTime    = tonumber(JH_Trim(time[3])),
+									szName   = time[2],
+									nIcon    = v.nIcon,
+									bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
+								})
 							end
 							break
 						end
@@ -1036,7 +1038,7 @@ function D.GetTable(szType, bTemp)
 end
 
 local function GetData(tab, szType, dwID, nLevel)
-	D.Log("LOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
+	-- D.Log("LOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
 	if nLevel then
 		for k, v in ipairs(tab) do
 			if v.dwID == dwID and (not v.bCheckLevel or v.nLevel == nLevel) then
@@ -1063,20 +1065,20 @@ function D.GetData(szType, dwID, nLevel)
 			if cache[nLevel] then -- 如果可以直接命中 O(∩_∩)O
 				local data = tab[cache[nLevel]]
 				if data and data.dwID == dwID and (not data.bheckLevel or data.nLevel == nLevel) then
-					D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
+					-- D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
 					return data
 				else
-					D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
+					-- D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
 					return GetData(tab, szType, dwID, nLevel)
 				end
 			else -- 不能直接命中的情况下 遍历下面的level /(ㄒoㄒ)/~~
 				for k, v in pairs(cache) do
 					local data = tab[cache[k]]
 					if data and data.dwID == dwID and (not data.bheckLevel or data.nLevel == nLevel) then -- 能直接命中是最好了 ;-)
-						D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
+						-- D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
 						return data
 					else -- 不能命中的话 就一次机会 直接lookup
-						D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
+						-- D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
 						return GetData(tab, szType, dwID, k) -- 这里必须传k 不要乱改 O__O "…"
 					end
 				end
@@ -1084,10 +1086,10 @@ function D.GetData(szType, dwID, nLevel)
 		else
 			local data = tab[cache]
 			if data and data.dwID == dwID then
-				D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:0")
+				-- D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:0")
 				return data
 			else
-				D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:0")
+				-- D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:0")
 				return GetData(tab, szType, dwID)
 			end
 		end
@@ -1233,13 +1235,14 @@ function D.ClearTemp(szType)
 	if szType == "CIRCLE" then -- 如果请求圈圈的近期数据 返回NPC的
 		szType = "NPC"
 	end
-	D.Log(szType .. " cache clear!")
+	-- D.Log(szType .. " cache clear!")
 	D.TEMP[szType] = {}
 	collectgarbage("collect")
 	FireEvent("DBMUI_TEMP_RELOAD")
 end
 -- 公开接口
 local ui          = {
+	Enable            = D.Enable,
 	GetTable          = D.GetTable,
 	GetDungeon        = D.GetDungeon,
 	GetData           = D.GetData,
