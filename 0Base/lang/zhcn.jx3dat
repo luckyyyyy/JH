@@ -284,6 +284,7 @@ data = {
 	["Import mode"] = "导入模式",
 	["Cover"] = "覆盖（推荐）",
 	["Merge"] = "合并",
+	["Show Target Name"] = "显示目标名称",
 		-- ST.class.lua --
 	["Countdown format Error"] = "倒计时格式错误",
 	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-23 06:20:42
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 19:30:41
+-- @Last Modified time: 2015-05-23 20:34:01
 
 
 function RGESToDBM(szPath)
@@ -36,6 +36,10 @@ function RGESToDBM(szPath)
 			if not v.bNotAddToCTM then
 				dat[dwType] = dat[dwType] or {}
 				dat[dwType].bTeamPanel = true
+			end
+			if v.bPartyBuffList then
+				dat[dwType] = dat[dwType] or {}
+				dat[dwType].bPartyBuffList = true
 			end
 			if not v.bNotAddSelfBuffAlert then
 				dat[dwType] = dat[dwType] or {}
@@ -125,6 +129,10 @@ function RGESToDBM(szPath)
 			if not v.bNotAddToCTM then
 				dat[dwType] = dat[dwType] or {}
 				dat[dwType].bTeamPanel = true
+			end
+			if v.bPartyBuffList then
+				dat[dwType] = dat[dwType] or {}
+				dat[dwType].bPartyBuffList = true
 			end
 			if not v.bNotAddSelfBuffAlert then
 				dat[dwType] = dat[dwType] or {}
