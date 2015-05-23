@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-23 06:20:42
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 08:16:15
+-- @Last Modified time: 2015-05-23 09:27:51
 
 
 function RGESToDBM(szPath)
@@ -26,7 +26,8 @@ function RGESToDBM(szPath)
 	end
 	nTime = GetTime()
 	if __data__.EventScrutinyRecords then
-		for k, v in ipairs(__data__.EventScrutinyRecords.Buff) do
+		for k = #__data__.EventScrutinyRecords.Buff, 1, -1 do
+			local v = __data__.EventScrutinyRecords.Buff[k]
 			local dat = {
 				dwID = v.dwID,
 				nLevel = v.nLevel,
@@ -114,7 +115,8 @@ function RGESToDBM(szPath)
 		end
 		JH.Sysmsg("BUFF 数据转换成功 sort:" .. GetTime() - nTime .. "ms")
 		nTime = GetTime()
-		for k, v in ipairs(__data__.EventScrutinyRecords.Debuff) do
+		for k = #__data__.EventScrutinyRecords.Debuff, 1, -1 do
+			local v = __data__.EventScrutinyRecords.Debuff[k]
 			local dat = {
 				dwID = v.dwID,
 				nLevel = v.nLevel,
@@ -202,7 +204,8 @@ function RGESToDBM(szPath)
 		end
 		JH.Sysmsg("DEBUFF 数据转换成功 sort:" .. GetTime() - nTime .. "ms")
 		nTime = GetTime()
-		for k, v in ipairs(__data__.EventScrutinyRecords.Casting) do
+		for k = #__data__.EventScrutinyRecords.Casting, 1, -1 do
+			local v = __data__.EventScrutinyRecords.Casting[k]
 			local dat = {
 				dwID = v.dwID,
 				nLevel = v.nLevel,
@@ -294,7 +297,8 @@ function RGESToDBM(szPath)
 		end
 		JH.Sysmsg("技能数据转换成功 sort:" .. GetTime() - nTime .. "ms")
 		nTime = GetTime()
-		for k, v in ipairs(__data__.EventScrutinyRecords.Npc) do
+		for k = #__data__.EventScrutinyRecords.Npc, 1, -1 do
+			local v = __data__.EventScrutinyRecords.Npc[k]
 			local dat = {
 				dwID = v.dwID,
 				nLevel = v.nLevel,
