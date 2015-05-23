@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 08:26:40
+-- @Last Modified time: 2015-05-23 08:34:26
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -92,8 +92,8 @@ DBM = {
 	bBigFontAlarm       = true,
 	bPushTeamPanel      = true, -- 面板buff监控
 	bPushFullScreen     = true, -- 全屏泛光
-	bPushTeamChannel    = true, -- 团队报警
-	bPushWhisperChannel = true, -- 密聊报警
+	bPushTeamChannel    = false, -- 团队报警
+	bPushWhisperChannel = false, -- 密聊报警
 	bPushBuffList       = true,
 	bMonSkillTarget     = true,
 }
