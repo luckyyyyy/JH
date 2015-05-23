@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 20:04:52
+-- @Last Modified time: 2015-05-23 20:17:25
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -404,7 +404,7 @@ function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
 	-- 特大文字
 	if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
 		local txt = GetPureText(tconcat(xml))
-		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, (IsPlayer(dwID) and UI_GetClientPlayerID() == dwID) or true )
+		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, (IsPlayer(dwID) and UI_GetClientPlayerID() == dwID) or (not IsPlayer(dwID)) )
 	end
 end
 
@@ -877,7 +877,7 @@ function D.OnNpcLife(dwTemplateID, nLife)
 			if v.nClass == DBM_TYPE.NPC_LIFE then
 				local t = JH_Split(v.nTime, ";")
 				for kk, vv in ipairs(t) do
-					local time = JH_Split(v, ",")
+					local time = JH_Split(vv, ",")
 					if time[1] and time[2] and tonumber(JH_Trim(time[1])) and JH_Trim(time[2]) ~= "" then
 						if tonumber(JH_Trim(time[1])) == nLife then -- hit
 							if DBM.bPushCenterAlarm then
