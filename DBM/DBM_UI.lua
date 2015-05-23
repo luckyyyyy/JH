@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 10:12:53
+-- @Last Modified time: 2015-05-23 20:03:59
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -26,6 +26,7 @@ function DBM_UI.OnFrameCreate()
 	this:RegisterEvent("DBMUI_DATA_RELOAD")
 	this:RegisterEvent("CIRCLE_DRAW_UI")
 	this:RegisterEvent("UI_SCALED")
+	DBMUI_SEARCH = nil -- 重置搜索
 	DBMUI.frame = this
 	DBMUI.pageset = this:Lookup("PageSet_Main")
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
@@ -1164,7 +1165,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		ui:Append("WndEdit", "CountdownName" .. k, { x = nX + 5, y = nY, w = 295, h = 25, txt = v.szName }):Toggle(tonumber(v.nTime) and true or false):Change(function(szNum)
 			v.szName = szNum
 		end):Pos_()
-		nX = ui:Append("WndEdit", "CountdownTime" .. k, { x = nX + 5 + (tonumber(v.nTime) and 300 or 0), y = nY, w = tonumber(v.nTime) and 100 or 400, h = 25, txt = v.nTime, color = not CheckCountdown(v.nTime) and { 255, 0, 0 } }):Change(function(szNum)
+		nX = ui:Append("WndEdit", "CountdownTime" .. k, { x = nX + 5 + (tonumber(v.nTime) and 300 or 0), y = nY, w = tonumber(v.nTime) and 100 or 400, h = 25, txt = v.nTime, color = (v.nClass ~= DBM_TYPE.NPC_LIFE and not CheckCountdown(v.nTime)) and { 255, 0, 0 } }):Change(function(szNum)
 			v.nTime = UI_tonumber(szNum, szNum)
 			local edit = ui:Fetch("CountdownTime" .. k)
 			if szNum == "" then
