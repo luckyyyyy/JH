@@ -6,7 +6,7 @@
 @DATA
 7z.exe
 releases
-DBM/data/*
+DBM/data*
 RaidGrid_EventScrutiny/alldat/RGES*
 RaidGrid_EventScrutiny/alldat/sync*
 RaidGrid_EventScrutiny/alldat/remote*
