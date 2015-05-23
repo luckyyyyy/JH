@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 18:43:56
+-- @Last Modified time: 2015-05-23 08:47:08
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -859,9 +859,9 @@ function OutputBuffTipA(dwID, nLevel, Rect, nTime)
 	table.insert(t, GetFormatText(Table_GetBuffName(dwID, nLevel) .. "\t", 65))
 	local buffInfo = GetBuffInfo(dwID, nLevel, {})
 	if buffInfo and buffInfo.nDetachType and g_tStrings.tBuffDetachType[buffInfo.nDetachType] then
-		table.insert(t, GetFormatText(g_tStrings.tBuffDetachType[buffInfo.nDetachType], 106))
+		table.insert(t, GetFormatText(g_tStrings.tBuffDetachType[buffInfo.nDetachType] .. "\n", 106))
 	end
-	table.insert(t, XML_LINE_BREAKER)
+	-- table.insert(t, XML_LINE_BREAKER)
 
 	local szDesc = GetBuffDesc(dwID, nLevel, "desc")
 	if szDesc then
