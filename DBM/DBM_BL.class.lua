@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 09:55:03
+-- @Last Modified time: 2015-05-24 17:15:16
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -80,6 +80,7 @@ function BL_UI.OnFrameBreathe()
 				local nAlpha = h:GetAlpha()
 				if nAlpha == 0 then
 					BL.handle:RemoveItem(h)
+					BL.handle:FormatAllItemPos()
 				else
 					h:SetAlpha(math.max(0, nAlpha - 30))
 					h:Lookup("Animate_Update"):SetAlpha(0)
