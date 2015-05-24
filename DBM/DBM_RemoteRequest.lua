@@ -1,21 +1,21 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-13 15:53:29
+-- @Last Modified time: 2015-05-24 19:48:10
 local _L = JH.LoadLangPack
 
-WebSyncData = {
+DBM_RemoteRequest = {
 	tData = {},
 	bLogin = false,
 	uid = 0,
 	pw = 0,
 }
 
-JH.RegisterCustomData("WebSyncData")
+JH.RegisterCustomData("DBM_RemoteRequest")
 local ROOT_URL = "http://game.j3ui.com/"
 local _, _, CLIENT_LANG = GetVersion()
 local W = {
-	szIniFile = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/WebSyncData.ini",
+	szIniFile = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_RemoteRequest.ini",
 	szFileList =    ROOT_URL .. "data/top/",
 	szFileList2 =   ROOT_URL .. "data/other/",
 	szSearch =      ROOT_URL .. "data/search/",
@@ -25,19 +25,19 @@ local W = {
 }
 -- 打开界面
 function W.OpenPanel()
-	local wnd = Station.Lookup("Normal/WebSyncData") or Wnd.OpenWindow(W.szIniFile, "WebSyncData")
+	local wnd = Station.Lookup("Normal/DBM_RemoteRequest") or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
 	wnd:BringToTop()
 	Station.SetActiveFrame(wnd)
 	W.RequestList()
 end
 
 function W.ClosePanel()
-	Wnd.CloseWindow(Station.Lookup("Normal/WebSyncData"))
+	Wnd.CloseWindow(Station.Lookup("Normal/DBM_RemoteRequest"))
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 	W.Container = nil
 end
 
-function WebSyncData.OnFrameCreate()
+function DBM_RemoteRequest.OnFrameCreate()
 	local ui = GUI(this)
 	ui:Append("WndButton3", { x = 30, y = 630, txt = _L["sync team"] })
 	:Click(W.SyncTeam)
@@ -51,9 +51,9 @@ function WebSyncData.OnFrameCreate()
 	end)
 	ui:Append("WndButton3", { x = 480, y = 630, txt = g_tStrings.SEARCH }):Click(W.Search)
 
-	ui:Append("WndButton3", { x = 665, y = 630, txt = _L["My Data"] }):Enable(WebSyncData.bLogin):Click(W.MyData)
-	ui:Append("WndButton3", { x = 815, y = 630, txt = WebSyncData.bLogin and _L["Logout"] or _L["Login Web Account"] }):Click(function()
-		if not WebSyncData.bLogin then
+	ui:Append("WndButton3", { x = 665, y = 630, txt = _L["My Data"] }):Enable(DBM_RemoteRequest.bLogin):Click(W.MyData)
+	ui:Append("WndButton3", { x = 815, y = 630, txt = DBM_RemoteRequest.bLogin and _L["Logout"] or _L["Login Web Account"] }):Click(function()
+		if not DBM_RemoteRequest.bLogin then
 			W.Login()
 		else
 			W.Logout()
@@ -64,8 +64,8 @@ function WebSyncData.OnFrameCreate()
 end
 
 function W.Login()
-	local uid =  WebSyncData.uid
-	local pw =  WebSyncData.pw
+	local uid =  DBM_RemoteRequest.uid
+	local pw =  DBM_RemoteRequest.pw
 	if uid == 0 or not pw then
 		GetUserInput(_L["Enter User ID"], function(szNum)
 			if not tonumber(szNum) then
@@ -83,9 +83,9 @@ function W.Login()
 end
 
 function W.Logout()
-	WebSyncData.uid = nil
-	WebSyncData.pw = nil
-	WebSyncData.bLogin = false
+	DBM_RemoteRequest.uid = nil
+	DBM_RemoteRequest.pw = nil
+	DBM_RemoteRequest.bLogin = false
 	W.ClosePanel()
 	W.OpenPanel()
 end
@@ -103,9 +103,9 @@ function W.CallLogin(uid, pw, fnAction)
 			if tonumber(result['uid']) > 0 then
 				local _, _, url = string.find(result['info'], "src=\"(.-)\"")
 				JH.RemoteRequest(url) -- synclogin set cookie
-				WebSyncData.uid = uid
-				WebSyncData.pw = pw
-				WebSyncData.bLogin = true
+				DBM_RemoteRequest.uid = uid
+				DBM_RemoteRequest.pw = pw
+				DBM_RemoteRequest.bLogin = true
 				W.ClosePanel()
 				W.OpenPanel()
 				if fnAction then pcall(fnAction) end
@@ -126,10 +126,10 @@ function W.MyData()
 			if tonumber(result['uid']) > 0 then
 				W.CallMyData()
 			else
-				WebSyncData.bLogin = false
+				DBM_RemoteRequest.bLogin = false
 				W.ClosePanel()
 				W.OpenPanel()
-				W.CallLogin(WebSyncData.uid, WebSyncData.pw, W.CallMyData)
+				W.CallLogin(DBM_RemoteRequest.uid, DBM_RemoteRequest.pw, W.CallMyData)
 			end
 		end
 	end)
@@ -164,7 +164,7 @@ function W.RequestList(szUrl)
 end
 
 function W.ListCallBack(result)
-	if not Station.Lookup("Normal/WebSyncData") then return end
+	if not Station.Lookup("Normal/DBM_RemoteRequest") then return end
 	W.Container:Clear()
 	W.UseData = nil
 	if result["msg"] then
@@ -202,7 +202,7 @@ function W.MenuTip(hItem, text)
 end
 
 function W.AppendItem(data, k)
-	local wnd = W.Container:AppendContentFromIni(JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/Data_ListItem.ini", "WndWindow")
+	local wnd = W.Container:AppendContentFromIni(JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_RR.ini", "WndWindow")
 	local item = wnd:Lookup("", "")
 	if k % 2 == 0 then
 		item:Lookup("Image_Line"):Hide()
@@ -253,9 +253,9 @@ function W.AppendItem(data, k)
 				btn2:Lookup("","Text_Default2"):SetText(_L["details"])
 				btn:Hide()
 			end
-			if WebSyncData.tData.tid and WebSyncData.tData.tid == data.tid then
+			if DBM_RemoteRequest.tData.tid and DBM_RemoteRequest.tData.tid == data.tid then
 				item:Lookup("Text_Title"):SetFontColor(255, 255, 0)
-				if WebSyncData.tData.md5 == data.md5 then
+				if DBM_RemoteRequest.tData.md5 == data.md5 then
 					btn:Lookup("","Text_Default"):SetText(_L["select"])
 				else
 					btn:Lookup("","Text_Default"):SetText(_L["update"])
@@ -270,33 +270,21 @@ function W.AppendItem(data, k)
 end
 
 function W.DoanloadData(data)
-	local me = GetClientPlayer()
 	if data.tid then
-	local wnd = GUI.CreateFrame("RGES_Data",{ w = 740,h = 300,title = _L["JH"] ,drag = true,close = true }):RegisterClose()
-		data.color = data.color or "ffffff"
-		wnd:Append("Text", { w = 685, h = 60, x = 0, y = 0, txt = data.title, font = 40, multi = true, align = 1, color = { tonumber(string.sub(data.color, 0, 2), 16), tonumber(string.sub(data.color, 2, 4), 16), tonumber(string.sub(data.color, 4, 6), 16) } })
-		wnd:Append("Text", { w = 685, h = 30, x = 0, y = 65, txt = "By:" .. data.author, font = 40, align = 1 })
-		wnd:Append("WndButton3", { x = 145, y = 120, txt = _L["Cover data"] }):Click(function()
-			wnd:Remove()
-			W.CallDoanloadData(data, true)
-		end)
-		wnd:Append("WndButton3", { x = 400, y = 120, txt = _L["Merge data"] }):Click(function()
-			wnd:Remove()
+		JH.Confirm(_L["Author:"] .. data.author .. "\n" .. _L["Title:"] .. data.title ,function()
 			W.CallDoanloadData(data)
-		end)
+		end, nil, _L["Download Data"])
 	end
 end
 
-function W.CallDoanloadData(data, bOverride)
-	JH.Alert(g_tStrings.STR_WAIT_UPDATE)
+function W.CallDoanloadData(data)
 	-- 简单本地缓存一下
-	local szPath = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/alldat/"
-	local szFileName = "remote_data_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
+	local szPath = JH.GetAddonInfo().szRootPath .. "DBM/data/"
+	local szFileName = "DBM-Remote_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
 
 	local function fnAction(szFile)
-		pcall(RaidGrid_Base.LoadSettingsFileNew, szFile, bOverride)
-		JH.Alert(g_tStrings.STR_UPDATE_SUCCESS .. "\n\n" .. data.title)
-		WebSyncData.tData = data
+		DBM_UI.OpenImportPanel(szFile)
+		DBM_RemoteRequest.tData = data
 		local me = GetClientPlayer()
 		if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "Load", data.title) end
 	end
@@ -348,4 +336,4 @@ end)
 local UIProtect = {
 	OpenPanel = W.OpenPanel,
 }
-setmetatable(WebSyncData, { __index = UIProtect, __metatable = true, __newindex = function() --[[ print("Protect") ]] end } )
+setmetatable(DBM_RemoteRequest, { __index = UIProtect, __metatable = true, __newindex = function() --[[ print("Protect") ]] end } )

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 10:22:06
+-- @Last Modified time: 2015-05-24 19:51:21
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -275,6 +275,7 @@ function DBMUI.GetClassMenu()
 	end)
 	table.insert(menu, { bDevide = true })
 	table.insert(menu, { szOption = _L["Import Data"], fnAction = DBMUI.OpenImportPanel })
+	table.insert(menu, { szOption = _L["import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
 	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
 	return menu
 end
@@ -1311,7 +1312,8 @@ end
 JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePanel })
 JH.AddHotKey("JH_DBMUI", _L["Open DBM Panel"], DBMUI.TogglePanel)
 local ui = {
-	TogglePanel = DBMUI.TogglePanel
+	TogglePanel     = DBMUI.TogglePanel,
+	OpenImportPanel = DBMUI.OpenImportPanel
 }
 setmetatable(DBM_UI, { __index = ui, __newindex = function() end, __metatable = true })
 
