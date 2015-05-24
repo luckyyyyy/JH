@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 17:15:16
+-- @Last Modified time: 2015-05-24 22:44:43
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -35,8 +35,14 @@ local function CreateBuffList(dwID, nLevel, col)
 				h.dwID = dwID
 				h:Lookup("Text_Name"):SetText(szName)
 				h:Lookup("Text_Name"):SetFontColor(unpack(col))
-				h:Lookup("Box"):SetObjectIcon(nIcon)
-				h:Lookup("Box"):SetObjectSparking(true)
+				local box = h:Lookup("Box")
+				box:SetObjectIcon(nIcon)
+				box:SetObjectSparking(true)
+				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+				box:SetOverTextFontScheme(0, 15)
+				if tBuff.nStackNum > 1 then
+					box:SetOverText(0, tBuff.nStackNum)
+				end
 				h:Lookup("Text_Time"):SetText(szTime)
 				h:Lookup("Text_Time"):SetFontColor(unpack(col))
 				BL.handle:FormatAllItemPos()
@@ -95,6 +101,11 @@ function BL_UI.OnFrameBreathe()
 					local nAlpha = h:Lookup("Animate_Update"):GetAlpha()
 					if nAlpha > 0 then
 						h:Lookup("Animate_Update"):SetAlpha(math.max(0, nAlpha - 8))
+					end
+					if tBuff.nStackNum > 1 then
+						h:Lookup("Box"):SetOverText(0, tBuff.nStackNum)
+					else
+						h:Lookup("Box"):SetOverText(0, "")
 					end
 				else
 					h.bDelete = true
