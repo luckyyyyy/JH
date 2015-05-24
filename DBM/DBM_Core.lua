@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 21:35:23
+-- @Last Modified time: 2015-05-24 22:05:50
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -207,15 +207,16 @@ end
 
 local function CreateTalkData(dwMapID)
 	-- 单独重建TALK数据
-	local talk = D.FILE.TALK
-	if talk[-1] then -- 通用数据
-		for k, v in ipairs(talk[-1]) do
-			D.DATA.TALK[#talk + 1] = v
+	local data = D.FILE.TALK
+	local talk = D.DATA.TALK
+	if data[-1] then -- 通用数据
+		for k, v in ipairs(data[-1]) do
+			talk[#talk + 1] = v
 		end
 	end
-	if talk[dwMapID] then -- 本地图数据
-		for k, v in ipairs(talk[-1]) do
-			D.DATA.TALK[#talk + 1] = v
+	if data[dwMapID] then -- 本地图数据
+		for k, v in ipairs(data[-1]) do
+			talk[#talk + 1] = v
 		end
 	end
 end
