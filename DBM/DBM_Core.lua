@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 09:39:23
+-- @Last Modified time: 2015-05-24 17:27:34
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -828,7 +828,9 @@ function D.OnCallMessage(szContent, szNpcName)
 					FireEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true )
 				end
 				if DBM.bPushFullScreen and cfg.bFullScreen then
-					FireEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = v.col or { 0, 255, 0 }, bFlash = true })
+					if (tInfo and tInfo.dwID == me.dwID) or not tInfo then
+						FireEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = v.col or { 0, 255, 0 }, bFlash = true })
+					end
 				end
 				if DBM.bPushTeamChannel and cfg.bTeamChannel then
 					if tInfo and not v.szNote then
@@ -1133,7 +1135,7 @@ end
 
 function D.LoadConfigureFile(config)
 	local data = LoadLUAData("interface/JH/DBM/data/" .. config.szFileName)
-	local path =  GetRootPath() .."/interface/JH/DBM/data/" .. config.szFileName
+	local path = GetRootPath() .."/interface/JH/DBM/data/" .. config.szFileName
 	if not data then
 		return false, path
 	else
