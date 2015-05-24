@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 20:47:43
+-- @Last Modified time: 2015-05-24 08:00:42
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -14,6 +14,9 @@ local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local CIRCLE_SELECT_MAP = _L["All Data"]
 local DBMUI_SEARCH
+local DBMUI_GLOBAL_SEARCH = false
+local DBMUI_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
+
 local DBMUI = {
 	tAnchor = {}
 }
@@ -48,13 +51,15 @@ function DBM_UI.OnFrameCreate()
 	FireEvent("DBMUI_TEMP_RELOAD")
 	FireEvent("DBMUI_DATA_RELOAD")
 	-- debug
-	ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
-	ui:Append("WndButton", { txt = "true", x = 110, y = 10 }):Click(function()
-		DBM_API.Enable(true)
-	end)
-	ui:Append("WndButton", { txt = "false", x = 210, y = 10 }):Click(function()
-		DBM_API.Enable(false)
-	end)
+	if JH.bDebugClient then
+		ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
+		ui:Append("WndButton", { txt = "Enable", x = 110, y = 10 }):Click(function()
+			DBM_API.Enable(true)
+		end)
+		ui:Append("WndButton", { txt = "Disable", x = 210, y = 10 }):Click(function()
+			DBM_API.Enable(false)
+		end)
+	end
 	ui:Fetch("PageSet_Main"):Append("WndEdit", "WndEdit_Search", { x = 50, y = 38, txt = g_tStrings.SEARCH, w = 500, h = 25 }):Focus(function()
 		if this:GetText() == g_tStrings.SEARCH then
 			this:SetText("")
@@ -71,6 +76,10 @@ function DBM_UI.OnFrameCreate()
 		else
 			FireEvent("DBMUI_DATA_RELOAD")
 		end
+	end)
+	ui:Fetch("PageSet_Main"):Append("WndCheckBox", { x = 560, y = 38, checked = DBMUI_GLOBAL_SEARCH, txt = _L["Global Search"] }):Click(function(bCheck)
+		DBMUI_GLOBAL_SEARCH = bCheck
+		FireEvent("DBMUI_DATA_RELOAD")
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 760, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
 		DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
@@ -299,7 +308,11 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 			if DBMUI_SEARCH then
 				for k, v in ipairs(dat) do
 					local szName = DBMUI.GetBoxInfo(v, szType)
-					if szName:match(DBMUI_SEARCH) or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH)) or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH)) then
+					if szName:match(DBMUI_SEARCH)
+						or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH))
+						or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH))
+						or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(v):match(DBMUI_SEARCH))
+					then
 						table.insert(dat2, v)
 					end
 				end
@@ -358,6 +371,11 @@ function DBMUI.SetBuffItemAction(h, dat)
 	end
 	local box = h:Lookup("Box")
 	box:SetObjectIcon(nIcon)
+	if dat.nCount then
+		box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+		box:SetOverTextFontScheme(0, 15)
+		box:SetOverText(0, dat.nCount)
+	end
 	h.OnItemMouseEnter = function()
 		box:SetObjectMouseOver(true)
 		local x, y = this:GetAbsPos()
@@ -559,7 +577,11 @@ function DBMUI.UpdateRList(szEvent, szType, data)
 			if DBMUI_SEARCH then
 				for k, v in ipairs(tab) do
 					local szName = DBMUI.GetBoxInfo(v, szType)
-					if szName:match(DBMUI_SEARCH) or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH)) then
+					if szName:match(DBMUI_SEARCH)
+						or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH))
+						or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH))
+						or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(v):match(DBMUI_SEARCH))
+					then
 						table.insert(tab2, v)
 					end
 				end
@@ -647,7 +669,6 @@ function DBMUI.OpenAddPanel(szType, data)
 				ui:Remove()
 			end
 		end
-
 		if szType ~= "NPC" then
 			nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):Pos_()
 		else
@@ -702,11 +723,11 @@ function DBMUI.OpenJosnPanel(data, fnAction)
 	wnd:Append("WndEdit", "WndEdit",{ w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999,txt = json })
 	wnd:Append("WndButton3",{ x = 10, y = 370,txt = _L["import"] }):Click(function()
 		local json = wnd:Fetch("WndEdit"):Text()
-		local data = JH.JsonToTable(json)
-		if fnAction then
-			fnAction(data)
+		local dat = JH.JsonToTable(json)
+		if fnAction and dat then
+			wnd:Remove()
+			return fnAction(dat)
 		end
-		wnd:Remove()
 	end)
 end
 
@@ -774,15 +795,6 @@ function DBMUI.OpenSettingPanel(data, szType)
 		end
 	end
 
-	local function GetSettingPanelAnchor()
-		local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-		local frame = Station.Lookup("Normal/DBM_SettingPanel")
-		if frame then
-			a = GetFrameAnchor(frame, "LEFTTOP")
-		end
-		return a
-	end
-
 	local function SetCountdownType(dat, val, ui)
 		dat.nClass = val
 		ui:Text(_L["Countdown TYPE " ..  dat.nClass])
@@ -799,26 +811,30 @@ function DBMUI.OpenSettingPanel(data, szType)
 				local time = JH.Split(v, ",")
 				if time[1] and time[2] and tonumber(JH.Trim(time[1])) and time[2] ~= "" then
 					table.insert(tab, { nTime = tonumber(time[1]), szName = time[2] })
-				else
+				elseif JH.Trim(time[1]) ~= "" and not tonumber(time[1]) then
+					return false
+				elseif tonumber(time[1]) and (not time[2] or JH.Trim(time[2]) == "") then
 					return false
 				end
 			end
 			if IsEmpty(tab) then
 				return false
 			else
-				return true
+				table.sort(tab, function(a, b)
+					return a.nTime < b.nTime
+				end)
+				return tab
 			end
 		end
 	end
 	local tSkillInfo
 	local me = GetClientPlayer()
-	local a = GetSettingPanelAnchor()
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
 	local szName, nIcon = _L["TALK"], 340
 	if szType ~= "TALK" then
 		szName, nIcon = DBMUI.GetBoxInfo(data, szType)
 	end
-	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
+	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true }):RegisterClose()
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")
 	local ui = GUI(frame)
 	frame:RegisterEvent("DBMUI_DATA_RELOAD")
@@ -826,6 +842,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 		if szEvent == "DBMUI_DATA_RELOAD" then
 			ui:Remove()
 		end
+	end
+	frame.OnFrameDragEnd = function()
+		DBMUI_PANEL_ANCHOR = GetFrameAnchor(frame, "LEFTTOP")
 	end
 	local nX, nY, _ = 0, 0, 0
 
@@ -870,10 +889,10 @@ function DBMUI.OpenSettingPanel(data, szType)
 			table.insert(menu, { bDevide = true })
 			table.insert(menu, { szOption = _L["Edit raw data, Please be careful"], color = { 255, 255, 0 }, fnAction = function()
 				DBMUI.OpenJosnPanel(data, function(dat)
-					if dat then
-						data = dat
-						DBMUI.OpenSettingPanel(data, szType)
+					for k, v in pairs(dat) do
+						data[k] = v
 					end
+					DBMUI.OpenSettingPanel(data, szType)
 				end)
 			end })
 		end
@@ -904,6 +923,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("Text", { x = nX + 5, y = nY + 10, txt = _L["Count Achieve"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
 			data.nCount = UI_tonumber(nNum)
+			if data.nCount == 1 then
+				data.nCount = nil
+			end
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bCheckLevel, txt = _L["Check Level"] }):Click(function(bCheck)
 			data.bCheckLevel = bCheck and true or nil
@@ -1024,6 +1046,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("Text", { x = 30, y = nY + 10, txt = _L["Npc Count Achieve"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
 			data.nCount = UI_tonumber(nNum)
+			if data.nCount == 1 then
+				data.nCount = nil
+			end
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bAllLeave, txt = _L["Must All leave scene"] }):Click(function(bCheck)
 			data.bAllLeave = bCheck and true or nil
@@ -1038,7 +1063,6 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
 			return GetMarkMenu(DBM_TYPE.NPC_ENTER)
 		end):Pos_()
-
 		nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.NPC_ENTER, "bTeamChannel", bCheck)
 		end):Pos_()
@@ -1113,8 +1137,18 @@ function DBMUI.OpenSettingPanel(data, szType)
 			SetDataClass(DBM_TYPE.TALK_MONITOR, "bScreenHead", bCheck)
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
-			SetDataClass(DBM_TYPE.TALK_MONITOR
-				, "bFullScreen", bCheck)
+			SetDataClass(DBM_TYPE.TALK_MONITOR, "bFullScreen", bCheck)
+		end):Pos_()
+	end
+	if szType ~= "TALK" then
+		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Add Content"], font = 27 }):Pos_()
+		nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, txt = data.szNote, w = 650, h = 25 }):Change(function(txt)
+			local szText = JH.Trim(txt)
+			if szText == "" then
+				data.szNote = nil
+			else
+				data.szNote = szText
+			end
 		end):Pos_()
 	end
 	-- 倒计时
@@ -1163,7 +1197,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 				box:SetObjectIcon(nIcon)
 			end)
 		end):Pos_()
-		nX = ui:Append("WndCheckBox", { x = nX +5, y = nY, txt = _L["TC"], color = GetMsgFontColor("MSG_TEAM", true), checked = v.bTeamChannel }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY - 2, txt = _L["TC"], color = GetMsgFontColor("MSG_TEAM", true), checked = v.bTeamChannel }):Click(function(bCheck)
 			v.bTeamChannel = bCheck and true or nil
 		end):Pos_()
 		ui:Append("WndEdit", "CountdownName" .. k, { x = nX + 5, y = nY, w = 295, h = 25, txt = v.szName }):Toggle(tonumber(v.nTime) and true or false):Change(function(szNum)
@@ -1186,8 +1220,16 @@ function DBMUI.OpenSettingPanel(data, szType)
 					end
 				else
 					if CheckCountdown(szNum) then
+						local x, y = this:GetAbsPos()
+						local w, h = this:GetSize()
+						local xml = { GetFormatText("[DBM] " .. _L["Countdown Preview"] .. "\n", 0, 255, 255, 0) }
+						for k, v in ipairs(CheckCountdown(szNum)) do
+							table.insert(xml, GetFormatText(v.nTime .. " - " .. v.szName .. "\n"))
+						end
+						OutputTip(table.concat(xml), 300, { x, y, w, h }, 1, true, "DBM")
 						edit:Color(255, 255, 255)
 					else
+						HideTip()
 						edit:Color(255, 0, 0)
 					end
 					if this:GetW() < 200 then
@@ -1228,7 +1270,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 	end):Pos_()
 
 	local w, h = wnd:Size()
-	local a = GetSettingPanelAnchor()
+	local a = DBMUI_PANEL_ANCHOR
 	wnd:Size(w, nY + 25):Point(a.s, 0, 0, a.r, a.x, a.y)
 end
 

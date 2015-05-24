@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 21:03:26
+-- @Last Modified time: 2015-05-24 09:39:23
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -38,9 +38,15 @@ local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
 local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
+
 local function GetDataPath()
-	return "DBM/" .. DBM_PLAYER_NAME .. "/DBM.jx3dat"
+	if DBM.bCommon then
+		return "DBM/Common/DBM.jx3dat"
+	else
+		return "DBM/" .. DBM_PLAYER_NAME .. "/DBM.jx3dat"
+	end
 end
+
 local CACHE = {
 	TEMP = { -- 近期事件记录MAP 这里用弱表 方便处理
 		BUFF    = setmetatable({}, { __mode = "v" }),
@@ -86,15 +92,16 @@ local D = {
 
 DBM = {
 	bEnable             = true,
-	bPushbScreenHead    = true,
+	bCommon             = true,
+	bPushScreenHead     = true,
 	bPushCenterAlarm    = true,
-	bPushbBigFontAlarm  = true,
-	bBigFontAlarm       = true,
+	bPushBigFontAlarm   = true,
 	bPushTeamPanel      = true, -- 面板buff监控
 	bPushFullScreen     = true, -- 全屏泛光
 	bPushTeamChannel    = false, -- 团队报警
 	bPushWhisperChannel = false, -- 密聊报警
 	bPushBuffList       = true,
+	bPushPartyBuffList  = true,
 }
 
 local DBM = DBM
@@ -401,7 +408,7 @@ function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
 		FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 	end
 	-- 特大文字
-	if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
+	if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
 		local txt = GetPureText(tconcat(xml))
 		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, UI_GetClientPlayerID() == dwID or not IsPlayer(dwID) )
 	end
@@ -484,16 +491,20 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 					D.SetTeamMark(szType, cfg.tMark, dwCaster, dwBuffID, nBuffLevel)
 				end
 				-- 重要Buff列表
-				if IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or me.dwID == dwCaster) then
+				if DBM.bPushPartyBuffList and IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or me.dwID == dwCaster) then
 					FireEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
 				end
 				-- 头顶报警
-				if DBM.bPushbScreenHead and cfg.bScreenHead then
+				if DBM.bPushScreenHead and cfg.bScreenHead then
 					FireEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, szName = data.szName or szName, col = data.col })
 				end
 				if me.dwID == dwCaster then
 					if DBM.bPushBuffList and cfg.bBuffList then
-						-- TODO push BUFF状态栏
+						local col = szType == "BUFF" and { 0, 255, 0 } or { 255, 0, 0 }
+						if data.col then
+							col = data.col
+						end
+						FireEvent("JH_BL_CREATE", data.dwID, data.nLevel, col)
 					end
 					-- 全屏泛光
 					if DBM.bPushFullScreen and cfg.bFullScreen then
@@ -606,7 +617,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				D.SetTeamMark("CASTING", cfg.tMark, dwCaster, dwSkillID, dwLevel)
 			end
 			-- 头顶报警
-			if DBM.bPushbScreenHead and cfg.bScreenHead then
+			if DBM.bPushScreenHead and cfg.bScreenHead then
 				FireEvent("JH_SCREENHEAD", dwCaster, { type = "CASTING", txt = data.szName or szName, col = data.col })
 			end
 			-- 全屏泛光
@@ -684,14 +695,14 @@ function D.OnNpcEvent(npc, bEnter)
 			end
 		else
 			-- 场地上的NPC数量没达到预期数量
-			if data.nCount and data.nCount > #CACHE.NPC_LIST[npc.dwTemplateID].tList then
+			if data.nCount and data.nCount < #CACHE.NPC_LIST[npc.dwTemplateID].tList then
 				return
 			end
 			if cfg then
 				if cfg.tMark then
 					D.SetTeamMark("NPC", cfg.tMark, npc.dwID, npc.dwTemplateID)
 				end
-				if cfg.bScreenHead then
+				if DBM.bPushScreenHead and cfg.bScreenHead then
 					FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col })
 				end
 			end
@@ -767,14 +778,14 @@ function D.OnCallMessage(szContent, szNpcName)
 			local team = GetClientTeam()
 			local c = content
 			for kk, vv in ipairs(team.GetTeamMemberList()) do
-				if szContent:match(c:gsub("$team", team.GetClientTeamMemberName(vv))) and v.szTarget == szNpcName then -- hit
+				if szContent:match(c:gsub("$team", team.GetClientTeamMemberName(vv))) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 					tInfo = { dwID = vv, szName = team.GetClientTeamMemberName(vv) }
 					bHit = true
 					break
 				end
 			end
 		else
-			if szContent:match(content) and v.szTarget == szNpcName then -- hit
+			if szContent:match(content) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 				bHit = true
 			end
 		end
@@ -800,7 +811,7 @@ function D.OnCallMessage(szContent, szNpcName)
 					if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
 						JH.Talk(tInfo.szName, txt:gsub(tInfo.szName, g_tStrings.STR_YOU))
 					end
-					if cfg.bScreenHead then
+					if DBM.bPushScreenHead and cfg.bScreenHead then
 						FireEvent("JH_SCREENHEAD", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
 					end
 					if JH.bDebugClient and cfg.bSelect then
@@ -880,7 +891,10 @@ function D.OnNpcLife(dwTemplateID, nLife)
 					if time[1] and time[2] and tonumber(JH_Trim(time[1])) and JH_Trim(time[2]) ~= "" then
 						if tonumber(JH_Trim(time[1])) * 100 == nLife then -- hit
 							if DBM.bPushCenterAlarm then
-								FireEvent("JH_CA_CREATE", time[2], 3, true)
+								FireEvent("JH_CA_CREATE", time[2], 3)
+							end
+							if DBM.bPushBigFontAlarm then
+								FireEvent("JH_LARGETEXT", time[2], { 255, 128, 0 }, true)
 							end
 							if time[3] and tonumber(time[3]) then
 								FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
@@ -969,6 +983,9 @@ end
 function D.Close()
 	if D.GetFrame() then
 		Wnd.CloseWindow(Station.Lookup("Normal/DBM")) -- kill all event
+		FireEvent("JH_ST_CLEAR")
+		CACHE.NPC_LIST = {}
+		CACHE.SKILL_LIST = {}
 	end
 end
 
@@ -984,20 +1001,6 @@ function D.Enable(bEnable)
 end
 
 function D.Init()
-	if DBM_PLAYER_NAME == "NONE" then
-		local me = GetClientPlayer()
-		if me and not IsRemotePlayer(me.dwID) then
-			DBM_PLAYER_NAME = me.szName
-			local data = JH.LoadLUAData(GetDataPath())
-			if data then
-				for k, v in pairs(D.FILE) do
-					D.FILE[k] = data[k] or {}
-				end
-			else
-				-- TODO 加载初始数据
-			end
-		end
-	end
 	D.Enable(DBM.bEnable)
 end
 
@@ -1096,6 +1099,35 @@ function D.GetData(szType, dwID, nLevel)
 		end
 	else
 		-- D.Log("IGNORE TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. (nLevel or 0))
+	end
+end
+
+function D.LoadUserData()
+	if DBM_PLAYER_NAME == "NONE" then
+		local me = GetClientPlayer()
+		if me and not IsRemotePlayer(me.dwID) then
+			DBM_PLAYER_NAME = me.szName
+			local data = JH.LoadLUAData(GetDataPath())
+			if data then
+				for k, v in pairs(D.FILE) do
+					D.FILE[k] = data[k] or {}
+				end
+			else
+				local szLang = select(3, GetVersion())
+				local config = {
+					nMode = 1,
+					tList = {
+						BUFF    = true,
+						DEBUFF  = true,
+						CASTING = true,
+						NPC     = true,
+						TALK    = true
+					},
+					szFileName = szLang ..  "_default.jx3dat",
+				}
+				D.LoadConfigureFile(config)
+			end
+		end
 	end
 end
 
@@ -1219,7 +1251,6 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 		end
 		FireEvent("DBM_CREATE_CACHE")
 		FireEvent("DBMUI_DATA_RELOAD", szType)
-		JH.Sysmsg(_L["Succeed"])
 	end
 end
 
@@ -1228,7 +1259,6 @@ function D.AddData(szType, dwMapID, data)
 	table.insert(D.FILE[szType][dwMapID], data)
 	FireEvent("DBM_CREATE_CACHE")
 	FireEvent("DBMUI_DATA_RELOAD", szType)
-	JH.Sysmsg(_L["Succeed"])
 	return D.FILE[szType][dwMapID][#D.FILE[szType][dwMapID]]
 end
 
@@ -1242,7 +1272,7 @@ function D.ClearTemp(szType)
 	FireEvent("DBMUI_TEMP_RELOAD")
 end
 -- 公开接口
-local ui          = {
+local ui = {
 	Enable            = D.Enable,
 	GetTable          = D.GetTable,
 	GetDungeon        = D.GetDungeon,
@@ -1258,6 +1288,7 @@ local ui          = {
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
-JH.RegisterEvent("LOADING_END", D.Init)
+JH.RegisterEvent("LOGIN_GAME", D.Init)
+JH.RegisterEvent("LOADING_END", D.LoadUserData)
 JH.RegisterEvent("GAME_EXIT", D.SaveData)
 JH.RegisterEvent("PLAYER_EXIT_GAME", D.SaveData)
