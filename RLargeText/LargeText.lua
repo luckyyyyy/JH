@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 15:43:52
+-- @Last Modified time: 2015-05-24 07:35:27
 local _L = JH.LoadLangPack
 
 LargeText = {
@@ -138,6 +138,6 @@ PS.OnPanelActive = function(frame)
 	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = 280, font = 27 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
 end
-GUI.RegisterPanel(_L["LargeText"], 1934, _L["RGES"], PS)
+GUI.RegisterPanel(_L["LargeText"], 1934, _L["Dungeon"], PS)
 
 JH.RegisterEvent("LOGIN_GAME", _LargeText.OpenPanel)

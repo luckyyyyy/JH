@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 08:23:17
+-- @Last Modified time: 2015-05-24 07:35:50
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1304,7 +1304,7 @@ function PS.OnPanelActive(frame)
 	FireEvent("CIRCLE_DRAW_UI")
 end
 
-GUI.RegisterPanel(_L["Circle"], 2673, _L["RGES"], PS)
+GUI.RegisterPanel(_L["Circle"], 2673, _L["Dungeon"], PS)
 
 function C.Init()
 	JH.RegisterInit("Circle",
