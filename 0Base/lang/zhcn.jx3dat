@@ -71,7 +71,6 @@ data = {
 	["While MP less than"] = "蓝量低于",
 	["Manually add (One per line)"] = "手动添加BUFF名称（每行一个）",
 	["Manually add Npc Name (One per line)"] = "手动添加Npc名称（每行一个）",
-	["Dungeon"] = "副本",
 	-- PartyBuffList.lua --
 	["PartyBuffList"] = "重要BUFF列表",
 	["Enable PartyBuffList"] = "启用重要BUFF列表",
