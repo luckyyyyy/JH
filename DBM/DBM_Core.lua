@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 17:27:34
+-- @Last Modified time: 2015-05-24 21:35:23
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -727,7 +727,7 @@ function D.OnNpcEvent(npc, bEnter)
 			else
 				tinsert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
 			end
-			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
+			D.FireAlertEvent(data, cfg, xml, npc.dwID, nClass)
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
 				JH.Talk(txt)
 			end
@@ -749,6 +749,9 @@ end
 
 -- 系统和NPC喊话处理
 function D.OnCallMessage(szContent, szNpcName)
+	if szNpcName == "" then
+		szNpcName = "%"
+	end
 	-- 近期记录
 	local me = GetClientPlayer()
 	local key = (szNpcName or "sys") .. "::" .. szContent
