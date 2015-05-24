@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-23 06:20:42
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 20:34:01
+-- @Last Modified time: 2015-05-24 06:47:44
 
 
 function RGESToDBM(szPath)
@@ -279,7 +279,7 @@ function RGESToDBM(szPath)
 					nClass = dwType,
 					nTime = v.nSkillTimer2,
 					szName = v.szSkillName2 or szName,
-					nRefresh = 7
+					nRefresh = v.nMinEventCD or 10
 				})
 			end
 			if v.bAddToSkillTimer and v.nEventAlertTime then
@@ -289,7 +289,7 @@ function RGESToDBM(szPath)
 					nClass = dwType,
 					nTime = v.nEventAlertTime,
 					szName = szName,
-					nRefresh = 7
+					nRefresh = v.nMinEventCD or 10
 				})
 			end
 			if v.szTimerSet then
@@ -298,6 +298,7 @@ function RGESToDBM(szPath)
 					nIcon = nIcon,
 					nClass = dwType,
 					nTime = v.szTimerSet,
+					nRefresh = v.nMinEventScrutinyCD or 7
 				})
 			end
 			data["CASTING"][-1] = data["CASTING"][-1] or {}
@@ -395,21 +396,21 @@ function RGESToDBM(szPath)
 			if v.bSkillTimer2Enable and v.nSkillTimer2 and v.nSkillTimer2 ~= 0 then
 				dat.tCountdown = dat.tCountdown or {}
 				table.insert(dat.tCountdown, {
-					nIcon = nIcon,
+					nIcon = nIcon or 346,
 					nClass = dwType,
 					nTime = v.nSkillTimer2,
 					szName = v.szSkillName2 or szName,
-					nRefresh = 7
+					nRefresh = v.nMinEventCD or 10
 				})
 			end
-			if v.bAddToSkillTimer and v.nEventAlertTime then
+			if v.bAddToSkillTimer and v.nEventAlertTime and v.nEventAlertTime ~= 1200 then
 				dat.tCountdown = dat.tCountdown or {}
 				table.insert(dat.tCountdown, {
-					nIcon = nIcon,
+					nIcon = nIcon or 346,
 					nClass = dwType,
 					nTime = v.nEventAlertTime,
 					szName = szName,
-					nRefresh = 7
+					nRefresh = v.nMinEventCD or 10
 				})
 			end
 			if v.szTimerSet then
@@ -426,6 +427,7 @@ function RGESToDBM(szPath)
 					nIcon = 346,
 					nClass = DBM_TYPE.NPC_LIFE,
 					nTime = v.szNpcLife,
+					nRefresh = v.nMinEventScrutinyCD or 7
 				})
 			end
 			data["NPC"][-1] = data["NPC"][-1] or {}

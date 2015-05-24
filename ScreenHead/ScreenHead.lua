@@ -1,14 +1,13 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 00:37:17
+-- @Last Modified time: 2015-05-24 07:36:25
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
 	tList       = {},
 	tNpcList    = {},
 	bEnable     = true,
-	bEnableRGES = true,
 	bTeamAlert  = false,
 	bIsMe       = false,
 	nTeamHp     = 0.3,
@@ -456,10 +455,6 @@ function PS.OnPanelActive(frame)
 	:Text(_L["Enable ScreenHead"]):Click(function(bChecked)
 		ScreenHead.bEnable = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = ScreenHead.bEnableRGES })
-	:Text(_L["Bind RGES"]):Click(function(bChecked)
-		ScreenHead.bEnableRGES = bChecked
-	end):Pos_()
 	nX = ui:Append("WndCheckBox",{ x = 10, y = nY, checked = ScreenHead.bTeamAlert })
 	:Text(_L["less life/mana HeadAlert"]):Click(function(bChecked)
 		ScreenHead.bTeamAlert = bChecked
@@ -520,9 +515,8 @@ JH.RegisterInit("ScreenHead",
 	{ "BUFF_UPDATE", _ScreenHead.OnBuffUpdate },
 	{ "NPC_ENTER_SCENE", _ScreenHead.OnNpcUpdate },
 	{ "JH_SCREENHEAD", function()
-		if not ScreenHead.bEnableRGES then return end
-		_ScreenHead.RegisterHead(arg0, arg1)
+			_ScreenHead.RegisterHead(arg0, arg1)
 	end }
 )
 
-GUI.RegisterPanel(_L["HeadAlert"], 2789, _L["RGES"], PS)
+GUI.RegisterPanel(_L["HeadAlert"], 2789, _L["Dungeon"], PS)
