@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 22:05:50
+-- @Last Modified time: 2015-05-24 22:07:21
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -215,7 +215,7 @@ local function CreateTalkData(dwMapID)
 		end
 	end
 	if data[dwMapID] then -- 本地图数据
-		for k, v in ipairs(data[-1]) do
+		for k, v in ipairs(data[dwMapID]) do
 			talk[#talk + 1] = v
 		end
 	end
