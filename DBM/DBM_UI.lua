@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 15:07:29
+-- @Last Modified time: 2015-05-25 16:37:01
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -275,7 +275,10 @@ function DBMUI.GetClassMenu()
 	end)
 	table.insert(menu, { bDevide = true })
 	table.insert(menu, { szOption = _L["Import Data"], fnAction = DBMUI.OpenImportPanel })
-	table.insert(menu, { szOption = _L["import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
+	local szLang = select(3, GetVersion())
+	if szLang == "zhcn" or szLang == "zhtw" then
+		table.insert(menu, { szOption = _L["import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
+	end
 	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
 	return menu
 end
@@ -1267,7 +1270,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		DBMUI.RemoveData(data.dwMapID, data.nIndex, szName or _L["This data"], true)
 	end)
 	nX, nY = ui:Append("WndButton2", { x = 640, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
-		OpenInternetExplorer("https://github.com/Webster-jx3/JH/tree/master/DBM")
+		OpenInternetExplorer("http://www.j3ui.com/DBM/")
 	end):Pos_()
 	local w, h = wnd:Size()
 	local a = DBMUI_PANEL_ANCHOR
