@@ -1,11 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-13 20:03:09
+-- @Last Modified time: 2015-05-25 15:23:46
 local _L = JH.LoadLangPack
 PartyBuffList = {
-	bEnable = true,
-	bEnableRGES = true,
 	bHoverSelect = false,
 	tList = {},
 	tAnchor = {},
@@ -55,7 +53,6 @@ function PartyBuffList.OnEvent(event)
 	elseif event == "TARGET_CHANGE" then
 		PBL.SwitchSelect()
 	elseif event == "JH_PARTYBUFFLIST" then
-		if not PartyBuffList.bEnableRGES then return end
 		PBL.OnTableInsert(arg0, arg1, arg2)
 	elseif event == "ON_ENTER_CUSTOM_UI_MODE" or event == "ON_LEAVE_CUSTOM_UI_MODE" then
 		UpdateCustomModeWindow(this, _L["PartyBuffList"])
@@ -256,21 +253,8 @@ end
 local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	ui:Append("Text", { x = 0, y = 0, txt = _L["PartyBuffList"], font = 27 })
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = PartyBuffList.bEnable })
-	:Text(_L["Enable PartyBuffList"]):Click(function(bChecked)
-		PartyBuffList.bEnable = bChecked
-		if bChecked then
-			PBL.OpenPanel()
-		else
-			PBL.ClosePanel()
-		end
-	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = PartyBuffList.bEnableRGES })
-	:Text(_L["Bind RGES"]):Click(function(bChecked)
-		PartyBuffList.bEnableRGES = bChecked
-	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = PartyBuffList.bHoverSelect })
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["PartyBuffList"], font = 27 }):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = PartyBuffList.bHoverSelect })
 	:Text(_L["Mouse Enter select"]):Click(function(bChecked)
 		PartyBuffList.bHoverSelect = bChecked
 	end):Pos_()
@@ -291,18 +275,5 @@ function PS.OnPanelActive(frame)
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 40, multi = true, txt = _L["PartyBuffList_TIPS"] }):Pos_()
 end
 
-GUI.RegisterPanel(_L["PartyBuffList"], 1453, _L["RGES"], PS)
+GUI.RegisterPanel(_L["PartyBuffList"], 1453, _L["Dungeon"], PS)
 JH.RegisterEvent("LOGIN_GAME", PBL.OpenPanel)
-JH.AddonMenu(function()
-	return {
-		szOption = _L["PartyBuffList"], bCheck = true, bChecked = PartyBuffList.bEnable, fnAction = function()
-			if not PartyBuffList.bEnable then
-				PartyBuffList.bEnable = true
-				PBL.OpenPanel()
-			else
-				PartyBuffList.bEnable = false
-				PBL.ClosePanel()
-			end
-		end
-	}
-end)

@@ -1,11 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-14 15:43:52
+-- @Last Modified time: 2015-05-25 15:23:54
 local _L = JH.LoadLangPack
 
 LargeText = {
-	bEnable = true,
 	tAnchor = {},
 	fScale = 2.5,
 	nPause = 1.5,
@@ -42,7 +41,6 @@ function LargeText.OnEvent(szEvent)
 	elseif szEvent == "UI_SCALED" then
 		_LargeText.UpdateAnchor(this)
 	elseif szEvent == "JH_LARGETEXT" then
-		if not LargeText.bEnable then return end
 		if not col then
 			col = { 255, 128, 0 }
 			bMe = true
@@ -97,7 +95,7 @@ end
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	ui:Append("Text", { x = 0, y = 0, txt = _L["LargeText"], font = 27 })
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["LargeText"], font = 27 }):Pos_()
 	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT })
 	:Click(function()
 		GUI.OpenFontTablePanel(function(nFont)
@@ -105,12 +103,7 @@ PS.OnPanelActive = function(frame)
 			ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 		end)
 	end)
-
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = LargeText.bEnable })
-	:Text(_L["Enable LargeText"]):Click(function(bChecked)
-		LargeText.bEnable = bChecked
-	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = LargeText.bIsMe })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = LargeText.bIsMe })
 	:Text(_L["only Monitor self"]):Click(function(bChecked)
 		LargeText.bIsMe = bChecked
 	end):Pos_()
@@ -138,6 +131,6 @@ PS.OnPanelActive = function(frame)
 	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = 280, font = 27 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
 end
-GUI.RegisterPanel(_L["LargeText"], 1934, _L["RGES"], PS)
+GUI.RegisterPanel(_L["LargeText"], 1934, _L["Dungeon"], PS)
 
 JH.RegisterEvent("LOGIN_GAME", _LargeText.OpenPanel)
