@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-19 20:55:58
+-- @Last Modified time: 2015-05-25 17:39:35
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -640,6 +640,7 @@ function JH.SetGlobalValue(szVarPath, Val)
 		tab = tab[v]
 	end
 end
+
 -- 初始化一个模块
 function JH.RegisterInit(key, ...)
 	local events = { ... }
@@ -717,6 +718,9 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		szText = nChannel
 		nChannel = JH.nChannel
 	end
+	if nChannel == PLAYER_TALK_CHANNEL.RAID and not me.IsInParty() then
+		return
+	end
 	-- say body
 	local tSay = nil
 	if type(szText) == "table" then
@@ -736,12 +740,13 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		tSay = _JH.ParseFaceIcon(tSay)
 	end
 	-- add addon msg header
- 	if not tSay[1] or (
+	if not tSay[1] or (
 		not (tSay[1].type == "text" and (tSay[1].text == _L["Addon comm."] or tSay[1].text == "BG_CHANNEL_MSG")) -- bgmsg
  		and not (tSay[1].name == "" and tSay[1].type == "eventlink") -- header already added
  	) then
 		tinsert(tSay, 1, {
-			type = "eventlink", name = "",
+			type = "eventlink",
+			name = "",
 			linkinfo = JH.JsonEncode({
 				via = "JH",
 				uuid = szUUID and tostring(szUUID),
@@ -763,10 +768,10 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		JH.SwitchChat(nChannel)
 	end
 end
-
 function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
 	JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
 end
+
 function JH.BgTalk(nChannel, ...)
 	local tSay = { { type = "text", text = _L["Addon comm."] } }
 	local tArg = { ... }
@@ -801,6 +806,27 @@ function JH.BgHear(szKey,bIgnore)
 
 		return tData
 	end
+end
+
+function JH.CanUseSkill(dwSkillID, dwLevel)
+	local me, box = GetClientPlayer(), _JH.hBox
+	if me and box then
+		if not dwLevel then
+			if dwSkillID ~= 9007 then
+				dwLevel = me.GetSkillLevel(dwSkillID)
+			else
+				dwLevel = 1
+			end
+		end
+		if dwLevel > 0 then
+			box:EnableObject(false)
+			box:SetObjectCoolDown(1)
+			box:SetObject(UI_OBJECT_SKILL, dwSkillID, dwLevel)
+			UpdataSkillCDProgress(me, box)
+			return box:IsObjectEnable() and not box:IsObjectCoolDown()
+		end
+	end
+	return false
 end
 
 function JH.IsParty(dwID)
@@ -1057,7 +1083,7 @@ function JH.GetBuffName(dwBuffID, dwLevel)
 			if dwLevel then
 				szName = szName .. ":" .. dwLevel
 			end
-			_JH.tBuffCache[xKey] = { szName, -1 }
+			_JH.tBuffCache[xKey] = { szName, 1436 }
 		end
 	end
 	return unpack(_JH.tBuffCache[xKey])
@@ -1433,15 +1459,6 @@ JH.RegisterEvent("NPC_ENTER_SCENE", function() _JH.aNpc[arg0] = true end)
 JH.RegisterEvent("NPC_LEAVE_SCENE", function() _JH.aNpc[arg0] = nil end)
 JH.RegisterEvent("DOODAD_ENTER_SCENE", function() _JH.aDoodad[arg0] = true end)
 JH.RegisterEvent("DOODAD_LEAVE_SCENE", function() _JH.aDoodad[arg0] = nil end)
-JH.RegisterEvent("PLAYER_TALK", function()
-	local me = GetClientPlayer()
-	if not me then return end
-	local t = me.GetTalkData()
-	if t and arg0 ~= me.dwID and #t> 1 and t[1].text == _L["Addon comm."] and t[2].type == "eventlink" then
-		FireUIEvent("ON_BG_CHANNEL_MSG", arg0, arg1, arg2, arg3)
-	end
-end)
-
 -- 字符串类
 function JH.Trim(szText)
 	if not szText or szText == "" then
@@ -1557,8 +1574,9 @@ function _GUI.Base:Toggle(bShow)
 			self.self:BringToTop()
 		end
 	end
-	return self.self
+	return self
 end
+
 function _GUI.Base:IsVisible()
 	return self.self:IsVisible()
 end
@@ -2271,7 +2289,7 @@ end
 -- (self) Instance:Focus()
 -- (self) Instance:Focus(func fnAction)
 -- NOTICE：only for WndEdit
-function _GUI.Wnd:Focus(SetfnAction,KillfnAction)
+function _GUI.Wnd:Focus(SetfnAction, KillfnAction)
 	if type(SetfnAction) == "function" then
 		local wnd = self.edit
 		if SetfnAction then
@@ -2633,13 +2651,24 @@ function _GUI.Item:File(szFile, nFrame)
 	elseif self.type == "BoxButton" then
 		img = self.img
 	end
-	if img then
+	if self.type == "Box" then
+		self.self:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 		if type(szFile) == "number" then
-			img:FromIconID(szFile)
-		elseif not nFrame then
-			img:FromTextureFile(szFile)
+			self.self:ClearExtentImage()
+			self.self:SetObjectIcon(szFile)
 		else
-			img:FromUITex(szFile, nFrame)
+			self.self:ClearObjectIcon()
+			self.self:SetExtentImage(szFile, nFrame)
+		end
+	else
+		if img then
+			if type(szFile) == "number" then
+				img:FromIconID(szFile)
+			elseif not nFrame then
+				img:FromTextureFile(szFile)
+			else
+				img:FromUITex(szFile, nFrame)
+			end
 		end
 	end
 	return self
@@ -3201,4 +3230,66 @@ function GUI.OpenColorTablePanel(fnAction)
 			JH.Sysmsg("RGB value error")
 		end
 	end)
+end
+local ICON_PAGE = 0
+-- icon选择器
+function GUI.OpenIconPanel(fnAction)
+	local nMaxIocn, boxs, txts = 6891, {}, {}
+	local ui = GUI.CreateFrame2("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], close = true }):RegisterClose()
+	local function GetPage(nPage)
+		local nStart = nPage * 144 - 1
+		for i = 1, 144 do
+			local x = ((i - 1) % 18) * 50 + 10
+			local y = math.floor((i - 1) / 18) * 70 + 10
+			if boxs[i] then
+				local nIocn = nStart + i
+				if nIocn > nMaxIocn then
+					boxs[i]:Toggle(false)
+					txts[i]:Toggle(false)
+				else
+					boxs[i]:Icon(nIocn):Toggle(true)
+					txts[i]:Text(nIocn):Toggle(true)
+				end
+			else
+				boxs[i] = ui:Append("Box", { w = 48, h = 48, x = x, y = y, icon = nStart + i}):Hover(function(bHover)
+					this:SetObjectMouseOver(bHover)
+				end):Click(function()
+					if fnAction then
+						fnAction(this:GetObjectIcon())
+					end
+					ui:Remove()
+				end)
+				txts[i] = ui:Append("Text", { w = 48, h = 20, x = x, y = y + 48, txt = nStart + i, align = 1 })
+			end
+		end
+	end
+	ui:Append("WndEdit", "Icon", { x = 730, y = 580, w = 50, h = 25 }):Type(0)
+	ui:Append("WndButton2", { txt = g_tStrings.STR_HOTKEY_SURE, x = 800, y = 580 }):Click(function()
+		local nIocn = tonumber(ui:Fetch("Icon"):Text())
+		if nIocn then
+			if fnAction then
+				fnAction(nIocn)
+			end
+			ui:Remove()
+		end
+	end)
+	local btn1 = ui:Append("WndButton2", { txt = _L["Up"], x = 350, y = 580 }):Enable(ICON_PAGE ~= 0)
+	local btn2 = ui:Append("WndButton2", { txt = _L["Next"], x = 470, y = 580 }):Enable((ICON_PAGE + 1) * 144 < nMaxIocn)
+	btn1:Click(function()
+		if ICON_PAGE == 1 then
+			this:Enable(false)
+		end
+		ICON_PAGE = ICON_PAGE - 1
+		btn2:Enable(true)
+		GetPage(ICON_PAGE)
+	end)
+	btn2:Click(function()
+		ICON_PAGE = ICON_PAGE + 1
+		if (ICON_PAGE + 1) * 144 > nMaxIocn then
+			this:Enable(false)
+		end
+		btn1:Enable(true)
+		GetPage(ICON_PAGE)
+	end)
+	GetPage(ICON_PAGE)
 end

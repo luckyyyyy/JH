@@ -1,12 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-04 14:31:51
+-- @Last Modified time: 2015-05-25 13:04:27
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
 -- ini path
-local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidGrid_EventScrutiny/ui/ST_UI.ini"
+local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/ST_UI.ini"
 -- cache
 local type, tonumber, ipairs, pairs, assert = type, tonumber, ipairs, pairs, assert
 local tinsert, tsort = table.insert, table.sort
@@ -16,7 +16,7 @@ local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 
 local ST_CACHE = {}
 do
-	for k, v in pairs(JH_ST_TYPE) do
+	for k, v in pairs(DBM_TYPE) do
 		ST_CACHE[v] = setmetatable({}, { __mode = "v" })
 	end
 end
@@ -39,7 +39,7 @@ local function GetCountdown(tTime)
 	end
 end
 -- 倒计时模块 事件名称 JH_ST_CREATE
--- nType 倒计时类型 Compatible.lua 中的 JH_ST_TYPE
+-- nType 倒计时类型 Compatible.lua 中的 DBM_TYPE
 -- szKey 同一类型内唯一标识符
 -- tArgs {
 --      szName   -- 倒计时名称 如果是分段就不需要传名称
@@ -63,7 +63,7 @@ local function CreateCountdown(nType, szKey, tArgs)
 			tArgs.nTime = tCountdown
 			tArgs.nRefresh = tArgs.nRefresh or tCountdown[#tCountdown].nTime -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
 		else
-			return JH.Sysmsg2("tCountdown ERROR nType: " .. nType .. " szKey:" .. szKey .. " tCountdown:" .. tArgs.nTime)
+			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tArgs.nTime)
 		end
 	end
 	local ui = ST_CACHE[nType][szKey]
@@ -194,6 +194,9 @@ end
 
 -- 构造函数
 function ST:ctor(nType, szKey, tArgs)
+	if not ST_CACHE[nType] then
+		return
+	end
 	local ui = ST_CACHE[nType][szKey]
 	local nTime = GetTime()
 	local key = nType .. "_" .. szKey

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 16:44:10
+-- @Last Modified time: 2015-05-23 22:19:30
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -1033,7 +1033,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	end
 	-- 气血计算 因为sync 必须拿出来单独算
 	local nLifePercentage, nCurrentLife, nMaxLife
-	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 255 and p.nMaxLife ~= 255 and p.nCurrentLife < 10000000 and p.nCurrentLife > - 1000 then -- p sync err fix
+	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 1 and p.nCurrentLife ~= 255 and p.nMaxLife ~= 255 and p.nCurrentLife < 10000000 and p.nCurrentLife > - 1000 then -- p sync err fix
 		nCurrentLife = p.nCurrentLife
 		nMaxLife = p.nMaxLife
 	else
