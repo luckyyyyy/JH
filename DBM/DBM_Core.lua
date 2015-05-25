@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 17:52:53
+-- @Last Modified time: 2015-05-25 19:07:04
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -1085,7 +1085,7 @@ function D.GetData(szType, dwID, nLevel)
 		if nLevel then
 			if cache[nLevel] then -- 如果可以直接命中 O(∩_∩)O
 				local data = tab[cache[nLevel]]
-				if data and data.dwID == dwID and (not data.bheckLevel or data.nLevel == nLevel) then
+				if data and data.dwID == dwID and (not data.bCheckLevel or data.nLevel == nLevel) then
 					-- D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
 					return data
 				else
@@ -1095,14 +1095,11 @@ function D.GetData(szType, dwID, nLevel)
 			else -- 不能直接命中的情况下 遍历下面的level /(ㄒoㄒ)/~~
 				for k, v in pairs(cache) do
 					local data = tab[cache[k]]
-					if data and data.dwID == dwID and (not data.bheckLevel or data.nLevel == nLevel) then -- 能直接命中是最好了 ;-)
-						-- D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
+					if data and data.dwID == dwID and (not data.bCheckLevel or data.nLevel == nLevel) then -- 能直接命中是最好了 ;-)
 						return data
-					else -- 不能命中的话 就一次机会 直接lookup
-						-- D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
-						return GetData(tab, szType, dwID, k) -- 这里必须传k 不要乱改 O__O "…"
 					end
 				end
+				return GetData(tab, szType, dwID, nLevel)
 			end
 		else
 			local data = tab[cache]
