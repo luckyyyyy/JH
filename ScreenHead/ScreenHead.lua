@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 14:41:58
+-- @Last Modified time: 2015-05-25 15:25:01
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -448,7 +448,7 @@ function PS.OnPanelActive(frame)
 			ScreenHead.nFont = nFont
 		end)
 	end)
-	nX = ui:Append("WndCheckBox",{ x = 10, y = nY + 5, checked = ScreenHead.bTeamAlert })
+	nX = ui:Append("WndCheckBox",{ x = 10, y = nY + 10, checked = ScreenHead.bTeamAlert })
 	:Text(_L["less life/mana HeadAlert"]):Click(function(bChecked)
 		ScreenHead.bTeamAlert = bChecked
 		ui:Fetch("Track_MP"):Enable(bChecked)
@@ -461,7 +461,7 @@ function PS.OnPanelActive(frame)
 			_ScreenHead.KillBreathe()
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox","bIsMe",{ x = nX + 10, y = nY + 5, checked = ScreenHead.bIsMe,enable = ScreenHead.bTeamAlert })
+	nX, nY = ui:Append("WndCheckBox", "bIsMe", { x = nX + 10, y = nY + 10, checked = ScreenHead.bIsMe,enable = ScreenHead.bTeamAlert })
 	:Text(_L["only Monitor self"]):Click(function(bChecked)
 		ScreenHead.bIsMe = bChecked
 	end):Pos_()
