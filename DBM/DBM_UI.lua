@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 16:37:01
+-- @Last Modified time: 2015-05-25 19:19:20
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -952,7 +952,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bBigFontAlarm", bCheck)
 		end):Pos_()
-		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bScreenHead, txt = _L["Screen Head Alert"] }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bScreenHead, txt = _L["Screen Head Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bScreenHead", bCheck)
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
@@ -1039,7 +1039,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
 				SetDataClass(DBM_TYPE.SKILL_BEGIN, "bBigFontAlarm", bCheck)
 			end):Pos_()
-			nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bScreenHead, txt = _L["Screen Head Alert"] }):Click(function(bCheck)
+			nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bScreenHead, txt = _L["Screen Head Alarm"] }):Click(function(bCheck)
 				SetDataClass(DBM_TYPE.SKILL_BEGIN, "bScreenHead", bCheck)
 			end):Pos_()
 			nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
@@ -1080,7 +1080,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.NPC_ENTER, "bBigFontAlarm", bCheck)
 		end):Pos_()
-		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bScreenHead, txt = _L["Screen Head Alert"] }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bScreenHead, txt = _L["Screen Head Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.NPC_ENTER, "bScreenHead", bCheck)
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
@@ -1138,7 +1138,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.TALK_MONITOR, "bBigFontAlarm", bCheck)
 		end):Pos_()
-		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bScreenHead, txt = _L["Screen Head Alert"] }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bScreenHead, txt = _L["Screen Head Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.TALK_MONITOR, "bScreenHead", bCheck)
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
