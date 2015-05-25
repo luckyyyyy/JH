@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 19:18:15
+-- @Last Modified time: 2015-05-25 21:14:07
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -61,7 +61,11 @@ end
 
 -- 获取数据路径
 local function GetDataPath()
-	return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
+	if DBM and DBM.bCommon then
+		return JH.GetAddonInfo().szDataPath .. "Circle/Common/Circle.jx3dat"
+	else
+		return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
+	end
 end
 
 Circle = {
