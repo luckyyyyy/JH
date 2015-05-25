@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 19:07:04
+-- @Last Modified time: 2015-05-25 20:23:08
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -290,12 +290,12 @@ function D.FreeCache(szType)
 	FireEvent("DBMUI_TEMP_RELOAD", szType)
 end
 
-function D.CheckScrutinyType(nScrutinyType, dwID)
-	if nScrutinyType == DBM_SCRUTINY_TYPE.SELF and dwID ~= UI_GetClientPlayerID() then
+function D.CheckScrutinyType(nScrutinyType, dwID, me)
+	if nScrutinyType == DBM_SCRUTINY_TYPE.SELF and dwID ~= me.dwID then
 		return false
-	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TEAM and not JH.IsParty(dwID) then
+	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TEAM and (not JH.IsParty(dwID) and dwID ~= me.dwID) then
 		return false
-	elseif nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY and not IsEnemy(UI_GetClientPlayerID(), dwID) then
+	elseif nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY and not IsEnemy(me.dwID, dwID) then
 		return false
 	end
 	return true
@@ -442,7 +442,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 		end
 	end
 	if data then
-		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
+		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
 			return
 		end
 		if data.nCount and nCount < data.nCount then -- 层数检查
@@ -560,7 +560,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	end
 	-- 监控数据
 	if data then
-		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
+		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
 			return
 		end
 		local szName, nIcon = JH.GetSkillName(dwCastID, dwLevel)
