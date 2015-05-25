@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 14:42:45
+-- @Last Modified time: 2015-05-25 15:23:46
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -254,7 +254,7 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["PartyBuffList"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 5, checked = PartyBuffList.bHoverSelect })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = PartyBuffList.bHoverSelect })
 	:Text(_L["Mouse Enter select"]):Click(function(bChecked)
 		PartyBuffList.bHoverSelect = bChecked
 	end):Pos_()

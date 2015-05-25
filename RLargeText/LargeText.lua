@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 14:43:18
+-- @Last Modified time: 2015-05-25 15:23:54
 local _L = JH.LoadLangPack
 
 LargeText = {
@@ -103,7 +103,7 @@ PS.OnPanelActive = function(frame)
 			ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 		end)
 	end)
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 5, checked = LargeText.bIsMe })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = LargeText.bIsMe })
 	:Text(_L["only Monitor self"]):Click(function(bChecked)
 		LargeText.bIsMe = bChecked
 	end):Pos_()

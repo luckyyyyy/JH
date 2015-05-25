@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-28 17:04:13
+-- @Last Modified time: 2015-05-25 15:27:52
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -878,7 +878,7 @@ function PS.OnPanelActive(frame)
 				end
 				return menu
 			end):Pos_()
-			ui:Append("WndButton2", { x = nX + 5, y = _nY, txt = _L["Delete"]})
+			ui:Append("WndButton2", { x = nX + 5, y = _nY, txt = g_tStrings.STR_FRIEND_DEL})
 			:Enable(bEnable):Click(function()
 				AutoSetTeam.Delete(i)
 				JH.OpenPanel(_L["AutoSetTeam"])
