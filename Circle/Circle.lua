@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 07:35:50
+-- @Last Modified time: 2015-05-25 14:23:06
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1267,11 +1267,11 @@ function PS.OnPanelActive(frame)
 		ui:Fetch("bWhisperChat"):Enable(bChecked)
 		ui:Fetch("bBorder"):Enable(bChecked)
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bTeamChat", { x = nX + 5, y = nY + 10, checked = Circle.bTeamChat, txt = _L["RaidAlert"], color = GetMsgFontColor("MSG_TEAM", true) })
+	nX = ui:Append("WndCheckBox", "bTeamChat", { x = nX + 5, y = nY + 10, checked = Circle.bTeamChat, txt = _L["Team Channel"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bTeamChat = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY + 10, checked = Circle.bWhisperChat, txt = _L["WhisperAlert"], color = GetMsgFontColor("MSG_WHISPER", true) })
+	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY + 10, checked = Circle.bWhisperChat, txt = _L["Whisper Channel"], color = GetMsgFontColor("MSG_WHISPER", true) })
 	:Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bWhisperChat = bChecked
 	end):Pos_()

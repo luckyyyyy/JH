@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 19:51:21
+-- @Last Modified time: 2015-05-25 15:07:29
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -955,15 +955,16 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bFullScreen", bCheck)
 		end):Pos_()
-		nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bPartyBuffList, txt = _L["Push Party Buff List"] }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bPartyBuffList, txt = _L["Party Buff List"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bPartyBuffList", bCheck)
 		end):Pos_()
-		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bBuffList, txt = _L["Push Buff List"] }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bBuffList, txt = _L["Buff List"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bBuffList", bCheck)
 		end):Pos_()
-		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bTeamPanel, txt = _L["Push Team Panel"] }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bTeamPanel, txt = _L["Team Panel"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bTeamPanel", bCheck)
 			ui:Fetch("bOnlySelfSrc"):Enable(bCheck)
+			FireEvent("DBM_CREATE_CACHE")
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", "bOnlySelfSrc", { x = nX + 5, y = nY, checked = cfg.bOnlySelfSrc, txt = _L["Only Source Self"] }):Enable(cfg.bTeamPanel == true):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bOnlySelfSrc", bCheck)
@@ -1266,10 +1267,8 @@ function DBMUI.OpenSettingPanel(data, szType)
 		DBMUI.RemoveData(data.dwMapID, data.nIndex, szName or _L["This data"], true)
 	end)
 	nX, nY = ui:Append("WndButton2", { x = 640, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
-		-- OpenInternetExplorer("")
-		-- TODO github markdown
+		OpenInternetExplorer("https://github.com/Webster-jx3/JH/tree/master/DBM")
 	end):Pos_()
-
 	local w, h = wnd:Size()
 	local a = DBMUI_PANEL_ANCHOR
 	wnd:Size(w, nY + 25):Point(a.s, 0, 0, a.r, a.x, a.y)
@@ -1297,8 +1296,9 @@ function DBMUI.TogglePanel()
 end
 function DBMUI.OpenPanel()
 	if not DBMUI.IsOpened() then
-		Wnd.OpenWindow(DBMUI_INIFILE, "DBM_UI")
+		local wnd = Wnd.OpenWindow(DBMUI_INIFILE, "DBM_UI")
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+		Station.SetActiveFrame(wnd)
 	end
 end
 
@@ -1306,6 +1306,7 @@ function DBMUI.ClosePanel()
 	if DBMUI.IsOpened() then
 		Wnd.CloseWindow(DBMUI.frame)
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+		DBMUI.frame = nil
 	end
 end
 
