@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 16:36:43
+-- @Last Modified time: 2015-05-25 19:19:31
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -40,7 +40,7 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["Party Buff List"], checked = DBM.bPushPartyBuffList }):Click(function(bCheck)
 		DBM.bPushPartyBuffList = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["Screen Head Alert"], checked = DBM.bPushScreenHead }):Click(function(bCheck)
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["Screen Head Alarm"], checked = DBM.bPushScreenHead }):Click(function(bCheck)
 		DBM.bPushScreenHead = bCheck
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Team Panel Bind Show Buff"], font = 27 }):Pos_()

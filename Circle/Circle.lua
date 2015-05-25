@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 14:23:06
+-- @Last Modified time: 2015-05-25 19:18:15
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1081,19 +1081,19 @@ function C.OpenDataPanel(id, index)
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
 		FireEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 25, y = nY, checked = data.bTeamChat, txt = _L["RaidAlert"], color = GetMsgFontColor("MSG_TEAM", true) })
+	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 25, y = nY, checked = data.bTeamChat, txt = _L["Team Channel"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bTeamChat = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY, checked = data.bWhisperChat, txt = _L["WhisperAlert"], color = GetMsgFontColor("MSG_WHISPER", true) })
+	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY, checked = data.bWhisperChat, txt = _L["Whisper Channel"], color = GetMsgFontColor("MSG_WHISPER", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bWhisperChat = bChecked
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", "bScreenHead", { x = nX + 5, y = nY, checked = data.bScreenHead, txt = _L["HeadAlert"] })
+	nX, nY = ui:Append("WndCheckBox", "bScreenHead", { x = nX + 5, y = nY, checked = data.bScreenHead, txt = _L["Screen Head Alarm"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bScreenHead = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bFlash", { x = 25, y = nY, checked = data.bFlash, txt = _L["CenterAlarm"] })
+	nX = ui:Append("WndCheckBox", "bFlash", { x = 25, y = nY, checked = data.bFlash, txt = _L["Center Alarm"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bFlash = bChecked
 	end):Pos_()
