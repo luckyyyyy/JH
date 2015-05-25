@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 22:44:43
+-- @Last Modified time: 2015-05-25 00:46:45
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -14,7 +14,7 @@ BL_UI = {
 }
 JH.RegisterCustomData("BL_UI")
 -- FireEvent("JH_BL_CREATE", 103, 1, { 255, 0, 0 })
-local function CreateBuffList(dwID, nLevel, col)
+local function CreateBuffList(dwID, nLevel, col, tArgs)
 	local key = dwID .. "." .. nLevel
 	local ui = BL_CACHE[key]
 	col = col or { 255, 255, 0 }
@@ -27,16 +27,17 @@ local function CreateBuffList(dwID, nLevel, col)
 		if BL.handle:GetItemCount() < BL_UI.nCount then
 			local bExist, tBuff = JH.HasBuff(dwID)
 			if bExist then
+				tArgs = tArgs or {}
 				local nSec = JH.GetEndTime(tBuff.nEndFrame)
 				if nSec < 0 then nSec = 0 end
 				local szTime = JH.GetBuffTimeString(nSec, 5999)
 				local h = BL.handle:AppendItemFromIni(BL_INIFILE, "Handle_Item")
 				local szName, nIcon = JH.GetBuffName(dwID, nLevel)
 				h.dwID = dwID
-				h:Lookup("Text_Name"):SetText(szName)
+				h:Lookup("Text_Name"):SetText(tArgs.szName or szName)
 				h:Lookup("Text_Name"):SetFontColor(unpack(col))
 				local box = h:Lookup("Box")
-				box:SetObjectIcon(nIcon)
+				box:SetObjectIcon(tArgs.nIcon or nIcon)
 				box:SetObjectSparking(true)
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 				box:SetOverTextFontScheme(0, 15)
@@ -68,7 +69,7 @@ end
 
 function BL_UI.OnEvent(szEvent)
 	if szEvent == "JH_BL_CREATE" then
-		CreateBuffList(arg0, arg1, arg2)
+		CreateBuffList(arg0, arg1, arg2, arg3)
 	elseif szEvent == "UI_SCALED" then
 		BL.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
