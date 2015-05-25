@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 20:05:46
+-- @Last Modified time: 2015-05-25 23:41:11
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
@@ -148,20 +148,22 @@ function FS:DrawShadow(sha, nAlpha, fScreenX, fScreenY)
 	local r, g, b = unpack(self.ui.col)
 	local w, h = Station.GetClientSize()
 	local bW, bH = fScreenX or w * 0.15, fScreenY or h * 0.15
-	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
-	sha:SetD3DPT(D3DPT.TRIANGLESTRIP)
-	sha:ClearTriangleFanPoint()
-	sha:AppendTriangleFanPoint(0, 0, r, g, b, nAlpha)
-	sha:AppendTriangleFanPoint(bW, bH, r, g, b, 0)
-	sha:AppendTriangleFanPoint(0, h, r, g, b, nAlpha)
-	sha:AppendTriangleFanPoint(bW, h - bH, r, g, b, 0)
-	sha:AppendTriangleFanPoint(bW, h, r, g, b, nAlpha)
-	sha:AppendTriangleFanPoint(w - bW, h - bH, r, g, b, 0)
-	sha:AppendTriangleFanPoint(w, h, r, g, b, nAlpha)
-	sha:AppendTriangleFanPoint(w - bW, bH, r, g, b, 0)
-	sha:AppendTriangleFanPoint(w, 0, r, g, b, nAlpha)
-	sha:AppendTriangleFanPoint(bW, bH, r, g, b, 0)
-	sha:AppendTriangleFanPoint(0, 0, r, g, b, nAlpha)
+	if sha:IsValid() then
+		sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
+		sha:SetD3DPT(D3DPT.TRIANGLESTRIP)
+		sha:ClearTriangleFanPoint()
+		sha:AppendTriangleFanPoint(0, 0, r, g, b, nAlpha)
+		sha:AppendTriangleFanPoint(bW, bH, r, g, b, 0)
+		sha:AppendTriangleFanPoint(0, h, r, g, b, nAlpha)
+		sha:AppendTriangleFanPoint(bW, h - bH, r, g, b, 0)
+		sha:AppendTriangleFanPoint(bW, h, r, g, b, nAlpha)
+		sha:AppendTriangleFanPoint(w - bW, h - bH, r, g, b, 0)
+		sha:AppendTriangleFanPoint(w, h, r, g, b, nAlpha)
+		sha:AppendTriangleFanPoint(w - bW, bH, r, g, b, 0)
+		sha:AppendTriangleFanPoint(w, 0, r, g, b, nAlpha)
+		sha:AppendTriangleFanPoint(bW, bH, r, g, b, 0)
+		sha:AppendTriangleFanPoint(0, 0, r, g, b, nAlpha)
+	end
 	return self
 end
 
