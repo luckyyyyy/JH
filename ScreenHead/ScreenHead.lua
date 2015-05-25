@@ -1,13 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 07:36:25
+-- @Last Modified time: 2015-05-25 14:41:58
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
 	tList       = {},
 	tNpcList    = {},
-	bEnable     = true,
 	bTeamAlert  = false,
 	bIsMe       = false,
 	nTeamHp     = 0.3,
@@ -395,7 +394,7 @@ function _ScreenHead.OnBreatheFight()
 	end
 end
 
-function _ScreenHead.RegisterFight(bEnable)
+function _ScreenHead.RegisterFight()
 	if arg0 and ScreenHead.bTeamAlert then
 		JH.BreatheCall("ScreenHead_Fight", _ScreenHead.OnBreatheFight)
 	else
@@ -404,7 +403,6 @@ function _ScreenHead.RegisterFight(bEnable)
 end
 
 function _ScreenHead.RegisterHead(dwID, tab)
-	if not ScreenHead.bEnable then return end
 	if ARENAMAP then return end
 	if not _ScreenHead.tList[dwID] then
 		_ScreenHead.tList[dwID] = {}
@@ -425,7 +423,6 @@ function _ScreenHead.RegisterHead(dwID, tab)
 end
 
 function _ScreenHead.OnBuffUpdate()
-	if not ScreenHead.bEnable then return end
 	if arg1 then return end
 	local szName = GetBuffName(arg4,arg8)
 	if ScreenHead.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
@@ -444,18 +441,14 @@ end
 local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	ui:Append("Text", { x = 0, y = 0, txt = _L["HeadAlert"], font = 27 })
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["HeadAlert"], font = 27 }):Pos_()
 	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT })
 	:Click(function()
 		GUI.OpenFontTablePanel(function(nFont)
 			ScreenHead.nFont = nFont
 		end)
 	end)
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = ScreenHead.bEnable })
-	:Text(_L["Enable ScreenHead"]):Click(function(bChecked)
-		ScreenHead.bEnable = bChecked
-	end):Pos_()
-	nX = ui:Append("WndCheckBox",{ x = 10, y = nY, checked = ScreenHead.bTeamAlert })
+	nX = ui:Append("WndCheckBox",{ x = 10, y = nY + 5, checked = ScreenHead.bTeamAlert })
 	:Text(_L["less life/mana HeadAlert"]):Click(function(bChecked)
 		ScreenHead.bTeamAlert = bChecked
 		ui:Fetch("Track_MP"):Enable(bChecked)
@@ -468,7 +461,7 @@ function PS.OnPanelActive(frame)
 			_ScreenHead.KillBreathe()
 		end
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox","bIsMe",{ x = nX + 10, y = nY, checked = ScreenHead.bIsMe,enable = ScreenHead.bTeamAlert })
+	nX, nY = ui:Append("WndCheckBox","bIsMe",{ x = nX + 10, y = nY + 5, checked = ScreenHead.bIsMe,enable = ScreenHead.bTeamAlert })
 	:Text(_L["only Monitor self"]):Click(function(bChecked)
 		ScreenHead.bIsMe = bChecked
 	end):Pos_()
