@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 22:07:21
+-- @Last Modified time: 2015-05-25 13:04:09
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -505,7 +505,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 						if data.col then
 							col = data.col
 						end
-						FireEvent("JH_BL_CREATE", data.dwID, data.nLevel, col)
+						FireEvent("JH_BL_CREATE", data.dwID, data.nLevel, col, data)
 					end
 					-- 全屏泛光
 					if DBM.bPushFullScreen and cfg.bFullScreen then
@@ -858,11 +858,19 @@ function D.OnDeath(dwCharacterID, szKiller)
 		if data then
 			local dwTemplateID = npc.dwTemplateID
 			D.FireCountdownEvent(data, DBM_TYPE.NPC_DEATH)
-			JH.DelayCall(300, function() -- 因为击杀的时候并没有直接消失
-				if not CACHE.NPC_LIST[dwTemplateID] then
-					D.FireCountdownEvent(data, DBM_TYPE.NPC_ALLDEATH)
+			local bAllDeath = true
+			if CACHE.NPC_LIST[dwTemplateID] then
+				for k, v in ipairs(CACHE.NPC_LIST[dwTemplateID].tList) do
+					local npc = GetNpc(v)
+					if npc and npc.nMoveState ~= MOVE_STATE.ON_DEATH then
+						bAllDeath = false
+						break
+					end
 				end
-			end)
+			end
+			if bAllDeath then
+				D.FireCountdownEvent(data, DBM_TYPE.NPC_ALLDEATH)
+			end
 		end
 	end
 end
