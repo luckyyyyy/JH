@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-18 21:39:07
+-- @Last Modified time: 2015-05-25 14:20:50
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/CA_UI.ini"
@@ -84,7 +84,7 @@ function CA_UI.OnEvent(szEvent)
 	elseif szEvent == "UI_SCALED" then
 		CA.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
-		UpdateCustomModeWindow(this, _L["CenterAlarm"])
+		UpdateCustomModeWindow(this, _L["Center Alarm"])
 		if szEvent == "ON_ENTER_CUSTOM_UI_MODE" then
 			this:Show()
 		else

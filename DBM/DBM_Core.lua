@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 13:04:09
+-- @Last Modified time: 2015-05-25 14:11:23
 
 -- 简单性能测试统计：
 -- +------------------------------------------------------------------+
@@ -108,17 +108,19 @@ local DBM = DBM
 
 function DBM.OnFrameCreate()
 	this:RegisterEvent("NPC_ENTER_SCENE")
+	this:RegisterEvent("DBM_NPC_ENTER_SCENE")
 	this:RegisterEvent("NPC_LEAVE_SCENE")
 	this:RegisterEvent("BUFF_UPDATE")
 	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("DO_SKILL_CAST")
 	this:RegisterEvent("LOADING_END")
-	this:RegisterEvent("DBM_CREATE_CACHE")
 	this:RegisterEvent("PLAYER_SAY")
-	this:RegisterEvent("JH_NPC_FIGHT")
-	this:RegisterEvent("JH_NPC_ALLLEAVE_SCENE")
 	this:RegisterEvent("ON_WARNING_MESSAGE")
-	this:RegisterEvent("JH_NPC_LIFE_CHANGE")
+	this:RegisterEvent("DBM_LOADING_END")
+	this:RegisterEvent("DBM_CREATE_CACHE")
+	this:RegisterEvent("DBM_NPC_FIGHT")
+	this:RegisterEvent("DBM_NPC_ALLLEAVE_SCENE")
+	this:RegisterEvent("DBM_NPC_LIFE_CHANGE")
 end
 
 function DBM.OnFrameBreathe()
@@ -151,7 +153,7 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "ON_WARNING_MESSAGE" then
 		D.OnCallMessage(arg1)
-	elseif szEvent == "NPC_ENTER_SCENE" then
+	elseif szEvent == "NPC_ENTER_SCENE" or szEvent == "DBM_NPC_ENTER_SCENE" then
 		local npc = GetNpc(arg0)
 		if npc then
 			D.OnNpcEvent(npc, true)
@@ -161,14 +163,14 @@ function DBM.OnEvent(szEvent)
 		if npc then
 			D.OnNpcEvent(npc, false)
 		end
-	elseif szEvent == "JH_NPC_ALLLEAVE_SCENE" then
+	elseif szEvent == "DBM_NPC_ALLLEAVE_SCENE" then
 		D.OnNpcAllLeave(arg0)
-	elseif szEvent == "JH_NPC_FIGHT" then
+	elseif szEvent == "DBM_NPC_FIGHT" then
 		-- Output(arg0, arg1)
 		D.OnNpcFight(arg0, arg1)
-	elseif szEvent == "JH_NPC_LIFE_CHANGE" then
+	elseif szEvent == "DBM_NPC_LIFE_CHANGE" then
 		D.OnNpcLife(arg0, arg1)
-	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" then
+	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" or szEvent == "DBM_LOADING_END" then
 		D.CreateData(szEvent)
 	end
 end
@@ -274,9 +276,25 @@ function D.CreateData(szEvent)
 		end })
 	end
 	-- 清空缓存
-	if szEvent == "LOADING_END" then
+	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
 		CACHE.NPC_LIST   = {}
 		CACHE.SKILL_LIST = {}
+	end
+	if DBM.bPushTeamPanel then
+		local tBuff = {}
+		for k, v in ipairs(D.DATA.BUFF) do
+			if v.bTeamPanel then
+				tinsert(tBuff, v.dwID)
+			end
+		end
+		for k, v in ipairs(D.DATA.DEBUFF) do
+			if v.bTeamPanel then
+				tinsert(tBuff, v.dwID)
+			end
+		end
+		Raid_MonitorBuffs(tBuff)
+	else
+		Raid_MonitorBuffs({})
 	end
 	-- D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
@@ -674,10 +692,10 @@ function D.OnNpcEvent(npc, bEnter)
 					if #tab.tList == 0 then
 						local nTime = GetTime() - (tab.nSec or GetTime())
 						if tab.bFightState then
-							FireEvent("JH_NPC_FIGHT", npc.dwTemplateID, false, nTime)
+							FireEvent("DBM_NPC_FIGHT", npc.dwTemplateID, false, nTime)
 						end
 						CACHE.NPC_LIST[npc.dwTemplateID] = nil
-						FireEvent("JH_NPC_ALLLEAVE_SCENE", npc.dwTemplateID)
+						FireEvent("DBM_NPC_ALLLEAVE_SCENE", npc.dwTemplateID)
 					end
 					break
 				end
@@ -966,18 +984,18 @@ function D.CheckNpcState()
 					step = 2
 				end
 				for i = 1, nCount, step do
-					FireEvent("JH_NPC_LIFE_CHANGE", k, v.nLife - i)
+					FireEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
 				end
 			end
 			v.nLife = fNpcPer
 			if bFightFlag then
 				local nTime = GetTime()
 				v.nSec = GetTime()
-				FireEvent("JH_NPC_FIGHT", k, true, nTime)
+				FireEvent("DBM_NPC_FIGHT", k, true, nTime)
 			elseif bFightFlag == false then
 				local nTime = GetTime() - (v.nSec or GetTime())
 				v.nSec = nil
-				FireEvent("JH_NPC_FIGHT", k, false, nTime)
+				FireEvent("DBM_NPC_FIGHT", k, false, nTime)
 			end
 		end
 	end
@@ -1003,11 +1021,17 @@ function D.Close()
 	end
 end
 
-function D.Enable(bEnable)
+function D.Enable(bEnable, bFireEvent)
 	if bEnable then
 		local res, err = pcall(D.Open)
 		if not res then
 			JH.Sysmsg2(err)
+		end
+		if bFireEvent then
+			FireEvent("DBM_LOADING_END")
+			for k, v in pairs(JH.GetAllNpcID()) do
+				FireEvent("DBM_NPC_ENTER_SCENE", k)
+			end
 		end
 	else
 		D.Close()
