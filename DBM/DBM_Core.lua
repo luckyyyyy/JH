@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 20:23:08
+-- @Last Modified time: 2015-05-25 23:55:53
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -145,7 +145,6 @@ function DBM.OnEvent(szEvent)
 	elseif szEvent == "DBM_NPC_ALLLEAVE_SCENE" then
 		D.OnNpcAllLeave(arg0)
 	elseif szEvent == "DBM_NPC_FIGHT" then
-		-- Output(arg0, arg1)
 		D.OnNpcFight(arg0, arg1)
 	elseif szEvent == "DBM_NPC_LIFE_CHANGE" then
 		D.OnNpcLife(arg0, arg1)
@@ -154,11 +153,9 @@ function DBM.OnEvent(szEvent)
 	end
 end
 
--- function D.Log(szMsg)
-	-- if JH.bDebug then
-		-- Log("[DBM] " .. szMsg)
-	-- end
--- end
+function D.Log(szMsg)
+	Log("[DBM] " .. szMsg)
+end
 
 function D.FireTeamWhisper(szMsg)
 	local me = GetClientPlayer()
@@ -183,7 +180,7 @@ local function CreateCache(szType, tab)
 			cache[v.dwID] = k
 		end
 	end
-	-- D.Log("Create " .. szType .. " data Success!")
+	D.Log("Create " .. szType .. " data Succeed!")
 end
 
 local function CreateTalkData(dwMapID)
@@ -217,7 +214,7 @@ function D.CreateData(szEvent)
 	D.DATA.TALK = {}
 	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
-		-- D.Log("MAPID: " .. dwMapID ..  " Create data Failed:" .. GetTime() - nTime  .. "ms")
+		D.Log("MAPID: " .. dwMapID ..  " Create data Failed:" .. GetTime() - nTime  .. "ms")
 		return
 	end
 	-- 重建MAP
@@ -232,7 +229,7 @@ function D.CreateData(szEvent)
 		end
 	end
 	CreateTalkData(dwMapID)
-	-- D.Log("Create TALK data Succeed!")
+	D.Log("Create TALK data Succeed!")
 
 	-- 重建metatable
 	for k, v in pairs(D.FILE)  do
@@ -275,7 +272,7 @@ function D.CreateData(szEvent)
 	else
 		Raid_MonitorBuffs({})
 	end
-	-- D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
+	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
 
 function D.FreeCache(szType)
