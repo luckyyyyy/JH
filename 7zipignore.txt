@@ -13,4 +13,4 @@ Team\
 AutoTeam\
 Tools\
 Patch\
-DBM\data\
+DBM\data\DBM*
