@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 19:47:42
+-- @Last Modified time: 2015-05-26 19:50:27
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
@@ -3231,7 +3231,7 @@ function GUI.OpenColorTablePanel(fnAction)
 		end
 	end)
 end
-local ICON_PAGE = 0
+local ICON_PAGE = 20
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
 	local nMaxIocn, boxs, txts = 6891, {}, {}
