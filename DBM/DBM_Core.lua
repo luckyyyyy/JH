@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 23:55:53
+-- @Last Modified time: 2015-05-27 00:11:45
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -396,19 +396,6 @@ function D.GetSrcName(dwID)
 	end
 end
 
--- 通用的事件发送
-function D.FireAlertEvent(data, cfg, xml, dwID, nClass)
-	-- 中央报警
-	if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-		FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
-	end
-	-- 特大文字
-	if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-		local txt = GetPureText(tconcat(xml))
-		FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwID, UI_GetClientPlayerID()) }, UI_GetClientPlayerID() == dwID or not IsPlayer(dwID) )
-	end
-end
-
 -- 事件操作
 function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndFrame, bInit, nBuffLevel, dwSkillSrcID)
 	local me = GetClientPlayer()
@@ -475,8 +462,14 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
 			end
 			local txt = GetPureText(tconcat(xml))
-			-- 通用的报警事件处理
-			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
+			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
+				FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+			end
+			-- 特大文字
+			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
+				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, me.dwID == dwCaster or not IsPlayer(dwCaster) )
+			end
+
 			-- 获得处理
 			if nClass == DBM_TYPE.BUFF_GET then
 				if JH.bDebugClient and cfg.bSelect then
@@ -603,8 +596,13 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				tinsert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
 			end
 			local txt = GetPureText(tconcat(xml))
-			-- 通用的报警事件处理
-			D.FireAlertEvent(data, cfg, xml, dwCaster, nClass)
+			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
+				FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+			end
+			-- 特大文字
+			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
+				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, true )
+			end
 			if JH.bDebugClient and cfg.bSelect then
 				SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
 			end
@@ -722,14 +720,23 @@ function D.OnNpcEvent(npc, bEnter)
 			else
 				tinsert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
 			end
-			D.FireAlertEvent(data, cfg, xml, npc.dwID, nClass)
+
+			local txt = GetPureText(tconcat(xml))
+			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
+				FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+			end
+			-- 特大文字
+			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
+				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(npc.dwID, me.dwID) }, true )
+			end
+
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
 				JH.Talk(txt)
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
 				D.FireTeamWhisper(txt)
 			end
-			local txt = GetPureText(tconcat(xml))
+
 			if nClass == DBM_TYPE.NPC_ENTER then
 				if JH.bDebugClient and cfg.bSelect then
 					SetTarget(TARGET.NPC, npc.dwID)
