@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-26 13:44:56
+-- @Last Modified time: 2015-05-26 19:45:34
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -33,7 +33,8 @@ function DBM_UI.OnFrameCreate()
 	DBMUI.frame = this
 	DBMUI.pageset = this:Lookup("PageSet_Main")
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
-	GUI(this):Title(_L["JX3 DBM Plug-in"]):RegisterClose(DBMUI.ClosePanel)
+	local ui = GUI(this)
+	ui:Title(_L["JX3 DBM Plug-in"]):RegisterClose(DBMUI.ClosePanel)
 	for k, v in ipairs(DBMUI_TYPE) do
 		local txt = DBMUI.pageset:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
 		txt:SetText(_L[v])
@@ -43,11 +44,8 @@ function DBM_UI.OnFrameCreate()
 		end
 	end
 	this:Lookup("Btn_Close").OnLButtonClick = DBMUI.ClosePanel
-	DBMUI.UpdateAnchor(this)
-	local ui = GUI(this)
 	ui:Append("WndComboBox", "Select_Class", { x = 700, y = 52, txt = _L["All Data"] }):Menu(DBMUI.GetClassMenu)
 	-- 首次加载
-	-- local nPage = DBMUI.pageset:GetActivePageIndex()
 	FireEvent("DBMUI_TEMP_RELOAD")
 	FireEvent("DBMUI_DATA_RELOAD")
 	-- debug
@@ -84,6 +82,7 @@ function DBM_UI.OnFrameCreate()
 	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 760, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
 		DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
 	end)
+	DBMUI.UpdateAnchor(this)
 end
 
 function DBM_UI.OnEvent(szEvent)
@@ -145,6 +144,8 @@ function DBMUI.OutputTip(szType, data, rect)
 end
 
 function DBMUI.InsertDungeonMenu(menu, fnAction)
+	local me = GetClientPlayer()
+	local dwMapID = me.GetMapID()
 	local tClass, tDungeon, nCount = {}, DBM_API.GetDungeon()
 	local data = DBM_API.GetTable(DBMUI_SELECT_TYPE)
 	table.insert(menu, { szOption = g_tStrings.CHANNEL_COMMON .. " (" .. (data[-1] and #data[-1] or 0) .. ")", fnAction = function()
@@ -158,11 +159,18 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 			tClass[v.szLayer3Name] = { szOption = v.szLayer3Name }
 			table.insert(menu, tClass[v.szLayer3Name])
 		end
-		table.insert(tClass[v.szLayer3Name], { szOption = Table_GetMapName(v.dwMapID) .. " (" .. (data[v.dwMapID] and #data[v.dwMapID] or 0) .. ")", rgb = { 255, 128, 0 }, fnAction = function()
-			if fnAction then
-				fnAction(v.dwMapID)
+		table.insert(tClass[v.szLayer3Name], {
+			szOption = Table_GetMapName(v.dwMapID) .. " (" .. (data[v.dwMapID] and #data[v.dwMapID] or 0) .. ")",
+			rgb = { 255, 128, 0 },
+			szIcon = dwMapID == v.dwMapID and "ui/Image/Minimap/Minimap.uitex",
+			szLayer = dwMapID == v.dwMapID and "ICON_RIGHT",
+			nFrame = dwMapID == v.dwMapID and 10,
+			fnAction = function()
+				if fnAction then
+					fnAction(v.dwMapID)
+				end
 			end
-		end })
+		})
 	end
 end
 
@@ -1320,5 +1328,3 @@ local ui = {
 	OpenImportPanel = DBMUI.OpenImportPanel
 }
 setmetatable(DBM_UI, { __index = ui, __newindex = function() end, __metatable = true })
-
--- JH.RegisterEvent("LOADING_END", DBMUI.OpenPanel)
