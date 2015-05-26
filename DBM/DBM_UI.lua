@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 19:19:20
+-- @Last Modified time: 2015-05-26 13:44:56
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -54,7 +54,7 @@ function DBM_UI.OnFrameCreate()
 	if JH.bDebugClient then
 		ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
 		ui:Append("WndButton", { txt = "Enable", x = 110, y = 10 }):Click(function()
-			DBM_API.Enable(true)
+			DBM_API.Enable(true, true)
 		end)
 		ui:Append("WndButton", { txt = "Disable", x = 210, y = 10 }):Click(function()
 			DBM_API.Enable(false)
