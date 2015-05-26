@@ -1,11 +1,11 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 13:19:25
+-- @Last Modified time: 2015-05-26 19:05:08
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
-local BL_CACHE = setmetatable({}, { __mode = "V" })
+local BL_CACHE = setmetatable({}, { __mode = "v" })
 local BL = {}
 BL_UI = {
 	tAnchor = {},
