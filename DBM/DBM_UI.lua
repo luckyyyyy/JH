@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-26 19:45:34
+-- @Last Modified time: 2015-05-27 11:01:57
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -46,8 +46,8 @@ function DBM_UI.OnFrameCreate()
 	this:Lookup("Btn_Close").OnLButtonClick = DBMUI.ClosePanel
 	ui:Append("WndComboBox", "Select_Class", { x = 700, y = 52, txt = _L["All Data"] }):Menu(DBMUI.GetClassMenu)
 	-- 首次加载
-	FireEvent("DBMUI_TEMP_RELOAD")
-	FireEvent("DBMUI_DATA_RELOAD")
+	FireUIEvent("DBMUI_TEMP_RELOAD")
+	FireUIEvent("DBMUI_DATA_RELOAD")
 	-- debug
 	if JH.bDebugClient then
 		ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
@@ -68,16 +68,16 @@ function DBM_UI.OnFrameCreate()
 		else
 			DBMUI_SEARCH = JH.Trim(szText)
 		end
-		FireEvent("DBMUI_TEMP_RELOAD")
+		FireUIEvent("DBMUI_TEMP_RELOAD")
 		if DBMUI_SELECT_TYPE == "CIRCLE" then
-			FireEvent("CIRCLE_DRAW_UI")
+			FireUIEvent("CIRCLE_DRAW_UI")
 		else
-			FireEvent("DBMUI_DATA_RELOAD")
+			FireUIEvent("DBMUI_DATA_RELOAD")
 		end
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndCheckBox", { x = 560, y = 38, checked = DBMUI_GLOBAL_SEARCH, txt = _L["Global Search"] }):Click(function(bCheck)
 		DBMUI_GLOBAL_SEARCH = bCheck
-		FireEvent("DBMUI_DATA_RELOAD")
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 760, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
 		DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
@@ -116,9 +116,9 @@ function DBM_UI.OnActivePage()
 	local nPage = this:GetActivePageIndex()
 	local txt = DBMUI.frame:Lookup("Select_Class", "Text_Default")
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[nPage + 1]
-	FireEvent("DBMUI_TEMP_RELOAD", DBMUI_TYPE[nPage + 1])
+	FireUIEvent("DBMUI_TEMP_RELOAD", DBMUI_TYPE[nPage + 1])
 	if DBMUI_SELECT_TYPE ~= "CIRCLE" then
-		FireEvent("DBMUI_DATA_RELOAD", DBMUI_TYPE[nPage + 1])
+		FireUIEvent("DBMUI_DATA_RELOAD", DBMUI_TYPE[nPage + 1])
 		if DBMUI_SELECT_MAP == -1 then
 			txt:SetText(g_tStrings.CHANNEL_COMMON)
 		elseif DBMUI_SELECT_MAP == _L["All Data"] then
@@ -127,7 +127,7 @@ function DBM_UI.OnActivePage()
 			txt:SetText(Table_GetMapName(DBMUI_SELECT_MAP))
 		end
 	else
-		FireEvent("CIRCLE_DRAW_UI", CIRCLE_SELECT_MAP)
+		FireUIEvent("CIRCLE_DRAW_UI", CIRCLE_SELECT_MAP)
 	end
 end
 
@@ -273,13 +273,13 @@ function DBMUI.GetClassMenu()
 	table.insert(menu, { szOption = _L["All Data"], fnAction = function()
 		txt:SetText(_L["All Data"])
 		DBMUI_SELECT_MAP = _L["All Data"]
-		FireEvent("DBMUI_DATA_RELOAD")
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end })
 	table.insert(menu, { bDevide = true })
 	DBMUI.InsertDungeonMenu(menu, function(dwMapID)
 		txt:SetText(DBMUI.GetMapName(dwMapID))
 		DBMUI_SELECT_MAP = dwMapID
-		FireEvent("DBMUI_DATA_RELOAD")
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end)
 	table.insert(menu, { bDevide = true })
 	table.insert(menu, { szOption = _L["Import Data"], fnAction = DBMUI.OpenImportPanel })
@@ -975,7 +975,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bTeamPanel, txt = _L["Team Panel"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bTeamPanel", bCheck)
 			ui:Fetch("bOnlySelfSrc"):Enable(bCheck)
-			FireEvent("DBM_CREATE_CACHE")
+			FireUIEvent("DBM_CREATE_CACHE")
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", "bOnlySelfSrc", { x = nX + 5, y = nY, checked = cfg.bOnlySelfSrc, txt = _L["Only Source Self"] }):Enable(cfg.bTeamPanel == true):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bOnlySelfSrc", bCheck)
@@ -1259,7 +1259,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("Image", { x = nX + 5, y = nY, w = 26, h = 26}):File(file, 86):Event(525311)
 		:Hover(function() this:SetFrame(87) end, function() this:SetFrame(86) end):Click(function()
 			if v.nClass ~= -1 then
-				FireEvent("JH_ST_DEL", v.nClass, k .. "."  .. data.dwID .. "." .. (data.nLevel or 0), true) -- try kill
+				FireUIEvent("JH_ST_DEL", v.nClass, k .. "."  .. data.dwID .. "." .. (data.nLevel or 0), true) -- try kill
 			end
 			if #data.tCountdown == 1 then
 				data.tCountdown = nil

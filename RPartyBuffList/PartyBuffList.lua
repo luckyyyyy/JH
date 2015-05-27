@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 15:23:46
+-- @Last Modified time: 2015-05-27 11:04:21
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -231,7 +231,7 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel)
 	end
 	h.OnItemLButtonDown = function()
 		SetTarget(TARGET.PLAYER, dwID)
-		FireEvent("JH_TAR_TEMP_UPDATE", dwID)
+		FireUIEvent("JH_TAR_TEMP_UPDATE", dwID)
 	end
 	h.OnItemMouseLeave = function()
 		if PartyBuffList.bHoverSelect then

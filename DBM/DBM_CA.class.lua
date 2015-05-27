@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 14:20:50
+-- @Last Modified time: 2015-05-27 11:03:28
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/CA_UI.ini"
@@ -14,7 +14,7 @@ CA_UI = {
 	tAnchor = {}
 }
 JH.RegisterCustomData("CA_UI")
--- FireEvent("JH_CA_CREATE", "test", 3)
+-- FireUIEvent("JH_CA_CREATE", "test", 3)
 local function CreateCentralAlert(szMsg, nTime, bXml)
 	nTime = nTime or 3
 	CA.nTime = nTime

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-23 22:19:30
+-- @Last Modified time: 2015-05-27 11:02:58
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -294,7 +294,7 @@ function CTM_Party_Base.OnItemLButtonDown()
 		EditBox_AppendLinkPlayer(info.szName)
 	elseif info.bIsOnLine and GetPlayer(this.dwID) then -- 有待考证
 		SetTarget(TARGET.PLAYER, this.dwID)
-		FireEvent("JH_TAR_TEMP_UPDATE", this.dwID)
+		FireUIEvent("JH_TAR_TEMP_UPDATE", this.dwID)
 	end
 end
 

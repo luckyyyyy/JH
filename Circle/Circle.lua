@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 21:14:07
+-- @Last Modified time: 2015-05-27 11:02:29
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -200,8 +200,8 @@ function C.LoadCircleData(tData, bMsg)
 		end
 	end
 	C.tData = data
-	FireEvent("CIRCLE_CLEAR")
-	FireEvent("CIRCLE_DRAW_UI")
+	FireUIEvent("CIRCLE_CLEAR")
+	FireUIEvent("CIRCLE_DRAW_UI")
 	if bMsg then
 		JH.Sysmsg(_L["Circle loaded."])
 	end
@@ -224,8 +224,8 @@ function C.LoadSingleData(mapid, data)
 			tinsert(C.tData[mapid], data)
 		end
 	end
-	FireEvent("CIRCLE_CLEAR")
-	FireEvent("CIRCLE_DRAW_UI")
+	FireUIEvent("CIRCLE_CLEAR")
+	FireUIEvent("CIRCLE_DRAW_UI")
 end
 
 function C.LoadCircleMergeData(tData)
@@ -296,8 +296,8 @@ function C.LoadCircleMergeData(tData)
 			C.tData["mt"] = dat
 		end
 	end
-	FireEvent("CIRCLE_CLEAR")
-	FireEvent("CIRCLE_DRAW_UI")
+	FireUIEvent("CIRCLE_CLEAR")
+	FireUIEvent("CIRCLE_DRAW_UI")
 	JH.Sysmsg(_L["Circle loaded."])
 end
 
@@ -410,8 +410,8 @@ function C.RemoveData(mapid, index, bConfirm)
 			if #C.tData[mapid] == 0 then
 				C.tData[mapid] = nil
 			end
-			FireEvent("CIRCLE_CLEAR")
-			FireEvent("CIRCLE_DRAW_UI")
+			FireUIEvent("CIRCLE_CLEAR")
+			FireUIEvent("CIRCLE_DRAW_UI")
 		end
 		if bConfirm then
 			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
@@ -580,8 +580,8 @@ function C.DrawTable()
 				item:Lookup("Image_Btn").OnItemLButtonClick = function()
 					local nFrame = this:GetFrame()
 					C.tData[v.id or mapid][v.index or k].bEnable = nFrame ~= 7
-					FireEvent("CIRCLE_CLEAR")
-					FireEvent("CIRCLE_DRAW_UI")
+					FireUIEvent("CIRCLE_CLEAR")
+					FireUIEvent("CIRCLE_DRAW_UI")
 				end
 				item.OnItemLButtonClick = function()
 					C.OpenDataPanel(v.id or mapid, v.index or k)
@@ -599,13 +599,13 @@ function C.DrawTable()
 					if mapid ~= _L["All Data"] then
 						tinsert(menu, 4, { szOption = _L["Move up"], bDisable = k == 1, fnAction = function()
 							C.tData[mapid][k], C.tData[mapid][k - 1] = C.tData[mapid][k - 1], C.tData[mapid][k]
-							FireEvent("CIRCLE_CLEAR")
-							FireEvent("CIRCLE_DRAW_UI")
+							FireUIEvent("CIRCLE_CLEAR")
+							FireUIEvent("CIRCLE_DRAW_UI")
 						end })
 						tinsert(menu, 5, { szOption = _L["Move down"], bDisable = k == #tab, fnAction = function()
 							C.tData[mapid][k], C.tData[mapid][k + 1] = C.tData[mapid][k + 1], C.tData[mapid][k]
-							FireEvent("CIRCLE_CLEAR")
-							FireEvent("CIRCLE_DRAW_UI")
+							FireUIEvent("CIRCLE_CLEAR")
+							FireUIEvent("CIRCLE_DRAW_UI")
 						end })
 						tinsert(menu, 6, { bDevide = true })
 					end
@@ -738,7 +738,7 @@ function C.OnBreathe()
 					local szName = JH.GetTemplateName(tar)
 					C.tTarget[KGNpc.dwID] = dwID
 					if data.bScreenHead then
-						FireEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
+						FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
 					end
 					if me.IsInRaid() then
 						if Circle.bWhisperChat and data.bWhisperChat then
@@ -758,8 +758,8 @@ function C.OnBreathe()
 							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
 							tinsert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
 							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-							FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
-							FireEvent("JH_FS_CREATE", "Circle", { nTime  = 3, col = { 255, 0, 0 }, bFlash = true })
+							FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+							FireUIEvent("JH_FS_CREATE", "Circle", { nTime  = 3, col = { 255, 0, 0 }, bFlash = true })
 						else
 							local xml = {}
 							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
@@ -769,7 +769,7 @@ function C.OnBreathe()
 							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
 							tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
 							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-							FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+							FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 						end
 					end
 				end
@@ -921,8 +921,8 @@ function C.OpenAddPanel(szName, dwType, szMap)
 					C.tData[map.id] = {}
 				end
 				tinsert(C.tData[map.id], data)
-				FireEvent("CIRCLE_CLEAR")
-				FireEvent("CIRCLE_DRAW_UI")
+				FireUIEvent("CIRCLE_CLEAR")
+				FireUIEvent("CIRCLE_DRAW_UI")
 				C.OpenDataPanel(map.id, #C.tData[map.id])
 				ui:Fetch("Btn_Close"):Click()
 			end
@@ -985,7 +985,7 @@ function C.OpenMtPanel()
 			C.tData["mt"] = C.tData["mt"] or {}
 			C.tData["mt"][map.id] = source.id
 			ui:Fetch("Btn_Close"):Click()
-			FireEvent("CIRCLE_CLEAR")
+			FireUIEvent("CIRCLE_CLEAR")
 		else
 			return JH.Alert(_L["Do not conform to the rules"])
 		end
@@ -1014,19 +1014,19 @@ function C.OpenDataPanel(id, index)
 	:Click(function()
 		data.dwType = TARGET.NPC
 		C.OpenDataPanel(id, index)
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 	end)
 	local nX, nY = ui:Append("WndRadioBox", { x = 180, y = nY + 5, txt = _L["DOODAD"], group = "type", checked = data.dwType == TARGET.DOODAD })
 	:Click(function()
 		data.dwType = TARGET.DOODAD
 		C.OpenDataPanel(id, index)
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	for k, v in ipairs(data.tCircles or {}) do
 		nX = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Face Circle"], font = 27, checked = v.bEnable })
 		:Click(function(bChecked)
 			v.bEnable = bChecked
-			FireEvent("CIRCLE_CLEAR")
+			FireUIEvent("CIRCLE_CLEAR")
 		end):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 2, w = 35, h = 25, limit = 4 })
 		:Enable(k ~= 2):Text(v.nAngle):Change(function(nVal)
@@ -1036,7 +1036,7 @@ function C.OpenDataPanel(id, index)
 				JH.Sysmsg2(_L["Limit 1, "] .. 360)
 			end
 			v.nAngle = n
-			FireEvent("CIRCLE_RESERT_DRAW")
+			FireUIEvent("CIRCLE_RESERT_DRAW")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" degree"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 8, y = nY + 2, w = 35, h = 25, limit = 4 })
@@ -1047,7 +1047,7 @@ function C.OpenDataPanel(id, index)
 				JH.Sysmsg2(_L["Limit 0, "] .. CIRCLE_MAX_RADIUS)
 			end
 			v.nRadius = n
-			FireEvent("CIRCLE_RESERT_DRAW")
+			FireUIEvent("CIRCLE_RESERT_DRAW")
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20, txt = _L[" feet"] }):Pos_()
 		nX = ui:Append("Shadow", "Color_" .. k, { x = nX + 5, y = nY + 2, color = v.col, w = 23, h = 23 })
@@ -1055,13 +1055,13 @@ function C.OpenDataPanel(id, index)
 			OpenColorTablePanel(function(r, g, b)
 				ui:Fetch("Color_" .. k):Color(r, g, b)
 				v.col = { r, g, b }
-				FireEvent("CIRCLE_RESERT_DRAW")
+				FireUIEvent("CIRCLE_RESERT_DRAW")
 			end, nil, nil, CIRCLE_COLOR)
 			end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = nX + 2, y = nY + 1, txt = _L["Draw Border"], checked = v.bBorder })
 		:Click(function(bChecked)
 			v.bBorder = bChecked
-			FireEvent("CIRCLE_CLEAR")
+			FireUIEvent("CIRCLE_CLEAR")
 		end):Pos_()
 		nX, nY = ui:Append("Image", { x = nX + 5, y = nY + 1, w = 26, h = 26 }):File(file, 86):Event(525311)
 		:Hover(function() this:SetFrame(87) end, function() this:SetFrame(86) end):Click(function()
@@ -1071,7 +1071,7 @@ function C.OpenDataPanel(id, index)
 				table.remove(data.tCircles, k)
 			end
 			C.OpenDataPanel(id, index)
-			FireEvent("CIRCLE_CLEAR")
+			FireUIEvent("CIRCLE_CLEAR")
 		end):Pos_()
 	end
 	nX, nY = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
@@ -1083,7 +1083,7 @@ function C.OpenDataPanel(id, index)
 		ui:Fetch("bFlash"):Enable(bChecked)
 		ui:Fetch("bDrawLine"):Enable(bChecked)
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 25, y = nY, checked = data.bTeamChat, txt = _L["Team Channel"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
@@ -1104,13 +1104,13 @@ function C.OpenDataPanel(id, index)
 	nX = ui:Append("WndCheckBox", "bDrawLine", { x = nX + 5, y = nY, checked = data.bDrawLine, txt = _L["Draw Line"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bDrawLine = bChecked
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked)
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC and data.bDrawLine == true):Click(function(bChecked)
 		data.bDrawLineSelf = bChecked
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 15, y = nY, txt = _L["Other"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 25, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
@@ -1143,7 +1143,7 @@ function C.OpenDataPanel(id, index)
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
 		C.OpenDataPanel(id, index)
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 	end)
 	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
 	:Click(function()
@@ -1155,7 +1155,7 @@ function C.GetMemu()
 	local menu = {
 		{ szOption = _L["All Data"], fnAction = function()
 			C.dwSelMapID = _L["All Data"]
-			FireEvent("CIRCLE_DRAW_UI", _L["All Data"])
+			FireUIEvent("CIRCLE_DRAW_UI", _L["All Data"])
 		end },
 		{ bDevide = true },
 		{ szOption = _L["Dungeon"] },
@@ -1172,13 +1172,13 @@ function C.GetMemu()
 				fnClickIcon = function()
 					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(i) .. string.format(" (%d/%d)", #C.tData[i], CIRCLE_MAP_COUNT[i])), function()
 						C.tData[i] = nil
-						FireEvent("CIRCLE_DRAW_UI")
-						FireEvent("CIRCLE_CLEAR")
+						FireUIEvent("CIRCLE_DRAW_UI")
+						FireUIEvent("CIRCLE_CLEAR")
 					end)
 				end,
 				fnAction = function()
 					C.dwSelMapID = i
-					FireEvent("CIRCLE_DRAW_UI", i)
+					FireUIEvent("CIRCLE_DRAW_UI", i)
 				end
 			})
 		end
@@ -1199,13 +1199,13 @@ function C.GetMemu()
 				fnClickIcon = function()
 					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.GetMapName(k) .. txt), function()
 						C.tData[k] = nil
-						FireEvent("CIRCLE_DRAW_UI")
-						FireEvent("CIRCLE_CLEAR")
+						FireUIEvent("CIRCLE_DRAW_UI")
+						FireUIEvent("CIRCLE_CLEAR")
 					end)
 				end,
 				fnAction = function()
 					C.dwSelMapID = k
-					FireEvent("CIRCLE_DRAW_UI", k)
+					FireUIEvent("CIRCLE_DRAW_UI", k)
 				end
 			})
 			if k == C.GetMapID() then
@@ -1240,12 +1240,12 @@ function C.GetMemu()
 					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, string.format("%s -> %s", C.GetMapName(k), C.GetMapName(v))), function()
 						C.tData["mt"][k] = nil
 						if IsEmpty(C.tData["mt"]) then C.tData["mt"] = nil end
-						FireEvent("CIRCLE_CLEAR")
+						FireUIEvent("CIRCLE_CLEAR")
 					end)
 				end,
 				fnAction = function()
 					C.dwSelMapID = v
-					FireEvent("CIRCLE_DRAW_UI", v)
+					FireUIEvent("CIRCLE_DRAW_UI", v)
 				end,
 			})
 		end
@@ -1282,7 +1282,7 @@ function PS.OnPanelActive(frame)
 
 	nX,nY = ui:Append("WndCheckBox", "bBorder", { x = nX + 5, y = nY + 10, checked = Circle.bBorder, txt = _L["Circle Border"] }):Enable(Circle.bEnable):Click(function(bChecked)
 		Circle.bBorder = bChecked
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	if not C.dwSelMapID then C.dwSelMapID = _L["All Data"] end
 	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = C.GetMapName(C.dwSelMapID) }):Menu(C.GetMemu):Pos_()
@@ -1294,7 +1294,7 @@ function PS.OnPanelActive(frame)
 	end):Change(function(szText)
 		if JH.Trim(szText) == "" then szText = nil end
 		C.szSearch = szText
-		FireEvent("CIRCLE_DRAW_UI")
+		FireUIEvent("CIRCLE_DRAW_UI")
 	end):Pos_()
 
 	local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
@@ -1305,7 +1305,7 @@ function PS.OnPanelActive(frame)
 	C.hTable = win
 	C.hSelect = ui:Fetch("Select")
 	C.szSearch = nil
-	FireEvent("CIRCLE_DRAW_UI")
+	FireUIEvent("CIRCLE_DRAW_UI")
 end
 
 GUI.RegisterPanel(_L["Circle"], 2673, _L["Dungeon"], PS)
@@ -1345,7 +1345,7 @@ end)
 JH.RegisterEvent("CIRCLE_DEBUG", function()
 	if JH_About.CheckNameEx() then
 		Circle.nMaxAlpha, CIRCLE_ALPHA_STEP = arg0, arg1
-		FireEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_CLEAR")
 	end
 end)
 JH.RegisterEvent("LOGIN_GAME", function()
