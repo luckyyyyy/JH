@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-06 18:39:18
+-- @Last Modified time: 2015-05-27 11:02:39
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -613,9 +613,9 @@ local EnableTeamPanel = function()
 	if not RaidGrid_CTM_Edition.bRaidEnable then
 		local me = GetClientPlayer()
 		if me.IsInRaid() then
-			FireEvent("CTM_PANEL_RAID", true)
+			FireUIEvent("CTM_PANEL_RAID", true)
 		elseif me.IsInParty() then
-			FireEvent("CTM_PANEL_TEAMATE", true)
+			FireUIEvent("CTM_PANEL_TEAMATE", true)
 		end
 	end
 end
@@ -631,7 +631,7 @@ function PS.OnPanelActive(frame)
 		RaidCheckEnable()
 		local me = GetClientPlayer()
 		if me.IsInParty() and not me.IsInRaid() then
-			FireEvent("CTM_PANEL_TEAMATE", RaidGrid_CTM_Edition.bShowInRaid)
+			FireUIEvent("CTM_PANEL_TEAMATE", RaidGrid_CTM_Edition.bShowInRaid)
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x= nX + 5, y = nY + 10, txt = g_tStrings.WINDOW_LOCK, checked = not RaidGrid_CTM_Edition.bDrag })
@@ -855,7 +855,7 @@ function PS2.OnPanelActive(frame)
 	:Range(1, 100, 99):Value(RaidGrid_CTM_Edition.nAlpha / 255 * 100):Change(function(nVal)
 		RaidGrid_CTM_Edition.nAlpha = nVal / 100 * 255
 		if CTM_FRAME then
-			FireEvent("CTM_SET_ALPHA")
+			FireUIEvent("CTM_SET_ALPHA")
 		end
 	end):Pos_()
 
