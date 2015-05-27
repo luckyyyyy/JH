@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 23:41:11
+-- @Last Modified time: 2015-05-27 11:03:31
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
@@ -13,7 +13,7 @@ local FS_UI_CACHE = setmetatable({}, { __mode = "v" })
 local FS_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/FS_UI.ini"
 local SHADOW      = JH.GetAddonInfo().szShadowIni
 
--- FireEvent("JH_FS_CREATE", "test", { nTime = 5, col = { 255, 255, 0 }, bFlash = true, tBindBuff = { 103, 1 }})
+-- FireUIEvent("JH_FS_CREATE", "test", { nTime = 5, col = { 255, 255, 0 }, bFlash = true, tBindBuff = { 103, 1 }})
 local function CreateFullScreen(szKey, tArgs)
 	assert(type(arg1) == "table", "CreateFullScreen failed!")
 	tArgs.nTime = tArgs.nTime or 3

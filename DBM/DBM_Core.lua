@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 00:11:45
+-- @Last Modified time: 2015-05-27 11:01:45
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -9,7 +9,7 @@ local setmetatable, tonumber, type, tostring, unpack = setmetatable, tonumber, t
 local tinsert, tconcat = table.insert, table.concat
 local GetTime, IsPlayer = GetTime, IsPlayer
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
-local FireEvent, Table_BuffIsVisible, Table_IsSkillShow = FireEvent, Table_BuffIsVisible, Table_IsSkillShow
+local FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow = FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow
 local GetPureText = GetPureText
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_PLAYER_NAME = "NONE"
@@ -284,7 +284,7 @@ function D.FreeCache(szType)
 	end
 	D.TEMP[szType] = t
 	collectgarbage("collect")
-	FireEvent("DBMUI_TEMP_RELOAD", szType)
+	FireUIEvent("DBMUI_TEMP_RELOAD", szType)
 end
 
 function D.CheckScrutinyType(nScrutinyType, dwID, me)
@@ -372,7 +372,7 @@ function D.FireCountdownEvent(data, nClass)
 	if data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				FireEvent("JH_ST_CREATE", nClass, v.key or (k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)), {
+				FireUIEvent("JH_ST_CREATE", nClass, v.key or (k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)), {
 					nTime    = v.nTime,
 					nRefresh = v.nRefresh,
 					szName   = v.szName or data.szName,
@@ -420,7 +420,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				if #tTemp > DBM_MAX_CACHE then
 					D.FreeCache(szType)
 				else
-					FireEvent("DBMUI_TEMP_UPDATE", szType, t)
+					FireUIEvent("DBMUI_TEMP_UPDATE", szType, t)
 				end
 			end
 		end
@@ -463,11 +463,11 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			end
 			local txt = GetPureText(tconcat(xml))
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-				FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
 			-- 特大文字
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, me.dwID == dwCaster or not IsPlayer(dwCaster) )
+				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, me.dwID == dwCaster or not IsPlayer(dwCaster) )
 			end
 
 			-- 获得处理
@@ -480,11 +480,11 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				end
 				-- 重要Buff列表
 				if DBM.bPushPartyBuffList and IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or me.dwID == dwCaster) then
-					FireEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
+					FireUIEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
 				end
 				-- 头顶报警
 				if DBM.bPushScreenHead and cfg.bScreenHead then
-					FireEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, szName = data.szName or szName, col = data.col })
+					FireUIEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, szName = data.szName or szName, col = data.col })
 				end
 				if me.dwID == dwCaster then
 					if DBM.bPushBuffList and cfg.bBuffList then
@@ -492,11 +492,11 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 						if data.col then
 							col = data.col
 						end
-						FireEvent("JH_BL_CREATE", data.dwID, data.nLevel, col, data)
+						FireUIEvent("JH_BL_CREATE", data.dwID, data.nLevel, col, data)
 					end
 					-- 全屏泛光
 					if DBM.bPushFullScreen and cfg.bFullScreen then
-						FireEvent("JH_FS_CREATE", data.dwID .. "_"  .. data.nLevel, {
+						FireUIEvent("JH_FS_CREATE", data.dwID .. "_"  .. data.nLevel, {
 							nTime = 3,
 							col = data.col,
 							tBindBuff = { data.dwID, data.nLevel }
@@ -505,7 +505,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				end
 				-- 添加到团队面板
 				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID) then
-					FireEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col)
+					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col)
 				end
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -544,7 +544,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			if #tTemp > DBM_MAX_CACHE then
 				D.FreeCache("CASTING")
 			else
-				FireEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
+				FireUIEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
 			end
 		end
 	end
@@ -597,11 +597,11 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			end
 			local txt = GetPureText(tconcat(xml))
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-				FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
 			-- 特大文字
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, true )
+				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, true )
 			end
 			if JH.bDebugClient and cfg.bSelect then
 				SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
@@ -611,11 +611,11 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			end
 			-- 头顶报警
 			if DBM.bPushScreenHead and cfg.bScreenHead then
-				FireEvent("JH_SCREENHEAD", dwCaster, { type = "CASTING", txt = data.szName or szName, col = data.col })
+				FireUIEvent("JH_SCREENHEAD", dwCaster, { type = "CASTING", txt = data.szName or szName, col = data.col })
 			end
 			-- 全屏泛光
 			if DBM.bPushFullScreen and cfg.bFullScreen then
-				FireEvent("JH_FS_CREATE", data.dwID .. "#SKILL#"  .. data.nLevel, { nTime = 3, col = data.col})
+				FireUIEvent("JH_FS_CREATE", data.dwID .. "#SKILL#"  .. data.nLevel, { nTime = 3, col = data.col})
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
 				if szTargetName then
@@ -654,7 +654,7 @@ function D.OnNpcEvent(npc, bEnter)
 			if #tTemp > DBM_MAX_CACHE then
 				D.FreeCache("NPC")
 			else
-				FireEvent("DBMUI_TEMP_UPDATE", "NPC", t)
+				FireUIEvent("DBMUI_TEMP_UPDATE", "NPC", t)
 			end
 		end
 	else
@@ -666,10 +666,10 @@ function D.OnNpcEvent(npc, bEnter)
 					if #tab.tList == 0 then
 						local nTime = GetTime() - (tab.nSec or GetTime())
 						if tab.bFightState then
-							FireEvent("DBM_NPC_FIGHT", npc.dwTemplateID, false, nTime)
+							FireUIEvent("DBM_NPC_FIGHT", npc.dwTemplateID, false, nTime)
 						end
 						CACHE.NPC_LIST[npc.dwTemplateID] = nil
-						FireEvent("DBM_NPC_ALLLEAVE_SCENE", npc.dwTemplateID)
+						FireUIEvent("DBM_NPC_ALLLEAVE_SCENE", npc.dwTemplateID)
 					end
 					break
 				end
@@ -696,7 +696,7 @@ function D.OnNpcEvent(npc, bEnter)
 					D.SetTeamMark("NPC", cfg.tMark, npc.dwID, npc.dwTemplateID)
 				end
 				if DBM.bPushScreenHead and cfg.bScreenHead then
-					FireEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col })
+					FireUIEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col })
 				end
 			end
 			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5秒内进入相同的NPC直接忽略
@@ -723,11 +723,11 @@ function D.OnNpcEvent(npc, bEnter)
 
 			local txt = GetPureText(tconcat(xml))
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-				FireEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
 			-- 特大文字
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(npc.dwID, me.dwID) }, true )
+				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(npc.dwID, me.dwID) }, true )
 			end
 
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -742,7 +742,7 @@ function D.OnNpcEvent(npc, bEnter)
 					SetTarget(TARGET.NPC, npc.dwID)
 				end
 				if DBM.bPushFullScreen and cfg.bFullScreen then
-					FireEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.col, bFlash = true })
+					FireUIEvent("JH_FS_CREATE", "NPC", { nTime  = 3, col = data.col, bFlash = true })
 				end
 			end
 		end
@@ -769,7 +769,7 @@ function D.OnCallMessage(szContent, szNpcName)
 		if #tTemp > DBM_MAX_CACHE then
 			D.FreeCache("TALK")
 		else
-			FireEvent("DBMUI_TEMP_UPDATE", "TALK", t)
+			FireUIEvent("DBMUI_TEMP_UPDATE", "TALK", t)
 		end
 	end
 	for k, v in ipairs(D.DATA.TALK) do
@@ -817,7 +817,7 @@ function D.OnCallMessage(szContent, szNpcName)
 						JH.Talk(tInfo.szName, txt:gsub(tInfo.szName, g_tStrings.STR_YOU))
 					end
 					if DBM.bPushScreenHead and cfg.bScreenHead then
-						FireEvent("JH_SCREENHEAD", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
+						FireUIEvent("JH_SCREENHEAD", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
 					end
 					if JH.bDebugClient and cfg.bSelect then
 						SetTarget(TARGET.PLAYER, tInfo.dwID)
@@ -826,15 +826,15 @@ function D.OnCallMessage(szContent, szNpcName)
 
 				-- 中央报警
 				if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-					FireEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)
+					FireUIEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)
 				end
 				-- 特大文字
 				if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
-					FireEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true )
+					FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true )
 				end
 				if DBM.bPushFullScreen and cfg.bFullScreen then
 					if (tInfo and tInfo.dwID == me.dwID) or not tInfo then
-						FireEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = v.col or { 0, 255, 0 }, bFlash = true })
+						FireUIEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = v.col or { 0, 255, 0 }, bFlash = true })
 					end
 				end
 				if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -886,7 +886,7 @@ function D.OnNpcFight(dwTemplateID, bFight)
 			if data.tCountdown then
 				for k, v in ipairs(data.tCountdown) do
 					if v.nClass == DBM_TYPE.NPC_FIGHT then
-						FireEvent("JH_ST_DEL", v.nClass, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
+						FireUIEvent("JH_ST_DEL", v.nClass, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
 					end
 				end
 			end
@@ -906,13 +906,13 @@ function D.OnNpcLife(dwTemplateID, nLife)
 					if time[1] and time[2] and tonumber(JH_Trim(time[1])) and JH_Trim(time[2]) ~= "" then
 						if tonumber(JH_Trim(time[1])) * 100 == nLife then -- hit
 							if DBM.bPushCenterAlarm then
-								FireEvent("JH_CA_CREATE", time[2], 3)
+								FireUIEvent("JH_CA_CREATE", time[2], 3)
 							end
 							if DBM.bPushBigFontAlarm then
-								FireEvent("JH_LARGETEXT", time[2], { 255, 128, 0 }, true)
+								FireUIEvent("JH_LARGETEXT", time[2], { 255, 128, 0 }, true)
 							end
 							if time[3] and tonumber(time[3]) then
-								FireEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
+								FireUIEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
 									nTime  = tonumber(JH_Trim(time[3])),
 									szName = time[2],
 									nIcon  = v.nIcon,
@@ -967,18 +967,18 @@ function D.CheckNpcState()
 					step = 2
 				end
 				for i = 1, nCount, step do
-					FireEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
+					FireUIEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
 				end
 			end
 			v.nLife = fNpcPer
 			if bFightFlag then
 				local nTime = GetTime()
 				v.nSec = GetTime()
-				FireEvent("DBM_NPC_FIGHT", k, true, nTime)
+				FireUIEvent("DBM_NPC_FIGHT", k, true, nTime)
 			elseif bFightFlag == false then
 				local nTime = GetTime() - (v.nSec or GetTime())
 				v.nSec = nil
-				FireEvent("DBM_NPC_FIGHT", k, false, nTime)
+				FireUIEvent("DBM_NPC_FIGHT", k, false, nTime)
 			end
 		end
 	end
@@ -998,22 +998,22 @@ end
 function D.Close()
 	if D.GetFrame() then
 		Wnd.CloseWindow(Station.Lookup("Normal/DBM")) -- kill all event
-		FireEvent("JH_ST_CLEAR")
+		FireUIEvent("JH_ST_CLEAR")
 		CACHE.NPC_LIST = {}
 		CACHE.SKILL_LIST = {}
 	end
 end
 
-function D.Enable(bEnable, bFireEvent)
+function D.Enable(bEnable, bFireUIEvent)
 	if bEnable then
 		local res, err = pcall(D.Open)
 		if not res then
 			JH.Sysmsg2(err)
 		end
-		if bFireEvent then
-			FireEvent("DBM_LOADING_END")
+		if bFireUIEvent then
+			FireUIEvent("DBM_LOADING_END")
 			for k, v in pairs(JH.GetAllNpcID()) do
-				FireEvent("DBM_NPC_ENTER_SCENE", k)
+				FireUIEvent("DBM_NPC_ENTER_SCENE", k)
 			end
 		end
 	else
@@ -1139,7 +1139,8 @@ function D.LoadUserData()
 						DEBUFF  = true,
 						CASTING = true,
 						NPC     = true,
-						TALK    = true
+						TALK    = true,
+						CIRCLE  = true
 					},
 					szFileName = szLang ..  "_default.jx3dat",
 				}
@@ -1166,8 +1167,8 @@ function D.LoadConfigureFile(config)
 			for k, v in pairs(config.tList) do
 				D.FILE[k] = data[k] or {}
 			end
-			FireEvent("DBM_CREATE_CACHE")
-			FireEvent("DBMUI_DATA_RELOAD")
+			FireUIEvent("DBM_CREATE_CACHE")
+			FireUIEvent("DBMUI_DATA_RELOAD")
 			collectgarbage("collect")
 			return true, path
 		elseif config.nMode == 2 then -- 原文件优先
@@ -1190,8 +1191,8 @@ function D.LoadConfigureFile(config)
 					end
 				end
 			end
-			FireEvent("DBM_CREATE_CACHE")
-			FireEvent("DBMUI_DATA_RELOAD")
+			FireUIEvent("DBM_CREATE_CACHE")
+			FireUIEvent("DBMUI_DATA_RELOAD")
 			collectgarbage("collect")
 			return true, path
 		end
@@ -1231,9 +1232,9 @@ function D.RemoveData(szType, dwMapID, nIndex)
 			D.FILE[szType][dwMapID] = nil
 		end
 		if dwMapID == -1 or dwMapID == GetClientPlayer().GetMapID() then
-			FireEvent("DBM_CREATE_CACHE")
+			FireUIEvent("DBM_CREATE_CACHE")
 		end
-		FireEvent("DBMUI_DATA_RELOAD", szType)
+		FireUIEvent("DBMUI_DATA_RELOAD", szType)
 	end
 end
 
@@ -1267,16 +1268,16 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 		if not bCopy then
 			D.RemoveData(szType, dwMapID, nIndex)
 		end
-		FireEvent("DBM_CREATE_CACHE")
-		FireEvent("DBMUI_DATA_RELOAD", szType)
+		FireUIEvent("DBM_CREATE_CACHE")
+		FireUIEvent("DBMUI_DATA_RELOAD", szType)
 	end
 end
 
 function D.AddData(szType, dwMapID, data)
 	D.FILE[szType][dwMapID] = D.FILE[szType][dwMapID] or {}
 	table.insert(D.FILE[szType][dwMapID], data)
-	FireEvent("DBM_CREATE_CACHE")
-	FireEvent("DBMUI_DATA_RELOAD", szType)
+	FireUIEvent("DBM_CREATE_CACHE")
+	FireUIEvent("DBMUI_DATA_RELOAD", szType)
 	return D.FILE[szType][dwMapID][#D.FILE[szType][dwMapID]]
 end
 
@@ -1287,7 +1288,7 @@ function D.ClearTemp(szType)
 	-- D.Log(szType .. " cache clear!")
 	D.TEMP[szType] = {}
 	collectgarbage("collect")
-	FireEvent("DBMUI_TEMP_RELOAD")
+	FireUIEvent("DBMUI_TEMP_RELOAD")
 end
 -- 公开接口
 local ui = {

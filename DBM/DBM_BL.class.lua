@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-26 19:05:08
+-- @Last Modified time: 2015-05-27 11:03:25
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -13,7 +13,7 @@ BL_UI = {
 	fScale = 1,
 }
 JH.RegisterCustomData("BL_UI")
--- FireEvent("JH_BL_CREATE", 103, 1, { 255, 0, 0 })
+-- FireUIEvent("JH_BL_CREATE", 103, 1, { 255, 0, 0 })
 local function CreateBuffList(dwID, nLevel, col, tArgs)
 	local key = dwID .. "." .. nLevel
 	local ui = BL_CACHE[key]

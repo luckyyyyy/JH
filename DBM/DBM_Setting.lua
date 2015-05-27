@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 19:19:31
+-- @Last Modified time: 2015-05-27 11:02:08
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -46,7 +46,7 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Team Panel Bind Show Buff"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Team Panel Bind Show Buff"], checked = DBM.bPushTeamPanel }):Click(function(bCheck)
 		DBM.bPushTeamPanel = bCheck
-		FireEvent("DBM_CREATE_CACHE")
+		FireUIEvent("DBM_CREATE_CACHE")
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Buff List"], font = 27 }):Pos_()
 	nX = ui:Append("WndComboBox", { x = 10, y = nY + 10, txt = _L["Max Buff Count"] }):Menu(function()

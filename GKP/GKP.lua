@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-17 21:15:35
+-- @Last Modified time: 2015-05-27 11:03:43
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -533,7 +533,7 @@ function GKP.OnFrameCreate()
 			return record:Fetch("btn_ok"):Click()
 		end
 		record:Toggle(false)
-		FireEvent("GKP_DEL_DISTRIBUTE_ITEM")
+		FireUIEvent("GKP_DEL_DISTRIBUTE_ITEM")
 	end)
 
 	-- append text
@@ -1319,7 +1319,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 	local txt = Station.Lookup("Normal/GKP/PageSet_Menu/Page_GKP_Record", "Text_GKP_RecordSettlement")
 	txt:SetText(_L("Statistic: real salary = %d Gold(By Auction: %d Gold + Extra Allowance: %d Gold) %d record has been deleted.", a + b, a, b, c))
 	txt:SetFontColor(GKP.GetMoneyCol(a + b))
-	FireEvent("GKP_RECORD_TOTAL", a, b)
+	FireUIEvent("GKP_RECORD_TOTAL", a, b)
 end
 ---------------------------------------------------------------------->
 -- ºÍÐ³
@@ -2522,7 +2522,7 @@ _GKP.Record = function(tab, item, bEnter)
 
 		pcall(_GKP.Draw_GKP_Record)
 		record:Toggle(false)
-		FireEvent("GKP_DEL_DISTRIBUTE_ITEM")
+		FireUIEvent("GKP_DEL_DISTRIBUTE_ITEM")
 	end)
 	if bEnter then
 		record:Fetch("btn_ok"):Click()
@@ -2616,7 +2616,7 @@ RegisterEvent("DISTRIBUTE_ITEM",function() -- DISTRIBUTE_ITEM
 				if me.bFightState then
 					GKP.Sysmsg(_L["A distribute record has produced, it has been ignored in the combat, it will automatically popup after breaking away from the combat."])
 				else
-					FireEvent("GKP_DISTRIBUTE_ITEM")
+					FireUIEvent("GKP_DISTRIBUTE_ITEM")
 				end
 			end
 			break
@@ -2628,7 +2628,7 @@ end)
 RegisterEvent("FIGHT_HINT", function()
 	local me = GetClientPlayer()
 	if GKP.bOn and #_GKP.tDistribute > 0 and not me.bFightState then
-		FireEvent("GKP_DISTRIBUTE_ITEM")
+		FireUIEvent("GKP_DISTRIBUTE_ITEM")
 	end
 end)
 
@@ -2636,7 +2636,7 @@ RegisterEvent("GKP_DEL_DISTRIBUTE_ITEM", function()
 	if #_GKP.tDistribute > 0 then
 		table.remove(_GKP.tDistribute,1)
 		if #_GKP.tDistribute > 0 then
-			FireEvent("GKP_DISTRIBUTE_ITEM")
+			FireUIEvent("GKP_DISTRIBUTE_ITEM")
 		end
 	end
 	if IsPopupMenuOpened() then
