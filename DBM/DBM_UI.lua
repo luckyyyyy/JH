@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:01:57
+-- @Last Modified time: 2015-05-27 22:41:23
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -619,7 +619,7 @@ function DBMUI.SetRItemAction(szType, h, t)
 		end
 		table.insert(menu, { szOption = g_tStrings.MAP_TALK .. g_tStrings.STR_COLON .. Table_GetMapName(t.dwMapID), bDisable = true })
 		if szType ~= "NPC" and szType ~= "CIRCLE" and szType ~= "TALK" then
-			table.insert(menu, { szOption = g_tStrings.STR_SKILL_H_CAST_TIME .. (t.bIsPlayer and _L["(player)"]) .. (t.szSrcName or g_tStrings.STR_CRAFT_NONE), bDisable = true })
+			table.insert(menu, { szOption = g_tStrings.STR_SKILL_H_CAST_TIME .. (t.bIsPlayer and _L["(player)"] or "") .. (t.szSrcName or g_tStrings.STR_CRAFT_NONE), bDisable = true })
 		end
 		PopupMenu(menu)
 	end
