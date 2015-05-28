@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:01:45
+-- @Last Modified time: 2015-05-28 15:10:37
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -17,7 +17,8 @@ local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
 local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
-
+local DBM_MARK_QUEUE = {}
+local DBM_MARK_TIME  = 0 -- 标记事件
 local function GetDataPath()
 	if DBM.bCommon then
 		return "DBM/Common/DBM.jx3dat"
@@ -100,6 +101,7 @@ function DBM.OnFrameCreate()
 	this:RegisterEvent("DBM_NPC_FIGHT")
 	this:RegisterEvent("DBM_NPC_ALLLEAVE_SCENE")
 	this:RegisterEvent("DBM_NPC_LIFE_CHANGE")
+	this:RegisterEvent("PARTY_SET_MARK")
 end
 
 function DBM.OnFrameBreathe()
@@ -126,6 +128,16 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "DO_SKILL_CAST" then
 		D.OnSkillCast(arg0, arg1, arg2, szEvent)
+	elseif szEvent == "PARTY_SET_MARK" then
+		if #DBM_MARK_QUEUE >= 1 then
+			local r = table.remove(DBM_MARK_QUEUE, 1)
+			local res, err = pcall(r.fnAction)
+			if not res then
+				JH.Debug("DBM_Mark ERROR: " .. err)
+			end
+		else
+			DBM_MARK_TIME = 0
+		end
 	elseif szEvent == "PLAYER_SAY" then
 		if not IsPlayer(arg1) then
 			D.OnCallMessage(GetPureText(arg0), arg3)
@@ -299,73 +311,78 @@ function D.CheckScrutinyType(nScrutinyType, dwID, me)
 end
 
 -- 智能标记逻辑
--- 例 勾选了 白云 红谷 棒槌
--- 如果是NPC   从头抓到尾 比如白云不是这个NPC  那就把白云给他 如果是的话 就给红谷 以此类推
--- 如果是BUFF  从头抓到尾 比如白云没有这个BUFF 那就把白云给他 如果是的话 就给红谷 以此类推
--- 如果是技能 无条件给标记
 function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
-	if not JH.IsMark() then
-		return
-	end
-	local team = GetClientTeam()
-	local tTeamMark, tMarkList = team.GetTeamMark(), {} -- tmd 什么鬼结构。。。
-	for k, v in pairs(tTeamMark) do
-		tMarkList[v] = k
-	end
-	if szType == "NPC" then
-		for k, v in ipairs(tMark) do
-			if v then
-				if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
-					break
-				end
-				local p = GetNpc(tMarkList[k])
-				if not tMarkList[k] or tMarkList[k] == 0 or not p then
-					team.SetTeamMark(k, dwCharacterID)
-					break
-				elseif p then
-					if p.dwTemplateID ~= dwID then
+	local fnAction = function()
+		if not JH.IsMark() then
+			return
+		end
+		local team = GetClientTeam()
+		local tTeamMark, tMarkList = team.GetTeamMark(), {} -- tmd 什么鬼结构。。。
+		for k, v in pairs(tTeamMark) do
+			tMarkList[v] = k
+		end
+		if szType == "NPC" then
+			for k, v in ipairs(tMark) do
+				if v then
+					if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
+						break
+					end
+					local p = GetNpc(tMarkList[k])
+					if not tMarkList[k] or tMarkList[k] == 0 or not p then
 						team.SetTeamMark(k, dwCharacterID)
 						break
+					elseif p then
+						if p.dwTemplateID ~= dwID then
+							team.SetTeamMark(k, dwCharacterID)
+							break
+						end
 					end
 				end
 			end
-		end
-	elseif szType == "BUFF" or szType == "DEBUFF" then
-		for k, v in ipairs(tMark) do
-			if v then
-				if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
-					break
-				end
-				local bMark = false
-				if tMarkList[k] and tMarkList[k] ~= 0 then
-					local p = IsPlayer(tMarkList[k]) and GetPlayer(tMarkList[k]) or GetNpc(tMarkList[k])
-					if p then
-						if not JH.HasBuff(dwID, p) then
+		elseif szType == "BUFF" or szType == "DEBUFF" then
+			for k, v in ipairs(tMark) do
+				if v then
+					if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
+						break
+					end
+					local bMark = false
+					if tMarkList[k] and tMarkList[k] ~= 0 then
+						local p = IsPlayer(tMarkList[k]) and GetPlayer(tMarkList[k]) or GetNpc(tMarkList[k])
+						if p then
+							if not JH.HasBuff(dwID, p) then
+								bMark = true
+							end
+						else
 							bMark = true
 						end
 					else
 						bMark = true
 					end
-				else
-					bMark = true
+					if bMark then
+						team.SetTeamMark(k, dwCharacterID)
+						break
+					end
 				end
-				if bMark then
+			end
+		elseif szType == "CASTING" then
+			for k, v in ipairs(tMark) do
+				if v then
+					if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
+						break
+					end
 					team.SetTeamMark(k, dwCharacterID)
 					break
 				end
 			end
 		end
-	elseif szType == "CASTING" then
-		for k, v in ipairs(tMark) do
-			if v then
-				if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
-					break
-				end
-				team.SetTeamMark(k, dwCharacterID)
-				break
-			end
-		end
 	end
+	tinsert(DBM_MARK_QUEUE, { fnAction = fnAction })
+	local nTime = GetTime()
+	if nTime - DBM_MARK_TIME > 1000 then
+		local f = table.remove(DBM_MARK_QUEUE, 1)
+		pcall(f.fnAction)
+	end
+	DBM_MARK_TIME = nTime
 end
 -- 倒计时处理 支持定义无限的倒计时
 function D.FireCountdownEvent(data, nClass)
