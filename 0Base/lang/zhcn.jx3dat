@@ -82,6 +82,7 @@ data = {
 	["preview"] = "预览",
 	["Hello World"] = "你好，世界。",
 	-- DBM_UI.lua --
+	["%s Call Name"] = "被【%s】点名了",
 	["JX3 DBM Plug-in"] = "《剑网3》DBM插件设置面板",
 	["BUFF"] = "增益效果",
 	["DEBUFF"] = "减益效果",
