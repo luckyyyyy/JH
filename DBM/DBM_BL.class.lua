@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 13:54:29
+-- @Last Modified time: 2015-05-28 20:52:51
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -43,6 +43,20 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 				box:SetOverTextFontScheme(0, 15)
 				if tBuff.nStackNum > 1 then
 					box:SetOverText(0, tBuff.nStackNum)
+				end
+				box.OnItemMouseLeave = function()
+					if this:IsValid() then
+						this:SetObjectMouseOver(false)
+					end
+				end
+				box.OnItemMouseEnter = function()
+					if this:IsValid() then
+						this:SetObjectMouseOver(true)
+					end
+				end
+				box.OnItemRButtonClick = function()
+					local bExist, tBuff = JH.HasBuff(dwID)
+					GetClientPlayer().CancelBuff(tBuff.nIndex)
 				end
 				h:Lookup("Text_Time"):SetText(szTime)
 				h:Lookup("Text_Time"):SetFontColor(unpack(col))
@@ -114,6 +128,7 @@ function BL_UI.OnFrameBreathe()
 			end
 		end
 	end
+	this:SetMousePenetrable(not IsCtrlKeyDown())
 end
 
 function BL_UI.OnFrameDragEnd()
