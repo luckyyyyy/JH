@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 15:19:52
+-- @Last Modified time: 2015-05-28 20:12:58
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -704,7 +704,7 @@ function D.OnNpcEvent(npc, bEnter)
 			end
 		else
 			-- 场地上的NPC数量没达到预期数量
-			if data.nCount and data.nCount < #CACHE.NPC_LIST[npc.dwTemplateID].tList then
+			if data.nCount and #CACHE.NPC_LIST[npc.dwTemplateID].tList < data.nCount then
 				return
 			end
 			if cfg then
