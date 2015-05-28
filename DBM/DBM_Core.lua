@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 02:18:28
+-- @Last Modified time: 2015-05-29 02:59:53
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -168,6 +168,17 @@ end
 function D.Log(szMsg)
 	Log("[DBM] " .. szMsg)
 end
+-- 选代器 倒序
+local function fnBpairs(table, nIndex)
+	nIndex = nIndex - 1
+	if nIndex > 0 then
+		return nIndex, table[nIndex]
+	end
+end
+
+function D.Bpairs(table)
+	return fnBpairs, table, #table + 1
+end
 
 function D.FireTeamWhisper(szMsg)
 	local me = GetClientPlayer()
@@ -200,13 +211,13 @@ local function CreateTalkData(dwMapID)
 	local data = D.FILE.TALK
 	local talk = D.DATA.TALK
 	if data[dwMapID] then -- 本地图数据
-		for k, v in ipairs(data[dwMapID]) do
+		for k, v in D.Bpairs(data[dwMapID]) do
 			talk[#talk + 1] = v
 		end
 	end
 	-- 不要改顺序 通用放后面
 	if data[-1] then -- 通用数据
-		for k, v in ipairs(data[-1]) do
+		for k, v in D.Bpairs(data[-1]) do
 			talk[#talk + 1] = v
 		end
 	end
@@ -291,7 +302,7 @@ function D.CreateData(szEvent)
 		end
 		pcall(Raid_MonitorBuffs, tBuff)
 	else
-		pcall(Raid_MonitorBuffs, {})
+		pcall(Raid_MonitorBuffs) -- clear
 	end
 	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
@@ -1358,6 +1369,7 @@ local ui = {
 	SaveConfigureFile = D.SaveConfigureFile,
 	LoadConfigureFile = D.LoadConfigureFile,
 	MoveOrder         = D.MoveOrder,
+	Bpairs            = D.Bpairs,
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 02:29:00
+-- @Last Modified time: 2015-05-29 02:59:30
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -566,10 +566,9 @@ function DBMUI.DrawTableL(szType, data)
 	local ini = szType == "TALK" and DBMUI_TALK_L or DBMUI_ITEM_L
 	handle:Clear()
 	if #data > 0 then
-		for i = #data, 1, -1 do
-			local dat = data[i]
+		for k, v in DBM_API.Bpairs(data) do
 			local h = handle:AppendItemFromIni(ini, "Handle_L")
-			SetDataAction(h, dat, i)
+			SetDataAction(h, v, k)
 		end
 	end
 	handle:FormatAllItemPos()
@@ -645,10 +644,9 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 	if not bInsert then
 		handle:Clear()
 		if #data > 0 then
-			for i = #data, 1, -1 do
-				local dat = data[i]
+			for k, v in DBM_API.Bpairs(data) do
 				local h = handle:AppendItemFromIni(ini, "Handle_R")
-				SetDataAction(h, dat, i)
+				SetDataAction(h, v, k)
 			end
 		end
 	else
