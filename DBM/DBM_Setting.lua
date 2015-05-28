@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:02:08
+-- @Last Modified time: 2015-05-29 02:04:57
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -67,7 +67,10 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Use common data"], checked = DBM.bCommon }):Click(function(bCheck)
 		DBM.bCommon = bCheck
 	end):Pos_()
-	ui:Append("WndButton3", { x = 185, y = nY + 20, txt = _L["Open DBM Panel"] }):Click(DBM_UI.TogglePanel)
+	nX = ui:Append("WndButton2", { x = 5, y = nY + 15, txt = _L["Open DBM Panel"] }):Click(DBM_UI.TogglePanel):Pos_()
+	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY + 15, txt = _L["Export Data"] }):Click(DBM_UI.OpenExportPanel):Pos_()
+	nX = ui:Append("WndButton2", { x = 5, y = nY + 5, txt = _L["Import Data"], w = 170, h = 32 }):Click(DBM_UI.OpenImportPanel):Pos_()
+	nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 5, txt = _L["import Data (web)"], w = 170, h = 32 }):Click(DBM_RemoteRequest.OpenPanel):Pos_()
 end
 
 GUI.RegisterPanel(_L["DBM"], 2041, _L["Dungeon"], PS)
