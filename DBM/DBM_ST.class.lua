@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:03:33
+-- @Last Modified time: 2015-05-28 23:01:56
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -13,7 +13,7 @@ local tinsert, tsort = table.insert, table.sort
 local JH_Split, JH_Trim, JH_FormatTimeString = JH.Split, JH.Trim, JH.FormatTimeString
 local abs, mod, floor = math.abs, math.mod, math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
-
+local ST_TIME_CACHE = {}
 local ST_CACHE = {}
 do
 	for k, v in pairs(DBM_TYPE) do
@@ -66,14 +66,12 @@ local function CreateCountdown(nType, szKey, tArgs)
 			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tArgs.nTime)
 		end
 	end
-	local ui = ST_CACHE[nType][szKey]
-	if ui and ui:IsValid() and ui.nRefresh then
-		if (nTime - ui.nCreate) / 1000 > ui.nRefresh then
-			ST.new(nType, szKey, tArgs):SetInfo(arg, tArgs.nIcon or 13):Switch(false)
-		end
-	else
-		ST.new(nType, szKey, tArgs):SetInfo(arg, tArgs.nIcon or 13):Switch(false)
+	if ST_TIME_CACHE[szKey] and (nTime - ST_TIME_CACHE[szKey]) / 1000 < tArgs.nRefresh then
+		return
 	end
+	local ui = ST_CACHE[nType][szKey]
+	ST_TIME_CACHE[szKey] = nTime
+	ST.new(nType, szKey, tArgs):SetInfo(arg, tArgs.nIcon or 13):Switch(false)
 end
 
 ST_UI = {

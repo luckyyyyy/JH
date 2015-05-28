@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 20:34:22
+-- @Last Modified time: 2015-05-28 22:57:18
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -819,8 +819,8 @@ function D.OnCallMessage(szContent, szNpcName)
 						FireUIEvent("JH_ST_CREATE", DBM_TYPE.TALK_MONITOR, vv.key or (k .. "." .. kk), {
 							nTime    = vv.nTime,
 							nRefresh = vv.nRefresh,
-							szName   = vv.szName or data.szName,
-							nIcon    = vv.nIcon or data.nIcon,
+							szName   = vv.szName or v.szNote,
+							nIcon    = vv.nIcon or 340,
 							bTalk    = DBM.bPushTeamChannel and vv.bTeamChannel
 						})
 					end
