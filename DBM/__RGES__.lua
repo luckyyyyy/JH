@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-23 06:20:42
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-26 13:45:09
+-- @Last Modified time: 2015-05-28 22:08:40
 
 
 function RGESToDBM(szPath)
@@ -312,7 +312,6 @@ function RGESToDBM(szPath)
 				dwID = v.dwID,
 				nLevel = v.nLevel,
 			}
-
 			if v.nEventAlertCount and v.nEventAlertCount ~= 1 then
 				dat.nCount = v.nEventAlertCount
 			end
