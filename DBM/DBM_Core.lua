@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 00:30:30
+-- @Last Modified time: 2015-05-29 01:37:27
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -280,18 +280,18 @@ function D.CreateData(szEvent)
 	if DBM.bPushTeamPanel then
 		local tBuff = {}
 		for k, v in ipairs(D.DATA.BUFF) do
-			if v.bTeamPanel then
+			if v[DBM_TYPE.BUFF_GET] and v[DBM_TYPE.BUFF_GET].bTeamPanel then
 				tinsert(tBuff, v.dwID)
 			end
 		end
 		for k, v in ipairs(D.DATA.DEBUFF) do
-			if v.bTeamPanel then
+			if v[DBM_TYPE.BUFF_GET] and v[DBM_TYPE.BUFF_GET].bTeamPanel then
 				tinsert(tBuff, v.dwID)
 			end
 		end
-		Raid_MonitorBuffs(tBuff)
+		pcall(Raid_MonitorBuffs, tBuff)
 	else
-		Raid_MonitorBuffs({})
+		pcall(Raid_MonitorBuffs, {})
 	end
 	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
@@ -1301,7 +1301,7 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 			return JH.Alert(_L["same data Exist"])
 		end
 		D.FILE[szType][dwTargetMapID] = D.FILE[szType][dwTargetMapID] or {}
-		table.insert(D.FILE[szType][dwTargetMapID], clone(D.FILE[szType][dwMapID][nIndex]))
+		tinsert(D.FILE[szType][dwTargetMapID], clone(D.FILE[szType][dwMapID][nIndex]))
 		if not bCopy then
 			D.RemoveData(szType, dwMapID, nIndex)
 		end
@@ -1312,7 +1312,7 @@ end
 
 function D.AddData(szType, dwMapID, data)
 	D.FILE[szType][dwMapID] = D.FILE[szType][dwMapID] or {}
-	table.insert(D.FILE[szType][dwMapID], data)
+	tinsert(D.FILE[szType][dwMapID], data)
 	FireUIEvent("DBM_CREATE_CACHE")
 	FireUIEvent("DBMUI_DATA_RELOAD", szType)
 	return D.FILE[szType][dwMapID][#D.FILE[szType][dwMapID]]
