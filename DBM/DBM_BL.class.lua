@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:03:25
+-- @Last Modified time: 2015-05-28 13:54:29
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -46,9 +46,9 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 				end
 				h:Lookup("Text_Time"):SetText(szTime)
 				h:Lookup("Text_Time"):SetFontColor(unpack(col))
-				BL.handle:FormatAllItemPos()
 				BL_CACHE[key] = h
 				h:Scale(BL_UI.fScale, BL_UI.fScale)
+				BL.handle:FormatAllItemPos()
 			end
 		end
 	end
