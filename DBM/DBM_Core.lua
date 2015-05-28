@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 20:33:24
+-- @Last Modified time: 2015-05-28 20:34:22
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -815,8 +815,8 @@ function D.OnCallMessage(szContent, szNpcName)
 			-- 倒计时
 			if data.tCountdown then
 				for kk, vv in ipairs(data.tCountdown) do
-					if v.nClass == DBM_TYPE.TALK_MONITOR then
-						FireUIEvent("JH_ST_CREATE", DBM_TYPE.TALK_MONITOR, vv.key or (k .. kk), {
+					if vv.nClass == DBM_TYPE.TALK_MONITOR then
+						FireUIEvent("JH_ST_CREATE", DBM_TYPE.TALK_MONITOR, vv.key or (k .. "." .. kk), {
 							nTime    = vv.nTime,
 							nRefresh = vv.nRefresh,
 							szName   = vv.szName or data.szName,
