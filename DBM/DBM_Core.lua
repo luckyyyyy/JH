@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 15:10:37
+-- @Last Modified time: 2015-05-28 15:19:52
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -18,7 +18,7 @@ local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 local DBM_MARK_QUEUE = {}
-local DBM_MARK_TIME  = 0 -- 标记事件
+local DBM_MARK_FIRST = true -- 标记事件
 local function GetDataPath()
 	if DBM.bCommon then
 		return "DBM/Common/DBM.jx3dat"
@@ -136,7 +136,7 @@ function DBM.OnEvent(szEvent)
 				JH.Debug("DBM_Mark ERROR: " .. err)
 			end
 		else
-			DBM_MARK_TIME = 0
+			DBM_MARK_FIRST = true
 		end
 	elseif szEvent == "PLAYER_SAY" then
 		if not IsPlayer(arg1) then
@@ -377,12 +377,11 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 		end
 	end
 	tinsert(DBM_MARK_QUEUE, { fnAction = fnAction })
-	local nTime = GetTime()
-	if nTime - DBM_MARK_TIME > 1000 then
+	if DBM_MARK_FIRST then
 		local f = table.remove(DBM_MARK_QUEUE, 1)
 		pcall(f.fnAction)
 	end
-	DBM_MARK_TIME = nTime
+	DBM_MARK_FIRST = false
 end
 -- 倒计时处理 支持定义无限的倒计时
 function D.FireCountdownEvent(data, nClass)
