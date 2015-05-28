@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 20:24:34
+-- @Last Modified time: 2015-05-28 20:33:24
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -199,13 +199,14 @@ local function CreateTalkData(dwMapID)
 	-- 单独重建TALK数据
 	local data = D.FILE.TALK
 	local talk = D.DATA.TALK
-	if data[-1] then -- 通用数据
-		for k, v in ipairs(data[-1]) do
+	if data[dwMapID] then -- 本地图数据
+		for k, v in ipairs(data[dwMapID]) do
 			talk[#talk + 1] = v
 		end
 	end
-	if data[dwMapID] then -- 本地图数据
-		for k, v in ipairs(data[dwMapID]) do
+	-- 不要改顺序 通用放后面
+	if data[-1] then -- 通用数据
+		for k, v in ipairs(data[-1]) do
 			talk[#talk + 1] = v
 		end
 	end
@@ -811,7 +812,21 @@ function D.OnCallMessage(szContent, szNpcName)
 			end
 		end
 		if bHit then -- hit
-			D.FireCountdownEvent(v, DBM_TYPE.TALK_MONITOR)
+			-- 倒计时
+			if data.tCountdown then
+				for kk, vv in ipairs(data.tCountdown) do
+					if v.nClass == DBM_TYPE.TALK_MONITOR then
+						FireUIEvent("JH_ST_CREATE", DBM_TYPE.TALK_MONITOR, vv.key or (k .. kk), {
+							nTime    = vv.nTime,
+							nRefresh = vv.nRefresh,
+							szName   = vv.szName or data.szName,
+							nIcon    = vv.nIcon or data.nIcon,
+							bTalk    = DBM.bPushTeamChannel and vv.bTeamChannel
+						})
+					end
+				end
+			end
+
 			local cfg = v[DBM_TYPE.TALK_MONITOR]
 			if cfg then
 				local xml, txt = {}, v.szNote or szContent
