@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 21:10:42
+-- @Last Modified time: 2015-05-28 23:54:17
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -519,7 +519,7 @@ function DBMUI.SetLItemAction(szType, h, t)
 			DBMUI.MoveData(t.dwMapID, t.nIndex, dwMapID, IsCtrlKeyDown())
 		end)
 		table.insert(menu, { bDevide = true })
-		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
+		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL .. t.nIndex, rgb = { 255, 0, 0 }, fnAction = function()
 			DBMUI.RemoveData(t.dwMapID, t.nIndex, h:Lookup("Text") and h:Lookup("Text"):GetText() or t.szContent, true)
 		end })
 		PopupMenu(menu)
@@ -537,15 +537,6 @@ function DBMUI.DrawTableL(szType, data)
 	local page = DBMUI.pageset:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_L", "Handle_" .. szType .. "_List_L")
 	local function SetDataAction(h, t, i)
-		if not t.dwMapID then
-			setmetatable(t, { __index = function(me, val)
-				if val == "dwMapID" then
-					return DBMUI_SELECT_MAP
-				elseif val == "nIndex" then
-					return i
-				end
-			end })
-		end
 		if szType == "BUFF" or szType == "DEBUFF" then
 			DBMUI.SetBuffItemAction(h, t)
 			DBMUI.SetLItemAction(szType, h, t)

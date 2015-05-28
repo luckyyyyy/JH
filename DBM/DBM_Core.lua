@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 22:57:18
+-- @Last Modified time: 2015-05-29 00:30:30
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -212,6 +212,7 @@ local function CreateTalkData(dwMapID)
 	end
 end
 
+
 function D.CreateData(szEvent)
 	local szLang = select(3, GetVersion())
 	local me = GetClientPlayer()
@@ -244,26 +245,33 @@ function D.CreateData(szEvent)
 	CreateTalkData(dwMapID)
 	D.Log("Create TALK data Succeed!")
 
-	-- 重建metatable
-	for k, v in pairs(D.FILE)  do
-		setmetatable(D.FILE[k], { __index = function(me, index)
+	-- 重建metatable 获取ALL数据的方法
+	for kType, vTable in pairs(D.FILE)  do
+		setmetatable(D.FILE[kType], { __index = function(me, index)
 			if index == _L["All Data"] then
 				local t = {}
-				for k, v in pairs(D.FILE[k]) do
+				for k, v in pairs(vTable) do
 					for kk, vv in ipairs(v) do
-						t[#t +1] = setmetatable(vv, { __index = function(me, val)
-							if val == "dwMapID" then
-								return k
-							elseif val == "nIndex" then
-								return kk
-							end
-						end })
+						t[#t +1] = vv
 					end
 				end
 				return t
 			end
 		end })
+		-- 重建所有数据的metatable
+		for k, v in pairs(vTable) do
+			for kk, vv in ipairs(v) do
+				setmetatable(vv, { __index = function(_, val)
+					if val == "dwMapID" then
+						return k
+					elseif val == "nIndex" then
+						return kk
+					end
+				end })
+			end
+		end
 	end
+
 	-- 清空缓存
 	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
 		CACHE.NPC_LIST   = {}
@@ -813,8 +821,8 @@ function D.OnCallMessage(szContent, szNpcName)
 		end
 		if bHit then -- hit
 			-- 倒计时
-			if data.tCountdown then
-				for kk, vv in ipairs(data.tCountdown) do
+			if v.tCountdown then
+				for kk, vv in ipairs(v.tCountdown) do
 					if vv.nClass == DBM_TYPE.TALK_MONITOR then
 						FireUIEvent("JH_ST_CREATE", DBM_TYPE.TALK_MONITOR, vv.key or (k .. "." .. kk), {
 							nTime    = vv.nTime,
@@ -860,7 +868,7 @@ function D.OnCallMessage(szContent, szNpcName)
 					FireUIEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)
 				end
 				-- 特大文字
-				if DBM.bBigFontAlarm and cfg.bBigFontAlarm then
+				if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
 					FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true )
 				end
 				if DBM.bPushFullScreen and cfg.bFullScreen then
@@ -1262,9 +1270,7 @@ function D.RemoveData(szType, dwMapID, nIndex)
 		if #D.FILE[szType][dwMapID] == 0 then
 			D.FILE[szType][dwMapID] = nil
 		end
-		if dwMapID == -1 or dwMapID == GetClientPlayer().GetMapID() then
-			FireUIEvent("DBM_CREATE_CACHE")
-		end
+		FireUIEvent("DBM_CREATE_CACHE")
 		FireUIEvent("DBMUI_DATA_RELOAD", szType)
 	end
 end
