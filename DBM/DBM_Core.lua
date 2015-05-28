@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 01:37:27
+-- @Last Modified time: 2015-05-29 02:18:28
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -1275,6 +1275,22 @@ function D.RemoveData(szType, dwMapID, nIndex)
 	end
 end
 
+function D.MoveOrder(szType, dwMapID, nIndex, bUp)
+	if D.FILE[szType][dwMapID] then
+		if bUp then
+			if nIndex ~= 1 then
+				D.FILE[szType][dwMapID][nIndex], D.FILE[szType][dwMapID][nIndex - 1] = D.FILE[szType][dwMapID][nIndex - 1], D.FILE[szType][dwMapID][nIndex]
+			end
+		else
+			if nIndex ~= #D.FILE[szType][dwMapID] then
+				D.FILE[szType][dwMapID][nIndex], D.FILE[szType][dwMapID][nIndex + 1] = D.FILE[szType][dwMapID][nIndex + 1], D.FILE[szType][dwMapID][nIndex]
+			end
+		end
+		FireUIEvent("DBM_CREATE_CACHE")
+		FireUIEvent("DBMUI_DATA_RELOAD", szType)
+	end
+end
+
 function D.CheckRepeatData(szType, dwMapID, dwID, nLevel)
 	if D.FILE[szType][dwMapID] then
 		for k, v in ipairs(D.FILE[szType][dwMapID]) do
@@ -1341,6 +1357,7 @@ local ui = {
 	AddData           = D.AddData,
 	SaveConfigureFile = D.SaveConfigureFile,
 	LoadConfigureFile = D.LoadConfigureFile,
+	MoveOrder         = D.MoveOrder,
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
