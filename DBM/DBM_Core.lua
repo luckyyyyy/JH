@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 20:12:58
+-- @Last Modified time: 2015-05-28 20:24:34
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -600,7 +600,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				tinsert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
 			end
 			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
 			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			if data.bMonTarget and szTargetName then
 				tinsert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
@@ -726,7 +726,7 @@ function D.OnNpcEvent(npc, bEnter)
 			local szName = JH.GetTemplateName(npc)
 			local xml = {}
 			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
 			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
 			if nClass == DBM_TYPE.NPC_ENTER then
 				tinsert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
