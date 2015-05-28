@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:02:29
+-- @Last Modified time: 2015-05-28 21:31:22
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -34,12 +34,12 @@ local CIRCLE_MAP_COUNT    = { -- 部分副本地图数量补偿
 	[171] = 20, -- 英雄军械库
 	[175] = 35, -- 血战天策
 	[176] = 35, -- 英雄血战天策
-	[199] = 20, -- 逐虎驱狼
-	[192] = 20, -- 逐虎驱狼
+	[199] = 25, -- 逐虎驱狼
+	[192] = 25, -- 逐虎驱狼
 	[182] = 25, -- 秦皇陵
 	[183] = 25, -- 秦皇陵
-	[206] = 20, -- 挑战逐虎驱狼
-	[212] = 20, -- 挑战逐虎驱狼
+	[206] = 25, -- 挑战逐虎驱狼
+	[212] = 25, -- 挑战逐虎驱狼
 }
 setmetatable(CIRCLE_MAP_COUNT, { __index = function() return CIRCLE_MAX_COUNT end, __metatable = true, __newindex = function() end })
 
