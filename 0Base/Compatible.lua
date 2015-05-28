@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 23:21:17
+-- @Last Modified time: 2015-05-29 03:28:47
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -871,6 +871,7 @@ function OutputBuffTipA(dwID, nLevel, Rect, nTime)
 
 	if nTime then
 		if nTime == 0 then
+			table.insert(t, XML_LINE_BREAKER)
 			table.insert(t, GetFormatText(g_tStrings.STR_BUFF_H_TIME_ZERO, 102))
 		else
 			local H, M, S = "", "", ""
@@ -884,8 +885,10 @@ function OutputBuffTipA(dwID, nLevel, Rect, nTime)
 				M = m .. g_tStrings.STR_BUFF_H_TIME_M_SHORT .. " "
 			end
 			S = s..g_tStrings.STR_BUFF_H_TIME_S
-
-			table.insert(GetFormatText(FormatString(g_tStrings.STR_BUFF_H_LEFT_TIME_MSG, H, M, S), 102))
+			if h < 720 then
+				table.insert(t, XML_LINE_BREAKER)
+				table.insert(t, GetFormatText(FormatString(g_tStrings.STR_BUFF_H_LEFT_TIME_MSG, H, M, S), 102))
+			end
 		end
 	end
 
