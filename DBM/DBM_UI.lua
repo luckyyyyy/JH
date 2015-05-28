@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 00:33:25
+-- @Last Modified time: 2015-05-29 02:29:00
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -518,6 +518,15 @@ function DBMUI.SetLItemAction(szType, h, t)
 		DBMUI.InsertDungeonMenu(menu[#menu], function(dwMapID)
 			DBMUI.MoveData(t.dwMapID, t.nIndex, dwMapID, IsCtrlKeyDown())
 		end)
+		if DBMUI_SELECT_MAP ~= _L["All Data"] then
+			table.insert(menu, { bDevide = true })
+			table.insert(menu, { szOption = _L["Move up"], fnAction = function()
+				DBM_API.MoveOrder(szType, DBMUI_SELECT_MAP, t.nIndex, false)
+			end })
+			table.insert(menu, { szOption = _L["Move down"], bDisable = t.nIndex == 1, fnAction = function()
+				DBM_API.MoveOrder(szType, DBMUI_SELECT_MAP, t.nIndex, true)
+			end })
+		end
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
 			DBMUI.RemoveData(t.dwMapID, t.nIndex, h:Lookup("Text") and h:Lookup("Text"):GetText() or t.szContent, true)
@@ -1251,7 +1260,11 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("Image", { x = nX + 5, y = nY, w = 26, h = 26}):File(file, 86):Event(525311)
 		:Hover(function() this:SetFrame(87) end, function() this:SetFrame(86) end):Click(function()
 			if v.nClass ~= -1 then
-				FireUIEvent("JH_ST_DEL", v.nClass, k .. "."  .. data.dwID .. "." .. (data.nLevel or 0), true) -- try kill
+				if data.dwID then
+					FireUIEvent("JH_ST_DEL", v.nClass, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
+				else
+					FireUIEvent("JH_ST_DEL", v.nClass, v.key or (data.nIndex .. "." .. k), true) -- try kill
+				end
 			end
 			if #data.tCountdown == 1 then
 				data.tCountdown = nil
@@ -1317,6 +1330,7 @@ JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePan
 JH.AddHotKey("JH_DBMUI", _L["Open DBM Panel"], DBMUI.TogglePanel)
 local ui = {
 	TogglePanel     = DBMUI.TogglePanel,
-	OpenImportPanel = DBMUI.OpenImportPanel
+	OpenImportPanel = DBMUI.OpenImportPanel,
+	OpenExportPanel = DBMUI.OpenExportPanel
 }
 setmetatable(DBM_UI, { __index = ui, __newindex = function() end, __metatable = true })
