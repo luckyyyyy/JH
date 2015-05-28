@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 22:41:23
+-- @Last Modified time: 2015-05-28 21:10:42
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -78,6 +78,7 @@ function DBM_UI.OnFrameCreate()
 	ui:Fetch("PageSet_Main"):Append("WndCheckBox", { x = 560, y = 38, checked = DBMUI_GLOBAL_SEARCH, txt = _L["Global Search"] }):Click(function(bCheck)
 		DBMUI_GLOBAL_SEARCH = bCheck
 		FireUIEvent("DBMUI_DATA_RELOAD")
+		FireUIEvent("DBMUI_TEMP_RELOAD")
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 760, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
 		DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
