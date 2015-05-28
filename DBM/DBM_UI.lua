@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 23:54:17
+-- @Last Modified time: 2015-05-29 00:33:25
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -519,7 +519,7 @@ function DBMUI.SetLItemAction(szType, h, t)
 			DBMUI.MoveData(t.dwMapID, t.nIndex, dwMapID, IsCtrlKeyDown())
 		end)
 		table.insert(menu, { bDevide = true })
-		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL .. t.nIndex, rgb = { 255, 0, 0 }, fnAction = function()
+		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
 			DBMUI.RemoveData(t.dwMapID, t.nIndex, h:Lookup("Text") and h:Lookup("Text"):GetText() or t.szContent, true)
 		end })
 		PopupMenu(menu)

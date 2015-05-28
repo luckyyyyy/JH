@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:02:39
+-- @Last Modified time: 2015-05-29 01:28:16
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -513,9 +513,9 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		table.insert(menu, { szOption = _L["Interface settings"], rgb = { 255, 255, 0 }, fnAction = function()
 			JH.OpenPanel(_L["Cataclysm"])
 		end })
-		if JH.bDebug then
+		if JH.bDebugClient then
 			table.insert(menu, { bDevide = true })
-			table.insert(menu, { szOption = "DEBUG Mode", bCheck = true, bChecked = DEBUG, fnAction = function()
+			table.insert(menu, { szOption = "DEBUG", bCheck = true, bChecked = DEBUG, fnAction = function()
 				DEBUG = not DEBUG
 			end	})
 		end
