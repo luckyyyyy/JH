@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 23:01:56
+-- @Last Modified time: 2015-05-29 15:48:46
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -66,7 +66,7 @@ local function CreateCountdown(nType, szKey, tArgs)
 			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tArgs.nTime)
 		end
 	end
-	if ST_TIME_CACHE[szKey] and (nTime - ST_TIME_CACHE[szKey]) / 1000 < tArgs.nRefresh then
+	if ST_TIME_CACHE[szKey] and tArgs.nRefresh and (nTime - ST_TIME_CACHE[szKey]) / 1000 < tArgs.nRefresh then
 		return
 	end
 	local ui = ST_CACHE[nType][szKey]
