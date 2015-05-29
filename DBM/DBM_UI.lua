@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 02:59:30
+-- @Last Modified time: 2015-05-29 23:34:11
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -658,7 +658,7 @@ end
 -- 添加面板
 function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
-		Circle.OpenAddPanel(DBMUI.GetBoxInfo(data, "NPC"), TARGET.NPC, Table_GetMapName(data.dwMapID))
+		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetBoxInfo(data, "NPC"), TARGET.NPC, Table_GetMapName(data.dwMapID))
 	else
 		if Station.Lookup("Normal/DBM_NewData") then
 			Wnd.CloseWindow(Station.Lookup("Normal/DBM_NewData"))

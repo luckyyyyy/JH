@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 23:19:54
+-- @Last Modified time: 2015-05-29 23:31:00
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -102,9 +102,9 @@ setmetatable(GKP,{ __call = function(me, key, value, sort)
 				table.sort(_GKP[key], function(a, b)
 					if a[value] and b[value] then
 						if sort == "asc" then
-							return a[value] < b[value] or ( a[value] == b[value] and a.nTime < b.nTime or ( a.nTime == b.nTime and a.szName < b.szName ) )
+							return a[value] < b[value] or ( a[value] == b[value] and a.nTime < b.nTime or ( a.nTime == b.nTime and ((a.szName and b.szName) and a.szName < b.szName or true) ) )
 						else
-							return a[value] > b[value] or ( a[value] == b[value] and a.nTime > b.nTime or ( a.nTime == b.nTime and a.szName > b.szName ) )
+							return a[value] > b[value] or ( a[value] == b[value] and a.nTime > b.nTime or ( a.nTime == b.nTime and ((a.szName and b.szName) and a.szName > b.szName or false) ) )
 						end
 					else
 						return false
@@ -2691,7 +2691,6 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 	end
 	pcall(GKP,"GKP_Account",{
 		nGold = nGold, -- API给的有问题 …… 只算金
-		szName = "M" .. nGold, -- 临时解决方案 排序
 		szPlayer = _GKP.TradingTarget.szName or "System",
 		dwForceID = _GKP.TradingTarget.dwForceID,
 		nTime = GetCurrentTime(),
