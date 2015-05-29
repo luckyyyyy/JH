@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 15:46:47
+-- @Last Modified time: 2015-05-29 18:32:38
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -1262,9 +1262,9 @@ function D.SaveConfigureFile(config)
 	local root, path = GetRootPath(), "/interface/JH/DBM/data/" .. config.szFileName
 	root = root:gsub("\\", "/")
 	if config.bJson then
-		SaveLUAData(path, JH.JsonEncode(data, config.bFormat))
+		SaveLUAData(path, JH.JsonEncode(data, config.bFormat), nil, not config.bFormat)
 	else
-		SaveLUAData(path, data, config.bFormat and "\t")
+		SaveLUAData(path, data, config.bFormat and "\t", not config.bFormat)
 	end
 	collectgarbage("collect")
 	return root .. path
