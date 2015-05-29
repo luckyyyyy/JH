@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:03:43
+-- @Last Modified time: 2015-05-29 23:19:54
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -2691,6 +2691,7 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 	end
 	pcall(GKP,"GKP_Account",{
 		nGold = nGold, -- API给的有问题 …… 只算金
+		szName = "M" .. nGold, -- 临时解决方案 排序
 		szPlayer = _GKP.TradingTarget.szName or "System",
 		dwForceID = _GKP.TradingTarget.dwForceID,
 		nTime = GetCurrentTime(),
