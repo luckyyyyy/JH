@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 18:32:38
+-- @Last Modified time: 2015-05-29 19:21:52
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -1201,8 +1201,8 @@ function D.LoadUserData()
 end
 
 function D.LoadConfigureFile(config)
-	local data = LoadLUAData("interface/JH/DBM/data/" .. config.szFileName)
-	local path = GetRootPath() .."/interface/JH/DBM/data/" .. config.szFileName
+	local data = LoadLUAData(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. config.szFileName)
+	local path = GetRootPath() .."/" .. JH.GetAddonInfo().szRootPath .. "DBM/data/" .. config.szFileName
 	if not data then
 		return false, path
 	else
@@ -1259,7 +1259,7 @@ function D.SaveConfigureFile(config)
 			data["CIRCLE"] = Circle.GetData()
 		end
 	end
-	local root, path = GetRootPath(), "/interface/JH/DBM/data/" .. config.szFileName
+	local root, path = GetRootPath(), "/" .. JH.GetAddonInfo().szRootPath .. "DBM/data/" .. config.szFileName
 	root = root:gsub("\\", "/")
 	if config.bJson then
 		SaveLUAData(path, JH.JsonEncode(data, config.bFormat), nil, not config.bFormat)
