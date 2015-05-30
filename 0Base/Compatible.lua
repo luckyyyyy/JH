@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 08:57:09
+-- @Last Modified time: 2015-05-30 18:11:30
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -865,8 +865,10 @@ function OutputBuffTipA(dwID, nLevel, Rect, nTime)
 		table.insert(t, XML_LINE_BREAKER)
 	end
 	local szDesc = GetBuffDesc(dwID, nLevel, "desc")
-	if szDesc then
+	if szDesc and szDesc ~= "" then
 		table.insert(t, GetFormatText(szDesc .. g_tStrings.STR_FULL_STOP, 106))
+	else
+		table.insert(t, GetFormatText("BUFF#" .. dwID .. "#" .. nLevel, 106))
 	end
 
 	if nTime then
