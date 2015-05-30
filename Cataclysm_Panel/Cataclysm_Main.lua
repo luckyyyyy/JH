@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 01:28:16
+-- @Last Modified time: 2015-05-30 22:22:02
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -1096,7 +1096,7 @@ function PS4.OnPanelActive(frame)
 	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200, 150):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
 		RaidGrid_CTM_Edition.fBuffScale = nVal / 100
 		if CTM_FRAME then
-			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, true)
+			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, nil, true)
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Buff Staring"], checked = RaidGrid_CTM_Edition.bStaring }):Click(function(bCheck)

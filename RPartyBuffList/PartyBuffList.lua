@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:04:21
+-- @Last Modified time: 2015-05-30 22:26:56
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -53,7 +53,7 @@ function PartyBuffList.OnEvent(event)
 	elseif event == "TARGET_CHANGE" then
 		PBL.SwitchSelect()
 	elseif event == "JH_PARTYBUFFLIST" then
-		PBL.OnTableInsert(arg0, arg1, arg2)
+		PBL.OnTableInsert(arg0, arg1, arg2, arg3)
 	elseif event == "ON_ENTER_CUSTOM_UI_MODE" or event == "ON_LEAVE_CUSTOM_UI_MODE" then
 		UpdateCustomModeWindow(this, _L["PartyBuffList"])
 		if event == "ON_ENTER_CUSTOM_UI_MODE" then
@@ -194,7 +194,7 @@ function PBL.GetPlayer(dwID)
 	return p, info
 end
 
-function PBL.OnTableInsert(dwID, dwBuffID, nLevel)
+function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	local team = GetClientTeam()
 	local p, info = PBL.GetPlayer(dwID)
 	if not p or not info then
@@ -215,8 +215,12 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel)
 	h:Lookup("Text_Name"):SetText(nCount .. " " .. info.szName)
 	h:Lookup("Image_life"):SetPercentage(info.nCurrentLife / math.max(info.nMaxLife, 1))
 	local box = h:Lookup("Box_Icon")
+	local _, icon = JH.GetBuffName(dwBuffID, nLevel)
+	if nIcon then
+		icon = nIcon
+	end
 	box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
-	box:SetObjectIcon(Table_GetBuffIconID(dwBuffID, nLevel))
+	box:SetObjectIcon(icon)
 	box:SetObjectStaring(true)
 	box:SetOverTextPosition(1, ITEM_POSITION.LEFT_TOP)
 	box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
