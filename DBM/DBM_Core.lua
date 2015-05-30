@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 19:21:52
+-- @Last Modified time: 2015-05-30 22:23:40
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -516,7 +516,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				end
 				-- 重要Buff列表
 				if DBM.bPushPartyBuffList and IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or me.dwID == dwCaster) then
-					FireUIEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel)
+					FireUIEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel, data.nIcon)
 				end
 				-- 头顶报警
 				if DBM.bPushScreenHead and cfg.bScreenHead then
@@ -541,7 +541,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				end
 				-- 添加到团队面板
 				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID) then
-					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col)
+					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col, data.nIcon)
 				end
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
