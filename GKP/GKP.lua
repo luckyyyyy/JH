@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 00:03:23
+-- @Last Modified time: 2015-05-30 08:59:12
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -516,7 +516,7 @@ function GKP.OnFrameCreate()
 		end
 		pcall(_GKP.Record)
 	end)
-	-- PageSet:Append("WndButton3", { x = 840, y = 570, txt = g_tStrings.GOLD_TEAM_SYLARY_LIST }):Click(_GKP.GKP_Calculation)
+	PageSet:Append("WndButton3", { x = 840, y = 570, txt = g_tStrings.GOLD_TEAM_SYLARY_LIST }):Click(_GKP.GKP_Calculation)
 	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840, y = 610, txt = g_tStrings.GOLD_TEAM_BID_LIST }):Click(_GKP.GKP_SpendingList)
 	PageSet:Append("WndButton3", "Debt", { x = 690, y = 610, txt = _L["Debt Issued"] }):Click(_GKP.GKP_OweList)
 	PageSet:Append("WndButton3", { x = 540, y = 610, txt = _L["Wipe Record"] }):Click(_GKP.GKP_Clear)
@@ -1851,7 +1851,6 @@ end
 ---------------------------------------------------------------------->
 -- 结算工资按钮
 ----------------------------------------------------------------------<
---[[
 _GKP.GKP_Calculation = function()
 	local me = GetClientPlayer()
 	if not me.IsInParty() and not JH_About.CheckNameEx() then return JH.Alert(_L["You are not in the team."]) end
@@ -1877,7 +1876,6 @@ _GKP.GKP_Calculation = function()
 		end
 	end,nil,nil,nil,team.GetTeamSize())
 end
-]]
 ---------------------------------------------------------------------->
 -- open doodad (loot)
 ----------------------------------------------------------------------<
