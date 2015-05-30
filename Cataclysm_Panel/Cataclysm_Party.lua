@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:02:58
+-- @Last Modified time: 2015-05-30 22:25:24
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -841,8 +841,8 @@ function CTM:FormatFrame(frame, nMemberCount)
 end
 
 -- 注册buff
--- arg0:dwMemberID, arg1:dwID, arg2:nLevel, arg3:tColor
-function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
+-- arg0:dwMemberID, arg1:dwID, arg2:nLevel, arg3:tColor, arg4:nIocn
+function CTM:RecBuff(arg0, arg1, arg2, arg3, arg4, bDemo)
 	if CTM_CACHE[arg0] and CTM_CACHE[arg0]:IsValid() then
 		local h = CTM_CACHE[arg0]:Lookup("Handle_Buff_Boxes")
 		if h:GetItemCount() >= CFG.nMaxShowBuff then
@@ -871,7 +871,9 @@ function CTM:RecBuff(arg0, arg1, arg2, arg3, bDemo)
 					hBuff:Lookup("Shadow"):SetColorRGB(unpack(arg3))
 				end
 				local szName, nIcon = JH.GetBuffName(arg1, arg2)
-				if nIcon == -1 then nIcon = 1434 end
+				if arg4 and tonumber(arg4) then
+					nIcon = arg4
+				end
 				local hBox = hBuff:Lookup("Box")
 				hBox:SetObject(UI_OBJECT_NOT_NEED_KNOWN, arg1, arg2)
 				hBox:SetObjectIcon(nIcon)
