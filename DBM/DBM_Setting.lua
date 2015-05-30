@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 18:29:59
+-- @Last Modified time: 2015-05-30 19:55:13
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -51,15 +51,19 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Buff List"], font = 27 }):Pos_()
 	nX = ui:Append("WndComboBox", { x = 10, y = nY + 10, txt = _L["Max Buff Count"] }):Menu(function()
 		local menu = {}
-		for k, v in ipairs({ 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) do
-			table.insert(menu, { szOption = v, bMCheck = true, bChecked = BL_UI.nCount == v, fnAction = function() BL_UI.nCount = v end })
+		for k, v in ipairs({ 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) do
+			table.insert(menu, { szOption = v, bMCheck = true, bChecked = BL_UI.nCount == v, fnAction = function()
+				FireUIEvent("JH_BL_RESIZE", nil, v)
+			end })
 		end
 		return menu
 	end):Pos_()
 	nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 10, txt = _L["Buff Size"] }):Menu(function()
 		local menu = {}
 		for k, v in ipairs({ 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 100 }) do
-			table.insert(menu, { szOption = v, bMCheck = true, bChecked = BL_UI.fScale == v / 55, fnAction = function() BL_UI.fScale = v / 55 end })
+			table.insert(menu, { szOption = v, bMCheck = true, bChecked = BL_UI.fScale == v / 55, fnAction = function()
+				FireUIEvent("JH_BL_RESIZE", v / 55)
+			end })
 		end
 		return menu
 	end):Pos_()
@@ -69,8 +73,8 @@ function PS.OnPanelActive(frame)
 	end):Pos_()
 	nX = ui:Append("WndButton2", { x = 5, y = nY + 15, txt = _L["Data Panel"] }):Click(DBM_UI.TogglePanel):Pos_()
 	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY + 15, txt = _L["Export Data"] }):Click(DBM_UI.OpenExportPanel):Pos_()
-	nX = ui:Append("WndButton2", { x = 5, y = nY + 5, txt = _L["Import Data"], w = 170, h = 32 }):Click(DBM_UI.OpenImportPanel):Pos_()
-	nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 5, txt = _L["import Data (web)"], w = 170, h = 32 }):Click(DBM_RemoteRequest.OpenPanel):Pos_()
+	nX = ui:Append("WndButton2", { x = 5, y = nY + 5, txt = _L["Import Data"], w = 155, h = 30 }):Click(DBM_UI.OpenImportPanel):Pos_()
+	nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 5, txt = _L["import Data (web)"], w = 155, h = 30 }):Click(DBM_RemoteRequest.OpenPanel):Pos_()
 end
 
 GUI.RegisterPanel(_L["DBM"], 2041, _L["Dungeon"], PS)
