@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 22:42:39
+-- @Last Modified time: 2015-05-30 23:01:06
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -865,7 +865,7 @@ function CTM:RecBuff(dwMemberID, dwID, nLevel, col, nIocn, bDemo)
 		if p then
 			local bExist, tBuff = HasBuff(dwID, p)
 			if bExist or bDemo then
-				local item = h:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff")
+				local item = handle:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff")
 				if not col then
 					item:Lookup("Shadow"):Hide()
 				else
