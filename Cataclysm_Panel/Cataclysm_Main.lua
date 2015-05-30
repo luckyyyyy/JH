@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 22:22:02
+-- @Last Modified time: 2015-05-30 22:37:40
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -452,7 +452,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "TARGET_CHANGE" then
 		Grid_CTM:RefreshTarget()
 	elseif szEvent == "JH_RAID_REC_BUFF" then
-		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3)
+		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3, arg4)
 	elseif szEvent == "BUFF_UPDATE" then
 		if arg1 then return end
 		local szName = GetBuffName(arg4, arg8)

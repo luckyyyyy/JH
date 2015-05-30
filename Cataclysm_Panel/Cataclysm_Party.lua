@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 22:25:24
+-- @Last Modified time: 2015-05-30 22:42:39
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -842,51 +842,52 @@ end
 
 -- 注册buff
 -- arg0:dwMemberID, arg1:dwID, arg2:nLevel, arg3:tColor, arg4:nIocn
-function CTM:RecBuff(arg0, arg1, arg2, arg3, arg4, bDemo)
-	if CTM_CACHE[arg0] and CTM_CACHE[arg0]:IsValid() then
-		local h = CTM_CACHE[arg0]:Lookup("Handle_Buff_Boxes")
-		if h:GetItemCount() >= CFG.nMaxShowBuff then
+function CTM:RecBuff(dwMemberID, dwID, nLevel, col, nIocn, bDemo)
+	if CTM_CACHE[dwMemberID] and CTM_CACHE[dwMemberID]:IsValid() then
+		local handle = CTM_CACHE[dwMemberID]:Lookup("Handle_Buff_Boxes")
+		local nTotal = handle:GetItemCount()
+		if nTotal >= CFG.nMaxShowBuff then
 			return
 		end
-		if not Table_BuffIsVisible(arg1, arg2) then
+		if not Table_BuffIsVisible(dwID, nLevel) then
 			return
 		end
-		for i = 0, h:GetItemCount() - 1 do
-			local _h = h:Lookup(i)
-			if _h and _h:IsValid() then -- 防止溢出
-				local _, dwID, nLevel = _h:Lookup("Box"):GetObject()
-				if dwID == arg1 and nLevel == arg2 then
+		for i = 0, nTotal - 1 do
+			local h = handle:Lookup(i)
+			if h and h:IsValid() then -- 防止溢出
+				local _, hdwID, hnLevel = h:Lookup("Box"):GetObject()
+				if hdwID == dwID and hnLevel == nLevel then
 					return
 				end
 			end
 		end
-		local p = GetPlayer(arg0)
+		local p = GetPlayer(dwMemberID)
 		if p then
-			local bExist, tBuff = HasBuff(arg1, p)
+			local bExist, tBuff = HasBuff(dwID, p)
 			if bExist or bDemo then
-				local hBuff = h:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff", arg1 .. arg2)
-				if not arg3 then
-					hBuff:Lookup("Shadow"):Hide()
+				local item = h:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff")
+				if not col then
+					item:Lookup("Shadow"):Hide()
 				else
-					hBuff:Lookup("Shadow"):SetColorRGB(unpack(arg3))
+					item:Lookup("Shadow"):SetColorRGB(unpack(col))
 				end
-				local szName, nIcon = JH.GetBuffName(arg1, arg2)
-				if arg4 and tonumber(arg4) then
-					nIcon = arg4
+				local szName, icon = JH.GetBuffName(dwID, nLevel)
+				if nIcon and tonumber(nIcon) then
+					icon = nIcon
 				end
-				local hBox = hBuff:Lookup("Box")
-				hBox:SetObject(UI_OBJECT_NOT_NEED_KNOWN, arg1, arg2)
-				hBox:SetObjectIcon(nIcon)
-				hBox:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				hBox:SetObjectStaring(CFG.bStaring)
+				local box = item:Lookup("Box")
+				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, dwID, nLevel)
+				box:SetObjectIcon(icon)
+				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+				box:SetObjectStaring(CFG.bStaring)
 				if CFG.bAutoBuffSize then
 					if CFG.fScaleY > 1 then
-						hBuff:Scale(CFG.fScaleY, CFG.fScaleY)
+						item:Scale(CFG.fScaleY, CFG.fScaleY)
 					end
 				else
-					hBuff:Scale(CFG.fBuffScale, CFG.fBuffScale)
+					item:Scale(CFG.fBuffScale, CFG.fBuffScale)
 				end
-				h:FormatAllItemPos()
+				handle:FormatAllItemPos()
 			end
 		end
 	end
