@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 03:29:42
+-- @Last Modified time: 2015-05-30 19:56:58
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -84,17 +84,18 @@ function BL_UI.OnFrameCreate()
 	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
 	this:RegisterEvent("JH_BL_CREATE")
+	this:RegisterEvent("JH_BL_RESIZE")
 	BL.handle = this:Lookup("", "")
 	BL.handle:Clear()
-	BL.handle:SetW(55 * BL_UI.nCount)
-	this:SetW(55 * BL_UI.nCount)
-	this:Scale(BL_UI.fScale, BL_UI.fScale)
+	BL.ReSize(BL_UI.fScale, BL_UI.nCount)
 	BL.UpdateAnchor(this)
 end
 
 function BL_UI.OnEvent(szEvent)
 	if szEvent == "JH_BL_CREATE" then
 		CreateBuffList(arg0, arg1, arg2, arg3)
+	elseif szEvent == "JH_BL_RESIZE" then
+		BL.ReSize(arg0, arg1)
 	elseif szEvent == "UI_SCALED" then
 		BL.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
@@ -154,6 +155,19 @@ end
 function BL_UI.OnFrameDragEnd()
 	this:CorrectPos()
 	BL_UI.tAnchor = GetFrameAnchor(this, "TOPLEFT")
+end
+
+function BL.ReSize(fScale, nCount)
+	if fScale then
+		local fNewScale = fScale / BL_UI.fScale
+		this:Scale(fNewScale, fNewScale)
+		BL_UI.fScale = fScale
+	end
+	nCount = nCount or BL_UI.nCount
+	this:SetSize(nCount * 55 * BL_UI.fScale, 90 * BL_UI.fScale)
+	BL.handle:SetSize(nCount * 55 * BL_UI.fScale, 90 * BL_UI.fScale)
+	BL_UI.nCount = nCount
+	BL.handle:FormatAllItemPos()
 end
 
 function BL.UpdateAnchor(frame)
