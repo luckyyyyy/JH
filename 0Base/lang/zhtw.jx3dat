@@ -154,6 +154,7 @@ data = {
 	["same data Exist"] = "存在相同的數據",
 	["This data"] = "這個數據",
 	["10,Countdown Name;25,Countdown Name"] = "10,倒計時名稱;25,這是個分段倒計時",
+	["Data Panel"] = "數據設置",
 	["Open DBM Panel"] = "打開DBM面板",
 	["Clear Temp Record"] = "清空記錄",
 	["Please Select Class"] = "請選擇分類",
