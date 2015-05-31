@@ -1,10 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-31 00:17:54
----------------------------------------------------------------------
--- 多语言处理
----------------------------------------------------------------------
+-- @Last Modified time: 2015-06-01 01:32:20
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -22,7 +19,11 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1000103
+local _VERSION_   = 0x1000104
+
+---------------------------------------------------------------------
+-- 多语言处理
+---------------------------------------------------------------------
 local function GetLang()
 	local _, _, szLang = GetVersion()
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
@@ -86,7 +87,7 @@ do
 end
 
 local _JH = {
-	szBuildDate    = "20150529",
+	szBuildDate    = "20150601",
 	szTitle        = _L["JH, JX3 Plug-in Collection"],
 	tHotkey        = {},
 	tAnchor        = {},
