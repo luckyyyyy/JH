@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 18:11:30
+-- @Last Modified time: 2015-05-31 00:01:22
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -855,9 +855,19 @@ end
 if not OutputBuffTipA then
 local XML_LINE_BREAKER = GetFormatText("\n")
 function OutputBuffTipA(dwID, nLevel, Rect, nTime)
-	local t = {}
-
-	table.insert(t, GetFormatText(Table_GetBuffName(dwID, nLevel) .. "\t", 65))
+	local t, tab = {}, {}
+	local szName = Table_GetBuffName(dwID, nLevel)
+	if szName == "" then
+		if IsFileExist("interface/BuffList/" .. dwID .. ".jx3dat") then
+			tab = LoadLUAData("interface/BuffList/" .. dwID .. ".jx3dat")
+			if tab[nLevel] then
+				szName = tab[nLevel].szName
+			end
+		else
+			szName = g_tStrings.STR_HOTKEY_HIDE
+		end
+	end
+	table.insert(t, GetFormatText(szName .. "\t", 65))
 	local buffInfo = GetBuffInfo(dwID, nLevel, {})
 	if buffInfo and buffInfo.nDetachType and g_tStrings.tBuffDetachType[buffInfo.nDetachType] then
 		table.insert(t, GetFormatText(g_tStrings.tBuffDetachType[buffInfo.nDetachType] .. "\n", 106))
