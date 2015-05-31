@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-31 08:44:08
+-- @Last Modified time: 2015-05-31 14:17:14
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -629,10 +629,11 @@ function DBMUI.SetRItemAction(szType, h, t)
 			else
 				tInterval = DBM_API.GetIntervalData(szType, t.dwID)
 			end
+
 			if tInterval and #tInterval > 1 then
 				local nTime = tInterval[#tInterval]
 				for k, v in DBM_API.Bpairs(tInterval) do
-					if #cmenu == 11 then break end
+					if #cmenu == 16 then break end
 					table.insert(cmenu, { szOption = math.floor((nTime - v) / 1000) .. g_tStrings.STR_TIME_SECOND })
 					nTime = v
 				end

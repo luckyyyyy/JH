@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-31 08:59:59
+-- @Last Modified time: 2015-05-31 14:21:41
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -477,6 +477,19 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 				end
 			end
 		end
+		-- 记录时间
+		CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
+		if #CACHE.INTERVAL[szType][key] > 300 then
+			CACHE.INTERVAL[szType][key] = {}
+		else
+			if #CACHE.INTERVAL[szType][key] > 1 then
+				if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
+					CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
+				end
+			else
+				CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
+			end
+		end
 	end
 	if data then
 		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
@@ -489,18 +502,6 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			cfg, nClass = data[DBM_TYPE.BUFF_LOSE], DBM_TYPE.BUFF_LOSE
 		else
 			cfg, nClass = data[DBM_TYPE.BUFF_GET], DBM_TYPE.BUFF_GET
-			CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
-			if #CACHE.INTERVAL[szType][key] > 300 then
-				CACHE.INTERVAL[szType][key] = {}
-			else
-				if #CACHE.INTERVAL[szType][key] > 1 then
-					if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
-						CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
-					end
-				else
-					CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
-				end
-			end
 		end
 		D.FireCountdownEvent(data, nClass)
 		if cfg then
@@ -728,6 +729,14 @@ function D.OnNpcEvent(npc, bEnter)
 				FireUIEvent("DBMUI_TEMP_UPDATE", "NPC", t)
 			end
 		end
+		if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime > 500 then
+			CACHE.INTERVAL.NPC[npc.dwTemplateID] = CACHE.INTERVAL.NPC[npc.dwTemplateID] or {}
+			if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 300 then
+				CACHE.INTERVAL.NPC[npc.dwTemplateID] = {}
+			else
+				CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID] + 1] = nTime
+			end
+		end
 	else
 		if CACHE.NPC_LIST[npc.dwTemplateID] and CACHE.NPC_LIST[npc.dwTemplateID].tList then
 			local tab = CACHE.NPC_LIST[npc.dwTemplateID]
@@ -774,12 +783,6 @@ function D.OnNpcEvent(npc, bEnter)
 				return -- D.Log("IGNORE NPC ENTER SCENE ID:" .. npc.dwTemplateID .. " TIME:" .. nTime .. " TIME2:" .. CACHE.NPC_LIST[npc.dwTemplateID].nTime)
 			else
 				CACHE.NPC_LIST[npc.dwTemplateID].nTime = nTime
-			end
-			CACHE.INTERVAL.NPC[npc.dwTemplateID] = CACHE.INTERVAL.NPC[npc.dwTemplateID] or {}
-			if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 300 then
-				CACHE.INTERVAL.NPC[npc.dwTemplateID] = {}
-			else
-				CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID] + 1] = nTime
 			end
 		end
 		D.FireCountdownEvent(data, nClass)
