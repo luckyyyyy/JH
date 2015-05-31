@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-31 00:01:22
+-- @Last Modified time: 2015-05-31 11:34:00
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -858,14 +858,7 @@ function OutputBuffTipA(dwID, nLevel, Rect, nTime)
 	local t, tab = {}, {}
 	local szName = Table_GetBuffName(dwID, nLevel)
 	if szName == "" then
-		if IsFileExist("interface/BuffList/" .. dwID .. ".jx3dat") then
-			tab = LoadLUAData("interface/BuffList/" .. dwID .. ".jx3dat")
-			if tab[nLevel] then
-				szName = tab[nLevel].szName
-			end
-		else
-			szName = g_tStrings.STR_HOTKEY_HIDE
-		end
+		szName = g_tStrings.STR_HOTKEY_HIDE
 	end
 	table.insert(t, GetFormatText(szName .. "\t", 65))
 	local buffInfo = GetBuffInfo(dwID, nLevel, {})

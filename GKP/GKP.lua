@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 08:59:12
+-- @Last Modified time: 2015-05-31 09:49:43
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -96,7 +96,7 @@ setmetatable(GKP,{ __call = function(me, key, value, sort)
 	if _GKP[key] then
 		if value and type(value) == "table" then
 			table.insert(_GKP[key], value)
-			pcall(_GKP.GKP_Save)
+			_GKP.GKP_Save()
 		elseif value and type(value) == "string" then
 			if sort == "asc" or sort == "desc" then
 				table.sort(_GKP[key], function(a, b)
@@ -113,7 +113,7 @@ setmetatable(GKP,{ __call = function(me, key, value, sort)
 			elseif value == "del" then
 				if _GKP[key][sort] then
 					_GKP[key][sort].bDelete = not _GKP[key][sort].bDelete
-					pcall(_GKP.GKP_Save)
+					_GKP.GKP_Save()
 					return _GKP[key][sort]
 				end
 			end
@@ -121,7 +121,7 @@ setmetatable(GKP,{ __call = function(me, key, value, sort)
 		elseif value and type(value) == "number" then
 			if _GKP[key][value] then
 				_GKP[key][value] = sort
-				pcall(_GKP.GKP_Save)
+				_GKP.GKP_Save()
 				return _GKP[key][value]
 			end
 		else
@@ -154,8 +154,8 @@ function _GKP.GKP_LoadData(szFile)
 		_GKP.GKP_Record = t.GKP_Record or {}
 		_GKP.GKP_Account = t.GKP_Account or {}
 	end
-	pcall(_GKP.Draw_GKP_Record)
-	pcall(_GKP.Draw_GKP_Account)
+	_GKP.Draw_GKP_Record()
+	_GKP.Draw_GKP_Account()
 end
 function _GKP.OpenLootPanel()
 	if not Station.Lookup("Normal/GKP_Loot") then
@@ -273,7 +273,7 @@ function GKP.DistributionItem()
 	local _, nUiId, dwID, nVersion, dwTabType, dwIndex = box:GetObject()
 	local doodad = GetDoodad(_GKP.dwOpenID)
 	if type(doodad) ~= "userdata" then return JH.Alert(_L["No open doodad"]) end
-	pcall(_GKP.OnOpenDoodad, _GKP.dwOpenID)
+	_GKP.OnOpenDoodad(_GKP.dwOpenID)
 	local item
 	for k, v in ipairs(_GKP.aDistributeList) do
 		if v.nUiId == nUiId and v.dwID == dwID and v.nVersion == nVersion and v.dwTabType == dwTabType and v.dwIndex == dwIndex then
@@ -514,7 +514,7 @@ function GKP.OnFrameCreate()
 		if not JH.IsDistributer() and not JH_About.CheckNameEx() then -- debug
 			return JH.Alert(_L["You are not the distrubutor."])
 		end
-		pcall(_GKP.Record)
+		_GKP.Record()
 	end)
 	PageSet:Append("WndButton3", { x = 840, y = 570, txt = g_tStrings.GOLD_TEAM_SYLARY_LIST }):Click(_GKP.GKP_Calculation)
 	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840, y = 610, txt = g_tStrings.GOLD_TEAM_BID_LIST }):Click(_GKP.GKP_SpendingList)
@@ -667,7 +667,7 @@ function GKP.OnFrameCreate()
 			txt:SetText(v[2])
 			txt.OnItemLButtonClick = function()
 				local sort = txt.sort or "asc"
-				pcall(_GKP.Draw_GKP_Record, v[1], sort)
+				_GKP.Draw_GKP_Record(v[1], sort)
 				if sort == "asc" then
 					txt.sort = "desc"
 				else
@@ -701,7 +701,7 @@ function GKP.OnFrameCreate()
 			txt:SetText(v[2])
 			txt.OnItemLButtonClick = function()
 				local sort = txt.sort or "asc"
-				pcall(_GKP.Draw_GKP_Account, v[1], sort)
+				_GKP.Draw_GKP_Account(v[1], sort)
 				if sort == "asc" then
 					txt.sort = "desc"
 				else
@@ -735,7 +735,7 @@ function GKP.OnFrameCreate()
 			if v[1] then
 				txt.OnItemLButtonClick = function()
 					local sort = txt.sort or "asc"
-					pcall(_GKP.Draw_GKP_Buff, v[1], sort)
+					_GKP.Draw_GKP_Buff(v[1], sort)
 					if sort == "asc" then
 						txt.sort = "desc"
 					else
@@ -763,7 +763,7 @@ PS.OnPanelActive = function(frame)
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, checked = GKP.bDisplayEmptyRecords })
 	:Text(_L["Clause with 0 Gold as Record"]):Click(function(bChecked)
 		GKP.bDisplayEmptyRecords = bChecked
-		pcall(_GKP.Draw_GKP_Record)
+		_GKP.Draw_GKP_Record()
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bAutoSetMoney })
 	:Text(_L["Auto Fill Money by Clicking Right Button"]):Click(function(bChecked)
@@ -854,7 +854,7 @@ _GKP.GetSubsidiesMenu = function()
 			GetUserInput(_L["New Protocol  Format: Protocol's Name, Money"], function(txt)
 				local t = JH.Split(txt, ",")
 				table.insert(_GKP.Config.Subsidies, { t[1], tonumber(t[2]) or "", true })
-				pcall(_GKP.SaveConfig)
+				_GKP.SaveConfi()
 			end)
 		end
 	})
@@ -866,7 +866,7 @@ _GKP.GetSubsidiesMenu = function()
 			bChecked = v[3],
 			fnAction = function()
 				v[3] = not v[3]
-				pcall(_GKP.SaveConfig)
+				_GKP.SaveConfig(	)
 			end,
 		})
 	end
@@ -887,7 +887,7 @@ _GKP.GetSchemeMenu = function()
 				for k, v in ipairs(t) do
 					table.insert(_GKP.Config.Scheme, { tonumber(v) or 0, true })
 				end
-				pcall(_GKP.SaveConfig)
+				_GKP.SaveConfig()
 			end)
 		end
 	})
@@ -899,7 +899,7 @@ _GKP.GetSchemeMenu = function()
 			bChecked = v[2],
 			fnAction = function()
 				v[2] = not v[2]
-				pcall(_GKP.SaveConfig)
+				_GKP.SaveConfig()
 			end,
 		})
 	end
@@ -1244,7 +1244,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				if JH.IsDistributer() then
 					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "del", JH.AscIIEncode(JH.JsonEncode(tab)))
 				end
-				pcall(_GKP.Draw_GKP_Record)
+				_GKP.Draw_GKP_Record()
 			end
 
 			wnd:Lookup("WndButton_Edit").OnLButtonClick = function()
@@ -1443,9 +1443,9 @@ _GKP.OnMsg = function()
 				JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s", #tData.GKP_Record, #tData.GKP_Account), function()
 					_GKP.GKP_Record  = tData.GKP_Record
 					_GKP.GKP_Account = tData.GKP_Account
-					pcall(_GKP.Draw_GKP_Record)
-					pcall(_GKP.Draw_GKP_Account)
-					pcall(_GKP.GKP_Save)
+					_GKP.Draw_GKP_Record()
+					_GKP.Draw_GKP_Account()
+					_GKP.GKP_Save()
 				end)
 			end
 
@@ -1456,16 +1456,16 @@ _GKP.OnMsg = function()
 				end
 				tData.bSync = true
 				if data[1] == "add" then
-					pcall(GKP, "GKP_Record", tData)
+					GKP("GKP_Record", tData)
 				else
 					for k, v in ipairs(GKP("GKP_Record")) do
 						if v.key == tData.key then
-							pcall(GKP, "GKP_Record", k, tData)
+							GKP("GKP_Record", k, tData)
 							break
 						end
 					end
 				end
-				pcall(_GKP.Draw_GKP_Record)
+				_GKP.Draw_GKP_Record()
 				JH.Debug("#GKP# Sync Success")
 			end
 		end
@@ -1682,8 +1682,8 @@ _GKP.GKP_Clear = function(bConfirm)
 	local fnAction = function()
 		_GKP.GKP_Record = {}
 		_GKP.GKP_Account = {}
-		pcall(_GKP.Draw_GKP_Record)
-		pcall(_GKP.Draw_GKP_Account)
+		_GKP.Draw_GKP_Record()
+		_GKP.Draw_GKP_Account()
 		_GKP.nNowMoney = GetClientPlayer().GetMoney().nGold
 		_GKP.tDistributeRecords = {}
 		JH.Alert(_L["Recods are wiped"])
@@ -1912,7 +1912,7 @@ _GKP.OnOpenDoodad = function(dwID)
 		end
 	end
 	if refresh then
-		pcall(_GKP.DrawDistributeList, d)
+		_GKP.DrawDistributeList(d)
 		JH.Debug("distribute items " .. #_GKP.aDistributeList)
 	else
 		return _GKP.CloseLootWindow()
@@ -1961,7 +1961,7 @@ _GKP.DrawDistributeList = function(doodad)
 	end
 	frame:Show()
 	Wnd.CloseWindow("LootList")
-	pcall(_GKP.CheckDialog)
+	_GKP.CheckDialog()
 	-- append tip
 	if not IsFileExist(JH.GetAddonInfo().szDataPath .. "config/lock.jx3dat") then
 		JH.Alert(_L["GKP_TIPS"])
@@ -2340,8 +2340,8 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 		_GKP.Record(tab,item,bEnter)
 	else -- 关闭的情况所有东西全部绕过
 		tab.nMoney = 0
-		pcall(GKP,"GKP_Record",tab)
-		pcall(_GKP.Draw_GKP_Record)
+		GKP("GKP_Record", tab)
+		_GKP.Draw_GKP_Record()
 	end
 end
 ---------------------------------------------------------------------->
@@ -2513,12 +2513,12 @@ _GKP.Record = function(tab, item, bEnter)
 			_GKP.OnOpenDoodad(_GKP.dwOpenID)
 		end
 		if tab and type(item) == "number" then
-			pcall(GKP,"GKP_Record",item,tab)
+			GKP("GKP_Record", item, tab)
 		else
-			pcall(GKP,"GKP_Record",tab)
+			GKP("GKP_Record", tab)
 		end
 
-		pcall(_GKP.Draw_GKP_Record)
+		_GKP.Draw_GKP_Record()
 		record:Toggle(false)
 		FireUIEvent("GKP_DEL_DISTRIBUTE_ITEM")
 	end)
@@ -2687,14 +2687,14 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 	if not _GKP.TradingTarget.szName and not GKP.bMoneySystem then
 		return
 	end
-	pcall(GKP,"GKP_Account",{
+	GKP("GKP_Account", {
 		nGold = nGold, -- API给的有问题 …… 只算金
 		szPlayer = _GKP.TradingTarget.szName or "System",
 		dwForceID = _GKP.TradingTarget.dwForceID,
 		nTime = GetCurrentTime(),
 		dwMapID = GetClientPlayer().GetMapID()
 	})
-	pcall(_GKP.Draw_GKP_Account)
+	_GKP.Draw_GKP_Account()
 	if _GKP.TradingTarget.szName and GKP.bMoneyTalk then
 		if nGold > 0 then
 			JH.Talk({
@@ -2752,7 +2752,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 		item:Lookup("Text_Time"):SetText(GKP.GetTimeString(v.nTime))
 		c:Lookup("WndButton_Delete").OnLButtonClick = function()
 			GKP("GKP_Account","del",k)
-			pcall(_GKP.Draw_GKP_Account)
+			_GKP.Draw_GKP_Account()
 		end
 
 		-- tip
