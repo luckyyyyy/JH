@@ -88,6 +88,7 @@ data = {
 	["DEBUFF"] = "减益效果",
 	["CASTING"] = "技能",
 	["NPC"] = "NPC",
+	["Interval Time"] = "间隔时间",
 	["CIRCLE"] = "圈圈",
 	["TALK"] = "喊话",
 	["Building"] = "正在释放",

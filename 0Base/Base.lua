@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 05:33:50
+-- @Last Modified time: 2015-05-31 00:17:54
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
 ---------------------------------------------------------------------
@@ -1101,7 +1101,7 @@ function JH.GetSkillName(dwSkillID, dwLevel)
 			if dwLevel then
 				szName = szName .. ":" .. dwLevel
 			end
-			_JH.tSkillCache[dwSkillID] = { szName, 13 }
+			_JH.tSkillCache[dwSkillID] = { szName, 1435 }
 		end
 	end
 	return unpack(_JH.tSkillCache[dwSkillID])

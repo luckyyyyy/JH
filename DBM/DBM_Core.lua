@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 22:23:40
+-- @Last Modified time: 2015-05-31 08:59:59
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -10,7 +10,7 @@ local tinsert, tconcat = table.insert, table.concat
 local GetTime, IsPlayer = GetTime, IsPlayer
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
 local FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow = FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow
-local GetPureText = GetPureText
+local GetPureText, GetFormatText = GetPureText, GetFormatText
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_PLAYER_NAME = "NONE"
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
@@ -19,6 +19,10 @@ local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 local DBM_MARK_QUEUE = {}
 local DBM_MARK_FIRST = true -- 标记事件
+----
+local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
+local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
+
 local function GetDataPath()
 	if DBM.bCommon then
 		return "DBM/Common/DBM.jx3dat"
@@ -41,8 +45,14 @@ local CACHE = {
 		CASTING = {},
 		NPC     = {},
 	},
-	NPC_LIST = {},
+	NPC_LIST   = {},
 	SKILL_LIST = {},
+	INTERVAL = {
+		BUFF    = {},
+		DEBUFF  = {},
+		CASTING = {},
+		NPC     = {},
+	},
 }
 
 local D = {
@@ -282,7 +292,6 @@ function D.CreateData(szEvent)
 			end
 		end
 	end
-
 	-- 清空缓存
 	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
 		CACHE.NPC_LIST   = {}
@@ -304,6 +313,10 @@ function D.CreateData(szEvent)
 	else
 		pcall(Raid_MonitorBuffs) -- clear
 	end
+	-- gc
+	D.Log("collectgarbage(\"count\") " .. collectgarbage("count"))
+	collectgarbage("collect")
+	D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
 	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
 
@@ -424,6 +437,9 @@ function D.GetSrcName(dwID)
 	if not dwID then
 		return nil
 	end
+	if dwID == 0 then
+		return g_tStrings.COINSHOP_SOURCE_NULL
+	end
 	local KObject = IsPlayer(dwID) and GetPlayer(dwID) or GetNpc(dwID)
 	if KObject then
 		return JH.GetTemplateName(KObject)
@@ -436,19 +452,20 @@ end
 function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndFrame, bInit, nBuffLevel, dwSkillSrcID)
 	local me = GetClientPlayer()
 	local szType = bCanCancel and "BUFF" or "DEBUFF"
+	local key = dwBuffID .. "_" .. nBuffLevel
 	local data = D.GetData(szType, dwBuffID, nBuffLevel)
+	local nTime = GetTime()
 	local cfg, nClass
 	if not bDelete then
 		-- 近期记录
 		if Table_BuffIsVisible(dwBuffID, nBuffLevel) or JH.bDebugClient then
 			local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
-			local key = dwBuffID .. "_" .. nBuffLevel
 			if not tWeak[key] then
 				local t = {
 					dwMapID   = me.GetMapID(),
 					dwID      = dwBuffID,
 					nLevel    = nBuffLevel,
-					bIsPlayer = IsPlayer(dwSkillSrcID),
+					bIsPlayer = dwSkillSrcID ~=0 and IsPlayer(dwSkillSrcID),
 					szSrcName = D.GetSrcName(dwSkillSrcID)
 				}
 				tWeak[key] = t
@@ -472,6 +489,18 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			cfg, nClass = data[DBM_TYPE.BUFF_LOSE], DBM_TYPE.BUFF_LOSE
 		else
 			cfg, nClass = data[DBM_TYPE.BUFF_GET], DBM_TYPE.BUFF_GET
+			CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
+			if #CACHE.INTERVAL[szType][key] > 300 then
+				CACHE.INTERVAL[szType][key] = {}
+			else
+				if #CACHE.INTERVAL[szType][key] > 1 then
+					if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
+						CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
+					end
+				else
+					CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
+				end
+			end
 		end
 		D.FireCountdownEvent(data, nClass)
 		if cfg then
@@ -484,9 +513,9 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			nIcon  = data.nIcon or nIcon
 			local szSrcName = JH.GetTemplateName(KObject)
 			local xml = {}
-			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, DBM_LEFT_LINE)
 			tinsert(xml, GetFormatText(szSrcName == me.szName and g_tStrings.STR_YOU or szSrcName, 44, 255, 255, 0))
-			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, DBM_RIGHT_LINE)
 			if nClass == DBM_TYPE.BUFF_GET then
 				tinsert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
 				tinsert(xml, GetFormatText(szName .. " x" .. nCount, 44, 255, 255, 0))
@@ -562,6 +591,12 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 100 then -- 0.1秒内 直接忽略
 		return
 	end
+	CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
+	if #CACHE.INTERVAL.CASTING[key] > 300 then
+		CACHE.INTERVAL.CASTING[key] = {}
+	else
+		CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
+	end
 	CACHE.SKILL_LIST[dwCaster][key] = nTime
 	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
 	local me = GetClientPlayer()
@@ -611,22 +646,22 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		D.FireCountdownEvent(data, nClass)
 		if cfg then
 			local xml = {}
-			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, DBM_LEFT_LINE)
 			tinsert(xml, GetFormatText(szSrcName, 44, 255, 255, 0))
-			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, DBM_RIGHT_LINE)
 			if nClass == DBM_TYPE.SKILL_END then
 				tinsert(xml, GetFormatText(_L["use of"], 44, 255, 255, 255))
 			else
 				tinsert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
 			end
-			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, DBM_LEFT_LINE)
 			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
-			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, DBM_RIGHT_LINE)
 			if data.bMonTarget and szTargetName then
 				tinsert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
-				tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+				tinsert(xml, DBM_LEFT_LINE)
 				tinsert(xml, GetFormatText(szTargetName == me.szName and g_tStrings.STR_YOU or szTargetName, 44, 255, 255, 0))
-				tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+				tinsert(xml, DBM_RIGHT_LINE)
 			end
 			if data.szNote then
 				tinsert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
@@ -740,14 +775,20 @@ function D.OnNpcEvent(npc, bEnter)
 			else
 				CACHE.NPC_LIST[npc.dwTemplateID].nTime = nTime
 			end
+			CACHE.INTERVAL.NPC[npc.dwTemplateID] = CACHE.INTERVAL.NPC[npc.dwTemplateID] or {}
+			if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 300 then
+				CACHE.INTERVAL.NPC[npc.dwTemplateID] = {}
+			else
+				CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID] + 1] = nTime
+			end
 		end
 		D.FireCountdownEvent(data, nClass)
 		if cfg then
 			local szName = JH.GetTemplateName(npc)
 			local xml = {}
-			tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+			tinsert(xml, DBM_LEFT_LINE)
 			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
-			tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+			tinsert(xml, DBM_RIGHT_LINE)
 			if nClass == DBM_TYPE.NPC_ENTER then
 				tinsert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
 				if data.szNote then
@@ -850,13 +891,13 @@ function D.OnCallMessage(szContent, szNpcName)
 			if cfg then
 				local xml, txt = {}, v.szNote or szContent
 				if tInfo and not v.szNote then
-					tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+					tinsert(xml, DBM_LEFT_LINE)
 					tinsert(xml, GetFormatText(szNpcName or _L["JX3"], 44, 255, 255, 0))
-					tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+					tinsert(xml, DBM_RIGHT_LINE)
 					tinsert(xml, GetFormatText(_L["is calling"], 44, 255, 255, 255))
-					tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+					tinsert(xml, DBM_LEFT_LINE)
 					tinsert(xml, GetFormatText(tInfo.szName == me.szName and g_tStrings.STR_YOU or tInfo.szName, 44, 255, 255, 0))
-					tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+					tinsert(xml, DBM_RIGHT_LINE)
 					tinsert(xml, GetFormatText(_L["'s name."], 44, 255, 255, 255))
 					txt = GetPureText(tconcat(xml))
 				end
@@ -1354,12 +1395,23 @@ function D.ClearTemp(szType)
 	collectgarbage("collect")
 	FireUIEvent("DBMUI_TEMP_RELOAD")
 end
+
+function D.GetIntervalData(szType, key)
+	if szType == "CIRCLE" then -- 如果请求圈圈的近期数据 返回NPC的
+		szType = "NPC"
+	end
+	if CACHE.INTERVAL[szType] then
+		return CACHE.INTERVAL[szType][key]
+	end
+end
+
 -- 公开接口
 local ui = {
 	Enable            = D.Enable,
 	GetTable          = D.GetTable,
 	GetDungeon        = D.GetDungeon,
 	GetData           = D.GetData,
+	GetIntervalData   = D.GetIntervalData,
 	GetFileData       = D.GetFileData,
 	RemoveData        = D.RemoveData,
 	MoveData          = D.MoveData,

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 23:34:11
+-- @Last Modified time: 2015-05-31 08:44:08
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -365,7 +365,7 @@ function DBMUI.GetBoxInfo(data, szType)
 		if JH.Trim(szName) == "" then
 			szName = tostring(data.dwID)
 		end
-		nIocn = data.nFrame
+		nIcon = data.nFrame
 	elseif szType == "TALK" then
 		szName = data.szContent
 	else
@@ -620,6 +620,27 @@ function DBMUI.SetRItemAction(szType, h, t)
 		table.insert(menu, { szOption = g_tStrings.MAP_TALK .. g_tStrings.STR_COLON .. Table_GetMapName(t.dwMapID), bDisable = true })
 		if szType ~= "NPC" and szType ~= "CIRCLE" and szType ~= "TALK" then
 			table.insert(menu, { szOption = g_tStrings.STR_SKILL_H_CAST_TIME .. (t.bIsPlayer and _L["(player)"] or "") .. (t.szSrcName or g_tStrings.STR_CRAFT_NONE), bDisable = true })
+		end
+		if szType ~= "TALK" then
+			local cmenu = { szOption = _L["Interval Time"] }
+			local tInterval
+			if t.nLevel then
+				tInterval = DBM_API.GetIntervalData(szType, t.dwID .. "_" .. t.nLevel)
+			else
+				tInterval = DBM_API.GetIntervalData(szType, t.dwID)
+			end
+			if tInterval and #tInterval > 1 then
+				local nTime = tInterval[#tInterval]
+				for k, v in DBM_API.Bpairs(tInterval) do
+					if #cmenu == 11 then break end
+					table.insert(cmenu, { szOption = math.floor((nTime - v) / 1000) .. g_tStrings.STR_TIME_SECOND })
+					nTime = v
+				end
+				table.remove(cmenu, 1)
+			else
+				table.insert(cmenu, { szOption = g_tStrings.STR_FIGHT_NORECORD, bDisable = true })
+			end
+			table.insert(menu, cmenu)
 		end
 		PopupMenu(menu)
 	end
