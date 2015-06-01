@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-29 15:48:46
+-- @Last Modified time: 2015-06-01 13:23:22
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -18,6 +18,7 @@ local ST_CACHE = {}
 do
 	for k, v in pairs(DBM_TYPE) do
 		ST_CACHE[v] = setmetatable({}, { __mode = "v" })
+		ST_TIME_CACHE[v] = {}
 	end
 end
 
@@ -66,11 +67,12 @@ local function CreateCountdown(nType, szKey, tArgs)
 			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tArgs.nTime)
 		end
 	end
-	if ST_TIME_CACHE[szKey] and tArgs.nRefresh and (nTime - ST_TIME_CACHE[szKey]) / 1000 < tArgs.nRefresh then
+	local cache =  ST_TIME_CACHE[nType][szKey]
+	if cache and tArgs.nRefresh and (nTime - cache) / 1000 < tArgs.nRefresh then
 		return
 	end
 	local ui = ST_CACHE[nType][szKey]
-	ST_TIME_CACHE[szKey] = nTime
+	ST_TIME_CACHE[nType][szKey] = nTime
 	ST.new(nType, szKey, tArgs):SetInfo(arg, tArgs.nIcon or 13):Switch(false)
 end
 
@@ -108,6 +110,9 @@ function ST_UI.OnEvent(szEvent)
 		end
 	elseif szEvent == "JH_ST_CLEAR" then
 		_ST_UI.handle:Clear()
+		for k, v in pairs(ST_TIME_CACHE) do
+			ST_TIME_CACHE[k] = {}
+		end
 	elseif szEvent == "UI_SCALED" then
 		_ST_UI.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
