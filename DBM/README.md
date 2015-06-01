@@ -76,6 +76,23 @@ data = {
 }
 ```
 
+#### JSON数据整理
+
+由于游戏限制，JSON默认导出的数据会进行转义和增加部分无意义的字符，可以使用以下方法去除。
+
+```php
+// 最简单的PHP处理方法
+<?php
+$content = file_get_contents('data.jx3dat');
+$content = trim(substr($content, strpos($content, 'data') + 4));
+$content = trim(substr($content, strpos($content, '=') + 1));
+
+$content = stripslashes(trim($content, '"'));
+$content = iconv('gbk', 'utf-8//IGNORE', $content);
+var_dump(json_decode($content, true));
+```
+
+
 
 ----
 
