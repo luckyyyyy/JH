@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-31 14:17:14
+-- @Last Modified time: 2015-06-01 13:25:46
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -43,7 +43,6 @@ function DBM_UI.OnFrameCreate()
 			txt:SetFontColor(192, 192, 192)
 		end
 	end
-	this:Lookup("Btn_Close").OnLButtonClick = DBMUI.ClosePanel
 	ui:Append("WndComboBox", "Select_Class", { x = 700, y = 52, txt = _L["All Data"] }):Menu(DBMUI.GetClassMenu)
 	-- 首次加载
 	FireUIEvent("DBMUI_TEMP_RELOAD")
@@ -175,10 +174,18 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 	end
 end
 
-function DBMUI.OpenImportPanel(szFileName)
+function DBMUI.OpenImportPanel(szDefault)
 	if Station.Lookup("Normal/DBM_DatatPanel") then
 		Wnd.CloseWindow(Station.Lookup("Normal/DBM_DatatPanel"))
 	end
+	local function FileExist(szFile)
+		if IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile) then
+			return { 0, 255, 0 }
+		else
+			return { 255, 255, 0 }
+		end
+	end
+
 	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Import Data"], close = true }):RegisterClose()
 	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
 	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
@@ -187,10 +194,11 @@ function DBMUI.OpenImportPanel(szFileName)
 		nX = ui:Append("WndCheckBox", v, { x = nX + 5, y = nY + 5, checked = true, txt = _L[v] }):Pos_()
 	end
 	nY = 100
-	local szFileName = szFileName or ""
+	local szFileName = szDefault or ""
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Name"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, w = 500, h = 25, txt = szFileName }):Change(function(szText)
+	nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, w = 500, h = 25, txt = szFileName, color = FileExist(szFileName), enable = not szDefault }):Change(function(szText)
 		szFileName = szText
+		this:SetFontColor(unpack(FileExist(szText)))
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Import mode"], font = 27 }):Pos_()
 	local nType = 1
@@ -216,7 +224,7 @@ function DBMUI.OpenImportPanel(szFileName)
 			JH.Sysmsg(_L("Import success %s", path))
 			ui:Remove()
 		else
-			JH.Sysmsg2(_L("Import failed %s", path))
+			JH.Alert(_L("Import failed %s", path))
 		end
 	end)
 end
@@ -321,7 +329,7 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 			if DBMUI_SEARCH then
 				for k, v in ipairs(dat) do
 					local szName = DBMUI.GetBoxInfo(v, szType)
-					if szName:match(DBMUI_SEARCH)
+					if tostring(szName):match(DBMUI_SEARCH)
 						or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH))
 						or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH))
 						or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(v):match(DBMUI_SEARCH))
@@ -589,7 +597,7 @@ function DBMUI.UpdateRList(szEvent, szType, data)
 			if DBMUI_SEARCH then
 				for k, v in ipairs(tab) do
 					local szName = DBMUI.GetBoxInfo(v, szType)
-					if szName:match(DBMUI_SEARCH)
+					if tostring(szName):match(DBMUI_SEARCH)
 						or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH))
 						or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH))
 						or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(v):match(DBMUI_SEARCH))
@@ -634,7 +642,7 @@ function DBMUI.SetRItemAction(szType, h, t)
 				local nTime = tInterval[#tInterval]
 				for k, v in DBM_API.Bpairs(tInterval) do
 					if #cmenu == 16 then break end
-					table.insert(cmenu, { szOption = math.floor((nTime - v) / 1000) .. g_tStrings.STR_TIME_SECOND })
+					table.insert(cmenu, { szOption = string.format("%.1f", (nTime - v) / 1000) .. g_tStrings.STR_TIME_SECOND })
 					nTime = v
 				end
 				table.remove(cmenu, 1)

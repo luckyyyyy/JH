@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 19:48:10
+-- @Last Modified time: 2015-06-01 13:25:41
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -25,10 +25,11 @@ local W = {
 }
 -- 打开界面
 function W.OpenPanel()
-	local wnd = Station.Lookup("Normal/DBM_RemoteRequest") or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
-	wnd:BringToTop()
-	Station.SetActiveFrame(wnd)
+	local frame = Station.Lookup("Normal/DBM_RemoteRequest") or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
+	frame:BringToTop()
+	Station.SetActiveFrame(frame)
 	W.RequestList()
+	PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 end
 
 function W.ClosePanel()
@@ -39,6 +40,19 @@ end
 
 function DBM_RemoteRequest.OnFrameCreate()
 	local ui = GUI(this)
+	if DBM_RemoteRequest.bLogin then
+		Output(1324)
+		JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+			local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+			if err then
+				JH.Sysmsg2(_L["request failed"])
+			else
+				if result['username'] then
+					ui:Append("Text", { x = 0, y = 50, w = 980, h = 30, align = 2, txt = result['username'], color = { 255, 255, 0 } })
+				end
+			end
+		end)
+	end
 	ui:Append("WndButton3", { x = 30, y = 630, txt = _L["sync team"] })
 	:Click(W.SyncTeam)
 	ui:Append("WndButton3", { x = 180, y = 630, txt = _L["standard data"] })
@@ -50,7 +64,6 @@ function DBM_RemoteRequest.OnFrameCreate()
 		W.RequestList(W.szFileList2)
 	end)
 	ui:Append("WndButton3", { x = 480, y = 630, txt = g_tStrings.SEARCH }):Click(W.Search)
-
 	ui:Append("WndButton3", { x = 665, y = 630, txt = _L["My Data"] }):Enable(DBM_RemoteRequest.bLogin):Click(W.MyData)
 	ui:Append("WndButton3", { x = 815, y = 630, txt = DBM_RemoteRequest.bLogin and _L["Logout"] or _L["Login Web Account"] }):Click(function()
 		if not DBM_RemoteRequest.bLogin then
@@ -153,7 +166,7 @@ function W.RequestList(szUrl)
 	W.Container:Clear()
 	W.AppendItem({ title = "", author = "Laoding..." }, 1)
 	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 得益于IE缓存 1分钟一次
-	JH.RemoteRequest(szUrl .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG,function(szTitle, szDoc)
+	JH.RemoteRequest(szUrl .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
 			JH.Sysmsg2(_L["request failed"])
@@ -250,16 +263,16 @@ function W.AppendItem(data, k)
 				OpenInternetExplorer(url)
 			end
 			if data.url then
-				btn2:Lookup("","Text_Default2"):SetText(_L["details"])
+				btn2:Lookup("", "Text_Default2"):SetText(_L["details"])
 				btn:Hide()
 			end
 			if DBM_RemoteRequest.tData.tid and DBM_RemoteRequest.tData.tid == data.tid then
 				item:Lookup("Text_Title"):SetFontColor(255, 255, 0)
 				if DBM_RemoteRequest.tData.md5 == data.md5 then
-					btn:Lookup("","Text_Default"):SetText(_L["select"])
+					btn:Lookup("", "Text_Default"):SetText(_L["select"])
 				else
-					btn:Lookup("","Text_Default"):SetText(_L["update"])
-					btn:Lookup("","Text_Default"):SetFontColor(255, 255, 0)
+					btn:Lookup("", "Text_Default"):SetText(_L["update"])
+					btn:Lookup("", "Text_Default"):SetFontColor(255, 255, 0)
 				end
 			end
 		else
