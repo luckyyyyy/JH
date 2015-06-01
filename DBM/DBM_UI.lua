@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-01 13:25:46
+-- @Last Modified time: 2015-06-01 13:46:36
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -316,6 +316,18 @@ function DBMUI.RemoveData(dwMapID, nIndex, szMsg, bConfirm)
 	end
 end
 
+function DBMUI.CheckSearch(szName, data)
+	if tostring(szName):match(DBMUI_SEARCH)
+		or (data.dwID and tostring(data.dwID):match(DBMUI_SEARCH))
+		or (data.szTarget and tostring(data.szTarget):match(DBMUI_SEARCH))
+		or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(data):match(DBMUI_SEARCH))
+	then
+		return true
+	else
+		return false
+	end
+end
+
 -- 更新监控数据
 function DBMUI.UpdateLList(szEvent, szType, data)
 	szType = szType or DBMUI_SELECT_TYPE
@@ -329,11 +341,7 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 			if DBMUI_SEARCH then
 				for k, v in ipairs(dat) do
 					local szName = DBMUI.GetBoxInfo(v, szType)
-					if tostring(szName):match(DBMUI_SEARCH)
-						or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH))
-						or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH))
-						or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(v):match(DBMUI_SEARCH))
-					then
+					if DBMUI.CheckSearch(szName, v) then
 						table.insert(dat2, v)
 					end
 				end
@@ -597,11 +605,7 @@ function DBMUI.UpdateRList(szEvent, szType, data)
 			if DBMUI_SEARCH then
 				for k, v in ipairs(tab) do
 					local szName = DBMUI.GetBoxInfo(v, szType)
-					if tostring(szName):match(DBMUI_SEARCH)
-						or (v.dwID and tostring(v.dwID):match(DBMUI_SEARCH))
-						or (v.szTarget and tostring(v.szTarget):match(DBMUI_SEARCH))
-						or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(v):match(DBMUI_SEARCH))
-					then
+					if DBMUI.CheckSearch(szName, v) then
 						table.insert(tab2, v)
 					end
 				end
@@ -680,8 +684,11 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 			end
 		end
 	else
-		handle:InsertItemFromIni(0, false, ini, "Handle_R")
-		SetDataAction(handle:Lookup(0), data, 0)
+		local szName = DBMUI.GetBoxInfo(data, szType)
+		if not DBMUI_SEARCH or DBMUI.CheckSearch(szName, data) then
+			handle:InsertItemFromIni(0, false, ini, "Handle_R")
+			SetDataAction(handle:Lookup(0), data, 0)
+		end
 	end
 	handle:FormatAllItemPos()
 end
