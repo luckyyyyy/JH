@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-01 13:46:36
+-- @Last Modified time: 2015-06-02 00:31:27
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -316,7 +316,8 @@ function DBMUI.RemoveData(dwMapID, nIndex, szMsg, bConfirm)
 	end
 end
 
-function DBMUI.CheckSearch(szName, data)
+function DBMUI.CheckSearch(szType, data)
+	local szName = DBMUI.GetBoxInfo(szType, data)
 	if tostring(szName):match(DBMUI_SEARCH)
 		or (data.dwID and tostring(data.dwID):match(DBMUI_SEARCH))
 		or (data.szTarget and tostring(data.szTarget):match(DBMUI_SEARCH))
@@ -340,8 +341,7 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 			local dat, dat2 = tab[DBMUI_SELECT_MAP] or {}, {}
 			if DBMUI_SEARCH then
 				for k, v in ipairs(dat) do
-					local szName = DBMUI.GetBoxInfo(v, szType)
-					if DBMUI.CheckSearch(szName, v) then
+					if DBMUI.CheckSearch(szType, v) then
 						table.insert(dat2, v)
 					end
 				end
@@ -368,7 +368,7 @@ function DBMUI.UpdateLList(szEvent, szType, data)
 	end
 end
 
-function DBMUI.GetBoxInfo(data, szType)
+function DBMUI.GetBoxInfo(szType, data)
 	local szName, nIcon
 	if szType == "CASTING" then
 		szName, nIcon = JH.GetSkillName(data.dwID, data.nLevel)
@@ -393,7 +393,7 @@ function DBMUI.GetBoxInfo(data, szType)
 end
 
 function DBMUI.SetBuffItemAction(h, dat)
-	local szName, nIcon = DBMUI.GetBoxInfo(dat)
+	local szName, nIcon = DBMUI.GetBoxInfo("BUFF", dat)
 	h:Lookup("Text"):SetText(szName)
 	if dat.col then
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
@@ -418,7 +418,7 @@ function DBMUI.SetBuffItemAction(h, dat)
 end
 
 function DBMUI.SetCastingItemAction(h, dat)
-	local szName, nIcon = DBMUI.GetBoxInfo(dat, "CASTING")
+	local szName, nIcon = DBMUI.GetBoxInfo("CASTING", dat)
 	h:Lookup("Text"):SetText(szName)
 	if dat.col then
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
@@ -438,7 +438,7 @@ function DBMUI.SetCastingItemAction(h, dat)
 end
 
 function DBMUI.SetNpcItemAction(h, dat)
-	local szName = DBMUI.GetBoxInfo(dat, "NPC")
+	local szName = DBMUI.GetBoxInfo("NPC", dat)
 	h:Lookup("Text"):SetText(szName)
 	if dat.col then
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
@@ -474,7 +474,7 @@ function DBMUI.SetCircleItemAction(h, dat)
 			if tonumber(dat.key) then
 				DBMUI.OutputTip("NPC", dat, { x, y, w, h })
 			else
-				OutputTip(GetFormatText((dat.szNote and string.format("%s (%s)", dat.key, dat.szNote) or dat.key) .. "\n" .. Circle.GetMapName(dat.id or CIRCLE_SELECT_MAP), 41, 255, 255, 255), 300, { x, y, w, h })
+				OutputTip(GetFormatText((dat.szNote and string.format("%s (%s)", dat.key, dat.szNote) or dat.key) .. "\n" .. Circle.GetMapName(dat.dwMapID), 41, 255, 255, 255), 300, { x, y, w, h })
 			end
 		end
 	end
@@ -553,7 +553,7 @@ end
 
 function DBMUI.SetLCircleItemAction(h, t, i)
 	h.OnItemLButtonClick = function()
-		Circle.OpenDataPanel(t.id or CIRCLE_SELECT_MAP, t.index or i)
+		Circle.OpenDataPanel(t.dwMapID, t.nIndex)
 	end
 	h.OnItemRButtonClick = h.OnItemLButtonClick
 end
@@ -604,8 +604,7 @@ function DBMUI.UpdateRList(szEvent, szType, data)
 		if tab then
 			if DBMUI_SEARCH then
 				for k, v in ipairs(tab) do
-					local szName = DBMUI.GetBoxInfo(v, szType)
-					if DBMUI.CheckSearch(szName, v) then
+					if DBMUI.CheckSearch(szType, v) then
 						table.insert(tab2, v)
 					end
 				end
@@ -623,7 +622,7 @@ function DBMUI.SetRItemAction(szType, h, t)
 	end
 	h.OnItemRButtonClick = function()
 		local menu = {}
-		local szName = DBMUI.GetBoxInfo(t, szType)
+		local szName = DBMUI.GetBoxInfo(szType, t)
 		table.insert(menu, { szOption = _L["Add to monitor list"], fnAction = h.OnItemLButtonClick })
 		table.insert(menu, { bDevide = true })
 		if szType ~= "TALK" then
@@ -684,8 +683,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 			end
 		end
 	else
-		local szName = DBMUI.GetBoxInfo(data, szType)
-		if not DBMUI_SEARCH or DBMUI.CheckSearch(szName, data) then
+		if not DBMUI_SEARCH or DBMUI.CheckSearch(szType, data) then
 			handle:InsertItemFromIni(0, false, ini, "Handle_R")
 			SetDataAction(handle:Lookup(0), data, 0)
 		end
@@ -695,14 +693,14 @@ end
 -- 添加面板
 function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
-		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetBoxInfo(data, "NPC"), TARGET.NPC, Table_GetMapName(data.dwMapID))
+		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetBoxInfo("NPC", data), TARGET.NPC, Table_GetMapName(data.dwMapID))
 	else
 		if Station.Lookup("Normal/DBM_NewData") then
 			Wnd.CloseWindow(Station.Lookup("Normal/DBM_NewData"))
 		end
 		local szName, nIcon = _L["TALK"], 340
 		if szType ~= "TALK" then
-			szName, nIcon = DBMUI.GetBoxInfo(data, szType)
+			szName, nIcon = DBMUI.GetBoxInfo(szType, data)
 		end
 		local nClass
 		if DBMUI_SELECT_MAP ~= _L["All Data"] then
@@ -880,7 +878,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
 	local szName, nIcon = _L["TALK"], 340
 	if szType ~= "TALK" then
-		szName, nIcon = DBMUI.GetBoxInfo(data, szType)
+		szName, nIcon = DBMUI.GetBoxInfo(szType, data)
 	end
 	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true }):RegisterClose()
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")

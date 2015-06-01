@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-28 21:31:22
+-- @Last Modified time: 2015-06-02 00:34:19
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -357,7 +357,7 @@ function C.Release()
 				for k, v in pairs(me) do
 					if k ~= "mt" then
 						for kk, vv in ipairs(v) do
-							tinsert(dat, { key = vv.key, szNote = vv.szNote, id = k, index = kk, bEnable = vv.bEnable })
+							tinsert(dat, vv)
 						end
 					end
 				end
@@ -365,6 +365,20 @@ function C.Release()
 			end
 		end
 	}
+
+	-- 重建所有数据的metatable
+	for k, v in pairs(C.tData) do
+		for kk, vv in ipairs(v) do
+			setmetatable(vv, { __index = function(_, val)
+				if val == "dwMapID" then
+					return k
+				elseif val == "nIndex" then
+					return kk
+				end
+			end })
+		end
+	end
+
 	setmetatable(C.tData, mt)
 end
 -- 构建data table
@@ -551,12 +565,12 @@ function C.DrawTable()
 				local text = item:Lookup("Text_I_Name")
 				text:SetText(v.szNote and string.format("%s (%s)", v.key, v.szNote) or v.key)
 				local r, g, b = 255, 255, 255
-				local vv = mapid == _L["All Data"] and C.tData[v.id][v.index] or C.tData[mapid][k]
+				local vv = C.tData[v.dwMapID][v.nIndex]
 				if vv.tCircles then
 					r, g, b = unpack(vv.tCircles[1].col)
 				end
 				text:SetFontColor(r, g, b)
-				local szMapName = v.id and C.GetMapName(v.id) or C.GetMapName(mapid)
+				local szMapName = C.GetMapName(v.dwMapID)
 				item:Lookup("Text_I_Map"):SetText(szMapName)
 				item.OnItemMouseEnter = function()
 					this:Lookup("Image_Light"):Show()
@@ -579,12 +593,12 @@ function C.DrawTable()
 				end
 				item:Lookup("Image_Btn").OnItemLButtonClick = function()
 					local nFrame = this:GetFrame()
-					C.tData[v.id or mapid][v.index or k].bEnable = nFrame ~= 7
+					C.tData[v.dwMapID][v.nIndex].bEnable = nFrame ~= 7
 					FireUIEvent("CIRCLE_CLEAR")
 					FireUIEvent("CIRCLE_DRAW_UI")
 				end
 				item.OnItemLButtonClick = function()
-					C.OpenDataPanel(v.id or mapid, v.index or k)
+					C.OpenDataPanel(v.dwMapID, v.nIndex)
 				end
 				item.OnItemRButtonClick = function()
 					local szNote = v.szNote or g_tStrings.STR_NONE
@@ -593,7 +607,7 @@ function C.DrawTable()
 						{ szOption = g_tStrings.CYCLOPAEDIA_NOTE_TEXT .. szNote, bDisable = true },
 						{ bDevide = true },
 						{ szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
-							C.RemoveData(v.id or mapid, v.index or k, not IsAltKeyDown())
+							C.RemoveData(v.dwMapID, v.nIndex, not IsAltKeyDown())
 						end }
 					}
 					if mapid ~= _L["All Data"] then
@@ -858,10 +872,10 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 				nFrame = 86,
 				nMouseOverFrame = 87,
 				fnClickIcon = function()
-					C.RemoveData(data.id, data.index, not IsCtrlKeyDown())
+					C.RemoveData(data.dwMapID, data.nIndex, not IsCtrlKeyDown())
 				end,
 				fnAction = function()
-					C.OpenDataPanel(data.id, data.index)
+					C.OpenDataPanel(data.dwMapID, data.nIndex)
 				end
 			}}
 		else
