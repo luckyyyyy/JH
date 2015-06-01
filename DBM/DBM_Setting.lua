@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-01 13:28:28
+-- @Last Modified time: 2015-06-02 00:37:37
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -74,6 +74,10 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("WndButton2", { x = 5, y = nY + 15, txt = _L["Data Panel"] }):Click(DBM_UI.TogglePanel):Pos_()
 	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY + 15, txt = _L["Export Data"] }):Click(DBM_UI.OpenExportPanel):Pos_()
 	nX = ui:Append("WndButton2", { x = 5, y = nY + 5, txt = _L["Import Data"], w = 155, h = 30 }):Click(DBM_UI.OpenImportPanel):Pos_()
+	local szLang = select(3, GetVersion())
+	if szLang == "zhcn" or szLang == "zhtw" then
+		nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 5, txt = _L["import Data (web)"], w = 155, h = 30 }):Click(DBM_RemoteRequest.OpenPanel):Pos_()
+	end
 end
 
 GUI.RegisterPanel(_L["DBM"], 2041, _L["Dungeon"], PS)
