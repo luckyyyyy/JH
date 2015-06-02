@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-03 00:16:00
+-- @Last Modified time: 2015-06-03 07:04:32
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -221,7 +221,7 @@ function DBMUI.OpenImportPanel(szDefault)
 		end
 		local bStatus, path = DBM_API.LoadConfigureFile(config)
 		if bStatus then
-			JH.Sysmsg(_L("Import success %s", path))
+			JH.Alert(_L("Import success %s", path))
 			ui:Remove()
 		else
 			JH.Alert(_L("Import failed %s", path))
@@ -465,6 +465,9 @@ end
 function DBMUI.SetCircleItemAction(h, dat)
 	h:Lookup("Text"):SetText(dat.szNote and string.format("%s (%s)", dat.key, dat.szNote) or dat.key)
 	local box = h:Lookup("Box")
+	if dat.tCircles then
+		h:Lookup("Text"):SetFontColor(unpack(dat.tCircles[1].col))
+	end
 	box:SetObjectIcon(2673)
 	h.OnItemMouseEnter = function()
 		if this:IsValid() then
@@ -767,14 +770,16 @@ function DBMUI.OpenJosnPanel(data, fnAction)
 	local json = JH.JsonEncode(data, true)
 	local wnd = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = _L["Json Data"], close = true }):RegisterClose()
 	wnd:Append("WndEdit", "WndEdit",{ w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999,txt = json })
-	wnd:Append("WndButton3",{ x = 10, y = 370,txt = _L["import"] }):Click(function()
-		local json = wnd:Fetch("WndEdit"):Text()
-		local dat = JH.JsonToTable(json)
-		if fnAction and dat then
-			wnd:Remove()
-			return fnAction(dat)
-		end
-	end)
+	if JH.bDebugClient then
+		wnd:Append("WndButton3",{ x = 10, y = 370,txt = _L["Enter"] }):Click(function()
+			local json = wnd:Fetch("WndEdit"):Text()
+			local dat = JH.JsonToTable(json)
+			if fnAction and dat then
+				wnd:Remove()
+				return fnAction(dat)
+			end
+		end)
+	end
 end
 
 -- 设置面板
@@ -931,17 +936,16 @@ function DBMUI.OpenSettingPanel(data, szType)
 				ui:Fetch("Shadow_Color"):Alpha(0)
 			end })
 		end
-		if JH.bDebugClient then
-			table.insert(menu, { bDevide = true })
-			table.insert(menu, { szOption = _L["Edit raw data, Please be careful"], color = { 255, 255, 0 }, fnAction = function()
-				DBMUI.OpenJosnPanel(data, function(dat)
-					for k, v in pairs(dat) do
-						data[k] = v
-					end
-					DBMUI.OpenSettingPanel(data, szType)
-				end)
-			end })
-		end
+
+		table.insert(menu, { bDevide = true })
+		table.insert(menu, { szOption = _L["raw data, Please be careful"], color = { 255, 255, 0 }, fnAction = function()
+			DBMUI.OpenJosnPanel(data, function(dat)
+				for k, v in pairs(dat) do
+					data[k] = v
+				end
+				DBMUI.OpenSettingPanel(data, szType)
+			end)
+		end })
 		PopupMenu(menu)
 	end
 

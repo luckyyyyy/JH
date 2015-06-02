@@ -82,6 +82,7 @@ data = {
 	["preview"] = "預覽",
 	["Hello World"] = "妳好，世界。",
 	-- DBM_UI.lua --
+	["raw data, Please be careful"] = "查看原始數據（僅供參考）",
 	["%s Call Name"] = "被【%s】點名了",
 	["JX3 DBM Plug-in"] = "《劍網3》DBM插件設置面板",
 	["BUFF"] = "增益效果",
