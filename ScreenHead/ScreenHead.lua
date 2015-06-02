@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 15:25:01
+-- @Last Modified time: 2015-06-02 09:07:49
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -25,8 +25,8 @@ local GetTime, IsPlayer = GetTime, IsPlayer
 local GetPlayer, GetClientPlayer, GetClientTeam =
 	  GetPlayer, GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
-local GetTarget, HasBuff, GetEndTime, GetBuffName, GetBuffTimeString, GetSkillName, GetDistance, GetTemplateName, JH_IsParty =
-	  JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.GetBuffTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, JH.IsParty
+local GetTarget, HasBuff, GetEndTime, GetBuffName, FormatTimeString, GetSkillName, GetDistance, GetTemplateName, JH_IsParty =
+	  JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, JH.IsParty
 local SCREEN_SELECT_FIX = 0.3
 
 local _ScreenHead = {
@@ -113,9 +113,9 @@ function _ScreenHead:Create(obj, info, nIndex)
 					nSec = 0
 				end
 				if tBuff.nStackNum > 1 then
-					txt = sFormat("%s(%d)_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, GetBuffTimeString(nSec, 5999))
+					txt = sFormat("%s(%d)_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, FormatTimeString(nSec, 1, true))
 				else
-					txt = sFormat("%s_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), GetBuffTimeString(nSec, 5999))
+					txt = sFormat("%s_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), FormatTimeString(nSec, 1, true))
 				end
 			else
 				return self:Remove(dwID, nIndex)
