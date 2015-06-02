@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 14:00:15
+-- @Last Modified time: 2015-06-02 20:35:00
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -150,7 +150,7 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "PLAYER_SAY" then
 		if not IsPlayer(arg1) then
-			D.OnCallMessage(GetPureText(arg0), arg3)
+			D.OnCallMessage(GetPureText(arg0), arg3, arg1)
 		end
 	elseif szEvent == "ON_WARNING_MESSAGE" then
 		D.OnCallMessage(arg1)
@@ -202,18 +202,17 @@ function D.Talk(szMsg, szTarget)
 	if not me then return end
 	if not szTarget then
 		if me.IsInParty() then
-			JH.Talk(PLAYER_TALK_CHANNEL.RAID, szMsg, "DBM." .. szMsg)
+			JH.Talk(PLAYER_TALK_CHANNEL.RAID, szMsg, "DBM." .. szMsg .. GetLogicFrameCount())
 		end
 	elseif type(szTarget) == "string" then
 		local szText = szMsg:gsub(_L["["] .. szTarget .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
 		if szTarget == me.szName then
 			D.OutputWhisper(szText)
 		else
-			JH.Talk(szTarget, szText, "DBM." .. szMsg)
+			JH.Talk(szTarget, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 		end
 	elseif type(szTarget) == "boolean" then
 		if me.IsInParty() then
-
 			local team = GetClientTeam()
 			for _, v in ipairs(team.GetTeamMemberList()) do
 				local szName = team.GetClientTeamMemberName(v)
@@ -221,13 +220,12 @@ function D.Talk(szMsg, szTarget)
 				if szName == me.szName then
 					D.OutputWhisper(szText)
 				else
-					JH.Talk(szName, szText, "DBM." .. szMsg)
+					JH.Talk(szName, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 				end
 			end
 		end
 	end
 end
-
 
 local function CreateCache(szType, tab)
 	local data  = D.DATA[szType]
@@ -858,7 +856,7 @@ function D.OnNpcEvent(npc, bEnter)
 end
 
 -- 系统和NPC喊话处理
-function D.OnCallMessage(szContent, szNpcName)
+function D.OnCallMessage(szContent, szNpcName, dwNpcID)
 	if szNpcName == "" then
 		szNpcName = "%"
 	end
@@ -943,6 +941,13 @@ function D.OnCallMessage(szContent, szNpcName)
 					end
 					if JH.bDebugClient and cfg.bSelect then
 						SetTarget(TARGET.PLAYER, tInfo.dwID)
+					end
+				else
+					if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
+						D.Talk(txt, true)
+					end
+					if DBM.bPushScreenHead and cfg.bScreenHead then
+						FireUIEvent("JH_SCREENHEAD", dwNpcID, { txt = txt })
 					end
 				end
 
