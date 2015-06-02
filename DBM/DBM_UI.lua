@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 00:31:27
+-- @Last Modified time: 2015-06-03 00:16:00
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -1202,7 +1202,18 @@ function DBMUI.OpenSettingPanel(data, szType)
 	nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Countdown"], font = 27 }):Pos_()
 	nY = nY + 10
 	for k, v in ipairs(data.tCountdown or {}) do
-		nX = ui:Append("WndComboBox", "Countdown" .. k, { x = 30, w = 155, h = 25, y = nY, txt = v.nClass == -1 and _L["Please Select Type"] or _L["Countdown TYPE " ..  v.nClass] }):Menu(function()
+		nX = ui:Append("WndComboBox", "Countdown" .. k, { x = 30, w = 155, h = 25, y = nY, color = v.key and { 255, 255, 0 }, txt = v.nClass == -1 and _L["Please Select Type"] or _L["Countdown TYPE " ..  v.nClass] }):Menu(function()
+			if IsCtrlKeyDown() then
+				GetUserInput(_L["Countdown Key"], function(szKey)
+					if JH.Trim(szKey) == "" then
+						v.key = nil
+					else
+						v.key = JH.Trim(szKey)
+					end
+					DBMUI.OpenSettingPanel(data, szType)
+				end, nil, nil, nil, v.key)
+				return {}
+			end
 			local menu = {}
 			table.insert(menu, { szOption = _L["Please Select Type"], bDisable = true, bChecked = v.nClass == -1 })
 			table.insert(menu, { bDevide = true })
@@ -1293,10 +1304,11 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("Image", { x = nX + 5, y = nY, w = 26, h = 26}):File(file, 86):Event(525311)
 		:Hover(function() this:SetFrame(87) end, function() this:SetFrame(86) end):Click(function()
 			if v.nClass ~= -1 then
+				local class = v.key and DBM_TYPE.COMMON or v.nClass
 				if data.dwID then
-					FireUIEvent("JH_ST_DEL", v.nClass, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
+					FireUIEvent("JH_ST_DEL", class, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
 				else
-					FireUIEvent("JH_ST_DEL", v.nClass, v.key or (data.nIndex .. "." .. k), true) -- try kill
+					FireUIEvent("JH_ST_DEL", class, v.key or (data.nIndex .. "." .. k), true) -- try kill
 				end
 			end
 			if #data.tCountdown == 1 then
