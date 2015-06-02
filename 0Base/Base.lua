@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-01 01:32:20
+-- @Last Modified time: 2015-06-02 09:33:04
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1062,10 +1062,6 @@ function JH.Confirm(szMsg, fnAction, fnCancel, szSure, szCancel)
 	MessageBox(tMsg)
 end
 
-function JH.GetLogicTime()
-	return GetLogicFrameCount() / GLOBAL.GAME_FPS
-end
-
 function JH.GetEndTime(nEndFrame)
 	return (nEndFrame - GetLogicFrameCount()) / GLOBAL.GAME_FPS
 end
@@ -1164,25 +1160,29 @@ function JH.HasBuff(dwBuffID, bCanCancel, me)
 	return false, {}
 end
 
-function JH.FormatTimeString(nTime)
-	nTime = tonumber(nTime) or 0
-	if nTime > 60 then
-		return floor(nTime / 60) .. "m" .. floor(nTime % 60) .. "s"
+-- 格式化时间字符串
+function JH.FormatTimeString(nSec, nStyle, bDefault)
+	if nStyle == 1 then
+		if bDefault then
+			if nSec > 5999 then
+				nSec = 5999
+			end
+		elseif nSec > 5999 then
+			return ""
+		end
+		if nSec > 60 then
+			return floor(nSec / 60) .. "'" .. floor(nSec % 60) .. "\""
+		else
+			return floor(nSec) .. "\""
+		end
 	else
-		return floor(nTime) .. "s"
-	end
-end
-
-function JH.GetBuffTimeString(nTime, limit)
-	limit = limit or 5999
-	nTime = tonumber(nTime) or 0
-	if nTime > limit then
-		nTime = limit
-	end
-	if nTime > 60 then
-		return sformat("%d'%d\"", nTime / 60, nTime % 60)
-	else
-		return floor(nTime) .. "\""
+		if nSec > 3600 then
+			return floor(nSec / 3600) .. "h" .. floor(nSec / 60) % 60  .. "m" .. floor(nSec % 60) .. "s"
+		elseif nSec > 60 then
+			return floor(nSec / 60) .. "m" .. floor(nSec % 60) .. "s"
+		else
+			return floor(nSec) .. "s"
+		end
 	end
 end
 
@@ -1483,7 +1483,7 @@ function JH.AscIIEncode(szText)
 end
 
 function JH.AscIIDecode(szText)
-	return szText:gsub('([0-9a-f][0-9a-f])', function(s) return schar(tonumber(s, 16)) end)
+	return szText:gsub('(%x%x)', function(s) return schar(tonumber(s, 16)) end)
 end
 -- 临时选择集中处理
 local JH_TAR_TEMP
@@ -3241,7 +3241,7 @@ function GUI.OpenIconPanel(fnAction)
 		local nStart = nPage * 144 - 1
 		for i = 1, 144 do
 			local x = ((i - 1) % 18) * 50 + 10
-			local y = math.floor((i - 1) / 18) * 70 + 10
+			local y = floor((i - 1) / 18) * 70 + 10
 			if boxs[i] then
 				local nIocn = nStart + i
 				if nIocn > nMaxIocn then
