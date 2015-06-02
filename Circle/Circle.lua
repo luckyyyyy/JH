@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 00:34:19
+-- @Last Modified time: 2015-06-03 00:04:13
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -386,20 +386,20 @@ function C.CreateData()
 	pcall(C.Release)
 	local mapid = C.GetMapID()
 	for k, v in ipairs(C.tData[mapid] or {}) do
-		C.tList[v.dwType][v.key] = { id = mapid, index = k }
+		C.tList[v.dwType][v.key] = { dwMapID = mapid, nIndex = k }
 		setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[mapid][k] end })
 	end
 	-- 全地图数据
 	if C.tData[-1] and not C.GetMapType(mapid).bDungeon then
 		for k, v in ipairs(C.tData[-1]) do
-			C.tList[v.dwType][v.key] = { id = -1, index = k }
+			C.tList[v.dwType][v.key] = { dwMapID = -1, nIndex = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-1][k] end })
 		end
 	end
 	-- global
 	if C.tData[-2] then
 		for k, v in ipairs(C.tData[-2]) do
-			C.tList[v.dwType][v.key] = { id = -2, index = k }
+			C.tList[v.dwType][v.key] = { dwMapID = -2, nIndex = k }
 			setmetatable(C.tList[v.dwType][v.key], { __call = function() return C.tData[-2][k] end })
 		end
 	end

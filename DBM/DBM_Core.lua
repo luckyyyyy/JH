@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 20:35:00
+-- @Last Modified time: 2015-06-02 23:50:33
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -447,7 +447,8 @@ function D.FireCountdownEvent(data, nClass)
 	if data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				FireUIEvent("JH_ST_CREATE", nClass, v.key or (k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)), {
+				local class = v.key and DBM_TYPE.COMMON or nClass
+				FireUIEvent("JH_ST_CREATE", class, v.key or (k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)), {
 					nTime    = v.nTime,
 					nRefresh = v.nRefresh,
 					szName   = v.szName or data.szName,
@@ -905,7 +906,8 @@ function D.OnCallMessage(szContent, szNpcName, dwNpcID)
 			if v.tCountdown then
 				for kk, vv in ipairs(v.tCountdown) do
 					if vv.nClass == DBM_TYPE.TALK_MONITOR then
-						FireUIEvent("JH_ST_CREATE", DBM_TYPE.TALK_MONITOR, vv.key or (k .. "." .. kk), {
+						local class = vv.key and DBM_TYPE.COMMON or DBM_TYPE.TALK_MONITOR
+						FireUIEvent("JH_ST_CREATE", class, vv.key or (k .. "." .. kk), {
 							nTime    = vv.nTime,
 							nRefresh = vv.nRefresh,
 							szName   = vv.szName or v.szNote,
@@ -1013,7 +1015,8 @@ function D.OnNpcFight(dwTemplateID, bFight)
 			if data.tCountdown then
 				for k, v in ipairs(data.tCountdown) do
 					if v.nClass == DBM_TYPE.NPC_FIGHT then
-						FireUIEvent("JH_ST_DEL", v.nClass, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
+						local class = v.key and DBM_TYPE.COMMON or v.nClass
+						FireUIEvent("JH_ST_DEL", class, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
 					end
 				end
 			end
@@ -1039,7 +1042,8 @@ function D.OnNpcLife(dwTemplateID, nLife)
 								FireUIEvent("JH_LARGETEXT", time[2], { 255, 128, 0 }, true)
 							end
 							if time[3] and tonumber(time[3]) then
-								FireUIEvent("JH_ST_CREATE", DBM_TYPE.NPC_LIFE, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
+								local class = v.key and DBM_TYPE.COMMON or DBM_TYPE.NPC_LIFE
+								FireUIEvent("JH_ST_CREATE", class, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
 									nTime  = tonumber(JH_Trim(time[3])),
 									szName = time[2],
 									nIcon  = v.nIcon,
