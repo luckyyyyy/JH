@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-01 13:25:41
+-- @Last Modified time: 2015-06-03 07:04:27
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -41,7 +41,6 @@ end
 function DBM_RemoteRequest.OnFrameCreate()
 	local ui = GUI(this)
 	if DBM_RemoteRequest.bLogin then
-		Output(1324)
 		JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 			local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 			if err then
@@ -108,6 +107,7 @@ function W.CallLogin(uid, pw, fnAction)
 	if string.len(pw) ~= 32 then
 		pw = JH.MD5(pw)
 	end
+
 	JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG .. "&username=" .. uid .. "&password=" .. pw, function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
@@ -207,10 +207,9 @@ function W.TimeToDate(nTime)
 	end
 end
 
-function W.MenuTip(hItem, text)
+function W.MenuTip(hItem, szXml)
 	local x, y = hItem:GetAbsPos()
 	local w, h = hItem:GetSize()
-	local szXml = GetFormatText(text, 47, 255, 255, 255)
 	OutputTip(szXml, 435, {x, y, w, h})
 end
 
@@ -233,7 +232,9 @@ function W.AppendItem(data, k)
 			end
 			item.OnItemMouseEnter = function()
 				item:Lookup("Image_CoverBg"):Show()
-				W.MenuTip(item:Lookup("Text_Author"), data.title)
+				local szXml = GetFormatText(data.author .. "\n", 47, 255, 255, 0)
+				szXml = szXml ..GetFormatText(data.title, 47, 255, 255, 255)
+				W.MenuTip(item:Lookup("Text_Author"), szXml)
 			end
 			item.OnItemMouseLeave = function()
 				item:Lookup("Image_CoverBg"):Hide()
