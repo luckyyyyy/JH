@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 19:56:58
+-- @Last Modified time: 2015-06-02 09:09:42
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -35,7 +35,7 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 				tArgs = tArgs or {}
 				local nSec = JH.GetEndTime(tBuff.nEndFrame)
 				if nSec < 0 then nSec = 0 end
-				local szTime = JH.GetBuffTimeString(nSec, 5999)
+				local szTime = JH.FormatTimeString(nSec, 1)
 				local h = BL.handle:AppendItemFromIni(BL_INIFILE, "Handle_Item")
 				local szName, nIcon = JH.GetBuffName(dwID, nLevel)
 				h.dwID = dwID
@@ -128,7 +128,7 @@ function BL_UI.OnFrameBreathe()
 				if bExist then
 					local nSec = JH.GetEndTime(tBuff.nEndFrame)
 					if nSec < 0 then nSec = 0 end
-					local szTime = JH.GetBuffTimeString(nSec, 5999)
+					local szTime = JH.FormatTimeString(nSec, 1)
 					h:Lookup("Text_Time"):SetText(szTime)
 					local nAlpha = h:Lookup("Animate_Update"):GetAlpha()
 					if nAlpha > 0 then
