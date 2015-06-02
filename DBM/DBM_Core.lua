@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-01 13:30:19
+-- @Last Modified time: 2015-06-02 14:00:15
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -190,16 +190,44 @@ function D.Bpairs(table)
 	return fnBpairs, table, #table + 1
 end
 
-function D.FireTeamWhisper(szMsg)
+function D.OutputWhisper(szText)
+	local r, g, b = unpack(GetMsgFontColor("MSG_WHISPER", true))
+	local szMsg = GetFormatText("[DBM]" .. g_tStrings.STR_TALK_HEAD_WHISPER .. szText .. "\n", 10, r, g, b)
+	OutputMessage("MSG_WHISPER", szMsg, true)
+	PlaySound(SOUND.UI_SOUND, g_sound.Whisper)
+end
+
+function D.Talk(szMsg, szTarget)
 	local me = GetClientPlayer()
-	if me and me.IsInParty() then
-		local team = GetClientTeam()
-		for _, v in ipairs(team.GetTeamMemberList()) do
-			local szName = team.GetClientTeamMemberName(v)
-			JH.Talk(szName, szMsg:gsub(_L["["] .. szName .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"]))
+	if not me then return end
+	if not szTarget then
+		if me.IsInParty() then
+			JH.Talk(PLAYER_TALK_CHANNEL.RAID, szMsg, "DBM." .. szMsg)
+		end
+	elseif type(szTarget) == "string" then
+		local szText = szMsg:gsub(_L["["] .. szTarget .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
+		if szTarget == me.szName then
+			D.OutputWhisper(szText)
+		else
+			JH.Talk(szTarget, szText, "DBM." .. szMsg)
+		end
+	elseif type(szTarget) == "boolean" then
+		if me.IsInParty() then
+
+			local team = GetClientTeam()
+			for _, v in ipairs(team.GetTeamMemberList()) do
+				local szName = team.GetClientTeamMemberName(v)
+				local szText = szMsg:gsub(_L["["] .. szName .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
+				if szName == me.szName then
+					D.OutputWhisper(szText)
+				else
+					JH.Talk(szName, szText, "DBM." .. szMsg)
+				end
+			end
 		end
 	end
 end
+
 
 local function CreateCache(szType, tab)
 	local data  = D.DATA[szType]
@@ -576,10 +604,10 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
 				local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. szSrcName .. _L["]"])
-				JH.Talk(talk)
+				D.Talk(talk)
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-				JH.Talk(szSrcName, txt:gsub(szSrcName, g_tStrings.STR_NAME_YOU))
+				D.Talk(txt, szSrcName)
 			end
 		end
 	end
@@ -692,13 +720,13 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
 				if szTargetName then
 					local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. szTargetName .. _L["]"])
-					JH.Talk(talk)
+					D.Talk(talk)
 				else
-					JH.Talk(txt)
+					D.Talk(txt)
 				end
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-				D.FireTeamWhisper(txt)
+				D.Talk(txt, true)
 			end
 		end
 	end
@@ -811,10 +839,10 @@ function D.OnNpcEvent(npc, bEnter)
 			end
 
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
-				JH.Talk(txt)
+				D.Talk(txt)
 			end
 			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-				D.FireTeamWhisper(txt)
+				D.Talk(txt, true)
 			end
 
 			if nClass == DBM_TYPE.NPC_ENTER then
@@ -908,7 +936,7 @@ function D.OnCallMessage(szContent, szNpcName)
 				if tInfo then
 					txt = txt:gsub("$team", tInfo.szName)
 					if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-						JH.Talk(tInfo.szName, txt:gsub(tInfo.szName, g_tStrings.STR_YOU))
+						D.Talk(txt, tInfo.szName)
 					end
 					if DBM.bPushScreenHead and cfg.bScreenHead then
 						FireUIEvent("JH_SCREENHEAD", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
@@ -934,9 +962,9 @@ function D.OnCallMessage(szContent, szNpcName)
 				if DBM.bPushTeamChannel and cfg.bTeamChannel then
 					if tInfo and not v.szNote then
 						local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. tInfo.szName .. _L["]"])
-						JH.Talk(talk)
+						D.Talk(talk)
 					else
-						JH.Talk(txt)
+						D.Talk(txt)
 					end
 				end
 			end
