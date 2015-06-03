@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 23:46:40
+-- @Last Modified time: 2015-06-03 07:21:37
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -727,18 +727,18 @@ function OutputNpcTip2(dwNpcTemplateID, Rect)
 	if JH.Trim(szName) == "" then
 		szName = tostring(dwNpcTemplateID)
 	end
-	local szTip = ""
-    szTip = szTip.."<Text>text="..EncodeComponentsString(szName.."\n").." font=80".." r=255 g=255 b=255 </text>"
+	local t = {}
+	table.insert(t, GetFormatText(szName .. "\n", 80, 255, 255, 0))
     -------------µÈ¼¶----------------------------
     if npc.nLevel - GetClientPlayer().nLevel > 10 then
-    	szTip = szTip.."<Text>text="..EncodeComponentsString(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL).." font=82 </text>"
+    	table.insert(t, GetFormatText(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL, 82))
     else
-    	szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel)).." font=0 </text>"
+    	table.insert(t, GetFormatText(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel), 0))
     end
     ------------Ä£°æID-----------------------
-	szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1)).." font=101 </text>"
+    table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1), 101))
 
-    OutputTip(szTip, 345, Rect)
+    OutputTip(table.concat(t), 345, Rect)
 end
 end
 if not OutputPlayerTip then
