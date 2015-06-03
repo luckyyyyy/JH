@@ -67,12 +67,12 @@ DBM支持快速清空数据，只需要创建导入一个空白的文件即可�
 
 ```lua
 data = {
-    BUFF    = {},
-    DEBUFF  = {},
-    CASTING = {},
-    NPC     = {},
-    TALK    = {},
-    CIRCLE  = {},
+    ["BUFF"]    = {},
+    ["DEBUF"]F  = {},
+    ["CASTING"] = {},
+    ["NPC"]     = {},
+    ["TALK"]    = {},
+    ["CIRCLE"]  = {},
 }
 ```
 
@@ -90,6 +90,7 @@ $content = trim(substr($content, strpos($content, '=') + 1));
 $content = stripslashes(trim($content, '"'));
 $content = iconv('gbk', 'utf-8//IGNORE', $content);
 var_dump(json_decode($content, true));
+?>
 ```
 
 ----

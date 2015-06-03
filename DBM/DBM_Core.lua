@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 23:50:33
+-- @Last Modified time: 2015-06-03 23:49:07
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -386,7 +386,7 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 					if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
 						break
 					end
-					local p = GetNpc(tMarkList[k])
+					local p = GetNpc(tMarkList[k] or 0)
 					if not tMarkList[k] or tMarkList[k] == 0 or not p then
 						team.SetTeamMark(k, dwCharacterID)
 						break
