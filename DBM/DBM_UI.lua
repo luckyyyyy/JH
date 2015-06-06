@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-03 07:04:32
+-- @Last Modified time: 2015-06-06 08:17:24
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -50,11 +50,15 @@ function DBM_UI.OnFrameCreate()
 	-- debug
 	if JH.bDebugClient then
 		ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
-		ui:Append("WndButton", { txt = "Enable", x = 110, y = 10 }):Click(function()
+		ui:Append("WndButton", "On", { txt = "Enable", x = 110, y = 10, enable = not DBM.bEnable }):Click(function()
 			DBM_API.Enable(true, true)
+			this:Enable(false)
+			ui:Fetch("Off"):Enable(true)
 		end)
-		ui:Append("WndButton", { txt = "Disable", x = 210, y = 10 }):Click(function()
+		ui:Append("WndButton", "Off", { txt = "Disable", x = 210, y = 10, enable = DBM.bEnable }):Click(function()
 			DBM_API.Enable(false)
+			this:Enable(false)
+			ui:Fetch("On"):Enable(true)
 		end)
 	end
 	ui:Fetch("PageSet_Main"):Append("WndEdit", "WndEdit_Search", { x = 50, y = 38, txt = g_tStrings.SEARCH, w = 500, h = 25 }):Focus(function()
@@ -174,30 +178,28 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 	end
 end
 
-function DBMUI.OpenImportPanel(szDefault)
+function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 	if Station.Lookup("Normal/DBM_DatatPanel") then
 		Wnd.CloseWindow(Station.Lookup("Normal/DBM_DatatPanel"))
 	end
 	local function FileExist(szFile)
-		if IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile) then
+		if IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile) or IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile .. ".jx3dat") then
 			return { 0, 255, 0 }
 		else
 			return { 255, 255, 0 }
 		end
 	end
 
-	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Import Data"], close = true }):RegisterClose()
-	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
-	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
+	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = szTitle or _L["Import Data"], close = true }):RegisterClose()
+	local ui, nX, nY = GUI(Station.Lookup("Normal/DBM_DatatPanel")), 0, 0
+	nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
 	for k, v in ipairs(DBMUI_TYPE) do
 		nX = ui:Append("WndCheckBox", v, { x = nX + 5, y = nY + 5, checked = true, txt = _L[v] }):Pos_()
 	end
 	nY = 100
-	local szFileName = szDefault or ""
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Name"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, w = 500, h = 25, txt = szFileName, color = FileExist(szFileName), enable = not szDefault }):Change(function(szText)
-		szFileName = szText
+	nX, nY = ui:Append("WndEdit", "FilePtah", { x = 30, y = nY + 10, w = 500, h = 25, txt = szDefault, color = FileExist(szDefault), enable = not szDefault }):Change(function(szText)
 		this:SetFontColor(unpack(FileExist(szText)))
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Import mode"], font = 27 }):Pos_()
@@ -210,7 +212,7 @@ function DBMUI.OpenImportPanel(szDefault)
 	end):Pos_()
 	ui:Append("WndButton3", { x = 205, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
 		local config = {
-			szFileName = szFileName,
+			szFileName = ui:Fetch("FilePtah"):Text(),
 			nMode = nType,
 			tList = {}
 		}
@@ -223,6 +225,9 @@ function DBMUI.OpenImportPanel(szDefault)
 		if bStatus then
 			JH.Alert(_L("Import success %s", path))
 			ui:Remove()
+			if fnAction then
+				fnAction()
+			end
 		else
 			JH.Alert(_L("Import failed %s", path))
 		end
@@ -1372,12 +1377,17 @@ function DBMUI.ClosePanel()
 		Wnd.CloseWindow(DBMUI.frame)
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		DBMUI.frame = nil
+		collectgarbage("collect")
 	end
 end
 
 JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePanel })
 JH.AddHotKey("JH_DBMUI", _L["Open DBM Panel"], DBMUI.TogglePanel)
+-- 公开UI API DBM_UI.xxx
 local ui = {
+	OpenPanel       = DBMUI.OpenPanel,
+	ClosePanel      = DBMUI.ClosePanel,
+	IsOpened        = DBMUI.IsOpened,
 	TogglePanel     = DBMUI.TogglePanel,
 	OpenImportPanel = DBMUI.OpenImportPanel,
 	OpenExportPanel = DBMUI.OpenExportPanel
