@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-03 07:04:27
+-- @Last Modified time: 2015-06-06 08:17:26
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -43,6 +43,9 @@ function DBM_RemoteRequest.OnFrameCreate()
 	if DBM_RemoteRequest.bLogin then
 		JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 			local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+			if result and result["status"] == 401 then
+				return W.Logout()
+			end
 			if err then
 				JH.Sysmsg2(_L["request failed"])
 			else
@@ -160,11 +163,15 @@ function W.Search()
 	end)
 end
 
+function W.Loading()
+	W.Container:Clear()
+	W.AppendItem({ title = "", author = "loading..." }, 1)
+end
+
 -- 列表请求
 function W.RequestList(szUrl)
 	szUrl = szUrl or W.szFileList
-	W.Container:Clear()
-	W.AppendItem({ title = "", author = "Laoding..." }, 1)
+	W.Loading()
 	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 得益于IE缓存 1分钟一次
 	JH.RemoteRequest(szUrl .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
@@ -285,22 +292,26 @@ end
 
 function W.DoanloadData(data)
 	if data.tid then
-		JH.Confirm(_L["Author:"] .. data.author .. "\n" .. _L["Title:"] .. data.title ,function()
-			W.CallDoanloadData(data)
-		end, nil, _L["Download Data"])
+		-- 简单本地缓存一下
+		local szPath = JH.GetAddonInfo().szRootPath .. "DBM/data/"
+		local szFileName = "DBM-Remote_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
+		if IsFileExist(szPath .. szFileName) then -- 本地文件存在则优先
+			W.CallDoanloadData(data, szPath, szFileName)
+		else
+			JH.Confirm(_L["Author:"] .. data.author .. "\n" .. _L["Title:"] .. data.title ,function()
+				W.CallDoanloadData(data, szPath, szFileName)
+			end, nil, _L["Download Data"])
+		end
 	end
 end
 
-function W.CallDoanloadData(data)
-	-- 简单本地缓存一下
-	local szPath = JH.GetAddonInfo().szRootPath .. "DBM/data/"
-	local szFileName = "DBM-Remote_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
-
+function W.CallDoanloadData(data, szPath, szFileName)
 	local function fnAction(szFile)
-		DBM_UI.OpenImportPanel(szFile)
-		DBM_RemoteRequest.tData = data
-		local me = GetClientPlayer()
-		if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "Load", data.title) end
+		DBM_UI.OpenImportPanel(szFile, data.author, function()
+			DBM_RemoteRequest.tData = data
+			local me = GetClientPlayer()
+			if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "Load", data.title) end
+		end)
 	end
 
 	if IsFileExist(szPath .. szFileName) then -- 本地文件存在则优先
