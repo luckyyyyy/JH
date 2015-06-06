@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-03 23:49:07
+-- @Last Modified time: 2015-06-06 08:12:38
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -1128,10 +1128,11 @@ end
 
 function D.Close()
 	if D.GetFrame() then
-		Wnd.CloseWindow(Station.Lookup("Normal/DBM")) -- kill all event
+		Wnd.CloseWindow(D.GetFrame()) -- kill all event
 		FireUIEvent("JH_ST_CLEAR")
 		CACHE.NPC_LIST = {}
 		CACHE.SKILL_LIST = {}
+		collectgarbage("collect")
 	end
 end
 
@@ -1139,7 +1140,7 @@ function D.Enable(bEnable, bFireUIEvent)
 	if bEnable then
 		local res, err = pcall(D.Open)
 		if not res then
-			JH.Sysmsg2(err)
+			return JH.Sysmsg2(err)
 		end
 		if bFireUIEvent then
 			FireUIEvent("DBM_LOADING_END")
@@ -1300,7 +1301,6 @@ function D.LoadConfigureFile(config)
 			end
 			FireUIEvent("DBM_CREATE_CACHE")
 			FireUIEvent("DBMUI_DATA_RELOAD")
-			collectgarbage("collect")
 			return true, path
 		elseif config.nMode == 2 then -- 原文件优先
 			if config.tList["CIRCLE"] then
@@ -1324,7 +1324,6 @@ function D.LoadConfigureFile(config)
 			end
 			FireUIEvent("DBM_CREATE_CACHE")
 			FireUIEvent("DBMUI_DATA_RELOAD")
-			collectgarbage("collect")
 			return true, path
 		end
 	end
@@ -1430,10 +1429,10 @@ function D.ClearTemp(szType)
 	if szType == "CIRCLE" then -- 如果请求圈圈的近期数据 返回NPC的
 		szType = "NPC"
 	end
-	-- D.Log(szType .. " cache clear!")
+	CACHE.INTERVAL[szType] = {}
 	D.TEMP[szType] = {}
-	collectgarbage("collect")
 	FireUIEvent("DBMUI_TEMP_RELOAD")
+	collectgarbage("collect")
 end
 
 function D.GetIntervalData(szType, key)
