@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-06 08:12:38
+-- @Last Modified time: 2015-06-07 11:48:44
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -408,7 +408,7 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 					if tMarkList[k] and tMarkList[k] ~= 0 then
 						local p = IsPlayer(tMarkList[k]) and GetPlayer(tMarkList[k]) or GetNpc(tMarkList[k])
 						if p then
-							if not JH.HasBuff(dwID, p) then
+							if not JH.GetBuff(dwID, p) then
 								bMark = true
 							end
 						else

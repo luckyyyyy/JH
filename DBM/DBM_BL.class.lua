@@ -1,11 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 09:09:42
+-- @Last Modified time: 2015-06-07 11:47:34
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
 local BL_CACHE = setmetatable({}, { __mode = "v" })
+local GetBuff = JH.GetBuff
 local BL = {}
 BL_UI = {
 	tAnchor = {},
@@ -30,10 +31,10 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 		ui.bDelete = nil
 	else
 		if BL.handle:GetItemCount() < BL_UI.nCount then
-			local bExist, tBuff = JH.HasBuff(dwID)
-			if bExist then
+			local KBuff = GetBuff(dwID)
+			if KBuff then
 				tArgs = tArgs or {}
-				local nSec = JH.GetEndTime(tBuff.nEndFrame)
+				local nSec = JH.GetEndTime(KBuff.GetEndTime())
 				if nSec < 0 then nSec = 0 end
 				local szTime = JH.FormatTimeString(nSec, 1)
 				local h = BL.handle:AppendItemFromIni(BL_INIFILE, "Handle_Item")
@@ -46,8 +47,8 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 				box:SetObjectSparking(true)
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 				box:SetOverTextFontScheme(0, 15)
-				if tBuff.nStackNum > 1 then
-					box:SetOverText(0, tBuff.nStackNum)
+				if KBuff.nStackNum > 1 then
+					box:SetOverText(0, KBuff.nStackNum)
 				end
 				box.OnItemMouseLeave = function()
 					if this:IsValid() then
@@ -60,13 +61,13 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 						this:SetObjectMouseOver(true)
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
-						OutputBuffTipA(dwID, nLevel, { x, y, w, h }, JH.GetEndTime(tBuff.nEndFrame))
+						OutputBuffTipA(dwID, nLevel, { x, y, w, h }, JH.GetEndTime(KBuff.GetEndTime()))
 					end
 				end
 				box.OnItemRButtonClick = function()
-					local bExist, tBuff = JH.HasBuff(dwID)
-					if tBuff and tBuff.bCanCancel then
-						GetClientPlayer().CancelBuff(tBuff.nIndex)
+					local KBuff = GetBuff(dwID)
+					if KBuff and KBuff.bCanCancel then
+						GetClientPlayer().CancelBuff(KBuff.nIndex)
 					end
 				end
 				h:Lookup("Text_Time"):SetText(szTime)
@@ -124,9 +125,9 @@ function BL_UI.OnFrameBreathe()
 					h:Lookup("Animate_Update"):SetAlpha(0)
 				end
 			else
-				local bExist, tBuff = JH.HasBuff(h.dwID)
-				if bExist then
-					local nSec = JH.GetEndTime(tBuff.nEndFrame)
+				local KBuff = GetBuff(h.dwID)
+				if KBuff then
+					local nSec = JH.GetEndTime(KBuff.GetEndTime())
 					if nSec < 0 then nSec = 0 end
 					local szTime = JH.FormatTimeString(nSec, 1)
 					h:Lookup("Text_Time"):SetText(szTime)
@@ -134,8 +135,8 @@ function BL_UI.OnFrameBreathe()
 					if nAlpha > 0 then
 						h:Lookup("Animate_Update"):SetAlpha(math.max(0, nAlpha - 8))
 					end
-					if tBuff.nStackNum > 1 then
-						h:Lookup("Box"):SetOverText(0, tBuff.nStackNum)
+					if KBuff.nStackNum > 1 then
+						h:Lookup("Box"):SetOverText(0, KBuff.nStackNum)
 					else
 						h:Lookup("Box"):SetOverText(0, "")
 					end

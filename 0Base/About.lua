@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-22 21:27:25
+-- @Last Modified time: 2015-06-07 11:49:27
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -92,7 +92,7 @@ function _JH_About.OnBgTalk()
 				me.nRoleType,
 				JH.GetVersion(),
 				szServer,
-				JH.HasBuff(3219)
+				JH.GetBuff(3219)
 			)
 		elseif data[1] == "info" and _JH_About.CheckNameEx() then
 			_JH_About.ShowInfo(data)
