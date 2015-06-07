@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-01 13:36:18
+-- @Last Modified time: 2015-06-07 22:09:46
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -104,8 +104,7 @@ function ST_UI.OnEvent(szEvent)
 		if obj then
 			if arg2 then -- 强制无条件删除
 				obj:RemoveItem()
-			else -- 只是把重复刷新时间去掉
-				obj.ui.nRefresh = nil
+				ST_TIME_CACHE[arg0][arg1] = nil
 			end
 		end
 	elseif szEvent == "JH_ST_CLEAR" then
