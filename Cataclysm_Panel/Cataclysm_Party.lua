@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 23:01:06
+-- @Last Modified time: 2015-06-07 11:50:44
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -11,7 +11,7 @@ local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
 local floor = math.floor
 local setmetatable = setmetatable
-local GetDistance, HasBuff, GetEndTime, IsParty, GetTarget = JH.GetDistance, JH.HasBuff, JH.GetEndTime, JH.IsParty, JH.GetTarget
+local GetDistance, GetBuff, GetEndTime, IsParty, GetTarget = JH.GetDistance, JH.GetBuff, JH.GetEndTime, JH.IsParty, JH.GetTarget
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
 local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
 local Table_BuffIsVisible = Table_BuffIsVisible
@@ -863,8 +863,8 @@ function CTM:RecBuff(dwMemberID, dwID, nLevel, col, nIocn, bDemo)
 		end
 		local p = GetPlayer(dwMemberID)
 		if p then
-			local bExist, tBuff = HasBuff(dwID, p)
-			if bExist or bDemo then
+			local KBuff = GetBuff(dwID, p)
+			if KBuff or bDemo then
 				local item = handle:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff")
 				if not col then
 					item:Lookup("Shadow"):Hide()
@@ -905,10 +905,10 @@ function CTM:RefresBuff()
 						if h and h:IsValid() then -- 因为是呼吸
 							local hBox = h:Lookup("Box")
 							local _, dwID, nLevel = hBox:GetObject()
-							local bExist, tBuff = HasBuff(dwID, p)
-							if bExist then
+							local KBuff = GetBuff(dwID, p)
+							if KBuff then
 								if CFG.bShowBuffTime then
-									local nTime = GetEndTime(tBuff.nEndFrame)
+									local nTime = GetEndTime(KBuff.nEndFrame)
 									if nTime < 5 then
 										if nTime >= 0 then
 											hBox:SetOverTextFontScheme(0, 219)
@@ -923,9 +923,9 @@ function CTM:RefresBuff()
 								else
 									hBox:SetOverText(0, "")
 								end
-								if CFG.bShowBuffNum and tBuff.nStackNum > 1 then
+								if CFG.bShowBuffNum and KBuff.nStackNum > 1 then
 									hBox:SetOverTextFontScheme(1, 15)
-									hBox:SetOverText(1, tBuff.nStackNum .. " ")
+									hBox:SetOverText(1, KBuff.nStackNum .. " ")
 								else
 									hBox:SetOverText(1, "")
 								end

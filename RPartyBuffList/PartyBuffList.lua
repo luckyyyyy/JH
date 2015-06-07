@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 22:26:56
+-- @Last Modified time: 2015-06-07 11:43:13
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -13,6 +13,7 @@ JH.RegisterCustomData("PartyBuffList")
 local PartyBuffList = PartyBuffList
 local ipairs, pairs = ipairs, pairs
 local GetPlayer = GetPlayer
+local GetBuff = JH.GetBuff
 local GetClientPlayer, GetClientTeam, UI_GetPlayerMountKungfuID = GetClientPlayer, GetClientTeam, UI_GetPlayerMountKungfuID
 local CACHE_LIST = setmetatable({}, { __mode = "v" })
 local PBL_INI_FILE = JH.GetAddonInfo().szRootPath ..  "RPartyBuffList/ui/PartyBuffList.ini"
@@ -81,11 +82,11 @@ function PartyBuffList.OnFrameBreathe()
 		if h and h:IsValid() then
 			local data = h.data
 			local p, info = PBL.GetPlayer(data.dwID)
-			local bExist, tBuff
+			local KBuff
 			if p then
-				bExist, tBuff = JH.HasBuff(data.dwBuffID, p)
+				KBuff = GetBuff(data.dwBuffID, p)
 			end
-			if p and info and bExist then
+			if p and info and KBuff then
 				local nDistance = JH.GetDistance(p)
 				h:Lookup("Image_life"):SetPercentage(info.nCurrentLife / math.max(info.nMaxLife, 1))
 				h:Lookup("Text_Name"):SetText(i + 1 .. " " .. info.szName)
@@ -95,12 +96,12 @@ function PartyBuffList.OnFrameBreathe()
 					h:Lookup("Image_life"):SetAlpha(255)
 				end
 				local box = h:Lookup("Box_Icon")
-				local nSec = JH.GetEndTime(tBuff.nEndFrame)
+				local nSec = JH.GetEndTime(KBuff.GetEndTime())
 				if nSec < 60 then
 					box:SetOverText(1, math.floor(nSec) .. "\"")
 				end
-				if tBuff.nStackNum > 1 then
-					box:SetOverText(0, tBuff.nStackNum)
+				if KBuff.nStackNum > 1 then
+					box:SetOverText(0, KBuff.nStackNum)
 				end
 			else
 				PBL.handle:RemoveItem(h)
@@ -204,8 +205,8 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	if CACHE_LIST[key] and CACHE_LIST[key]:IsValid() then
 		return
 	end
-	local bExist, tBuff = JH.HasBuff(dwBuffID, p)
-	if not bExist then
+	local KBuff = GetBuff(dwBuffID, p)
+	if not KBuff then
 		return
 	end
 	local data = { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel }
@@ -226,12 +227,12 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 	box:SetOverTextFontScheme(1, 8)
 	box:SetOverTextFontScheme(0, 7)
-	local nSec = JH.GetEndTime(tBuff.nEndFrame)
+	local nSec = JH.GetEndTime(KBuff.GetEndTime())
 	if nSec < 60 then
 		box:SetOverText(1, math.floor(nSec) .. "\"")
 	end
-	if tBuff.nStackNum > 1 then
-		box:SetOverText(0, tBuff.nStackNum)
+	if KBuff.nStackNum > 1 then
+		box:SetOverText(0, KBuff.nStackNum)
 	end
 	h.OnItemLButtonDown = function()
 		SetTarget(TARGET.PLAYER, dwID)

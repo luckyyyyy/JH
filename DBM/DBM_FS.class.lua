@@ -1,12 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:03:31
+-- @Last Modified time: 2015-06-07 11:44:01
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
 local min, max = math.min, math.max
-local HasBuff = JH.HasBuff
+local GetBuff = JH.GetBuff
 
 local FS_CACHE    = setmetatable({}, { __mode = "v" })
 local FS_UI_CACHE = setmetatable({}, { __mode = "v" })
@@ -89,8 +89,8 @@ function FS_UI.OnFrameBreathe()
 			end
 			if v.tBindBuff then
 				local dwID, nLevel = unpack(v.tBindBuff)
-				local bExist = HasBuff(dwID)
-				if not bExist then
+				local KBuff = GetBuff(dwID)
+				if not KBuff then
 					obj:RemoveItem()
 				end
 			end
