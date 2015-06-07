@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-25 15:27:52
+-- @Last Modified time: 2015-06-07 11:49:09
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -536,7 +536,7 @@ function _RequestList.OnBgTalk()
 			local dwTarget, szTarget = arg0, arg3
 			JH.Confirm(_L("[%s] want to see your info, OK?", szTarget), function()
 				local me, nGongZhan = GetClientPlayer(), 0
-				if JH.HasBuff(3219) then nGongZhan = 1 end
+				if JH.GetBuff(3219) then nGongZhan = 1 end
 				if JH_About.CheckNameEx() then
 					JH.BgTalk(szTarget, "JH_AutoSetTeam", "JH_Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Author")
 				else

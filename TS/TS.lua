@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-30 15:13:53
+-- @Last Modified time: 2015-06-07 11:36:43
 local _L = JH.LoadLangPack
 
 TS = {
@@ -27,8 +27,8 @@ local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
 local MY_Recount_GetData
 local HATRED_COLLECT = g_tStrings.HATRED_COLLECT
-local HasBuff, GetBuffName, GetEndTime, GetTemplateName, GetForceColor =
-	  JH.HasBuff, JH.GetBuffName, JH.GetEndTime, JH.GetTemplateName, JH.GetForceColor
+local GetBuff, GetBuffName, GetEndTime, GetTemplateName, GetForceColor =
+	  JH.GetBuff, JH.GetBuffName, JH.GetEndTime, JH.GetTemplateName, JH.GetForceColor
 local GetNpcIntensity = GetNpcIntensity
 local GetTime = GetTime
 
@@ -208,12 +208,19 @@ function _TS.OnBreathe()
 		end
 
 		-- ŒﬁÕ˛–≤Ã·–—
-		local bExist, tBuff = HasBuff({ 917, 4487, 926, 775, 4101, 8422 })
+		local KBuff = GetBuff({
+			[917]  = 0,
+			[4487] = 0,
+			[926]  = 0,
+			[775]  = 0,
+			[4101] = 0,
+			[8422] = 0
+		})
 		local hText = _TS.frame:Lookup("", "Text_Title")
 		local szText = hText.szText or ""
-		if bExist then
-			local szName = GetBuffName(tBuff.dwID, tBuff.nLevel)
-			hText:SetText(string.format("%s (%ds)", szName, math.floor(GetEndTime(tBuff.nEndFrame))) .. szText)
+		if KBuff then
+			local szName = GetBuffName(KBuff.dwID, KBuff.nLevel)
+			hText:SetText(string.format("%s (%ds)", szName, math.floor(GetEndTime(KBuff.GetEndTime()))) .. szText)
 			hText:SetFontColor(0, 255, 0)
 		else
 			hText:SetText(HATRED_COLLECT .. szText)

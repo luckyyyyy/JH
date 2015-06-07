@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-02 09:07:49
+-- @Last Modified time: 2015-06-07 11:39:08
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -25,8 +25,8 @@ local GetTime, IsPlayer = GetTime, IsPlayer
 local GetPlayer, GetClientPlayer, GetClientTeam =
 	  GetPlayer, GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
-local GetTarget, HasBuff, GetEndTime, GetBuffName, FormatTimeString, GetSkillName, GetDistance, GetTemplateName, JH_IsParty =
-	  JH.GetTarget, JH.HasBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, JH.IsParty
+local GetTarget, GetBuff, GetEndTime, GetBuffName, FormatTimeString, GetSkillName, GetDistance, GetTemplateName, JH_IsParty =
+	  JH.GetTarget, JH.GetBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, JH.IsParty
 local SCREEN_SELECT_FIX = 0.3
 
 local _ScreenHead = {
@@ -103,19 +103,19 @@ function _ScreenHead:Create(obj, info, nIndex)
 	local _r, _g, _b
 	if data.type and data.type ~= "Other" then
 		if data.type == "BUFF" or data.type == "DEBUFF" then
-			local bExist, tBuff = HasBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
-			if bExist then
-				local nSec = GetEndTime(tBuff.nEndFrame)
+			local KBuff = GetBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
+			if KBuff then
+				local nSec = GetEndTime(KBuff.GetEndTime())
 				if nSec < 5 then
 					_r, _g, _b = 255, 0, 0
 				end
 				if nSec < 0 then
 					nSec = 0
 				end
-				if tBuff.nStackNum > 1 then
-					txt = sFormat("%s(%d)_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), tBuff.nStackNum, FormatTimeString(nSec, 1, true))
+				if KBuff.nStackNum > 1 then
+					txt = sFormat("%s(%d)_%s", data.szName or GetBuffName(KBuff.dwID, KBuff.nLevel), KBuff.nStackNum, FormatTimeString(nSec, 1, true))
 				else
-					txt = sFormat("%s_%s", data.szName or GetBuffName(tBuff.dwID, tBuff.nLevel), FormatTimeString(nSec, 1, true))
+					txt = sFormat("%s_%s", data.szName or GetBuffName(KBuff.dwID, KBuff.nLevel), FormatTimeString(nSec, 1, true))
 				end
 			else
 				return self:Remove(dwID, nIndex)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-06-06 13:17:37
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-06 13:46:35
+-- @Last Modified time: 2015-06-06 13:59:54
 
 
 local UI = 	{
@@ -30,38 +30,48 @@ local UI = 	{
 		["EditBox"]    = "聊天信息输入框",
 	},
 	["Normal"] = {
-		["AnimationMgr"]               = "AnimationMgr",
-		["BuffList"]                   = "自身增益状态列表",
-		["CampActiveTime"]             = "阵营活动时间",
-		["CampPanel"]                  = "阵营士气条",
-		["CharacterPanel"]             = "人物装备面板",
-		["CraftPanel"]                 = "生活技能面板",
-		["DebuffList"]                 = "自身减益状态列表",
-		["DialoguePanel"]              = "NPC对话窗口",
-		["DurabilityPanel"]            = "装备持久提示",
-		["ExpLine"]                    = "人物经验条",
-		["GuildMainPanel"]             = "帮会信息面板",
-		["LootListExSingle"]           = "盒子插件_拾取助手",
-		["MainMessageLine"]            = "屏幕顶部信息条",
-		["Matrix"]                     = "Matrix",
-		["Player"]                     = "自身头像面板",
-		["QuestAcceptPanel"]           = "任务接取对话窗",
-		["QuestPanel"]                 = "任务查看面板",
-		["ReputationIntroduce"]        = "声望详细介绍面板",
-		["SprintPower"]                = "轻功气力值图标",
-		["Teammate"]                   = "官方团队面板",
+		["AnimationMgr"]        = "AnimationMgr",
+		["BuffList"]            = "自身增益状态列表",
+		["CampActiveTime"]      = "阵营活动时间",
+		["CampPanel"]           = "阵营士气条",
+		["CharacterPanel"]      = "人物装备面板",
+		["CraftPanel"]          = "生活技能面板",
+		["DebuffList"]          = "自身减益状态列表",
+		["DialoguePanel"]       = "NPC对话窗口",
+		["DurabilityPanel"]     = "装备持久提示",
+		["ExpLine"]             = "人物经验条",
+		["GuildMainPanel"]      = "帮会信息面板",
+		["LootListExSingle"]    = "盒子插件_拾取助手",
+		["MainMessageLine"]     = "屏幕顶部信息条",
+		["Matrix"]              = "Matrix",
+		["Player"]              = "自身头像面板",
+		["QuestAcceptPanel"]    = "任务接取对话窗",
+		["QuestPanel"]          = "任务查看面板",
+		["ReputationIntroduce"] = "声望详细介绍面板",
+		["SprintPower"]         = "轻功气力值图标",
+		["Teammate"]            = "官方团队面板",
+		["TopMenu"]             = "屏幕右上图标菜单",
+		["Minimap"]             = "小地图面板",
+		["SystemMenu_Left"]     = "屏幕左下图标菜单",
+		["SystemMenu_Right"]    = "屏幕右下图标菜单",
+		["DBM"]                 = "DBM_Core",
+		["DBM_UI"]              = "DBM设置面板",
+		["GKP"]                 = "金团记录",
+		["TargetTarget"]        = "目标的目标面板",
 	},
 	["Normal1"] = {
-	 	["TopMenu"] = "屏幕右上图标菜单",
+		["GKP_Record"] = "GKP记录面板",
+		["BL_UI"]      = "DBM_普通BUFF列表",
+		["CA_UI"]      = "DBM_中央报警",
 	},
-	["Normal2"] = {},
+	["Normal2"] = {
+		["ST_UI"] = "DBM_倒计时",
+	},
 	["Topmost"] = {
 		["BreatheBar"]       = "BreatheBar",
 		["LoginMotp"]        = "LoginMotp",
-		["Minimap"]          = "小地图面板",
+
 		["OTActionBar"]      = "读条显示面板",
-		["SystemMenu_Left"]  = "屏幕左下图标菜单",
-		["SystemMenu_Right"] = "屏幕右下图标菜单",
 		["TargetMark"]       = "官方目标头顶标记",
 	},
 	["Topmost1"] = {
