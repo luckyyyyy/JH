@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-30 22:37:40
+-- @Last Modified time: 2015-06-07 18:09:27
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -300,6 +300,7 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 	this:RegisterEvent("TEAM_VOTE_RESPOND")
 	this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
 	--
+	this:RegisterEvent("JH_KUNGFU_SWITCH")
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
 	if GetClientPlayer() then
@@ -449,6 +450,8 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		UpdateLootImages()
 	elseif szEvent == "PARTY_ROLL_QUALITY_CHANGED" then
 		UpdateLootImages()
+	elseif szEvent == "JH_KUNGFU_SWITCH" then
+		Grid_CTM:KungFuSwitch(arg0)
 	elseif szEvent == "TARGET_CHANGE" then
 		Grid_CTM:RefreshTarget()
 	elseif szEvent == "JH_RAID_REC_BUFF" then

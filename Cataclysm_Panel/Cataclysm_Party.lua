@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:50:44
+-- @Last Modified time: 2015-06-07 18:33:31
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -575,6 +575,29 @@ function CTM:CallRefreshImages(dwID, ...)
 				local info = self:GetMemberInfo(k)
 				self:RefreshImages(v, k, info, ...)
 			end
+		end
+	end
+end
+
+function CTM:KungFuSwitch(dwID)
+	local handle = CTM_CACHE[dwID]
+	if handle and handle:IsValid() then
+		if GetPlayer(dwID) then
+			local key = "CTM_KUNFU_" .. dwID
+			local img = handle:Lookup("Image_Icon")
+			JH.BreatheCall(key, function()
+				local player = GetPlayer(dwID)
+				if img and img:IsValid() and player and player.GetSkillPrepareState() then
+					local bIsPrepare, dwSkillID, dwSkillLevel, nPer = player.GetSkillPrepareState()
+					local alpha = 255 * (math.abs(math.mod(nPer * 300, 32) - 7) + 4) / 12
+					img:SetAlpha(alpha)
+				else
+					if img and img:IsValid() then
+						img:SetAlpha(255)
+					end
+					JH.UnBreatheCall(key)
+				end
+			end)
 		end
 	end
 end
