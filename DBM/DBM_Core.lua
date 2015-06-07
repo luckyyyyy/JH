@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:48:44
+-- @Last Modified time: 2015-06-07 17:42:12
 
 local _L = JH.LoadLangPack
 local ipairs, pairs = ipairs, pairs
@@ -616,6 +616,9 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	local key = dwCastID .. "_" .. dwLevel
 	local nTime = GetTime()
 	CACHE.SKILL_LIST[dwCaster] = CACHE.SKILL_LIST[dwCaster] or {}
+	if dwCastID == 13165 then -- 内功切换
+		FireUIEvent("JH_KUNGFU_SWITCH", dwCaster)
+	end
 	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 100 then -- 0.1秒内 直接忽略
 		return
 	end
