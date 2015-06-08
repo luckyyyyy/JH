@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-06 08:17:24
+-- @Last Modified time: 2015-06-08 12:25:25
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -403,6 +403,16 @@ function DBMUI.SetBuffItemAction(h, dat)
 	if dat.col then
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
 	end
+	local nSec = GetBuffTime(dat.dwID, dat.nLevel)
+	if not nSec then
+		h:Lookup("Text_R"):SetText("N/A")
+	elseif nSec > 24 * 60 * 60 / GLOBAL.GAME_FPS then
+		h:Lookup("Text_R"):SetText(_L["infinite"])
+	else
+		nSec = nSec / GLOBAL.GAME_FPS
+		h:Lookup("Text_R"):SetText(JH.FormatTimeString(nSec, 1))
+	end
+	h:Lookup("Image_RBg"):Show()
 	local box = h:Lookup("Box")
 	box:SetObjectIcon(nIcon)
 	if dat.nCount then
@@ -799,6 +809,37 @@ function DBMUI.OpenSettingPanel(data, szType)
 		}
 		return menu
 	end
+	local function GetKungFuMenu()
+		local menu = {}
+		if data.tKungFu then
+			table.insert(menu, { szOption = _L["no request"], bCheck = true, bChecked = type(data.tKungFu) == "nil", fnAction = function()
+				data.tKungFu = nil
+				GetPopupMenu():Hide()
+			end })
+		end
+		for k, v in ipairs(JH_KUNGFU_LIST) do
+			table.insert(menu, {
+				szOption = JH.GetSkillName(v[1], 1),
+				bCheck = true,
+				bChecked = data.tKungFu and data.tKungFu["SKILL#" .. v[1]],
+				szIcon = v[2],
+				nFrame = v[3],
+				szLayer = "ICON_LEFT",
+				fnAction = function()
+					data.tKungFu = data.tKungFu or {}
+					if not data.tKungFu["SKILL#" .. v[1]] then
+						data.tKungFu["SKILL#" .. v[1]] = true
+					else
+						data.tKungFu["SKILL#" .. v[1]] = nil
+						if IsEmpty(data.tKungFu) then
+							data.tKungFu = nil
+						end
+					end
+				end
+			})
+		end
+		return menu
+	end
 	local function GetMarkMenu(nClass)
 		local menu = {}
 		local tMarkName = { _L["Cloud"], _L["Sword"], _L["Ax"], _L["Hook"], _L["Drum"], _L["Shear"], _L["Stick"], _L["Jade"], _L["Dart"], _L["Fan"] }
@@ -975,6 +1016,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
 			return GetScrutinyTypeMenu(data)
 		end):Pos_()
+		nX = ui:Append("WndComboBox", { x = nX + 5, y = nY + 12, txt = _L["Self KungFu require"] }):Menu(function()
+			return GetKungFuMenu(data)
+		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 5, y = nY + 10, txt = _L["Count Achieve"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
 			data.nCount = UI_tonumber(nNum)
@@ -1043,6 +1087,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()
 			return GetScrutinyTypeMenu(data)
 		end):Pos_()
+		nX = ui:Append("WndComboBox", { x = nX + 5, y = nY + 12, txt = _L["Self KungFu require"] }):Menu(function()
+			return GetKungFuMenu(data)
+		end):Pos_()
 		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bCheckLevel, txt = _L["Check Level"] }):Click(function(bCheck)
 			data.bCheckLevel = bCheck and true or nil
 		end):Pos_()
@@ -1099,7 +1146,10 @@ function DBMUI.OpenSettingPanel(data, szType)
 		end
 	elseif szType == "NPC" then
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
-		nX = ui:Append("Text", { x = 30, y = nY + 10, txt = _L["Npc Count Achieve"] }):Pos_()
+		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Self KungFu require"] }):Menu(function()
+			return GetKungFuMenu(data)
+		end):Pos_()
+		nX = ui:Append("Text", { x = nX + 5, y = nY + 10, txt = _L["Npc Count Achieve"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
 			data.nCount = UI_tonumber(nNum)
 			if data.nCount == 1 then

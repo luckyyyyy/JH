@@ -1,10 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 19:32:38
+-- @Last Modified time: 2015-06-08 12:23:38
 
 local _L = JH.LoadLangPack
-local ipairs, pairs = ipairs, pairs
+local ipairs, pairs, select = ipairs, pairs, select
 local setmetatable, tonumber, type, tostring, unpack = setmetatable, tonumber, type, tostring, unpack
 local tinsert, tconcat = table.insert, table.concat
 local GetTime, IsPlayer = GetTime, IsPlayer
@@ -369,6 +369,13 @@ function D.CheckScrutinyType(nScrutinyType, dwID, me)
 	return true
 end
 
+function D.CheckKungFu(tKungFu)
+	if tKungFu["SKILL#" .. UI_GetPlayerMountKungfuID()] then
+		return true
+	end
+	return false
+end
+
 -- 智能标记逻辑
 function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 	local fnAction = function()
@@ -522,6 +529,9 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
 			return
 		end
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
+			return
+		end
 		if data.nCount and nCount < data.nCount then -- 层数检查
 			return
 		end
@@ -616,13 +626,13 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	local key = dwCastID .. "_" .. dwLevel
 	local nTime = GetTime()
 	CACHE.SKILL_LIST[dwCaster] = CACHE.SKILL_LIST[dwCaster] or {}
+	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 100 then -- 0.1秒内 直接忽略
+		return
+	end
 	if dwCastID == 13165 then -- 内功切换
 		if szEvent == "UI_OME_SKILL_CAST_LOG" then
 			FireUIEvent("JH_KUNGFU_SWITCH", dwCaster)
 		end
-	end
-	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 100 then -- 0.1秒内 直接忽略
-		return
 	end
 	CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
 	if #CACHE.INTERVAL.CASTING[key] > 300 then
@@ -655,6 +665,9 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	-- 监控数据
 	if data then
 		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
+			return
+		end
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
 			return
 		end
 		local szName, nIcon = JH.GetSkillName(dwCastID, dwLevel)
@@ -789,6 +802,9 @@ function D.OnNpcEvent(npc, bEnter)
 		end
 	end
 	if data then
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
+			return
+		end
 		if bEnter then
 			cfg, nClass = data[DBM_TYPE.NPC_ENTER], DBM_TYPE.NPC_ENTER
 		else
