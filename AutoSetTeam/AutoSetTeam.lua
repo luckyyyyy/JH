@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:49:09
+-- @Last Modified time: 2015-06-08 17:13:13
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -298,7 +298,7 @@ local function AppendMark()
 	for k,v in ipairs(AutoSetTeam.tMarkFrame) do
 		Mark:AppendItemFromString(GetFormatImage(AutoSetTeam.szMarkImage,v,33,33,816,"Mark" ..k))
 		local img = Mark:Lookup("Mark" ..k)
-		if tMark[k] then
+		if tMark[k] and tMark[k] ~= 0 then
 			img:SetAlpha(50)
 			img.alpha = 50
 		else

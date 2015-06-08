@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 12:16:04
+-- @Last Modified time: 2015-06-08 16:36:37
 
 DBM_TYPE     = {
 	OTHER        = 0,
@@ -51,6 +51,14 @@ JH_KUNGFU_LIST = {
 	{ 10026, "ui/Image/icon/skill_tiance02.UITex", 0 }, -- °ÁÑ©
 	{ 10268, "ui/Image/icon/skill_GB_30.UITex", 0 }, -- Ð¦³¾
 }
+
+setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)
+	for k, v in pairs(me) do
+		if v[1] == key then
+			return v
+		end
+	end
+end })
 
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {
