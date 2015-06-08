@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 09:14:35
+-- @Last Modified time: 2015-06-08 13:48:16
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -30,9 +30,6 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 			local KBuff = GetBuff(dwID)
 			if KBuff then
 				tArgs = tArgs or {}
-				local nSec = JH.GetEndTime(KBuff.GetEndTime())
-				if nSec < 0 then nSec = 0 end
-				local szTime = JH.FormatTimeString(nSec, 1)
 				local h = BL.handle:AppendItemFromIni(BL_INIFILE, "Handle_Item")
 				local szName, nIcon = JH.GetBuffName(dwID, nLevel)
 				h.dwID = dwID
@@ -62,11 +59,10 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 				end
 				box.OnItemRButtonClick = function()
 					local KBuff = GetBuff(dwID)
-					if KBuff and KBuff.bCanCancel then
+					if KBuff then
 						GetClientPlayer().CancelBuff(KBuff.nIndex)
 					end
 				end
-				h:Lookup("Text_Time"):SetText(szTime)
 				h:Lookup("Text_Time"):SetFontColor(unpack(col))
 				BL_CACHE[key] = h
 				h:Scale(BL_UI.fScale, BL_UI.fScale)
@@ -120,7 +116,12 @@ function BL_UI.OnFrameBreathe()
 				if KBuff then
 					local nSec = JH.GetEndTime(KBuff.GetEndTime())
 					if nSec < 0 then nSec = 0 end
-					local szTime = JH.FormatTimeString(nSec, 1)
+					local szTime
+					if nSec > 24 * 60 * 60 then
+						szTime = ""
+					else
+						szTime = JH.FormatTimeString(nSec, 1)
+					end
 					h:Lookup("Text_Time"):SetText(szTime)
 					local nAlpha = h:Lookup("Animate_Update"):GetAlpha()
 					if nAlpha > 0 then
