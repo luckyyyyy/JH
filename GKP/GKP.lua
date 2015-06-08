@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-31 09:49:43
+-- @Last Modified time: 2015-06-08 16:20:43
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -199,7 +199,6 @@ function _GKP.OpenPanel(bDisableSound)
 	end
 	return frame
 end
-GKP.OpenPanel = _GKP.OpenPanel
 -- close
 function _GKP.ClosePanel(bRealClose)
 	if _GKP.frame then
@@ -220,11 +219,14 @@ function _GKP.TogglePanel()
 		_GKP.OpenPanel()
 	end
 end
+GKP.OpenPanel   = _GKP.OpenPanel
+GKP.ClosePanel  = _GKP.ClosePanel
+GKP.TogglePanel = _GKP.TogglePanel
 -- initlization
 function _GKP.Init()
 	if not _GKP.bInit then
 		local me = GetClientPlayer()
-		Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Record.ini","GKP_Record"):Hide()
+		Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Record.ini", "GKP_Record"):Hide()
 		_GKP.OpenPanel(true):Hide()
 		_GKP.nNowMoney = me.GetMoney().nGold
 		_GKP.bInit = true

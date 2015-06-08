@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-24 07:37:19
+-- @Last Modified time: 2015-06-08 16:54:23
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -357,7 +357,9 @@ function _SkillCD.UpdateCount()
 					tinsert(xml, GetFormatText("[" .. szName .. "]\n", 23 ,255 ,255 ,255))
 					for k, v in ipairs(v.tList) do
 						local dwMountKungfuID = v.info.dwMountKungfuID or 0
-						tinsert(xml, GetFormatText(string.format("[%s] %s", _L["KUNGFU_" .. dwMountKungfuID], v.info.szName), 23, 255, 255, 0))
+						local nIocn = select(2, JH.GetSkillName(dwMountKungfuID))
+						tinsert(xml, GetFormatImage("fromiconid", nIocn, 25, 25))
+						tinsert(xml, GetFormatText(v.info.szName, 23, 255, 255, 0))
 						if v.info.bDeathFlag then
 							tinsert(xml, GetFormatText(" (" .. g_tStrings.FIGHT_DEATH .. ")", 23, 255, 128, 0))
 						elseif not v.info.bIsOnLine then
