@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 10:32:50
+-- @Last Modified time: 2015-06-08 15:25:00
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -923,8 +923,13 @@ function JH.IsInDungeon(bType)
 		return false
 	end
 	if bType then -- 只判断地图的类型 而不是严格判断25人本
-		local scene = me.GetScene()
-		return scene.nType == 1 or scene.nType == 4
+		local dwMapID = me.GetMapID()
+		local nMapType = select(2, GetMapParams(dwMapID))
+	    if nMapType and nMapType == MAP_TYPE.DUNGEON then
+			return true
+		else
+			return false
+		end
 	end
 	if IsEmpty(_JH.tDungeonList) then
 		for k, v in ipairs(GetMapList()) do
@@ -937,13 +942,16 @@ function JH.IsInDungeon(bType)
 	return _JH.tDungeonList[me.GetMapID()] or false
 end
 
+-- JJC地图
 function JH.IsInArena()
 	local me = GetClientPlayer()
-	return me and (
-		me.GetScene().bIsArenaMap or -- JJC
-		me.GetMapID() == 173 or      -- 齐物阁
-		me.GetMapID() == 181         -- 狼影殿
-	)
+	local dwMapID = me.GetMapID()
+	local nMapType = select(2, GetMapParams(dwMapID))
+	if nMapType and nMapType == MAP_TYPE.BATTLE_FIELD then
+		return true
+	else
+		return false
+	end
 end
 
 function JH.ApplyTopPoint(fnAction, tar, nH, szKey)

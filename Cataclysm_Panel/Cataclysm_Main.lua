@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 18:09:27
+-- @Last Modified time: 2015-06-08 15:09:42
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -80,7 +80,7 @@ local function SetConfigure()
 			CTM_CONFIG_PLAYER[k] = v
 		end
 	end
-	setmetatable(RaidGrid_CTM_Edition, {
+	setmetatable(Cataclysm_Main, {
 		__index = CTM_CONFIG_PLAYER,
 		__newindex = CTM_CONFIG_PLAYER,
 	})
@@ -160,11 +160,17 @@ end
 
 local function RaidPanel_Switch(bOpen)
 	local frame = Station.Lookup("Normal/RaidPanel_Main")
-	if frame then
-		if bOpen then
+	if bOpen then
+		if not frame then
+			-- OpenRaidPanel()
+		end
+		if frame then
 			frame:Show()
-		else
+		end
+	else
+		if frame then
 			frame:Hide()
+			-- Wnd.CloseWindow(frame)
 		end
 	end
 end
@@ -198,18 +204,18 @@ end
 
 local function SetFrameSize(bLeave)
 	if CTM_FRAME then
-		if RaidGrid_CTM_Edition.nAutoLinkMode == 5 then
+		if Cataclysm_Main.nAutoLinkMode == 5 then
 			local nGroup = GetGroupTotal()
 			local w = 128 * nGroup
 			local _, h = CTM_FRAME:GetSize()
-			w = w * RaidGrid_CTM_Edition.fScaleX
+			w = w * Cataclysm_Main.fScaleX
 			CTM_FRAME:SetSize(w, h)
 			CTM_FRAME:SetDragArea(0, 0, w, h)
 			CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
 			if bLeave then
 				local w = 128
-				if RaidGrid_CTM_Edition.fScaleX > 1 then
-					w = w * RaidGrid_CTM_Edition.fScaleX
+				if Cataclysm_Main.fScaleX > 1 then
+					w = w * Cataclysm_Main.fScaleX
 				end
 				CTM_FRAME:Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
 			end
@@ -224,7 +230,7 @@ local function SetFrameSize(bLeave)
 end
 
 local function RaidOpenPanel()
-	local frame = CTM_FRAME or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Main.ini", "RaidGrid_CTM_Edition")
+	local frame = CTM_FRAME or Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Main.ini", "Cataclysm_Main")
 	return frame
 end
 local function RaidClosePanel()
@@ -237,10 +243,10 @@ end
 
 local function RaidCheckEnable()
 	local me = GetClientPlayer()
-	if not RaidGrid_CTM_Edition.bRaidEnable then
+	if not Cataclysm_Main.bRaidEnable then
 		return RaidClosePanel()
 	end
-	if RaidGrid_CTM_Edition.bShowInRaid and not me.IsInRaid() then
+	if Cataclysm_Main.bShowInRaid and not me.IsInRaid() then
 		return RaidClosePanel()
 	end
 	if not me.IsInParty() then
@@ -253,7 +259,7 @@ local function RaidCheckEnable()
 end
 
 local function UpdateAnchor(frame)
-	local a = RaidGrid_CTM_Edition.tAnchor
+	local a = Cataclysm_Main.tAnchor
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 	else
@@ -264,12 +270,12 @@ end
 -------------------------------------------------
 -- 界面创建 事件注册
 -------------------------------------------------
-RaidGrid_CTM_Edition = {}
-local RaidGrid_CTM_Edition = RaidGrid_CTM_Edition
-function RaidGrid_CTM_Edition.OnFrameCreate()
+Cataclysm_Main = {}
+local Cataclysm_Main = Cataclysm_Main
+function Cataclysm_Main.OnFrameCreate()
 	CTM_FRAME = this
 
-	if RaidGrid_CTM_Edition.bFasterHP then
+	if Cataclysm_Main.bFasterHP then
 		this:RegisterEvent("RENDER_FRAME_UPDATE")
 	end
 	this:RegisterEvent("PARTY_SYNC_MEMBER_DATA")
@@ -308,18 +314,18 @@ function RaidGrid_CTM_Edition.OnFrameCreate()
 		Grid_CTM:AutoLinkAllPanel()
 	end
 	SetFrameSize(true)
-	this:EnableDrag(RaidGrid_CTM_Edition.bDrag)
+	this:EnableDrag(Cataclysm_Main.bDrag)
 end
 -------------------------------------------------
 -- 拖动窗体 OnFrameDrag对于较大的窗口 掉帧严重
 -------------------------------------------------
-function RaidGrid_CTM_Edition.OnFrameDrag() -- 救命小天使
+function Cataclysm_Main.OnFrameDrag() -- 救命小天使
 	Grid_CTM:AutoLinkAllPanel()
 end
 -------------------------------------------------
 -- 事件处理
 -------------------------------------------------
-function RaidGrid_CTM_Edition.OnEvent(szEvent)
+function Cataclysm_Main.OnEvent(szEvent)
 	if szEvent == "RENDER_FRAME_UPDATE" then
 		Grid_CTM:CallDrawHPMP(true)
 	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then
@@ -333,7 +339,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			Grid_CTM:DrawParty(arg2)
 			SetFrameSize(true)
 		end
-		if RaidGrid_CTM_Edition.nAutoLinkMode ~= 5 then
+		if Cataclysm_Main.nAutoLinkMode ~= 5 then
 			Grid_CTM:AutoLinkAllPanel()
 		end
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
@@ -349,7 +355,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 			else
 				Grid_CTM:DrawParty(arg3)
 			end
-			if RaidGrid_CTM_Edition.nAutoLinkMode ~= 5 then
+			if Cataclysm_Main.nAutoLinkMode ~= 5 then
 				Grid_CTM:AutoLinkAllPanel()
 			end
 		end
@@ -441,7 +447,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 		end
 		Grid_CTM:RefreshGroupText()
 		Grid_CTM:RefreshMark()
-		if RaidGrid_CTM_Edition.nAutoLinkMode ~= 5 then
+		if Cataclysm_Main.nAutoLinkMode ~= 5 then
 			Grid_CTM:AutoLinkAllPanel()
 		end
 	elseif szEvent == "PARTY_LEVEL_UP_RAID" then
@@ -459,7 +465,7 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	elseif szEvent == "BUFF_UPDATE" then
 		if arg1 then return end
 		local szName = GetBuffName(arg4, arg8)
-		local tab = RaidGrid_CTM_Edition.tBuffList[szName] or RaidGrid_CTM_Edition.tBuffList[tostring(arg4)]
+		local tab = Cataclysm_Main.tBuffList[szName] or Cataclysm_Main.tBuffList[tostring(arg4)]
 		if tab and Table_BuffIsVisible(arg4, arg8) then
 			if tab.bSelf and arg9 == UI_GetClientPlayerID() or not tab.bSelf then
 				Grid_CTM:RecBuff(arg0, arg4, arg8, tab.col)
@@ -473,12 +479,12 @@ function RaidGrid_CTM_Edition.OnEvent(szEvent)
 	end
 end
 
-function RaidGrid_CTM_Edition.OnFrameBreathe()
+function Cataclysm_Main.OnFrameBreathe()
 	local me = GetClientPlayer()
 	if not me then return end
 	Grid_CTM:RefreshDistance()
 	Grid_CTM:RefresBuff()
-	if RaidGrid_CTM_Edition.bShowTargetTargetAni then
+	if Cataclysm_Main.bShowTargetTargetAni then
 		Grid_CTM:RefreshTarget()
 	end
 	-- kill System Panel
@@ -486,7 +492,7 @@ function RaidGrid_CTM_Edition.OnFrameBreathe()
 	TeammatePanel_Switch(false)
 end
 
-function RaidGrid_CTM_Edition.OnLButtonClick()
+function Cataclysm_Main.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Option" then
 		local me = GetClientPlayer()
@@ -504,8 +510,8 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		table.insert(menu, { bDevide = true })
 		if me.IsInRaid() then
 			-- 编辑模式
-			table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not JH.IsLeader() or not me.IsInRaid(), bCheck = true, bChecked = RaidGrid_CTM_Edition.bEditMode, fnAction = function()
-				RaidGrid_CTM_Edition.bEditMode = not RaidGrid_CTM_Edition.bEditMode
+			table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not JH.IsLeader() or not me.IsInRaid(), bCheck = true, bChecked = Cataclysm_Main.bEditMode, fnAction = function()
+				Cataclysm_Main.bEditMode = not Cataclysm_Main.bEditMode
 				GetPopupMenu():Hide()
 			end })
 			-- 人数统计
@@ -526,23 +532,26 @@ function RaidGrid_CTM_Edition.OnLButtonClick()
 		menu.x, menu.y = nX, nY
 		PopupMenu(menu)
 	elseif szName == "Btn_WorldMark" then
-		if JH.IsInDungeon(true) then
-			Wnd.ToggleWindow("WorldMark")
-		else
+		local me  = GetClientPlayer()
+		local dwMapID = me.GetMapID()
+		local nMapType = select(2, GetMapParams(dwMapID))
+	    if not nMapType or nMapType ~= MAP_TYPE.DUNGEON then
 			OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.STR_WORLD_MARK)
+			return
 		end
+		Wnd.ToggleWindow("WorldMark")
 	end
 end
 
-function RaidGrid_CTM_Edition.OnLButtonDown()
+function Cataclysm_Main.OnLButtonDown()
 	Grid_CTM:BringToTop()
 end
 
-function RaidGrid_CTM_Edition.OnRButtonDown()
+function Cataclysm_Main.OnRButtonDown()
 	Grid_CTM:BringToTop()
 end
 
-function RaidGrid_CTM_Edition.OnItemLButtonClick()
+function Cataclysm_Main.OnItemLButtonClick()
 	local szName = this:GetName()
 	if szName == "Image_GKP" and GKP then
 		return GKP.OpenPanel()
@@ -561,23 +570,23 @@ function RaidGrid_CTM_Edition.OnItemLButtonClick()
 	end
 end
 
-function RaidGrid_CTM_Edition.OnItemMouseEnter()
+function Cataclysm_Main.OnItemMouseEnter()
 	local szName = this:GetName()
 	if szName == "Image_GKP" or szName == "Image_LootMode" or szName == "Image_LootQuality" then
 		this:SetAlpha(255)
 	end
 end
-function RaidGrid_CTM_Edition.OnItemMouseLeave()
+function Cataclysm_Main.OnItemMouseLeave()
 	local szName = this:GetName()
 	if szName == "Image_GKP" or szName == "Image_LootMode" or szName == "Image_LootQuality" then
 		this:SetAlpha(220)
 	end
 end
 
-function RaidGrid_CTM_Edition.OnMouseEnter()
+function Cataclysm_Main.OnMouseEnter()
 	local me = GetClientPlayer()
 	local nGroup = GetGroupTotal()
-	if me.IsInRaid() and nGroup > 1 and RaidGrid_CTM_Edition.nAutoLinkMode == 5 then
+	if me.IsInRaid() and nGroup > 1 and Cataclysm_Main.nAutoLinkMode == 5 then
 		SetFrameSize()
 		if GKP_RECORD_TOTAL > 0 and GKP then -- 第一个GKP
 			local text = CTM_FRAME:Lookup("", "Text_GKP")
@@ -585,8 +594,8 @@ function RaidGrid_CTM_Edition.OnMouseEnter()
 			text:SetFontColor(GKP.GetMoneyCol(GKP_RECORD_TOTAL))
 			text:Show()
 			text.OnItemRButtonClick = GKP.OpenPanel
-			text:SetRelPos(128 * (nGroup - 1) * RaidGrid_CTM_Edition.fScaleX, 0)
-			text:SetSize(125 * RaidGrid_CTM_Edition.fScaleX, 28)
+			text:SetRelPos(128 * (nGroup - 1) * Cataclysm_Main.fScaleX, 0)
+			text:SetSize(125 * Cataclysm_Main.fScaleX, 28)
 			CTM_FRAME:Lookup("", ""):FormatAllItemPos()
 		else
 			CTM_FRAME:Lookup("", "Text_GKP"):Hide()
@@ -596,24 +605,24 @@ function RaidGrid_CTM_Edition.OnMouseEnter()
 	end
 end
 
-function RaidGrid_CTM_Edition.OnMouseLeave()
+function Cataclysm_Main.OnMouseLeave()
 	if not IsKeyDown("LButton") then
 		SetFrameSize(true)
 		CTM_FRAME:Lookup("", "Text_GKP"):Hide()
 	end
 end
 
-function RaidGrid_CTM_Edition.OnFrameDragEnd()
+function Cataclysm_Main.OnFrameDragEnd()
 	local w, h = this:GetSize()
 	this:CorrectPos()
-	RaidGrid_CTM_Edition.tAnchor = GetFrameAnchor(this, "TOPLEFT")
+	Cataclysm_Main.tAnchor = GetFrameAnchor(this, "TOPLEFT")
 	Grid_CTM:AutoLinkAllPanel() -- fix screen pos
 end
 
 local EnableTeamPanel = function()
-	RaidGrid_CTM_Edition.bRaidEnable = not RaidGrid_CTM_Edition.bRaidEnable
+	Cataclysm_Main.bRaidEnable = not Cataclysm_Main.bRaidEnable
 	RaidCheckEnable()
-	if not RaidGrid_CTM_Edition.bRaidEnable then
+	if not Cataclysm_Main.bRaidEnable then
 		local me = GetClientPlayer()
 		if me.IsInRaid() then
 			FireUIEvent("CTM_PANEL_RAID", true)
@@ -627,55 +636,55 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Cataclysm Team Panel"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable Cataclysm Team Panel"], checked = RaidGrid_CTM_Edition.bRaidEnable }):Click(EnableTeamPanel):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Only in team"], checked = RaidGrid_CTM_Edition.bShowInRaid })
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable Cataclysm Team Panel"], checked = Cataclysm_Main.bRaidEnable }):Click(EnableTeamPanel):Pos_()
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Only in team"], checked = Cataclysm_Main.bShowInRaid })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bShowInRaid = bCheck
+		Cataclysm_Main.bShowInRaid = bCheck
 		RaidCheckEnable()
 		local me = GetClientPlayer()
 		if me.IsInParty() and not me.IsInRaid() then
-			FireUIEvent("CTM_PANEL_TEAMATE", RaidGrid_CTM_Edition.bShowInRaid)
+			FireUIEvent("CTM_PANEL_TEAMATE", Cataclysm_Main.bShowInRaid)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x= nX + 5, y = nY + 10, txt = g_tStrings.WINDOW_LOCK, checked = not RaidGrid_CTM_Edition.bDrag })
+	nX, nY = ui:Append("WndCheckBox", { x= nX + 5, y = nY + 10, txt = g_tStrings.WINDOW_LOCK, checked = not Cataclysm_Main.bDrag })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bDrag = not bCheck
+		Cataclysm_Main.bDrag = not bCheck
 		if CTM_FRAME then
 			CTM_FRAME:EnableDrag(not bCheck)
 		end
 	end):Pos_()
 	-- 提醒框
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.STR_RAID_TIP_IMAGE, font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TIP_TARGET, checked = RaidGrid_CTM_Edition.bShowTargetTargetAni })
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TIP_TARGET, checked = Cataclysm_Main.bShowTargetTargetAni })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bShowTargetTargetAni = bCheck
+		Cataclysm_Main.bShowTargetTargetAni = bCheck
 		if CTM_FRAME then
 			Grid_CTM:RefreshTarget()
 		end
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Show distance"], checked = RaidGrid_CTM_Edition.bShowDistance })
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Show distance"], checked = Cataclysm_Main.bShowDistance })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bShowDistance = bCheck
+		Cataclysm_Main.bShowDistance = bCheck
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Show ManaCount"], checked = RaidGrid_CTM_Edition.nShowMP })
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Show ManaCount"], checked = Cataclysm_Main.nShowMP })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.nShowMP = bCheck
+		Cataclysm_Main.nShowMP = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Attack Warning"], checked = RaidGrid_CTM_Edition.bHPHitAlert })
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Attack Warning"], checked = Cataclysm_Main.bHPHitAlert })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bHPHitAlert = bCheck
+		Cataclysm_Main.bHPHitAlert = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	-- 血量显示
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.STR_RAID_LIFE_SHOW .. _L["& Icon"], font = 27 }):Pos_()
-	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_LEFT, group = "lifemode", checked = RaidGrid_CTM_Edition.nHPShownMode2 == 2 })
+	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_LEFT, group = "lifemode", checked = Cataclysm_Main.nHPShownMode2 == 2 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nHPShownMode2 = 2
+		Cataclysm_Main.nHPShownMode2 = 2
 		ui:Fetch("lifval1"):Enable(true)
 		ui:Fetch("lifval2"):Enable(true)
 		ui:Fetch("lifval3"):Enable(true)
@@ -683,9 +692,9 @@ function PS.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_LOSE, group = "lifemode", checked = RaidGrid_CTM_Edition.nHPShownMode2 == 1 })
+	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_LOSE, group = "lifemode", checked = Cataclysm_Main.nHPShownMode2 == 1 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nHPShownMode2 = 1
+		Cataclysm_Main.nHPShownMode2 = 1
 		ui:Fetch("lifval1"):Enable(true)
 		ui:Fetch("lifval2"):Enable(true)
 		ui:Fetch("lifval3"):Enable(true)
@@ -693,9 +702,9 @@ function PS.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_HIDE, group = "lifemode", checked = RaidGrid_CTM_Edition.nHPShownMode2 == 0 })
+	nX, nY = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_HIDE, group = "lifemode", checked = Cataclysm_Main.nHPShownMode2 == 0 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nHPShownMode2 = 0
+		Cataclysm_Main.nHPShownMode2 = 0
 		ui:Fetch("lifval1"):Enable(false)
 		ui:Fetch("lifval2"):Enable(false)
 		ui:Fetch("lifval3"):Enable(false)
@@ -704,55 +713,55 @@ function PS.OnPanelActive(frame)
 		end
 	end):Pos_()
 	-- 数值
-	nX = ui:Append("WndRadioBox", "lifval1", { x = 10, y = nY, txt = _L["Show Format value"], group = "lifval", checked = RaidGrid_CTM_Edition.nHPShownNumMode == 1 })
-	:Enable(RaidGrid_CTM_Edition.nHPShownMode2 ~= 0):Click(function()
-		RaidGrid_CTM_Edition.nHPShownNumMode = 1
+	nX = ui:Append("WndRadioBox", "lifval1", { x = 10, y = nY, txt = _L["Show Format value"], group = "lifval", checked = Cataclysm_Main.nHPShownNumMode == 1 })
+	:Enable(Cataclysm_Main.nHPShownMode2 ~= 0):Click(function()
+		Cataclysm_Main.nHPShownNumMode = 1
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndRadioBox", "lifval2", { x = nX+ 5, y = nY, txt = _L["Show Percentage value"], group = "lifval", checked = RaidGrid_CTM_Edition.nHPShownNumMode == 2 })
-	:Enable(RaidGrid_CTM_Edition.nHPShownMode2 ~= 0):Click(function()
-		RaidGrid_CTM_Edition.nHPShownNumMode = 2
+	nX = ui:Append("WndRadioBox", "lifval2", { x = nX+ 5, y = nY, txt = _L["Show Percentage value"], group = "lifval", checked = Cataclysm_Main.nHPShownNumMode == 2 })
+	:Enable(Cataclysm_Main.nHPShownMode2 ~= 0):Click(function()
+		Cataclysm_Main.nHPShownNumMode = 2
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", "lifval3", { x = nX+ 5, y = nY, txt = _L["Show full value"], group = "lifval", checked = RaidGrid_CTM_Edition.nHPShownNumMode == 3 })
-	:Enable(RaidGrid_CTM_Edition.nHPShownMode2 ~= 0):Click(function()
-		RaidGrid_CTM_Edition.nHPShownNumMode = 3
+	nX, nY = ui:Append("WndRadioBox", "lifval3", { x = nX+ 5, y = nY, txt = _L["Show full value"], group = "lifval", checked = Cataclysm_Main.nHPShownNumMode == 3 })
+	:Enable(Cataclysm_Main.nHPShownMode2 ~= 0):Click(function()
+		Cataclysm_Main.nHPShownNumMode = 3
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 	-- Icon
-	nX = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Show Force Icon"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 1 })
+	nX = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Show Force Icon"], group = "icon", checked = Cataclysm_Main.nShowIcon == 1 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nShowIcon = 1
+		Cataclysm_Main.nShowIcon = 1
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY, txt = g_tStrings.STR_SHOW_KUNGFU, group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 2 })
+	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY, txt = g_tStrings.STR_SHOW_KUNGFU, group = "icon", checked = Cataclysm_Main.nShowIcon == 2 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nShowIcon = 2
+		Cataclysm_Main.nShowIcon = 2
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Camp Icon"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 3 })
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Camp Icon"], group = "icon", checked = Cataclysm_Main.nShowIcon == 3 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nShowIcon = 3
+		Cataclysm_Main.nShowIcon = 3
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Text Force"], group = "icon", checked = RaidGrid_CTM_Edition.nShowIcon == 4 })
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY, txt = _L["Show Text Force"], group = "icon", checked = Cataclysm_Main.nShowIcon == 4 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nShowIcon = 4
+		Cataclysm_Main.nShowIcon = 4
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, true, nil, true)
 			Grid_CTM:CallDrawHPMP(true, true)
@@ -761,17 +770,17 @@ function PS.OnPanelActive(frame)
 
 	-- 其他
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.OTHER, font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TARGET_ASSIST, checked = RaidGrid_CTM_Edition.bTempTargetEnable })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TARGET_ASSIST, checked = Cataclysm_Main.bTempTargetEnable })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bTempTargetEnable = bCheck
+		Cataclysm_Main.bTempTargetEnable = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Don't show Tip in fight"], checked = RaidGrid_CTM_Edition.bTempTargetFightTip })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Don't show Tip in fight"], checked = Cataclysm_Main.bTempTargetFightTip })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bTempTargetFightTip = bCheck
+		Cataclysm_Main.bTempTargetFightTip = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Faster Refresh HP(Greater performance loss)"], checked = RaidGrid_CTM_Edition.bFasterHP })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Faster Refresh HP(Greater performance loss)"], checked = Cataclysm_Main.bFasterHP })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bFasterHP = bCheck
+		Cataclysm_Main.bFasterHP = bCheck
 		if CTM_FRAME then
 			if bCheck then
 				CTM_FRAME:RegisterEvent("RENDER_FRAME_UPDATE")
@@ -799,55 +808,55 @@ function PS2.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Grid Style"], font = 27 }):Pos_()
 
-	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, group = "namecolor", checked = RaidGrid_CTM_Edition.nColoredName == 1 })
+	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, group = "namecolor", checked = Cataclysm_Main.nColoredName == 1 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nColoredName = 1
+		Cataclysm_Main.nColoredName = 1
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
 			Grid_CTM:CallDrawHPMP(true ,true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_CAMP, group = "namecolor", checked = RaidGrid_CTM_Edition.nColoredName == 2 })
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_CAMP, group = "namecolor", checked = Cataclysm_Main.nColoredName == 2 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nColoredName = 2
+		Cataclysm_Main.nColoredName = 2
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
 			Grid_CTM:CallDrawHPMP(true ,true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "namecolor", checked = RaidGrid_CTM_Edition.nColoredName == 0 })
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "namecolor", checked = Cataclysm_Main.nColoredName == 0 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nColoredName = 0
+		Cataclysm_Main.nColoredName = 0
 		if CTM_FRAME then
 			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
 			Grid_CTM:CallDrawHPMP(true ,true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show AllGrid"], checked = RaidGrid_CTM_Edition.bShowAllGrid })
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show AllGrid"], checked = Cataclysm_Main.bShowAllGrid })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bShowAllGrid = bCheck
+		Cataclysm_Main.bShowAllGrid = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CloseParty()
 			Grid_CTM:ReloadParty()
 		end
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["LifeBar Gradient"], checked = RaidGrid_CTM_Edition.bLifeGradient })
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["LifeBar Gradient"], checked = Cataclysm_Main.bLifeGradient })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bLifeGradient = bCheck
+		Cataclysm_Main.bLifeGradient = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["ManaBar Gradient"], checked = RaidGrid_CTM_Edition.bManaGradient })
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["ManaBar Gradient"], checked = Cataclysm_Main.bManaGradient })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bManaGradient = bCheck
+		Cataclysm_Main.bManaGradient = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = g_tStrings.STR_RAID_DISTANCE, checked = RaidGrid_CTM_Edition.bEnableDistance })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = g_tStrings.STR_RAID_DISTANCE, checked = Cataclysm_Main.bEnableDistance })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bEnableDistance = bCheck
+		Cataclysm_Main.bEnableDistance = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
@@ -855,8 +864,8 @@ function PS2.OnPanelActive(frame)
 
 	nX = ui:Append("Text", { x = 10, y = nY, txt = g_tStrings.STR_ALPHA }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2 })
-	:Range(1, 100, 99):Value(RaidGrid_CTM_Edition.nAlpha / 255 * 100):Change(function(nVal)
-		RaidGrid_CTM_Edition.nAlpha = nVal / 100 * 255
+	:Range(1, 100, 99):Value(Cataclysm_Main.nAlpha / 255 * 100):Change(function(nVal)
+		Cataclysm_Main.nAlpha = nVal / 100 * 255
 		if CTM_FRAME then
 			FireUIEvent("CTM_SET_ALPHA")
 		end
@@ -864,33 +873,33 @@ function PS2.OnPanelActive(frame)
 
 
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.BACK_COLOR, font = 27 }):Pos_()
-	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "BACK_COLOR", checked = RaidGrid_CTM_Edition.nBGClolrMode == 0 })
+	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "BACK_COLOR", checked = Cataclysm_Main.nBGClolrMode == 0 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nBGClolrMode = 0
+		Cataclysm_Main.nBGClolrMode = 0
 		JH.OpenPanel(_L["Grid Style"])
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = _L["Colored according to the distance"], group = "BACK_COLOR", checked = RaidGrid_CTM_Edition.nBGClolrMode == 1 })
+	nX = ui:Append("WndRadioBox", { x = nX+ 5, y = nY + 10, txt = _L["Colored according to the distance"], group = "BACK_COLOR", checked = Cataclysm_Main.nBGClolrMode == 1 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nBGClolrMode = 1
+		Cataclysm_Main.nBGClolrMode = 1
 		JH.OpenPanel(_L["Grid Style"])
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, group = "BACK_COLOR", checked = RaidGrid_CTM_Edition.nBGClolrMode == 2 })
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_RAID_COLOR_NAME_SCHOOL, group = "BACK_COLOR", checked = Cataclysm_Main.nBGClolrMode == 2 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nBGClolrMode = 2
+		Cataclysm_Main.nBGClolrMode = 2
 		JH.OpenPanel(_L["Grid Style"])
 		if CTM_FRAME then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
 
-	if RaidGrid_CTM_Edition.nBGClolrMode ~= 2 then
-		if RaidGrid_CTM_Edition.nBGClolrMode == 1 then
+	if Cataclysm_Main.nBGClolrMode ~= 2 then
+		if Cataclysm_Main.nBGClolrMode == 1 then
 			nX, nY = ui:Append("WndButton3", { x = 10, y = nY, txt = _L["Edit Distance Level"] })
 			:Click(function()
 				GetUserInput(_L["distance, distance, ..."], function(szText)
@@ -904,29 +913,29 @@ function PS2.OnPanelActive(frame)
 						end
 					end
 					if #t > 0 then
-						RaidGrid_CTM_Edition.tDistanceLevel = tt
-						RaidGrid_CTM_Edition.tDistanceCol = {}
+						Cataclysm_Main.tDistanceLevel = tt
+						Cataclysm_Main.tDistanceCol = {}
 						for k, v in ipairs(t) do
-							table.insert(RaidGrid_CTM_Edition.tDistanceCol, { 255, 255, 255 })
+							table.insert(Cataclysm_Main.tDistanceCol, { 255, 255, 255 })
 						end
 						JH.OpenPanel(_L["Grid Style"])
 					end
 				end)
 			end):Pos_()
 		end
-		for i = 1, #RaidGrid_CTM_Edition.tDistanceLevel do
-			local n = RaidGrid_CTM_Edition.tDistanceLevel[i - 1] or 0
-			local txt = n .. g_tStrings.STR_METER .. " - " .. RaidGrid_CTM_Edition.tDistanceLevel[i] .. g_tStrings.STR_METER .. g_tStrings.BACK_COLOR
-			if RaidGrid_CTM_Edition.nBGClolrMode == 0 then
+		for i = 1, #Cataclysm_Main.tDistanceLevel do
+			local n = Cataclysm_Main.tDistanceLevel[i - 1] or 0
+			local txt = n .. g_tStrings.STR_METER .. " - " .. Cataclysm_Main.tDistanceLevel[i] .. g_tStrings.STR_METER .. g_tStrings.BACK_COLOR
+			if Cataclysm_Main.nBGClolrMode == 0 then
 				txt = g_tStrings.BACK_COLOR
 			end
-			if RaidGrid_CTM_Edition.nBGClolrMode ~= 1 and i > 1 then
+			if Cataclysm_Main.nBGClolrMode ~= 1 and i > 1 then
 				break
 			end
 			nX = ui:Append("Text", { x = 10, y = nY, txt = txt }):Pos_()
-			nX, nY = ui:Append("Shadow", "BG_" .. i, { w = 22, h = 22, x = 280, y = nY + 3, color = RaidGrid_CTM_Edition.tDistanceCol[i] }):Click(function()
+			nX, nY = ui:Append("Shadow", "BG_" .. i, { w = 22, h = 22, x = 280, y = nY + 3, color = Cataclysm_Main.tDistanceCol[i] }):Click(function()
 				GUI.OpenColorTablePanel(function(r, g, b)
-					RaidGrid_CTM_Edition.tDistanceCol[i] = { r, g, b }
+					Cataclysm_Main.tDistanceCol[i] = { r, g, b }
 					ui:Fetch("BG_" .. i):Color(r, g, b)
 					if CTM_FRAME then
 						Grid_CTM:CallDrawHPMP(true, true)
@@ -937,9 +946,9 @@ function PS2.OnPanelActive(frame)
 	end
 
 	nX = ui:Append("Text", { x = 10, y = nY, txt = g_tStrings.STR_RAID_DISTANCE_M4 }):Pos_()
-	nX, nY = ui:Append("Shadow", "STR_RAID_DISTANCE_M4", { w = 22, h = 22, x = 280, y = nY + 3, color = RaidGrid_CTM_Edition.tOtherCol[3] }):Click(function()
+	nX, nY = ui:Append("Shadow", "STR_RAID_DISTANCE_M4", { w = 22, h = 22, x = 280, y = nY + 3, color = Cataclysm_Main.tOtherCol[3] }):Click(function()
 		GUI.OpenColorTablePanel(function(r, g, b)
-			RaidGrid_CTM_Edition.tOtherCol[3] = { r, g, b }
+			Cataclysm_Main.tOtherCol[3] = { r, g, b }
 			ui:Fetch("STR_RAID_DISTANCE_M4"):Color(r, g, b)
 			if CTM_FRAME then
 				Grid_CTM:CallDrawHPMP(true, true)
@@ -948,9 +957,9 @@ function PS2.OnPanelActive(frame)
 	end):Pos_()
 
 	nX = ui:Append("Text", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_OFFLINE .. g_tStrings.BACK_COLOR }):Pos_()
-	nX, nY = ui:Append("Shadow", "STR_GUILD_OFFLINE", { w = 22, h = 22, x = 280, y = nY + 3, color = RaidGrid_CTM_Edition.tOtherCol[2] }):Click(function()
+	nX, nY = ui:Append("Shadow", "STR_GUILD_OFFLINE", { w = 22, h = 22, x = 280, y = nY + 3, color = Cataclysm_Main.tOtherCol[2] }):Click(function()
 		GUI.OpenColorTablePanel(function(r, g, b)
-			RaidGrid_CTM_Edition.tOtherCol[2] = { r, g, b }
+			Cataclysm_Main.tOtherCol[2] = { r, g, b }
 			ui:Fetch("STR_GUILD_OFFLINE"):Color(r, g, b)
 			if CTM_FRAME then
 				Grid_CTM:CallDrawHPMP(true, true)
@@ -959,9 +968,9 @@ function PS2.OnPanelActive(frame)
 	end):Pos_()
 
 	nX = ui:Append("Text", { x = 10, y = nY, txt = g_tStrings.STR_SKILL_MANA .. g_tStrings.BACK_COLOR }):Pos_()
-	nX, nY = ui:Append("Shadow", "STR_SKILL_MANA", { w = 22, h = 22, x = 280, y = nY + 3, color = RaidGrid_CTM_Edition.tManaColor }):Click(function()
+	nX, nY = ui:Append("Shadow", "STR_SKILL_MANA", { w = 22, h = 22, x = 280, y = nY + 3, color = Cataclysm_Main.tManaColor }):Click(function()
 		GUI.OpenColorTablePanel(function(r, g, b)
-			RaidGrid_CTM_Edition.tManaColor = { r, g, b }
+			Cataclysm_Main.tManaColor = { r, g, b }
 			ui:Fetch("STR_SKILL_MANA"):Color(r, g, b)
 			if CTM_FRAME then
 				Grid_CTM:CallDrawHPMP(true, true)
@@ -978,10 +987,10 @@ function PS3.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Interface settings"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Interface Width"]}):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 12, h = 25, w = 250 })
-	:Range(50, 250, 200):Value(RaidGrid_CTM_Edition.fScaleX * 100):Change(function(nVal)
+	:Range(50, 250, 200):Value(Cataclysm_Main.fScaleX * 100):Change(function(nVal)
 		nVal = nVal / 100
-		local nNewX, nNewY = nVal / RaidGrid_CTM_Edition.fScaleX, RaidGrid_CTM_Edition.fScaleY / RaidGrid_CTM_Edition.fScaleY
-		RaidGrid_CTM_Edition.fScaleX = nVal
+		local nNewX, nNewY = nVal / Cataclysm_Main.fScaleX, Cataclysm_Main.fScaleY / Cataclysm_Main.fScaleY
+		Cataclysm_Main.fScaleX = nVal
 		if CTM_FRAME then
 			Grid_CTM:Scale(nNewX, nNewY)
 		end
@@ -989,10 +998,10 @@ function PS3.OnPanelActive(frame)
 
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Interface Height"]}):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2, h = 25, w = 250 })
-	:Range(50, 250, 200):Value(RaidGrid_CTM_Edition.fScaleY * 100):Change(function(nVal)
+	:Range(50, 250, 200):Value(Cataclysm_Main.fScaleY * 100):Change(function(nVal)
 		nVal = nVal / 100
-		local nNewX, nNewY = RaidGrid_CTM_Edition.fScaleX / RaidGrid_CTM_Edition.fScaleX, nVal / RaidGrid_CTM_Edition.fScaleY
-		RaidGrid_CTM_Edition.fScaleY = nVal
+		local nNewX, nNewY = Cataclysm_Main.fScaleX / Cataclysm_Main.fScaleX, nVal / Cataclysm_Main.fScaleY
+		Cataclysm_Main.fScaleY = nVal
 		if CTM_FRAME then
 			Grid_CTM:Scale(nNewX, nNewY)
 		end
@@ -1001,7 +1010,7 @@ function PS3.OnPanelActive(frame)
 	nX = ui:Append("WndButton2", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.FONT })
 	:Click(function()
 		GUI.OpenFontTablePanel(function(nFont)
-			RaidGrid_CTM_Edition.nFont = nFont
+			Cataclysm_Main.nFont = nFont
 			if CTM_FRAME then
 				Grid_CTM:CallRefreshImages(true, false, false, nil, true)
 				Grid_CTM:CallDrawHPMP(true, true)
@@ -1011,16 +1020,16 @@ function PS3.OnPanelActive(frame)
 	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY, txt = g_tStrings.STR_RAID_LIFE_SHOW .. g_tStrings.FONT })
 	:Click(function()
 		GUI.OpenFontTablePanel(function(nFont)
-			RaidGrid_CTM_Edition.nLifeFont = nFont
+			Cataclysm_Main.nLifeFont = nFont
 			if CTM_FRAME then
 				Grid_CTM:CallDrawHPMP(true, true)
 			end
 		end)
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.OTHER, font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show Group Number"], checked = RaidGrid_CTM_Edition.bShowGropuNumber })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show Group Number"], checked = Cataclysm_Main.bShowGropuNumber })
 	:Click(function(bCheck)
-		RaidGrid_CTM_Edition.bShowGropuNumber = bCheck
+		Cataclysm_Main.bShowGropuNumber = bCheck
 		if CTM_FRAME then
 			Grid_CTM:CloseParty()
 			Grid_CTM:ReloadParty()
@@ -1028,37 +1037,37 @@ function PS3.OnPanelActive(frame)
 	end):Pos_()
 
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Arrangement"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["One lines: 5/0"], group = "Arrangement", checked = RaidGrid_CTM_Edition.nAutoLinkMode == 5 })
+	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["One lines: 5/0"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 5 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nAutoLinkMode = 5
+		Cataclysm_Main.nAutoLinkMode = 5
 		if CTM_FRAME then
 			Grid_CTM:AutoLinkAllPanel()
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 1/4"], group = "Arrangement", checked = RaidGrid_CTM_Edition.nAutoLinkMode == 1 })
+	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 1/4"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 1 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nAutoLinkMode = 1
+		Cataclysm_Main.nAutoLinkMode = 1
 		if CTM_FRAME then
 			Grid_CTM:AutoLinkAllPanel()
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 2/3"], group = "Arrangement", checked = RaidGrid_CTM_Edition.nAutoLinkMode == 2 })
+	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 2/3"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 2 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nAutoLinkMode = 2
+		Cataclysm_Main.nAutoLinkMode = 2
 		if CTM_FRAME then
 			Grid_CTM:AutoLinkAllPanel()
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 3/2"], group = "Arrangement", checked = RaidGrid_CTM_Edition.nAutoLinkMode == 3 })
+	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 3/2"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 3 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nAutoLinkMode = 3
+		Cataclysm_Main.nAutoLinkMode = 3
 		if CTM_FRAME then
 			Grid_CTM:AutoLinkAllPanel()
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 4/1"], group = "Arrangement", checked = RaidGrid_CTM_Edition.nAutoLinkMode == 4 })
+	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 4/1"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 4 })
 	:Click(function()
-		RaidGrid_CTM_Edition.nAutoLinkMode = 4
+		Cataclysm_Main.nAutoLinkMode = 4
 		if CTM_FRAME then
 			Grid_CTM:AutoLinkAllPanel()
 		end
@@ -1087,33 +1096,33 @@ function PS4.OnPanelActive(frame)
 
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Max buff count"]}):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 12, txt = "" })
-	:Range(0, 10):Value(RaidGrid_CTM_Edition.nMaxShowBuff):Change(function(nVal)
-		RaidGrid_CTM_Edition.nMaxShowBuff = nVal
+	:Range(0, 10):Value(Cataclysm_Main.nMaxShowBuff):Change(function(nVal)
+		Cataclysm_Main.nMaxShowBuff = nVal
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["buff Size"]}):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = RaidGrid_CTM_Edition.bAutoBuffSize, txt = g_tStrings.STR_OPTIMIZE_AUTO }):Click(function(bCheck)
-		RaidGrid_CTM_Edition.bAutoBuffSize = bCheck
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = Cataclysm_Main.bAutoBuffSize, txt = g_tStrings.STR_OPTIMIZE_AUTO }):Click(function(bCheck)
+		Cataclysm_Main.bAutoBuffSize = bCheck
 		ui:Fetch("BuffSize"):Enable(not bCheck)
 	end):Pos_()
 	nX, nY = ui:Append("WndTrackBar", "BuffSize", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
-	:Enable(not RaidGrid_CTM_Edition.bAutoBuffSize):Range(50, 200, 150):Value(RaidGrid_CTM_Edition.fBuffScale * 100):Change(function(nVal)
-		RaidGrid_CTM_Edition.fBuffScale = nVal / 100
+	:Enable(not Cataclysm_Main.bAutoBuffSize):Range(50, 200, 150):Value(Cataclysm_Main.fBuffScale * 100):Change(function(nVal)
+		Cataclysm_Main.fBuffScale = nVal / 100
 		if CTM_FRAME then
 			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, nil, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Buff Staring"], checked = RaidGrid_CTM_Edition.bStaring }):Click(function(bCheck)
-		RaidGrid_CTM_Edition.bStaring = bCheck
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Buff Staring"], checked = Cataclysm_Main.bStaring }):Click(function(bCheck)
+		Cataclysm_Main.bStaring = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show Buff Time"], checked = RaidGrid_CTM_Edition.bShowBuffTime }):Click(function(bCheck)
-		RaidGrid_CTM_Edition.bShowBuffTime = bCheck
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show Buff Time"], checked = Cataclysm_Main.bShowBuffTime }):Click(function(bCheck)
+		Cataclysm_Main.bShowBuffTime = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show Buff Num"], checked = RaidGrid_CTM_Edition.bShowBuffNum }):Click(function(bCheck)
-		RaidGrid_CTM_Edition.bShowBuffNum = bCheck
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show Buff Num"], checked = Cataclysm_Main.bShowBuffNum }):Click(function(bCheck)
+		Cataclysm_Main.bShowBuffNum = bCheck
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 150, limit = 4096, multi = true})
-	:Text(GetListText(RaidGrid_CTM_Edition.tBuffList)):Change(function(szText)
+	:Text(GetListText(Cataclysm_Main.tBuffList)):Change(function(szText)
 		local t = {}
 		for _, v in ipairs(JH.Split(szText, "\n")) do
 			v = JH.Trim(v)
@@ -1124,7 +1133,7 @@ function PS4.OnPanelActive(frame)
 				}
 			end
 		end
-		RaidGrid_CTM_Edition.tBuffList = t
+		Cataclysm_Main.tBuffList = t
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Tips"], font = 27 }):Pos_()
 	ui:Append("Text", { x = 10, y = nY + 5, txt = _L["Cataclysm_TIPS"], w = 500, h = 60 , multi = true }):Pos_()
@@ -1154,5 +1163,5 @@ JH.RegisterEvent("PARTY_LEVEL_UP_RAID", function()
 	end
 end)
 JH.AddonMenu(function()
-	return { szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = RaidGrid_CTM_Edition.bRaidEnable and not RaidGrid_CTM_Edition.bShowInRaid, fnAction = EnableTeamPanel }
+	return { szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = Cataclysm_Main.bRaidEnable and not Cataclysm_Main.bShowInRaid, fnAction = EnableTeamPanel }
 end)

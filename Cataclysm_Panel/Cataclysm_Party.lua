@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 11:23:41
+-- @Last Modified time: 2015-06-08 15:02:56
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -15,7 +15,7 @@ local GetDistance, GetBuff, GetEndTime, IsParty, GetTarget = JH.GetDistance, JH.
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
 local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
 local Table_BuffIsVisible = Table_BuffIsVisible
-local CFG                    = RaidGrid_CTM_Edition
+local CFG                    = Cataclysm_Main
 -- global STR cache
 local COINSHOP_SOURCE_NULL   = g_tStrings.COINSHOP_SOURCE_NULL
 local STR_FRIEND_NOT_ON_LINE = g_tStrings.STR_FRIEND_NOT_ON_LINE
@@ -390,11 +390,11 @@ function CTM_Party_Base.OnItemRButtonClick()
 end
 
 function CTM:GetPartyFrame(nIndex) -- 获得组队面板
-	return Station.Lookup("Normal/RaidGrid_Party_" .. nIndex)
+	return Station.Lookup("Normal/Cataclysm_Party_" .. nIndex)
 end
 
 function CTM:BringToTop()
-	Station.Lookup("Normal/RaidGrid_CTM_Edition"):BringToTop()
+	Station.Lookup("Normal/Cataclysm_Main"):BringToTop()
 	for i = 0, CTM_GROUP_COUNT do
 		if self:GetPartyFrame(i) then
 			self:GetPartyFrame(i):BringToTop()
@@ -414,7 +414,7 @@ function CTM:CreatePanel(nIndex)
 	local me = GetClientPlayer()
 	local frame = self:GetPartyFrame(nIndex)
 	if not frame then
-		frame = Wnd.OpenWindow(CTM_INIFILE, "RaidGrid_Party_" .. nIndex)
+		frame = Wnd.OpenWindow(CTM_INIFILE, "Cataclysm_Party_" .. nIndex)
 		frame:Scale(CFG.fScaleX, CFG.fScaleY)
 	end
 	self:AutoLinkAllPanel()
@@ -449,7 +449,7 @@ function CTM:RefreshGroupText()
 end
  -- 连接所有面板
 function CTM:AutoLinkAllPanel()
-	local frameMain = Station.Lookup("Normal/RaidGrid_CTM_Edition")
+	local frameMain = Station.Lookup("Normal/Cataclysm_Main")
 	local nX, nY = frameMain:GetRelPos()
 	nY = nY + 24
 	local nShownCount = 0
