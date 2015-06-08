@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:47:34
+-- @Last Modified time: 2015-06-08 09:14:35
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -14,10 +14,6 @@ BL_UI = {
 	fScale = 1,
 }
 JH.RegisterCustomData("BL_UI")
-local bCustomMode = false
-local function IsInUICustomMode() -- 又没放出来的API。。。
-	return bCustomMode
-end
 
 -- FireUIEvent("JH_BL_CREATE", 103, 1, { 255, 0, 0 })
 local function CreateBuffList(dwID, nLevel, col, tArgs)
@@ -101,11 +97,6 @@ function BL_UI.OnEvent(szEvent)
 		BL.UpdateAnchor(this)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
 		UpdateCustomModeWindow(this, _L["Buff List"])
-		if szEvent == "ON_ENTER_CUSTOM_UI_MODE" then
-			bCustomMode = true
-		else
-			bCustomMode = false
-		end
 	end
 end
 
