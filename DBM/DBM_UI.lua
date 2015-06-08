@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 20:11:39
+-- @Last Modified time: 2015-06-08 20:18:41
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -183,7 +183,8 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 		Wnd.CloseWindow(Station.Lookup("Normal/DBM_DatatPanel"))
 	end
 	local function FileExist(szFile)
-		if szFile and IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile) or IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile .. ".jx3dat") then
+		szFile = szFile or ""
+		if IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile) or IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile .. ".jx3dat") then
 			return { 0, 255, 0 }
 		else
 			return { 255, 255, 0 }
