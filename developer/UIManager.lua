@@ -110,6 +110,9 @@ local function GetMeun(ui)
 				else
 					frame:Show()
 				end
+				if IsCtrlKeyDown() then
+					Wnd.CloseWindow(frame)
+				end
 			end
 		})
 	end
