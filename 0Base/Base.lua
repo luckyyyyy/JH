@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 15:25:00
+-- @Last Modified time: 2015-06-08 16:33:09
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -435,7 +435,6 @@ function JH.OnEvent(szEvent)
 	end
 end
 function JH.OnFrameDragEnd()
-	this:CorrectPos()
 	_JH.tAnchor = GetFrameAnchor(this)
 end
 function JH.OnFrameBreathe()
