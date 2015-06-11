@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 20:14:44
+-- @Last Modified time: 2015-06-11 17:31:30
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -160,25 +160,30 @@ local function InsertForceCountMenu(tMenu)
 	table.insert(tMenu, tSubMenu)
 end
 
+local function GetTeammateFrame()
+	return Station.Lookup("Normal/Teammate")
+end
+
 local function RaidPanel_Switch(bOpen)
 	local frame = Station.Lookup("Normal/RaidPanel_Main")
 	if bOpen then
 		if not frame then
-			-- OpenRaidPanel()
-		end
-		if frame then
-			frame:Show()
+			OpenRaidPanel()
 		end
 	else
 		if frame then
-			frame:Hide()
-			-- Wnd.CloseWindow(frame)
+			-- 有一点问题 会被加呼吸 根据判断
+			if not GetTeammateFrame() then
+				Wnd.OpenWindow("Teammate")
+			end
+			CloseRaidPanel()
+			Wnd.CloseWindow("Teammate")
 		end
 	end
 end
 
 local function TeammatePanel_Switch(bOpen)
-	local hFrame = Station.Lookup("Normal/Teammate")
+	local hFrame = GetTeammateFrame()
 	if hFrame then
 		if bOpen then
 			hFrame:Show()
@@ -244,7 +249,7 @@ local function CloseCataclysmPanel()
 	end
 end
 
-local function CheckCataclysmEnable()
+local function CheckCataclysmEnable(szEvent)
 	local me = GetClientPlayer()
 	if not Cataclysm_Main.bRaidEnable then
 		return CloseCataclysmPanel()
@@ -256,6 +261,9 @@ local function CheckCataclysmEnable()
 		return CloseCataclysmPanel()
 	end
 	OpenCataclysmPanel()
+	UpdateLootImages()
+	Grid_CTM:CloseParty()
+	Grid_CTM:ReloadParty()
 end
 
 local function UpdateAnchor(frame)
@@ -317,9 +325,6 @@ function Cataclysm_Main.OnFrameCreate()
 	end
 	SetFrameSize(true)
 	this:EnableDrag(Cataclysm_Main.bDrag)
-	UpdateLootImages()
-	Grid_CTM:CloseParty()
-	Grid_CTM:ReloadParty()
 end
 -------------------------------------------------
 -- 拖动窗体 OnFrameDrag对于较大的窗口 掉帧严重
@@ -364,14 +369,8 @@ function Cataclysm_Main.OnEvent(szEvent)
 				Grid_CTM:AutoLinkAllPanel()
 			end
 		end
-		-- JH.DelayCall(1000, function()
-		-- 	collectgarbage("collect")
-		-- end)
 	elseif szEvent == "PARTY_DISBAND" then
 		CloseCataclysmPanel()
-		-- JH.DelayCall(1000, function()
-		-- 	collectgarbage("collect")
-		-- end)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_LMR" then
 		Grid_CTM:CallDrawHPMP(arg1, true)
 	elseif szEvent == "PARTY_UPDATE_MEMBER_INFO" then
