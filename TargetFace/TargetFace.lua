@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-09 13:52:08
+-- @Last Modified time: 2015-06-11 18:06:33
 local _L = JH.LoadLangPack
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
@@ -208,12 +208,12 @@ _TargetFace.OnBreathe = function()
 	_t.bReRender = false
 end
 
-_Direction.OpenPanel = function()
+function _Direction.OpenPanel()
 	local frame = _Direction.frame or Wnd.OpenWindow(_Direction.szIniFile,"Direction")
 	return frame
 end
 
-_Direction.ClosePanel = function()
+function _Direction.ClosePanel()
 	Wnd.CloseWindow(_Direction.frame)
 	_Direction.frame = nil
 	_Direction.Arrow = nil
@@ -245,7 +245,7 @@ function Direction.OnFrameDragEnd()
 	TargetFace.tAnchor = GetFrameAnchor(this)
 end
 
-_Direction.UpdateAnchor = function(frame)
+function _Direction.UpdateAnchor(frame)
 	local a = TargetFace.tAnchor
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
@@ -255,7 +255,7 @@ _Direction.UpdateAnchor = function(frame)
 	frame:CorrectPos()
 end
 
-_Direction.UpdateGPS = function(tar)
+function _Direction.UpdateGPS(tar)
 	local me = GetClientPlayer()
 	if tar.nX == me.nX then
 		_Direction.Arrow:SetRotate(4.7)
@@ -278,12 +278,12 @@ _Direction.UpdateGPS = function(tar)
 end
 -- 仇恨
 
-_Hatred.OpenPanel = function()
+function _Hatred.OpenPanel()
 	local frame = _Hatred.frame or Wnd.OpenWindow(_Hatred.szIniFile,"Hatred")
 	return frame
 end
 
-_Hatred.ClosePanel = function()
+function _Hatred.ClosePanel()
 	Wnd.CloseWindow(_Hatred.frame)
 	JH.BreatheCall("Hatred")
 	_Hatred.dwTarget = 0
@@ -312,16 +312,10 @@ function Hatred.OnEvent(szEvent)
 		_Hatred.UpdateAnchor(this)
 	elseif szEvent == "TARGET_CHANGE" then
 		_Hatred.UpdateAnchor(this)
-		if Target_GetTargetData() then
-			local dwID, dwType = Target_GetTargetData()
-			if dwType == TARGET.NPC then
-				_Hatred.dwTarget = dwID
-				JH.BreatheCall("Hatred", function() ApplyCharacterThreatRankList(dwID) end)
-			else
-				_Hatred.dwTarget = 0
-				this:Hide()
-				JH.BreatheCall("Hatred")
-			end
+		local dwID, dwType = Target_GetTargetData()
+		if dwType == TARGET.NPC then
+			_Hatred.dwTarget = dwID
+			JH.BreatheCall("Hatred", function() ApplyCharacterThreatRankList(dwID) end)
 		else
 			_Hatred.dwTarget = 0
 			this:Hide()
@@ -365,7 +359,7 @@ function Hatred.OnFrameDragEnd()
 	_Hatred.UpdateAnchor(this)
 end
 
-_Hatred.UpdateAnchor = function(frame)
+function _Hatred.UpdateAnchor(frame)
 	local target = Station.Lookup("Normal/Target")
 	if target then
 		local tX,tY = target:GetRelPos()

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 17:09:36
+-- @Last Modified time: 2015-06-11 19:58:45
 local _L = JH.LoadLangPack
 
 TS = {
@@ -283,7 +283,7 @@ end
 -- 4) 反馈的列表中不存在当前目标 fixed
 function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 	local team = GetClientTeam()
-	local tThreat, nTopRank, nMyRank = {}, 65535, 0
+	local tThreat, tRank, tMyRank, nTopRank = {}, {}, {}, 1
 	-- 修复arg2反馈不准 当前目标才修复 非当前目标也不准。。
 	local dwID, dwType = Target_GetTargetData()
 	if dwID == dwApplyID and dwType == TARGET.NPC then
@@ -297,19 +297,15 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 	end
 	-- 重构用于排序
 	for k, v in pairs(tList) do
-		if dwTargetID == k then
-			if v ~= 0 then -- 1仇永远不能是0
-				nTopRank = v
-			end
-			table.insert(tThreat, 1, { id = k, val = nTopRank })
-		else
-			table.insert(tThreat, { id = k, val = v })
-		end
-		if k == UI_GetClientPlayerID() then
-			nMyRank = v
+		table.insert(tThreat, { id = k, val = v })
+	end
+	table.sort(tThreat, function(a, b) return a.val > b.val end) -- 进行排序
+	for k, v in ipairs(tThreat) do
+		v.sort = k
+		if v.id == UI_GetClientPlayerID() then
+			tMyRank = v
 		end
 	end
-
 	_TS.bg:SetSize(240, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:SetSize(240, 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
@@ -318,18 +314,21 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 		this:Show()
 		if #tThreat >= 2 then
 			if TS.bTopTarget and tList[dwTargetID] then
-				local _t = tThreat[1]
-				table.remove(tThreat, 1)
-				table.sort(tThreat, function(a, b) return a.val > b.val end)
-				table.insert(tThreat, 1, _t)
-			else
-				table.sort(tThreat, function(a, b) return a.val > b.val end)
+				for k, v in ipairs(tThreat) do
+					if v.id == dwTargetID then
+						table.insert(tThreat, 1, table.remove(tThreat, k))
+						break
+					end
+				end
 			end
 		end
-		-- 我就说 这坑爹的 血战测出来的bug
-		if not tList[dwTargetID] then
+
+		if tThreat[1].val ~= 0 then
 			nTopRank = tThreat[1].val
+		else
+			tThreat[1].val = nTopRank -- 修正一些无仇恨的技能，这样单人会显示0%，很不好看。
 		end
+
 		local dat = _TS.tStyle[TS.nStyle] or _TS.tStyle[1]
 		local show = false
 		for k, v in ipairs(tThreat) do
@@ -346,7 +345,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 				_TS.bSelfTreatRank = v.val / nTopRank
 				show = true
 			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- 始终显示自己的
-				v.id, v.val = UI_GetClientPlayerID(), nMyRank
+				v = tMyRank
 			end
 
 			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
@@ -386,7 +385,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 					szName = GetTemplateName(p, true)
 				end
 			end
-			item:Lookup("Text_ThreatName"):SetText(szName)
+			item:Lookup("Text_ThreatName"):SetText(v.sort .. "." .. szName)
 			item:Lookup("Text_ThreatName"):SetFontScheme(dat[6][1])
 			item:Lookup("Text_ThreatName"):SetFontColor(r, g, b)
 			if TS.bForceIcon then
