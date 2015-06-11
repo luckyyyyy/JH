@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-16 17:34:22
+-- @Last Modified time: 2015-06-09 13:52:08
 local _L = JH.LoadLangPack
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字

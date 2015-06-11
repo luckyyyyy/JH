@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 12:23:38
+-- @Last Modified time: 2015-06-11 11:51:01
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -111,11 +111,15 @@ function DBM.OnFrameCreate()
 	this:RegisterEvent("DBM_NPC_FIGHT")
 	this:RegisterEvent("DBM_NPC_ALLLEAVE_SCENE")
 	this:RegisterEvent("DBM_NPC_LIFE_CHANGE")
+	this:RegisterEvent("DBM_SET_MARK")
 	this:RegisterEvent("PARTY_SET_MARK")
 end
 
 function DBM.OnFrameBreathe()
 	D.CheckNpcState()
+end
+
+function DBM.OnFrameRender()
 end
 
 function DBM.OnEvent(szEvent)
@@ -138,7 +142,7 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "DO_SKILL_CAST" then
 		D.OnSkillCast(arg0, arg1, arg2, szEvent)
-	elseif szEvent == "PARTY_SET_MARK" then
+	elseif szEvent == "PARTY_SET_MARK" or szEvent == "DBM_SET_MARK" then
 		if #DBM_MARK_QUEUE >= 1 then
 			local r = table.remove(DBM_MARK_QUEUE, 1)
 			local res, err = pcall(r.fnAction)
@@ -179,15 +183,15 @@ function D.Log(szMsg)
 	Log("[DBM] " .. szMsg)
 end
 -- 选代器 倒序
-local function fnBpairs(table, nIndex)
+local function fnBpairs(tab, nIndex)
 	nIndex = nIndex - 1
 	if nIndex > 0 then
-		return nIndex, table[nIndex]
+		return nIndex, tab[nIndex]
 	end
 end
 
-function D.Bpairs(table)
-	return fnBpairs, table, #table + 1
+function D.Bpairs(tab)
+	return fnBpairs, tab, #tab + 1
 end
 
 function D.OutputWhisper(szText)
@@ -378,10 +382,8 @@ end
 
 -- 智能标记逻辑
 function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
+	if not JH.IsMark() then return end
 	local fnAction = function()
-		if not JH.IsMark() then
-			return
-		end
 		local team = GetClientTeam()
 		local tTeamMark, tMarkList = team.GetTeamMark(), {} -- tmd 什么鬼结构。。。
 		for k, v in pairs(tTeamMark) do
@@ -390,17 +392,10 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 		if szType == "NPC" then
 			for k, v in ipairs(tMark) do
 				if v then
-					if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
-						break
-					end
-					local p = GetNpc(tMarkList[k] or 0)
-					if not tMarkList[k] or tMarkList[k] == 0 or not p then
-						team.SetTeamMark(k, dwCharacterID)
-						break
-					elseif p then
-						if p.dwTemplateID ~= dwID then
-							team.SetTeamMark(k, dwCharacterID)
-							break
+					if not tMarkList[k] or tMarkList[k] == 0 or (tMarkList[k] and tMarkList[k] ~= dwCharacterID) then
+						local p = tMarkList[k] and GetNpc(tMarkList[k])
+						if not p or (p and p.dwTemplateID ~= dwID) then
+							return team.SetTeamMark(k, dwCharacterID)
 						end
 					end
 				end
@@ -408,46 +403,34 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 		elseif szType == "BUFF" or szType == "DEBUFF" then
 			for k, v in ipairs(tMark) do
 				if v then
-					if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
-						break
-					end
-					local bMark = false
-					if tMarkList[k] and tMarkList[k] ~= 0 then
-						local p = IsPlayer(tMarkList[k]) and GetPlayer(tMarkList[k]) or GetNpc(tMarkList[k])
-						if p then
-							if not JH.GetBuff(dwID, p) then
-								bMark = true
-							end
-						else
-							bMark = true
+					if not tMarkList[k] or tMarkList[k] == 0 or (tMarkList[k] and tMarkList[k] ~= dwCharacterID) then
+						local p
+						if tMarkList[k] then
+							p = IsPlayer(tMarkList[k]) and GetPlayer(tMarkList[k]) or GetNpc(tMarkList[k])
 						end
-					else
-						bMark = true
-					end
-					if bMark then
-						team.SetTeamMark(k, dwCharacterID)
-						break
+						if not p or (p and not JH.GetBuff(dwID, p)) then
+							return team.SetTeamMark(k, dwCharacterID)
+						end
 					end
 				end
 			end
 		elseif szType == "CASTING" then
 			for k, v in ipairs(tMark) do
 				if v then
-					if tMarkList[k] and tMarkList[k] ==	dwCharacterID then
-						break
+					if not tMarkList[k] or (tMarkList[k] and tMarkList[k] ~= dwCharacterID) then
+						return team.SetTeamMark(k, dwCharacterID)
 					end
-					team.SetTeamMark(k, dwCharacterID)
-					break
 				end
 			end
 		end
+		FireUIEvent("DBM_SET_MARK", false) -- 标记失败的案例
 	end
 	tinsert(DBM_MARK_QUEUE, { fnAction = fnAction })
 	if DBM_MARK_FIRST then
+		DBM_MARK_FIRST = false
 		local f = table.remove(DBM_MARK_QUEUE, 1)
 		pcall(f.fnAction)
 	end
-	DBM_MARK_FIRST = false
 end
 -- 倒计时处理 支持定义无限的倒计时
 function D.FireCountdownEvent(data, nClass)

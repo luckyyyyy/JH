@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 16:20:43
+-- @Last Modified time: 2015-06-10 12:48:50
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -2654,14 +2654,14 @@ RegisterEvent("GKP_DISTRIBUTE_ITEM", function()
 end)
 
 RegisterEvent("SYNC_LOOT_LIST", function()
-	if _GKP.dwOpenID == arg0 and Station.Lookup("Normal/GKP_Loot") and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
+	local frame = Station.Lookup("Normal/GKP_Loot")
+	if _GKP.dwOpenID == arg0 and frame and frame:IsVisible() then
 		_GKP.OpenDoodad(arg0)
 	end
-	if JH.IsInDungeon() and JH_About.CheckNameEx() and GKP.bDebug2 and not _GKP.aDoodadCache[arg0] and not Station.Lookup("Normal/GKP_Loot") then
+	if JH.bDebugClient and GKP.bDebug2 and JH.IsInDungeon() and not _GKP.aDoodadCache[arg0] and not frame then
 		_GKP.OpenDoodad(arg0)
 	end
 	_GKP._OpenDoodad(arg0)
-	JH.Debug("SYNC_LOOT_LIST " .. arg0)
 end)
 
 RegisterEvent("OPEN_DOODAD", function()

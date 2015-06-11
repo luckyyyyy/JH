@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 17:53:23
+-- @Last Modified time: 2015-06-10 12:47:46
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1230,9 +1230,9 @@ function JH.WalkAllBuff(tar, fnAction)
 	end
 end
 
-function JH.SaveLUAData(szPath, data)
+function JH.SaveLUAData(szPath, ...)
 	local nTime = GetTime()
-	SaveLUAData(DATA_PATH .. szPath, data)
+	SaveLUAData(DATA_PATH .. szPath, ...)
 	JH.Debug3(_L["SaveLUAData # "] ..  DATA_PATH .. szPath .. " " .. GetTime() - nTime .. "ms")
 end
 

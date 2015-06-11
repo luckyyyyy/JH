@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-05 17:22:18
+-- @Last Modified time: 2015-06-09 09:53:02
 local _L = JH.LoadLangPack
 local TeamAD = {
 	szDataFile = "TeamAD.jx3dat",
@@ -63,7 +63,7 @@ TeamAD.PS.OnPanelActive = function(frame)
 			if #TeamAD.tADList == 18 then return end
 			table.insert(TeamAD.tADList,{key = txt,txt = ad,ad = data})
 			TeamAD.SetEdit(TeamAD.edit,data)
-			JH.SaveLUAData(TeamAD.szDataFile,TeamAD.tADList)
+			JH.SaveLUAData(TeamAD.szDataFile,TeamAD.tADList, "\t")
 			JH.OpenPanel(_L["TeamAD"])
 		end,nil,nil,nil,nil,5)
 	end):Pos_()
@@ -114,7 +114,7 @@ TeamAD.PS.OnPanelActive = function(frame)
 			local txt = GUI(this):Text()
 			if IsCtrlKeyDown() then
 				table.remove(TeamAD.tADList,k)
-				JH.SaveLUAData(TeamAD.szDataFile,TeamAD.tADList)
+				JH.SaveLUAData(TeamAD.szDataFile,TeamAD.tADList, "\t")
 				JH.OpenPanel(_L["TeamAD"])
 			else
 				local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")

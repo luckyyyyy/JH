@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 15:44:58
+-- @Last Modified time: 2015-06-11 16:41:31
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -647,7 +647,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 		if CFG.nShowIcon ~= 4 then
 			if CFG.nShowIcon == 2 then
 				local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
-				if nIconID == 13 then nIconID = 537 end -- _(:з」∠)_
+				if nIconID == 1435 then nIconID = 537 end -- _(:з」∠)_
 				img:FromIconID(nIconID)
 			elseif CFG.nShowIcon == 1 then
 				img:FromUITex(GetForceImage(info.dwForceID))
@@ -931,7 +931,7 @@ function CTM:RefresBuff()
 							local KBuff = GetBuff(dwID, p)
 							if KBuff then
 								if CFG.bShowBuffTime then
-									local nTime = GetEndTime(KBuff.nEndFrame)
+									local nTime = GetEndTime(KBuff.GetEndTime())
 									if nTime < 5 then
 										if nTime >= 0 then
 											hBox:SetOverTextFontScheme(0, 219)

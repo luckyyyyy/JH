@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 17:13:13
+-- @Last Modified time: 2015-06-11 10:54:26
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -753,11 +753,6 @@ function WorldMark.GetEvent()
 		return
 			{ "DO_SKILL_CAST", function()
 				WorldMark.OnCast(arg1)
-			end },
-			{ "SYS_MSG", function()
-				if arg0 == "UI_OME_SKILL_HIT_LOG" and arg3 == SKILL_EFFECT_TYPE.SKILL then
-					WorldMark.OnCast(arg4)
-				end
 			end },
 			{ "NPC_ENTER_SCENE", WorldMark.OnNpcEvent },
 			{ "LOADING_END", function()
