@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 21:12:48
+-- @Last Modified time: 2015-06-09 15:31:58
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -403,7 +403,7 @@ function DBMUI.SetBuffItemAction(h, dat)
 	if dat.col then
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
 	end
-	local nSec = GetBuffTime(dat.dwID, dat.nLevel)
+	local nSec = select(3, GetBuffTime(dat.dwID, dat.nLevel))
 	if not nSec then
 		h:Lookup("Text_R"):SetText("N/A")
 	elseif nSec > 24 * 60 * 60 / GLOBAL.GAME_FPS then
