@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-11 18:06:33
+-- @Last Modified time: 2015-06-12 21:02:28
 local _L = JH.LoadLangPack
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
@@ -566,7 +566,7 @@ JH.RegisterInit("TargetFace",
 	{ "TARGET_CHANGE", function() _TargetFace.bReRender = true end },
 	{ "LOADING_END", function() _TargetFace.bReRender = true end }
 )
-GUI.RegisterPanel(_L["TargetFace"], 3565, g_tStrings.CHANNEL_CHANNEL, PS)
+GUI.RegisterPanel(_L["TargetFace"], { "ui/Image/TargetPanel/Target.uitex", 47 }, g_tStrings.CHANNEL_CHANNEL, PS)
 local function GetTargetID()
 	return _TargetFace.tCache.dwTargetID
 end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:49:27
+-- @Last Modified time: 2015-06-12 21:07:58
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -168,7 +168,7 @@ function _JH_About.PS.OnTaboxCheck(frame)
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { GetItemFontColorByQuality(col[time.weekday]) }, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 }):Pos_()
 end
 
-GUI.RegisterPanel(_L["About"], 252, _L["Recreation"], _JH_About.PS)
+GUI.RegisterPanel(_L["About"], { "ui/Image/UICommon/PlugIn.uitex", 5 }, _L["Recreation"], _JH_About.PS)
 
 JH.RegisterEvent("CALL_LUA_ERROR", function()
 	if JH.bDebug then

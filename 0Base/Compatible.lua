@@ -1,9 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 16:36:37
+-- @Last Modified time: 2015-06-12 19:25:48
 
-DBM_TYPE     = {
+DBM_TYPE = {
 	OTHER        = 0,
 	BUFF_GET     = 1,
 	BUFF_LOSE    = 2,
@@ -59,6 +59,38 @@ setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)
 		end
 	end
 end })
+
+JH_FORCE_COLOR = {
+	[0]  = { 255, 255, 255 },
+	[1]  = { 255, 178, 95  },
+	[2]  = { 196, 152, 255 },
+	[3]  = { 255, 111, 83  },
+	[4]  = { 89,  224, 232 },
+	[5]  = { 255, 129, 176 },
+	[6]  = { 55,  147, 255 },
+	[7]  = { 121, 183, 54  },
+	[8]  = { 214, 249, 93  },
+	[9]  = { 205, 133, 63  },
+	[10] = { 240, 70,  96  },
+	[21] = { 180, 60,  0   }
+}
+
+setmetatable(JH_FORCE_COLOR, { __index = function()
+	return 192, 192, 192
+end})
+
+JH_TALK_CHANNEL_HEADER = {
+	[PLAYER_TALK_CHANNEL.NEARBY]        = "/s ",
+	[PLAYER_TALK_CHANNEL.FRIENDS]       = "/o ",
+	[PLAYER_TALK_CHANNEL.TONG_ALLIANCE] = "/a ",
+	[PLAYER_TALK_CHANNEL.RAID]          = "/t ",
+	[PLAYER_TALK_CHANNEL.BATTLE_FIELD]  = "/b ",
+	[PLAYER_TALK_CHANNEL.TONG]          = "/g ",
+	[PLAYER_TALK_CHANNEL.SENCE]         = "/y ",
+	[PLAYER_TALK_CHANNEL.FORCE]         = "/f ",
+	[PLAYER_TALK_CHANNEL.CAMP]          = "/c ",
+	[PLAYER_TALK_CHANNEL.WORLD]         = "/h ",
+}
 
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {

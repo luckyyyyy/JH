@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-10 12:47:46
+-- @Last Modified time: 2015-06-12 20:57:37
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -67,9 +67,9 @@ setmetatable(g_sound, {
 -- 插件开始
 ---------------------------------------------------------------------
 JH = {
-	bDebug = false,
-	bDebugClient = false,
-	nChannel = PLAYER_TALK_CHANNEL.RAID,
+	bDebug       = false, -- debug
+	bDebugClient = false, -- 测试客户端版本
+	nChannel     = PLAYER_TALK_CHANNEL.RAID, -- JH.Talk默认频道
 }
 RegisterCustomData("JH.bDebug")
 RegisterCustomData("JH.nChannel") -- 方便debug切到TONG
@@ -114,32 +114,6 @@ local _JH = {
 	tOption2       = { szOption = _L["JH"] },
 	tClass         = { _L["General"], _L["RGES"], _L["Other"] },
 	szIniFile      = ROOT_PATH .. "JH.ini",
-	tTalkChannelHeader = {
-		[PLAYER_TALK_CHANNEL.NEARBY]        = "/s ",
-		[PLAYER_TALK_CHANNEL.FRIENDS]       = "/o ",
-		[PLAYER_TALK_CHANNEL.TONG_ALLIANCE] = "/a ",
-		[PLAYER_TALK_CHANNEL.RAID]          = "/t ",
-		[PLAYER_TALK_CHANNEL.BATTLE_FIELD]  = "/b ",
-		[PLAYER_TALK_CHANNEL.TONG]          = "/g ",
-		[PLAYER_TALK_CHANNEL.SENCE]         = "/y ",
-		[PLAYER_TALK_CHANNEL.FORCE]         = "/f ",
-		[PLAYER_TALK_CHANNEL.CAMP]          = "/c ",
-		[PLAYER_TALK_CHANNEL.WORLD]         = "/h ",
-	},
-	tForceCol = {
-		[0]  = { 255, 255, 255 },
-		[1]  = { 255, 178, 95  },
-		[2]  = { 196, 152, 255 },
-		[3]  = { 255, 111, 83  },
-		[4]  = { 89,  224, 232 },
-		[5]  = { 255, 129, 176 },
-		[6]  = { 55,  147, 255 },
-		[7]  = { 121, 183, 54  },
-		[8]  = { 214, 249, 93  },
-		[9]  = { 205, 133, 63  },
-		[10] = { 240, 70,  96  },
-		[21] = { 180, 60,  0   }
-	},
 }
 
 local JH = JH
@@ -282,23 +256,6 @@ end
 -------------------------------------
 -- 更新设置面板界面
 -------------------------------------
--- update scrollbar
-function _JH.UpdateListScroll()
-	local handle, scroll = _JH.hList, _JH.hScroll
-	local w, h = handle:GetSize()
-	local wA, hA = handle:GetAllItemSize()
-	local nStep = mceil((hA - h) / 10)
-	scroll:SetStepCount(nStep)
-	if nStep > 0 then
-		scroll:Show()
-		scroll:GetParent():Lookup("Btn_Up"):Show()
-		scroll:GetParent():Lookup("Btn_Down"):Show()
-	else
-		scroll:Hide()
-		scroll:GetParent():Lookup("Btn_Up"):Hide()
-		scroll:GetParent():Lookup("Btn_Down"):Hide()
-	end
-end
 
 -- updae detail content
 function _JH.UpdateDetail(i, data)
@@ -351,16 +308,14 @@ end
 
 -- update menu list
 function _JH.UpdateListInfo(nIndex)
-	local nX, nY = 0, 14
+	local nX, nY = 0, 0
 	_JH.hList:Clear()
-	_JH.hScroll:ScrollHome()
 	_JH.UpdateDetail(nIndex)
 	for k, v in ipairs(_JH.tItem[nIndex]) do
 		local item = _JH.NewListItem(k, v, nIndex)
 		item:Pos(nX, nY)
-		nY = nY + 50
+		nY = nY + 55
 	end
-	_JH.UpdateListScroll()
 end
 
 -- update tab list
@@ -416,8 +371,7 @@ function JH.OnFrameCreate()
 	-- var
 	_JH.frame = this
 	_JH.hTotal = this:Lookup("Wnd_Content", "")
-	_JH.hScroll = this:Lookup("Wnd_Content/Scroll_List")
-	_JH.hList = _JH.hTotal:Lookup("Handle_List")
+	_JH.hList = this:Lookup("Wnd_Content/WndScroll_List", "")
 	_JH.hContent = _JH.hTotal:Lookup("Handle_Content")
 	_JH.hBox = _JH.hTotal:Lookup("Box_1")
 	-- title
@@ -500,30 +454,7 @@ function JH.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Close" then
 		_JH.ClosePanel()
-	elseif szName == "Btn_Up" then
-		_JH.hScroll:ScrollPrev(1)
-	elseif szName == "Btn_Down" then
-		_JH.hScroll:ScrollNext(1)
 	end
-end
--- scrolls
-function JH.OnScrollBarPosChanged()
-	if this:GetName() ~= "Scroll_List" then -- 界面里面的也连带滚动了
-		return
-	end
-	local handle, frame = _JH.hList, this:GetParent()
-	local nPos = this:GetScrollPos()
-	if nPos == 0 then
-		frame:Lookup("Btn_Up"):Enable(0)
-	else
-		frame:Lookup("Btn_Up"):Enable(1)
-	end
-	if nPos == this:GetStepCount() then
-		frame:Lookup("Btn_Down"):Enable(0)
-	else
-		frame:Lookup("Btn_Down"):Enable(1)
-	end
-    handle:SetItemStartRelPos(0, - nPos * 10)
 end
 
 --------------------------------------- * 常用函数 * ---------------------------------------
@@ -672,11 +603,7 @@ function JH.UnRegisterInit(key)
 end
 
 function JH.GetForceColor(dwForce)
-	if _JH.tForceCol[dwForce] then
-		return unpack(_JH.tForceCol[dwForce])
-	else
-		return 255, 255, 255
-	end
+	return unpack(JH_FORCE_COLOR[dwForce])
 end
 
 function JH.CanTalk(nChannel)
@@ -689,7 +616,7 @@ function JH.CanTalk(nChannel)
 end
 
 function JH.SwitchChat(nChannel)
-	local szHeader = _JH.tTalkChannelHeader[nChannel]
+	local szHeader = JH_TALK_CHANNEL_HEADER[nChannel]
 	if szHeader then
 		SwitchChatChannel(szHeader)
 	elseif type(nChannel) == "string" then
@@ -2581,8 +2508,8 @@ function _GUI.Item:Select()
 							local icon = hnd:Lookup("Image_BoxIco")
 							local nW, nH = icon:GetSize()
 							local nX, nY = icon:GetRelPos()
-							icon:SetSize(nW + 8, nH + 8)
-							icon:SetRelPos(nX - 3, nY - 5)
+							icon:SetSize(nW + 6, nH + 6)
+							icon:SetRelPos(nX - 3, nY - 3)
 							hnd:FormatAllItemPos()
 						else
 							self.img:Show()
@@ -2602,8 +2529,8 @@ function _GUI.Item:Select()
 						local icon = item.self:Lookup("Image_BoxIco")
 						local nW, nH = icon:GetSize()
 						local nX, nY = icon:GetRelPos()
-						icon:SetSize(nW - 8, nH - 8)
-						icon:SetRelPos(nX + 3, nY + 5)
+						icon:SetSize(nW - 6, nH - 6)
+						icon:SetRelPos(nX + 3, nY + 3)
 						item.self:FormatAllItemPos()
 					else
 						item.img:Hide()
@@ -2748,7 +2675,11 @@ end
 -- NOTICE：only for Box，Image，BoxButton
 function _GUI.Item:Icon(dwIcon)
 	if self.type == "BoxButton" or self.type == "Image" then
-		self.img:FromIconID(dwIcon)
+		if type(dwIcon) == "number" then
+			self.img:FromIconID(dwIcon)
+		elseif type(dwIcon) == "table" then
+			self.img:FromUITex(unpack(dwIcon))
+		end
 	elseif self.type == "Box" then
 		self.self:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 		self.self:SetObjectIcon(dwIcon)
