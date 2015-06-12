@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 16:54:23
+-- @Last Modified time: 2015-06-12 21:23:32
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -548,7 +548,7 @@ function PS.OnPanelActive(frame)
 		i = i + 1
 	end
 end
-GUI.RegisterPanel(_L["SkillCD"], 13, _L["Dungeon"], PS)
+GUI.RegisterPanel(_L["SkillCD"], 889, _L["Dungeon"], PS)
 
 JH.RegisterEvent("LOADING_END", function()
 	if not SkillCD.bEnable then return end

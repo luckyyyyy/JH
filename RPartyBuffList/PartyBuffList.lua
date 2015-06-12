@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:43:13
+-- @Last Modified time: 2015-06-12 21:23:11
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -280,5 +280,5 @@ function PS.OnPanelActive(frame)
 	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 40, multi = true, txt = _L["PartyBuffList_TIPS"] }):Pos_()
 end
 
-GUI.RegisterPanel(_L["PartyBuffList"], 1453, _L["Dungeon"], PS)
+GUI.RegisterPanel(_L["PartyBuffList"], 1451, _L["Dungeon"], PS)
 JH.RegisterEvent("LOGIN_GAME", PBL.OpenPanel)

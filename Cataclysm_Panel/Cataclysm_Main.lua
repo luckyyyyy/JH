@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-11 17:31:30
+-- @Last Modified time: 2015-06-12 21:12:13
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -803,7 +803,7 @@ function PS.OnPanelActive(frame)
 		end
 	end)
 end
-GUI.RegisterPanel(_L["Cataclysm"], 5389, _L["Panel"], PS)
+GUI.RegisterPanel(_L["Cataclysm"], { "ui/Image/UICommon/RaidTotal.uitex", 62 }, _L["Panel"], PS)
 
 local PS2 = {}
 function PS2.OnPanelActive(frame)
@@ -981,7 +981,7 @@ function PS2.OnPanelActive(frame)
 	end):Pos_()
 
 end
-GUI.RegisterPanel(_L["Grid Style"], 6233, _L["Panel"], PS2)
+GUI.RegisterPanel(_L["Grid Style"], { "ui/Image/UICommon/RaidTotal.uitex", 68 }, _L["Panel"], PS2)
 
 local PS3 = {}
 function PS3.OnPanelActive(frame)
@@ -1075,7 +1075,7 @@ function PS3.OnPanelActive(frame)
 		end
 	end):Pos_()
 end
-GUI.RegisterPanel(_L["Interface settings"], 6060, _L["Panel"], PS3)
+GUI.RegisterPanel(_L["Interface settings"], { "ui/Image/UICommon/RaidTotal.uitex", 71 }, _L["Panel"], PS3)
 
 -- ½âÎö
 local function GetListText(tab)
@@ -1140,7 +1140,7 @@ function PS4.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Tips"], font = 27 }):Pos_()
 	ui:Append("Text", { x = 10, y = nY + 5, txt = _L["Cataclysm_TIPS"], w = 500, h = 60 , multi = true }):Pos_()
 end
-GUI.RegisterPanel(_L["Buff settings"], 1498, _L["Panel"], PS4)
+GUI.RegisterPanel(_L["Buff settings"], { "ui/Image/UICommon/RaidTotal.uitex", 74 }, _L["Panel"], PS4)
 
 
 JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", function()

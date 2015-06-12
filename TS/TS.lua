@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-11 19:58:45
+-- @Last Modified time: 2015-06-12 21:05:57
 local _L = JH.LoadLangPack
 
 TS = {
@@ -534,7 +534,7 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Style folder:"] .. JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat" }):Pos_()
 end
 
-GUI.RegisterPanel(g_tStrings.HATRED_COLLECT, 2047, g_tStrings.CHANNEL_CHANNEL, PS)
+GUI.RegisterPanel(g_tStrings.HATRED_COLLECT, 632, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("LOADING_END", function()
 	if not TS.bEnable then return end
