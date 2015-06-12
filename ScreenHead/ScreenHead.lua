@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:39:08
+-- @Last Modified time: 2015-06-12 21:33:24
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -512,4 +512,4 @@ JH.RegisterInit("ScreenHead",
 	end }
 )
 
-GUI.RegisterPanel(_L["HeadAlert"], 2789, _L["Dungeon"], PS)
+GUI.RegisterPanel(_L["HeadAlert"], 431, _L["Dungeon"], PS)

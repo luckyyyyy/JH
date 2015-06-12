@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-09 15:31:58
+-- @Last Modified time: 2015-06-12 10:03:46
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -506,7 +506,7 @@ end
 
 function DBMUI.SetTalkItemAction(h, t, i)
 	h:Lookup("Text_Name"):SetText(t.szTarget or _L["Warning Box"])
-	if not t.szTarget then
+	if not t.szTarget or t.szTarget == "%" then -- system and %%
 		h:Lookup("Text_Name"):SetFontColor(255, 255, 0)
 	end
 	h:Lookup("Text_Content"):SetText(t.szContent)

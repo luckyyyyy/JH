@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-06 08:17:26
+-- @Last Modified time: 2015-06-12 09:52:53
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -322,7 +322,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 			if err then
 				return JH.Alert(_L["update failed! Please try again."])
 			end
-			SaveLUAData(szPath .. szFileName, tab) -- 缓存文件
+			SaveLUAData(szPath .. szFileName, tab, nil, false) -- 缓存文件
 			fnAction(szFileName)
 		end)
 	end

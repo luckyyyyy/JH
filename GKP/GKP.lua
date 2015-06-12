@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-10 12:48:50
+-- @Last Modified time: 2015-06-12 20:47:40
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -833,7 +833,7 @@ PS.OnPanelActive = function(frame)
 		end)
 	end
 end
-GUI.RegisterPanel(_L["GKP Golden Team Record"], 95, g_tStrings.CHANNEL_CHANNEL, PS)
+GUI.RegisterPanel(_L["GKP Golden Team Record"], { "ui/Image/Common/Money.uitex", 15 }, g_tStrings.CHANNEL_CHANNEL, PS)
 
 
 _GKP.GetSettingMenu = function()

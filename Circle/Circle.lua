@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-09 13:52:16
+-- @Last Modified time: 2015-06-12 21:14:00
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1319,7 +1319,7 @@ function PS.OnPanelActive(frame)
 	FireUIEvent("CIRCLE_DRAW_UI")
 end
 
-GUI.RegisterPanel(_L["Circle"], 2673, _L["Dungeon"], PS)
+GUI.RegisterPanel(_L["Circle"], { "ui/Image/UICommon/RaidTotal.uitex", 50 }, _L["Dungeon"], PS)
 
 function C.Init()
 	JH.RegisterInit("Circle",
