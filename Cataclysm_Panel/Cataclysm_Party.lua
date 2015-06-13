@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-11 16:41:31
+-- @Last Modified time: 2015-06-13 15:18:50
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -870,9 +870,6 @@ function CTM:RecBuff(dwMemberID, dwID, nLevel, col, nIocn, bDemo)
 		local handle = CTM_CACHE[dwMemberID]:Lookup("Handle_Buff_Boxes")
 		local nTotal = handle:GetItemCount()
 		if nTotal >= CFG.nMaxShowBuff then
-			return
-		end
-		if not Table_BuffIsVisible(dwID, nLevel) then
 			return
 		end
 		for i = 0, nTotal - 1 do

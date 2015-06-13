@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 10:03:46
+-- @Last Modified time: 2015-06-13 15:13:37
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -1380,7 +1380,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 	end
 	nX = ui:Append("WndButton2", { x = 30, y = nY + 10, txt = _L["Add Countdown"] }):Enable(not (data.tCountdown and #data.tCountdown > 10)):Click(function()
 		data.tCountdown = data.tCountdown or {}
-		table.insert(data.tCountdown, { nTime = _L["10,Countdown Name;25,Countdown Name"], nClass = -1, nIcon = nIcon ~= -1 and nIcon or 13 })
+		local icon = nIocn or 13
+		if szType == "NPC" then	icon = 13 end
+		table.insert(data.tCountdown, { nTime = _L["10,Countdown Name;25,Countdown Name"], nClass = -1, nIcon = icon })
 		DBMUI.OpenSettingPanel(data, szType)
 	end):Pos_()
 	ui:Append("WndButton2", { x = 335, y = nY + 10, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } }):Click(function()
