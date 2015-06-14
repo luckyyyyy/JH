@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:14:00
+-- @Last Modified time: 2015-06-14 21:33:05
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1013,7 +1013,7 @@ function C.OpenDataPanel(id, index)
 		a = GetFrameAnchor(Station.Lookup("Normal/C_Data"))
 		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
 	end
-	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
+	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true, focus = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
 	-- update ui = wnd
 	local ui = GUI(Station.Lookup("Normal/C_Data"))
 	local file = "ui/Image/UICommon/Feedanimials.uitex"

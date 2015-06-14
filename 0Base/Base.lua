@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 12:38:03
+-- @Last Modified time: 2015-06-14 21:37:28
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2230,22 +2230,24 @@ end
 
 -- (self) Instance:Focus()
 -- (self) Instance:Focus(func fnAction)
--- NOTICE：only for WndEdit
-function _GUI.Wnd:Focus(SetfnAction, KillfnAction)
-	if type(SetfnAction) == "function" then
-		local wnd = self.edit
-		if SetfnAction then
-			wnd.OnSetFocus = SetfnAction
+-- NOTICE：only for WndWindow, WndEdit
+function _GUI.Wnd:Focus(OnSetFocus, OnKillFocus)
+	local wnd = self.self
+	if self.type == "WndEdit" then
+		wnd = self.edit
+	end
+	if type(OnSetFocus) == "function" then
+		if OnSetFocus then
+			wnd.OnSetFocus = OnSetFocus
 		end
-		if KillfnAction then
-			wnd.OnKillFocus = KillfnAction
+		if OnKillFocus then
+			wnd.OnKillFocus = OnKillFocus
 		end
 	else
-		Station.SetFocusWindow(self.edit)
+		Station.SetFocusWindow(wnd)
 	end
 	return self
 end
-
 
 -- (self) Instance:Menu(table menu)		-- 设置下拉菜单
 -- NOTICE：only for WndComboBox
@@ -2832,7 +2834,9 @@ function GUI.CreateFrame(szName, tArg)
 	end
 	tArg = tArg or {}
 	local ui = _GUI.Frm.new(szName, tArg.empty == true)
-	Station.SetFocusWindow(ui.self)
+	if tArg.focus then
+		Station.SetFocusWindow(ui.self)
+	end
 	-- apply init setting
 	if tArg.w and tArg.h then ui:Size(tArg.w, tArg.h) end
 	if tArg.x and tArg.y then ui:Pos(tArg.x, tArg.y) end
@@ -2857,7 +2861,9 @@ function GUI.CreateFrame2(szName, tArg)
 	end
 	tArg = tArg or {}
 	local ui = _GUI.Frm2.new(szName, tArg.empty == true)
-	Station.SetFocusWindow(ui.self)
+	if tArg.focus then
+		Station.SetFocusWindow(ui.self)
+	end
 	-- apply init setting
 	if tArg.w and tArg.h then ui:Size(tArg.w, tArg.h) end
 	if tArg.x and tArg.y then ui:Pos(tArg.x, tArg.y) end
