@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-13 15:13:37
+-- @Last Modified time: 2015-06-14 21:33:37
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -931,7 +931,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 	if szType ~= "TALK" then
 		szName, nIcon = DBMUI.GetBoxInfo(szType, data)
 	end
-	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true }):RegisterClose()
+	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true, focus = true }):RegisterClose()
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")
 	local ui = GUI(frame)
 	frame:RegisterEvent("DBMUI_DATA_RELOAD")
