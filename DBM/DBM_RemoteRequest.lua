@@ -1,14 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 09:52:53
+-- @Last Modified time: 2015-06-14 13:16:32
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
 	tData = {},
 	bLogin = false,
-	uid = 0,
-	pw = 0,
 }
 
 JH.RegisterCustomData("DBM_RemoteRequest")
@@ -79,27 +77,21 @@ function DBM_RemoteRequest.OnFrameCreate()
 end
 
 function W.Login()
-	local uid =  DBM_RemoteRequest.uid
-	local pw =  DBM_RemoteRequest.pw
-	if uid == 0 or not pw then
-		GetUserInput(_L["Enter User ID"], function(szNum)
-			if not tonumber(szNum) then
-				JH.Alert(_L["Please enter numbers"])
-			else
-				uid = tonumber(szNum)
-				JH.DelayCall(50, function()
-					GetUserInput(_L["Enter password"], function(szText)
-						W.CallLogin(uid, szText)
-					end)
+	GetUserInput(_L["Enter User ID"], function(szNum)
+		if not tonumber(szNum) then
+			JH.Alert(_L["Please enter numbers"])
+		else
+			uid = tonumber(szNum)
+			JH.DelayCall(50, function()
+				GetUserInput(_L["Enter password"], function(szText)
+					W.CallLogin(uid, szText)
 				end)
-			end
-		end)
-	end
+			end)
+		end
+	end)
 end
 
 function W.Logout()
-	DBM_RemoteRequest.uid = nil
-	DBM_RemoteRequest.pw = nil
 	DBM_RemoteRequest.bLogin = false
 	W.ClosePanel()
 	W.OpenPanel()
@@ -118,13 +110,12 @@ function W.CallLogin(uid, pw, fnAction)
 		else
 			if tonumber(result['uid']) > 0 then
 				local _, _, url = string.find(result['info'], "src=\"(.-)\"")
-				JH.RemoteRequest(url) -- synclogin set cookie
-				DBM_RemoteRequest.uid = uid
-				DBM_RemoteRequest.pw = pw
-				DBM_RemoteRequest.bLogin = true
-				W.ClosePanel()
-				W.OpenPanel()
-				if fnAction then pcall(fnAction) end
+				JH.RemoteRequest(url, function()  -- synclogin set cookie
+					DBM_RemoteRequest.bLogin = true
+					W.ClosePanel()
+					W.OpenPanel()
+					if fnAction then pcall(fnAction) end
+				end)
 			else
 				W.Logout()
 				JH.Alert(result["info"])
@@ -145,7 +136,6 @@ function W.MyData()
 				DBM_RemoteRequest.bLogin = false
 				W.ClosePanel()
 				W.OpenPanel()
-				W.CallLogin(DBM_RemoteRequest.uid, DBM_RemoteRequest.pw, W.CallMyData)
 			end
 		end
 	end)
@@ -234,7 +224,9 @@ function W.AppendItem(data, k)
 			local nTime = GetCurrentTime()
 			local szDate = W.TimeToDate(data.dateline)
 			item:Lookup("Text_Download"):SetText(szDate)
-			if (nTime - data.dateline) < 86400 then
+			if (nTime - data.dateline) < 3600 then
+				item:Lookup("Text_Download"):SetFontColor(0, 255, 0)
+			elseif (nTime - data.dateline) < 86400 then
 				item:Lookup("Text_Download"):SetFontColor(255, 255, 0)
 			end
 			item.OnItemMouseEnter = function()

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-13 15:18:50
+-- @Last Modified time: 2015-06-14 15:15:19
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -590,7 +590,9 @@ function CTM:KungFuSwitch(dwID)
 				if img and img:IsValid() and player and player.GetSkillPrepareState() then
 					local bIsPrepare, dwSkillID, dwSkillLevel, nPer = player.GetSkillPrepareState()
 					local alpha = 255 * (math.abs(math.mod(nPer * 300, 32) - 7) + 4) / 12
-					img:SetAlpha(alpha)
+					if alpha <= 255 then
+						img:SetAlpha(alpha)
+					end
 				else
 					if img and img:IsValid() then
 						img:SetAlpha(255)

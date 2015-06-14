@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:02:28
+-- @Last Modified time: 2015-06-14 13:38:50
 local _L = JH.LoadLangPack
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
@@ -91,15 +91,11 @@ _TargetFace.DrawShape = function(tar, sha, nDegree, nRadius, nAlpha, col)
 		dwRad1 = dwRad1 - math.pi - math.pi
 	end
 	local dwRad2 = dwRad1 + (nDegree / 180 * math.pi)
-	-- local nAlpha2 = nAlpha / 10
 	local nStep = 18
 	if nDegree == 360 then
-		-- nAlpha, nAlpha2 = nAlpha, nAlpha
 		dwRad2 = dwRad2 + math.pi / 20
 	end
 	if nDegree <= 45 then nStep = 180 end
-	-- nAlpha, nAlpha2 = nAlpha / 2.5, nAlpha2 / 2.5
-	nAlpha = nAlpha / 2.5
 	local r, g, b = unpack(col)
 	-- orgina point
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
@@ -371,18 +367,18 @@ end
 local PS = {}
 PS.OnPanelActive = function(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("WndCheckBox", { txt = _L["Display the sector of target facing"], font = 27, checked = TargetFace.bTargetFace })
+	nX, nY = ui:Append("WndCheckBox", { txt = _L["Display the sector of target facing"], font = 27, checked = TargetFace.bTargetFace })
 	:Click(function(bChecked)
 		TargetFace.bTargetFace = bChecked
 		_TargetFace.bReRender = true
 	end):Pos_()
 	for k, v in ipairs(TargetFace.tTargetFace) do
-		nX = ui:Append("WndCheckBox", { x = 10, y = nY - 20 + 20 * k, txt = _L("Circle %d", k), checked = v.bEnable })
+		nX = ui:Append("WndCheckBox", { x = 10, y = nY - 3, txt = _L("Circle %d", k), checked = v.bEnable })
 		:Click(function(bChecked)
 			v.bEnable = bChecked
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Shadow", "Color_TargetFace2" .. k, { x = nX + 5, y = nY - 16 + 20 * k, w = 18, h = 18 })
+		nX = ui:Append("Shadow", "Color_TargetFace2" .. k, { x = nX, y = nY + 2, w = 18, h = 18 })
 		:Color(unpack(v.col)):Click(function()
 			GUI.OpenColorTablePanel(function(r, g, b)
 				ui:Fetch("Color_TargetFace2" .. k):Color(r, g, b)
@@ -390,29 +386,29 @@ PS.OnPanelActive = function(frame)
 				_TargetFace.bReRender = true
 			end)
 		end):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
 		:Text(v.nAngle):Change(function(nVal)
 			v.nAngle = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" degree"] }):Pos_()
+		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" degree"] }):Pos_()
 
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
 		:Text(v.nRadius):Change(function(nVal)
 			v.nRadius = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" feet"] }):Pos_()
-
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
-		:Text(v.nAlpha):Change(function(nVal)
-			v.nAlpha = tonumber(nVal) or 0
-			if v.nAlpha > 255 then
-				v.nAlpha = 255
+		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" feet"] }):Pos_()
+		nX, nY = ui:Append("WndComboBox", { x = nX + 2, y = nY, w = 75, h = 25, txt = g_tStrings.STR_ALPHA }):Menu(function()
+			local menu = {}
+			for kk, vv in ipairs({25, 50, 75, 100, 125, 150}) do
+				table.insert(menu, { szOption = vv, bMCheck = true, bChecked = v.nAlpha == vv, fnAction = function()
+					v.nAlpha = vv
+					_TargetFace.bReRender = true
+				end })
 			end
-			_TargetFace.bReRender = true
+			return menu
 		end):Pos_()
-		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" alpha"] }):Pos_()
 	end
 	nX,nY = ui:Append("WndCheckBox", { txt = _L["Display the sector of Self facing"], font = 27, checked = TargetFace.bSelfFace })
 	:Pos(0, 72):Click(function(bChecked)
@@ -420,39 +416,42 @@ PS.OnPanelActive = function(frame)
 		_TargetFace.bReRender = true
 	end):Pos_()
 	for k, v in ipairs(TargetFace.tSelfFace) do
-		nX = ui:Append("WndCheckBox", { x = 10, y = nY - 20 + 20 * k, txt = _L("Circle %d", k), checked = v.bEnable })
+		nX = ui:Append("WndCheckBox", { x = 10, y = nY - 3, txt = _L("Circle %d", k), checked = v.bEnable })
 		:Click(function(bChecked)
 			v.bEnable = bChecked
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Shadow", "Color_TargetFace" .. k, { x = nX + 5, y = nY - 16 + 20 * k, w = 18, h = 18 })
+		nX = ui:Append("Shadow", "Color_TargetFace2" .. k, { x = nX, y = nY + 2, w = 18, h = 18 })
 		:Color(unpack(v.col)):Click(function()
 			GUI.OpenColorTablePanel(function(r, g, b)
-				ui:Fetch("Color_TargetFace" .. k):Color(r, g, b)
+				ui:Fetch("Color_TargetFace2" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				_TargetFace.bReRender = true
 			end)
 		end):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
 		:Text(v.nAngle):Change(function(nVal)
 			v.nAngle = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" degree"] }):Pos_()
+		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" degree"] }):Pos_()
 
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
 		:Text(v.nRadius):Change(function(nVal)
 			v.nRadius = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" feet"] }):Pos_()
-
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY - 18 + 20 * k, w = 35, h = 25 })
-		:Text(v.nAlpha):Change(function(nVal)
-			v.nAlpha = tonumber(nVal) or 0
-			_TargetFace.bReRender = true
+		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" feet"] }):Pos_()
+		nX, nY = ui:Append("WndComboBox", { x = nX + 2, y = nY, w = 75, h = 25, txt = g_tStrings.STR_ALPHA }):Menu(function()
+			local menu = {}
+			for kk, vv in ipairs({25, 50, 75, 100, 125, 150}) do
+				table.insert(menu, { szOption = vv, bMCheck = true, bChecked = v.nAlpha == vv, fnAction = function()
+					v.nAlpha = vv
+					_TargetFace.bReRender = true
+				end })
+			end
+			return menu
 		end):Pos_()
-		nX = ui:Append("Text", { x = nX + 2, y = nY - 21 + 20 * k, txt = _L[" alpha"] }):Pos_()
 	end
 	-- line
 	nX, nY = ui:Append("Text", { txt = _L["Target connect line"], x = 0, y = 142, font = 27 }):Pos_()

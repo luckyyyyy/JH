@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:23:11
+-- @Last Modified time: 2015-06-14 15:23:41
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -209,9 +209,13 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	if not KBuff then
 		return
 	end
+	local dwTargetID, dwTargetType = Target_GetTargetData()
 	local data = { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel }
 	local h = PBL.handle:AppendItemFromIni(PBL_INI_FILE, "Handle_Item")
 	local nCount = PBL.handle:GetItemCount()
+	if dwTargetID == dwID then
+		h:Lookup("Image_Select"):Show()
+	end
 	h:Lookup("Image_KungFu"):FromIconID(Table_GetSkillIconID(info.dwMountKungfuID) or 1435)
 	h:Lookup("Text_Name"):SetText(nCount .. " " .. info.szName)
 	h:Lookup("Image_life"):SetPercentage(info.nCurrentLife / math.max(info.nMaxLife, 1))
