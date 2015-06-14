@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 15:12:31
+-- @Last Modified time: 2015-06-14 17:38:41
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -52,7 +52,7 @@ end
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
 -- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
--- 性能测试：for i = 70, 80 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = 1*i, nIcon = i }) end
+-- 性能测试：for i = 65, 70 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = 1*i, nIcon = i }) end
 local function CreateCountdown(nType, szKey, tArgs)
 	assert(type(tArgs) == "table", "CreateCountdown failed!")
 	local arg = {}
@@ -261,27 +261,32 @@ end
 -- 设置进度条
 function ST:SetPercentage(fPercentage)
 	self.ui.img:SetPercentage(fPercentage)
+	self.ui.sha:SetW(300 - 300 * fPercentage)
+	self.ui.sha:SetRelPos(32 + 300 * fPercentage, 0)
+	self.ui:FormatAllItemPos()
 	return self
 end
 -- 改变样式 如果true则更改为第二样式 用于时间小于5秒的时候
 function ST:Switch(bSwitch)
 	if bSwitch then
 		self.ui.txt:SetFontColor(255, 255, 255)
-		self.ui.time:SetFontColor(255, 255, 255)
+		-- self.ui.time:SetFontColor(255, 255, 255)
 		self.ui.img:SetFrame(ST_UI_WARNING)
+		self.ui.sha:SetColorRGB(30, 0, 0)
 	else
 		self.ui.txt:SetFontColor(255, 255, 0)
-		self.ui.time:SetFontColor(255, 255, 0)
+		self.ui.time:SetFontColor(255, 255, 255)
 		self.ui.img:SetFrame(ST_UI_NOMAL)
-		self.ui.img:SetAlpha(160)
-		self.ui.sha:SetAlpha(80)
+		self.ui.img:SetAlpha(180)
+		-- self.ui.sha:SetAlpha(100)
+		self.ui.sha:SetColorRGB(0, 0, 0)
 	end
 	return self
 end
 
 function ST:SetAlpha(nAlpha)
 	self.ui.img:SetAlpha(nAlpha)
-	self.ui.sha:SetAlpha(80 * (nAlpha / 255))
+	-- self.ui.sha:SetAlpha(100 * (nAlpha / 255))
 	return self
 end
 
