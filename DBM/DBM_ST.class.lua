@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 22:09:46
+-- @Last Modified time: 2015-06-14 15:12:31
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -13,6 +13,8 @@ local tinsert, tsort = table.insert, table.sort
 local JH_Split, JH_Trim, JH_FormatTimeString = JH.Split, JH.Trim, JH.FormatTimeString
 local abs, mod, floor = math.abs, math.mod, math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
+local ST_UI_NOMAL   = 5
+local ST_UI_WARNING = 2
 local ST_TIME_CACHE = {}
 local ST_CACHE = {}
 do
@@ -50,7 +52,7 @@ end
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
 -- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
--- 性能测试：for i = 10, 100 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = 0.1*i, nIcon = i }) end
+-- 性能测试：for i = 70, 80 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = 1*i, nIcon = i }) end
 local function CreateCountdown(nType, szKey, tArgs)
 	assert(type(tArgs) == "table", "CreateCountdown failed!")
 	local arg = {}
@@ -129,8 +131,10 @@ end
 local function SetSTAction(obj, nLeft, nPer)
 	local me = GetClientPlayer()
 	if nLeft < 5 then
-		local alpha = 255 * (abs(mod(nLeft * 15, 32) - 7) + 4) / 12
-		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):Switch(true):SetAlpha(alpha)
+		local alpha = 255 * (abs(mod(nLeft * 16, 32) - 15) + 10) / 32
+		if alpha <= 255 then
+			obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):Switch(true):SetAlpha(alpha)
+		end
 		if obj.ui.bTalk and me.IsInParty() then
 			if not obj.ui.szTalk or obj.ui.szTalk ~= floor(nLeft) then
 				obj.ui.szTalk = floor(nLeft)
@@ -223,6 +227,7 @@ function ST:ctor(nType, szKey, tArgs)
 			self.ui.time           = self.ui:Lookup("TimeLeft")
 			self.ui.txt            = self.ui:Lookup("SkillName")
 			self.ui.img            = self.ui:Lookup("Image")
+			self.ui.sha            = self.ui:Lookup("shadow")
 			ST_CACHE[nType][szKey] = self.ui
 			self.ui:Show()
 			_ST_UI.handle:FormatAllItemPos()
@@ -263,18 +268,20 @@ function ST:Switch(bSwitch)
 	if bSwitch then
 		self.ui.txt:SetFontColor(255, 255, 255)
 		self.ui.time:SetFontColor(255, 255, 255)
-		self.ui.img:SetFrame(26)
+		self.ui.img:SetFrame(ST_UI_WARNING)
 	else
 		self.ui.txt:SetFontColor(255, 255, 0)
 		self.ui.time:SetFontColor(255, 255, 0)
-		self.ui.img:SetFrame(208)
+		self.ui.img:SetFrame(ST_UI_NOMAL)
 		self.ui.img:SetAlpha(160)
+		self.ui.sha:SetAlpha(80)
 	end
 	return self
 end
 
 function ST:SetAlpha(nAlpha)
 	self.ui.img:SetAlpha(nAlpha)
+	self.ui.sha:SetAlpha(80 * (nAlpha / 255))
 	return self
 end
 
