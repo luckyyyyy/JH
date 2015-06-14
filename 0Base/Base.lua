@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 20:57:37
+-- @Last Modified time: 2015-06-14 12:38:03
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -308,7 +308,7 @@ end
 
 -- update menu list
 function _JH.UpdateListInfo(nIndex)
-	local nX, nY = 0, 0
+	local nX, nY = 0, 2 -- Ô¤Áô2
 	_JH.hList:Clear()
 	_JH.UpdateDetail(nIndex)
 	for k, v in ipairs(_JH.tItem[nIndex]) do
@@ -2504,7 +2504,7 @@ function _GUI.Item:Select()
 							hnd:Lookup("Image_BoxBg"):Hide()
 							hnd:Lookup("Image_BoxBgOver"):Hide()
 							hnd:Lookup("Image_BoxBgSel"):Show()
-							self.txt:SetFontScheme(65)
+							self.txt:SetFontScheme(168)
 							local icon = hnd:Lookup("Image_BoxIco")
 							local nW, nH = icon:GetSize()
 							local nX, nY = icon:GetRelPos()
