@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 17:38:41
+-- @Last Modified time: 2015-06-15 16:04:34
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -15,6 +15,7 @@ local abs, mod, floor = math.abs, math.mod, math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 local ST_UI_NOMAL   = 5
 local ST_UI_WARNING = 2
+local ST_UI_ALPHA   = 180
 local ST_TIME_CACHE = {}
 local ST_CACHE = {}
 do
@@ -44,7 +45,7 @@ end
 -- 倒计时模块 事件名称 JH_ST_CREATE
 -- nType 倒计时类型 Compatible.lua 中的 DBM_TYPE
 -- szKey 同一类型内唯一标识符
--- tArgs {
+-- tParam {
 --      szName   -- 倒计时名称 如果是分段就不需要传名称
 --      nTime    -- 时间  例 10,测试;25,测试2; 或 30
 --      nRefresh -- 多少时间内禁止重复刷新
@@ -53,29 +54,29 @@ end
 -- }
 -- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
 -- 性能测试：for i = 65, 70 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = 1*i, nIcon = i }) end
-local function CreateCountdown(nType, szKey, tArgs)
-	assert(type(tArgs) == "table", "CreateCountdown failed!")
-	local arg = {}
+local function CreateCountdown(nType, szKey, tParam)
+	assert(type(tParam) == "table", "CreateCountdown failed!")
+	local tTime = {}
 	local nTime = GetTime()
-	if type(tArgs.nTime) == "number" then
-		arg = tArgs
+	if type(tParam.nTime) == "number" then
+		tTime = tParam
 	else
-		local tCountdown = GetCountdown(tArgs.nTime)
+		local tCountdown = GetCountdown(tParam.nTime)
 		if tCountdown then
-			arg = tCountdown[1]
-			tArgs.nTime = tCountdown
-			tArgs.nRefresh = tArgs.nRefresh or tCountdown[#tCountdown].nTime - 3 -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
+			tTime = tCountdown[1]
+			tParam.nTime = tCountdown
+			tParam.nRefresh = tParam.nRefresh or tCountdown[#tCountdown].nTime - 3 -- 最大时间内防止重复刷新 但是脱离战斗的NPC需要手动删除
 		else
-			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tArgs.nTime)
+			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tParam.nTime)
 		end
 	end
 	local cache =  ST_TIME_CACHE[nType][szKey]
-	if cache and tArgs.nRefresh and (nTime - cache) / 1000 < tArgs.nRefresh then
+	if cache and tParam.nRefresh and (nTime - cache) / 1000 < tParam.nRefresh then
 		return
 	end
 	local ui = ST_CACHE[nType][szKey]
 	ST_TIME_CACHE[nType][szKey] = nTime
-	ST.new(nType, szKey, tArgs):SetInfo(arg, tArgs.nIcon or 13):Switch(false)
+	ST.new(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
 end
 
 ST_UI = {
@@ -142,7 +143,12 @@ local function SetSTAction(obj, nLeft, nPer)
 			end
 		end
 	else
-		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer)
+		if obj.ui.nAlpha < ST_UI_ALPHA then
+			obj.ui.nAlpha = math.min(ST_UI_ALPHA, obj.ui.nAlpha + 15)
+			obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):SetAlpha(obj.ui.nAlpha)
+		else
+			obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer)
+		end
 	end
 end
 
@@ -199,30 +205,34 @@ function _ST_UI.Init()
 end
 
 -- 构造函数
-function ST:ctor(nType, szKey, tArgs)
+function ST:ctor(nType, szKey, tParam)
 	if not ST_CACHE[nType] then
 		return
 	end
 	local ui = ST_CACHE[nType][szKey]
 	local nTime = GetTime()
-	local key = nType .. "_" .. szKey
-	if tArgs then
-		tArgs.szName = tArgs.szName or key
+	local key = nType .. "#" .. szKey
+	if tParam then
+		tParam.szName = tParam.szName or key
 		if ui and ui:IsValid() then
 			self.ui           = ui
 			self.ui.nCreate   = nTime
 			self.ui.nLeft     = nTime
-			self.ui.countdown = tArgs.nTime
-			self.ui.nRefresh  = tArgs.nRefresh or 1
-			self.ui.bTalk     = tArgs.bTalk
+			self.ui.countdown = tParam.nTime
+			self.ui.nRefresh  = tParam.nRefresh or 1
+			self.ui.bTalk     = tParam.bTalk
+			self.ui.nFrame    = tParam.nFrame
 		else -- 没有ui的情况下 创建
-			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item", key)
+			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item")
+			-- 参数
 			self.ui.nCreate        = nTime
 			self.ui.nLeft          = nTime
-			self.ui.countdown      = tArgs.nTime
-			self.ui.szKey          = key
-			self.ui.nRefresh       = tArgs.nRefresh or 1
-			self.ui.bTalk          = tArgs.bTalk
+			self.ui.countdown      = tParam.nTime
+			self.ui.nRefresh       = tParam.nRefresh or 1
+			self.ui.bTalk          = tParam.bTalk
+			self.ui.nFrame         = tParam.nFrame
+			-- 杂项
+			self.ui.nAlpha         = 30
 			-- ui
 			self.ui.time           = self.ui:Lookup("TimeLeft")
 			self.ui.txt            = self.ui:Lookup("SkillName")
@@ -244,12 +254,12 @@ function ST:ctor(nType, szKey, tArgs)
 	end
 end
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
-function ST:SetInfo(tArgs, nIcon)
-	if tArgs.szName then
-		self.ui.txt:SetText(tArgs.szName)
+function ST:SetInfo(tTime, nIcon)
+	if tTime.szName then
+		self.ui.txt:SetText(tTime.szName)
 	end
-	if tArgs.nTime then
-		self.ui.time:SetText(JH_FormatTimeString(tArgs.nTime))
+	if tTime.nTime then
+		self.ui.time:SetText(JH_FormatTimeString(tTime.nTime))
 	end
 	if nIcon then
 		local box = self.ui:Lookup("Box")
@@ -272,12 +282,12 @@ function ST:Switch(bSwitch)
 		self.ui.txt:SetFontColor(255, 255, 255)
 		-- self.ui.time:SetFontColor(255, 255, 255)
 		self.ui.img:SetFrame(ST_UI_WARNING)
-		self.ui.sha:SetColorRGB(30, 0, 0)
+		-- self.ui.sha:SetColorRGB(30, 0, 0)
 	else
 		self.ui.txt:SetFontColor(255, 255, 0)
 		self.ui.time:SetFontColor(255, 255, 255)
-		self.ui.img:SetFrame(ST_UI_NOMAL)
-		self.ui.img:SetAlpha(180)
+		self.ui.img:SetFrame(self.ui.nFrame or ST_UI_NOMAL)
+		self.ui.img:SetAlpha(self.ui.nAlpha)
 		-- self.ui.sha:SetAlpha(100)
 		self.ui.sha:SetColorRGB(0, 0, 0)
 	end

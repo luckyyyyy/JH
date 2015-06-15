@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 21:33:05
+-- @Last Modified time: 2015-06-14 22:12:02
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -886,9 +886,6 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 end })
 
 function C.OpenAddPanel(szName, dwType, szMap)
-	if Station.Lookup("Normal/DBM_NewData") then
-		Wnd.CloseWindow(Station.Lookup("Normal/DBM_NewData"))
-	end
 	dwType = dwType or TARGET.NPC
 	GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = _L["Add Face"], close = true }):RegisterClose()
 	-- update ui = wnd
@@ -968,9 +965,6 @@ function C.OpenAddPanel(szName, dwType, szMap)
 end
 
 function C.OpenMtPanel()
-	if Station.Lookup("Normal/C_Mt") then
-		Wnd.CloseWindow(Station.Lookup("Normal/C_Mt"))
-	end
 	JH.Sysmsg(_L["CIRCLE_MT_TIP"])
 	GUI.CreateFrame("C_Mt", { w = 380, h = 250, title = _L["Mapping"], close = true }):RegisterClose()
 	-- update ui = wnd
@@ -1011,7 +1005,6 @@ function C.OpenDataPanel(id, index)
 	local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 	if Station.Lookup("Normal/C_Data") then
 		a = GetFrameAnchor(Station.Lookup("Normal/C_Data"))
-		Wnd.CloseWindow(Station.Lookup("Normal/C_Data"))
 	end
 	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true, focus = true }):RegisterClose():Point(a.s, 0, 0, a.r, a.x, a.y)
 	-- update ui = wnd
