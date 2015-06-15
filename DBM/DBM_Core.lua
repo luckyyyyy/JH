@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-11 11:51:01
+-- @Last Modified time: 2015-06-15 15:59:26
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -32,53 +32,31 @@ local function GetDataPath()
 end
 
 local CACHE = {
-	TEMP = { -- 近期事件记录MAP 这里用弱表 方便处理
-		BUFF    = setmetatable({}, { __mode = "v" }),
-		DEBUFF  = setmetatable({}, { __mode = "v" }),
-		CASTING = setmetatable({}, { __mode = "v" }),
-		NPC     = setmetatable({}, { __mode = "v" }),
-		TALK    = setmetatable({}, { __mode = "v" }),
-	},
-	MAP = { -- 需要监控的数据MAP TALK分类不需要 因为不是唯一命中 是模糊命中
-		BUFF    = {},
-		DEBUFF  = {},
-		CASTING = {},
-		NPC     = {},
-	},
+	TEMP       = {}, -- 近期事件记录MAP 这里用弱表 方便处理
+	MAP        = {},
 	NPC_LIST   = {},
 	SKILL_LIST = {},
-	INTERVAL = {
-		BUFF    = {},
-		DEBUFF  = {},
-		CASTING = {},
-		NPC     = {},
-	},
+	INTERVAL   = {},
+	DUNGEON    = {},
 }
 
 local D = {
-	tDungeonList = {},
-	FILE = { -- 文件原始数据
-		BUFF    = {},
-		DEBUFF  = {},
-		CASTING = {},
-		NPC     = {},
-		TALK    = {},
-	},
-	TEMP = { -- 近期事件记录
-		BUFF    = {},
-		DEBUFF  = {},
-		CASTING = {},
-		NPC     = {},
-		TALK    = {},
-	},
-	DATA = { -- 需要监控的数据合集
-		BUFF    = {},
-		DEBUFF  = {},
-		CASTING = {},
-		NPC     = {},
-		TALK    = {},
-	}
+	FILE = {}, -- 文件原始数据
+	TEMP = {}, -- 近期事件记录
+	DATA = {}  -- 需要监控的数据合集
 }
+
+-- 初始化table 虽然写法没有直接写来得好 但是为了方便以后改动
+do
+	for k, v in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "TALK" }) do
+		D.FILE[v]         = {}
+		D.DATA[v]         = {}
+		D.TEMP[v]         = {}
+		CACHE.MAP[v]      = {}
+		CACHE.INTERVAL[v] = {}
+		CACHE.TEMP[v]     = setmetatable({}, { __mode = "v" })
+	end
+end
 
 DBM = {
 	bEnable             = true,
@@ -433,21 +411,32 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 	end
 end
 -- 倒计时处理 支持定义无限的倒计时
-function D.FireCountdownEvent(data, nClass)
+function D.CountdownEvent(data, nClass)
 	if data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				local class = v.key and DBM_TYPE.COMMON or nClass
-				FireUIEvent("JH_ST_CREATE", class, v.key or (k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)), {
+				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)
+				local tParam = {
+					key      = v.key,
+					nFrame   = v.nFrame,
 					nTime    = v.nTime,
 					nRefresh = v.nRefresh,
 					szName   = v.szName or data.szName,
 					nIcon    = v.nIcon or data.nIcon,
-					bTalk    = DBM.bPushTeamChannel and v.bTeamChannel
-				})
+					bTalk    = v.bTeamChannel
+				}
+				D.FireCountdownEvent(nClass, szKey, tParam)
 			end
 		end
 	end
+end
+
+-- 发布事件 为了方便日后修改 集中起来
+function D.FireCountdownEvent(nClass, szKey, tParam)
+	tParam.bTeamChannel = DBM.bPushTeamChannel and tParam.bTeamChannel
+	nClass              = tParam.key and DBM_TYPE.COMMON or nClass
+	szKey               = tParam.key or szKey
+	FireUIEvent("JH_ST_CREATE", nClass, szKey, tParam)
 end
 
 function D.GetSrcName(dwID)
@@ -523,7 +512,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 		else
 			cfg, nClass = data[DBM_TYPE.BUFF_GET], DBM_TYPE.BUFF_GET
 		end
-		D.FireCountdownEvent(data, nClass)
+		D.CountdownEvent(data, nClass)
 		if cfg then
 			local szName, nIcon = JH.GetBuffName(dwBuffID, nBuffLevel)
 			local KObject = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
@@ -672,7 +661,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		else
 			cfg, nClass = data[DBM_TYPE.SKILL_END], DBM_TYPE.SKILL_END
 		end
-		D.FireCountdownEvent(data, nClass)
+		D.CountdownEvent(data, nClass)
 		if cfg then
 			local xml = {}
 			tinsert(xml, DBM_LEFT_LINE)
@@ -816,7 +805,7 @@ function D.OnNpcEvent(npc, bEnter)
 				CACHE.NPC_LIST[npc.dwTemplateID].nTime = nTime
 			end
 		end
-		D.FireCountdownEvent(data, nClass)
+		D.CountdownEvent(data, nClass)
 		if cfg then
 			local szName = JH.GetTemplateName(npc)
 			local xml = {}
@@ -910,14 +899,17 @@ function D.OnCallMessage(szContent, szNpcName, dwNpcID)
 			if v.tCountdown then
 				for kk, vv in ipairs(v.tCountdown) do
 					if vv.nClass == DBM_TYPE.TALK_MONITOR then
-						local class = vv.key and DBM_TYPE.COMMON or DBM_TYPE.TALK_MONITOR
-						FireUIEvent("JH_ST_CREATE", class, vv.key or (k .. "." .. kk), {
+						local szKey = k .. "." .. kk
+						local tParam = {
+							key      = vv.key,
+							nFrame   = vv.nFrame,
 							nTime    = vv.nTime,
 							nRefresh = vv.nRefresh,
 							szName   = vv.szName or v.szNote,
 							nIcon    = vv.nIcon or 340,
-							bTalk    = DBM.bPushTeamChannel and vv.bTeamChannel
-						})
+							bTalk    = vv.bTeamChannel
+						}
+						D.FireCountdownEvent(vv.nClass, szKey, tParam)
 					end
 				end
 			end
@@ -991,7 +983,7 @@ function D.OnDeath(dwCharacterID, szKiller)
 		local data = D.GetData("NPC", npc.dwTemplateID)
 		if data then
 			local dwTemplateID = npc.dwTemplateID
-			D.FireCountdownEvent(data, DBM_TYPE.NPC_DEATH)
+			D.CountdownEvent(data, DBM_TYPE.NPC_DEATH)
 			local bAllDeath = true
 			if CACHE.NPC_LIST[dwTemplateID] then
 				for k, v in ipairs(CACHE.NPC_LIST[dwTemplateID].tList) do
@@ -1003,7 +995,7 @@ function D.OnDeath(dwCharacterID, szKiller)
 				end
 			end
 			if bAllDeath then
-				D.FireCountdownEvent(data, DBM_TYPE.NPC_ALLDEATH)
+				D.CountdownEvent(data, DBM_TYPE.NPC_ALLDEATH)
 			end
 		end
 	end
@@ -1014,7 +1006,7 @@ function D.OnNpcFight(dwTemplateID, bFight)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data then
 		if bFight then
-			D.FireCountdownEvent(data, DBM_TYPE.NPC_FIGHT)
+			D.CountdownEvent(data, DBM_TYPE.NPC_FIGHT)
 		else
 			if data.tCountdown then
 				for k, v in ipairs(data.tCountdown) do
@@ -1046,13 +1038,16 @@ function D.OnNpcLife(dwTemplateID, nLife)
 								FireUIEvent("JH_LARGETEXT", time[2], { 255, 128, 0 }, true)
 							end
 							if time[3] and tonumber(time[3]) then
-								local class = v.key and DBM_TYPE.COMMON or DBM_TYPE.NPC_LIFE
-								FireUIEvent("JH_ST_CREATE", class, v.key or (k .. "." .. dwTemplateID .. "." .. kk), {
+								local szKey = k .. "." .. dwTemplateID .. "." .. kk
+								local tParam = {
+									key    = v.key,
+									nFrame = v.nFrame,
 									nTime  = tonumber(JH_Trim(time[3])),
 									szName = time[2],
 									nIcon  = v.nIcon,
-									bTalk  = DBM.bPushTeamChannel and v.bTeamChannel
-								})
+									bTalk  = v.bTeamChannel
+								}
+								D.FireCountdownEvent(v.nClass, szKey, tParam)
 							end
 							break
 						end
@@ -1066,7 +1061,7 @@ end
 function D.OnNpcAllLeave(dwTemplateID)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data then
-		D.FireCountdownEvent(data, DBM_TYPE.NPC_ALLLEAVE)
+		D.CountdownEvent(data, DBM_TYPE.NPC_ALLLEAVE)
 	end
 end
 
@@ -1166,21 +1161,21 @@ function D.SaveData()
 end
 
 function D.GetDungeon()
-	if IsEmpty(D.tDungeonList) then
+	if IsEmpty(CACHE.DUNGEON) then
 		for k, v in ipairs(GetMapList()) do
 			local a = g_tTable.DungeonInfo:Search(v)
 			if a and a.dwClassID == 3 then
-				tinsert(D.tDungeonList, {
+				tinsert(CACHE.DUNGEON, {
 					dwMapID      = a.dwMapID,
 					szLayer3Name = a.szLayer3Name
 				})
 			end
 		end
-		table.sort(D.tDungeonList, function(a, b)
+		table.sort(CACHE.DUNGEON, function(a, b)
 			return a.dwMapID < b.dwMapID
 		end)
 	end
-	return D.tDungeonList
+	return CACHE.DUNGEON
 end
 
 -- 获取整个表
