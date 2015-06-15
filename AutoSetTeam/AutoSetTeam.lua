@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-11 10:54:26
+-- @Last Modified time: 2015-06-15 11:46:30
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -354,7 +354,8 @@ end
 
 -- RequestList
 RequestList = {}
-local _RequestList = {
+
+local _RL = {
 	tRequestList = {},
 	tRequestCache = {},
 	tDetails = {},
@@ -362,24 +363,26 @@ local _RequestList = {
 }
 
 function RequestList.OnFrameCreate()
-	_RequestList.frame = this
-	_RequestList.bg = this:Lookup("", "Image_Bg")
+	_RL.bg = this:Lookup("", "Image_Bg")
 	local ui = GUI(this)
-	ui:Point():Title(g_tStrings.STR_ARENA_INVITE):RegisterClose(_RequestList.ClosePanel, false, true)
+	ui:Point():Title(g_tStrings.STR_ARENA_INVITE):RegisterClose(_RL.ClosePanel, false, true)
 end
 
-function _RequestList.OpenPanel()
-	local frame = _RequestList.frame or Wnd.OpenWindow(_RequestList.szIniFile,"RequestList")
-	frame:Hide()
-	return frame
+function _RL.GetFrame()
+	return Station.Lookup("Normal2/RequestList")
 end
 
-function _RequestList.ClosePanel(bCompulsory)
+function _RL.OpenPanel()
+	if not _RL.GetFrame() then
+		Wnd.OpenWindow(_RL.szIniFile, "RequestList")
+	end
+end
+
+function _RL.ClosePanel(bCompulsory)
 	local fnAction = function()
-		Wnd.CloseWindow(_RequestList.frame)
-		_RequestList.tRequestList = {}
-		_RequestList.tRequestCache = {}
-		_RequestList.frame = nil
+		Wnd.CloseWindow(_RL.GetFrame())
+		_RL.tRequestList = {}
+		_RL.tRequestCache = {}
 	end
 	if bCompulsory then
 		fnAction()
@@ -388,7 +391,7 @@ function _RequestList.ClosePanel(bCompulsory)
 	end
 end
 
-function _RequestList.OnApplyRequest()
+function _RL.OnApplyRequest()
 	if not JH_AutoSetTeam.bRequestList then return end
 	local MsgBox, szName = Station.Lookup("Topmost/MB_ATMP_" .. arg0), "ATMP_" .. arg0
 	if not MsgBox then
@@ -398,8 +401,8 @@ function _RequestList.OnApplyRequest()
 		local btn = MsgBox:Lookup("Wnd_All/Btn_Option1")
 		local btn2 = MsgBox:Lookup("Wnd_All/Btn_Option2")
 		if btn and btn:IsEnabled() then
-			if not _RequestList.tRequestCache[arg0] then
-				table.insert(_RequestList.tRequestList, {
+			if not _RL.tRequestCache[arg0] then
+				table.insert(_RL.tRequestList, {
 					szName = arg0,
 					nCamp = arg1,
 					dwForce = arg2,
@@ -416,28 +419,29 @@ function _RequestList.OnApplyRequest()
 			MsgBox.fnCancelAction = nil
 			MsgBox.szCloseSound = nil
 			CloseMessageBox(szName)
-			_RequestList.tRequestCache[arg0] = true
-			pcall(_RequestList.UpdateFrame)
+			_RL.tRequestCache[arg0] = true
+			pcall(_RL.UpdateFrame)
 		end
 	end
 end
 
-function _RequestList.UpdateFrame()
-	if not _RequestList.frame then
-		_RequestList.OpenPanel()
+function _RL.UpdateFrame()
+	if not _RL.GetFrame() then
+		_RL.OpenPanel()
 	end
+	local frame = _RL.GetFrame()
 	-- update
-	if #_RequestList.tRequestList == 0 then
-		return _RequestList.ClosePanel(true)
+	if #_RL.tRequestList == 0 then
+		return _RL.ClosePanel(true)
 	end
 	local camp = { [0] = -1, [1] = 43, [2] = 40 }
-	local container = _RequestList.frame:Lookup("WndContainer_Request")
+	local container = frame:Lookup("WndContainer_Request")
 	container:Clear()
 	local cover = "ui/Image/Common/CoverShadow.UITex"
-	for k,v in ipairs(_RequestList.tRequestList) do
-		local wnd = container:AppendContentFromIni(_RequestList.szIniFile, "WndWindow_Item", k)
+	for k, v in ipairs(_RL.tRequestList) do
+		local wnd = container:AppendContentFromIni(_RL.szIniFile, "WndWindow_Item", k)
 		local ui = GUI(wnd)
-		local dat = _RequestList.tDetails[v.szName]
+		local dat = _RL.tDetails[v.szName]
 		if dat then
 			ui:Append("Image", { x = 5, y = 5, w = 40, h = 40 }):File(Table_GetSkillIconID(dat.dwKungfuID, 1))
 			if dat.nGongZhan == 1 then
@@ -474,9 +478,9 @@ function _RequestList.UpdateFrame()
 		end
 		ui:Append("WndButton2", { x = 240, y = 10,w = 60, h = 34, txt = _L["Accept"] }):Click(function()
 			v.fnAction()
-			table.remove(_RequestList.tRequestList,k)
-			_RequestList.tRequestCache[v.szName] = nil
-			_RequestList.UpdateFrame()
+			table.remove(_RL.tRequestList,k)
+			_RL.tRequestCache[v.szName] = nil
+			_RL.UpdateFrame()
 		end):Hover(function(bHover)
 			if bHover then
 				ui:Fetch("Cover"):File(cover,3):Toggle(true)
@@ -486,9 +490,9 @@ function _RequestList.UpdateFrame()
 		end)
 		ui:Append("WndButton2",{ x = 305, y = 10,w = 60, h = 34, txt = _L["Refuse"] }):Click(function()
 			v.fnCancelAction()
-			table.remove(_RequestList.tRequestList,k)
-			_RequestList.tRequestCache[v.szName] = nil
-			_RequestList.UpdateFrame()
+			table.remove(_RL.tRequestList,k)
+			_RL.tRequestCache[v.szName] = nil
+			_RL.UpdateFrame()
 		end):Hover(function(bHover)
 			if bHover then
 				ui:Fetch("Cover"):File(cover,4):Toggle(true)
@@ -523,13 +527,13 @@ function _RequestList.UpdateFrame()
 	local w, h = 470, 50
 	local n = container:GetAllContentCount()
 	container:SetSize(w, h * n)
-	_RequestList.frame:SetSize(w, h * n + 30)
-	_RequestList.frame:SetDragArea(0, 0, w, h * n + 30)
-	_RequestList.bg:SetSize(w, h * n + 30)
+	frame:SetSize(w, h * n + 30)
+	frame:SetDragArea(0, 0, w, h * n + 30)
+	_RL.bg:SetSize(w, h * n + 30)
 	container:FormatAllContentPos()
-	_RequestList.frame:Show()
 end
-function _RequestList.OnBgTalk()
+
+function _RL.OnBgTalk()
 	local data = JH.BgHear("JH_AutoSetTeam")
 	if data then
 		if data[1] == "JH_Details" then
@@ -544,31 +548,34 @@ function _RequestList.OnBgTalk()
 				end
 			end)
 		elseif data[1] == "JH_Feedback" then
-			_RequestList.Feedback(arg3, data)
+			_RL.Feedback(arg3, data)
 		end
 	end
 end
-function _RequestList.Feedback(szName,data)
+
+function _RL.Feedback(szName,data)
 	local dat = {
 		dwID = data[2],
 		dwKungfuID = data[3],
 		nGongZhan = data[4],
 		bEx = data[5],
 	}
-	_RequestList.tDetails[szName] = dat
-	pcall(_RequestList.UpdateFrame)
+	_RL.tDetails[szName] = dat
+	pcall(_RL.UpdateFrame)
 end
 
-function _RequestList.GetEvent()
+function _RL.GetEvent()
 	if JH_AutoSetTeam.bRequestList then
 		return
-			{ "PARTY_INVITE_REQUEST", _RequestList.OnApplyRequest },
-			{ "PARTY_APPLY_REQUEST", _RequestList.OnApplyRequest },
-			{ "ON_BG_CHANNEL_MSG", _RequestList.OnBgTalk }
+			{ "PARTY_INVITE_REQUEST", _RL.OnApplyRequest },
+			{ "PARTY_APPLY_REQUEST", _RL.OnApplyRequest },
+			{ "ON_BG_CHANNEL_MSG", _RL.OnBgTalk }
 	end
 end
--------------------------------
+
+-- TI 面板部分
 local TI = {}
+
 function TI.GetEvent()
 	if JH_AutoSetTeam.bTeamInfo then
 		return
@@ -579,15 +586,12 @@ function TI.GetEvent()
 					end)
 				end
 			end },
-			{ "PARTY_DISBAND", TI.CloseFrame },
-			{ "PARTY_DELETE_MEMBER", function() if arg1 == UI_GetClientPlayerID() then TI.CloseFrame() end end },
-			{ "PARTY_ADD_MEMBER", function()
-				if JH.IsLeader() and Station.Lookup("Normal/Team_Info") then
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szIntroduction)
-				end
-			end },
 			{ "ON_BG_CHANNEL_MSG", TI.OnMsg }
 	end
+end
+
+function TI.GetFrame()
+	return Station.Lookup("Normal/JH_TeamInfo")
 end
 
 function TI.OnMsg()
@@ -596,7 +600,7 @@ function TI.OnMsg()
 	local team = GetClientTeam()
 	if team and data then
 		if data[1] == "ASK" and JH.IsLeader() then
-			if Station.Lookup("Normal/Team_Info") then
+			if TI.GetFrame() then
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg3, TI.szYY, TI.szIntroduction)
 			end
 		elseif data[1] == "Edit" then
@@ -613,11 +617,10 @@ end
 
 function TI.CreateFrame(a, b)
 	local an = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-	if Station.Lookup("Normal/Team_Info") then
-		an = GetFrameAnchor(Station.Lookup("Normal/Team_Info"))
-		Wnd.CloseWindow(Station.Lookup("Normal/Team_Info"))
+	if TI.GetFrame() then
+		an = GetFrameAnchor(TI.GetFrame())
 	end
-	local ui = GUI.CreateFrame2("Team_Info", { w = 300, h = 200, close = true, title = _L["Team_Info"]}):Point(an.s, 0, 0, an.r, an.x, an.y)
+	local ui = GUI.CreateFrame2("JH_TeamInfo", { w = 300, h = 200, close = true, title = _L["Team_Info"]}):Point(an.s, 0, 0, an.r, an.x, an.y)
 	local nX, nY = ui:Append("Text", { x = 10, y = 5, txt = _L["YY:"], font = 48 }):Pos_()
 	nX = ui:Append("WndEdit", "YY", { w = 140, h = 26, x = nX + 5, y = 5, font = 48, color = { 128, 255, 0 }, txt = a })
 	:Change(function(szText)
@@ -625,6 +628,7 @@ function TI.CreateFrame(a, b)
 			TI.szYY = szText
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", szText, ui:Fetch("introduction"):Text())
 		else
+			ui:Fetch("YY"):Text(TI.szYY, true)
 			JH.Sysmsg(_L["You are not team leader."])
 		end
 	end):Pos_()
@@ -639,6 +643,7 @@ function TI.CreateFrame(a, b)
 			TI.szIntroduction = szText
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", ui:Fetch("YY"):Text(), szText)
 		else
+			ui:Fetch("introduction"):Text(TI.szIntroduction, true)
 			JH.Sysmsg(_L["You are not team leader."])
 		end
 	end)
@@ -649,14 +654,32 @@ function TI.CreateFrame(a, b)
 		if JH.IsLeader() then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Close")
 		end
-		TI.CloseFrame()
+		ui:Remove()
 	end
 	ui:RegisterSetting(function() JH.OpenPanel(_L["AutoSetTeam"]) end)
+	-- 注册事件
+	local frame = TI.GetFrame()
+	frame:RegisterEvent("PARTY_DISBAND")
+	frame:RegisterEvent("PARTY_DELETE_MEMBER")
+	frame:RegisterEvent("PARTY_ADD_MEMBER")
+	frame.OnEvent = function(szEvent)
+		if szEvent == "PARTY_DISBAND" then
+			ui:Remove()
+		elseif szEvent == "PARTY_DELETE_MEMBER" then
+			if arg1 == UI_GetClientPlayerID() then
+				ui:Remove()
+			end
+		elseif szEvent == "PARTY_ADD_MEMBER" then
+			if JH.IsLeader() then
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szIntroduction)
+			end
+		end
+	end
 end
 
 function TI.CloseFrame()
-	if Station.Lookup("Normal/Team_Info") then
-		Wnd.CloseWindow(Station.Lookup("Normal/Team_Info"))
+	if TI.GetFrame() then
+		Wnd.CloseWindow(TI.GetFrame())
 	end
 end
 
@@ -664,7 +687,7 @@ JH.AddonMenu(function()
 	return {
 		szOption = _L["Enable TeamInfo"], fnDisable = function() local me = GetClientPlayer(); return not me.IsInRaid() end, fnAction = function()
 			local me = GetClientPlayer()
-			if JH_AutoSetTeam.bTeamInfo and  Station.Lookup("Normal/Team_Info") then
+			if TI.GetFrame() then
 				TI.CloseFrame()
 			else
 				JH_AutoSetTeam.bTeamInfo = true
@@ -673,7 +696,7 @@ JH.AddonMenu(function()
 					if JH.IsLeader() then
 						TI.CreateFrame()
 					else
-						JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI","ASK")
+						JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "ASK")
 					end
 				end
 			end
@@ -681,7 +704,6 @@ JH.AddonMenu(function()
 	}
 end)
 -------------------------------------------------------------------------
-
 local AutoCancelBuff = {}
 
 local KUNGFU = {
@@ -730,7 +752,7 @@ function AutoCancelBuff.OnBuff()
 		end
 	end
 end
-
+-------------------------------------------------------------------------
 local WorldMark = {
 	tMark = {
 		[20107] = { id = 1,  col = { 255, 255, 255 } },
@@ -804,7 +826,7 @@ function WorldMark.Draw(Point, sha, col)
 		dwRad1 = dwRad1 + math.pi / 16
 	until dwRad1 > dwRad2
 end
-
+-------------------------------------------------------------------------
 
 local PS = {}
 function PS.OnPanelActive(frame)
@@ -816,7 +838,7 @@ function PS.OnPanelActive(frame)
 	end)
 	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY + 10, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bRequestList = bChecked
-		JH.RegisterInit("RequestList", _RequestList.GetEvent())
+		JH.RegisterInit("RequestList", _RL.GetEvent())
 	end):Pos_()
 	ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bTeamInfo, txt = _L["Enable TeamInfo"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bTeamInfo = bChecked
@@ -886,7 +908,7 @@ end
 GUI.RegisterPanel(_L["AutoSetTeam"], 5962, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("LOGIN_GAME", function()
-	JH.RegisterInit("RequestList", _RequestList.GetEvent())
+	JH.RegisterInit("RequestList", _RL.GetEvent())
 	JH.RegisterInit("Append_Mark", GetEvent())
 	JH.RegisterInit("TI", TI.GetEvent())
 	JH.RegisterInit("WorldMark", WorldMark.GetEvent())

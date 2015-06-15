@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 21:33:37
+-- @Last Modified time: 2015-06-14 21:56:52
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -179,9 +179,6 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 end
 
 function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
-	if Station.Lookup("Normal/DBM_DatatPanel") then
-		Wnd.CloseWindow(Station.Lookup("Normal/DBM_DatatPanel"))
-	end
 	local function FileExist(szFile)
 		if szFile and (IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile) or IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile .. ".jx3dat")) then
 			return { 0, 255, 0 }
@@ -235,9 +232,6 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 end
 
 function DBMUI.OpenExportPanel()
-	if Station.Lookup("Normal/DBM_DatatPanel") then
-		Wnd.CloseWindow(Station.Lookup("Normal/DBM_DatatPanel"))
-	end
 	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Export Data"], close = true }):RegisterClose()
 	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
 	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
@@ -713,9 +707,6 @@ function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
 		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetBoxInfo("NPC", data), TARGET.NPC, Table_GetMapName(data.dwMapID))
 	else
-		if Station.Lookup("Normal/DBM_NewData") then
-			Wnd.CloseWindow(Station.Lookup("Normal/DBM_NewData"))
-		end
 		local szName, nIcon = _L["TALK"], 340
 		if szType ~= "TALK" then
 			szName, nIcon = DBMUI.GetBoxInfo(szType, data)
