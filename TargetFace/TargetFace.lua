@@ -1,8 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 13:38:50
+-- @Last Modified time: 2015-06-16 12:22:04
 local _L = JH.LoadLangPack
+
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
 	bSelfFace = false, -- 绘制自身面向
@@ -46,10 +47,10 @@ local _TargetFace = {
 	szItemIni = JH.GetAddonInfo().szShadowIni,
 	bReRender = false,
 	tCache = {
-		nTarget = -1,
-		nSelf = -1,
+		nTarget    = -1,
+		nSelf      = -1,
 		dwTargetID = 0,
-		dwTTID = 0,
+		dwTTID     = 0,
 	},
 }
 
@@ -65,12 +66,12 @@ end
 
 _TargetFace.DrawText = function(tar, txt, bSelf)
 	local sha = _TargetFace.hName
-	sha:ClearTriangleFanPoint()
+	_TargetFace.hName:ClearTriangleFanPoint()
 	local r, g, b = 255, 255, 0
 	if bSelf then
 		r, g, b = 255, 255, 255
 	end
-	sha:AppendCharacterID(tar.dwID, false, r, g, b,255, 50, 40, txt, 1, TargetFace.fScale)
+	sha:AppendCharacterID(tar.dwID, false, r, g, b, 255, 50, 40, txt, 1, TargetFace.fScale)
 	sha:Show()
 end
 
@@ -253,27 +254,17 @@ end
 
 function _Direction.UpdateGPS(tar)
 	local me = GetClientPlayer()
-	if tar.nX == me.nX then
-		_Direction.Arrow:SetRotate(4.7)
-	else
-		local dwRad1 = math.atan((tar.nY - me.nY) / (tar.nX - me.nX))
-		if dwRad1 < 0 then
-			dwRad1 = dwRad1 + math.pi
-		end
-		if tar.nY < me.nY then
-			dwRad1 = math.pi + dwRad1
-		end
-		local dwRad2 = me.nFaceDirection / 128 * math.pi
-		_Direction.Arrow:SetRotate(1.5 * math.pi + dwRad2 - dwRad1)
-	end
+	local dwRad1 = math.atan2(tar.nY - me.nY, tar.nX - me.nX)
+	local dwRad2 = me.nFaceDirection / 128 * math.pi
+	_Direction.Arrow:SetRotate(1.5 * math.pi + dwRad2 - dwRad1)
 	if TargetFace.bOnlyPlane then
 		_Direction.txt:SetText(_L("%.1f feet", JH.GetDistance(tar.nX, tar.nY)))
 	else
 		_Direction.txt:SetText(_L("%.1f feet", JH.GetDistance(tar)))
 	end
 end
--- 仇恨
 
+-- 仇恨
 function _Hatred.OpenPanel()
 	local frame = _Hatred.frame or Wnd.OpenWindow(_Hatred.szIniFile,"Hatred")
 	return frame

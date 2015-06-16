@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 21:37:28
+-- @Last Modified time: 2015-06-16 16:06:32
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -648,7 +648,8 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	if nChannel == PLAYER_TALK_CHANNEL.RAID and not me.IsInParty() then
 		return
 	end
-	-- say body
+
+	-- -- say body
 	local tSay = nil
 	if type(szText) == "table" then
 		tSay = szText
@@ -680,7 +681,6 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 			}),
 		})
 	end
-	me.Talk(nChannel, szTarget, tSay)
 	if bSaveDeny and not JH.CanTalk(nChannel) then
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
 		edit:ClearText()
@@ -693,8 +693,11 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		end
 		-- change to this channel
 		JH.SwitchChat(nChannel)
+	else
+		me.Talk(nChannel, szTarget, tSay)
 	end
 end
+
 function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
 	JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
 end
