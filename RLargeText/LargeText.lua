@@ -1,12 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:16:32
+-- @Last Modified time: 2015-06-16 15:33:48
 local _L = JH.LoadLangPack
 
 LargeText = {
 	tAnchor = {},
-	fScale = 2.5,
+	fScale = 2,
 	nPause = 1.5,
 	nCount = 15,
 	dwFontScheme = 23,
@@ -109,8 +109,8 @@ PS.OnPanelActive = function(frame)
 	end):Pos_()
 	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX +10, y = nY + 3 })
-	:Range(1, 100):Value(LargeText.fScale * 20):Change(function(nVal)
-		LargeText.fScale = nVal / 20
+	:Range(30, 100):Value(LargeText.fScale * 30):Change(function(nVal)
+		LargeText.fScale = nVal / 30
 		ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 	end):Pos_()
 	nX = ui:Append("Text", { txt = _L["Pause time(s)"], x = 10, y = nY }):Pos_()

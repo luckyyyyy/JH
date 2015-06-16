@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 13:16:32
+-- @Last Modified time: 2015-06-16 02:15:42
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -166,6 +166,7 @@ function W.RequestList(szUrl)
 	JH.RemoteRequest(szUrl .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 		if err then
+			JH.Debug(err)
 			JH.Sysmsg2(_L["request failed"])
 		else
 			W.ListCallBack(result)
