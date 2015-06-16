@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 19:25:48
+-- @Last Modified time: 2015-06-16 16:51:31
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -75,9 +75,12 @@ JH_FORCE_COLOR = {
 	[21] = { 180, 60,  0   }
 }
 
-setmetatable(JH_FORCE_COLOR, { __index = function()
-	return 192, 192, 192
-end})
+setmetatable(JH_FORCE_COLOR, {
+	__index = function()
+		return { 192, 192, 192 }
+	end,
+	__metatable = true,
+})
 
 JH_TALK_CHANNEL_HEADER = {
 	[PLAYER_TALK_CHANNEL.NEARBY]        = "/s ",
