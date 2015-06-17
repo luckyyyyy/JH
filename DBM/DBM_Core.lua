@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 04:28:57
+-- @Last Modified time: 2015-06-17 15:56:58
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -322,9 +322,11 @@ function D.CreateData(szEvent)
 		pcall(Raid_MonitorBuffs) -- clear
 	end
 	-- gc
-	D.Log("collectgarbage(\"count\") " .. collectgarbage("count"))
-	collectgarbage("collect")
-	D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
+	if szEvent ~= "DBM_CREATE_CACHE" then
+		D.Log("collectgarbage(\"count\") " .. collectgarbage("count"))
+		collectgarbage("collect")
+		D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
+	end
 	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
 
@@ -1362,7 +1364,7 @@ function D.RemoveData(szType, dwMapID, nIndex)
 			D.FILE[szType][dwMapID] = nil
 		end
 		FireUIEvent("DBM_CREATE_CACHE")
-		FireUIEvent("DBMUI_DATA_RELOAD", szType)
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end
 end
 
@@ -1378,7 +1380,7 @@ function D.MoveOrder(szType, dwMapID, nIndex, bUp)
 			end
 		end
 		FireUIEvent("DBM_CREATE_CACHE")
-		FireUIEvent("DBMUI_DATA_RELOAD", szType)
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end
 end
 
@@ -1413,7 +1415,7 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 			D.RemoveData(szType, dwMapID, nIndex)
 		end
 		FireUIEvent("DBM_CREATE_CACHE")
-		FireUIEvent("DBMUI_DATA_RELOAD", szType)
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end
 end
 
@@ -1421,7 +1423,7 @@ function D.AddData(szType, dwMapID, data)
 	D.FILE[szType][dwMapID] = D.FILE[szType][dwMapID] or {}
 	tinsert(D.FILE[szType][dwMapID], data)
 	FireUIEvent("DBM_CREATE_CACHE")
-	FireUIEvent("DBMUI_DATA_RELOAD", szType)
+	FireUIEvent("DBMUI_DATA_RELOAD")
 	return D.FILE[szType][dwMapID][#D.FILE[szType][dwMapID]]
 end
 

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 13:27:46
+-- @Last Modified time: 2015-06-17 14:17:27
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -751,8 +751,6 @@ function CTM:ReloadParty()
 			end
 		end
 	end
-	CTM_TTARGET = nil
-	CTM_TARGET = nil
 	self:AutoLinkAllPanel()
 	self:RefreshMark()
 	self:RefreshDistance()
@@ -810,6 +808,9 @@ function CTM:DrawParty(nIndex)
 		end
 	end
 	CTM_LIFE_CACHE = {}
+	-- 刷新
+	CTM_TTARGET = nil
+	CTM_TARGET = nil
 	local dwID, dwType = Target_GetTargetData()
 	self:RefreshTarget(dwID, dwType, dwID, dwType)
 	self:RefreshTTarget()

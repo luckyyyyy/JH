@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 11:54:20
+-- @Last Modified time: 2015-06-17 16:20:38
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -36,23 +36,26 @@ function DBM_UI.OnFrameCreate()
 	this.hTalkR = this:CreateItemData(DBMUI_TALK_R, "Handle_TALK_R")
 
 	DBMUI_SEARCH = nil -- 重置搜索
-	DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 
-	local hPageset = this:Lookup("PageSet_Main")
+	this.hPageSet = this:Lookup("PageSet_Main")
 	local ui = GUI(this)
 	ui:Title(_L["JX3 DBM Plug-in"]):RegisterClose(DBMUI.ClosePanel)
 	for k, v in ipairs(DBMUI_TYPE) do
-		local txt = hPageset:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
+		local txt = this.hPageSet:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
 		txt:SetText(_L[v])
 		if v == "CIRCLE" and type(Circle) == "nil" then
-			hPageset:Lookup("CheckBox_" .. v):Enable(false)
+			this.hPageSet:Lookup("CheckBox_" .. v):Enable(false)
 			txt:SetFontColor(192, 192, 192)
 		end
 	end
 	ui:Append("WndComboBox", "Select_Class", { x = 700, y = 52, txt = _L["All Data"] }):Menu(DBMUI.GetClassMenu)
 	-- 首次加载
-	FireUIEvent("DBMUI_TEMP_RELOAD")
-	FireUIEvent("DBMUI_DATA_RELOAD")
+	for k, v in ipairs(DBMUI_TYPE) do
+		if DBMUI_SELECT_TYPE == v then
+			this.hPageSet:ActivePage(k - 1)
+			break
+		end
+	end
 	-- debug
 	if JH.bDebugClient then
 		ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
@@ -100,21 +103,12 @@ function DBM_UI.OnEvent(szEvent)
 		DBMUI.UpdateAnchor(this)
 	elseif szEvent == "DBMUI_TEMP_UPDATE" then
 		DBMUI.UpdateRList(szEvent, arg0, arg1)
-	elseif szEvent == "DBMUI_TEMP_RELOAD" then
-		DBMUI.UpdateRList(szEvent, arg0, arg1)
-	elseif szEvent == "DBMUI_DATA_RELOAD" then
-		DBMUI.UpdateLList(szEvent, arg0, arg1)
-	elseif szEvent == "CIRCLE_DRAW_UI" then
-		CIRCLE_SELECT_MAP = arg0 or CIRCLE_SELECT_MAP
-		if DBMUI_SELECT_TYPE == "CIRCLE" then
-			local txt = this:Lookup("Select_Class", "Text_Default")
-			if type(arg0) == "string" then
-				txt:SetText(CIRCLE_SELECT_MAP)
-			elseif type(arg0) == "number" then
-				txt:SetText(Circle.GetMapName(CIRCLE_SELECT_MAP))
-			end
-			DBMUI.UpdateLList(szEvent, "CIRCLE")
+	elseif szEvent == "DBMUI_TEMP_RELOAD" or szEvent == "DBMUI_DATA_RELOAD" or szEvent == "CIRCLE_DRAW_UI" then
+		if szEvent == "CIRCLE_DRAW_UI" and arg0 then
+			CIRCLE_SELECT_MAP = arg0
 		end
+		local nIndex = this.hPageSet:GetActivePageIndex()
+		this.hPageSet:ActivePage(nIndex)
 	end
 end
 
@@ -126,11 +120,9 @@ function DBM_UI.OnActivePage()
 	local nPage = this:GetActivePageIndex()
 	local txt = DBMUI.IsOpened():Lookup("Select_Class", "Text_Default")
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[nPage + 1]
-	FireUIEvent("DBMUI_TEMP_RELOAD")
-	DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "R", 0)
+	DBMUI.UpdateRList("DBMUI_TEMP_RELOAD", DBMUI_SELECT_TYPE)
 	if DBMUI_SELECT_TYPE ~= "CIRCLE" then
-		FireUIEvent("DBMUI_DATA_RELOAD")
-		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "L", 0)
+		DBMUI.UpdateLList("DBMUI_DATA_RELOAD")
 		if DBMUI_SELECT_MAP == -1 then
 			txt:SetText(g_tStrings.CHANNEL_COMMON)
 		elseif DBMUI_SELECT_MAP == _L["All Data"] then
@@ -139,8 +131,32 @@ function DBM_UI.OnActivePage()
 			txt:SetText(Table_GetMapName(DBMUI_SELECT_MAP))
 		end
 	else
-		FireUIEvent("CIRCLE_DRAW_UI", CIRCLE_SELECT_MAP)
+		local frame = DBMUI.GetFrame()
+		if DBMUI_SELECT_TYPE == "CIRCLE" then
+			local txt = frame:Lookup("Select_Class", "Text_Default")
+			if type(CIRCLE_SELECT_MAP) == "string" then
+				txt:SetText(CIRCLE_SELECT_MAP)
+			elseif type(CIRCLE_SELECT_MAP) == "number" then
+				txt:SetText(Circle.GetMapName(CIRCLE_SELECT_MAP))
+			end
+			DBMUI.UpdateLList("CIRCLE_DRAW_UI", "CIRCLE")
+		end
 	end
+	-- 初始化图标刷新逻辑
+	local hWndScrollL = this:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, "L", DBMUI_SELECT_TYPE, "L"))
+	local hWndScrollR = this:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, "R", DBMUI_SELECT_TYPE, "R"))
+	if hWndScrollR:GetStepCount() > 0 then
+		hWndScrollR:ScrollNext()
+		hWndScrollR:ScrollPrev()
+	else
+		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "R", 0)
+	end
+	if hWndScrollL:GetStepCount() > 0 then
+		hWndScrollL:ScrollNext()
+		hWndScrollL:ScrollPrev()
+	else
+		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "L", 0)
+	end	
 end
 
 function DBMUI.OutputTip(szType, data, rect)
@@ -337,11 +353,8 @@ function DBMUI.CheckSearch(szType, data)
 end
 
 -- 更新监控数据
-function DBMUI.UpdateLList(szEvent, szType, data)
-	szType = szType or DBMUI_SELECT_TYPE
-	if szType ~= DBMUI_SELECT_TYPE then
-		return
-	end
+function DBMUI.UpdateLList(szEvent)
+	local szType = DBMUI_SELECT_TYPE
 	if szEvent == "DBMUI_DATA_RELOAD" then
 		local tab = DBM_API.GetTable(szType)
 		if tab then
@@ -403,25 +416,30 @@ end
 function DBM_UI.OnScrollBarPosChanged()
 	local szName = this:GetParent():GetName()
 	local dir = szName:match("WndScroll_" .. DBMUI_SELECT_TYPE .. "_(.*)")
-	local nPos = math.floor(this:GetScrollPos() / 2)
-	DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, dir, nPos)
+	local nPer = this:GetScrollPos() / (this:GetStepCount() ~= 0 and this:GetStepCount() or 1) -- 这个取值暂时先这样 反正不影响
+	DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, dir, nPer)
 end
 
-function DBMUI.RefreshIcon(szType, dir, nPos)
+function DBMUI.RefreshIcon(szType, dir, nPer)
 	local frame = DBMUI.GetFrame()
-	local hScroll = frame:Lookup(string.format("PageSet_Main/Page_%s/WndScroll_%s_%s", szType, szType, dir))
-	if hScroll then
+	local hScroll = frame.hPageSet:Lookup(string.format("Page_%s/WndScroll_%s_%s", szType, szType, dir))
+	if hScroll and hScroll:IsValid() then
 		local handle = hScroll:Lookup("", string.format("Handle_%s_List_%s", szType, dir))
-		for i = nPos, nPos + 20 do
-			local h = handle:Lookup(i)
-			if h then
-				local box = h:Lookup("Box")
-				if box and box.nIocn then
-					box:SetObjectIcon(box.nIocn)
-					box.nIocn = nil
+		if handle and handle:IsValid() then
+			local nCount = handle:GetItemCount()
+			local nPos = math.floor(nCount * nPer)
+			if nPos - 10 > 0 then nPos = nPos - 10 end
+			for i = nPos, nPos + 20 do
+				local h = handle:Lookup(i)
+				if h then
+					local box = h:Lookup("Box")
+					if box and box.nIocn then
+						box:SetObjectIcon(box.nIocn)
+						box.nIocn = nil
+					end
+				else
+					break
 				end
-			else
-				break
 			end
 		end
 	end
@@ -609,7 +627,8 @@ function DBMUI.SetLCircleItemAction(h, t, i)
 end
 
 function DBMUI.DrawTableL(szType, data)
-	local page = this:Lookup("PageSet_Main"):GetActivePage()
+	local frame = DBMUI.GetFrame()
+	local page = frame.hPageSet:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_L", "Handle_" .. szType .. "_List_L")
 	local function SetDataAction(h, t, i)
 		if szType == "BUFF" or szType == "DEBUFF" then
@@ -629,7 +648,7 @@ function DBMUI.DrawTableL(szType, data)
 			DBMUI.SetLItemAction(szType, h, t)
 		end
 	end
-	local hItemData = szType == "TALK" and this.hTalkL or this.hItemL
+	local hItemData = szType == "TALK" and frame.hTalkL or frame.hItemL
 	handle:Clear()
 	if #data > 0 then
 		for k, v in DBM_API.Bpairs(data) do
@@ -709,7 +728,8 @@ function DBMUI.SetRItemAction(szType, h, t)
 end
 
 function DBMUI.DrawTableR(szType, data, bInsert)
-	local page = this:Lookup("PageSet_Main"):GetActivePage()
+	local frame = DBMUI.GetFrame()
+	local page = frame.hPageSet:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_R", "Handle_" .. szType .. "_List_R")
 	local function SetDataAction(h, t, i)
 		if szType == "BUFF" or szType == "DEBUFF" then
@@ -725,7 +745,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 	end
 	if not bInsert then
 		handle:Clear()
-		local hItemData = szType == "TALK" and this.hTalkR or this.hItemR
+		local hItemData = szType == "TALK" and frame.hTalkR or frame.hItemR
 		if #data > 0 then
 			for k, v in DBM_API.Bpairs(data) do
 				local h = handle:AppendItemFromData(hItemData)
@@ -739,6 +759,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 		if not DBMUI_SEARCH or DBMUI.CheckSearch(szType, data) then
 			handle:InsertItemFromIni(0, false, ini, name)
 			SetDataAction(handle:Lookup(0), data, 0)
+			DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "R", 0)
 		end
 	end
 	handle:FormatAllItemPos()
