@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:05:57
+-- @Last Modified time: 2015-06-17 10:56:40
 local _L = JH.LoadLangPack
 
 TS = {
@@ -76,6 +76,7 @@ function TS.OnFrameCreate()
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("FIGHT_HINT")
 	this:RegisterEvent("MY_FIGHT_HINT")
+	this.hItemData = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar")
 
 	_TS.UpdateAnchor(this)
 	_TS.frame = this
@@ -306,8 +307,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			tMyRank = v
 		end
 	end
-	_TS.bg:SetSize(240, 55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
-	_TS.handle:SetSize(240, 24 * math.min(#tThreat, TS.nMaxBarCount))
+	_TS.bg:SetH(55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
 	_TS.handle:Clear()
 	local KGnpc = GetNpc(dwApplyID)
 	if #tThreat > 0 and KGnpc then
@@ -348,7 +348,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 				v = tMyRank
 			end
 
-			local item = _TS.handle:AppendItemFromIni(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar", k)
+			local item = _TS.handle:AppendItemFromData(this.hItemData, k)
 			local nThreatPercentage, fDiff = 0, 0
 			if v.val ~= 0 then
 				fDiff = v.val / nTopRank
@@ -417,6 +417,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			item:Show()
 		end
 		_TS.handle:FormatAllItemPos()
+		_TS.handle:SetSizeByAllItemSize()
 	-- else
 		-- this:Hide()
 	end
