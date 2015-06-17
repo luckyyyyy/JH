@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 20:47:40
+-- @Last Modified time: 2015-06-17 17:19:32
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1481,7 +1481,7 @@ _GKP.OnMsg = function()
 					Wnd.CloseWindow(Station.Lookup("Normal/" .. szFrameName))
 					_GKP.info = nil
 				end
-				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point():RegisterClose()
+				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
 				ui:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
 				ui:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 })
 				:Enable(false):Click(function()

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 15:56:58
+-- @Last Modified time: 2015-06-17 16:51:21
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -22,6 +22,8 @@ local DBM_MARK_FIRST = true -- 标记事件
 ----
 local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
+----
+local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "TALK" }
 
 local function GetDataPath()
 	if DBM.bCommon then
@@ -48,7 +50,7 @@ local D = {
 
 -- 初始化table 虽然写法没有直接写来得好 但是为了方便以后改动
 do
-	for k, v in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "TALK" }) do
+	for k, v in ipairs(DBM_TYPE_LIST) do
 		D.FILE[v]         = {}
 		D.DATA[v]         = {}
 		D.TEMP[v]         = {}
@@ -1268,7 +1270,7 @@ function D.LoadUserData()
 				local szLang = select(3, GetVersion())
 				local config = {
 					nMode = 1,
-					tList = {
+					tList = { -- 初始化读取的数据 以后会增加 doodad
 						BUFF    = true,
 						DEBUFF  = true,
 						CASTING = true,
@@ -1285,10 +1287,12 @@ function D.LoadUserData()
 end
 
 function D.LoadConfigureFile(config)
-	local data = LoadLUAData(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. config.szFileName)
-	local path = GetRootPath() .."/" .. JH.GetAddonInfo().szRootPath .. "DBM/data/" .. config.szFileName
+	local root, path = GetRootPath(), "/".. JH.GetAddonInfo().szRootPath .. "DBM/data/" .. config.szFileName
+	local data = LoadLUAData(path)
+	root = root:gsub("\\", "/")
 	if not data then
-		return false, path
+		
+		return false, root .. path
 	else
 		if config.nMode == 1 then
 			if config.tList["CIRCLE"] then
@@ -1301,9 +1305,6 @@ function D.LoadConfigureFile(config)
 			for k, v in pairs(config.tList) do
 				D.FILE[k] = data[k] or {}
 			end
-			FireUIEvent("DBM_CREATE_CACHE")
-			FireUIEvent("DBMUI_DATA_RELOAD")
-			return true, path
 		elseif config.nMode == 2 then -- 原文件优先
 			if config.tList["CIRCLE"] then
 				if type(Circle) ~= "nil" then
@@ -1324,10 +1325,10 @@ function D.LoadConfigureFile(config)
 					end
 				end
 			end
-			FireUIEvent("DBM_CREATE_CACHE")
-			FireUIEvent("DBMUI_DATA_RELOAD")
-			return true, path
 		end
+		FireUIEvent("DBM_CREATE_CACHE")
+		FireUIEvent("DBMUI_DATA_RELOAD")
+		return true, root .. path
 	end
 end
 

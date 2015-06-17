@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 16:20:38
+-- @Last Modified time: 2015-06-17 17:38:07
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -27,7 +27,9 @@ function DBM_UI.OnFrameCreate()
 	this:RegisterEvent("DBMUI_TEMP_UPDATE")
 	this:RegisterEvent("DBMUI_TEMP_RELOAD")
 	this:RegisterEvent("DBMUI_DATA_RELOAD")
-	this:RegisterEvent("CIRCLE_DRAW_UI")
+	if type(Circle) ~= "nil" then
+		this:RegisterEvent("CIRCLE_DRAW_UI")
+	end
 	this:RegisterEvent("UI_SCALED")
 	-- CreateItemData
 	this.hItemL = this:CreateItemData(DBMUI_ITEM_L, "Handle_L")
@@ -117,8 +119,9 @@ function DBM_UI.OnFrameDragEnd()
 end
 
 function DBM_UI.OnActivePage()
+	local frame = DBMUI.GetFrame()
 	local nPage = this:GetActivePageIndex()
-	local txt = DBMUI.IsOpened():Lookup("Select_Class", "Text_Default")
+	local txt = frame:Lookup("Select_Class", "Text_Default")
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[nPage + 1]
 	DBMUI.UpdateRList("DBMUI_TEMP_RELOAD", DBMUI_SELECT_TYPE)
 	if DBMUI_SELECT_TYPE ~= "CIRCLE" then
@@ -131,16 +134,12 @@ function DBM_UI.OnActivePage()
 			txt:SetText(Table_GetMapName(DBMUI_SELECT_MAP))
 		end
 	else
-		local frame = DBMUI.GetFrame()
-		if DBMUI_SELECT_TYPE == "CIRCLE" then
-			local txt = frame:Lookup("Select_Class", "Text_Default")
-			if type(CIRCLE_SELECT_MAP) == "string" then
-				txt:SetText(CIRCLE_SELECT_MAP)
-			elseif type(CIRCLE_SELECT_MAP) == "number" then
-				txt:SetText(Circle.GetMapName(CIRCLE_SELECT_MAP))
-			end
-			DBMUI.UpdateLList("CIRCLE_DRAW_UI", "CIRCLE")
+		if type(CIRCLE_SELECT_MAP) == "string" then
+			txt:SetText(CIRCLE_SELECT_MAP)
+		elseif type(CIRCLE_SELECT_MAP) == "number" then
+			txt:SetText(Circle.GetMapName(CIRCLE_SELECT_MAP))
 		end
+		DBMUI.UpdateLList("CIRCLE_DRAW_UI")
 	end
 	-- 初始化图标刷新逻辑
 	local hWndScrollL = this:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, "L", DBMUI_SELECT_TYPE, "L"))
@@ -156,7 +155,8 @@ function DBM_UI.OnActivePage()
 		hWndScrollL:ScrollPrev()
 	else
 		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "L", 0)
-	end	
+	end
+	PlaySound(SOUND.UI_SOUND, g_sound.Destroy)
 end
 
 function DBMUI.OutputTip(szType, data, rect)
@@ -211,7 +211,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 		end
 	end
 
-	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = szTitle or _L["Import Data"], close = true }):RegisterClose()
+	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = szTitle or _L["Import Data"], close = true })
 	local ui, nX, nY = GUI(Station.Lookup("Normal/DBM_DatatPanel")), 0, 0
 	nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
@@ -256,7 +256,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 end
 
 function DBMUI.OpenExportPanel()
-	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Export Data"], close = true }):RegisterClose()
+	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Export Data"], close = true })
 	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
 	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
@@ -370,7 +370,7 @@ function DBMUI.UpdateLList(szEvent)
 			end
 			DBMUI.DrawTableL(szType, dat2)
 		end
-	elseif szEvent == "CIRCLE_DRAW_UI" then
+	else
 		local tab = DBM_API.GetTable(szType)
 		if tab then
 			local dat, dat2 = tab[CIRCLE_SELECT_MAP] or {}, {}
@@ -416,8 +416,10 @@ end
 function DBM_UI.OnScrollBarPosChanged()
 	local szName = this:GetParent():GetName()
 	local dir = szName:match("WndScroll_" .. DBMUI_SELECT_TYPE .. "_(.*)")
-	local nPer = this:GetScrollPos() / (this:GetStepCount() ~= 0 and this:GetStepCount() or 1) -- 这个取值暂时先这样 反正不影响
-	DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, dir, nPer)
+	if dir then
+		local nPer = this:GetScrollPos() / (this:GetStepCount() ~= 0 and this:GetStepCount() or 1) -- 这个取值暂时先这样 反正不影响
+		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, dir, nPer)
+	end
 end
 
 function DBMUI.RefreshIcon(szType, dir, nPer)
@@ -777,7 +779,7 @@ function DBMUI.OpenAddPanel(szType, data)
 		if DBMUI_SELECT_MAP ~= _L["All Data"] then
 			nClass = DBMUI_SELECT_MAP
 		end
-		GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, close = true }):RegisterClose()
+		GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, focus = true, close = true })
 		local frame = Station.Lookup("Normal/DBM_NewData")
 		local nX, nY, ui = 0, 0, GUI(frame)
 		frame:RegisterEvent("DBMUI_TEMP_RELOAD")
@@ -836,7 +838,7 @@ end
 -- 数据调试面板
 function DBMUI.OpenJosnPanel(data, fnAction)
 	local json = JH.JsonEncode(data, true)
-	local wnd = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = _L["Json Data"], close = true }):RegisterClose()
+	local wnd = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = _L["Json Data"], close = true })
 	wnd:Append("WndEdit", "WndEdit",{ w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999,txt = json })
 	if JH.bDebugClient then
 		wnd:Append("WndButton3",{ x = 10, y = 370,txt = _L["Enter"] }):Click(function()
@@ -984,7 +986,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 	if szType ~= "TALK" then
 		szName, nIcon = DBMUI.GetBoxInfo(szType, data)
 	end
-	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true, focus = true }):RegisterClose()
+	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true, focus = true })
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")
 	local ui = GUI(frame)
 	frame:RegisterEvent("DBMUI_DATA_RELOAD")
@@ -1483,7 +1485,6 @@ function DBMUI.ClosePanel()
 	if DBMUI.IsOpened() then
 		Wnd.CloseWindow(DBMUI.GetFrame())
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
-		collectgarbage("collect")
 	end
 end
 
