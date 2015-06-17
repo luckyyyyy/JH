@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-15 16:04:34
+-- @Last Modified time: 2015-06-17 13:48:56
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -95,6 +95,7 @@ function ST_UI.OnFrameCreate()
 	this:RegisterEvent("JH_ST_CREATE")
 	this:RegisterEvent("JH_ST_DEL")
 	this:RegisterEvent("JH_ST_CLEAR")
+	_ST_UI.hItem = this:CreateItemData(ST_INIFILE, "Handle_Item")
 	_ST_UI.UpdateAnchor(this)
 	_ST_UI.handle = this:Lookup("", "Handle_List")
 end
@@ -223,7 +224,7 @@ function ST:ctor(nType, szKey, tParam)
 			self.ui.bTalk     = tParam.bTalk
 			self.ui.nFrame    = tParam.nFrame
 		else -- 没有ui的情况下 创建
-			self.ui                = _ST_UI.handle:AppendItemFromIni(ST_INIFILE, "Handle_Item")
+			self.ui                = _ST_UI.handle:AppendItemFromData(_ST_UI.hItem)
 			-- 参数
 			self.ui.nCreate        = nTime
 			self.ui.nLeft          = nTime

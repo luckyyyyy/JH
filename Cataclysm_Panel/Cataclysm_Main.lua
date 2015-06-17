@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 01:39:32
+-- @Last Modified time: 2015-06-17 13:50:34
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -334,6 +334,10 @@ function Cataclysm_Main.OnFrameCreate()
 	end
 	SetFrameSize(true)
 	this:EnableDrag(Cataclysm_Main.bDrag)
+	-- 中间层数据 常用的
+	this.hMember = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini", "Handle_RoleDummy")
+	this.hBuff   = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini", "Handle_Buff")
+	
 end
 -------------------------------------------------
 -- 拖动窗体 OnFrameDrag对于较大的窗口 掉帧严重
@@ -470,7 +474,8 @@ function Cataclysm_Main.OnEvent(szEvent)
 	elseif szEvent == "JH_KUNGFU_SWITCH" then
 		Grid_CTM:KungFuSwitch(arg0)
 	elseif szEvent == "TARGET_CHANGE" then
-		Grid_CTM:RefreshTarget()
+		-- oldid， oldtype, newid, newtype
+		Grid_CTM:RefreshTarget(arg0, arg1, arg2, arg3)
 	elseif szEvent == "JH_RAID_REC_BUFF" then
 		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3, arg4)
 	elseif szEvent == "BUFF_UPDATE" then
@@ -498,7 +503,7 @@ function Cataclysm_Main.OnFrameBreathe()
 	Grid_CTM:RefreshDistance()
 	Grid_CTM:RefresBuff()
 	if Cataclysm_Main.bShowTargetTargetAni then
-		Grid_CTM:RefreshTarget()
+		Grid_CTM:RefreshTTarget()
 	end
 	-- kill System Panel
 	RaidPanel_Switch(DEBUG)
@@ -675,7 +680,7 @@ function PS.OnPanelActive(frame)
 	:Click(function(bCheck)
 		Cataclysm_Main.bShowTargetTargetAni = bCheck
 		if GetFrame() then
-			Grid_CTM:RefreshTarget()
+			Grid_CTM:RefreshTTarget()
 		end
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Show distance"], checked = Cataclysm_Main.bShowDistance })
@@ -1170,7 +1175,7 @@ end)
 --    需要利用外面注册的[LOADING_END]来打开+刷新
 -- 3) 如果在竞技场/战场掉线重上的情况下 需要使用外面注册的[LOADING_END]来打开面板
 --    然后在UI上注册的[LOADING_END]的来刷新界面，否则获取不到团队成员，只能获取到有几个队
---    为什么UI的[LOADING_END]晚大约30m，然后就能获取到团队成员了??????
+--    UI的[LOADING_END]晚大约30m，然后就能获取到团队成员了??????
 -- 4) 从竞技场/战场回到原服使用外面注册的[LOADING_END]来打开+刷新
 -- 5) 普通掉线/过地图使用外面注册的[LOADING_END]打开+刷新，避免过地图时候团队变动没有收到事件的情况。
 -- 6) 综上所述的各式各样的奇葩情况 可以做如下的调整

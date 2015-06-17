@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-08 13:48:16
+-- @Last Modified time: 2015-06-17 13:46:53
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -30,7 +30,7 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 			local KBuff = GetBuff(dwID)
 			if KBuff then
 				tArgs = tArgs or {}
-				local h = BL.handle:AppendItemFromIni(BL_INIFILE, "Handle_Item")
+				local h = BL.handle:AppendItemFromData(BL.hItem)
 				local szName, nIcon = JH.GetBuffName(dwID, nLevel)
 				h.dwID = dwID
 				h:Lookup("Text_Name"):SetText(tArgs.szName or szName)
@@ -78,6 +78,7 @@ function BL_UI.OnFrameCreate()
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
 	this:RegisterEvent("JH_BL_CREATE")
 	this:RegisterEvent("JH_BL_RESIZE")
+	BL.hItem = this:CreateItemData(BL_INIFILE, "Handle_Item")
 	BL.handle = this:Lookup("", "")
 	BL.handle:Clear()
 	BL.ReSize(BL_UI.fScale, BL_UI.nCount)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 00:33:10
+-- @Last Modified time: 2015-06-17 13:27:46
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -11,7 +11,7 @@ local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
 local floor = math.floor
 local setmetatable = setmetatable
-local GetDistance, GetBuff, GetEndTime, IsParty, GetTarget = JH.GetDistance, JH.GetBuff, JH.GetEndTime, JH.IsParty, JH.GetTarget
+local GetDistance, GetBuff, GetEndTime, GetTarget = JH.GetDistance, JH.GetBuff, JH.GetEndTime, JH.GetTarget
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
 local Station, SetTarget, Target_GetTargetData = Station, SetTarget, Target_GetTargetData
 local Table_BuffIsVisible = Table_BuffIsVisible
@@ -32,9 +32,6 @@ local CTM_GROUP_COUNT        = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和
 local CTM_MEMBER_COUNT       = 5
 local CTM_DRAG               = false
 local CTM_INIFILE            = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Party.ini"
-local CTM_ITEM               = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini"
-local CTM_BUFF_ITEM          = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini"
-local CTM_IMAGES             = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/images/ForceColorBox.UITex"
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET
@@ -498,45 +495,62 @@ function CTM:GetTeamInfo()
 	}
 end
 
-function CTM:RefreshTarget()
-	if CTM_TARGET then
-		if CTM_CACHE[CTM_TARGET] and CTM_CACHE[CTM_TARGET]:IsValid() then
-			if CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected") and CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):IsValid() then
-				CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):Hide()
-			end
+local function HideTarget()
+	if CTM_CACHE[CTM_TARGET] and CTM_CACHE[CTM_TARGET]:IsValid() then
+		if CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected") and CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):IsValid() then
+			CTM_CACHE[CTM_TARGET]:Lookup("Image_Selected"):Hide()
 		end
 	end
-	if CTM_TTARGET then
-		if CTM_CACHE[CTM_TTARGET] and CTM_CACHE[CTM_TTARGET]:IsValid() then
-			if CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget") and CTM_CACHE[CTM_TARGET]:Lookup("Animate_TargetTarget"):IsValid() then
-				CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Hide()
-			end
-		end
-	end
+end
 
-	local dwID, dwType = Target_GetTargetData()
-	if dwType == TARGET.PLAYER and IsParty(dwID) then
-		CTM_TARGET = dwID
-		if CTM_CACHE[dwID] and CTM_CACHE[dwID]:IsValid() then
-			if CTM_CACHE[dwID]:Lookup("Image_Selected") and CTM_CACHE[dwID]:Lookup("Image_Selected"):IsValid() then
-				CTM_CACHE[dwID]:Lookup("Image_Selected"):Show()
+function CTM:RefreshTarget(dwOldID, nOldType, dwNewID, nNewType)
+	if dwOldID == CTM_TARGET then
+		HideTarget()
+	end
+	if nNewType == TARGET.PLAYER then
+		if CTM_CACHE[dwNewID] and CTM_CACHE[dwNewID]:IsValid() then
+			if CTM_CACHE[dwNewID]:Lookup("Image_Selected") and CTM_CACHE[dwNewID]:Lookup("Image_Selected"):IsValid() then
+				CTM_CACHE[dwNewID]:Lookup("Image_Selected"):Show()
 			end
 		end
 	end
+	CTM_TARGET = dwNewID
+end
 
-	if CFG.bShowTargetTargetAni and dwID then
-		local KObject = GetTarget(dwID)
-		if KObject then
-			local tdwType, tdwID = KObject.GetTarget()
-			if tdwID and tdwID ~= 0 and tdwType == TARGET.PLAYER and IsParty(tdwID) then
-				CTM_TTARGET = tdwID
-				if CTM_CACHE[tdwID] and CTM_CACHE[tdwID]:IsValid() then
-					if CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget") and CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):IsValid() then
-						CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):Show()
+local function HideTTarget()
+	if CTM_CACHE[CTM_TTARGET] and CTM_CACHE[CTM_TTARGET]:IsValid() then
+		if CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget") and CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):IsValid() then
+			CTM_CACHE[CTM_TTARGET]:Lookup("Animate_TargetTarget"):Hide()
+		end
+	end
+end
+
+function CTM:RefreshTTarget()
+	if CFG.bShowTargetTargetAni then
+		local dwID, dwType = Target_GetTargetData()
+		if dwID then
+			local KObject = GetTarget(dwID)
+			if KObject then
+				local tdwType, tdwID = KObject.GetTarget()
+				if tdwID ~= CTM_TTARGET then
+					HideTTarget()
+				end
+				if tdwID and tdwID ~= 0 and tdwType == TARGET.PLAYER then
+					if CTM_CACHE[tdwID] and CTM_CACHE[tdwID]:IsValid() then
+						if CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget") and CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):IsValid() then
+							CTM_CACHE[tdwID]:Lookup("Animate_TargetTarget"):Show()
+						end
 					end
 				end
+				CTM_TTARGET = tdwID
+			else
+				HideTTarget()
 			end
+		else
+			HideTTarget()
 		end
+	else
+		HideTTarget()
 	end
 end
 
@@ -737,20 +751,10 @@ function CTM:ReloadParty()
 			end
 		end
 	end
-	local dwID, dwType = Target_GetTargetData()
-	if dwType == TARGET.PLAYER and IsParty(dwID) then
-		CTM_TARGET = dwID
-		if CFG.bShowTargetTargetAni then
-			local tdwType, tdwID = JH.GetTarget(dwID).GetTarget()
-			CTM_TTARGET = tdwID
-		end
-	else
-		CTM_TTARGET = nil
-		CTM_TARGET = nil
-	end
-	self:RefreshMark()
-	self:RefreshTarget()
+	CTM_TTARGET = nil
+	CTM_TARGET = nil
 	self:AutoLinkAllPanel()
+	self:RefreshMark()
 	self:RefreshDistance()
 	self:RefresFormation()
 	CTM_LIFE_CACHE = {}
@@ -772,6 +776,7 @@ function CTM:RefresFormation()
 		end
 	end
 end
+
 -- 绘制面板
 function CTM:DrawParty(nIndex)
 	local team = GetClientTeam()
@@ -779,16 +784,17 @@ function CTM:DrawParty(nIndex)
 	local frame = self:GetPartyFrame(nIndex)
 	local handle = frame:Lookup("", "Handle_Roles")
 	local tSetting = self:GetTeamInfo()
+	local hMember = Cataclysm_Main.GetFrame().hMember
 	handle:Clear()
 	for i = 1, CTM_MEMBER_COUNT do
 		local dwID = tGroup.MemberList[i]
-		local h = handle:AppendItemFromIni(CTM_ITEM, "Handle_RoleDummy", i)
+		local h = handle:AppendItemFromData(hMember, i)
 		h.nGroup = nIndex
 		if dwID then
 			h.dwID = dwID
 			CTM_CACHE[dwID] = h
 			local info = self:GetMemberInfo(dwID)
-			h:Lookup("Handle_Common/Image_BG_Force"):FromUITex(CTM_IMAGES, 3)
+			h:Lookup("Handle_Common/Image_BG_Force"):Show()
 			self:RefreshImages(h, dwID, info, tSetting, true, dwID == tGroup.dwFormationLeader, true)
 		end
 		self:Scale(CFG.fScaleX, CFG.fScaleY, h)
@@ -804,6 +810,9 @@ function CTM:DrawParty(nIndex)
 		end
 	end
 	CTM_LIFE_CACHE = {}
+	local dwID, dwType = Target_GetTargetData()
+	self:RefreshTarget(dwID, dwType, dwID, dwType)
+	self:RefreshTTarget()
 end
 
 function CTM:Scale(fX, fY, frame)
@@ -886,7 +895,8 @@ function CTM:RecBuff(dwMemberID, dwID, nLevel, col, nIocn, bDemo)
 		if p then
 			local KBuff = GetBuff(dwID, p)
 			if KBuff or bDemo then
-				local item = handle:AppendItemFromIni(CTM_BUFF_ITEM, "Handle_Buff")
+				local hBuff = Cataclysm_Main.GetFrame().hBuff
+				local item = handle:AppendItemFromData(hBuff)
 				if not col then
 					item:Lookup("Shadow"):Hide()
 				else
