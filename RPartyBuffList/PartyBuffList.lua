@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 15:23:41
+-- @Last Modified time: 2015-06-17 13:46:43
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -26,7 +26,7 @@ function PartyBuffList.OnFrameCreate()
 	this:RegisterEvent("BUFF_UPDATE")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("JH_PARTYBUFFLIST")
-	PBL.UpdateAnchor(this)
+	PBL.hItem = this:CreateItemData(PBL_INI_FILE, "Handle_Item")
 	PBL.frame = this
 	PBL.handle = this:Lookup("", "Handle_List")
 	PBL.bg = this:Lookup("", "Image_Bg")
@@ -40,6 +40,7 @@ function PartyBuffList.OnFrameCreate()
 	ui:Fetch("Btn_Style"):Click(function()
 		JH.OpenPanel(_L["PartyBuffList"])
 	end)
+	PBL.UpdateAnchor(this)
 end
 
 function PartyBuffList.OnEvent(event)
@@ -211,7 +212,7 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	end
 	local dwTargetID, dwTargetType = Target_GetTargetData()
 	local data = { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel }
-	local h = PBL.handle:AppendItemFromIni(PBL_INI_FILE, "Handle_Item")
+	local h = PBL.handle:AppendItemFromData(PBL.hItem)
 	local nCount = PBL.handle:GetItemCount()
 	if dwTargetID == dwID then
 		h:Lookup("Image_Select"):Show()
