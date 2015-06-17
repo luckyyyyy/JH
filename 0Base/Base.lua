@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-16 16:53:20
+-- @Last Modified time: 2015-06-17 17:38:16
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1677,6 +1677,8 @@ function _GUI.Frm:ctor(szName, bEmpty)
 		frm = Station.Lookup("Normal/" .. szName)
 		if frm then
 			Wnd.CloseWindow(frm)
+		else
+			PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 		end
 		frm = Wnd.OpenWindow(szIniFile, szName)
 	else
@@ -1689,6 +1691,13 @@ function _GUI.Frm:ctor(szName, bEmpty)
 			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 			self:Remove()
 		end
+		frm.OnFrameKeyDown = function()
+			if GetKeyName(Station.GetMessageKey()) == "Esc" then
+				PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+				self:Remove()
+				return 1
+			end
+		end
 		self.wnd = frm:Lookup("Window_Main")
 		self.handle = self.wnd:Lookup("", "")
 	else
@@ -1697,24 +1706,6 @@ function _GUI.Frm:ctor(szName, bEmpty)
 	self.self, self.type = frm, "WndFrame"
 end
 
--- (self) Instance:RegisterClose(boolean bNotButton, boolean bNotKeyDown)		-- 注册Esc和Btn_Close关闭自身
-function _GUI.Frm:RegisterClose(bNotButton, bNotKeyDown)
-	local wnd = self.self
-	if not bNotKeyDown then
-		wnd.OnFrameKeyDown = function()
-			if GetKeyName(Station.GetMessageKey()) == "Esc" then
-				self:Remove()
-				return 1
-			end
-		end
-	end
-	if not bNotButton then
-		wnd:Lookup("Btn_Close").OnLButtonClick = function()
-			self:Remove()
-		end
-	end
-	return self
-end
 -- (number, number) Instance:Size()						-- 取得窗体宽和高
 -- (self) Instance:Size(number nW, number nH)	-- 设置窗体的宽和高
 function _GUI.Frm:Size(nW, nH)
@@ -1802,6 +1793,8 @@ function _GUI.Frm2:ctor(szName, bEmpty)
 		frm = Station.Lookup("Normal/" .. szName)
 		if frm then
 			Wnd.CloseWindow(frm)
+		else
+			PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 		end
 		frm = Wnd.OpenWindow(szIniFile, szName)
 	else
@@ -1848,25 +1841,6 @@ function _GUI.Frm2:Size(nW, nH)
 	-- reset position
 	local an = GetFrameAnchor(frm)
 	frm:SetPoint(an.s, 0, 0, an.r, an.x, an.y)
-	return self
-end
-
--- (self) Instance:RegisterClose(boolean bNotButton, boolean bNotKeyDown)		-- 注册Esc和Btn_Close关闭自身
-function _GUI.Frm2:RegisterClose(bNotButton, bNotKeyDown)
-	local wnd = self.self
-	if not bNotKeyDown then
-		wnd.OnFrameKeyDown = function()
-			if GetKeyName(Station.GetMessageKey()) == "Esc" then
-				self:Remove()
-				return 1
-			end
-		end
-	end
-	if not bNotButton then
-		wnd:Lookup("Btn_Close").OnLButtonClick = function()
-			self:Remove()
-		end
-	end
 	return self
 end
 
@@ -3083,7 +3057,7 @@ end
 
 -- 字体选择器
 function GUI.OpenFontTablePanel(fnAction)
-	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true }):RegisterClose()
+	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true })
 	for i = 0, 236 do
 		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
 		:Click(function()
@@ -3102,7 +3076,7 @@ end
 
 -- 调色板
 function GUI.OpenColorTablePanel(fnAction)
-	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], close = true }):RegisterClose()
+	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], close = true })
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			wnd:Fetch("Select"):Color(r, g, b)
@@ -3190,7 +3164,7 @@ local ICON_PAGE = 20
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
 	local nMaxIocn, boxs, txts = 6891, {}, {}
-	local ui = GUI.CreateFrame2("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], close = true }):RegisterClose()
+	local ui = GUI.CreateFrame2("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], close = true })
 	local function GetPage(nPage)
 		local nStart = nPage * 144 - 1
 		for i = 1, 144 do
