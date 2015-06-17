@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 21:56:52
+-- @Last Modified time: 2015-06-17 11:54:20
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -29,17 +29,23 @@ function DBM_UI.OnFrameCreate()
 	this:RegisterEvent("DBMUI_DATA_RELOAD")
 	this:RegisterEvent("CIRCLE_DRAW_UI")
 	this:RegisterEvent("UI_SCALED")
+	-- CreateItemData
+	this.hItemL = this:CreateItemData(DBMUI_ITEM_L, "Handle_L")
+	this.hTalkL = this:CreateItemData(DBMUI_TALK_L, "Handle_TALK_L")
+	this.hItemR = this:CreateItemData(DBMUI_ITEM_R, "Handle_R")
+	this.hTalkR = this:CreateItemData(DBMUI_TALK_R, "Handle_TALK_R")
+
 	DBMUI_SEARCH = nil -- 重置搜索
-	DBMUI.frame = this
-	DBMUI.pageset = this:Lookup("PageSet_Main")
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
+
+	local hPageset = this:Lookup("PageSet_Main")
 	local ui = GUI(this)
 	ui:Title(_L["JX3 DBM Plug-in"]):RegisterClose(DBMUI.ClosePanel)
 	for k, v in ipairs(DBMUI_TYPE) do
-		local txt = DBMUI.pageset:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
+		local txt = hPageset:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
 		txt:SetText(_L[v])
 		if v == "CIRCLE" and type(Circle) == "nil" then
-			DBMUI.pageset:Lookup("CheckBox_" .. v):Enable(false)
+			hPageset:Lookup("CheckBox_" .. v):Enable(false)
 			txt:SetFontColor(192, 192, 192)
 		end
 	end
@@ -118,11 +124,13 @@ end
 
 function DBM_UI.OnActivePage()
 	local nPage = this:GetActivePageIndex()
-	local txt = DBMUI.frame:Lookup("Select_Class", "Text_Default")
+	local txt = DBMUI.IsOpened():Lookup("Select_Class", "Text_Default")
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[nPage + 1]
-	FireUIEvent("DBMUI_TEMP_RELOAD", DBMUI_TYPE[nPage + 1])
+	FireUIEvent("DBMUI_TEMP_RELOAD")
+	DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "R", 0)
 	if DBMUI_SELECT_TYPE ~= "CIRCLE" then
-		FireUIEvent("DBMUI_DATA_RELOAD", DBMUI_TYPE[nPage + 1])
+		FireUIEvent("DBMUI_DATA_RELOAD")
+		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "L", 0)
 		if DBMUI_SELECT_MAP == -1 then
 			txt:SetText(g_tStrings.CHANNEL_COMMON)
 		elseif DBMUI_SELECT_MAP == _L["All Data"] then
@@ -391,6 +399,34 @@ function DBMUI.GetBoxInfo(szType, data)
 	return szName, nIcon
 end
 
+-- 移动滚动条的时候 刷新图标 直接刷太浪费性能了
+function DBM_UI.OnScrollBarPosChanged()
+	local szName = this:GetParent():GetName()
+	local dir = szName:match("WndScroll_" .. DBMUI_SELECT_TYPE .. "_(.*)")
+	local nPos = math.floor(this:GetScrollPos() / 2)
+	DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, dir, nPos)
+end
+
+function DBMUI.RefreshIcon(szType, dir, nPos)
+	local frame = DBMUI.GetFrame()
+	local hScroll = frame:Lookup(string.format("PageSet_Main/Page_%s/WndScroll_%s_%s", szType, szType, dir))
+	if hScroll then
+		local handle = hScroll:Lookup("", string.format("Handle_%s_List_%s", szType, dir))
+		for i = nPos, nPos + 20 do
+			local h = handle:Lookup(i)
+			if h then
+				local box = h:Lookup("Box")
+				if box and box.nIocn then
+					box:SetObjectIcon(box.nIocn)
+					box.nIocn = nil
+				end
+			else
+				break
+			end
+		end
+	end
+end
+
 function DBMUI.SetBuffItemAction(h, dat)
 	local szName, nIcon = DBMUI.GetBoxInfo("BUFF", dat)
 	h:Lookup("Text"):SetText(szName)
@@ -408,7 +444,8 @@ function DBMUI.SetBuffItemAction(h, dat)
 	end
 	h:Lookup("Image_RBg"):Show()
 	local box = h:Lookup("Box")
-	box:SetObjectIcon(nIcon)
+	-- box:SetObjectIcon(nIcon)
+	box.nIocn = nIcon
 	if dat.nCount then
 		box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 		box:SetOverTextFontScheme(0, 15)
@@ -433,7 +470,8 @@ function DBMUI.SetCastingItemAction(h, dat)
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
 	end
 	local box = h:Lookup("Box")
-	box:SetObjectIcon(nIcon)
+	-- box:SetObjectIcon(nIcon)
+	box.nIocn = nIcon
 	h.OnItemMouseEnter = function()
 		box:SetObjectMouseOver(true)
 		local x, y = this:GetAbsPos()
@@ -571,7 +609,7 @@ function DBMUI.SetLCircleItemAction(h, t, i)
 end
 
 function DBMUI.DrawTableL(szType, data)
-	local page = DBMUI.pageset:GetActivePage()
+	local page = this:Lookup("PageSet_Main"):GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_L", "Handle_" .. szType .. "_List_L")
 	local function SetDataAction(h, t, i)
 		if szType == "BUFF" or szType == "DEBUFF" then
@@ -591,11 +629,11 @@ function DBMUI.DrawTableL(szType, data)
 			DBMUI.SetLItemAction(szType, h, t)
 		end
 	end
-	local ini = szType == "TALK" and DBMUI_TALK_L or DBMUI_ITEM_L
+	local hItemData = szType == "TALK" and this.hTalkL or this.hItemL
 	handle:Clear()
 	if #data > 0 then
 		for k, v in DBM_API.Bpairs(data) do
-			local h = handle:AppendItemFromIni(ini, "Handle_L")
+			local h = handle:AppendItemFromData(hItemData)
 			SetDataAction(h, v, k)
 		end
 	end
@@ -671,7 +709,7 @@ function DBMUI.SetRItemAction(szType, h, t)
 end
 
 function DBMUI.DrawTableR(szType, data, bInsert)
-	local page = DBMUI.pageset:GetActivePage()
+	local page = this:Lookup("PageSet_Main"):GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_R", "Handle_" .. szType .. "_List_R")
 	local function SetDataAction(h, t, i)
 		if szType == "BUFF" or szType == "DEBUFF" then
@@ -685,18 +723,21 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 		end
 		DBMUI.SetRItemAction(szType, h, t)
 	end
-	local ini = szType == "TALK" and DBMUI_TALK_R or DBMUI_ITEM_R
 	if not bInsert then
 		handle:Clear()
+		local hItemData = szType == "TALK" and this.hTalkR or this.hItemR
 		if #data > 0 then
 			for k, v in DBM_API.Bpairs(data) do
-				local h = handle:AppendItemFromIni(ini, "Handle_R")
+				local h = handle:AppendItemFromData(hItemData)
 				SetDataAction(h, v, k)
 			end
 		end
 	else
+		-- 注意 这里是被逼无奈
+		local ini = szType == "TALK" and DBMUI_TALK_R or DBMUI_ITEM_R
+		local name = szType == "TALK" and "Handle_TALK_R" or "Handle_R"
 		if not DBMUI_SEARCH or DBMUI.CheckSearch(szType, data) then
-			handle:InsertItemFromIni(0, false, ini, "Handle_R")
+			handle:InsertItemFromIni(0, false, ini, name)
 			SetDataAction(handle:Lookup(0), data, 0)
 		end
 	end
@@ -1396,9 +1437,11 @@ function DBMUI.UpdateAnchor(frame)
 	end
 end
 
-function DBMUI.IsOpened()
+function DBMUI.GetFrame()
 	return Station.Lookup("Normal/DBM_UI")
 end
+
+DBMUI.IsOpened = DBMUI.GetFrame
 
 function DBMUI.TogglePanel()
 	if DBMUI.IsOpened() then
@@ -1417,20 +1460,20 @@ end
 
 function DBMUI.ClosePanel()
 	if DBMUI.IsOpened() then
-		Wnd.CloseWindow(DBMUI.frame)
+		Wnd.CloseWindow(DBMUI.GetFrame())
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
-		DBMUI.frame = nil
 		collectgarbage("collect")
 	end
 end
 
 JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePanel })
 JH.AddHotKey("JH_DBMUI", _L["Open DBM Panel"], DBMUI.TogglePanel)
+
 -- 公开UI API DBM_UI.xxx
 local ui = {
 	OpenPanel       = DBMUI.OpenPanel,
 	ClosePanel      = DBMUI.ClosePanel,
-	IsOpened        = DBMUI.IsOpened,
+	IsOpened        = DBMUI.GetFrame,
 	TogglePanel     = DBMUI.TogglePanel,
 	OpenImportPanel = DBMUI.OpenImportPanel,
 	OpenExportPanel = DBMUI.OpenExportPanel

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-16 15:02:08
+-- @Last Modified time: 2015-06-17 01:39:32
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -252,18 +252,27 @@ end
 local function CheckCataclysmEnable(szEvent)
 	local me = GetClientPlayer()
 	if not Cataclysm_Main.bRaidEnable then
-		return CloseCataclysmPanel()
+		CloseCataclysmPanel()
+		return false
 	end
 	if Cataclysm_Main.bShowInRaid and not me.IsInRaid() then
-		return CloseCataclysmPanel()
+		CloseCataclysmPanel()
+		return false
 	end
 	if not me.IsInParty() then
-		return CloseCataclysmPanel()
+		CloseCataclysmPanel()
+		return false
 	end
 	OpenCataclysmPanel()
-	UpdateLootImages()
-	Grid_CTM:CloseParty()
-	Grid_CTM:ReloadParty()
+	return true
+end
+
+local function ReloadCataclysmPanel()
+	if GetFrame() then
+		UpdateLootImages()
+		Grid_CTM:CloseParty()
+		Grid_CTM:ReloadParty()
+	end
 end
 
 local function UpdateAnchor(frame)
@@ -478,6 +487,8 @@ function Cataclysm_Main.OnEvent(szEvent)
 	elseif szEvent == "UI_SCALED" then
 		UpdateAnchor(this)
 		Grid_CTM:AutoLinkAllPanel()
+	elseif szEvent == "LOADING_END" then -- 勿删
+		ReloadCataclysmPanel()
 	end
 end
 
@@ -621,28 +632,31 @@ function Cataclysm_Main.OnFrameDragEnd()
 	Grid_CTM:AutoLinkAllPanel() -- fix screen pos
 end
 
-local EnableTeamPanel = function()
-	Cataclysm_Main.bRaidEnable = not Cataclysm_Main.bRaidEnable
-	CheckCataclysmEnable()
-	if not Cataclysm_Main.bRaidEnable then
-		local me = GetClientPlayer()
-		if me.IsInRaid() then
-			FireUIEvent("CTM_PANEL_RAID", true)
-		elseif me.IsInParty() then
-			FireUIEvent("CTM_PANEL_TEAMATE", true)
-		end
-	end
-end
-
 local PS = {}
 function PS.OnPanelActive(frame)
+	local function EnableTeamPanel()
+		Cataclysm_Main.bRaidEnable = not Cataclysm_Main.bRaidEnable
+		if CheckCataclysmEnable() then
+			ReloadCataclysmPanel()
+		end
+		if not Cataclysm_Main.bRaidEnable then
+			local me = GetClientPlayer()
+			if me.IsInRaid() then
+				FireUIEvent("CTM_PANEL_RAID", true)
+			elseif me.IsInParty() then
+				FireUIEvent("CTM_PANEL_TEAMATE", true)
+			end
+		end
+	end
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Cataclysm Team Panel"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable Cataclysm Team Panel"], checked = Cataclysm_Main.bRaidEnable }):Click(EnableTeamPanel):Pos_()
 	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Only in team"], checked = Cataclysm_Main.bShowInRaid })
 	:Click(function(bCheck)
 		Cataclysm_Main.bShowInRaid = bCheck
-		CheckCataclysmEnable()
+		if CheckCataclysmEnable() then
+			ReloadCataclysmPanel()
+		end
 		local me = GetClientPlayer()
 		if me.IsInParty() and not me.IsInRaid() then
 			FireUIEvent("CTM_PANEL_TEAMATE", Cataclysm_Main.bShowInRaid)
@@ -798,7 +812,9 @@ function PS.OnPanelActive(frame)
 		SetConfigure()
 		if GetFrame() then
 			CloseCataclysmPanel()
-			CheckCataclysmEnable()
+			if CheckCataclysmEnable() then
+				ReloadCataclysmPanel()
+			end
 		end
 	end)
 end
@@ -1141,25 +1157,48 @@ function PS4.OnPanelActive(frame)
 end
 GUI.RegisterPanel(_L["Buff settings"], { "ui/Image/UICommon/RaidTotal.uitex", 74 }, _L["Panel"], PS4)
 
-
-JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", function()
-	CheckCataclysmEnable()
-	PlaySound(SOUND.UI_SOUND, g_sound.Gift)
-end)
 JH.RegisterEvent("CTM_PANEL_TEAMATE", function()
 	TeammatePanel_Switch(arg0)
 end)
 JH.RegisterEvent("CTM_PANEL_RAID", function()
 	RaidPanel_Switch(arg0)
 end)
+
+-- 关于界面打开和刷新面板的时机
+-- 1) 普通情况下 组队会触发[PARTY_UPDATE_BASE_INFO]打开+刷新
+-- 2) 进入竞技场/战场的情况下 不会触发[PARTY_UPDATE_BASE_INFO]事件 
+--    需要利用外面注册的[LOADING_END]来打开+刷新
+-- 3) 如果在竞技场/战场掉线重上的情况下 需要使用外面注册的[LOADING_END]来打开面板
+--    然后在UI上注册的[LOADING_END]的来刷新界面，否则获取不到团队成员，只能获取到有几个队
+--    为什么UI的[LOADING_END]晚大约30m，然后就能获取到团队成员了??????
+-- 4) 从竞技场/战场回到原服使用外面注册的[LOADING_END]来打开+刷新
+-- 5) 普通掉线/过地图使用外面注册的[LOADING_END]打开+刷新，避免过地图时候团队变动没有收到事件的情况。
+-- 6) 综上所述的各式各样的奇葩情况 可以做如下的调整
+--    利用外面的注册的[LOADING_END]来打开
+--    利用UI注册的[LOADING_END]来刷新
+--    避免多次重复刷新面板浪费开销
+
+JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", function()
+	CheckCataclysmEnable()
+	ReloadCataclysmPanel()
+	PlaySound(SOUND.UI_SOUND, g_sound.Gift)
+end)
+
+JH.RegisterEvent("PARTY_LEVEL_UP_RAID", function()
+	CheckCataclysmEnable()
+	ReloadCataclysmPanel()
+end)
+JH.RegisterEvent("LOADING_END", CheckCataclysmEnable)
+
+-- 保存和读取配置
 local SaveConfig = function()
 	JH.SaveLUAData(GetConfigurePath(), CTM_CONFIG_PLAYER)
 end
 JH.RegisterEvent("GAME_EXIT", SaveConfig)
 JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
 JH.RegisterEvent("LOGIN_GAME", SetConfigure)
-JH.RegisterEvent("PARTY_LEVEL_UP_RAID", CheckCataclysmEnable)
-JH.RegisterEvent("LOADING_END", CheckCataclysmEnable)
+
+
 JH.AddonMenu(function()
 	return { szOption = _L["Cataclysm Team Panel"], bCheck = true, bChecked = Cataclysm_Main.bRaidEnable and not Cataclysm_Main.bShowInRaid, fnAction = EnableTeamPanel }
 end)
