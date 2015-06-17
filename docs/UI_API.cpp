@@ -1,5 +1,3 @@
-```c++
-
 void KItemHandleClassScriptTable::Load(lua_State* L)
 {
     static luaL_reg const s_aItemNullMetaTable[] =
@@ -779,5 +777,3 @@ void KWndClassScriptTable::Load(lua_State* L)
     KScriptLoader::RegisterMetaTable(L, "WndSFX",           s_aWndWindowMetaTable, s_aWndSfxMetaTable);
     KScriptLoader::RegisterMetaTable(L, "WndContainer",     s_aWndWindowMetaTable,s_aWndContainerMetaTable);
 }
-
-```

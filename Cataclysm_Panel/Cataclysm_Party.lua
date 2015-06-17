@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-14 15:15:19
+-- @Last Modified time: 2015-06-17 00:33:10
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -649,14 +649,13 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 		if CFG.nShowIcon ~= 4 then
 			if CFG.nShowIcon == 2 then
 				local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
-				if nIconID == 1435 then nIconID = 537 end -- _(:з」∠)_
+				if nIconID == 1435 then nIconID = 889 end
 				img:FromIconID(nIconID)
 			elseif CFG.nShowIcon == 1 then
 				img:FromUITex(GetForceImage(info.dwForceID))
 			elseif CFG.nShowIcon == 3 then
 				img:FromUITex("ui/Image/UICommon/CommonPanel2.UITex", GetCampImageFrame(info.nCamp, false) or -1)
 			end
-
 			local fScale = (CFG.fScaleY + CFG.fScaleX) / 2
 			if fScale * 0.9 > 1 then
 				fScale = fScale * 0.9
@@ -1229,6 +1228,9 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		else
 			life:SetFontColor(128, 128, 128)
 			life:SetText(COINSHOP_SOURCE_NULL)
+		end
+		if info.dwMountKungfuID == 0 then -- 没有同步成功时显示的内容
+			life:SetText("sync ...")
 		end
 	end
 end

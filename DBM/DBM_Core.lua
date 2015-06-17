@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-15 15:59:26
+-- @Last Modified time: 2015-06-17 04:28:57
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -454,6 +454,7 @@ function D.GetSrcName(dwID)
 	end
 end
 
+-- local a=GetTime();for i=1, 10000 do FireUIEvent("BUFF_UPDATE",96980,false,1,true,i,1,1,1,1,0) end;Output(GetTime()-a)
 -- 事件操作
 function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndFrame, bInit, nBuffLevel, dwSkillSrcID)
 	local me = GetClientPlayer()
