@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 17:38:07
+-- @Last Modified time: 2015-06-17 17:49:31
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -156,7 +156,6 @@ function DBM_UI.OnActivePage()
 	else
 		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "L", 0)
 	end
-	PlaySound(SOUND.UI_SOUND, g_sound.Destroy)
 end
 
 function DBMUI.OutputTip(szType, data, rect)
@@ -1025,19 +1024,23 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end})
 			table.insert(menu, { bDevide = true })
 		end
-		table.insert(menu, { szOption = _L["Edit Color"], fnAction = function()
-			GUI.OpenColorTablePanel(function(r, g, b)
-				data.col = { r, g, b }
-				ui:Fetch("Shadow_Color"):Color(r, g, b):Alpha(255)
-			end)
-		end })
-		if data.col then
-			table.insert(menu, { szOption = _L["Clear Color"], fnAction = function()
+		table.insert(menu, { 
+			szOption = _L["Edit Color"], 
+			szLayer = "ICON_RIGHT",
+			szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+			nFrame = 86,
+			nMouseOverFrame = 87,
+			fnClickIcon = function()
 				data.col = nil
 				ui:Fetch("Shadow_Color"):Alpha(0)
-			end })
-		end
-
+			end,
+			fnAction = function()
+				GUI.OpenColorTablePanel(function(r, g, b)
+					data.col = { r, g, b }
+					ui:Fetch("Shadow_Color"):Color(r, g, b):Alpha(255)
+				end)
+			end 
+		})
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = _L["raw data, Please be careful"], color = { 255, 255, 0 }, fnAction = function()
 			DBMUI.OpenJosnPanel(data, function(dat)

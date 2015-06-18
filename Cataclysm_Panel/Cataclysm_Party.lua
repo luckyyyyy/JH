@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 14:17:27
+-- @Last Modified time: 2015-06-18 10:59:12
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -313,7 +313,7 @@ function CTM_Party_Base.OnItemMouseEnter()
 end
 
 function CTM_Party_Base.OnItemMouseLeave()
-	if CTM_DRAG then
+	if CTM_DRAG and this:Lookup("Image_Selected") and this:Lookup("Image_Selected"):IsValid() then
 		this:Lookup("Image_Selected"):Hide()
 	end
 	HideTip()
