@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 15:13:16
+-- @Last Modified time: 2015-06-18 15:19:25
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -1092,7 +1092,7 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 					local w, h = this:GetSize()
 					local desc = Table_GetCommonEnchantDesc(v.dwTemporaryEnchantID)
 					if desc then
-						OutputTip(desc:gsub("font=%d+", "font=113"), 400, { x, y, w, h })
+						OutputTip(desc:gsub("font=%d+", "font=113") .. GetFormatText(FormatString(g_tStrings.STR_ITEM_TEMP_ECHANT_LEFT_TIME .."\n", GetTimeText(v.nTemporaryEnchantLeftSeconds)), 102), 400, { x, y, w, h })
 					end
 				end
 			end
