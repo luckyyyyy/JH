@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 17:49:31
+-- @Last Modified time: 2015-06-18 12:14:26
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -38,6 +38,7 @@ function DBM_UI.OnFrameCreate()
 	this.hTalkR = this:CreateItemData(DBMUI_TALK_R, "Handle_TALK_R")
 
 	DBMUI_SEARCH = nil -- 重置搜索
+	DBMUI_GLOBAL_SEARCH = false
 
 	this.hPageSet = this:Lookup("PageSet_Main")
 	local ui = GUI(this)
@@ -296,22 +297,24 @@ function DBMUI.OpenExportPanel()
 end
 
 function DBMUI.GetClassMenu()
+	local menu = {}
 	if DBMUI_SELECT_TYPE == "CIRCLE" then
-		return Circle.GetMemu()
+		menu = Circle.GetMemu()
+	else
+		local txt = this:GetParent():Lookup("", "Text_Default")
+		local tClass, tDungeon = {}, DBM_API.GetDungeon()
+		table.insert(menu, { szOption = _L["All Data"], fnAction = function()
+			txt:SetText(_L["All Data"])
+			DBMUI_SELECT_MAP = _L["All Data"]
+			FireUIEvent("DBMUI_DATA_RELOAD")
+		end })
+		table.insert(menu, { bDevide = true })
+		DBMUI.InsertDungeonMenu(menu, function(dwMapID)
+			txt:SetText(DBMUI.GetMapName(dwMapID))
+			DBMUI_SELECT_MAP = dwMapID
+			FireUIEvent("DBMUI_DATA_RELOAD")
+		end)
 	end
-	local txt = this:GetParent():Lookup("", "Text_Default")
-	local menu, tClass, tDungeon = {}, {}, DBM_API.GetDungeon()
-	table.insert(menu, { szOption = _L["All Data"], fnAction = function()
-		txt:SetText(_L["All Data"])
-		DBMUI_SELECT_MAP = _L["All Data"]
-		FireUIEvent("DBMUI_DATA_RELOAD")
-	end })
-	table.insert(menu, { bDevide = true })
-	DBMUI.InsertDungeonMenu(menu, function(dwMapID)
-		txt:SetText(DBMUI.GetMapName(dwMapID))
-		DBMUI_SELECT_MAP = dwMapID
-		FireUIEvent("DBMUI_DATA_RELOAD")
-	end)
 	table.insert(menu, { bDevide = true })
 	table.insert(menu, { szOption = _L["Import Data"], fnAction = DBMUI.OpenImportPanel })
 	local szLang = select(3, GetVersion())
@@ -319,6 +322,7 @@ function DBMUI.GetClassMenu()
 		table.insert(menu, { szOption = _L["import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
 	end
 	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
+
 	return menu
 end
 
@@ -340,10 +344,10 @@ end
 
 function DBMUI.CheckSearch(szType, data)
 	local szName = DBMUI.GetBoxInfo(szType, data)
-	if tostring(szName):match(DBMUI_SEARCH)
-		or (data.dwID and tostring(data.dwID):match(DBMUI_SEARCH))
-		or (data.szTarget and tostring(data.szTarget):match(DBMUI_SEARCH))
-		or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(data):match(DBMUI_SEARCH))
+	if tostring(szName):find(DBMUI_SEARCH)
+		or (data.dwID and tostring(data.dwID):find(DBMUI_SEARCH))
+		or (data.szTarget and tostring(data.szTarget):find(DBMUI_SEARCH))
+		or (DBMUI_GLOBAL_SEARCH and JH.JsonEncode(data):find(DBMUI_SEARCH))
 	then
 		return true
 	else
@@ -375,7 +379,7 @@ function DBMUI.UpdateLList(szEvent)
 			local dat, dat2 = tab[CIRCLE_SELECT_MAP] or {}, {}
 			if DBMUI_SEARCH then
 				for k, v in ipairs(dat) do
-					if tostring(v.key):match(DBMUI_SEARCH) or (v.szNote and tostring(v.szNote):match(DBMUI_SEARCH)) then
+					if tostring(v.key):find(DBMUI_SEARCH) or (v.szNote and tostring(v.szNote):find(DBMUI_SEARCH)) then
 						table.insert(dat2, v)
 					end
 				end
@@ -429,8 +433,8 @@ function DBMUI.RefreshIcon(szType, dir, nPer)
 		if handle and handle:IsValid() then
 			local nCount = handle:GetItemCount()
 			local nPos = math.floor(nCount * nPer)
-			if nPos - 10 > 0 then nPos = nPos - 10 end
-			for i = nPos, nPos + 20 do
+			if nPos - 20 > 0 then nPos = nPos - 20 end
+			for i = nPos, nPos + 40 do -- 每次渲染两页
 				local h = handle:Lookup(i)
 				if h then
 					local box = h:Lookup("Box")
@@ -534,7 +538,8 @@ function DBMUI.SetCircleItemAction(h, dat)
 	if dat.tCircles then
 		h:Lookup("Text"):SetFontColor(unpack(dat.tCircles[1].col))
 	end
-	box:SetObjectIcon(2673)
+	-- box:SetObjectIcon(2673)
+	box.nIocn = 2673
 	h.OnItemMouseEnter = function()
 		if this:IsValid() then
 			box:SetObjectMouseOver(true)
