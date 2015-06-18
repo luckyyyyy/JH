@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 17:57:26
+-- @Last Modified time: 2015-06-18 22:32:43
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -950,7 +950,7 @@ function D.OnCallMessage(szContent, szNpcName, dwNpcID)
 						D.Talk(txt, true)
 					end
 					if DBM.bPushScreenHead and cfg.bScreenHead then
-						FireUIEvent("JH_SCREENHEAD", dwNpcID, { txt = txt })
+						FireUIEvent("JH_SCREENHEAD", dwNpcID or me.dwID, { txt = txt })
 					end
 				end
 
