@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 15:19:25
+-- @Last Modified time: 2015-06-18 23:05:14
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -977,8 +977,10 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 			end
 
 			local item = player.dwForce == 8 and player.GetItem(INVENTORY_INDEX.EQUIP, EQUIPMENT_INVENTORY.BIG_SWORD) or player.GetItem(INVENTORY_INDEX.EQUIP, EQUIPMENT_INVENTORY.MELEE_EAPON)
-			t.dwTemporaryEnchantID         = item.dwTemporaryEnchantID
-			t.nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
+			if item then
+				t.dwTemporaryEnchantID         = item.dwTemporaryEnchantID
+				t.nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
+			end
 			t.nEquipScore                  = nEquipScore
 			if t.dwTemporaryEnchantID and t.dwTemporaryEnchantID ~= 0 then
 				t.nScore2 = t.nScore2 + 1
