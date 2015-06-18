@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 16:51:21
+-- @Last Modified time: 2015-06-17 18:05:41
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -14,8 +14,8 @@ local GetPureText, GetFormatText = GetPureText, GetFormatText
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_PLAYER_NAME = "NONE"
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
-local DBM_MAX_CACHE = 1000 -- 最大的cache数量 主要是UI的问题
-local DBM_DEL_CACHE = 500  -- 每次清理的数量 然后会做一次gc
+local DBM_MAX_CACHE = 2000 -- 最大的cache数量 主要是UI的问题
+local DBM_DEL_CACHE = 1000 -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 local DBM_MARK_QUEUE = {}
 local DBM_MARK_FIRST = true -- 标记事件
