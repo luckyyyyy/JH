@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 18:05:41
+-- @Last Modified time: 2015-06-18 17:57:26
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -104,7 +104,7 @@ end
 
 function DBM.OnEvent(szEvent)
 	if szEvent == "BUFF_UPDATE" then
-		D.OnBuff(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+		D.OnBuff(arg0, arg1, arg3, arg4, arg5, arg8, arg9)
 	elseif szEvent == "SYS_MSG" then
 		if arg0 == "UI_OME_DEATH_NOTIFY" then
 			if not IsPlayer(arg1) then
@@ -460,7 +460,7 @@ end
 
 -- local a=GetTime();for i=1, 10000 do FireUIEvent("BUFF_UPDATE",96980,false,1,true,i,1,1,1,1,0) end;Output(GetTime()-a)
 -- 事件操作
-function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndFrame, bInit, nBuffLevel, dwSkillSrcID)
+function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, dwSkillSrcID)
 	local me = GetClientPlayer()
 	local szType = bCanCancel and "BUFF" or "DEBUFF"
 	local key = dwBuffID .. "_" .. nBuffLevel
@@ -476,7 +476,7 @@ function D.OnBuff(dwCaster, bDelete, nIndex, bCanCancel, dwBuffID, nCount, nEndF
 					dwMapID   = me.GetMapID(),
 					dwID      = dwBuffID,
 					nLevel    = nBuffLevel,
-					bIsPlayer = dwSkillSrcID ~=0 and IsPlayer(dwSkillSrcID),
+					bIsPlayer = dwSkillSrcID ~= 0 and IsPlayer(dwSkillSrcID),
 					szSrcName = D.GetSrcName(dwSkillSrcID)
 				}
 				tWeak[key] = t
@@ -1193,8 +1193,9 @@ function D.GetTable(szType, bTemp)
 	else
 		if szType == "CIRCLE" then -- 如果请求圈圈
 			return Circle.GetData()
+		else
+			return D.FILE[szType]
 		end
-		return D.FILE[szType]
 	end
 end
 
@@ -1217,7 +1218,7 @@ local function GetData(tab, szType, dwID, nLevel)
 	end
 end
 
--- 获取监控数据 注意 不是获取文件内的 如果想找文件内的 请使用 GetFileData
+-- 获取监控数据 注意 不是获取文件内的 如果想找文件内的 请使用 GetTable
 function D.GetData(szType, dwID, nLevel)
 	local cache = CACHE.MAP[szType][dwID]
 	if cache then
@@ -1251,7 +1252,7 @@ function D.GetData(szType, dwID, nLevel)
 				return GetData(tab, szType, dwID)
 			end
 		end
-	else
+	-- else
 		-- D.Log("IGNORE TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. (nLevel or 0))
 	end
 end
@@ -1353,10 +1354,6 @@ function D.SaveConfigureFile(config)
 	return root .. path
 end
 
-function D.GetFileData()
-	return D.FILE
-end
-
 -- 删除 移动 添加 清空
 function D.RemoveData(szType, dwMapID, nIndex)
 	if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
@@ -1454,7 +1451,6 @@ local ui = {
 	GetDungeon        = D.GetDungeon,
 	GetData           = D.GetData,
 	GetIntervalData   = D.GetIntervalData,
-	GetFileData       = D.GetFileData,
 	RemoveData        = D.RemoveData,
 	MoveData          = D.MoveData,
 	CheckRepeatData   = D.CheckRepeatData,
