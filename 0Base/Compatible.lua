@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-16 16:51:31
+-- @Last Modified time: 2015-06-18 14:48:33
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -995,4 +995,13 @@ end)
 JH.RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE", function()
 	bCustomMode = false
 end)
+end
+
+if not Table_GetCommonEnchantDesc then
+	function Table_GetCommonEnchantDesc(enchant_id)
+		local res = g_tTable.CommonEnchant:Search(enchant_id)
+		if res then
+			return res.desc
+		end
+	end
 end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 17:19:32
+-- @Last Modified time: 2015-06-18 15:13:16
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -392,7 +392,7 @@ function GKP.Random() -- 生成一个随机字符串 这还能重复我吃翔
 		local n = math.random(1, string.len(a))
 		table.insert(t, string.sub(a, n ,n))
 	end
-	return table.concat(t, "")
+	return table.concat(t)
 end
 
 function GKP.Sysmsg(szMsg)
@@ -944,10 +944,12 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 			nScore2 = 0,
 			nEquipScore = 0,
 			bFightState = 2,
+			dwTemporaryEnchantID = 0,
+			nTemporaryEnchantLeftSeconds = 0,
 		}
 		if player then
 			for _, tBuff in ipairs(JH.GetBuffList(player)) do
-				local nType = GetBuffInfo(tBuff.dwID,tBuff.nLevel,{}).nDetachType or 0
+				local nType = GetBuffInfo(tBuff.dwID, tBuff.nLevel, {}).nDetachType or 0
 				if tType[nType] then
 					table.insert(t.Box1,tBuff)
 					t.nScore1 = t.nScore1 + 1
@@ -973,7 +975,15 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 					end
 				end
 			end
-			t.nEquipScore = nEquipScore
+
+			local item = player.dwForce == 8 and player.GetItem(INVENTORY_INDEX.EQUIP, EQUIPMENT_INVENTORY.BIG_SWORD) or player.GetItem(INVENTORY_INDEX.EQUIP, EQUIPMENT_INVENTORY.MELEE_EAPON)
+			t.dwTemporaryEnchantID         = item.dwTemporaryEnchantID
+			t.nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
+			t.nEquipScore                  = nEquipScore
+			if t.dwTemporaryEnchantID and t.dwTemporaryEnchantID ~= 0 then
+				t.nScore2 = t.nScore2 + 1
+			end
+
 			if player.bFightState then
 				t.bFightState = 1
 			else
@@ -1060,7 +1070,32 @@ _GKP.Draw_GKP_Buff = function(key,sort)
 					OutputBuffTip(player,vv.dwID,vv.nLevel,0,true,nTime,{x,y,w,h})
 				end
 			end
-
+			-- v.dwTemporaryEnchantID = 10071
+			-- v.nTemporaryEnchantLeftSeconds = 999
+			if v.dwTemporaryEnchantID and v.dwTemporaryEnchantID ~= 0 then
+				wnd:Lookup("", "Handle_Box2"):AppendItemFromString("<box>w=28 h=28 name=\"TE\"</box>")
+				local box = wnd:Lookup("","Handle_Box2"):Lookup("TE")
+				wnd:Lookup("", "Handle_Box2"):FormatAllItemPos()
+				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
+				box:SetObjectIcon(6216)
+				box:RegisterEvent(786)
+				if v.nTemporaryEnchantLeftSeconds < 480 then
+					box:SetAlpha(80)
+				end
+				box.OnItemMouseLeave = function()
+					this:SetObjectMouseOver(false)
+					HideTip()
+				end
+				box.OnItemMouseEnter = function()
+					this:SetObjectMouseOver(true)
+					local x, y = this:GetAbsPos()
+					local w, h = this:GetSize()
+					local desc = Table_GetCommonEnchantDesc(v.dwTemporaryEnchantID)
+					if desc then
+						OutputTip(desc:gsub("font=%d+", "font=113"), 400, { x, y, w, h })
+					end
+				end
+			end
 			-- wnd:Lookup("","Handle_Box2"):SetRelPos(350 + (150 - #v.Box2 * 28) / 2 ,0)
 			-- wnd:Lookup("",""):FormatAllItemPos()
 			if v.bFightState == 1 then
