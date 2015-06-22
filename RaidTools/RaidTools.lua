@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 22:43:12
+-- @Last Modified time: 2015-06-22 22:51:41
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -1048,10 +1048,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 	-- 普通伤害
 	if IsPlayer(dwTarget) and (JH.IsParty(dwTarget) or dwTarget == me.dwID) then
 		-- 五类伤害
-		local szCaster = KCaster.szName
-		if szCaster == "" then
-			szCaster = JH.GetTemplateName(KCaster)
-		end
+		local szCaster = IsPlayer(dwCaster) and KCaster.szName or JH.GetTemplateName(KCaster)
 		for k, v in ipairs({ "PHYSICS_DAMAGE", "SOLAR_MAGIC_DAMAGE", "NEUTRAL_MAGIC_DAMAGE", "LUNAR_MAGIC_DAMAGE", "POISON_DAMAGE" }) do
 			if tResult[SKILL_RESULT_TYPE[v]] and tResult[SKILL_RESULT_TYPE[v]] ~= 0 then
 				RT.tDamage[dwTarget == me.dwID and "self" or dwTarget] = {
@@ -1066,10 +1063,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 	end
 	-- 有反弹伤害
 	if IsPlayer(dwCaster) and (JH.IsParty(dwCaster) or dwCaster == me.dwID) and tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then
-		local szTarget = KTarget.szName
-		if szTarget == "" then
-			szTarget = JH.GetTemplateName(KTarget)
-		end
+		local szTarget = IsPlayer(dwTarget) and KTarget.szName or JH.GetTemplateName(KTarget)
 		RT.tDamage[dwCaster == me.dwID and "self" or dwCaster] = {
 			szCaster        = szTarget,
 			szSkill         = szSkill,

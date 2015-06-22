@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 01:27:13
+-- @Last Modified time: 2015-06-22 23:03:40
 
 -- 早期代码 需要重写
 
@@ -1001,9 +1001,9 @@ _GKP.Draw_GKP_Record = function(key,sort)
 						end
 					end
 					local r,g,b = GKP.GetMoneyCol(nNum)
-					szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 					local r,g,b = GKP.GetMoneyCol(nNum1)
-					szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 
 					for kk,vv in ipairs(GKP("GKP_Account")) do
 						if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
@@ -1011,13 +1011,13 @@ _GKP.Draw_GKP_Record = function(key,sort)
 						end
 					end
 					local r,g,b = GKP.GetMoneyCol(nNum2)
-					szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 					local nNum3 = nNum+nNum1-nNum2
 					if nNum3 < 0 then
 						nNum3 = 0
 					end
 					local r,g,b = GKP.GetMoneyCol(nNum3)
-					szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 				end
 				local x, y = item:Lookup("Text_No"):GetAbsPos()
 				local w, h = item:Lookup("Text_No"):GetSize()
@@ -1300,7 +1300,7 @@ _GKP.OnMsg = function()
 							else
 								local _,dwTabType,dwIndex = this:GetObjectData()
 								if dwTabType == 0 and dwIndex == 0 then
-									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP,136,255,255,0), 250, { x, y, w, h })
+									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP,136,255,255,0), 250, { x, y, w, h })
 								else
 									OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
 								end
@@ -1468,10 +1468,10 @@ _GKP.GKP_OweList = function()
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "Information on Debt")
 	for k,v in pairs(tMember2) do
 		if v.nGold < 0 then
-			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "-")
 		else
-			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "+")
 		end
 	end
@@ -1559,7 +1559,7 @@ _GKP.GKP_SpendingList = function()
 	table.sort(sort,function(a,b) return a.nGold < b.nGold end)
 	for k, v in ipairs(sort) do
 		if v.nGold > 0 then
-			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
 		end
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold)
 	end
@@ -2418,13 +2418,13 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 			JH.Talk({
 				GKP.GetFormatLink(_L["Received"]),
 				GKP.GetFormatLink(_GKP.TradingTarget.szName, true),
-				GKP.GetFormatLink(_L["The"] .. nGold ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP),
+				GKP.GetFormatLink(_L["The"] .. nGold ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP),
 			})
 		else
 			JH.Talk({
 				GKP.GetFormatLink(_L["Pay to"]),
 				GKP.GetFormatLink(_GKP.TradingTarget.szName, true),
-				GKP.GetFormatLink(" " .. nGold * -1 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP),
+				GKP.GetFormatLink(" " .. nGold * -1 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP),
 			})
 		end
 	end
@@ -2501,9 +2501,9 @@ _GKP.Draw_GKP_Account = function(key,sort)
 					end
 				end
 				local r,g,b = GKP.GetMoneyCol(nNum)
-				szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 				local r,g,b = GKP.GetMoneyCol(nNum1)
-				szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 
 				for kk,vv in ipairs(GKP("GKP_Account")) do
 					if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
@@ -2511,13 +2511,13 @@ _GKP.Draw_GKP_Account = function(key,sort)
 					end
 				end
 				local r,g,b = GKP.GetMoneyCol(nNum2)
-				szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 				local nNum3 = nNum+nNum1-nNum2
 				if nNum3 < 0 then
 					nNum3 = 0
 				end
 				local r,g,b = GKP.GetMoneyCol(nNum3)
-				szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 			end
 			local x, y = item:Lookup("Text_No"):GetAbsPos()
 			local w, h = item:Lookup("Text_No"):GetSize()
