@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 14:48:33
+-- @Last Modified time: 2015-06-19 17:50:14
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -95,6 +95,15 @@ JH_TALK_CHANNEL_HEADER = {
 	[PLAYER_TALK_CHANNEL.WORLD]         = "/h ",
 }
 
+if not PEEK_OTHER_PLAYER_RESPOND then
+	PEEK_OTHER_PLAYER_RESPOND = {
+		INVALID = 0,
+		SUCCESS = 1,
+		FAILED = 2,
+		CAN_NOT_FIND_PLAYER = 3,
+		TOO_FAR = 4
+	}
+end
 if not BATTLE_FIELD_NOTIFY_TYPE then
 	BATTLE_FIELD_NOTIFY_TYPE = {
 		LEAVE_BLACK_LIST = 5,
