@@ -1,7 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 23:05:14
+-- @Last Modified time: 2015-06-22 01:27:13
+
+-- 早期代码 需要重写
+
 local PATH_ROOT = JH.GetAddonInfo().szRootPath .. "GKP/"
 local _L = JH.LoadLangPack
 
@@ -11,9 +14,7 @@ GKP = {
 	bOn2                 = false, -- 不是分配者关闭
 	bMoneyTalk           = false, -- 金钱变动喊话
 	bAlertMessage        = true,  -- 进入副本提醒清空数据
-	bCheckScore          = true,  -- 查看装备分
 	bMoneySystem         = false, -- 记录系统金钱变动
-	bDeathWarn           = false, -- 重伤提示
 	bAutoSetMoney        = false, -- 自动设置发布时的金钱
 	bAutoBX              = true,  -- 自动设置碧玺碎片的价格
 	bDisplayEmptyRecords = true,  -- show 0 record
@@ -186,14 +187,6 @@ function _GKP.OpenPanel(bDisableSound)
 	frame:Show()
 	frame:BringToTop()
 	Station.SetActiveFrame(frame)
-	JH.BreatheCall("GKPTeamInfo", function()
-		if not _GKP.frame:IsVisible() then
-			_GKP.tEquipCache = {}
-			JH.UnBreatheCall("GKPTeamInfo")
-		else
-			_GKP.Draw_GKP_Buff()
-		end
-	end, 1000)
 	if not bDisableSound then
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 	end
@@ -527,7 +520,6 @@ function GKP.OnFrameCreate()
 
 	PageSet:Fetch("WndCheck_GKP_Record"):Fetch("Text_GKP_Record"):Text(g_tStrings.GOLD_BID_RECORD_STATIC_TITLE)
 	PageSet:Fetch("WndCheck_GKP_Account"):Fetch("Text_GKP_Account"):Text(g_tStrings.GOLD_BID_RPAY_STATIC_TITLE)
-	PageSet:Fetch("WndCheck_GKP_Buff"):Fetch("Text_GKP_Buff"):Text(_L["Team Profile"])
 
 	record:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(function()
 		if this.userdata then
@@ -718,41 +710,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	-- 排序3
-	local page = this:Lookup("PageSet_Menu/Page_GKP_Buff")
-	local t = {
-		{"#",           false},
-		{"dwForceID",   _L["Team Members"]},
-		{"nScore1",     _L["Item Buff"]},
-		{"nScore2",     _L["Team Buff"]},
-		{"nEquipScore", _L["Score of the Equiptment"]},
-		{"bFightState", _L["Information on Combat Situation"]},
-		{false,         _L["Update time"]}
-	}
-	for k, v in ipairs(t) do
-		if v[2] then
-			local txt = page:Lookup("", "Text_Buff_Break" .. k)
-			txt:RegisterEvent(786)
-			txt:SetText(v[2])
-			if v[1] then
-				txt.OnItemLButtonClick = function()
-					local sort = txt.sort or "asc"
-					_GKP.Draw_GKP_Buff(v[1], sort)
-					if sort == "asc" then
-						txt.sort = "desc"
-					else
-						txt.sort = "asc"
-					end
-				end
-				txt.OnItemMouseEnter = function()
-					this:SetFontColor(255, 128, 0)
-				end
-				txt.OnItemMouseLeave = function()
-					this:SetFontColor(255, 255, 255)
-				end
-			end
-		end
-	end
+	
 end
 ---------------------------------------------------------------------->
 -- 获取设置菜单
@@ -816,15 +774,6 @@ PS.OnPanelActive = function(frame)
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bMoneyTalk })
 	:Text(_L["Enable Money Trend"]):Click(function(bChecked)
 		GKP.bMoneyTalk = bChecked
-	end):Pos_()
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Team Profile"], font = 27 }):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.bCheckScore })
-	:Text(_L["Team Profile on Equipment Score"]):Click(function(bChecked)
-		GKP.bCheckScore = bChecked
-	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, checked = GKP.bDeathWarn })
-	:Text(_L["Injuries tips"]):Click(function(bChecked)
-		GKP.bDeathWarn = bChecked
 	end):Pos_()
 	if JH_About.CheckNameEx() then
 		ui:Append("WndCheckBox", { x = 360, y = nY, checked = GKP.bDebug2 })
@@ -909,275 +858,6 @@ _GKP.GetSchemeMenu = function()
 	return menu
 end
 
----------------------------------------------------------------------->
--- 绘制团队概况
-----------------------------------------------------------------------<
-_GKP.Draw_GKP_Buff = function(key,sort)
-	local me = GetClientPlayer()
-	if not me or not me.IsInParty() then
-		return
-	end
-	local key = key or _GKP.GKP_Buff_Container.key or "nEquipScore"
-	local sort = sort or _GKP.GKP_Buff_Container.sort or "desc"
-	_GKP.GKP_Buff_Container.key = key
-	_GKP.GKP_Buff_Container.sort = sort
-	_GKP.GKP_Buff_Container:Clear()
-	local team = GetClientTeam()
-	local TeamMemberList = team.GetTeamMemberList()
-	local tType = { [24] = true,[17] = true,[18] = true,[19] = true,[20] = true }
-	local tType2 = { [362] = true, [673] = true,[112] = true,[382] = true, [3219] = true, [2837] = true }
-	local tNameEx = { -- utf8 not supported
-
-	}
-	local tab = {}
-	for k, v in ipairs(TeamMemberList) do
-		local player = GetPlayer(v)
-		local tPlayer = team.GetMemberInfo(v)
-		local t = {
-			dwID = v,
-			Box1 = {},
-			Box2 = {},
-			szName = tPlayer.szName,
-			dwForceID = tPlayer.dwForceID,
-			dwMountKungfuID = tPlayer.dwMountKungfuID,
-			nScore1 = 0,
-			nScore2 = 0,
-			nEquipScore = 0,
-			bFightState = 2,
-			dwTemporaryEnchantID = 0,
-			nTemporaryEnchantLeftSeconds = 0,
-		}
-		if player then
-			for _, tBuff in ipairs(JH.GetBuffList(player)) do
-				local nType = GetBuffInfo(tBuff.dwID, tBuff.nLevel, {}).nDetachType or 0
-				if tType[nType] then
-					table.insert(t.Box1,tBuff)
-					t.nScore1 = t.nScore1 + 1
-				end
-				if tType2[tBuff.dwID] then
-					table.insert(t.Box2,tBuff)
-					t.nScore2 = t.nScore2 + 1
-				end
-			end
-			local nEquipScore = player.GetTotalEquipScore()
-			if GKP.bCheckScore then
-				if nEquipScore == 0 then
-					if not _GKP.tEquipCache[v] or (_GKP.tEquipCache[v] and _GKP.tEquipCache[v] < 3) then -- 最多重试3次
-						if not _GKP.tEquipCache[v] then
-							_GKP.tEquipCache[v] = 1
-						end
-						_GKP.tEquipCache[v] = _GKP.tEquipCache[v] + 1
-						_GKP.tViewInvite[v] = true
-						local PlayerView = Station.Lookup("Normal/PlayerView")
-						if not PlayerView or not PlayerView:IsVisible() then
-							ViewInviteToPlayer(v)
-						end
-					end
-				end
-			end
-
-			local item = player.dwForce == 8 and player.GetItem(INVENTORY_INDEX.EQUIP, EQUIPMENT_INVENTORY.BIG_SWORD) or player.GetItem(INVENTORY_INDEX.EQUIP, EQUIPMENT_INVENTORY.MELEE_EAPON)
-			if item then
-				t.dwTemporaryEnchantID         = item.dwTemporaryEnchantID
-				t.nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
-			end
-			t.nEquipScore                  = nEquipScore
-			if t.dwTemporaryEnchantID and t.dwTemporaryEnchantID ~= 0 then
-				t.nScore2 = t.nScore2 + 1
-			end
-
-			if player.bFightState then
-				t.bFightState = 1
-			else
-				t.bFightState = 0
-			end
-		end
-		table.insert(tab, t)
-	end
-
-	table.sort(tab,function(a,b)
-		if a[key] and b[key] then
-			if sort == "asc" then
-				return a[key] < b[key]
-			else
-				return a[key] > b[key]
-			end
-		else
-			return false
-		end
-	end)
-
-	for k, v in ipairs(tab) do
-		local wnd = _GKP.GKP_Buff_Container:AppendContentFromIni(PATH_ROOT .. "ui/GKP_Buff_Item.ini", "WndWindow", k)
-		local item = wnd:Lookup("", "")
-		if k % 2 == 0 then
-			item:Lookup("Image_Line"):Hide()
-		end
-		local player = GetPlayer(v.dwID)
-		item:Lookup("Text_No"):SetText(k)
-		local sName, sIcon = JH.GetSkillName(v.dwMountKungfuID, 1)
-		item:Lookup("Image_NameIcon"):FromIconID(sIcon)
-		item:Lookup("Text_Name"):SetText(v.szName)
-		item:Lookup("Text_Name"):SetFontColor(JH.GetForceColor(v.dwForceID))
-		local ex, r, g, b = _L["Not in the Scope"],255, 255, 255
-		if tNameEx[v.szName] and tNameEx[v.szName] == v.dwID then
-			player = nil
-			ex, r, g, b = "Access denied", 255, 128, 0
-		end
-		if player then
-			for kk, vv in pairs(v.Box1) do
-				wnd:Lookup("","Handle_Box1"):AppendItemFromString("<box>w=28 h=28 name=\"".. vv.nIndex  .."\"</box>")
-				local box = wnd:Lookup("","Handle_Box1"):Lookup(tostring(vv.nIndex))
-				wnd:Lookup("","Handle_Box1"):FormatAllItemPos()
-				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
-				local bName, bIocn = JH.GetBuffName(vv.dwID, vv.nLevel)
-				box:SetObjectIcon(bIocn)
-				box:RegisterEvent(786)
-				local nTime = (vv.nEndFrame - GetLogicFrameCount()) / 16
-				if nTime < 480 then
-					box:SetAlpha(80)
-				end
-				box.OnItemMouseLeave = function()
-					this:SetObjectMouseOver(false)
-					HideTip()
-				end
-				box.OnItemMouseEnter = function()
-					this:SetObjectMouseOver(true)
-					local x, y = this:GetAbsPos()
-					local w, h = this:GetSize()
-					OutputBuffTip(player,vv.dwID,vv.nLevel,0,true,nTime,{x,y,w,h})
-				end
-			end
-
-			for kk, vv in pairs(v.Box2) do
-				wnd:Lookup("","Handle_Box2"):AppendItemFromString("<box>w=28 h=28 name=\"".. vv.nIndex  .."\"</box>")
-				local box = wnd:Lookup("","Handle_Box2"):Lookup(tostring(vv.nIndex))
-				wnd:Lookup("","Handle_Box2"):FormatAllItemPos()
-				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
-				local bName, bIcon = JH.GetBuffName(vv.dwID, vv.nLevel)
-				box:SetObjectIcon(bIcon)
-				box:RegisterEvent(786)
-				local nTime = (vv.nEndFrame - GetLogicFrameCount()) / 16
-				if nTime < 480 then
-					box:SetAlpha(80)
-				end
-				box.OnItemMouseLeave = function()
-					this:SetObjectMouseOver(false)
-					HideTip()
-				end
-				box.OnItemMouseEnter = function()
-					this:SetObjectMouseOver(true)
-					local x, y = this:GetAbsPos()
-					local w, h = this:GetSize()
-					OutputBuffTip(player,vv.dwID,vv.nLevel,0,true,nTime,{x,y,w,h})
-				end
-			end
-			-- v.dwTemporaryEnchantID = 10071
-			-- v.nTemporaryEnchantLeftSeconds = 999
-			if v.dwTemporaryEnchantID and v.dwTemporaryEnchantID ~= 0 then
-				wnd:Lookup("", "Handle_Box2"):AppendItemFromString("<box>w=28 h=28 name=\"TE\"</box>")
-				local box = wnd:Lookup("","Handle_Box2"):Lookup("TE")
-				wnd:Lookup("", "Handle_Box2"):FormatAllItemPos()
-				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
-				box:SetObjectIcon(6216)
-				box:RegisterEvent(786)
-				if v.nTemporaryEnchantLeftSeconds < 480 then
-					box:SetAlpha(80)
-				end
-				box.OnItemMouseLeave = function()
-					this:SetObjectMouseOver(false)
-					HideTip()
-				end
-				box.OnItemMouseEnter = function()
-					this:SetObjectMouseOver(true)
-					local x, y = this:GetAbsPos()
-					local w, h = this:GetSize()
-					local desc = Table_GetCommonEnchantDesc(v.dwTemporaryEnchantID)
-					if desc then
-						OutputTip(desc:gsub("font=%d+", "font=113") .. GetFormatText(FormatString(g_tStrings.STR_ITEM_TEMP_ECHANT_LEFT_TIME .."\n", GetTimeText(v.nTemporaryEnchantLeftSeconds)), 102), 400, { x, y, w, h })
-					end
-				end
-			end
-			-- wnd:Lookup("","Handle_Box2"):SetRelPos(350 + (150 - #v.Box2 * 28) / 2 ,0)
-			-- wnd:Lookup("",""):FormatAllItemPos()
-			if v.bFightState == 1 then
-				item:Lookup("Text_Fight"):SetText(_L["Combat"])
-				item:Lookup("Text_Fight"):SetFontColor(255,0,0)
-			else
-				item:Lookup("Text_Fight"):SetText(_L["Nocombat"])
-				item:Lookup("Text_Fight"):SetFontColor(0,255,0)
-			end
-			if GKP.bCheckScore then
-				item:Lookup("Text_Score"):SetText(v.nEquipScore)
-			else
-				item:Lookup("Text_Score"):SetText(_L["Unopened"])
-			end
-		else
-			for kk,vv in ipairs({"Text_Box1","Text_Box2","Text_Score","Text_Fight"}) do
-				item:Lookup(vv):SetText(ex)
-				item:Lookup(vv):SetFontColor(r,g,b)
-			end
-		end
-		item:Lookup("Text_Time"):SetText(GKP.GetTimeString(GetCurrentTime()))
-		item:Lookup("Text_Name"):RegisterEvent(786)
-		item:Lookup("Text_Name").OnItemLButtonClick = function()
-			if IsCtrlKeyDown() then
-				return EditBox_AppendLinkPlayer(v.szName)
-			end
-			SetTarget(TARGET.PLAYER,v.dwID)
-			ViewInviteToPlayer(v.dwID)
-		end
-
-		item:Lookup("Text_Name").OnItemMouseEnter = function()
-			local szIcon,nFrame = GetForceImage(v.dwForceID)
-			local r,g,b = JH.GetForceColor(v.dwForceID)
-			local szXml = GetFormatImage(szIcon,nFrame,20,20) .. GetFormatText("  " .. v.szName .. _L[":\n"],136,r,g,b)
-			szXml = szXml .. GetFormatText(_L["Serious Injured Record as Shown Below\n\n"],136,255,255,255)
-			if not _GKP.DeathWarn.tDeath[v.dwID] or #_GKP.DeathWarn.tDeath[v.dwID] == 0 then
-				szXml = szXml ..GetFormatText(_L["No Record"],136,255,255,0)
-			else
-				for i = #_GKP.DeathWarn.tDeath[v.dwID] , 1 , -1 do
-					local a = _GKP.DeathWarn.tDeath[v.dwID][i]
-					szXml = szXml ..GetFormatText(GKP.GetTimeString(a.time,true) .. " ",136,255,255,0)
-					szXml = szXml ..GetFormatText(a.szCaster,136,255,128,0)
-					szXml = szXml ..GetFormatText(" <",136,255,255,0)
-					szXml = szXml ..GetFormatText(a.szSkillName,136,255,128,0)
-					szXml = szXml ..GetFormatText("> ",136,255,255,0)
-					szXml = szXml ..GetFormatText(_L["Cause"],136,255,255,0)
-					szXml = szXml ..GetFormatText(a.szValue .. "\n",136,255,128,0)
-				end
-			end
-			local x, y = item:Lookup("Text_No"):GetAbsPos()
-			local w, h = item:Lookup("Text_No"):GetSize()
-			OutputTip(szXml,600,{x,y,w,h})
-		end
-
-		item:Lookup("Text_Name").OnItemMouseLeave = function()
-			HideTip()
-		end
-	end
-	_GKP.GKP_Buff_Container:FormatAllContentPos()
-end
-
----------------------------------------------------------------------->
--- 查看装备回调事件
-----------------------------------------------------------------------<
-RegisterEvent("PEEK_OTHER_PLAYER", function()
-	if arg0 ~= 1 then return end
-	if _GKP.tViewInvite[arg1] then
-		_GKP.tViewInvite[arg1] = nil
-		if IsEmpty(_GKP.tViewInvite) then
-			JH.DelayCall(250, function()
-				Station.Lookup("Normal/PlayerView"):Hide()
-			end)
-		else
-			for k,v in pairs(_GKP.tViewInvite) do
-				Station.Lookup("Normal/PlayerView"):Hide()
-				return ViewInviteToPlayer(k)
-			end
-		end
-	end
-end)
 ---------------------------------------------------------------------->
 -- 绘制物品记录
 ----------------------------------------------------------------------<
@@ -1304,7 +984,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			item:Lookup("Text_Name").OnItemMouseEnter = function()
 				local szIcon, nFrame = GetForceImage(v.dwForceID)
 				local r, g, b = JH.GetForceColor(v.dwForceID)
-				local szXml = GetFormatImage(szIcon,nFrame,20,20) .. GetFormatText("  " .. v.szPlayer .. _L[":\n"],136,r,g,b)
+				local szXml = GetFormatImage(szIcon,nFrame,20,20) .. GetFormatText("  " .. v.szPlayer .. g_tStrings.STR_COLON .. "\n", 136, r, g, b)
 				if IsCtrlKeyDown() then
 					szXml = szXml .. GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP .. "\n", 136, 255, 0, 0)
 					szXml = szXml .. GetFormatText(var2str(v, " "), 136, 255, 255, 255)
@@ -1321,9 +1001,9 @@ _GKP.Draw_GKP_Record = function(key,sort)
 						end
 					end
 					local r,g,b = GKP.GetMoneyCol(nNum)
-					szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum .._L["Gold.\n"],136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 					local r,g,b = GKP.GetMoneyCol(nNum1)
-					szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 .._L["Gold.\n"],136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 
 					for kk,vv in ipairs(GKP("GKP_Account")) do
 						if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
@@ -1331,13 +1011,13 @@ _GKP.Draw_GKP_Record = function(key,sort)
 						end
 					end
 					local r,g,b = GKP.GetMoneyCol(nNum2)
-					szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 .._L["Gold.\n"],136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 					local nNum3 = nNum+nNum1-nNum2
 					if nNum3 < 0 then
 						nNum3 = 0
 					end
 					local r,g,b = GKP.GetMoneyCol(nNum3)
-					szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 .._L["Gold.\n"],136,r,g,b)
+					szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 				end
 				local x, y = item:Lookup("Text_No"):GetAbsPos()
 				local w, h = item:Lookup("Text_No"):GetSize()
@@ -1440,7 +1120,7 @@ _GKP.OnMsg = function()
 					GKP_Account = GKP("GKP_Account"),
 				}
 				local str = JH.AscIIEncode(JH.JsonEncode(tab))
-				local nMax = 150
+				local nMax = 630
 				local nTotle = math.ceil(#str / nMax)
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Start", arg3, nTotle)
 				for i = 1 , nTotle do
@@ -1515,7 +1195,6 @@ _GKP.OnMsg = function()
 					szFrameName = "GKP_Debt"
 				end
 				if Station.Lookup("Normal/" .. szFrameName) then
-					Wnd.CloseWindow(Station.Lookup("Normal/" .. szFrameName))
 					_GKP.info = nil
 				end
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
@@ -1621,7 +1300,7 @@ _GKP.OnMsg = function()
 							else
 								local _,dwTabType,dwIndex = this:GetObjectData()
 								if dwTabType == 0 and dwIndex == 0 then
-									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. _L["Gold."],136,255,255,0), 250, { x, y, w, h })
+									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP,136,255,255,0), 250, { x, y, w, h })
 								else
 									OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
 								end
@@ -1789,10 +1468,10 @@ _GKP.GKP_OweList = function()
 	JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Start", "Information on Debt")
 	for k,v in pairs(tMember2) do
 		if v.nGold < 0 then
-			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]) })
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "-")
 		else
-			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. _L["Gold."]) })
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. "+" .. v.nGold .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold, "+")
 		end
 	end
@@ -1880,7 +1559,7 @@ _GKP.GKP_SpendingList = function()
 	table.sort(sort,function(a,b) return a.nGold < b.nGold end)
 	for k, v in ipairs(sort) do
 		if v.nGold > 0 then
-			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. _L["Gold."]) })
+			JH.Talk({ GKP.GetFormatLink(v.szName, true), GKP.GetFormatLink(g_tStrings.STR_TALK_HEAD_SAY1 .. v.nGold .. g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP) })
 		end
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_INFO", "Info", v.szName, v.nGold)
 	end
@@ -2514,7 +2193,7 @@ _GKP.Record = function(tab, item, bEnter)
 			if JH.IsDistributer() then
 				JH.Talk({
 					GKP.GetFormatLink(tab),
-					GKP.GetFormatLink(" ".. nMoney .._L["Gold"]),
+					GKP.GetFormatLink(" ".. nMoney ..g_tStrings.STR_GOLD),
 					GKP.GetFormatLink(_L[" Distribute to "]),
 					GKP.GetFormatLink(tab.szPlayer, true)
 				})
@@ -2531,7 +2210,7 @@ _GKP.Record = function(tab, item, bEnter)
 				JH.Talk({
 					GKP.GetFormatLink(tab.szPlayer, true),
 					GKP.GetFormatLink(" ".. tab.szName),
-					GKP.GetFormatLink(" ".. nMoney .._L["Gold"]),
+					GKP.GetFormatLink(" ".. nMoney ..g_tStrings.STR_GOLD),
 					GKP.GetFormatLink(_L["Make changes to the record."]),
 				})
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","edit",JH.AscIIEncode(JH.JsonEncode(tab)))
@@ -2540,7 +2219,7 @@ _GKP.Record = function(tab, item, bEnter)
 			if JH.IsDistributer() then
 				JH.Talk({
 					GKP.GetFormatLink(tab.szName),
-					GKP.GetFormatLink(" ".. nMoney .._L["Gold"]),
+					GKP.GetFormatLink(" ".. nMoney ..g_tStrings.STR_GOLD),
 					GKP.GetFormatLink(_L["Manually make record to"]),
 					GKP.GetFormatLink(tab.szPlayer, true)
 				})
@@ -2739,13 +2418,13 @@ _GKP.MoneyUpdate = function(nGold, nSilver, nCopper)
 			JH.Talk({
 				GKP.GetFormatLink(_L["Received"]),
 				GKP.GetFormatLink(_GKP.TradingTarget.szName, true),
-				GKP.GetFormatLink(_L["The"] .. nGold .._L["Gold."]),
+				GKP.GetFormatLink(_L["The"] .. nGold ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP),
 			})
 		else
 			JH.Talk({
 				GKP.GetFormatLink(_L["Pay to"]),
 				GKP.GetFormatLink(_GKP.TradingTarget.szName, true),
-				GKP.GetFormatLink(" " .. nGold * -1 .._L["Gold."]),
+				GKP.GetFormatLink(" " .. nGold * -1 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP),
 			})
 		end
 	end
@@ -2805,7 +2484,7 @@ _GKP.Draw_GKP_Account = function(key,sort)
 		item:Lookup("Text_Name").OnItemMouseEnter = function()
 			local szIcon, nFrame = GetForceImage(v.dwForceID)
 			local r, g, b = JH.GetForceColor(v.dwForceID)
-			local szXml = GetFormatImage(szIcon, nFrame, 20, 20) .. GetFormatText("  " .. v.szPlayer .. _L[":\n"], 136, r, g, b)
+			local szXml = GetFormatImage(szIcon, nFrame, 20, 20) .. GetFormatText("  " .. v.szPlayer .. g_tStrings.STR_COLON .. "\n", 136, r, g, b)
 			if IsCtrlKeyDown() then
 				szXml = szXml .. GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP .. "\n", 136, 255, 0, 0)
 				szXml = szXml .. GetFormatText(var2str(v, " "), 136, 255, 255, 255)
@@ -2822,9 +2501,9 @@ _GKP.Draw_GKP_Account = function(key,sort)
 					end
 				end
 				local r,g,b = GKP.GetMoneyCol(nNum)
-				szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum .._L["Gold.\n"],136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 				local r,g,b = GKP.GetMoneyCol(nNum1)
-				szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 .._L["Gold.\n"],136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 
 				for kk,vv in ipairs(GKP("GKP_Account")) do
 					if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
@@ -2832,13 +2511,13 @@ _GKP.Draw_GKP_Account = function(key,sort)
 					end
 				end
 				local r,g,b = GKP.GetMoneyCol(nNum2)
-				szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 .._L["Gold.\n"],136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 				local nNum3 = nNum+nNum1-nNum2
 				if nNum3 < 0 then
 					nNum3 = 0
 				end
 				local r,g,b = GKP.GetMoneyCol(nNum3)
-				szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 .._L["Gold.\n"],136,r,g,b)
+				szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tString.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
 			end
 			local x, y = item:Lookup("Text_No"):GetAbsPos()
 			local w, h = item:Lookup("Text_No"):GetSize()
@@ -2886,191 +2565,3 @@ RegisterEvent("LOADING_END",function()
 		end
 	end
 end)
-
-----------------------------------------------------------
--- 重伤提示
-----------------------------------------------------------
-
-local DeathWarn = {
-	tDamage = {},
-	tDeath = {}
-}
-
-DeathWarn.OnSkillEffectLog = function(dwCaster, dwTarget, bReact, nEffectType, dwID, dwLevel, bCriticalStrike, nCount, tResult)
-	local Caster,target,szSkillName
-	if nCount <= 2 then
-		return
-	end
-	if IsPlayer(dwCaster) then
-		Caster = GetPlayer(dwCaster)
-	else
-		Caster = GetNpc(dwCaster)
-	end
-	if not Caster then
-		return
-	end
-	if IsPlayer(dwTarget) then
-		target = GetPlayer(dwTarget)
-	else
-		target = GetNpc(dwTarget)
-	end
-	if not target then
-		return
-	end
-	if nEffectType == SKILL_EFFECT_TYPE.SKILL then
-		szSkillName = JH.GetSkillName(dwID, dwLevel);
-	elseif nEffectType == SKILL_EFFECT_TYPE.BUFF then
-		szSkillName = JH.GetBuffName(dwID, dwLevel);
-	end
-	if not szSkillName then
-		return
-	end
-	local me = GetClientPlayer()
-	local team = GetClientTeam()
-	if IsPlayer(dwTarget) then
-		if team.IsPlayerInTeam(dwTarget) or dwTarget == me.dwID then
-			if not DeathWarn.tDamage[dwTarget] then
-				DeathWarn.tDamage[dwTarget] = {}
-			end
-			local szDamage = ""
-			local nValue = tResult[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]
-			if nValue and nValue > 0 then
-				if szDamage ~= "" then
-					szDamage = szDamage..g_tStrings.STR_COMMA
-				end
-				szDamage = szDamage..FormatString(g_tStrings.SKILL_DAMAGE, nValue, g_tStrings.STR_SKILL_PHYSICS_DAMAGE)
-			end
-			local nValue = tResult[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]
-			if nValue and nValue > 0 then
-				if szDamage ~= "" then
-					szDamage = szDamage..g_tStrings.STR_COMMA
-				end
-				szDamage = szDamage..FormatString(g_tStrings.SKILL_DAMAGE, nValue, g_tStrings.STR_SKILL_SOLAR_MAGIC_DAMAGE)
-			end
-			local nValue = tResult[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE]
-			if nValue and nValue > 0 then
-				if szDamage ~= "" then
-					szDamage = szDamage..g_tStrings.STR_COMMA
-				end
-				szDamage = szDamage..FormatString(g_tStrings.SKILL_DAMAGE, nValue, g_tStrings.STR_SKILL_NEUTRAL_MAGIC_DAMAGE)
-			end
-			local nValue = tResult[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]
-			if nValue and nValue > 0 then
-				if szDamage ~= "" then
-					szDamage = szDamage..g_tStrings.STR_COMMA
-				end
-				szDamage = szDamage..FormatString(g_tStrings.SKILL_DAMAGE, nValue, g_tStrings.STR_SKILL_LUNAR_MAGIC_DAMAGE)
-			end
-			local nValue = tResult[SKILL_RESULT_TYPE.POISON_DAMAGE]
-			if nValue and nValue > 0 then
-				if szDamage ~= "" then
-					szDamage = szDamage..g_tStrings.STR_COMMA
-				end
-				szDamage = szDamage..FormatString(g_tStrings.SKILL_DAMAGE, nValue, g_tStrings.STR_SKILL_POISON_DAMAGE)
-			end
-			if szDamage ~= "" then
-				table.insert(DeathWarn.tDamage[dwTarget],{
-					szCaster = JH.GetTemplateName(Caster),
-					szTarget = JH.GetTemplateName(target),
-					szSkillName = szSkillName,
-					szValue = szDamage,
-				})
-			end
-		end
-	end
-	if IsPlayer(dwCaster) and (team.IsPlayerInTeam(dwCaster) or dwCaster == me.dwID) then
-		if not DeathWarn.tDamage[dwCaster] then
-			DeathWarn.tDamage[dwCaster] = {}
-		end
-		local szDamage = ""
-		local nValue = tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]
-		if nValue and nValue > 0 then
-			if szDamage ~= "" then
-				szDamage = szDamage..g_tStrings.STR_COMMA
-			end
-			szDamage = szDamage..nValue.._L["Points harm"]
-		end
-		if szDamage ~= "" then
-			table.insert(DeathWarn.tDamage[dwCaster],{
-				szCaster = JH.GetTemplateName(target),
-				szTarget = JH.GetTemplateName(Caster),
-				szSkillName = _L["Bounce"] .. "("..szSkillName..")",
-				szValue = szDamage,
-			})
-		end
-	end
-end
-
-DeathWarn.OnCommonHealthLog = function(dwTarget, nDeltaLife)
-	local target
-	if IsPlayer(dwTarget) then
-		target = GetPlayer(dwTarget)
-	else
-		target = GetNpc(dwTarget)
-	end
-	if not target then return end
-	if nDeltaLife < 0 then
-		nDeltaLife = -nDeltaLife
-	end
-	local me = GetClientPlayer()
-	local team = GetClientTeam()
-	if IsPlayer(dwTarget) then
-		if team.IsPlayerInTeam(dwTarget) or dwTarget == me.dwID then
-			if not DeathWarn.tDamage[dwTarget] then
-				DeathWarn.tDamage[dwTarget] = {}
-			end
-			table.insert(DeathWarn.tDamage[dwTarget],{
-				szCaster = _L["Unknown"],
-				szTarget = JH.GetTemplateName(target),
-				szSkillName = _L["Unknown Skill"],
-				szValue = nDeltaLife .. _L["Points harm"],
-			})
-		end
-	end
-end
-
---[[
-	arg0:"UI_OME_DEATH_NOTIFY" arg1:dwCharacterID arg2: 为INT_MAX，2147483647 arg3:szKiller
-	arg0:"UI_OME_SKILL_EFFECT_LOG" arg1:dwCaster arg2:dwTarget arg3:bReact arg4:nType  arg5:dwID  arg6:dwLevel  arg7:bCriticalStrike arg8:nResultCount
-	arg0:"UI_OME_COMMON_HEALTH_LOG" arg1:dwCharacterID arg2:nDeltaLife
-]]
-DeathWarn.OnDeath = function(dwTarget, szKiller)
-	local me = GetClientPlayer()
-	local team = GetClientTeam()
-	local tRecordList = DeathWarn.tDamage[dwTarget]
-	if IsPlayer(dwTarget) and tRecordList then
-		if team.IsPlayerInTeam(dwTarget) or dwTarget == me.dwID then
-			local tInfo = tRecordList[#tRecordList]
-			if tInfo then
-				tInfo.time = GetCurrentTime()
-			end
-			if not DeathWarn.tDeath[dwTarget] then
-				DeathWarn.tDeath[dwTarget] = {}
-			end
-			table.insert(DeathWarn.tDeath[dwTarget],tInfo)
-			if #DeathWarn.tDeath[dwTarget] > 15 then
-				table.remove(DeathWarn.tDeath[dwTarget],1)
-			end
-			DeathWarn.tDamage[dwTarget] = nil
-			if GKP.bDeathWarn then
-				OutputMessage("MSG_SYS",_L["Boardcast of Serious Injure:"] .. "["..tInfo.szTarget.."]" .. _L["By"] .. "["..tInfo.szCaster.."]" .. _L["The"] .."<"..tInfo.szSkillName..">" .. _L["Lead to"] .. ""..tInfo.szValue.."," .. g_tStrings.FIGHT_DEATH .. "\n")
-			end
-		end
-	end
-end
-
-RegisterEvent("SYS_MSG",function()
-	if arg0 == "UI_OME_DEATH_NOTIFY" then -- 死亡记录
-		DeathWarn.OnDeath(arg1, arg3)
-	elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then -- 技能记录
-		DeathWarn.OnSkillEffectLog(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9)
-	elseif arg0 == "UI_OME_COMMON_HEALTH_LOG" then
-		DeathWarn.OnCommonHealthLog(arg1,arg2)
-	end
-end)
-
-local UIProtect = {
-	tDamage = DeathWarn.tDamage,
-	tDeath = DeathWarn.tDeath,
-}
-setmetatable(_GKP.DeathWarn, { __index = UIProtect, __metatable = true, __newindex = function() --[[ print("Protect") ]] end } )

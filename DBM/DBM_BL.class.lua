@@ -1,11 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 13:46:53
+-- @Last Modified time: 2015-06-22 13:07:47
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
-local BL_CACHE = setmetatable({}, { __mode = "v" })
 local GetBuff = JH.GetBuff
 local BL = {}
 BL_UI = {
@@ -17,58 +16,29 @@ JH.RegisterCustomData("BL_UI")
 
 -- FireUIEvent("JH_BL_CREATE", 103, 1, { 255, 0, 0 })
 local function CreateBuffList(dwID, nLevel, col, tArgs)
-	local key = dwID .. "." .. nLevel
-	local ui = BL_CACHE[key]
+	local key = tostring(dwID) -- .. "." .. nLevel
 	col = col or { 255, 255, 0 }
-	if ui and ui:IsValid() then
-		ui:SetAlpha(255)
-		ui:Lookup("Box"):SetObjectSparking(true)
-		ui:Lookup("Animate_Update"):SetAlpha(255)
-		ui.bDelete = nil
-	else
-		if BL.handle:GetItemCount() < BL_UI.nCount then
-			local KBuff = GetBuff(dwID)
-			if KBuff then
-				tArgs = tArgs or {}
-				local h = BL.handle:AppendItemFromData(BL.hItem)
-				local szName, nIcon = JH.GetBuffName(dwID, nLevel)
-				h.dwID = dwID
-				h:Lookup("Text_Name"):SetText(tArgs.szName or szName)
-				h:Lookup("Text_Name"):SetFontColor(unpack(col))
-				local box = h:Lookup("Box")
-				box:SetObjectIcon(tArgs.nIcon or nIcon)
-				box:SetObjectSparking(true)
-				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				box:SetOverTextFontScheme(0, 15)
-				if KBuff.nStackNum > 1 then
-					box:SetOverText(0, KBuff.nStackNum)
-				end
-				box.OnItemMouseLeave = function()
-					if this:IsValid() then
-						this:SetObjectMouseOver(false)
-						HideTip()
-					end
-				end
-				box.OnItemMouseEnter = function()
-					if this:IsValid() then
-						this:SetObjectMouseOver(true)
-						local x, y = this:GetAbsPos()
-						local w, h = this:GetSize()
-						OutputBuffTipA(dwID, nLevel, { x, y, w, h }, JH.GetEndTime(KBuff.GetEndTime()))
-					end
-				end
-				box.OnItemRButtonClick = function()
-					local KBuff = GetBuff(dwID)
-					if KBuff then
-						GetClientPlayer().CancelBuff(KBuff.nIndex)
-					end
-				end
-				h:Lookup("Text_Time"):SetFontColor(unpack(col))
-				BL_CACHE[key] = h
-				h:Scale(BL_UI.fScale, BL_UI.fScale)
-				BL.handle:FormatAllItemPos()
-			end
+	tArgs = tArgs or {}
+	local KBuff = GetBuff(dwID, tArgs.bCheckLevel and nLevel or nil)
+	if KBuff then
+		local ui = BL.handle:Lookup(key) or BL.handle:AppendItemFromData(BL.hItem, key)
+		local szName, nIcon = JH.GetBuffName(dwID, nLevel)
+		ui.dwID = dwID
+		ui.nLevel = tArgs.bCheckLevel and nLevel or nil
+		ui:Lookup("Text_Name"):SetText(tArgs.szName or szName)
+		ui:Lookup("Text_Name"):SetFontColor(unpack(col))
+		local box = ui:Lookup("Box")
+		box:SetObjectIcon(tArgs.nIcon or nIcon)
+		box:SetObjectSparking(true)
+		box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+		box:SetOverTextFontScheme(0, 15)
+		if KBuff.nStackNum > 1 then
+			box:SetOverText(0, KBuff.nStackNum)
 		end
+		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, dwID, nLevel)
+		ui:Lookup("Text_Time"):SetFontColor(unpack(col))
+		ui:Scale(BL_UI.fScale, BL_UI.fScale)
+		BL.handle:FormatAllItemPos()
 	end
 end
 
@@ -96,6 +66,31 @@ function BL_UI.OnEvent(szEvent)
 		UpdateCustomModeWindow(this, _L["Buff List"])
 	end
 end
+function BL_UI.OnItemMouseEnter()
+	local h = this:GetParent()
+	local KBuff = GetBuff(h.dwID, h.nLevel)
+	if KBuff then
+		this:SetObjectMouseOver(true)
+		local x, y = this:GetAbsPos()
+		local w, h = this:GetSize()
+		OutputBuffTipA(KBuff.dwID, KBuff.nLevel, { x, y, w, h }, JH.GetEndTime(KBuff.GetEndTime()))
+	end
+end
+
+function BL_UI.OnItemRButtonClick()
+	local h = this:GetParent()
+	local KBuff = GetBuff(h.dwID, h.nLevel)
+	if KBuff then
+		GetClientPlayer().CancelBuff(KBuff.nIndex)
+	end
+end
+
+function BL_UI.OnItemMouseLeave()
+	if this:IsValid() then
+		this:SetObjectMouseOver(false)
+		HideTip()
+	end
+end
 
 function BL_UI.OnFrameBreathe()
 	local me = GetClientPlayer()
@@ -113,7 +108,7 @@ function BL_UI.OnFrameBreathe()
 					h:Lookup("Animate_Update"):SetAlpha(0)
 				end
 			else
-				local KBuff = GetBuff(h.dwID)
+				local KBuff = GetBuff(h.dwID, h.nLevel)
 				if KBuff then
 					local nSec = JH.GetEndTime(KBuff.GetEndTime())
 					if nSec < 0 then nSec = 0 end
