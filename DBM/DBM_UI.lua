@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 12:14:26
+-- @Last Modified time: 2015-06-22 14:12:02
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -657,7 +657,7 @@ function DBMUI.DrawTableL(szType, data)
 	local hItemData = szType == "TALK" and frame.hTalkL or frame.hItemL
 	handle:Clear()
 	if #data > 0 then
-		for k, v in DBM_API.Bpairs(data) do
+		for k, v in JH.bpairs(data) do
 			local h = handle:AppendItemFromData(hItemData)
 			SetDataAction(h, v, k)
 		end
@@ -718,7 +718,7 @@ function DBMUI.SetRItemAction(szType, h, t)
 
 			if tInterval and #tInterval > 1 then
 				local nTime = tInterval[#tInterval]
-				for k, v in DBM_API.Bpairs(tInterval) do
+				for k, v in JH.bpairs(tInterval) do
 					if #cmenu == 16 then break end
 					table.insert(cmenu, { szOption = string.format("%.1f", (nTime - v) / 1000) .. g_tStrings.STR_TIME_SECOND })
 					nTime = v
@@ -753,7 +753,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 		handle:Clear()
 		local hItemData = szType == "TALK" and frame.hTalkR or frame.hItemR
 		if #data > 0 then
-			for k, v in DBM_API.Bpairs(data) do
+			for k, v in JH.bpairs(data) do
 				local h = handle:AppendItemFromData(hItemData)
 				SetDataAction(h, v, k)
 			end

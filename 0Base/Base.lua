@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 17:58:48
+-- @Last Modified time: 2015-06-22 14:12:15
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -649,7 +649,7 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		return
 	end
 
-	-- -- say body
+	-- say body
 	local tSay = nil
 	if type(szText) == "table" then
 		tSay = szText
@@ -997,6 +997,18 @@ function JH.Confirm(szMsg, fnAction, fnCancel, szSure, szCancel)
 		},
 	}
 	MessageBox(tMsg)
+end
+
+-- 选代器 倒序
+local function fnBpairs(tab, nIndex)
+	nIndex = nIndex - 1
+	if nIndex > 0 then
+		return nIndex, tab[nIndex]
+	end
+end
+
+function JH.bpairs(tab)
+	return fnBpairs, tab, #tab + 1
 end
 
 function JH.GetEndTime(nEndFrame)
@@ -1458,6 +1470,67 @@ function JH.SetTempTarget(dwMemberID, bEnter)
 		JH_SetTarget(JH_TAR_TEMP)
 	end
 end
+
+---------------------------------------------------------------------
+-- 可重复利用的简易 Handle 元件缓存池
+---------------------------------------------------------------------
+_JH.HandlePool = class()
+
+-- construct
+function _JH.HandlePool:ctor(handle, xml)
+	self.handle, self.xml = handle, xml
+	handle.nFreeCount = 0
+	handle:Clear()
+end
+
+-- clear
+function _JH.HandlePool:Clear()
+	self.handle:Clear()
+	self.handle.nFreeCount = 0
+end
+
+-- new item
+function _JH.HandlePool:New()
+	local handle = self.handle
+	local nCount = handle:GetItemCount()
+	if handle.nFreeCount > 0 then
+		for i = nCount - 1, 0, -1 do
+			local item = handle:Lookup(i)
+			if item.bFree then
+				item.bFree = false
+				handle.nFreeCount = handle.nFreeCount - 1
+				return item
+			end
+		end
+		handle.nFreeCount = 0
+	else
+		handle:AppendItemFromString(self.xml)
+		local item = handle:Lookup(nCount)
+		item.bFree = false
+		return item
+	end
+end
+
+-- remove item
+function _JH.HandlePool:Remove(item)
+	if item:IsValid() then
+		self.handle:RemoveItem(item)
+	end
+end
+
+-- free item
+function _JH.HandlePool:Free(item)
+	if item:IsValid() then
+		self.handle.nFreeCount = self.handle.nFreeCount + 1
+		item.bFree = true
+		item:SetName("")
+		item:Hide()
+	end
+end
+
+-- public api, create pool
+-- (class) JH.HandlePool(userdata handle, string szXml)
+JH.HandlePool = _JH.HandlePool.new
 
 ---------------------------------------------------------------------
 -- 本地的 UI 组件对象

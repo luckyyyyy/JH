@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 22:32:43
+-- @Last Modified time: 2015-06-22 21:44:01
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -162,17 +162,6 @@ end
 function D.Log(szMsg)
 	Log("[DBM] " .. szMsg)
 end
--- 选代器 倒序
-local function fnBpairs(tab, nIndex)
-	nIndex = nIndex - 1
-	if nIndex > 0 then
-		return nIndex, tab[nIndex]
-	end
-end
-
-function D.Bpairs(tab)
-	return fnBpairs, tab, #tab + 1
-end
 
 function D.OutputWhisper(szText)
 	local r, g, b = unpack(GetMsgFontColor("MSG_WHISPER", true))
@@ -231,13 +220,13 @@ local function CreateTalkData(dwMapID)
 	local data = D.FILE.TALK
 	local talk = D.DATA.TALK
 	if data[dwMapID] then -- 本地图数据
-		for k, v in D.Bpairs(data[dwMapID]) do
+		for k, v in JH.bpairs(data[dwMapID]) do
 			talk[#talk + 1] = v
 		end
 	end
 	-- 不要改顺序 通用放后面
 	if data[-1] then -- 通用数据
-		for k, v in D.Bpairs(data[-1]) do
+		for k, v in JH.bpairs(data[-1]) do
 			talk[#talk + 1] = v
 		end
 	end
@@ -466,7 +455,6 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 	local key = dwBuffID .. "_" .. nBuffLevel
 	local data = D.GetData(szType, dwBuffID, nBuffLevel)
 	local nTime = GetTime()
-	local cfg, nClass
 	if not bDelete then
 		-- 近期记录
 		if Table_BuffIsVisible(dwBuffID, nBuffLevel) or JH.bDebugClient then
@@ -503,6 +491,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 		end
 	end
 	if data then
+		local cfg, nClass
 		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
 			return
 		end
@@ -731,7 +720,6 @@ function D.OnNpcEvent(npc, bEnter)
 	local me = GetClientPlayer()
 	local data = D.GetData("NPC", npc.dwTemplateID)
 	local nTime = GetTime()
-	local cfg, nClass
 	if bEnter then
 		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { bFightState = false, tList = {}, nTime = -1, nLife = math.floor(npc.nCurrentLife / npc.nMaxLife * 100) }
 		tinsert(CACHE.NPC_LIST[npc.dwTemplateID].tList, npc.dwID)
@@ -779,6 +767,7 @@ function D.OnNpcEvent(npc, bEnter)
 		end
 	end
 	if data then
+		local cfg, nClass
 		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
 			return
 		end
@@ -1260,7 +1249,10 @@ end
 function D.LoadUserData()
 	if DBM_PLAYER_NAME == "NONE" then
 		local me = GetClientPlayer()
-		if me and not IsRemotePlayer(me.dwID) then
+		if me then
+			if IsRemotePlayer(me.dwID) and not DBM.bCommon then
+				return
+			end
 			DBM_PLAYER_NAME = me.szName
 			local data = JH.LoadLUAData(GetDataPath())
 			if data then
@@ -1459,7 +1451,6 @@ local ui = {
 	SaveConfigureFile = D.SaveConfigureFile,
 	LoadConfigureFile = D.LoadConfigureFile,
 	MoveOrder         = D.MoveOrder,
-	Bpairs            = D.Bpairs,
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
