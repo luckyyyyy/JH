@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 21:46:57
+-- @Last Modified time: 2015-06-22 22:43:12
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -88,8 +88,6 @@ RaidTools = {}
 function RaidTools.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("PEEK_OTHER_PLAYER")
-	this:RegisterEvent("PLAYER_LEAVE_SCENE")
-	this:RegisterEvent("PLAYER_ENTER_SCENE")
 	this:RegisterEvent("PARTY_DISBAND")
 	this:RegisterEvent("PARTY_DELETE_MEMBER")
 	this:RegisterEvent("PARTY_SET_MEMBER_ONLINE_FLAG")
@@ -230,15 +228,11 @@ function RaidTools.OnEvent(szEvent)
 		this.hList:Clear()
 		RT.HookHotkeyPanel(false)
 		RT.UpdatetDeathPage()
-	elseif szEvent == "PLAYER_ENTER_SCENE" or szEvent == "PLAYER_LEAVE_SCENE" then
-		if this.tDataCache[arg0] then
-			this.tDataCache[arg0].bRequest = true
-		end
 	elseif szEvent == "UI_SCALED" then
 		RT.UpdateAnchor(this)
 	elseif szEvent == "JH_RAIDTOOLS_SUCCESS" then
-		-- this.hList:Clear() -- 用于重新排序
-		-- RT.UpdateList() -- 立即更新
+		this.hList:Clear() -- 用于重新排序
+		RT.UpdateList() -- 立即更新
 		JH.DelayCall(1000, function()
 			RT.HookHotkeyPanel(false)
 		end)
@@ -809,7 +803,7 @@ function RT.GetEquipCache(p)
 		tTemporaryEnchant = aInfo.tTemporaryEnchant,
 		nEquipScore       = p.GetTotalEquipScore()
 	}
-	frame.tViewInvite[arg1] = nil
+	frame.tViewInvite[p.dwID] = nil
 	if IsEmpty(frame.tViewInvite) then
 		if p.dwID ~= me.dwID then
 			FireUIEvent("JH_RAIDTOOLS_SUCCESS") -- 装备请求完毕
@@ -891,7 +885,7 @@ function RT.GetTeam()
 					table.insert(aInfo.tBuff, tBuff)
 				end
 			end
-			if v == me.dwID then
+			if me.dwID == p.dwID then
 				RT.GetEquipCache(me)
 			end
 		end
@@ -1056,7 +1050,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 		-- 五类伤害
 		local szCaster = KCaster.szName
 		if szCaster == "" then
-			szCaster = JH.GetTeamMemberList(KCaster)
+			szCaster = JH.GetTemplateName(KCaster)
 		end
 		for k, v in ipairs({ "PHYSICS_DAMAGE", "SOLAR_MAGIC_DAMAGE", "NEUTRAL_MAGIC_DAMAGE", "LUNAR_MAGIC_DAMAGE", "POISON_DAMAGE" }) do
 			if tResult[SKILL_RESULT_TYPE[v]] and tResult[SKILL_RESULT_TYPE[v]] ~= 0 then
@@ -1074,7 +1068,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 	if IsPlayer(dwCaster) and (JH.IsParty(dwCaster) or dwCaster == me.dwID) and tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then
 		local szTarget = KTarget.szName
 		if szTarget == "" then
-			szTarget = JH.GetTeamMemberList(KTarget)
+			szTarget = JH.GetTemplateName(KTarget)
 		end
 		RT.tDamage[dwCaster == me.dwID and "self" or dwCaster] = {
 			szCaster        = szTarget,
