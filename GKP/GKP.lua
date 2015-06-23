@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 23:03:40
+-- @Last Modified time: 2015-06-23 13:42:36
 
 -- 早期代码 需要重写
 
@@ -49,7 +49,6 @@ local _GKP = {
 		{szName = "test user 9", dwForceID = 6, dwForce = 6, bOnlineFlag = true, dwID = 9},
 		{szName = "test user 10 ban", dwForceID = 5, dwForce = 5, bOnlineFlag = false, dwID = 10},
 	},
-	tQualityImage = { nil, 13, 12, 14, 11 }, -- Frame
 	tSyncQueue = {},
 	bSync = {},
 	GKP_Record = {},
@@ -138,15 +137,12 @@ function _GKP.SaveConfig()
 	JH.SaveLUAData("config/gkp.cfg", _GKP.Config)
 end
 
-
--- Output(FormatTime("%W", GetCurrentTime()))
--- GKP 记录缓存格式 角色名/副本名称/年份-第几周-副本ID.jx3dat
--- 这样绝对不怕丢记录
 function _GKP.GKP_Save()
 	local me = GetClientPlayer()
 	local szPath = "GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d",GetCurrentTime()) .. ".gkp"
 	JH.SaveLUAData(szPath,{ GKP_Record = GKP("GKP_Record") , GKP_Account = GKP("GKP_Account") })
 end
+
 function _GKP.GKP_LoadData(szFile)
 	local me = GetClientPlayer()
 	local szPath = szFile .. ".gkp"
@@ -412,7 +408,9 @@ function GKP.GetMoneyCol(Money)
 		elseif Money < 100000 then
 			return 255, 255, 0
 		elseif Money < 1000000 then
-			return 255, 128, 0
+			return 255, 192, 0
+		elseif Money < 10000000 then
+			return 255, 92, 0
 		else
 			return 255, 0, 0
 		end
@@ -914,7 +912,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
 			local iName, iIcon = JH.GetItemName(v.nUiId)
 			box:SetObjectIcon(iIcon)
-
+			JH.UpdateItemBoxExtend(box, v.nQuality)
 			if v.nStackNum then
 				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 				box:SetOverTextFontScheme(0,15)
@@ -1188,14 +1186,14 @@ _GKP.OnMsg = function()
 				JH.Debug("#GKP# Sync Success")
 			end
 		end
-		if data[1] == "GKP_INFO" then -- 这他妈做成收据了。。。。。。。hhhhhhhhhhhhhhhhh
+		if data[1] == "GKP_INFO" then
 			if data[2] == "Start" then
 				local szFrameName = "GKP_info"
 				if data[3] == "Information on Debt" then
 					szFrameName = "GKP_Debt"
 				end
-				if Station.Lookup("Normal/" .. szFrameName) then
-					_GKP.info = nil
+				if data[3] == "Information on Debt" and arg3 ~= me.szName then
+					return
 				end
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
 				ui:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
@@ -1210,12 +1208,12 @@ _GKP.OnMsg = function()
 				end)
 				ui:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", arg3), font = 41 })
 				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
-				if data[3] == "Information on Debt" and arg3 ~= me.szName then
-					ui:Toggle(false)
-				end
 				_GKP.info = ui
 			end
 			if data[2] == "Info" then
+				if data[3] == me.szName and tonumber(data[4]) and tonumber(data[4]) <= -100 then
+					JH.OutputWhisper(data[3] .. g_tStrings.STR_COLON .. data[4] .. g_tStrings.STR_GOLD, "GKP")
+				end
 				local frm = Station.Lookup("Normal/GKP_info")
 				if frm and frm.done then
 					frm = Station.Lookup("Normal/GKP_Debt")
@@ -1238,7 +1236,6 @@ _GKP.OnMsg = function()
 							end
 						end
 					end
-					if me.szName == data[3] then ui:Toggle(true) end
 					for k, v in ipairs(GKP("GKP_Record")) do -- 依赖于本地记录 反正也不可能差异到哪去
 						if v.szPlayer == data[3] then
 							if dwForceID == -1 then
@@ -1267,16 +1264,7 @@ _GKP.OnMsg = function()
 							alpha = 60
 						end
 						local box = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha }).self
-						if _GKP.tQualityImage[v.nQuality] then
-							if v.nQuality < 5 then
-								ui:Append("Image", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha })
-								:File("ui/Image/Common/Box.UITex", _GKP.tQualityImage[v.nQuality])
-							else
-								ui:Append("Animate", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28 })
-								:Animate("ui/Image/Common/Box.UITex", 17, -1)
-							end
-						end
-
+						JH.UpdateItemBoxExtend(box, v.nQuality)
 						box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
 						local icon = 582
 						if v.nUiId ~= 0 then
@@ -1739,16 +1727,7 @@ _GKP.DrawDistributeList = function(doodad)
 			-- append box
 			local x, y = (item_k - 1) % 6, math.ceil(item_k / 6) - 1
 			box:SetRelPos(x * 70 + 5, y * 70 + 5)
-			-- append img
-			if _GKP.tQualityImage[item.nQuality] then
-				if item.nQuality < 5 then
-					handle:AppendItemFromString(GetFormatImage("ui/Image/Common/Box.UITex", _GKP.tQualityImage[item.nQuality], 62, 62, nil, "img_"..item_k))
-				else
-					handle:AppendItemFromString("<animate> path=\"ui/Image/Common/Box.UITex\" group=17 w=62 h=62 name=\"img_" .. item_k .."\" </animate>")
-				end
-				local img = handle:Lookup("img_" .. item_k)
-				img:SetRelPos(x * 70 + 6, y * 70 + 6)
-			end
+			JH.UpdateItemBoxExtend(box, item.nQuality)
 		else
 			local h = handle:AppendItemFromIni(PATH_ROOT .. "ui/GKP_Loot.ini", "Handle_Item", item_k)
 			box = fnSetBox(h:Lookup("Box_Item"))

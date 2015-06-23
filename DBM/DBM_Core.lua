@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 21:44:01
+-- @Last Modified time: 2015-06-23 15:54:09
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -163,13 +163,6 @@ function D.Log(szMsg)
 	Log("[DBM] " .. szMsg)
 end
 
-function D.OutputWhisper(szText)
-	local r, g, b = unpack(GetMsgFontColor("MSG_WHISPER", true))
-	local szMsg = GetFormatText("[DBM]" .. g_tStrings.STR_TALK_HEAD_WHISPER .. szText .. "\n", 10, r, g, b)
-	OutputMessage("MSG_WHISPER", szMsg, true)
-	PlaySound(SOUND.UI_SOUND, g_sound.Whisper)
-end
-
 function D.Talk(szMsg, szTarget)
 	local me = GetClientPlayer()
 	if not me then return end
@@ -180,7 +173,7 @@ function D.Talk(szMsg, szTarget)
 	elseif type(szTarget) == "string" then
 		local szText = szMsg:gsub(_L["["] .. szTarget .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
 		if szTarget == me.szName then
-			D.OutputWhisper(szText)
+			JH.OutputWhisper(szText, "DBM")
 		else
 			JH.Talk(szTarget, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 		end
@@ -191,7 +184,7 @@ function D.Talk(szMsg, szTarget)
 				local szName = team.GetClientTeamMemberName(v)
 				local szText = szMsg:gsub(_L["["] .. szName .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
 				if szName == me.szName then
-					D.OutputWhisper(szText)
+					JH.OutputWhisper(szText, "DBM")
 				else
 					JH.Talk(szName, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 				end
