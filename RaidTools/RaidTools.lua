@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 22:51:41
+-- @Last Modified time: 2015-06-23 16:54:59
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -39,7 +39,8 @@ local RT_SKILL_TYPE = {
 	[15] = "TRANSFER_LIFE",
 	[16] = "TRANSFER_MANA",
 }
-
+-- 副本评分 晚点在做吧
+-- local RT_DUNGEON_TOTAL = {}
 local RT_SCORE = {
 	Equip   = _L["Equip Score"],
 	Buff    = _L["Buff Score"],
@@ -63,7 +64,7 @@ local RT_FOOD_TYPE = {
 	[20] = true 
 }
 
-local RT_BUFF_DWID = {
+local RT_BUFF_ID = {
 	[362]  = true, 
 	[673]  = true,
 	[112]  = true,
@@ -77,6 +78,8 @@ local RT_SORT_FIELD   = "nEquipScore"
 local RT_SELECT_PAGE  = 0
 local RT_SELECT_KUNGFU
 local RT_SELECT_DEATH
+--
+local RT_SCORE_FULL = 15000
 local RT = {
 	tAnchor = {},
 	tDamage = {},
@@ -114,6 +117,7 @@ function RaidTools.OnFrameCreate()
 	this.hList        = this.hPageSet:Lookup("Page_Info/Scroll_Player", "")
 	this.hDeatList    = this.hPageSet:Lookup("Page_Death/Scroll_Player_List", "")
 	this.hDeatMsg     = this.hPageSet:Lookup("Page_Death/Scroll_Death_Info", "")
+
 	this.tScore       = {}
 	-- 排序
 	local hTitle  = this.hPageSet:Lookup("Page_Info", "Handle_Player_BG")
@@ -133,14 +137,17 @@ function RaidTools.OnFrameCreate()
 				RT_SORT_MODE = "DESC"
 			end
 			RT_SORT_FIELD = v
-			frame.hList:Clear()
-			RT.UpdateList()
+			RT.UpdateList() -- set userdata
+			frame.hList:Sort()
+			frame.hList:FormatAllItemPos()
 		end
 	end
 	-- 装备分
-	local hScore     = this.hPageSet:Lookup("Page_Info", "Handle_Score")
-	this.hTotalScore = hScore:Lookup("Text_TotalScore")
-	-- 心法
+	this.hTotalScore = this.hPageSet:Lookup("Page_Info", "Handle_Score/Text_TotalScore")
+	this.hProgress   = this.hPageSet:Lookup("Page_Info", "Handle_Progress")
+	-- 副本信息
+	local hDungeon = this.hPageSet:Lookup("Page_Info", "Handle_Dungeon")
+	RT.UpdateDungeonInfo(hDungeon)
 	this.hKungfuList = this.hPageSet:Lookup("Page_Info", "Handle_Kungfu/Handle_Kungfu_List")
 	this.hKungfu     = this:CreateItemData(RT_INIFILE, "Handle_Kungfu_Item")
 	this.hKungfuList:Clear()
@@ -187,15 +194,6 @@ function RaidTools.OnFrameCreate()
 	RT.UpdateAnchor(this)
 end
 
--- KLuaConst LUA_CONST_PEEK_OTHER_PLAYER_RESPOND[] = 
--- {
---     {"INVALID",                 prcInvalid},
---     {"SUCCESS",                 prcSuccess},
---     {"FAILED",                  prcFailed},
---     {"CAN_NOT_FIND_PLAYER",     prcCanNotFindPlayer}, 
---     {"TOO_FAR",                 prcTooFar},
---     {NULL,                      0}
--- };
 function RaidTools.OnEvent(szEvent)
 	if szEvent == "PEEK_OTHER_PLAYER" then
 		if arg0 == PEEK_OTHER_PLAYER_RESPOND.SUCCESS then
@@ -212,7 +210,7 @@ function RaidTools.OnEvent(szEvent)
 			GUI(this):Title(_L("%s's Team", info.szName))
 		end
 	elseif szEvent == "PARTY_SET_MEMBER_ONLINE_FLAG" then
-		if not arg2 then
+		if arg2 == 0 then
 			this.tDataCache[arg1] = nil
 		end
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
@@ -228,11 +226,17 @@ function RaidTools.OnEvent(szEvent)
 		this.hList:Clear()
 		RT.HookHotkeyPanel(false)
 		RT.UpdatetDeathPage()
+		-- 副本信息
+		local hDungeon = this.hPageSet:Lookup("Page_Info", "Handle_Dungeon")
+		RT.UpdateDungeonInfo(hDungeon)
 	elseif szEvent == "UI_SCALED" then
 		RT.UpdateAnchor(this)
 	elseif szEvent == "JH_RAIDTOOLS_SUCCESS" then
-		this.hList:Clear() -- 用于重新排序
-		RT.UpdateList() -- 立即更新
+		if RT_SORT_FIELD   == "nEquipScore" then
+			RT.UpdateList()
+			this.hList:Sort()
+			this.hList:FormatAllItemPos()
+		end
 		JH.DelayCall(1000, function()
 			RT.HookHotkeyPanel(false)
 		end)
@@ -307,52 +311,6 @@ function RT.UpdateAnchor(frame)
 	end
 end
 
-local function UpdateItemBoxExtend(box, nQuality)
-	local szImage = "ui/Image/Common/Box.UITex"
-	local nFrame
-	if nQuality == 3 then
-		nFrame = 43
-	elseif nQuality == 4 then
-		nFrame = 42
-	elseif nQuality == 5 then
-		nFrame = 17
-	end
-	box:ClearExtentImage()
-	box:ClearExtentAnimate()
-	if nFrame and nQuality < 5 then
-		box:SetExtentImage(szImage, nFrame)
-	elseif nQuality == 5 then
-		box:SetExtentAnimate(szImage, nFrame, -1)
-	end
-end
-function RaidTools.OnItemRButtonClick()
-	local szName = this:GetName()
-	local dwID = tonumber(szName:match("P(%d+)"))
-	local me = GetClientPlayer()
-	if dwID and dwID ~= me.dwID then
-		local menu = {
-			{ szOption = this:Lookup("Text_Name"):GetText(), bDisable = true },
-			{ bDevide = true }
-		}
-		InsertPlayerCommonMenu(menu, dwID)
-		menu[#menu] = {
-			szOption = g_tStrings.STR_LOOKUP, fnAction = function()
-				RT.ViewInviteToPlayer(dwID)
-			end
-		}
-		PopupMenu(menu)
-	end
-end
-
-function RT.ViewInviteToPlayer(dwID)
-	local frame = RT.GetFrame()
-	local me = GetClientPlayer()
-	if dwID ~= me.dwID then
-		frame.tViewInvite[dwID] = true
-		ViewInviteToPlayer(dwID)
-	end
-end
-
 function RaidTools.OnItemLButtonClick()
 	local szName = this:GetName()
 	if tonumber(szName:find("P(%d+)")) then
@@ -372,6 +330,47 @@ function RaidTools.OnItemLButtonClick()
 		end
 	end
 end
+
+function RaidTools.OnItemRButtonClick()
+	local szName = this:GetName()
+	local dwID = tonumber(szName:match("P(%d+)"))
+	local me = GetClientPlayer()
+	if dwID and dwID ~= me.dwID then
+		local menu = {
+			{ szOption = this:Lookup("Text_Name"):GetText(), bDisable = true },
+			{ bDevide = true }
+		}
+		InsertPlayerCommonMenu(menu, dwID)
+		menu[#menu] = {
+			szOption = g_tStrings.STR_LOOKUP, fnAction = function()
+				RT.ViewInviteToPlayer(dwID)
+			end
+		}
+		PopupMenu(menu)
+	end
+end
+
+function RT.UpdateDungeonInfo(hDungeon)
+	local me = GetClientPlayer()
+	if JH.IsInDungeon(true) then
+		local scene = me.GetScene()
+		hDungeon:Lookup("Text_Dungeon"):SetText(Table_GetMapName(me.GetMapID()) .. "\n" .. "ID:(" .. scene.nCopyIndex  ..")")
+		hDungeon:Show()
+	else
+		hDungeon:Hide()
+	end
+end
+
+function RT.ViewInviteToPlayer(dwID)
+	local frame = RT.GetFrame()
+	local me = GetClientPlayer()
+	if dwID ~= me.dwID then
+		frame.tViewInvite[dwID] = true
+		ViewInviteToPlayer(dwID)
+	end
+end
+
+
 
 -- 分数计算
 function RT.CountScore(tab, tScore)
@@ -447,6 +446,7 @@ function RT.UpdateList()
 			if not h then
 				h = frame.hList:AppendItemFromData(frame.hPlayer)
 			end
+			h:SetUserData(k)
 			h:SetName(szName)
 			h.dwID   = v.dwID
 			h.szName = v.szName
@@ -465,7 +465,7 @@ function RT.UpdateList()
 				if v.bIsOnLine then
 					hScore:SetText(_L["Loading"])
 				else
-					hScore:SetText("")
+					hScore:SetText(g_tStrings.STR_GUILD_OFFLINE)
 				end
 			end
 			if v.nFightState == 1 then
@@ -481,22 +481,27 @@ function RT.UpdateList()
 					}
 				end
 			end
-			if not v.p or not v.bIsOnLine then
-				for kk, vv in ipairs({ "Handle_Food", "Handle_Buff" }) do
+
+			if not v.bIsOnLine then
+				for kk, vv in ipairs({ "Handle_Food", "Handle_Buff", "Handle_Equip" }) do
 					h["h" .. vv].Pool:Clear()
 				end
 				h:Lookup("Text_Toofar1"):Show()
 				h:Lookup("Text_Toofar2"):Show()
+				h:Lookup("Text_Toofar3"):Show()
+				h:Lookup("Text_Toofar1"):SetText(g_tStrings.STR_GUILD_OFFLINE)
+				h:Lookup("Text_Toofar2"):SetText(g_tStrings.STR_GUILD_OFFLINE)
+				h:Lookup("Text_Toofar3"):SetText(g_tStrings.STR_GUILD_OFFLINE)
+			else
+				h:Lookup("Text_Toofar3"):Hide()
+			end
+
+			if not v.p then
+				h:Lookup("Text_Toofar1"):Show()
+				h:Lookup("Text_Toofar2"):Show()
 				if v.bIsOnLine then
-					h:Lookup("Text_Toofar3"):Hide()
 					h:Lookup("Text_Toofar1"):SetText(_L["Too Far"])
 					h:Lookup("Text_Toofar2"):SetText(_L["Too Far"])
-				else
-					h["hHandle_Equip"].Pool:Clear()
-					h:Lookup("Text_Toofar3"):Show()
-					h:Lookup("Text_Toofar1"):SetText(g_tStrings.STR_GUILD_OFFLINE)
-					h:Lookup("Text_Toofar2"):SetText(g_tStrings.STR_GUILD_OFFLINE)
-					h:Lookup("Text_Toofar3"):SetText(g_tStrings.STR_GUILD_OFFLINE)
 				end
 			else
 				h:Lookup("Text_Toofar1"):Hide()
@@ -633,7 +638,7 @@ function RT.UpdateList()
 					local box = handle_equip:Lookup(szName)
 					if not box then
 						box = h.hHandle_Equip.Pool:New()
-						UpdateItemBoxExtend(box, vv.nQuality)
+						JH.UpdateItemBoxExtend(box, vv.nQuality)
 					end
 					box:SetName(szName)
 					box:SetObject(UI_OBJECT_ITEM_INFO, GLOBAL.CURRENT_ITEM_VERSION, vv.dwTabType, vv.dwIndexe)
@@ -690,6 +695,10 @@ function RT.UpdateList()
 		nScore = nScore + v
 	end
 	frame.hTotalScore:SetText(math.floor(nScore))
+	local nNum      = #RT.GetTeamMemberList(true)
+	local nAvgScore = nScore / nNum
+	frame.hProgress:Lookup("Image_Progress"):SetPercentage(nAvgScore / RT_SCORE_FULL)
+	frame.hProgress:Lookup("Text_Progress"):SetText(_L("Team strength(%d/%d)", math.floor(nAvgScore), RT_SCORE_FULL))
 	-- 心法统计
 	for k, v in pairs(JH_KUNGFU_LIST) do
 		local h = frame.hKungfuList:Lookup(k - 1)
@@ -881,7 +890,7 @@ function RT.GetTeam()
 				if RT_FOOD_TYPE[nType] then
 					table.insert(aInfo.tFood, tBuff)
 				end
-				if RT_BUFF_DWID[tBuff.dwID] then
+				if RT_BUFF_ID[tBuff.dwID] then
 					table.insert(aInfo.tBuff, tBuff)
 				end
 			end
@@ -911,11 +920,22 @@ function RT.GetEquip()
 end
 
 -- 获取团队成员列表
-function RT.GetTeamMemberList()
+function RT.GetTeamMemberList(bIsOnLine)
 	local me   = GetClientPlayer()
 	local team = GetClientTeam()
 	if me.IsInParty() then
-		return team.GetTeamMemberList()
+		if bIsOnLine then
+			local tTeam = {}
+			for k, v in ipairs(team.GetTeamMemberList()) do
+				local info = team.GetMemberInfo(v)
+				if info and info.bIsOnLine then
+					table.insert(tTeam, v)
+				end
+			end
+			return tTeam
+		else
+			return team.GetTeamMemberList()
+		end
 	else
 		return { me.dwID }
 	end
