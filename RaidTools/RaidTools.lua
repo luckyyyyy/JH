@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-23 16:54:59
+-- @Last Modified time: 2015-06-23 21:51:25
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -905,8 +905,9 @@ function RT.GetTeam()
 end
 
 function RT.GetEquip()
-	local frame = RT.GetFrame()
 	local me    = GetClientPlayer()
+	if not me then return end
+	local frame = RT.GetFrame()
 	local team  = GetClientTeam()
 	for k, v in pairs(frame.tDataCache) do
 		v.bRequest = true
@@ -1104,7 +1105,7 @@ function RT.OnCommonHealthLog(dwCharacterID, nDeltaLife)
 		return
 	end
 	local me = GetClientPlayer()
-	if JH.IsParty(dwCharacterID or dwCharacterID == me.dwID) then
+	if JH.IsParty(dwCharacterID) or dwCharacterID == me.dwID then
 		RT.tDamage[dwCharacterID == me.dwID and "self" or dwCharacterID] = {
 			nCount   = nDeltaLife * -1,
 		}
@@ -1128,17 +1129,16 @@ function RT.OnDeath(dwCharacterID, szKiller)
 		dwCharacterID = dwCharacterID == me.dwID and "self" or dwCharacterID
 		RT.tDeath[dwCharacterID] = RT.tDeath[dwCharacterID] or {}
 		local nCurrentTime = GetCurrentTime()
-		-- Output(dwCharacterID, RT.tDamage[dwCharacterID])
 		if RT.tDamage[dwCharacterID] then
 			RT.tDamage[dwCharacterID].nCurrentTime = nCurrentTime
 			table.insert(RT.tDeath[dwCharacterID], RT.tDamage[dwCharacterID])
-			RT.tDamage[dwCharacterID] = nil
 		else
 			table.insert(RT.tDeath[dwCharacterID], {
 				nCurrentTime = nCurrentTime,
 				szCaster     = szKiller ~= "" and szKiller or nil
 			})
 		end
+		RT.tDamage[dwCharacterID] = nil
 		FireUIEvent("JH_RAIDTOOLS_DEATH", dwCharacterID)
 	end
 end
