@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 13:50:34
+-- @Last Modified time: 2015-06-22 23:59:43
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -494,6 +494,8 @@ function Cataclysm_Main.OnEvent(szEvent)
 		Grid_CTM:AutoLinkAllPanel()
 	elseif szEvent == "LOADING_END" then -- ÎðÉ¾
 		ReloadCataclysmPanel()
+		RaidPanel_Switch(DEBUG)
+		TeammatePanel_Switch(false)
 	end
 end
 

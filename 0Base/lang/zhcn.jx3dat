@@ -94,7 +94,7 @@ data = {
 	["Use:"] = "使用：", -- 匹配特效腰椎 缺少item.dwSkillID
 	["OUTER GUEST"] = "天外来客",
 	[" * "] = "※",
-
+	["Team strength(%d/%d)"] = "团队实力(%d/%d)",
 	["PHYSICS_DAMAGE"] = "外功伤害",
 	["SOLAR_MAGIC_DAMAGE"] = "阳性内功伤害",
 	["NEUTRAL_MAGIC_DAMAGE"] = "混元性内功伤害",
@@ -112,8 +112,6 @@ data = {
 	["EFFECTIVE_THERAPY"] = "有效治疗",
 	["TRANSFER_LIFE"] = "吸取生命",
 	["TRANSFER_MANA"] = "吸取内力",
-
-
 	-- DBM_UI.lua --
 	["Self KungFu require"] = "自身心法要求",
 	["no request"] = "没有要求",

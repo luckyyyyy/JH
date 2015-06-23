@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 14:12:15
+-- @Last Modified time: 2015-06-23 17:00:12
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1000107
+local _VERSION_   = 0x1000200
 
 ---------------------------------------------------------------------
 -- 多语言处理
@@ -87,7 +87,7 @@ do
 end
 
 local _JH = {
-	szBuildDate    = "20150618",
+	szBuildDate    = "20150623",
 	szTitle        = _L["JH, JX3 Plug-in Collection"],
 	tHotkey        = {},
 	tAnchor        = {},
@@ -947,6 +947,14 @@ function JH.TableFIXNumber(self, tab)
 	end
 end
 
+-- 输出一条密聊信息
+function JH.OutputWhisper(szMsg, szHead)
+	szHead = szHead or _JH.szShort
+	local r, g, b = unpack(GetMsgFontColor("MSG_WHISPER", true))
+	OutputMessage("MSG_WHISPER", GetFormatText("[" .. szHead .. "]" .. g_tStrings.STR_TALK_HEAD_WHISPER .. szMsg .. "\n", 10, r, g, b), true)
+	PlaySound(SOUND.UI_SOUND, g_sound.Whisper)
+end
+
 function JH.Sysmsg(szMsg, szHead, szType)
 	szHead = szHead or _JH.szShort
 	szType = szType or "MSG_SYS"
@@ -1009,6 +1017,27 @@ end
 
 function JH.bpairs(tab)
 	return fnBpairs, tab, #tab + 1
+end
+
+function JH.UpdateItemBoxExtend(box, nQuality)
+	local szImage = "ui/Image/Common/Box.UITex"
+	local nFrame
+	if nQuality == 2 then
+		nFrame = 13
+	elseif nQuality == 3 then
+		nFrame = 12
+	elseif nQuality == 4 then
+		nFrame = 14
+	elseif nQuality == 5 then
+		nFrame = 17
+	end
+	box:ClearExtentImage()
+	box:ClearExtentAnimate()
+	if nFrame and nQuality < 5 then
+		box:SetExtentImage(szImage, nFrame)
+	elseif nQuality == 5 then
+		box:SetExtentAnimate(szImage, nFrame, -1)
+	end
 end
 
 function JH.GetEndTime(nEndFrame)
