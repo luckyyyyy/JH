@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-23 17:00:12
+-- @Last Modified time: 2015-06-24 15:18:42
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -108,7 +108,6 @@ local _JH = {
 	aNpc           = {},
 	aDoodad        = {},
 	tBreatheCall   = {},
-	tApplyPointKey = {},
 	tItem          = { {}, {}, {} },
 	tOption        = { szOption = _L["JH"] },
 	tOption2       = { szOption = _L["JH"] },
@@ -197,7 +196,6 @@ function JH.OpenPanel(szTitle)
 			end
 		end
 	end
-	Station.SetActiveFrame(_JH.frame)
 end
 
 -- open
@@ -239,20 +237,6 @@ function _JH.RegisterConflictCheck(fnAction)
 	tinsert(_JH.tConflict, fnAction)
 end
 
-function _JH.ApplyPointCallback(data, nX, nY)
-	if not nX or (nX > 0 and nX < 0.00001 and nY > 0 and nY < 0.00001) then
-		nX, nY = nil, nil
-	else
-		nX, nY = Station.AdjustToOriginalPos(nX, nY)
-	end
-	if data.szKey then
-		_JH.tApplyPointKey[data.szKey] = nil
-	end
-	local res, err = pcall(data.fnAction, nX, nY)
-	if not res then
-		JH.Debug("ApplyScreenPoint ERROR: " .. err)
-	end
-end
 -------------------------------------
 -- 更新设置面板界面
 -------------------------------------
@@ -883,36 +867,6 @@ function JH.IsInArena()
 	end
 end
 
-function JH.ApplyTopPoint(fnAction, tar, nH, szKey)
-	if type(tar) == "number" then
-		tar = JH.GetTarget(tar)
-	end
-	if not tar then
-		return fnAction()
-	end
-	if type(nH) == "string" then
-		szKey, nH = nH, nil
-	end
-	if szKey and IsMultiThread() then
-		if _JH.tApplyPointKey[szKey] then
-			return
-		end
-		_JH.tApplyPointKey[szKey] = true
-	else
-		szKey = nil
-	end
-	if not nH then
-		PostThreadCall(_JH.ApplyPointCallback, { fnAction = fnAction, szKey = szKey },
-			"Scene_GetCharacterTopScreenPos", tar.dwID)
-	else
-		if nH < 64 then
-			nH = nH * 64
-		end
-		PostThreadCall(_JH.ApplyPointCallback, { fnAction = fnAction, szKey = szKey },
-			"Scene_GameWorldPositionToScreenPoint", tar.nX, tar.nY, tar.nZ + nH, false)
-	end
-end
-
 function JH.JsonToTable(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
@@ -1005,6 +959,14 @@ function JH.Confirm(szMsg, fnAction, fnCancel, szSure, szCancel)
 		},
 	}
 	MessageBox(tMsg)
+end
+
+function JH.RegisterGlobalEsc(szID, fnCondition, fnAction, bTopmost)
+	if fnCondition and fnAction then
+		RegisterGlobalEsc("JH_" .. szID, fnCondition, fnAction, bTopmost)
+	else
+		UnRegisterGlobalEsc("JH_" .. szID, bTopmost)
+	end
 end
 
 -- 选代器 倒序
@@ -1421,6 +1383,7 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	Player_AppendAddonMenu({ _JH.GetPlayerAddonMenu })
 	-- 注册右上角菜单
 	TraceButton_AppendAddonMenu({ _JH.GetAddonMenu })
+	JH.RegisterGlobalEsc("JH", JH.IsPanelOpened, _JH.ClosePanel)
 end)
 
 JH.RegisterEvent("LOADING_END", function()
@@ -1791,7 +1754,7 @@ function _GUI.Frm:ctor(szName, bEmpty)
 		frm:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
 		frm:Lookup("Btn_Close").OnLButtonClick = function()
 			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
-			self:Remove()
+			Wnd.CloseWindow(frm)
 		end
 		frm.OnFrameKeyDown = function()
 			if GetKeyName(Station.GetMessageKey()) == "Esc" then

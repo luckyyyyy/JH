@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 13:07:47
+-- @Last Modified time: 2015-06-25 11:59:33
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -21,7 +21,13 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 	tArgs = tArgs or {}
 	local KBuff = GetBuff(dwID, tArgs.bCheckLevel and nLevel or nil)
 	if KBuff then
-		local ui = BL.handle:Lookup(key) or BL.handle:AppendItemFromData(BL.hItem, key)
+		local ui, bScale
+		if BL.handle:Lookup(key) then
+			ui = BL.handle:Lookup(key)
+		else
+			ui =  BL.handle:AppendItemFromData(BL.hItem, key)
+			bScale = true
+		end
 		local szName, nIcon = JH.GetBuffName(dwID, nLevel)
 		ui.dwID = dwID
 		ui.nLevel = tArgs.bCheckLevel and nLevel or nil
@@ -34,10 +40,14 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 		box:SetOverTextFontScheme(0, 15)
 		if KBuff.nStackNum > 1 then
 			box:SetOverText(0, KBuff.nStackNum)
+		else
+			box:SetOverText(0, "")
 		end
 		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, dwID, nLevel)
 		ui:Lookup("Text_Time"):SetFontColor(unpack(col))
-		ui:Scale(BL_UI.fScale, BL_UI.fScale)
+		if bScale then
+			ui:Scale(BL_UI.fScale, BL_UI.fScale)
+		end
 		BL.handle:FormatAllItemPos()
 	end
 end
