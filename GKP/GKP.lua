@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-23 13:42:36
+-- @Last Modified time: 2015-06-24 15:22:04
 
 -- 早期代码 需要重写
 
@@ -182,7 +182,6 @@ function _GKP.OpenPanel(bDisableSound)
 	local frame = Station.Lookup("Normal/GKP") or Wnd.OpenWindow(_GKP.szIniFile, "GKP")
 	frame:Show()
 	frame:BringToTop()
-	Station.SetActiveFrame(frame)
 	if not bDisableSound then
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 	end

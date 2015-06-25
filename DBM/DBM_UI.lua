@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 14:12:02
+-- @Last Modified time: 2015-06-24 15:21:33
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -31,12 +31,13 @@ function DBM_UI.OnFrameCreate()
 		this:RegisterEvent("CIRCLE_DRAW_UI")
 	end
 	this:RegisterEvent("UI_SCALED")
+	-- Esc
+	JH.RegisterGlobalEsc("DBM", DBMUI.IsOpened, DBMUI.ClosePanel)
 	-- CreateItemData
 	this.hItemL = this:CreateItemData(DBMUI_ITEM_L, "Handle_L")
 	this.hTalkL = this:CreateItemData(DBMUI_TALK_L, "Handle_TALK_L")
 	this.hItemR = this:CreateItemData(DBMUI_ITEM_R, "Handle_R")
 	this.hTalkR = this:CreateItemData(DBMUI_TALK_R, "Handle_TALK_R")
-
 	DBMUI_SEARCH = nil -- 重置搜索
 	DBMUI_GLOBAL_SEARCH = false
 
@@ -1485,7 +1486,6 @@ function DBMUI.OpenPanel()
 	if not DBMUI.IsOpened() then
 		local wnd = Wnd.OpenWindow(DBMUI_INIFILE, "DBM_UI")
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
-		Station.SetActiveFrame(wnd)
 	end
 end
 
@@ -1493,6 +1493,7 @@ function DBMUI.ClosePanel()
 	if DBMUI.IsOpened() then
 		Wnd.CloseWindow(DBMUI.GetFrame())
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+		JH.RegisterGlobalEsc("DBM")
 	end
 end
 

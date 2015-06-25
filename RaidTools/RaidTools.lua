@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-23 21:51:25
+-- @Last Modified time: 2015-06-25 00:25:28
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -102,6 +102,8 @@ function RaidTools.OnFrameCreate()
 	this:RegisterEvent("JH_RAIDTOOLS_DEATH")
 	-- 重置心法选择
 	RT_SELECT_KUNGFU = nil
+	-- 注册关闭
+	JH.RegisterGlobalEsc("RaidTools", RT.IsOpened, RT.ClosePanel)
 	-- 标题修改
 	local title = _L["Raid Tools"]
 	local me = GetClientPlayer()
@@ -483,9 +485,7 @@ function RT.UpdateList()
 			end
 
 			if not v.bIsOnLine then
-				for kk, vv in ipairs({ "Handle_Food", "Handle_Buff", "Handle_Equip" }) do
-					h["h" .. vv].Pool:Clear()
-				end
+				h.hHandle_Equip.Pool:Clear()
 				h:Lookup("Text_Toofar1"):Show()
 				h:Lookup("Text_Toofar2"):Show()
 				h:Lookup("Text_Toofar3"):Show()
@@ -497,6 +497,8 @@ function RT.UpdateList()
 			end
 
 			if not v.p then
+				h.hHandle_Food.Pool:Clear()
+				h.Handle_Buff.Pool:Clear()
 				h:Lookup("Text_Toofar1"):Show()
 				h:Lookup("Text_Toofar2"):Show()
 				if v.bIsOnLine then
@@ -1036,27 +1038,6 @@ function RT.UpdatetDeathMsg(dwID)
 	frame.hDeatMsg:FormatAllItemPos()
 end
 
--- KLuaConst LUA_SKILL_RESULT_TYPE[] = 
--- {
---     {"PHYSICS_DAMAGE",          serPhysicsDamage},
---     {"SOLAR_MAGIC_DAMAGE",      serSolarMagicDamage},
---     {"NEUTRAL_MAGIC_DAMAGE",    serNeutralMagicDamage},
---     {"LUNAR_MAGIC_DAMAGE",      serLunarMagicDamage},
---     {"POISON_DAMAGE",           serPoisonDamage},
---     {"REFLECTIED_DAMAGE",       serReflectiedDamage},   
---     {"THERAPY",                 serTherapy}, 
---     {"STEAL_LIFE",              serStealLife}, 
---     {"ABSORB_THERAPY",          serAbsorbTherapy}, 
---     {"ABSORB_DAMAGE",           serAbsorbDamage}, 
---     {"SHIELD_DAMAGE",           serShieldDamage}, 
---     {"PARRY_DAMAGE",            serParryDamage}, 
---     {"INSIGHT_DAMAGE",          serInsightDamage}, 
---     {"EFFECTIVE_DAMAGE",        serEffectiveDamage}, 
---     {"EFFECTIVE_THERAPY",       serEffectiveTherapy}, 
---     {"TRANSFER_LIFE",           serTransferLife}, 
---     {"TRANSFER_MANA",           serTransferMana}, 
---     {NULL,                      0}
--- };
 function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCriticalStrike, nCount, tResult)	
 	local KCaster = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
 	local KTarget = IsPlayer(dwTarget) and GetPlayer(dwTarget) or GetNpc(dwTarget)
@@ -1074,7 +1055,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 			if tResult[SKILL_RESULT_TYPE[v]] and tResult[SKILL_RESULT_TYPE[v]] ~= 0 then
 				RT.tDamage[dwTarget == me.dwID and "self" or dwTarget] = {
 					szCaster        = szCaster,
-					szSkill         = szSkill,
+					szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
 					tResult         = tResult,
 					bCriticalStrike = bCriticalStrike,
 				}
@@ -1087,7 +1068,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 		local szTarget = IsPlayer(dwTarget) and KTarget.szName or JH.GetTemplateName(KTarget)
 		RT.tDamage[dwCaster == me.dwID and "self" or dwCaster] = {
 			szCaster        = szTarget,
-			szSkill         = szSkill,
+			szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
 			tResult         = tResult,
 			bCriticalStrike = bCriticalStrike,
 		}
@@ -1138,6 +1119,7 @@ function RT.OnDeath(dwCharacterID, szKiller)
 				szCaster     = szKiller ~= "" and szKiller or nil
 			})
 		end
+		-- Output(RT.tDamage[dwCharacterID])
 		RT.tDamage[dwCharacterID] = nil
 		FireUIEvent("JH_RAIDTOOLS_DEATH", dwCharacterID)
 	end
@@ -1164,6 +1146,7 @@ function RT.ClosePanel()
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		JH.UnBreatheCall("JH_RaidTools")
 		JH.UnBreatheCall("JH_RaidTools_Clear")
+		JH.RegisterGlobalEsc("RaidTools")
 		JH.DelayCall(1000, function() -- 延迟1s
 			if not RT.GetFrame() then
 				RT.HookHotkeyPanel(false)
