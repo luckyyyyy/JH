@@ -91,10 +91,11 @@ data = {
 	["Raid Tools"] = "團隊工具",
 	["%s's Team"] = "%s的團隊",
 	["Open Raid Tools Panel"] = "打開團隊工具",
-	["Use:"] = "使用：", -- 匹配特效腰椎 缺少item.dwSkillID
+	["Use:"] = "使用:", -- 匹配特效腰椎 缺少item.dwSkillID
+	["use"] = "使用",
 	["OUTER GUEST"] = "天外來客",
 	[" * "] = "※",
-
+	["Team strength(%d/%d)"] = "團隊實力(%d/%d)",
 	["PHYSICS_DAMAGE"] = "外功傷害",
 	["SOLAR_MAGIC_DAMAGE"] = "陽性內功傷害",
 	["NEUTRAL_MAGIC_DAMAGE"] = "混元性內功傷害",
@@ -112,8 +113,6 @@ data = {
 	["EFFECTIVE_THERAPY"] = "有效治療",
 	["TRANSFER_LIFE"] = "吸取生命",
 	["TRANSFER_MANA"] = "吸取內力",
-
-
 	-- DBM_UI.lua --
 	["Self KungFu require"] = "自身心法要求",
 	["no request"] = "沒有要求",

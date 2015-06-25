@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-25 00:25:28
+-- @Last Modified time: 2015-06-25 15:22:46
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -498,7 +498,7 @@ function RT.UpdateList()
 
 			if not v.p then
 				h.hHandle_Food.Pool:Clear()
-				h.Handle_Buff.Pool:Clear()
+				h.hHandle_Buff.Pool:Clear()
 				h:Lookup("Text_Toofar1"):Show()
 				h:Lookup("Text_Toofar2"):Show()
 				if v.bIsOnLine then
@@ -776,7 +776,7 @@ function RT.GetEquipCache(p)
 			if RT_EQUIP_SPECIAL[equip] then
 				if equip == "PENDANT" then
 					local desc = Table_GetItemDesc(item.nUiId)
-					if desc and desc:find(_L["Use:"]) then
+					if desc and (desc:find(_L["use"] .. g_tStrings.STR_COLON) or desc:find(_L["Use:"]) or desc:find("15" .. g_tStrings.STR_TIME_SECOND)) then
 						table.insert(aInfo.tEquip, CreateItemTable(item))
 					end
 				-- elseif item.nQuality == 5 then -- 橙色装备
