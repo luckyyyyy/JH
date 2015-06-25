@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-25 11:59:33
+-- @Last Modified time: 2015-06-26 06:26:44
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -19,7 +19,8 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 	local key = tostring(dwID) -- .. "." .. nLevel
 	col = col or { 255, 255, 0 }
 	tArgs = tArgs or {}
-	local KBuff = GetBuff(dwID, tArgs.bCheckLevel and nLevel or nil)
+	local level = tArgs.bCheckLevel and nLevel or nil
+	local KBuff = GetBuff(dwID, level)
 	if KBuff then
 		local ui, bScale
 		if BL.handle:Lookup(key) then
@@ -30,7 +31,7 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 		end
 		local szName, nIcon = JH.GetBuffName(dwID, nLevel)
 		ui.dwID = dwID
-		ui.nLevel = tArgs.bCheckLevel and nLevel or nil
+		ui.nLevel = level
 		ui:Lookup("Text_Name"):SetText(tArgs.szName or szName)
 		ui:Lookup("Text_Name"):SetFontColor(unpack(col))
 		local box = ui:Lookup("Box")
@@ -48,6 +49,8 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 		if bScale then
 			ui:Scale(BL_UI.fScale, BL_UI.fScale)
 		end
+		ui.bDelete = nil
+		ui:SetAlpha(255)
 		BL.handle:FormatAllItemPos()
 	end
 end
