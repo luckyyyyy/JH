@@ -1,6 +1,6 @@
 # 《剑网3》DBM插件
 
-文档最后更新时间：2015年6月2日00:46:48
+文档最后更新时间：2015年6月26日18:27:54
 
 ## 前言
 
@@ -85,23 +85,6 @@ data = {
 }
 ```
 
-#### JSON数据整理
-
-由于游戏限制，JSON默认导出的数据会进行转义和增加部分无意义的字符，可以使用以下方法去除。
-
-```php
-// 最简单的PHP处理方法
-<?php
-$content = file_get_contents('data.jx3dat');
-$content = trim(substr($content, strpos($content, 'data') + 4));
-$content = trim(substr($content, strpos($content, '=') + 1));
-
-$content = stripslashes(trim($content, '"'));
-$content = iconv('gbk', 'utf-8//IGNORE', $content);
-var_dump(json_decode($content, true));
-?>
-```
-
 ----
 
 ## 报警通用颜色
@@ -175,10 +158,6 @@ var_dump(json_decode($content, true));
  * 团队喊话报警：设置面板显示一个“队”字，勾选后倒计时5秒时会在团队中倒数。
  * 倒计时时间：倒计时时间格式分为两种，第一种是普通秒数倒计时；第二种属于分段倒计时，制作格式例如`10,倒计时1;25,倒计时2;55,倒计时3`代表第一个倒计时1结束再触发倒计时2（当前倒计时设置的触发时间-已过时间）15秒的倒计时。后面以此类推，再触发第3个倒计时，并不限制倒计时的数量，可自由填写，常用于BOSS进入战斗后开始的阶段倒计时。
  * 重复调用时间限制：当倒计时所属的数据再次被驱动时，可能会重复触发同样的倒计时导致倒计时被覆盖，这个设置就是解决这个问题，在倒计时最后的小框内直接输入时间即可保证在这段时间内不会再次被重复同样的倒计时，`请注意，分段倒计时默认取最大的时间作为重复调用时间限制，当然您也可以自由更改。`
-
-`特别注意`
-
-* 倒计时key字段：key设置属于高级应用，`一般情况下无须理会`，在现有的倒计时机制无法实现需要的倒计时或想屏蔽重复倒计时的情况下，可以利用此方法来覆盖现有的任意倒计时（仅需倒计时两个KEY相同，插件即认为这两个倒计时属于同一事件所触发，可以彼此覆盖），`按住Ctrl点击倒计时类型下拉框`来打开key设置项，（常用于控制多个重复的倒计时，例如安禄山小怪倒计时，血战天策火箭雨倒计时）。
 
 
 ##### 关于NPC血量报警
@@ -286,6 +265,110 @@ var_dump(json_decode($content, true));
 
 * 部分面板支持背景颜色受`报警通用颜色`影响。
 * 若勾选了`仅显示来源自己的BUFF`，那么只有当该效果是受你所触发时才会显示。
+
+----
+
+## 附 高级设置相关
+
+这里的内容主要面向高级玩家，如果觉得看不明白可以忽略。
+
+----
+
+#### 倒计时KEY设置
+
+倒计时key字段：key设置属于高级应用，`一般情况下无须理会`，在现有的倒计时机制无法实现需要的倒计时或想屏蔽重复倒计时的情况下，可以利用此方法来覆盖现有的任意倒计时（仅需倒计时两个KEY相同，插件即认为这两个倒计时属于同一事件所触发，可以彼此覆盖），`按住Ctrl点击倒计时类型下拉框`来打开key设置项，（常用于控制多个重复的倒计时，例如安禄山小怪倒计时，血战天策火箭雨倒计时）。
+
+----
+
+#### 倒计时颜色
+
+倒计时可以设置初始颜色用于区分倒计时的类型和重要程度，您可以参考下表来设置倒计时的`nFrame`字段（需要手动编辑数据文件）。
+
+```
+Farme   Left    Top Width   High    File
+0   0   0   256 32  C:\Users\Webster\Desktop\计时条\橙色.tga
+1   0   34  256 32  C:\Users\Webster\Desktop\计时条\粉色.tga
+2   0   68  256 32  C:\Users\Webster\Desktop\计时条\红色.tga
+3   0   102 256 32  C:\Users\Webster\Desktop\计时条\黄色.tga
+4   0   136 256 32  C:\Users\Webster\Desktop\计时条\灰色.tga
+5   0   170 256 32  C:\Users\Webster\Desktop\计时条\蓝色.tga
+6   0   204 256 32  C:\Users\Webster\Desktop\计时条\绿色.tga
+7   0   238 256 32  C:\Users\Webster\Desktop\计时条\青色.tga
+8   0   272 256 32  C:\Users\Webster\Desktop\计时条\紫色.tga
+```
+
+----
+
+#### JSON数据整理
+
+由于游戏限制，JSON默认导出的数据会进行转义和增加部分无意义的字符，可以使用以下方法去除。
+
+```php
+// 最简单的PHP处理方法
+<?php
+$content = file_get_contents('data.jx3dat');
+$content = trim(substr($content, strpos($content, 'data') + 4));
+$content = trim(substr($content, strpos($content, '=') + 1));
+
+$content = stripslashes(trim($content, '"'));
+$content = iconv('gbk', 'utf-8//IGNORE', $content);
+var_dump(json_decode($content, true));
+?>
+```
+
+---
+
+#### 插件数据结构与枚举
+
+```lua
+
+-- 数据文件基本结构
+data = {
+    ["BUFF"] = {
+        [dwMapID] = {
+            [int index] = {
+                [field] = value,
+                [DBM_TYPE] = {
+                    [field] = value,
+                },
+                [DBM_TYPE] = {
+                    [field] = value,
+                },
+                -- ...
+                [tCountdown] = {
+                    [int index] = {
+                        [field] = value,
+                    }
+                }
+            }
+        }
+    },
+    -- ...
+}
+
+-- 5和10暂时是废弃的，喊话监控使用的是14.
+DBM_TYPE = {
+    OTHER        = 0,
+    BUFF_GET     = 1,
+    BUFF_LOSE    = 2,
+    NPC_ENTER    = 3,
+    NPC_LEAVE    = 4,
+    NPC_TALK     = 5,
+    NPC_LIFE     = 6,
+    NPC_FIGHT    = 7,
+    SKILL_BEGIN  = 8,
+    SKILL_END    = 9,
+    SYS_TALK     = 10,
+    NPC_ALLLEAVE = 11,
+    NPC_DEATH    = 12,
+    NPC_ALLDEATH = 13,
+    TALK_MONITOR = 14,
+    COMMON       = 15,
+}
+-- 监控类型不填则为All
+DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3 }
+```
+
 
 ----
 
