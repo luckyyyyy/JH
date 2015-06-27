@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-26 19:01:21
+-- @Last Modified time: 2015-06-27 12:40:13
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -382,7 +382,7 @@ function RT.CountScore(tab, tScore)
 		tScore.Enchant = tScore.Enchant + #tab.tTemporaryEnchant * 300
 	end
 	if tab.tPermanentEnchant then
-		tScore.Enchant = tScore.Enchant + #tab.tTemporaryEnchant * 100
+		tScore.Enchant = tScore.Enchant + #tab.tPermanentEnchant * 100
 	end
 	if tab.tEquip then
 		for k, v in ipairs(tab.tEquip) do
@@ -796,10 +796,16 @@ function RT.GetEquipCache(p)
 			end
 			-- 大附魔 / 临时附魔 用于评分
 			if item.dwTemporaryEnchantID and item.dwTemporaryEnchantID ~= 0 then
-				table.insert(aInfo.tTemporaryEnchant, { 
-					dwTemporaryEnchantID         = item.dwTemporaryEnchantID,
-					nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
-				})
+				if Table_GetCommonEnchantDesc(item.dwTemporaryEnchantID) then
+					table.insert(aInfo.tTemporaryEnchant, { 
+						dwTemporaryEnchantID         = item.dwTemporaryEnchantID,
+						nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
+					})
+				else
+					table.insert(aInfo.tPermanentEnchant, { 
+						dwPermanentEnchantID = item.dwTemporaryEnchantID,
+					})
+				end
 			end
 		end
 	end
