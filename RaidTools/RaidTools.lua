@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-27 12:40:13
+-- @Last Modified time: 2015-06-27 23:43:01
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -193,6 +193,17 @@ function RaidTools.OnFrameCreate()
 	this.tDataCache  = {} -- 临时数据
 	-- 追加呼吸
 	this.hPageSet:ActivePage(RT_SELECT_PAGE)
+	-- 追加几个按钮
+	ui:Fetch("PageSet_Main/Page_Death"):Append("WndButton2", { x = 750, y = 0, w = 80, h = 25, txt = g_tStrings.STR_GUILD_ALL }):Click(function()
+		RT_SELECT_DEATH = nil
+		RT.UpdatetDeathMsg()
+	end)
+	ui:Fetch("PageSet_Main/Page_Death"):Append("WndButton2", { x = 865, y = 0, w = 80, h = 25, txt = _L["Clear"] }):Click(function()
+		JH.Confirm(_L["Wipe Record"], function()
+			RT.tDeath = {}
+			RT.UpdatetDeathPage()
+		end)
+	end)
 	RT.UpdateAnchor(this)
 end
 
@@ -977,7 +988,7 @@ function RT.UpdatetDeathPage()
 		end
 	end
 	frame.hDeatList:FormatAllItemPos()
-	RT.UpdatetDeathMsg(RT_SELECT_DEATH or me.dwID)
+	RT.UpdatetDeathMsg(RT_SELECT_DEATH)
 end
 
 function RaidTools.OnShowDeathInfo()
@@ -1011,28 +1022,51 @@ function RT.UpdatetDeathMsg(dwID)
 	local frame = RT.GetFrame()
 	local me    = GetClientPlayer()
 	local team  = GetClientTeam()
-	local info  = team.GetMemberInfo(dwID)
-	local key   = dwID == me.dwID and "self" or dwID
-	local data  = RT.tDeath[key]
-	frame.hDeatMsg:Clear()
-	-- 几种文字格式
-	-- [2015年6月22日14:23:34][不能切奶秀]被[谭雪]的[泰山压顶(14000外功伤害)]击杀。
-	-- [2015年6月22日14:23:34][不能切奶秀]被[天外来客]击杀。
-	-- [2015年6月22日14:23:34][不能切奶秀]被[天外来客]的[未知技能(15000意外伤害)]击杀。
-	for k, v in JH.bpairs(data or {}) do
-		local t = TimeToDate(v.nCurrentTime)
-		local xml = {}
-		table.insert(xml, GetFormatText(_L[" * "] .. string.format("[%02d:%02d:%02d]", t.hour, t.minute, t.second), 10, 255, 255, 255))
-		local r, g, b = JH.GetForceColor(info and info.dwForceID or me.dwForceID)
-		table.insert(xml, GetFormatText("[" .. (info and info.szName or me.szName) .."]", 10, r, g, b, 515, "", "namelink"))
-		table.insert(xml, GetFormatText(g_tStrings.TRADE_BE, 10, 255, 255, 255))
-		table.insert(xml, GetFormatText("[" .. (v.szCaster or _L["OUTER GUEST"]) .."]", 10, 255, 128, 0))
-		if v.szSkill then
-			table.insert(xml, GetFormatText(g_tStrings.STR_PET_SKILL_LOG, 10, 255, 255, 255))
-			table.insert(xml, GetFormatText("[" .. v.szSkill .. "]", 10, 255, 128, 0, 256, "this.OnItemMouseEnter = RaidTools.OnShowDeathInfo; this.OnItemMouseLeave = function() HideTip() end", key .. "_" .. k))
+	local data  = {}
+	local key = dwID == me.dwID and "self" or dwID
+	if not dwID then
+		for k, v in pairs(RT.tDeath) do
+			for kk, vv in ipairs(v) do
+				if k == "self" then
+					vv.dwID = me.dwID
+				else
+					vv.dwID = k
+				end
+				vv.nIndex = kk
+				table.insert(data, vv)
+			end
 		end
-		table.insert(xml, GetFormatText(g_tStrings.STR_KILL .. g_tStrings.STR_FULL_STOP .. "\n", 10, 255, 255, 255))
-		frame.hDeatMsg:AppendItemFromString(table.concat(xml))
+	else
+		for k, v in ipairs(RT.tDeath[key] or {}) do
+			if key == "self" then
+				v.dwID = me.dwID
+			else
+				v.dwID = key
+			end
+			v.nIndex = k
+			table.insert(data, v)
+		end
+	end
+	table.sort(data, function(a, b) return a.nCurrentTime > b.nCurrentTime end)
+	frame.hDeatMsg:Clear()
+	for k, v in ipairs(data) do
+		if JH.IsParty(v.dwID) or v.dwID == me.dwID then
+			local info  = team.GetMemberInfo(v.dwID)
+			local key = v.dwID == me.dwID and "self" or v.dwID
+			local t = TimeToDate(v.nCurrentTime)
+			local xml = {}
+			table.insert(xml, GetFormatText(_L[" * "] .. string.format("[%02d:%02d:%02d]", t.hour, t.minute, t.second), 10, 255, 255, 255))
+			local r, g, b = JH.GetForceColor(info and info.dwForceID or me.dwForceID)
+			table.insert(xml, GetFormatText("[" .. (info and info.szName or me.szName) .."]", 10, r, g, b, 515, "", "namelink"))
+			table.insert(xml, GetFormatText(g_tStrings.TRADE_BE, 10, 255, 255, 255))
+			table.insert(xml, GetFormatText("[" .. (v.szCaster or _L["OUTER GUEST"]) .."]", 10, 255, 128, 0))
+			if v.szSkill then
+				table.insert(xml, GetFormatText(g_tStrings.STR_PET_SKILL_LOG, 10, 255, 255, 255))
+				table.insert(xml, GetFormatText("[" .. v.szSkill .. "]", 10, 50, 150, 255, 256, "this.OnItemMouseEnter = RaidTools.OnShowDeathInfo; this.OnItemMouseLeave = function() HideTip() end", key .. "_" .. v.nIndex))
+			end
+			table.insert(xml, GetFormatText(g_tStrings.STR_KILL .. g_tStrings.STR_FULL_STOP .. "\n", 10, 255, 255, 255))
+			frame.hDeatMsg:AppendItemFromString(table.concat(xml))
+		end
 	end
 	frame.hDeatMsg:FormatAllItemPos()
 end
