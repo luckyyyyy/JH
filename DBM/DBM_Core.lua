@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-23 15:54:09
+-- @Last Modified time: 2015-06-27 13:22:11
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -419,9 +419,9 @@ end
 
 -- 发布事件 为了方便日后修改 集中起来
 function D.FireCountdownEvent(nClass, szKey, tParam)
-	tParam.bTeamChannel = DBM.bPushTeamChannel and tParam.bTeamChannel
-	nClass              = tParam.key and DBM_TYPE.COMMON or nClass
-	szKey               = tParam.key or szKey
+	tParam.bTalk = DBM.bPushTeamChannel and tParam.bTalk
+	nClass       = tParam.key and DBM_TYPE.COMMON or nClass
+	szKey        = tParam.key or szKey
 	FireUIEvent("JH_ST_CREATE", nClass, szKey, tParam)
 end
 
