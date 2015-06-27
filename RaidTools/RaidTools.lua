@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-25 15:22:46
+-- @Last Modified time: 2015-06-26 19:01:21
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -371,9 +371,6 @@ function RT.ViewInviteToPlayer(dwID)
 		ViewInviteToPlayer(dwID)
 	end
 end
-
-
-
 -- 分数计算
 function RT.CountScore(tab, tScore)
 	tScore.Food = tScore.Food + #tab.tFood * 100
@@ -393,7 +390,6 @@ function RT.CountScore(tab, tScore)
 		end
 	end
 end
-
 -- 更新UI 没什么特殊情况 不要clear
 function RT.UpdateList()
 	local me = GetClientPlayer()
@@ -945,7 +941,6 @@ function RT.GetTeamMemberList(bIsOnLine)
 end
 
 -- 重伤记录
-
 function RT.UpdatetDeathPage()
 	local frame = RT.GetFrame()
 	local team  = GetClientTeam()
@@ -1005,8 +1000,6 @@ function RaidTools.OnShowDeathInfo()
 		end
 	end
 end
-
--- function 
 
 function RT.UpdatetDeathMsg(dwID)
 	local frame = RT.GetFrame()
