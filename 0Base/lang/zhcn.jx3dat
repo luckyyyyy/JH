@@ -95,6 +95,7 @@ data = {
 	["use"] = "使用",
 	["OUTER GUEST"] = "天外来客",
 	[" * "] = "※",
+	["Clear"] = "清空",
 	["Team strength(%d/%d)"] = "团队实力(%d/%d)",
 	["PHYSICS_DAMAGE"] = "外功伤害",
 	["SOLAR_MAGIC_DAMAGE"] = "阳性内功伤害",

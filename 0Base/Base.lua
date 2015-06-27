@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-24 15:18:42
+-- @Last Modified time: 2015-06-27 15:30:26
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -118,7 +118,7 @@ local _JH = {
 local JH = JH
 JH.LoadLangPack = GetLang()
 
--- parse faceicon in talking message
+-- parse emotion in talking message
 function _JH.ParseFaceIcon(t)
 	if not _JH.tFaceIcon then
 		_JH.tFaceIcon = {}
@@ -130,7 +130,7 @@ function _JH.ParseFaceIcon(t)
 	local t2 = {}
 	for _, v in ipairs(t) do
 		if v.type ~= "text" then
-			if v.type == "faceicon" then
+			if v.type == "emotion" then
 				v.type = "text"
 			end
 			tinsert(t2, v)
