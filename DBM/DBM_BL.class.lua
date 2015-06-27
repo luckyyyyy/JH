@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-26 06:26:44
+-- @Last Modified time: 2015-06-27 12:06:52
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -26,6 +26,9 @@ local function CreateBuffList(dwID, nLevel, col, tArgs)
 		if BL.handle:Lookup(key) then
 			ui = BL.handle:Lookup(key)
 		else
+			if BL.handle:GetItemCount() >= BL_UI.nCount then
+				return
+			end
 			ui =  BL.handle:AppendItemFromData(BL.hItem, key)
 			bScale = true
 		end
