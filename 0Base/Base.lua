@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-27 15:30:26
+-- @Last Modified time: 2015-06-28 16:55:31
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -584,6 +584,12 @@ end
 
 function JH.UnRegisterInit(key)
 	JH.RegisterInit(key)
+end
+
+function JH.RegisterExit(fnAction)
+	JH.RegisterEvent("PLAYER_EXIT_GAME", fnAction)
+	JH.RegisterEvent("GAME_EXIT", fnAction)
+	JH.RegisterEvent("RELOAD_UI_ADDON_BEGIN", fnAction)
 end
 
 function JH.GetForceColor(dwForce)

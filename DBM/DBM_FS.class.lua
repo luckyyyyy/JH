@@ -1,19 +1,20 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-07 11:44:01
+-- @Last Modified time: 2015-06-28 18:17:31
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
-local min, max = math.min, math.max
+local floor = math.floor
 local GetBuff = JH.GetBuff
 
+local FS_HANDLE, FS_FRAME
 local FS_CACHE    = setmetatable({}, { __mode = "v" })
 local FS_UI_CACHE = setmetatable({}, { __mode = "v" })
 local FS_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/FS_UI.ini"
 local SHADOW      = JH.GetAddonInfo().szShadowIni
 
--- FireUIEvent("JH_FS_CREATE", "test", { nTime = 5, col = { 255, 255, 0 }, bFlash = true, tBindBuff = { 103, 1 }})
+-- FireUIEvent("JH_FS_CREATE", "test", { nTime = 3, col = { 255, 255, 0 }, bFlash = true})
 local function CreateFullScreen(szKey, tArgs)
 	assert(type(arg1) == "table", "CreateFullScreen failed!")
 	tArgs.nTime = tArgs.nTime or 3
@@ -25,17 +26,18 @@ local function CreateFullScreen(szKey, tArgs)
 end
 
 local function Init()
-	local frame = Wnd.OpenWindow(FS_INIFILE, "FS_UI")
+	Wnd.OpenWindow(FS_INIFILE, "FS_UI"):Hide()
 end
 
-FS_UI    = {}
+FS_UI = {}
 
 function FS_UI.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("JH_FS_CREATE")
 	this:RegisterEvent("UI_SCALED")
-	FS_UI.handle = this:Lookup("", "")
-	FS_UI.handle:Clear()
+	FS_FRAME = this
+	FS_HANDLE = this:Lookup("", "")
+	FS_HANDLE:Clear()
 end
 
 function FS_UI.OnEvent(szEvent)
@@ -49,11 +51,11 @@ function FS_UI.OnEvent(szEvent)
 			end
 		end
 	elseif szEvent == "LOADING_END" then
-		FS_UI.handle:Clear()
+		FS_HANDLE:Clear()
 	end
 end
-
-function FS_UI.OnFrameBreathe()
+-- OnFrameBreathe 比较慢
+function FS_UI.OnFrameRender()
 	local nNow = GetTime()
 	for k, v in pairs(FS_CACHE) do
 		if v:IsValid() then
@@ -62,20 +64,14 @@ function FS_UI.OnFrameBreathe()
 			local nLeft  = obj.ui.nTime - nTime
 			if nLeft > 0 then
 				if v.bFlash then
-					if v.bUp then
-						v.nAlpha = min(150, v.nAlpha + 15)
-						if v.nAlpha == 150 then
-							v.bUp = false
-						end
-					else
-						v.nAlpha = max(0, v.nAlpha - 15)
-						if v.nAlpha == 0 then
-							v.bUp = true
-						end
+					local nTimeLeft = nTime * 1000 % 750
+					local nAlpha = 150 * nTimeLeft / 750
+					if floor(nTime / 0.75) % 2 == 1 then
+						nAlpha = 150 - nAlpha
 					end
-					obj:DrawFullScreen(v.nAlpha)
+					obj:DrawFullScreen(floor(nAlpha))
 				else
-					local nAlpha = 150 - (150 / v.nTime) * nTime
+					local nAlpha = 150 - 150 * nTime / v.nTime
 					obj:DrawFullScreen(nAlpha)
 				end
 			else
@@ -107,9 +103,7 @@ function FS:ctor(szKey, tArgs)
 		if ui and ui:IsValid() then
 			-- ui:Clear()
 		else
-			ui = FS_UI.handle:AppendItemFromIni(FS_INIFILE, "Handle_Item")
-			ui.nUp = true
-			ui.nAlpha = 0
+			ui = FS_HANDLE:AppendItemFromIni(FS_INIFILE, "Handle_Item")
 		end
 		ui.sha1 = ui.sha1 or ui:AppendItemFromIni(SHADOW, "shadow")
 		ui.bFlash = tArgs.bFlash
@@ -122,6 +116,7 @@ function FS:ctor(szKey, tArgs)
 		end
 		self.ui = ui
 		FS_CACHE[szKey] = self.ui
+		FS_FRAME:Show()
 		return self
 	else
 		if ui and ui:IsValid() then
@@ -173,7 +168,10 @@ function FS:RemoveFullScreen()
 end
 
 function FS:RemoveItem()
-	FS_UI.handle:RemoveItem(self.ui)
+	FS_HANDLE:RemoveItem(self.ui)
+	if FS_HANDLE:GetItemCount() == 0 then
+		FS_FRAME:Hide()
+	end
 end
 
 JH.RegisterEvent("LOGIN_GAME", Init)

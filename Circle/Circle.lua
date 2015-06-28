@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 17:18:34
+-- @Last Modified time: 2015-06-28 16:58:49
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1332,14 +1332,9 @@ end
 function C.UnInit()
 	JH.UnRegisterInit("Circle")
 end
-
-JH.RegisterEvent("GAME_EXIT", C.SaveFile)
-JH.RegisterEvent("PLAYER_EXIT_GAME", C.SaveFile)
+JH.RegisterExit(C.SaveFile)
 JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
 JH.RegisterEvent("LOADING_END", function()
-	if IsRemotePlayer(UI_GetClientPlayerID()) then
-		return
-	end
 	if CIRCLE_PLAYER_NAME == "NONE" then
 		local me = GetClientPlayer()
 		CIRCLE_PLAYER_NAME = me.szName -- 防止测试reload毁了所有数据

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-27 13:22:11
+-- @Last Modified time: 2015-06-28 16:56:16
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1449,5 +1449,4 @@ DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metata
 
 JH.RegisterEvent("LOGIN_GAME", D.Init)
 JH.RegisterEvent("LOADING_END", D.LoadUserData)
-JH.RegisterEvent("GAME_EXIT", D.SaveData)
-JH.RegisterEvent("PLAYER_EXIT_GAME", D.SaveData)
+JH.RegisterExit(D.SaveData)
