@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-22 23:59:43
+-- @Last Modified time: 2015-06-28 16:57:18
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -1198,11 +1198,10 @@ end)
 JH.RegisterEvent("LOADING_END", CheckCataclysmEnable)
 
 -- ±£¥Ê∫Õ∂¡»°≈‰÷√
-local SaveConfig = function()
+JH.RegisterExit(function()
 	JH.SaveLUAData(GetConfigurePath(), CTM_CONFIG_PLAYER)
-end
-JH.RegisterEvent("GAME_EXIT", SaveConfig)
-JH.RegisterEvent("PLAYER_EXIT_GAME", SaveConfig)
+end)
+
 JH.RegisterEvent("LOGIN_GAME", SetConfigure)
 
 

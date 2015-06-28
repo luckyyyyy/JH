@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 13:48:56
+-- @Last Modified time: 2015-06-28 18:27:24
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -11,7 +11,7 @@ local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/ST_UI.ini"
 local type, tonumber, ipairs, pairs, assert = type, tonumber, ipairs, pairs, assert
 local tinsert, tsort = table.insert, table.sort
 local JH_Split, JH_Trim, JH_FormatTimeString = JH.Split, JH.Trim, JH.FormatTimeString
-local abs, mod, floor = math.abs, math.mod, math.floor
+local floor = math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 local ST_UI_NOMAL   = 5
 local ST_UI_WARNING = 2
@@ -133,10 +133,12 @@ end
 local function SetSTAction(obj, nLeft, nPer)
 	local me = GetClientPlayer()
 	if nLeft < 5 then
-		local alpha = 255 * (abs(mod(nLeft * 16, 32) - 15) + 10) / 32
-		if alpha <= 255 then
-			obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):Switch(true):SetAlpha(alpha)
+		local nTimeLeft = nLeft * 1000 % 1000
+		local nAlpha = 255 * nTimeLeft / 1000
+		if floor(nLeft / 1) % 2 == 1 then
+			nAlpha = 255 - nAlpha
 		end
+		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):Switch(true):SetAlpha(100 + nAlpha)
 		if obj.ui.bTalk and me.IsInParty() then
 			if not obj.ui.szTalk or obj.ui.szTalk ~= floor(nLeft) then
 				obj.ui.szTalk = floor(nLeft)

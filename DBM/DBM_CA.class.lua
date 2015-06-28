@@ -1,12 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-27 11:03:28
+-- @Last Modified time: 2015-06-28 18:07:09
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/CA_UI.ini"
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
-local min, max = math.min, math.max
+local floor = math.floor
 local GetTime = GetTime
 local CA = {}
 
@@ -37,7 +37,6 @@ local function CreateCentralAlert(szMsg, nTime, bXml)
 	end
 	msg.nTime = nTime
 	msg.nCreate = GetTime()
-	msg.nUp = true
 	CA.frame:SetAlpha(155)
 	CA.frame:Show()
 end
@@ -53,27 +52,21 @@ function CA_UI.OnFrameCreate()
 	CA.UpdateAnchor(this)
 end
 
-function CA_UI.OnFrameBreathe()
+function CA_UI.OnFrameRender()
 	local nNow = GetTime()
-	local msg = CA.msg
-	if msg.nCreate then
-		if (nNow - msg.nCreate) / 1000 > msg.nTime then
-			msg.nCreate = nil
+	if CA.msg.nCreate then
+		local nTime = ((nNow - CA.msg.nCreate) / 1000)
+		local nLeft  = CA.msg.nTime - nTime
+		if nLeft < 0 then
+			CA.msg.nCreate = nil
 			CA.frame:Hide()
 		else
-			if msg.bUp then
-				local nAlpha = min(255, CA.frame:GetAlpha() + 10)
-				CA.frame:SetAlpha(nAlpha)
-				if nAlpha == 255 then
-					msg.bUp = false
-				end
-			else
-				local nAlpha = max(155, CA.frame:GetAlpha() - 10)
-				CA.frame:SetAlpha(nAlpha)
-				if nAlpha == 155 then
-					msg.bUp = true
-				end
+			local nTimeLeft = nTime * 1000 % 750
+			local nAlpha = 100 * nTimeLeft / 750
+			if floor(nTime / 0.75) % 2 == 1 then
+				nAlpha = 100 - nAlpha
 			end
+			CA.frame:SetAlpha(155 + nAlpha)
 		end
 	end
 end
