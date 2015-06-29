@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-27 23:43:01
+-- @Last Modified time: 2015-06-28 22:36:50
 
 local _L = JH.LoadLangPack
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
@@ -1018,6 +1018,25 @@ function RaidTools.OnShowDeathInfo()
 	end
 end
 
+function RaidTools.OnAppendEdit()
+	local handle = this:GetParent()
+	local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
+	edit:ClearText()
+	for i = this:GetIndex() + 1, handle:GetItemCount() do
+		local h = handle:Lookup(i)
+		local szText = h:GetText()
+		if szText == "\n" then
+			break
+		end
+		if h:GetName() == "namelink" then
+			edit:InsertObj(szText, { type = "name", text = szText, name = string.sub(szText, 2, -2) })
+		else
+			edit:InsertObj(szText, { type = "text", text = szText })
+		end
+	end
+	Station.SetFocusWindow(edit)
+end
+
 function RT.UpdatetDeathMsg(dwID)
 	local frame = RT.GetFrame()
 	local me    = GetClientPlayer()
@@ -1055,16 +1074,17 @@ function RT.UpdatetDeathMsg(dwID)
 			local key = v.dwID == me.dwID and "self" or v.dwID
 			local t = TimeToDate(v.nCurrentTime)
 			local xml = {}
-			table.insert(xml, GetFormatText(_L[" * "] .. string.format("[%02d:%02d:%02d]", t.hour, t.minute, t.second), 10, 255, 255, 255))
+			table.insert(xml, GetFormatText(_L[" * "] .. string.format("[%02d:%02d:%02d]", t.hour, t.minute, t.second), 10, 255, 255, 255, 16, "this.OnItemLButtonClick = RaidTools.OnAppendEdit"))
 			local r, g, b = JH.GetForceColor(info and info.dwForceID or me.dwForceID)
-			table.insert(xml, GetFormatText("[" .. (info and info.szName or me.szName) .."]", 10, r, g, b, 515, "", "namelink"))
+			table.insert(xml, GetFormatText("[" .. (info and info.szName or me.szName) .."]", 10, r, g, b, 16, "this.OnItemLButtonClick = function() OnItemLinkDown(this) end", "namelink"))
 			table.insert(xml, GetFormatText(g_tStrings.TRADE_BE, 10, 255, 255, 255))
-			table.insert(xml, GetFormatText("[" .. (v.szCaster or _L["OUTER GUEST"]) .."]", 10, 255, 128, 0))
+			table.insert(xml, GetFormatText("[" .. (v.szCaster or _L["OUTER GUEST"]) .."]", 10, 255, 128, 0, 16, "this.OnItemLButtonClick = function() OnItemLinkDown(this) end", "namelink"))
 			if v.szSkill then
 				table.insert(xml, GetFormatText(g_tStrings.STR_PET_SKILL_LOG, 10, 255, 255, 255))
 				table.insert(xml, GetFormatText("[" .. v.szSkill .. "]", 10, 50, 150, 255, 256, "this.OnItemMouseEnter = RaidTools.OnShowDeathInfo; this.OnItemMouseLeave = function() HideTip() end", key .. "_" .. v.nIndex))
 			end
-			table.insert(xml, GetFormatText(g_tStrings.STR_KILL .. g_tStrings.STR_FULL_STOP .. "\n", 10, 255, 255, 255))
+			table.insert(xml, GetFormatText(g_tStrings.STR_KILL .. g_tStrings.STR_FULL_STOP, 10, 255, 255, 255))
+			table.insert(xml, GetFormatText("\n"))
 			frame.hDeatMsg:AppendItemFromString(table.concat(xml))
 		end
 	end
