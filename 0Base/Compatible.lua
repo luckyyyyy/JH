@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-19 17:50:14
+-- @Last Modified time: 2015-06-30 06:04:30
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -919,20 +919,19 @@ function EditBox_AppendLinkPlayer(szName)
 	return true
 end
 end
-
-if not CompatibleBgTalk then
-local _L = JH.LoadLangPack
-function CompatibleBgTalk()
-	local me = GetClientPlayer()
-	if not me then return end
-	local t = me.GetTalkData()
-	if t and arg0 ~= me.dwID and #t> 1 and t[1].text == _L["Addon comm."] and t[2].type == "eventlink" then
-		FireUIEvent("ON_BG_CHANNEL_MSG", arg0, arg1, arg2, arg3)
+if not EditBox_AppendLinkItem then
+function EditBox_AppendLinkItem(dwID)
+	local item = GetItem(dwID)
+	if not item then
+		return false
 	end
+	local szName = "[" .. GetItemNameByItem(item) .."]"
+	local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
+	edit:InsertObj(szName, { type = "item", text = szName, item = item.dwID })
+	Station.SetFocusWindow(edit)
+	return true
 end
-JH.RegisterEvent("PLAYER_TALK", CompatibleBgTalk)
 end
-
 if not OutputBuffTipA then
 local XML_LINE_BREAKER = GetFormatText("\n")
 function OutputBuffTipA(dwID, nLevel, Rect, nTime)

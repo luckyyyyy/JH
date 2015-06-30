@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-16 02:15:42
+-- @Last Modified time: 2015-06-30 07:17:00
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -303,7 +303,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 		DBM_UI.OpenImportPanel(szFile, data.author, function()
 			DBM_RemoteRequest.tData = data
 			local me = GetClientPlayer()
-			if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "Load", data.title) end
+			if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_RemoteRequest", "Load", data.title) end
 		end)
 	end
 
@@ -334,20 +334,15 @@ function W.SyncTeam()
 	end
 	JH.Confirm(_L["Confirm?"], function()
 		local t = W.UseData.data
-		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "WebSyncTean", "WebSyncTean", JH.AscIIEncode(JH.JsonEncode(t)))
+		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_RemoteRequest", "WebSyncTean", t)
 	end)
 end
 
-JH.RegisterEvent("ON_BG_CHANNEL_MSG",function()
-	local data = JH.BgHear("WebSyncTean", true)
-	if data then
-		if data[1] == "WebSyncTean" then
-			local dat = JH.JsonDecode(JH.AscIIDecode(data[2]))
-			W.DoanloadData(dat)
-		end
-		if data[1] == "Load" then
-			JH.Sysmsg(_L("%s use %s data", arg3, data[2]))
-		end
+JH.RegisterBgMsg("DBM_RemoteRequest", function(nChannel, dwID, szName, data, bIsSelf)
+	if data[1] == "WebSyncTean" then
+		W.DoanloadData(data[2])
+	elseif data[1] == "Load" then
+		JH.Sysmsg(_L("%s use %s data", szName, data[2]))
 	end
 end)
 
