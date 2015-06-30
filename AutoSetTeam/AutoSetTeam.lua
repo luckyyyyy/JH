@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-15 11:46:30
+-- @Last Modified time: 2015-06-30 07:17:25
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -471,48 +471,46 @@ function _RL.UpdateFrame()
 		ui:Append("Text",{ x = 5, y = 25, txt = v.nLevel, font = 215 })
 		wnd.OnLButtonDown = function()
 			if IsCtrlKeyDown() then
-				local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-				edit:InsertObj("[" .. v.szName .. "]",{ type = "name" , name = v.szName , text = v.szName})
-				Station.SetFocusWindow(edit)
+				EditBox_AppendLinkPlayer(v.szName)
 			end
 		end
 		ui:Append("WndButton2", { x = 240, y = 10,w = 60, h = 34, txt = _L["Accept"] }):Click(function()
 			v.fnAction()
-			table.remove(_RL.tRequestList,k)
+			table.remove(_RL.tRequestList, k)
 			_RL.tRequestCache[v.szName] = nil
 			_RL.UpdateFrame()
 		end):Hover(function(bHover)
 			if bHover then
-				ui:Fetch("Cover"):File(cover,3):Toggle(true)
+				ui:Fetch("Cover"):File(cover, 3):Toggle(true)
 			else
 				ui:Fetch("Cover"):Toggle(false)
 			end
 		end)
-		ui:Append("WndButton2",{ x = 305, y = 10,w = 60, h = 34, txt = _L["Refuse"] }):Click(function()
+		ui:Append("WndButton2",{ x = 305, y = 10, w = 60, h = 34, txt = _L["Refuse"] }):Click(function()
 			v.fnCancelAction()
 			table.remove(_RL.tRequestList,k)
 			_RL.tRequestCache[v.szName] = nil
 			_RL.UpdateFrame()
 		end):Hover(function(bHover)
 			if bHover then
-				ui:Fetch("Cover"):File(cover,4):Toggle(true)
+				ui:Fetch("Cover"):File(cover, 4):Toggle(true)
 			else
 				ui:Fetch("Cover"):Toggle(false)
 			end
 		end)
 		if dat then
-			ui:Append("WndButton2","Details",{ x = 370, y = 10,w = 90, h = 34, txt = _L["View Equip"] }):Click(function()
+			ui:Append("WndButton2","Details",{ x = 370, y = 10, w = 90, h = 34, txt = _L["View Equip"] }):Click(function()
 				ViewInviteToPlayer(dat.dwID)
 			end):Hover(function(bHover)
 				if bHover then
-					ui:Fetch("Cover"):File(cover,1):Toggle(true)
+					ui:Fetch("Cover"):File(cover, 1):Toggle(true)
 				else
 					ui:Fetch("Cover"):Toggle(false)
 				end
 			end)
 		else
 			ui:Append("WndButton2","Details",{ x = 370, y = 10,w = 90, h = 34, txt = _L["Details"] }):Click(function()
-				JH.BgTalk(v.szName,"JH_AutoSetTeam","JH_Details")
+				JH.BgTalk(v.szName, "RL", "ASK")
 				ui:Fetch("Details"):Enable(false):Text(_L["loading..."])
 				JH.Sysmsg(_L["If it is always loading, the target may not install plugin or refuse."])
 			end):Hover(function(bHover)
@@ -533,32 +531,12 @@ function _RL.UpdateFrame()
 	container:FormatAllContentPos()
 end
 
-function _RL.OnBgTalk()
-	local data = JH.BgHear("JH_AutoSetTeam")
-	if data then
-		if data[1] == "JH_Details" then
-			local dwTarget, szTarget = arg0, arg3
-			JH.Confirm(_L("[%s] want to see your info, OK?", szTarget), function()
-				local me, nGongZhan = GetClientPlayer(), 0
-				if JH.GetBuff(3219) then nGongZhan = 1 end
-				if JH_About.CheckNameEx() then
-					JH.BgTalk(szTarget, "JH_AutoSetTeam", "JH_Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Author")
-				else
-					JH.BgTalk(szTarget, "JH_AutoSetTeam", "JH_Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Player")
-				end
-			end)
-		elseif data[1] == "JH_Feedback" then
-			_RL.Feedback(arg3, data)
-		end
-	end
-end
-
-function _RL.Feedback(szName,data)
+function _RL.Feedback(szName, data)
 	local dat = {
-		dwID = data[2],
+		dwID       = data[2],
 		dwKungfuID = data[3],
-		nGongZhan = data[4],
-		bEx = data[5],
+		nGongZhan  = data[4],
+		bEx        = data[5],
 	}
 	_RL.tDetails[szName] = dat
 	pcall(_RL.UpdateFrame)
@@ -568,14 +546,29 @@ function _RL.GetEvent()
 	if JH_AutoSetTeam.bRequestList then
 		return
 			{ "PARTY_INVITE_REQUEST", _RL.OnApplyRequest },
-			{ "PARTY_APPLY_REQUEST", _RL.OnApplyRequest },
-			{ "ON_BG_CHANNEL_MSG", _RL.OnBgTalk }
+			{ "PARTY_APPLY_REQUEST", _RL.OnApplyRequest }
 	end
 end
+JH.RegisterBgMsg("RL", function(nChannel, dwID, szName, data, bIsSelf)
+	if not bIsSelf then
+		if data[1] == "ASK" then
+			JH.Confirm(_L("[%s] want to see your info, OK?", szName), function()
+				local me, nGongZhan = GetClientPlayer(), 0
+				if JH.GetBuff(3219) then nGongZhan = 1 end
+				if JH_About.CheckNameEx() then
+					JH.BgTalk(szName, "RL", "Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Author")
+				else
+					JH.BgTalk(szName, "RL", "Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Player")
+				end
+			end)
+		elseif data[1] == "Feedback" then
+			_RL.Feedback(szName, data)
+		end
+	end
+end)
 
 -- TI Ãæ°å²¿·Ö
 local TI = {}
-
 function TI.GetEvent()
 	if JH_AutoSetTeam.bTeamInfo then
 		return
@@ -585,8 +578,7 @@ function TI.GetEvent()
 						TI.CreateFrame()
 					end)
 				end
-			end },
-			{ "ON_BG_CHANNEL_MSG", TI.OnMsg }
+			end }
 	end
 end
 
@@ -594,26 +586,27 @@ function TI.GetFrame()
 	return Station.Lookup("Normal/JH_TeamInfo")
 end
 
-function TI.OnMsg()
-	local data = JH.BgHear("TI")
-	local me = GetClientPlayer()
-	local team = GetClientTeam()
-	if team and data then
-		if data[1] == "ASK" and JH.IsLeader() then
-			if TI.GetFrame() then
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg3, TI.szYY, TI.szIntroduction)
+JH.RegisterBgMsg("TI", function(nChannel, dwID, szName, data, bIsSelf)
+	if not bIsSelf then
+		local me = GetClientPlayer()
+		local team = GetClientTeam()
+		if team then
+			if data[1] == "ASK" and JH.IsLeader() then
+				if TI.GetFrame() then
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", szName, TI.szYY, TI.szNote)
+				end
+			elseif data[1] == "Edit" then
+				TI.CreateFrame(data[2], data[3])
+			elseif data[1] == "reply" and (tonumber(data[2]) == UI_GetClientPlayerID() or data[2] == me.szName) then
+				if JH.Trim(data[3]) ~= "" or JH.Trim(data[4]) ~= "" then
+					TI.CreateFrame(data[3], data[4])
+				end
+			elseif data[1] == "Close" then
+				TI.CloseFrame()
 			end
-		elseif data[1] == "Edit" then
-			TI.CreateFrame(data[2], data[3])
-		elseif data[1] == "reply" and (tonumber(data[2]) == UI_GetClientPlayerID() or data[2] == me.szName) then
-			if JH.Trim(data[3]) ~= "" or JH.Trim(data[4]) ~= "" then
-				TI.CreateFrame(data[3], data[4])
-			end
-		elseif data[1] == "Close" then
-			TI.CloseFrame()
 		end
 	end
-end
+end)
 
 function TI.CreateFrame(a, b)
 	local an = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -637,19 +630,19 @@ function TI.CreateFrame(a, b)
 		local yy = ui:Fetch("YY"):Text()
 		if yy ~= "" then JH.Talk(yy) end
 	end):Pos_()
-	ui:Append("WndEdit", "introduction", { w = 280, h = 80, x = 10, y = nY + 5, multi = true, txt = b})
+	ui:Append("WndEdit", "introduction", { w = 280, h = 80, x = 10, y = nY + 5, multi = true, limit = 600, txt = b})
 	:Change(function(szText)
 		if JH.IsLeader() then
-			TI.szIntroduction = szText
+			TI.szNote = szText
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", ui:Fetch("YY"):Text(), szText)
 		else
-			ui:Fetch("introduction"):Text(TI.szIntroduction, true)
+			ui:Fetch("introduction"):Text(TI.szNote, true)
 			JH.Sysmsg(_L["You are not team leader."])
 		end
 	end)
 	ui:Append("Text", { txt = _L["TI_TIP"], x = 10, y = 112, w = 280, h = 60, alpha = 80, multi = true })
 	TI.szYY = ui:Fetch("YY"):Text()
-	TI.szIntroduction = ui:Fetch("introduction"):Text()
+	TI.szNote = ui:Fetch("introduction"):Text()
 	ui.self:Lookup("Btn_Close").OnLButtonClick = function()
 		if JH.IsLeader() then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Close")
@@ -671,7 +664,7 @@ function TI.CreateFrame(a, b)
 			end
 		elseif szEvent == "PARTY_ADD_MEMBER" then
 			if JH.IsLeader() then
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szIntroduction)
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "reply", arg1, TI.szYY, TI.szNote)
 			end
 		end
 	end

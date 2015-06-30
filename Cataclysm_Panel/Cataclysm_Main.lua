@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-28 16:57:18
+-- @Last Modified time: 2015-06-30 05:30:30
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -435,7 +435,7 @@ function Cataclysm_Main.OnEvent(szEvent)
 					agree = agree + 1
 				end
 			end
-			OutputMessage("MSG_ANNOUNCE_YELLOW", _L("Team Members: %d, %d agree %d%%", num, agree, agree / num * 100))
+			JH.Topmsg(_L("Team Members: %d, %d agree %d%%", num, agree, agree / num * 100))
 		end
 	elseif szEvent == "TEAM_INCOMEMONEY_CHANGE_NOTIFY" then
 		local nTotalRaidMoney = GetClientTeam().nInComeMoney
