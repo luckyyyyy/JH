@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 16:44:33
+-- @Last Modified time: 2015-06-30 18:00:06
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1303,6 +1303,8 @@ end
 function _JH.GetPlayerAddonMenu()
 	local menu = _JH.GetMainMenu()
 	tinsert(menu, { szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
+	tinsert(menu, { bDevide = true })
+	tinsert(menu, { szOption = _L["Open JH Panel"], fnAction = _JH.TogglePanel })
 	tinsert(menu, { bDevide = true })
 	for k, v in ipairs(_JH.tOption) do
 		if type(v) == "function" then

@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 07:16:43
+-- @Last Modified time: 2015-06-30 16:51:33
 
 local _L = JH.LoadLangPack
 
@@ -649,8 +649,9 @@ function RT.UpdateList()
 					box:SetName(szName)
 					box:SetObject(UI_OBJECT_OTER_PLAYER_ITEM, vv.nUiId, vv.dwBox, vv.dwX, v.dwID)
 					box:SetObjectIcon(vv.nIcon)
-					if GetItem(vv.dwID) then
-						UpdataItemBoxObject(box, vv.dwBox, vv.dwX, GetItem(vv.dwID), nil, nil, v.dwID)
+					local item = GetItem(vv.dwID)
+					if item then
+						UpdataItemBoxObject(box, vv.dwBox, vv.dwX, item, nil, nil, v.dwID)
 					end
 					box.OnItemRefreshTip = function()
 						local x, y = this:GetAbsPos()
