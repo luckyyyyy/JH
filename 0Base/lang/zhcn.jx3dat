@@ -659,7 +659,7 @@ data = {
 	["Today is %d-%d-%d (%s)"] = "今天是 %d年%d月%d日 (%s)",
 	["Version"] = "当前版本",
 	-- Base.lua --
-	["Addon comm."] = "插件消息",
+	["Open JH Panel"] = "打开菊花设置面板",
 	["JH, JX3 Plug-in Collection"] = "《剑网3》菊花插件集",
 	["Color Picker"] = "颜色选择器（按住Ctrl点击相当于应用）",
 	-- FontList.lua --
