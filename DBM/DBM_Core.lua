@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-28 16:56:16
+-- @Last Modified time: 2015-06-30 22:19:50
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -225,8 +225,38 @@ local function CreateTalkData(dwMapID)
 	end
 end
 
+function D.CreateMeTaTable()
+	-- 重建metatable 获取ALL数据的方法
+	for kType, vTable in pairs(D.FILE)  do
+		setmetatable(D.FILE[kType], { __index = function(me, index)
+			if index == _L["All Data"] then
+				local t = {}
+				for k, v in pairs(vTable) do
+					for kk, vv in ipairs(v) do
+						t[#t +1] = vv
+					end
+				end
+				return t
+			end
+		end })
+		-- 重建所有数据的metatable
+		for k, v in pairs(vTable) do
+			for kk, vv in ipairs(v) do
+				setmetatable(vv, { __index = function(_, val)
+					if val == "dwMapID" then
+						return k
+					elseif val == "nIndex" then
+						return kk
+					end
+				end })
+			end
+		end
+	end
+	D.Log("Create MeTaTable Succeed!")
+end
 
 function D.CreateData(szEvent)
+	D.CreateMeTaTable()
 	local szLang = select(3, GetVersion())
 	local me = GetClientPlayer()
 	local dwMapID = me.GetMapID()
@@ -258,32 +288,6 @@ function D.CreateData(szEvent)
 	CreateTalkData(dwMapID)
 	D.Log("Create TALK data Succeed!")
 
-	-- 重建metatable 获取ALL数据的方法
-	for kType, vTable in pairs(D.FILE)  do
-		setmetatable(D.FILE[kType], { __index = function(me, index)
-			if index == _L["All Data"] then
-				local t = {}
-				for k, v in pairs(vTable) do
-					for kk, vv in ipairs(v) do
-						t[#t +1] = vv
-					end
-				end
-				return t
-			end
-		end })
-		-- 重建所有数据的metatable
-		for k, v in pairs(vTable) do
-			for kk, vv in ipairs(v) do
-				setmetatable(vv, { __index = function(_, val)
-					if val == "dwMapID" then
-						return k
-					elseif val == "nIndex" then
-						return kk
-					end
-				end })
-			end
-		end
-	end
 	-- 清空缓存
 	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
 		CACHE.NPC_LIST   = {}
