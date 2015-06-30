@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-24 15:22:04
+-- @Last Modified time: 2015-06-30 07:17:16
 
 -- 早期代码 需要重写
 
@@ -20,7 +20,6 @@ GKP = {
 	bDisplayEmptyRecords = true,  -- show 0 record
 	bAutoSync            = true,  -- 自动接收分配者的同步信息
 	bLootStyle           = true,
-	szLootListTitle      = g_tStrings.STR_LOOT_SHOW_LIST,
 }
 JH.RegisterCustomData("GKP")
 ---------------------------------------------------------------------->
@@ -158,7 +157,7 @@ function _GKP.OpenLootPanel()
 	if not Station.Lookup("Normal/GKP_Loot") then
 		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot")
 		loot:Hide()
-		GUI(loot):Title(GKP.szLootListTitle or g_tStrings.STR_LOOT_SHOW_LIST):Point():RegisterClose(_GKP.CloseLootWindow)
+		GUI(loot):Title(g_tStrings.STR_LOOT_SHOW_LIST):Point():RegisterClose(_GKP.CloseLootWindow)
 		loot:Lookup("Btn_Style").OnLButtonClick = function()
 			if IsCtrlKeyDown() then
 				if #_GKP.aDistributeList > 0 then
@@ -365,11 +364,7 @@ function _GKP.CloseLootWindow()
 	_GKP.CloseChatWindow(true)
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 end
-function _GKP.SetLootTitle()
-	if Station.Lookup("Normal/GKP_Loot") then
-		Station.Lookup("Normal/GKP_Loot"):Lookup("","Text_Title"):SetText(GKP.szLootListTitle)
-	end
-end
+
 ---------------------------------------------------------------------->
 -- 常用函数
 ----------------------------------------------------------------------<
@@ -758,11 +753,6 @@ PS.OnPanelActive = function(frame)
 	:Text(_L["Edit Allowance Protocols"]):Menu(_GKP.GetSubsidiesMenu):Pos_()
 	nX,nY = ui:Append("WndComboBox", { x = nX + 10, y = nY,w = 130,h = 30 })
 	:Text(_L["Edit Auction Protocols"]):Menu(_GKP.GetSchemeMenu):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Set Loot Title"]}):Pos_()
-	nX,nY = ui:Append("WndEdit", { x = nX + 5, y = nY,txt = GKP.szLootListTitle}):Change(function(txt)
-		GKP.szLootListTitle = txt
-		_GKP.SetLootTitle()
-	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Money Record"], font = 27 }):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.bMoneySystem })
 	:Text(_L["Track Money Trend in the System"]):Click(function(bChecked)
@@ -958,7 +948,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				end
 				local tab = GKP("GKP_Record", "del", k)
 				if JH.IsDistributer() then
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "del", JH.AscIIEncode(JH.JsonEncode(tab)))
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "del", tab)
 				end
 				_GKP.Draw_GKP_Record()
 			end
@@ -1075,108 +1065,106 @@ end
 ----------------------------------------------------------------------<
 _GKP.GKP_Sync = function()
 	local me = GetClientPlayer()
-	if not me.IsInParty() then return JH.Alert(_L["You are not in the team."]) end
-	local TeamMemberList = GetClientTeam().GetTeamMemberList()
-	local tTeam,menu = {},{}
-	for _,v in ipairs(TeamMemberList) do
-		local player = GetClientTeam().GetMemberInfo(v)
-		table.insert(tTeam,{ szName = player.szName ,dwForce = player.dwForceID ,bIsOnLine = player.bIsOnLine})
-	end
-	table.sort(tTeam,function(a,b) return a.dwForce < b.dwForce end)
-	table.insert(menu,{szOption = _L["Please select which will be the one you are going to ask record for."],bDisable = true	})
-	table.insert(menu,{bDevide = true})
-	for _,v in ipairs(tTeam) do
-		local szIcon,nFrame = GetForceImage(v.dwForce)
-		table.insert(menu,{
-			szOption = v.szName,
-			szLayer = "ICON_RIGHT",
-			bDisable = not v.bIsOnLine,
-			szIcon = szIcon,
-			nFrame = nFrame ,
-			rgb = {JH.GetForceColor(v.dwForce)},
-			fnAction = function()
-				JH.Confirm(_L["Wheater replace the current record with the synchronization target's record?\n Please notice, this means you are going to lose the information of current record."],function()
-					JH.Alert(_L["Asking for the sychoronization information...\n If no response in longtime, it may because the opposite side are not using GKP plugin or not responding."])
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","GKP_Sync",v.szName) -- 请求同步信息
-				end)
+	if me.IsInParty() then 
+		local tMember = GetClientTeam().GetTeamMemberList()
+		local tTeam,menu = {},{}
+		for _,v in ipairs(tMember) do
+			local player = GetClientTeam().GetMemberInfo(v)
+			table.insert(tTeam, { szName = player.szName, dwID = v, dwForce = player.dwForceID, bIsOnLine = player.bIsOnLine})
+		end
+		table.sort(tTeam, function(a, b) return a.dwForce < b.dwForce end)
+		table.insert(menu, { szOption = _L["Please select which will be the one you are going to ask record for."], bDisable = true })
+		table.insert(menu, { bDevide = true })
+		for _, v in ipairs(tTeam) do
+			if v.dwID ~= me.dwID then
+				local szIcon, nFrame = GetForceImage(v.dwForce)
+				table.insert(menu, {
+					szOption = v.szName,
+					szLayer  = "ICON_RIGHT",
+					bDisable = not v.bIsOnLine,
+					szIcon   = szIcon,
+					nFrame   = nFrame,
+					rgb      = { JH.GetForceColor(v.dwForce) },
+					fnAction = function()
+						JH.Confirm(_L["Wheater replace the current record with the synchronization target's record?\n Please notice, this means you are going to lose the information of current record."], function()
+							JH.Alert(_L["Asking for the sychoronization information...\n If no response in longtime, it may because the opposite side are not using GKP plugin or not responding."])
+							JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync", v.szName) -- 请求同步信息
+						end)
+					end
+				})
 			end
-		})
+		end
+		PopupMenu(menu)
+	else
+		JH.Alert(_L["You are not in the team."])
 	end
-	PopupMenu(menu)
 end
+
 local SYNC_LENG = 0
-_GKP.OnMsg = function()
-	local data = JH.BgHear("GKP", true)
+
+JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
-	if team and data then
-		if arg3 ~= me.szName then
+	if team then
+		if not bIsSelf then
 			if data[1] == "GKP_Sync" and data[2] == me.szName then
 				local tab = {
-					GKP_Record = GKP("GKP_Record"),
+					GKP_Record  = GKP("GKP_Record"),
 					GKP_Account = GKP("GKP_Account"),
 				}
-				local str = JH.AscIIEncode(JH.JsonEncode(tab))
-				local nMax = 630
+				local str = JH.JsonEncode(tab)
+				local nMax = 600
 				local nTotle = math.ceil(#str / nMax)
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Start", arg3, nTotle)
-				for i = 1 , nTotle do
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Content", arg3, string.sub(str ,(i-1) * nMax + 1, i * nMax))
+				-- 密聊频道限制了字数 发起来太慢了
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Start", dwID, nTotle)
+				for i = 1, nTotle do
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Content", dwID, string.sub(str ,(i-1) * nMax + 1, i * nMax))
 				end
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Stop", arg3)
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Stop", dwID)
 			end
 
-			if data[1] == "GKP_Sync_Start" and data[2] == me.szName then
-				_GKP.bSync = true
-				if data[3] then
-					SYNC_LENG = tonumber(data[3])
+			if data[2] == me.dwID then
+				if data[1] == "GKP_Sync_Start" then
+					_GKP.bSync, SYNC_LENG = true, data[3]
+					JH.Alert(_L["Start Sychoronizing..."])
 				end
-				JH.Alert(_L["Start Sychoronizing..."])
-			end
-			if data[1] == "GKP_Sync_Content" and data[2] == me.szName and _GKP.bSync then
-				table.insert(_GKP.tSyncQueue, data[3])
-				if SYNC_LENG ~= 0 then
-					local percent = #_GKP.tSyncQueue / SYNC_LENG
-					if math.floor(percent * 100) % 5 == 0 then
-						JH.Alert(_L("Sychoronizing data please wait %d%% loaded.", percent * 100))
-					end
-				else
-					if #_GKP.tSyncQueue % 10 == 0 then
-						JH.Alert(_L("Sychoronizing data please wait %d loaded.", #_GKP.tSyncQueue))
+
+				if data[1] == "GKP_Sync_Content" and _GKP.bSync then
+					table.insert(_GKP.tSyncQueue, data[3])
+					if SYNC_LENG ~= 0 then
+						local percent = #_GKP.tSyncQueue / SYNC_LENG
+						JH.Topmsg(_L("Sychoronizing data please wait %d%% loaded.", percent * 100))
 					end
 				end
-			end
-			if data[1] == "GKP_Sync_Stop" and data[2] == me.szName then
-				local str = table.concat(_GKP.tSyncQueue, "")
-				_GKP.tSyncQueue = {}
-				_GKP.bSync = false
-				SYNC_LENG = 0
-				JH.Alert(_L["Sychoronization Complete"])
-				local tData, err = JH.JsonDecode(JH.AscIIDecode(str))
-				if err then
-					return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
+				if data[1] == "GKP_Sync_Stop" then
+					local str = table.concat(_GKP.tSyncQueue)
+					_GKP.tSyncQueue = {}
+					_GKP.bSync, SYNC_LENG = false, 0
+					JH.Alert(_L["Sychoronization Complete"])
+					JH.Topmsg(_L["Sychoronization Complete"])
+					local tData, err = JH.JsonDecode(str)
+					if err then
+						return GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
+					end
+					JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s", #tData.GKP_Record, #tData.GKP_Account), function()
+						_GKP.GKP_Record  = tData.GKP_Record
+						_GKP.GKP_Account = tData.GKP_Account
+						_GKP.Draw_GKP_Record()
+						_GKP.Draw_GKP_Account()
+						_GKP.GKP_Save()
+					end)
 				end
-				JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s", #tData.GKP_Record, #tData.GKP_Account), function()
-					_GKP.GKP_Record  = tData.GKP_Record
-					_GKP.GKP_Account = tData.GKP_Account
-					_GKP.Draw_GKP_Record()
-					_GKP.Draw_GKP_Account()
-					_GKP.GKP_Save()
-				end)
 			end
 
-			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.bAutoSync and arg3 ~= me.szName then
-				local tData, err = JH.JsonDecode(JH.AscIIDecode(data[2]))
-				if err then
-					return GKP.Sysmsg2(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
-				end
-				tData.bSync = true
+			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.bAutoSync then
+				local tab = data[2]
+				tab.bSync = true
 				if data[1] == "add" then
-					GKP("GKP_Record", tData)
+					GKP("GKP_Record", tab)
 				else
 					for k, v in ipairs(GKP("GKP_Record")) do
-						if v.key == tData.key then
-							GKP("GKP_Record", k, tData)
+						if v.key == tab.key then
+							GKP("GKP_Record", k, tab)
 							break
 						end
 					end
@@ -1191,7 +1179,7 @@ _GKP.OnMsg = function()
 				if data[3] == "Information on Debt" then
 					szFrameName = "GKP_Debt"
 				end
-				if data[3] == "Information on Debt" and arg3 ~= me.szName then
+				if data[3] == "Information on Debt" and szName ~= me.szName then
 					return
 				end
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
@@ -1205,7 +1193,7 @@ _GKP.OnMsg = function()
 					ScreenShot(path, 100, scale * left, scale * top, scale * right, scale * bottom)
 					JH.Sysmsg(_L("Shot screen succeed, file saved as %s .", path))
 				end)
-				ui:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", arg3), font = 41 })
+				ui:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", szName), font = 41 })
 				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
 				_GKP.info = ui
 			end
@@ -1339,9 +1327,7 @@ _GKP.OnMsg = function()
 			end
 		end
 	end
-end
-
-RegisterEvent("ON_BG_CHANNEL_MSG", _GKP.OnMsg)
+end)
 
 _GKP.SetButton = function(bEnable)
 	GUI(Station.Lookup("Normal/GKP/PageSet_Menu")):Fetch("GOLD_TEAM_BID_LIST"):Enable(bEnable)
@@ -2175,7 +2161,7 @@ _GKP.Record = function(tab, item, bEnter)
 					GKP.GetFormatLink(_L[" Distribute to "]),
 					GKP.GetFormatLink(tab.szPlayer, true)
 				})
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "add", JH.AscIIEncode(JH.JsonEncode(tab)))
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "add", tab)
 			end
 			if _GKP.tLootListMoney[item.dwID] then
 				_GKP.tLootListMoney[item.dwID] = nil
@@ -2191,7 +2177,7 @@ _GKP.Record = function(tab, item, bEnter)
 					GKP.GetFormatLink(" ".. nMoney ..g_tStrings.STR_GOLD),
 					GKP.GetFormatLink(_L["Make changes to the record."]),
 				})
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","edit",JH.AscIIEncode(JH.JsonEncode(tab)))
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP", "edit", tab)
 			end
 		else
 			if JH.IsDistributer() then
@@ -2201,7 +2187,7 @@ _GKP.Record = function(tab, item, bEnter)
 					GKP.GetFormatLink(_L["Manually make record to"]),
 					GKP.GetFormatLink(tab.szPlayer, true)
 				})
-				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP","add",JH.AscIIEncode(JH.JsonEncode(tab)))
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID,"GKP", "add", tab)
 			end
 		end
 		if record:Fetch("WndCheckBox"):Check() then
