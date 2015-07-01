@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 16:51:33
+-- @Last Modified time: 2015-07-01 18:08:02
 
 local _L = JH.LoadLangPack
 
@@ -9,7 +9,7 @@ local pairs, ipairs = pairs, ipairs
 local GetClientTeam, GetClientPlayer = GetClientTeam, GetClientPlayer
 local tinsert = table.insert
 
-local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools.ini"
+local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools1.ini"
 local RT_EQUIP_TOTAL = {
 	"MELEE_WEAPON", -- 轻剑 藏剑取 BIG_SWORD 重剑
 	"RANGE_WEAPON", -- 远程武器
@@ -91,7 +91,11 @@ local RT = {
 	tDeath  = {},
 }
 
-RaidTools = {}
+RaidTools = {
+	bStyle = 1,
+}
+
+JH.RegisterCustomData("RaidTools")
 
 function RaidTools.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
@@ -129,11 +133,12 @@ function RaidTools.OnFrameCreate()
 	local hTitle  = this.hPageSet:Lookup("Page_Info", "Handle_Player_BG")
 	for k, v in ipairs({ "dwForceID", "tFood", "tBuff", "tEquip", "nEquipScore", "nFightState" }) do
 		local txt = hTitle:Lookup("Text_Title_" .. k)
+		txt.nFont = txt:GetFontScheme()
 		txt.OnItemMouseEnter = function()
-			this:SetFontColor(255, 128, 0)
+			this:SetFontScheme(101)
 		end
 		txt.OnItemMouseLeave = function()
-			this:SetFontColor(255, 255, 255)
+			this:SetFontScheme(this.nFont)
 		end
 		txt.OnItemLButtonClick = function()
 			local frame = RT.GetFrame()
@@ -162,12 +167,13 @@ function RaidTools.OnFrameCreate()
 		local img = h:Lookup("Image_Force")
 		img:FromIconID(select(2, JH.GetSkillName(v[1])))
 		h:Lookup("Text_Num"):SetText(0)
+		h.nFont = h:Lookup("Text_Num"):GetFontScheme()
 		h.OnItemMouseLeave = function()
 			HideTip()
 			if RT_SELECT_KUNGFU == tonumber(this:GetName()) then
-				this:Lookup("Image_KungfuBG"):SetFrame(20)
+				this:Lookup("Text_Num"):SetFontScheme(101)
 			else
-				this:Lookup("Image_KungfuBG"):SetFrame(18)
+				this:Lookup("Text_Num"):SetFontScheme(h.nFont)
 			end
 		end
 		h.OnItemLButtonClick = function()
@@ -179,15 +185,15 @@ function RaidTools.OnFrameCreate()
 			if RT_SELECT_KUNGFU then
 				if RT_SELECT_KUNGFU == tonumber(this:GetName()) then
 					RT_SELECT_KUNGFU = nil
-					h:Lookup("Image_KungfuBG"):SetFrame(18)
+					h:Lookup("Text_Num"):SetFontScheme(101)
 					return RT.UpdateList()
 				else
 					local h = this:GetParent():Lookup(tostring(RT_SELECT_KUNGFU))
-					h:Lookup("Image_KungfuBG"):SetFrame(18)
+					h:Lookup("Text_Num"):SetFontScheme(h.nFont)
 				end
 			end
 			RT_SELECT_KUNGFU = tonumber(this:GetName())
-			this:Lookup("Image_KungfuBG"):SetFrame(20)
+			this:Lookup("Text_Num"):SetFontScheme(101)
 			RT.UpdateList()
 		end
 	end
@@ -198,15 +204,21 @@ function RaidTools.OnFrameCreate()
 	-- 追加呼吸
 	this.hPageSet:ActivePage(RT_SELECT_PAGE)
 	-- 追加几个按钮
-	ui:Fetch("PageSet_Main/Page_Death"):Append("WndButton2", { x = 750, y = 0, w = 80, h = 25, txt = g_tStrings.STR_GUILD_ALL }):Click(function()
+	ui:Fetch("PageSet_Main/Page_Death"):Fetch("Btn_All"):Click(function()
 		RT_SELECT_DEATH = nil
 		RT.UpdatetDeathMsg()
 	end)
-	ui:Fetch("PageSet_Main/Page_Death"):Append("WndButton2", { x = 865, y = 0, w = 80, h = 25, txt = _L["Clear"] }):Click(function()
+	ui:Fetch("PageSet_Main/Page_Death"):Fetch("Btn_Clear"):Click(function()
 		JH.Confirm(_L["Wipe Record"], function()
 			RT.tDeath = {}
 			RT.UpdatetDeathPage()
 		end)
+	end)
+	ui:Fetch("Btn_Style"):Click(function()
+		RaidTools.bStyle = RaidTools.bStyle == 1 and 2 or 1
+		RT.SetStyle()
+		RT.ClosePanel()
+		RT.OpenPanel()
 	end)
 	RT.UpdateAnchor(this)
 end
@@ -658,6 +670,7 @@ function RT.UpdateList()
 						local w, h = this:GetSize()
 						if not GetItem(vv.dwID) then
 							RT.GetTotalEquipScore(v.dwID)
+							OutputItemTip(UI_OBJECT_ITEM_INFO, GLOBAL.CURRENT_ITEM_VERSION, vv.dwTabType, vv.dwIndex, {x, y, w, h})
 						else
 							OutputItemTip(UI_OBJECT_ITEM_ONLY_ID, vv.dwID, nil, nil, { x, y, w, h })
 						end
@@ -721,7 +734,7 @@ function RT.UpdateList()
 		else
 			h:SetAlpha(255)
 			h.OnItemMouseEnter = function()
-				this:Lookup("Image_KungfuBG"):SetFrame(19)
+				this:Lookup("Text_Num"):SetFontScheme(101)
 				local xml = {}
 				tinsert(xml, GetFormatText(szName .. g_tStrings.STR_COLON .. nCount .. g_tStrings.STR_PERSON .."\n", 157))
 				table.sort(tKungfu[v[1]], function(a, b)
@@ -1149,6 +1162,11 @@ function RT.OnDeath(dwCharacterID, szKiller)
 end
 
 -- UI操作 惯例
+
+function RT.SetStyle()
+	RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools" .. RaidTools.bStyle .. ".ini"
+end
+
 function RT.GetFrame()
 	return Station.Lookup("Normal/RaidTools")
 end
@@ -1198,5 +1216,8 @@ end)
 JH.RegisterEvent("DO_SKILL_CAST", function()
 	RT.OnSkill(arg0, arg1, arg2)
 end)
+
+JH.RegisterEvent("LOGIN_GAME", RT.SetStyle)
+
 JH.PlayerAddonMenu({ szOption = _L["Open Raid Tools Panel"], fnAction = RT.TogglePanel })
 JH.AddHotKey("JH_RaidTools", _L["Open Raid Tools Panel"], RT.TogglePanel)
