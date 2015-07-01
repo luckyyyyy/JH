@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-01 18:08:02
+-- @Last Modified time: 2015-07-01 18:14:52
 
 local _L = JH.LoadLangPack
 
@@ -92,7 +92,7 @@ local RT = {
 }
 
 RaidTools = {
-	bStyle = 1,
+	nStyle = 1,
 }
 
 JH.RegisterCustomData("RaidTools")
@@ -215,7 +215,7 @@ function RaidTools.OnFrameCreate()
 		end)
 	end)
 	ui:Fetch("Btn_Style"):Click(function()
-		RaidTools.bStyle = RaidTools.bStyle == 1 and 2 or 1
+		RaidTools.nStyle = RaidTools.nStyle == 1 and 2 or 1
 		RT.SetStyle()
 		RT.ClosePanel()
 		RT.OpenPanel()
@@ -1164,7 +1164,7 @@ end
 -- UI操作 惯例
 
 function RT.SetStyle()
-	RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools" .. RaidTools.bStyle .. ".ini"
+	RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools" .. RaidTools.nStyle .. ".ini"
 end
 
 function RT.GetFrame()
