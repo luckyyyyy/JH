@@ -391,7 +391,6 @@ data = {
 	["Popup Record for Nondistributor"] = "不是分配者也弹出记录",
 	["Edit Allowance Protocols"] = "编辑补贴方案",
 	["Edit Auction Protocols"] = "编辑拍卖方案",
-	["Set Loot Title"] = "设置拾取列表标题",
 	["Money Record"] = "金钱记录",
 	["Track Money Trend in the System"] = "记录系统金钱变动",
 	["Enable Money Trend"] = "开启金钱变动喊话",
@@ -413,7 +412,6 @@ data = {
 	["Asking for the sychoronization information...\n If no response in longtime, it may because the opposite side are not using GKP plugin or not responding."] = "正在请求同步信息.... \n如果长时间没有反应可能是对方没有使用GKP插件或未响应。",
 	["Start Sychoronizing..."] = "同步开始....",
 	["Sychoronizing data please wait %d%% loaded."] = "同步数据中请稍等 当前进度：%d%%",
-	["Sychoronizing data please wait %d loaded."] = "同步数据中请稍等 已读取：%d",
 	["Sychoronization Complete"] = "同步已完成",
 	["Abnormal with Data Sharing, Please contact and make feed back with the writer."] = "数据共享异常，请联系作者反馈。",
 	["Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s"] = "数据同步完毕，你还有最后一次机会确认是否覆盖现有数据？\n拍团数据：%s\n交易数据：%s",
@@ -661,7 +659,7 @@ data = {
 	["Today is %d-%d-%d (%s)"] = "今天是 %d年%d月%d日 (%s)",
 	["Version"] = "当前版本",
 	-- Base.lua --
-	["Addon comm."] = "插件消息",
+	["Open JH Panel"] = "打开菊花设置面板",
 	["JH, JX3 Plug-in Collection"] = "《剑网3》菊花插件集",
 	["Color Picker"] = "颜色选择器（按住Ctrl点击相当于应用）",
 	-- FontList.lua --
