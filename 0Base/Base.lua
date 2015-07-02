@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-28 16:55:31
+-- @Last Modified time: 2015-07-01 17:10:03
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -48,21 +48,6 @@ local function GetLang()
 end
 local _L = GetLang()
 
--- shield sound from mock bg_talk
-g_sound_Whisper = g_sound_Whisper or g_sound.Whisper
-g_sound.Whisper = nil
-setmetatable(g_sound, {
-	__index = function(tb, k)
-		if k ~= "Whisper" then
-			return nil
-		end
-		local t = GetClientPlayer().GetTalkData()
-		if t and #t > 1 and t[1].text == _L["Addon comm."] and t[2].type == "eventlink" then
-			return ""
-		end
-		return g_sound_Whisper
-	end
-})
 ---------------------------------------------------------------------
 -- 插件开始
 ---------------------------------------------------------------------
@@ -96,6 +81,7 @@ local _JH = {
 	tGlobalValue   = {},
 	tConflict      = {},
 	tEvent         = {},
+	tBgMsgHandle   = {},
 	tModule        = {},
 	szShort        = _L["JH"],
 	nDebug         = 2,
@@ -592,6 +578,10 @@ function JH.RegisterExit(fnAction)
 	JH.RegisterEvent("RELOAD_UI_ADDON_BEGIN", fnAction)
 end
 
+function JH.RegisterBgMsg(szKey, fnAction)
+	_JH.tBgMsgHandle[szKey] = fnAction
+end
+
 function JH.GetForceColor(dwForce)
 	return unpack(JH_FORCE_COLOR[dwForce])
 end
@@ -659,7 +649,7 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	end
 	-- add addon msg header
 	if not tSay[1] or (
-		not (tSay[1].type == "text" and (tSay[1].text == _L["Addon comm."] or tSay[1].text == "BG_CHANNEL_MSG")) -- bgmsg
+		not (tSay[1].type == "eventlink" and tSay[1].name == "BG_CHANNEL_MSG") -- bgmsg
  		and not (tSay[1].name == "" and tSay[1].type == "eventlink") -- header already added
  	) then
 		tinsert(tSay, 1, {
@@ -692,23 +682,19 @@ function JH.Talk2(nChannel, szText, szUUID, bNoEmotion)
 	JH.Talk(nChannel, szText, szUUID, bNoEmotion, true)
 end
 
-function JH.BgTalk(nChannel, ...)
-	local tSay = { { type = "text", text = _L["Addon comm."] } }
+function JH.BgTalk(nChannel, szKey, ...)
+	local tSay = { { type = "eventlink", name = "BG_CHANNEL_MSG", linkinfo = szKey } }
 	local tArg = { ... }
-	-- compatiable with offcial bg channel msg of team
-	if nChannel == PLAYER_TALK_CHANNEL.RAID or nChannel == PLAYER_TALK_CHANNEL.TEAM then
-		tSay[1].text = "BG_CHANNEL_MSG"
-	end
 	for _, v in ipairs(tArg) do
 		if v == nil then
 			break
 		end
-		tinsert(tSay, { type = "eventlink", name = "", linkinfo = tostring(v) })
+		tinsert(tSay, { type = "eventlink", name = "", linkinfo = var2str(v) })
 	end
 	JH.Talk(nChannel, tSay, nil, true)
 end
 
-function JH.BgHear(szKey,bIgnore)
+function JH.BgHear(szKey, bIgnore)
 	local me = GetClientPlayer()
 	local tSay = me.GetTalkData()
 	if tSay and (arg0 ~= me.dwID or bIgnore) and #tSay > 1 and (tSay[1].text == _L["Addon comm."] or tSay[1].text == "BG_CHANNEL_MSG") and tSay[2].type == "eventlink" then
@@ -754,8 +740,7 @@ function JH.IsParty(dwID)
 end
 
 function JH.WhisperToTeamMember(msg)
-	local me = GetClientPlayer()
-	if me and me.IsInParty() then
+	if JH.IsInParty() then
 		local team = GetClientTeam()
 		for _,v in ipairs(team.GetTeamMemberList()) do
 			local szName = team.GetClientTeamMemberName(v)
@@ -873,6 +858,11 @@ function JH.IsInArena()
 	end
 end
 
+function JH.IsInParty()
+	local me = GetClientPlayer()
+	return me and me.IsInParty()
+end
+
 function JH.JsonToTable(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
@@ -910,9 +900,12 @@ end
 -- 输出一条密聊信息
 function JH.OutputWhisper(szMsg, szHead)
 	szHead = szHead or _JH.szShort
-	local r, g, b = unpack(GetMsgFontColor("MSG_WHISPER", true))
-	OutputMessage("MSG_WHISPER", GetFormatText("[" .. szHead .. "]" .. g_tStrings.STR_TALK_HEAD_WHISPER .. szMsg .. "\n", 10, r, g, b), true)
+	OutputMessage("MSG_WHISPER", "[" .. szHead .. "]" .. g_tStrings.STR_TALK_HEAD_WHISPER .. szMsg .. "\n")
 	PlaySound(SOUND.UI_SOUND, g_sound.Whisper)
+end
+-- 没有头的中央信息 也可以用于系统信息
+function JH.Topmsg(szText, szType)
+	OutputMessage(szType or "MSG_ANNOUNCE_YELLOW", szText .. "\n")
 end
 
 function JH.Sysmsg(szMsg, szHead, szType)
@@ -1311,6 +1304,8 @@ function _JH.GetPlayerAddonMenu()
 	local menu = _JH.GetMainMenu()
 	tinsert(menu, { szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
 	tinsert(menu, { bDevide = true })
+	tinsert(menu, { szOption = _L["Open JH Panel"], fnAction = _JH.TogglePanel })
+	tinsert(menu, { bDevide = true })
 	for k, v in ipairs(_JH.tOption) do
 		if type(v) == "function" then
 			tinsert(menu, v())
@@ -1404,6 +1399,15 @@ JH.RegisterEvent("LOADING_END", function()
 end)
 JH.RegisterEvent("FIRST_LOADING_END", function()
 	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. "! v" .. JH.GetVersion() )
+end)
+-- szKey, nChannel, dwID, szName, aTable
+JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
+	if _JH.tBgMsgHandle[arg0] then
+		local res, err = pcall(_JH.tBgMsgHandle[arg0], arg1, arg2, arg3, arg4, arg2 == UI_GetClientPlayerID())
+		if not res then
+			JH.Debug("BG_MSG#" .. arg0 .. "# ERROR:" .. err)
+		end
+	end
 end)
 JH.RegisterEvent("PLAYER_ENTER_SCENE", function() _JH.aPlayer[arg0] = true end)
 JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() _JH.aPlayer[arg0] = nil end)
@@ -3234,7 +3238,7 @@ end
 local ICON_PAGE = 20
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
-	local nMaxIocn, boxs, txts = 6891, {}, {}
+	local nMaxIocn, boxs, txts = 7006, {}, {}
 	local ui = GUI.CreateFrame2("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], close = true })
 	local function GetPage(nPage)
 		local nStart = nPage * 144 - 1

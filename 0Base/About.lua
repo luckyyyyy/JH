@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:07:58
+-- @Last Modified time: 2015-06-30 07:17:35
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -32,21 +32,21 @@ function _JH_About.CheckInstall()
 	end
 end
 
-function _JH_About.ShowInfo(dat)
-	_JH_About.INFO[arg0] = dat
+function _JH_About.ShowInfo(dwID, dat)
+	_JH_About.INFO[dwID] = dat
 	local me = GetClientPlayer()
 	local ini = "interface/JH/0Base/About.ini"
-	local frame = Wnd.OpenWindow(ini,"JH_ABOUT")
+	local frame = Wnd.OpenWindow(ini, "JH_ABOUT")
 	if not frame then return end
 	GUI(frame):Point():RegisterClose(function() Wnd.CloseWindow(frame) end)
 	local list = GetClientTeam().GetTeamMemberList()
-	local h = frame:Lookup("WndScroll"):Lookup("","Handle_List")
+	local h = frame:Lookup("WndScroll"):Lookup("", "Handle_List")
 	local _ = "--"
 	h:Clear()
-	for k,v in ipairs(list) do
+	for k, v in ipairs(list) do
 		local data = _JH_About.INFO[v] or {}
 		local info = GetClientTeam().GetMemberInfo(v)
-		local item = h:AppendItemFromIni(ini,"Handle_Item",k)
+		local item = h:AppendItemFromIni(ini, "Handle_Item",k)
 		item.OnItemLButtonClick = function()
 			ViewInviteToPlayer(v)
 		end
@@ -59,64 +59,58 @@ function _JH_About.ShowInfo(dat)
 		local role = { [1] = "成男", [2] = "成女", [3] = "--" , [5] = "正太" , [6] = "萝莉" }
 		item:Lookup("Text_7"):SetText(role[tonumber(data[5] or 3)])
 		local camp = { [0] = -1, [1] = 43, [2] = 40 }
-		item:Lookup("Image_8"):FromUITex("UI/Image/Button/ShopButton.uitex",camp[tonumber(info.nCamp)])
+		item:Lookup("Image_8"):FromUITex("UI/Image/Button/ShopButton.uitex", camp[tonumber(info.nCamp)])
 		item:Lookup("Text_9"):SetText(data[6] or _)
-		local r,g,b,txt = 255,0,0,"No"
-		if data[8] == "true" then
-			r,g,b,txt = 0,255,0,"Yes"
+		local r, g, b, txt = 255, 0, 0, "No"
+		if data[8] then
+			r, g, b, txt = 0, 255, 0, "Yes"
 		end
 		item:Lookup("Text_10"):SetText(txt)
-		item:Lookup("Text_10"):SetFontColor(r,g,b)
+		item:Lookup("Text_10"):SetFontColor(r, g, b)
 	end
 	h:FormatAllItemPos()
 	h:Show()
-end
-
-function _JH_About.OnBgTalk()
-	local data = JH.BgHear("JH_ABOUT", true)
-	if data then
-		if data[1] == "JH_CHECK" then
-			-- check plugin
-			JH.Talk(PLAYER_TALK_CHANNEL.RAID, _L["I have installed JH plug-in v"] .. JH.GetVersion())
-		elseif data[1] == "Author" then -- 版本检查 自用 可以绘制详细表格
-			local me, szTong = GetClientPlayer(), ""
-			if me.dwTongID > 0 then
-				szTong = GetTongClient().ApplyGetTongName(me.dwTongID)
-				if not szTong then szTong = "Failed" end
-			end
-			local _,szServer = GetUserServer()
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "info",
-				me.GetTotalEquipScore(),
-				me.GetMapID(),
-				szTong,
-				me.nRoleType,
-				JH.GetVersion(),
-				szServer,
-				JH.GetBuff(3219)
-			)
-		elseif data[1] == "info" and _JH_About.CheckNameEx() then
-			_JH_About.ShowInfo(data)
-		elseif data[1] == "TeamAuth" then -- 防止有人睡着 遇到了不止一次了
-			local team = GetClientTeam()
-			team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER, arg0)
-			team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, arg0)
-			team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, arg0)
-		end
-	end
 end
 
 function _JH_About.GetMemory()
 	return string.format("Memory:%.1fMB", collectgarbage("count") / 1024)
 end
 
-JH.RegisterEvent("ON_BG_CHANNEL_MSG", _JH_About.OnBgTalk)
+JH.RegisterBgMsg("JH_ABOUT", function(nChannel, dwID, szName, data, bIsSelf)
+	if data[1] == "JH_CHECK" then
+		-- check plugin
+		JH.Talk(PLAYER_TALK_CHANNEL.RAID, _L["I have installed JH plug-in v"] .. JH.GetVersion())
+	elseif data[1] == "Author" then -- 版本检查 自用 可以绘制详细表格
+		local me, szTong = GetClientPlayer(), ""
+		if me.dwTongID > 0 then
+			szTong = GetTongClient().ApplyGetTongName(me.dwTongID)
+			if not szTong then szTong = "Failed" end
+		end
+		local _,szServer = GetUserServer()
+		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "info",
+			me.GetTotalEquipScore(),
+			me.GetMapID(),
+			szTong,
+			me.nRoleType,
+			JH.GetVersion(),
+			szServer,
+			JH.GetBuff(3219)
+		)
+	elseif data[1] == "info" and _JH_About.CheckNameEx() then
+		_JH_About.ShowInfo(dwID, data)
+	elseif data[1] == "TeamAuth" then -- 防止有人睡着 遇到了不止一次了
+		local team = GetClientTeam()
+		team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER, dwID)
+		team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.MARK, dwID)
+		team.SetAuthorityInfo(TEAM_AUTHORITY_TYPE.DISTRIBUTE, dwID)
+	end
+end)
 
 function _JH_About.PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 27 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 80, multi = true, txt = _L["ABOUT_TIPS"] }):Pos_()
 	nY = nY + 70
-
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Version"], font = 27 }):Pos_()
 	local info = JH.GetAddonInfo()
 	local txt = info.szName .. " v" ..  info.szVersion .. " (Build: " .. info.szBuildDate .. ")"
