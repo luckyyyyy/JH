@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-23 15:22:25
+-- @Last Modified time: 2015-06-30 07:17:07
 local _L = JH.LoadLangPack
 JH_Love = {
 	bQuiet = false,				-- 免打扰（拒绝其它人的查看请求）
@@ -677,19 +677,17 @@ _JH_Love.ReplyLove = function(bCancel)
 end
 
 -- 后台同步
-_JH_Love.OnBgTalk = function()
+_JH_Love.OnBgTalk = function(nChannel, dwID, szName, data, bIsSelf)
 	if HM_Love then return end
-	local data = JH.BgHear("HM_LOVE")
-	if data then
+	if not bIsSelf then
 		if data[1] == "VIEW" then
-			local dwTarget, szTarget = arg0, arg3
-			if JH.IsParty(dwTarget) then
-				_JH_Love.tViewer[dwTarget] = szTarget
+			if JH.IsParty(dwID) then
+				_JH_Love.tViewer[dwID] = szName
 				_JH_Love.ReplyLove()
 			elseif not GetClientPlayer().bFightState and not JH_Love.bQuiet then
-				_JH_Love.tViewer[dwTarget] = szTarget
+				_JH_Love.tViewer[dwID] = szName
 				JH.Confirm(
-					"[" .. szTarget .. "] " .. _L["want to see your lover info, OK?"],
+					"[" .. szName .. "] " .. _L["want to see your lover info, OK?"],
 					function() _JH_Love.ReplyLove() end,
 					function() _JH_Love.ReplyLove(true) end
 				)
@@ -702,20 +700,19 @@ _JH_Love.OnBgTalk = function()
 			OutputMessage("MSG_WHISPER", _L["[Mystery] quietly said:"] .. _JH_Love.tAutoSay[i] .. "\n")
 			PlaySound(SOUND.UI_SOUND,g_sound.Whisper)
 		elseif data[1] == "LOVE_ASK" then
-			local szTarget = arg3
 			-- 已有情缘直接拒绝
-			if _JH_Love.dwID ~= 0 and (_JH_Love.dwID ~= arg0 or _JH_Love.nLoveType == 1) then
-				return JH.BgTalk(szTarget, "HM_LOVE", "LOVE_ANS", "EXISTS")
+			if _JH_Love.dwID ~= 0 and (_JH_Love.dwID ~= dwID or _JH_Love.nLoveType == 1) then
+				return JH.BgTalk(szName, "HM_LOVE", "LOVE_ANS", "EXISTS")
 			end
 			-- 询问意见
-			JH.Confirm("[" .. szTarget .. "] " .. _L["want to mutual love with you, OK?"], function()
-				JH.BgTalk(szTarget, "HM_LOVE", "LOVE_ANS", "YES")
+			JH.Confirm("[" .. szName .. "] " .. _L["want to mutual love with you, OK?"], function()
+				JH.BgTalk(szName, "HM_LOVE", "LOVE_ANS", "YES")
 			end, function()
-				JH.BgTalk(szTarget, "HM_LOVE", "LOVE_ANS", "NO")
+				JH.BgTalk(szName, "HM_LOVE", "LOVE_ANS", "NO")
 			end)
 		elseif data[1] == "FIX1" then
-			if _JH_Love.dwID == 0 or (_JH_Love.dwID == arg0 and _JH_Love.nLoveType ~= 1) then
-				local aInfo = _JH_Love.GetFellowDataByID(arg0)
+			if _JH_Love.dwID == 0 or (_JH_Love.dwID == dwID and _JH_Love.nLoveType ~= 1) then
+				local aInfo = _JH_Love.GetFellowDataByID(dwID)
 				if aInfo then
 					JH.Confirm("[" .. aInfo.name .. "] " .. _L["want to repair love relation with you, OK?"], function()
 						_JH_Love.SaveLover(aInfo, 1, tonumber(data[2]))
@@ -723,7 +720,7 @@ _JH_Love.OnBgTalk = function()
 					end)
 				end
 			else
-				JH.BgTalk(arg3, "HM_LOVE", "LOVE_ANS", "EXISTS")
+				JH.BgTalk(szName, "HM_LOVE", "LOVE_ANS", "EXISTS")
 			end
 		elseif data[1] == "LOVE_ANS" then
 			if data[2] == "EXISTS" then
@@ -735,7 +732,7 @@ _JH_Love.OnBgTalk = function()
 				JH.Sysmsg(szMsg)
 				JH.Alert(szMsg)
 			elseif data[2] == "YES" then
-				local aInfo = _JH_Love.GetFellowDataByID(arg0)
+				local aInfo = _JH_Love.GetFellowDataByID(dwID)
 				local dwBox, dwX = _JH_Love.GetDoubleLoveItem(aInfo)
 				if dwBox then
 					local nNum = _JH_Love.GetBagItemNum(dwBox, dwX)
@@ -750,7 +747,7 @@ _JH_Love.OnBgTalk = function()
 					end)
 				end
 			elseif data[2] == "CONF" then
-				local aInfo = _JH_Love.GetFellowDataByID(arg0)
+				local aInfo = _JH_Love.GetFellowDataByID(dwID)
 				if aInfo then
 					_JH_Love.SaveLover(aInfo, 1)
 					JH.Sysmsg(_L("Congratulations, success to attach love with [%s]!", aInfo.name))
@@ -902,7 +899,7 @@ end
 -- 注册事件、初始化
 ---------------------------------------------------------------------
 if not HM_Love then
-	JH.RegisterEvent("ON_BG_CHANNEL_MSG", _JH_Love.OnBgTalk)
+	JH.RegisterBgMsg("HM_LOVE", _JH_Love.OnBgTalk)
 	JH.RegisterEvent("PEEK_OTHER_PLAYER", _JH_Love.OnPeekOtherPlayer)
 	JH.RegisterEvent("PLAYER_FELLOWSHIP_LOGIN", _JH_Love.OnFriendLogin)
 
