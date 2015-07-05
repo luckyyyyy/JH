@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-24 15:21:33
+-- @Last Modified time: 2015-07-05 16:56:40
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -398,7 +398,7 @@ function DBMUI.GetBoxInfo(szType, data)
 		szName, nIcon = JH.GetSkillName(data.dwID, data.nLevel)
 	elseif szType == "NPC" or szType == "CIRCLE" then
 		local KTemplate = GetNpcTemplate(data.dwID)
-		szName = KTemplate.szName
+		szName = KTemplate and KTemplate.szName or data.dwID
 		if szName == "" then
 			szName = Table_GetNpcTemplateName(data.dwID)
 		end
