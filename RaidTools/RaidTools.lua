@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-07 19:59:04
+-- @Last Modified time: 2015-07-07 20:05:18
 
 local _L = JH.LoadLangPack
 
@@ -278,6 +278,10 @@ function RaidTools.OnActivePage()
 	if nPage == 0 then
 		JH.BreatheCall("JH_RaidTools", RT.UpdateList, 1000)
 		JH.BreatheCall("JH_RaidTools_Clear", RT.GetEquip, 3000)
+		local hView = RT.GetPlayerView()
+		if hView and hView:IsVisible() then
+			hView:Hide()
+		end
 	else
 		JH.UnBreatheCall("JH_RaidTools")
 		JH.UnBreatheCall("JH_RaidTools_Clear")
@@ -381,6 +385,10 @@ function RT.UpdateDungeonInfo(hDungeon)
 	else
 		hDungeon:Hide()
 	end
+end
+
+function RT.GetPlayerView()
+	return Station.Lookup("Normal/PlayerView")
 end
 
 function RT.ViewInviteToPlayer(dwID)
@@ -906,7 +914,7 @@ function RT.GetTeam()
 end
 
 function RT.GetEquip()
-	local hView = Station.Lookup("Normal/PlayerView")
+	local hView = RT.GetPlayerView()
 	if hView and hView:IsVisible() then -- 查看装备的时候停止请求
 		return
 	end
