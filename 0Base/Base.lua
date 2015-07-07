@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-02 11:29:57
+-- @Last Modified time: 2015-07-07 21:54:24
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -156,10 +156,6 @@ end
 -------------------------------------
 -- 设置面板开关、初始化
 -------------------------------------
-function JH.IsPanelOpened()
-	return _JH.frame and _JH.frame:IsVisible()
-end
-
 function JH.OpenPanel(szTitle)
 	_JH.OpenPanel(szTitle ~= nil)
 	if szTitle then
@@ -214,6 +210,11 @@ function _JH.TogglePanel()
 		_JH.OpenPanel()
 	end
 end
+
+function _JH.IsPanelOpened()
+	return _JH.frame and _JH.frame:IsVisible()
+end
+
 JH.ClosePanel = _JH.ClosePanel
 JH.TogglePanel = _JH.TogglePanel
 
@@ -1384,7 +1385,7 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	Player_AppendAddonMenu({ _JH.GetPlayerAddonMenu })
 	-- 注册右上角菜单
 	TraceButton_AppendAddonMenu({ _JH.GetAddonMenu })
-	JH.RegisterGlobalEsc("JH", JH.IsPanelOpened, _JH.ClosePanel)
+	JH.RegisterGlobalEsc("JH", _JH.IsPanelOpened, _JH.ClosePanel)
 end)
 
 JH.RegisterEvent("LOADING_END", function()
