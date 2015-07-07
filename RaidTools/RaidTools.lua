@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-01 18:14:52
+-- @Last Modified time: 2015-07-07 19:59:04
 
 local _L = JH.LoadLangPack
 
@@ -906,6 +906,10 @@ function RT.GetTeam()
 end
 
 function RT.GetEquip()
+	local hView = Station.Lookup("Normal/PlayerView")
+	if hView and hView:IsVisible() then -- 查看装备的时候停止请求
+		return
+	end
 	local me = GetClientPlayer()
 	if not me then return end
 	local frame = RT.GetFrame()
