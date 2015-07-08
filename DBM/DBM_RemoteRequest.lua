@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 07:17:00
+-- @Last Modified time: 2015-07-08 12:19:55
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -109,13 +109,10 @@ function W.CallLogin(uid, pw, fnAction)
 			JH.Sysmsg2(_L["request failed"])
 		else
 			if tonumber(result['uid']) > 0 then
-				local _, _, url = string.find(result['info'], "src=\"(.-)\"")
-				JH.RemoteRequest(url, function()  -- synclogin set cookie
-					DBM_RemoteRequest.bLogin = true
-					W.ClosePanel()
-					W.OpenPanel()
-					if fnAction then pcall(fnAction) end
-				end)
+				DBM_RemoteRequest.bLogin = true
+				W.ClosePanel()
+				W.OpenPanel()
+				if fnAction then pcall(fnAction) end
 			else
 				W.Logout()
 				JH.Alert(result["info"])
