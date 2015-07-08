@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-07 20:05:18
+-- @Last Modified time: 2015-07-08 08:49:01
 
 local _L = JH.LoadLangPack
 
@@ -68,15 +68,27 @@ local RT_FOOD_TYPE = {
 	[19] = true,
 	[20] = true 
 }
-
+-- 需要监控的BUFF
 local RT_BUFF_ID = {
+	-- 常规职业BUFF
 	[362]  = true, 
 	[673]  = true,
 	[112]  = true,
 	[382]  = true, 
-	[3219] = true, 
-	[2837] = true 
+	[2837] = true,
+	-- 红篮球
+	[6329] = true,
+	[6330] = true,
+	-- 帮会菜盘
+	[2564] = true,
+	[2563] = true,
+	-- 七秀扇子
+	[3098] = true,
+	-- 缝针 / 凤凰谷
+	[2313] = true,
+	[5970] = true,
 }
+local RT_GONGZHAN_ID = 3219
 -- default sort
 local RT_SORT_MODE    = "DESC"
 local RT_SORT_FIELD   = "nEquipScore"
@@ -499,7 +511,7 @@ function RT.UpdateList()
 			else
 				h:Lookup("Image_Fight"):Hide()
 			end
-			for kk, vv in ipairs({ "Handle_Food", "Handle_Buff", "Handle_Equip" }) do
+			for kk, vv in ipairs({ "Handle_Food", "Handle_Equip" }) do
 				if not h["h" .. vv] then
 					h["h" .. vv] = {
 						self = h:Lookup(vv),
@@ -507,32 +519,26 @@ function RT.UpdateList()
 					}
 				end
 			end
-
+			local hBuff = h:Lookup("Box_Buff")
+			local hBox = h:Lookup("Box_Grandpa")
 			if not v.bIsOnLine then
 				h.hHandle_Equip.Pool:Clear()
 				h:Lookup("Text_Toofar1"):Show()
-				h:Lookup("Text_Toofar2"):Show()
-				h:Lookup("Text_Toofar3"):Show()
 				h:Lookup("Text_Toofar1"):SetText(g_tStrings.STR_GUILD_OFFLINE)
-				h:Lookup("Text_Toofar2"):SetText(g_tStrings.STR_GUILD_OFFLINE)
-				h:Lookup("Text_Toofar3"):SetText(g_tStrings.STR_GUILD_OFFLINE)
-			else
-				h:Lookup("Text_Toofar3"):Hide()
 			end
 
 			if not v.p then
 				h.hHandle_Food.Pool:Clear()
-				h.hHandle_Buff.Pool:Clear()
 				h:Lookup("Text_Toofar1"):Show()
-				h:Lookup("Text_Toofar2"):Show()
 				if v.bIsOnLine then
 					h:Lookup("Text_Toofar1"):SetText(_L["Too Far"])
-					h:Lookup("Text_Toofar2"):SetText(_L["Too Far"])
 				end
+				hBuff:Hide()
+				hBox:Hide()
 			else
+				hBuff:Show()
+				hBox:Show()
 				h:Lookup("Text_Toofar1"):Hide()
-				h:Lookup("Text_Toofar2"):Hide()
-				h:Lookup("Text_Toofar3"):Hide()
 				-- 小药UI处理
 				local handle_food = h.hHandle_Food.self
 				for kk, vv in ipairs(v.tFood) do
@@ -560,7 +566,7 @@ function RT.UpdateList()
 						OutputBuffTipA(dwID, nLevel, { x, y, w, h }, nTime)
 					end
 					local nTime = (vv.nEndFrame - GetLogicFrameCount()) / 16
-					if nTime < 600 then
+					if nTime < 480 then
 						box:SetAlpha(80)
 					else
 						box:SetAlpha(255)
@@ -580,52 +586,51 @@ function RT.UpdateList()
 				end
 				handle_food:FormatAllItemPos()
 				-- BUFF UI处理
-				local handle_Buff = h.hHandle_Buff.self
-				for kk, vv in ipairs(v.tBuff) do
-					local szName = vv.dwID .. "_" .. vv.nLevel
-					local nIcon = select(2, JH.GetBuffName(vv.dwID, vv.nLevel))
-					local box = handle_Buff:Lookup(szName)
-					if not box then
-						box = h.hHandle_Buff.Pool:New()
-					end
-					box:SetName(szName)
-					box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, vv.dwID, vv.nLevel, vv.nEndFrame)
-					box:SetObjectIcon(nIcon)
-					box.OnItemMouseLeave = function()
+				if v.tBuff and #v.tBuff > 0 then
+					hBuff:EnableObject(true)
+					hBuff:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+					hBuff:SetOverTextFontScheme(1, 197)
+					hBuff:SetOverText(1, #v.tBuff)
+					hBuff.OnItemMouseLeave = function()
 						this:SetObjectMouseOver(false)
 						HideTip()
 					end
-					box.OnItemMouseEnter = function()
+					hBuff.OnItemMouseEnter = function()
 						this:SetObjectMouseOver(true)
-					end
-					box.OnItemRefreshTip = function()
-						local dwID, nLevel, nEndFrame = select(2, this:GetObject())
-						local nTime = (nEndFrame - GetLogicFrameCount()) / 16
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
-						OutputBuffTipA(dwID, nLevel, { x, y, w, h }, nTime)
+						local xml = {}
+						for k, v in ipairs(v.tBuff) do
+							local nIcon = select(2, JH.GetBuffName(v.dwID, v.nLevel))
+							local nTime = (v.nEndFrame - GetLogicFrameCount()) / 16
+							local nAlpha = nTime < 600 and 80 or 255
+							tinsert(xml, "<image> path=\"fromiconid\" frame=" .. nIcon .." alpha=" .. nAlpha ..  " w=30 h=30 </image>")
+						end
+						OutputTip(table.concat(xml), 250, { x, y, w, h })
 					end
-					local nTime = (vv.nEndFrame - GetLogicFrameCount()) / 16
-					if nTime < 600 then
-						box:SetAlpha(80)
-					else
-						box:SetAlpha(255)
-					end
-					box:Show()
+				else
+					hBuff:SetOverText(1, "")
+					hBuff.OnItemMouseEnter = nil
+					hBuff.OnItemMouseLeave = nil
+					hBuff:EnableObject(false)
 				end
-				for i = 0, handle_Buff:GetItemCount() - 1, 1 do
-					local item = handle_Buff:Lookup(i)
-					if item and not item.bFree then
-						local dwID, nLevel, nEndFrame = select(2, item:GetObject())
-						if dwID and nLevel then
-							if not JH.GetBuff(dwID, v.p) then
-								-- h.hHandle_Buff.Pool:Free(item)
-								h.hHandle_Buff.Pool:Remove(item)
-							end
+				if v.bGrandpa then
+					hBox:EnableObject(true)
+					hBox.OnItemMouseLeave = function()
+						this:SetObjectMouseOver(false)
+						HideTip()
+					end
+					hBox.OnItemMouseEnter = function()
+						this:SetObjectMouseOver(true)
+						local x, y = this:GetAbsPos()
+						local w, h = this:GetSize()
+						local kBuff = JH.GetBuff(RT_GONGZHAN_ID, v.p)
+						if kBuff then
+							OutputBuffTipA(kBuff.dwID, kBuff.nLevel, { x, y, w, h })
 						end
 					end
 				end
-				handle_Buff:FormatAllItemPos()
+				hBox:EnableObject(v.bGrandpa)
 			end
 			if v.tTemporaryEnchant and #v.tTemporaryEnchant > 0 then
 				local vv = v.tTemporaryEnchant[1]
@@ -646,7 +651,7 @@ function RT.UpdateList()
 						OutputTip(desc:gsub("font=%d+", "font=113") .. GetFormatText(FormatString(g_tStrings.STR_ITEM_TEMP_ECHANT_LEFT_TIME .."\n", GetTimeText(vv.nTemporaryEnchantLeftSeconds)), 102), 400, { x, y, w, h })
 					end
 				end
-				if vv.nTemporaryEnchantLeftSeconds < 600 then
+				if vv.nTemporaryEnchantLeftSeconds < 480 then
 					box:SetAlpha(80)
 				else
 					box:SetAlpha(255)
@@ -654,7 +659,6 @@ function RT.UpdateList()
 			else
 				h:Lookup("Box_Enchant"):Hide()
 			end
-
 			-- 装备处理
 			if v.tEquip and #v.tEquip > 0 then
 				local handle_equip = h.hHandle_Equip.self
@@ -887,7 +891,8 @@ function RT.GetTeam()
 			tFood             = {}, -- 小吃和附魔
 			-- nEquipScore       = -1,  -- 装备分
 			nFightState       = p and p.bFightState and 1 or 0, -- 战斗状态
-			bIsOnLine         = true
+			bIsOnLine         = true,
+			bGrandpa          = false, -- 大爷
 		}
 		if info and info.bIsOnLine ~= nil then
 			aInfo.bIsOnLine = info.bIsOnLine
@@ -901,6 +906,9 @@ function RT.GetTeam()
 				end
 				if RT_BUFF_ID[tBuff.dwID] then
 					tinsert(aInfo.tBuff, tBuff)
+				end
+				if tBuff.dwID == RT_GONGZHAN_ID then -- grandpa
+					aInfo.bGrandpa = true
 				end
 			end
 			if me.dwID == p.dwID then
