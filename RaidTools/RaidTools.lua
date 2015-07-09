@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-08 08:49:01
+-- @Last Modified time: 2015-07-09 21:41:37
 
 local _L = JH.LoadLangPack
 
@@ -875,9 +875,10 @@ function RT.GetTeam()
 	local team  = GetClientTeam()
 	local aList = {}
 	local frame = RT.GetFrame()
+	local bIsInParty = JH.IsInParty()
 	for k, v in ipairs(RT.GetTeamMemberList()) do
 		local p = GetPlayer(v)
-		local info = team.GetMemberInfo(v) or {}
+		local info = bIsInParty and team.GetMemberInfo(v) or {}
 		local aInfo = {
 			p                 = p,
 			szName            = p and p.szName or info.szName or _L["Loading..."],
@@ -931,9 +932,11 @@ function RT.GetEquip()
 	local frame = RT.GetFrame()
 	local team  = GetClientTeam()
 	for k, v in ipairs(RT.GetTeamMemberList()) do
-		local info = team.GetMemberInfo(v)
-		if v ~= me.dwID and info.bIsOnLine then
-			RT.GetTotalEquipScore(v)
+		if v ~= me.dwID then
+			local info = team.GetMemberInfo(v)
+			if info.bIsOnLine then
+				RT.GetTotalEquipScore(v)
+			end
 		end
 	end
 end
