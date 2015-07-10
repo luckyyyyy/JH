@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-16 12:22:04
+-- @Last Modified time: 2015-07-10 23:42:19
 local _L = JH.LoadLangPack
 
 TargetFace = {
@@ -174,7 +174,11 @@ _TargetFace.OnBreathe = function()
 	end
 
 	-- shoe connect
-	if t.bConnect and tar and tar.dwID ~= me.dwID and (not ttar or (ttar and ttar.dwID ~= me.dwID)) then
+	if t.bConnect
+		and tar
+		and tar.dwID ~= me.dwID
+		and (not ttar or not t.bTTConnect or (ttar and ttar.dwID ~= me.dwID))
+	then
 		if _t.bReRender or (ttar and _t.tCache.dwTTID ~= ttar.dwID) or _t.tCache.dwTargetID ~= tar.dwID or (not ttar and _t.tCache.dwTTID ~= 0) then
 			_TargetFace.DrawLine(me, tar, _t.hTLine, t.tConnColor, t.nConnAlpha)
 		end
