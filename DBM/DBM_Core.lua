@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 08:45:06
+-- @Last Modified time: 2015-07-12 14:22:42
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -477,14 +477,13 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 		CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
 		if #CACHE.INTERVAL[szType][key] > 300 then
 			CACHE.INTERVAL[szType][key] = {}
-		else
-			if #CACHE.INTERVAL[szType][key] > 1 then
-				if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
-					CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
-				end
-			else
+		end
+		if #CACHE.INTERVAL[szType][key] > 0 then
+			if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
 				CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
 			end
+		else
+			CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
 		end
 	end
 	if data then
@@ -600,9 +599,8 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
 	if #CACHE.INTERVAL.CASTING[key] > 300 then
 		CACHE.INTERVAL.CASTING[key] = {}
-	else
-		CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
 	end
+	CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
 	CACHE.SKILL_LIST[dwCaster][key] = nTime
 	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
 	local me = GetClientPlayer()
@@ -736,13 +734,16 @@ function D.OnNpcEvent(npc, bEnter)
 				FireUIEvent("DBMUI_TEMP_UPDATE", "NPC", t)
 			end
 		end
-		if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime > 500 then
-			CACHE.INTERVAL.NPC[npc.dwTemplateID] = CACHE.INTERVAL.NPC[npc.dwTemplateID] or {}
-			if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 300 then
-				CACHE.INTERVAL.NPC[npc.dwTemplateID] = {}
-			else
+		CACHE.INTERVAL.NPC[npc.dwTemplateID] = CACHE.INTERVAL.NPC[npc.dwTemplateID] or {}
+		if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 300 then
+			CACHE.INTERVAL.NPC[npc.dwTemplateID] = {}
+		end
+		if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 0 then
+			if nTime - CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID]] > 500 then
 				CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID] + 1] = nTime
 			end
+		else
+			CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID] + 1] = nTime
 		end
 	else
 		if CACHE.NPC_LIST[npc.dwTemplateID] and CACHE.NPC_LIST[npc.dwTemplateID].tList then
