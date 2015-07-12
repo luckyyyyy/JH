@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 06:04:30
+-- @Last Modified time: 2015-07-12 08:55:32
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -93,6 +93,14 @@ JH_TALK_CHANNEL_HEADER = {
 	[PLAYER_TALK_CHANNEL.FORCE]         = "/f ",
 	[PLAYER_TALK_CHANNEL.CAMP]          = "/c ",
 	[PLAYER_TALK_CHANNEL.WORLD]         = "/h ",
+}
+-- 相同名字的地图 全部指向同一个ID
+JH_MAP_NAME_FIX = {
+	[143] = 147,
+	[144] = 147,
+	[145] = 147,
+	[146] = 147,
+	[195] = 196,
 }
 
 if not PEEK_OTHER_PLAYER_RESPOND then
