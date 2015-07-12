@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 22:19:50
+-- @Last Modified time: 2015-07-12 08:45:06
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1153,18 +1153,19 @@ end
 
 function D.GetDungeon()
 	if IsEmpty(CACHE.DUNGEON) then
-		for k, v in ipairs(GetMapList()) do
+		local tCache = {}
+		for k, v in JH.bpairs(GetMapList()) do
 			local a = g_tTable.DungeonInfo:Search(v)
 			if a and a.dwClassID == 3 then
-				tinsert(CACHE.DUNGEON, {
-					dwMapID      = a.dwMapID,
-					szLayer3Name = a.szLayer3Name
-				})
+				if not tCache[a.szLayer3Name] then
+					local i = #CACHE.DUNGEON + 1
+					CACHE.DUNGEON[i] = { szLayer3Name = a.szLayer3Name, aList = {} }
+					tCache[a.szLayer3Name] = CACHE.DUNGEON[i]
+				end
+				tinsert(tCache[a.szLayer3Name].aList, a.dwMapID)
 			end
 		end
-		table.sort(CACHE.DUNGEON, function(a, b)
-			return a.dwMapID < b.dwMapID
-		end)
+		table.sort(CACHE.DUNGEON, function(a, b) return a.szLayer3Name > b.szLayer3Name end)
 	end
 	return CACHE.DUNGEON
 end
@@ -1281,7 +1282,7 @@ function D.LoadConfigureFile(config)
 	local data = LoadLUAData(path)
 	root = root:gsub("\\", "/")
 	if not data then
-		
+
 		return false, root .. path
 	else
 		if config.nMode == 1 then

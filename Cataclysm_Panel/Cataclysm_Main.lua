@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 05:30:30
+-- @Last Modified time: 2015-07-12 08:20:21
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -337,7 +337,7 @@ function Cataclysm_Main.OnFrameCreate()
 	-- 中间层数据 常用的
 	this.hMember = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini", "Handle_RoleDummy")
 	this.hBuff   = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini", "Handle_Buff")
-	
+
 end
 -------------------------------------------------
 -- 拖动窗体 OnFrameDrag对于较大的窗口 掉帧严重
@@ -1173,7 +1173,7 @@ end)
 
 -- 关于界面打开和刷新面板的时机
 -- 1) 普通情况下 组队会触发[PARTY_UPDATE_BASE_INFO]打开+刷新
--- 2) 进入竞技场/战场的情况下 不会触发[PARTY_UPDATE_BASE_INFO]事件 
+-- 2) 进入竞技场/战场的情况下 不会触发[PARTY_UPDATE_BASE_INFO]事件
 --    需要利用外面注册的[LOADING_END]来打开+刷新
 -- 3) 如果在竞技场/战场掉线重上的情况下 需要使用外面注册的[LOADING_END]来打开面板
 --    然后在UI上注册的[LOADING_END]的来刷新界面，否则获取不到团队成员，只能获取到有几个队

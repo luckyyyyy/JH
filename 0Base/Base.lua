@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-09 08:56:51
+-- @Last Modified time: 2015-07-12 07:59:33
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -820,21 +820,16 @@ function JH.GetDistance(nX, nY, nZ)
 	end
 	return floor(((me.nX - nX) ^ 2 + (me.nY - nY) ^ 2 + (me.nZ/8 - nZ/8) ^ 2) ^ 0.5)/64
 end
-
--- 严格判定25人本
-function JH.IsInDungeon(bType)
+-- 判断是不是副本地图
+function JH.IsInDungeon(dwMapID, bType)
 	local me = GetClientPlayer()
-	if not me then
-		return false
+	if type(dwMapID) == "boolean" then
+		bType = dwMapID
 	end
+	dwMapID = dwMapID or me.GetMapID()
 	if bType then -- 只判断地图的类型 而不是严格判断25人本
-		local dwMapID = me.GetMapID()
 		local nMapType = select(2, GetMapParams(dwMapID))
-	    if nMapType and nMapType == MAP_TYPE.DUNGEON then
-			return true
-		else
-			return false
-		end
+		return nMapType and nMapType == MAP_TYPE.DUNGEON
 	end
 	if IsEmpty(_JH.tDungeonList) then
 		for k, v in ipairs(GetMapList()) do
@@ -844,7 +839,7 @@ function JH.IsInDungeon(bType)
 			end
 		end
 	end
-	return _JH.tDungeonList[me.GetMapID()] or false
+	return _JH.tDungeonList[dwMapID] or false
 end
 
 -- JJC地图
@@ -852,11 +847,7 @@ function JH.IsInArena()
 	local me = GetClientPlayer()
 	local dwMapID = me.GetMapID()
 	local nMapType = select(2, GetMapParams(dwMapID))
-	if nMapType and nMapType == MAP_TYPE.BATTLE_FIELD then
-		return true
-	else
-		return false
-	end
+	return nMapType and nMapType == MAP_TYPE.BATTLE_FIELD
 end
 
 function JH.IsInParty()
@@ -868,10 +859,10 @@ function JH.JsonToTable(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
 		JH.Debug(err)
-		return JH.Alert("json_decode Error"), err
+		return false, err
 	end
 	if type(result) ~= "table" then
-		return JH.Alert("data is invalid"), "data is invalid"
+		return false, "data is invalid"
 	end
 	local data = {}
 	for k, v in pairs(result) do
