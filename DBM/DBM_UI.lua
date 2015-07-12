@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 11:08:14
+-- @Last Modified time: 2015-07-12 11:43:06
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -294,7 +294,9 @@ function DBM_UI.OnItemMouseLeave()
 		end
 	elseif szName == "Handle_L" or szName == "Handle_R" then
 		local box = this:Lookup("Box")
-		box:SetObjectMouseOver(false)
+		if box and box:IsValid() then
+			box:SetObjectMouseOver(false)
+		end
 	elseif szName == "Handle_TALK_L" or szName == "Handle_TALK_R" then
 		this:Lookup("Image_Light"):Hide()
 	end
@@ -355,13 +357,13 @@ function DBM_UI.OnItemLButtonDragEnd()
 	local szName = this:GetName()
 	if szName == "TreeLeaf_Content" then
 		local data = CloseRaidDragPanel()
-		if data.dwMapID ~= this.dwMapID then
+		if data and data.dwMapID ~= this.dwMapID then
 			DBMUI.MoveData(data.dwMapID, data.nIndex, this.dwMapID, IsCtrlKeyDown())
 		end
 	elseif szName == "Handle_L" or szName == "Handle_TALK_L" then
 		CloseRaidDragPanel()
+		DBMUI.UpdateTree()
 	end
-	DBMUI.UpdateTree()
 end
 
 function DBMUI.OutputTip(szType, data, rect)
@@ -503,29 +505,12 @@ end
 
 function DBMUI.GetClassMenu()
 	local menu = {}
-	if DBMUI_SELECT_TYPE == "CIRCLE" then
-		menu = Circle.GetMemu()
-	else
-		local txt = this:GetParent():Lookup("", "Text_Default")
-		local tClass, tDungeon = {}, DBM_API.GetDungeon()
-		table.insert(menu, { szOption = _L["All Data"], fnAction = function()
-			DBMUI_SELECT_MAP = _L["All Data"]
-			FireUIEvent("DBMUI_DATA_RELOAD")
-		end })
-		table.insert(menu, { bDevide = true })
-		DBMUI.InsertDungeonMenu(menu, function(dwMapID)
-			DBMUI_SELECT_MAP = dwMapID
-			FireUIEvent("DBMUI_DATA_RELOAD")
-		end)
-	end
-	table.insert(menu, { bDevide = true })
 	table.insert(menu, { szOption = _L["Import Data"], fnAction = DBMUI.OpenImportPanel })
 	local szLang = select(3, GetVersion())
 	if szLang == "zhcn" or szLang == "zhtw" then
 		table.insert(menu, { szOption = _L["import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
 	end
 	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
-
 	return menu
 end
 
@@ -744,6 +729,17 @@ function DBMUI.SetLItemAction(szType, h, t)
 		table.insert(menu, { szOption = _L["Class"] .. g_tStrings.STR_COLON .. DBMUI.GetMapName(t.dwMapID), bDisable = true })
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_MOVE_TO })
+		table.insert(menu[#menu], { szOption = _L["Manual input"], fnAction = function()
+			GetUserInput(g_tStrings.MSG_INPUT_MAP_NAME, function(szText)
+				local dwMapID = DBMUI.GetMapIDByName(szText)
+				if dwMapID then
+					DBMUI.MoveData(t.dwMapID, t.nIndex, dwMapID, IsCtrlKeyDown())
+				else
+					return JH.Alert(_L["The map does not exist"])
+				end
+			end)
+		end })
+		table.insert(menu[#menu], { bDevide = true })
 		DBMUI.InsertDungeonMenu(menu[#menu], function(dwMapID)
 			DBMUI.MoveData(t.dwMapID, t.nIndex, dwMapID, IsCtrlKeyDown())
 		end)
@@ -914,6 +910,23 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 	handle:FormatAllItemPos()
 end
 
+function DBMUI.GetMapIDByName(szName)
+	local dwMapID
+	if txt == g_tStrings.CHANNEL_COMMON then
+		return -1
+	else
+		for k, v in ipairs(GetMapList()) do
+			if Table_GetMapName(v) == szName then
+				dwMapID = v
+				break
+			end
+		end
+	end
+	if dwMapID then
+		return JH_MAP_NAME_FIX[dwMapID] or dwMapID
+	end
+end
+
 -- 添加面板
 function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
@@ -977,17 +990,7 @@ function DBMUI.OpenAddPanel(szType, data)
 		ui:Append("WndButton3", { x = 120, y = nY + 40, txt = _L["Add"] }):Click(function()
 			local nClass
 			local txt = ui:Fetch("map"):Text()
-			if txt == g_tStrings.CHANNEL_COMMON then
-				nClass = -1
-			else
-				for k, v in ipairs(GetMapList()) do
-					if Table_GetMapName(v) == txt then
-						nClass = v
-						break
-					end
-				end
-			end
-			nClass = JH_MAP_NAME_FIX[nClass] or nClass
+			local nClass = DBMUI.GetMapIDByName(txt)
 			if not nClass then
 				return JH.Alert(_L["The map does not exist"])
 			end

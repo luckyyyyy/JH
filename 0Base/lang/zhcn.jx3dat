@@ -115,6 +115,7 @@ data = {
 	["TRANSFER_LIFE"] = "吸取生命",
 	["TRANSFER_MANA"] = "吸取内力",
 	-- DBM_UI.lua --
+	["Manual input"] = "手动输入",
 	["Battle of Taiyuan"] = "太原之战·",
 	["Self KungFu require"] = "自身心法要求",
 	["no request"] = "没有要求",
