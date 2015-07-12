@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-05 16:56:40
+-- @Last Modified time: 2015-07-12 11:08:14
 
 local _L = JH.LoadLangPack
 local DBMUI_INIFILE     = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_UI.ini"
@@ -16,11 +16,44 @@ local CIRCLE_SELECT_MAP = _L["All Data"]
 local DBMUI_SEARCH
 local DBMUI_GLOBAL_SEARCH = false
 local DBMUI_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-
 local DBMUI = {
 	tAnchor = {}
 }
 
+local function OpenRaidDragPanel(data)
+	local hFrame = Wnd.OpenWindow("RaidDragPanel")
+	local nX, nY = Cursor.GetPos()
+	hFrame:SetAbsPos(nX, nY)
+	hFrame:StartMoving()
+	hFrame.data = data
+	local hMember = hFrame:Lookup("", "")
+	local szName = DBMUI.GetBoxInfo(DBMUI_SELECT_TYPE, data)
+	hMember:Lookup("Image_Force"):Hide()
+
+	local hTextName = hMember:Lookup("Text_Name")
+	hTextName:SetText(szName)
+
+	local hImageLife = hMember:Lookup("Image_Health")
+	local hImageMana = hMember:Lookup("Image_Mana")
+	hImageLife:Hide()
+	hImageMana:Hide()
+	hMember:Show()
+	hFrame:Scale(1.5, 1.5)
+	hFrame:BringToTop()
+end
+
+local function CloseRaidDragPanel()
+	local hFrame = Station.Lookup("Normal/RaidDragPanel")
+	if hFrame then
+		hFrame:EndMoving()
+		Wnd.CloseWindow(hFrame)
+		return hFrame.data
+	end
+end
+
+local function RaidDragPanelIsOpened( ... )
+	return Station.Lookup("Normal/RaidDragPanel") and Station.Lookup("Normal/RaidDragPanel"):IsVisible()
+end
 DBM_UI = {}
 
 function DBM_UI.OnFrameCreate()
@@ -38,6 +71,11 @@ function DBM_UI.OnFrameCreate()
 	this.hTalkL = this:CreateItemData(DBMUI_TALK_L, "Handle_TALK_L")
 	this.hItemR = this:CreateItemData(DBMUI_ITEM_R, "Handle_R")
 	this.hTalkR = this:CreateItemData(DBMUI_TALK_R, "Handle_TALK_R")
+	-- tree
+	this.hTreeT = this:CreateItemData(DBMUI_INIFILE, "TreeLeaf_Node")
+	this.hTreeC = this:CreateItemData(DBMUI_INIFILE, "TreeLeaf_Content")
+	this.hTreeH = this:Lookup("PageSet_Main/WndScroll_Tree", "Handle_Tree_List")
+
 	DBMUI_SEARCH = nil -- 重置搜索
 	DBMUI_GLOBAL_SEARCH = false
 
@@ -52,7 +90,7 @@ function DBM_UI.OnFrameCreate()
 			txt:SetFontColor(192, 192, 192)
 		end
 	end
-	ui:Append("WndComboBox", "Select_Class", { x = 700, y = 52, txt = _L["All Data"] }):Menu(DBMUI.GetClassMenu)
+	ui:Append("WndComboBox", "Select_Class", { x = 800, y = 52, txt = g_tStrings.SYS_MENU }):Menu(DBMUI.GetClassMenu)
 	-- 首次加载
 	for k, v in ipairs(DBMUI_TYPE) do
 		if DBMUI_SELECT_TYPE == v then
@@ -96,7 +134,7 @@ function DBM_UI.OnFrameCreate()
 		FireUIEvent("DBMUI_DATA_RELOAD")
 		FireUIEvent("DBMUI_TEMP_RELOAD")
 	end)
-	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 760, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
+	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 860, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
 		DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
 	end)
 	DBMUI.UpdateAnchor(this)
@@ -128,21 +166,11 @@ function DBM_UI.OnActivePage()
 	DBMUI.UpdateRList("DBMUI_TEMP_RELOAD", DBMUI_SELECT_TYPE)
 	if DBMUI_SELECT_TYPE ~= "CIRCLE" then
 		DBMUI.UpdateLList("DBMUI_DATA_RELOAD")
-		if DBMUI_SELECT_MAP == -1 then
-			txt:SetText(g_tStrings.CHANNEL_COMMON)
-		elseif DBMUI_SELECT_MAP == _L["All Data"] then
-			txt:SetText(_L["All Data"])
-		else
-			txt:SetText(Table_GetMapName(DBMUI_SELECT_MAP))
-		end
 	else
-		if type(CIRCLE_SELECT_MAP) == "string" then
-			txt:SetText(CIRCLE_SELECT_MAP)
-		elseif type(CIRCLE_SELECT_MAP) == "number" then
-			txt:SetText(Circle.GetMapName(CIRCLE_SELECT_MAP))
-		end
 		DBMUI.UpdateLList("CIRCLE_DRAW_UI")
 	end
+	-- update tree
+	DBMUI.UpdateTree()
 	-- 初始化图标刷新逻辑
 	local hWndScrollL = this:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, "L", DBMUI_SELECT_TYPE, "L"))
 	local hWndScrollR = this:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, "R", DBMUI_SELECT_TYPE, "R"))
@@ -160,6 +188,182 @@ function DBM_UI.OnActivePage()
 	end
 end
 
+function DBMUI.UpdateTree()
+	local nSelectID = DBMUI_SELECT_TYPE == "CIRCLE" and CIRCLE_SELECT_MAP or DBMUI_SELECT_MAP
+	local function Check(hTreeT, hTreeC)
+		if nSelectID == hTreeC.dwMapID then
+			hTreeT:Expand()
+			hTreeC.bLock = true
+			hTreeC:Lookup(0):Show()
+			hTreeC:Lookup(1):SetFontColor(255, 255, 0)
+		elseif hTreeC.nCount == 0 then
+			hTreeC:Lookup(1):SetFontColor(168, 168, 168)
+		end
+	end
+	local frame = DBMUI.GetFrame()
+	frame.hTreeH:Clear()
+	local tDungeon = DBM_API.GetDungeon()
+	local data = DBM_API.GetTable(DBMUI_SELECT_TYPE)
+
+	local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
+	hTreeT:Lookup(1):SetText(g_tStrings.STR_GUILD_ALL .. "/" ..g_tStrings.OTHER)
+	-- 全部
+	local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
+	local nCount = #data[_L["All Data"]] or 0
+	hTreeC:Lookup(1):SetText(g_tStrings.STR_GUILD_ALL .. " (".. nCount .. ")")
+	hTreeC.dwMapID = _L["All Data"]
+	hTreeC.nCount = nCount
+	Check(hTreeT, hTreeC)
+	for k, v in pairs(data) do
+		if not JH.IsInDungeon(k, true) and k ~= "mt" or (tonumber(k) and k < 0) then
+			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
+			local nCount = data[k] and #data[k] or 0
+			local szName = DBMUI.GetMapName(k)
+			hTreeC:Lookup(1):SetText(szName .. " (".. nCount .. ")")
+			hTreeC.dwMapID = k
+			hTreeC.nCount = nCount
+			Check(hTreeT, hTreeC)
+		end
+	end
+	local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
+	hTreeT:Lookup(1):SetText(g_tStrings.STR_FT_DUNGEON)
+	for k, v in pairs(data) do
+		if not JH.IsInDungeon(k) and JH.IsInDungeon(k, true) then
+			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
+			local nCount = data[k] and #data[k] or 0
+			local szName = DBMUI.GetMapName(k)
+			hTreeC:Lookup(1):SetText(szName .. " (".. nCount .. ")")
+			hTreeC.dwMapID = k
+			hTreeC.nCount = nCount
+			Check(hTreeT, hTreeC)
+		end
+	end
+
+	for _, v in ipairs(tDungeon) do
+		local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
+		hTreeT:Lookup(1):SetText(v.szLayer3Name)
+		for _, vv in ipairs(v.aList) do
+			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
+			local nCount = data[vv] and #data[vv] or 0
+			-- 地图这么长的名字 简直是不给做UI的活路
+			local szName = Table_GetMapName(vv)
+			szName = szName:gsub(_L["Battle of Taiyuan"], "") or szName
+			szName = szName:gsub(v.szLayer3Name, "") or szName
+			hTreeC:Lookup(1):SetText(szName .. " (".. nCount .. ")")
+			hTreeC.dwMapID = vv
+			hTreeC.nCount = nCount
+			Check(hTreeT, hTreeC)
+		end
+	end
+	frame.hTreeH:FormatAllItemPos()
+end
+
+function DBM_UI.OnItemLButtonClick()
+	local szName = this:GetName()
+	if szName == "TreeLeaf_Node" then
+		local hList = this:GetParent()
+		if not this:IsExpand() then
+			for i = 0, hList:GetItemCount() - 1 do
+				local item = hList:Lookup(i)
+				if item == this then
+					item:Expand()
+				else
+					item:Collapse()
+				end
+			end
+		else
+			this:Collapse()
+		end
+		this:GetParent():FormatAllItemPos()
+	elseif szName == "TreeLeaf_Content" then
+		if DBMUI_SELECT_TYPE == "CIRCLE" then
+			CIRCLE_SELECT_MAP = this.dwMapID
+			FireUIEvent("CIRCLE_DRAW_UI")
+		else
+			DBMUI_SELECT_MAP = this.dwMapID
+			FireUIEvent("DBMUI_DATA_RELOAD")
+		end
+	end
+end
+
+function DBM_UI.OnItemMouseLeave()
+	local szName = this:GetName()
+	if szName == "TreeLeaf_Node" or szName == "TreeLeaf_Content" then
+		if not this.bLock and this:IsValid() and this:Lookup(0) and this:Lookup(0):IsValid() then
+			this:Lookup(0):Hide()
+		end
+	elseif szName == "Handle_L" or szName == "Handle_R" then
+		local box = this:Lookup("Box")
+		box:SetObjectMouseOver(false)
+	elseif szName == "Handle_TALK_L" or szName == "Handle_TALK_R" then
+		this:Lookup("Image_Light"):Hide()
+	end
+	HideTip()
+end
+
+function DBM_UI.OnItemMouseEnter()
+	local szName = this:GetName()
+	local x, y = this:GetAbsPos()
+	local w, h = this:GetSize()
+	if szName == "TreeLeaf_Node" or szName == "TreeLeaf_Content" then
+		this:Lookup(0):Show()
+		if szName == "TreeLeaf_Content" then
+			local szXml = GetFormatText(DBMUI.GetMapName(this.dwMapID) .. "\n", 47, 255, 255, 0)
+			szXml = szXml .. GetFormatText(this.nCount, 47, 255, 255, 255)
+			OutputTip(szXml, 300, { x, y, w, h })
+		elseif szName == "TreeLeaf_Node" and RaidDragPanelIsOpened() then
+			DBM_UI.OnItemLButtonClick()
+		end
+	elseif szName == "Handle_L" or szName == "Handle_R" then
+		local box = this:Lookup("Box")
+		box:SetObjectMouseOver(true)
+		if DBMUI_SELECT_TYPE == "CIRCLE" then
+			if tonumber(this.dat.key) or tonumber(this.dat.dwID) then
+				DBMUI.OutputTip("NPC", this.dat, { x, y, w, h })
+			else
+				OutputTip(GetFormatText((this.dat.szNote and string.format("%s (%s)", this.dat.key, this.dat.szNote) or this.dat.key) .. "\n" .. DBMUI.GetMapName(this.dat.dwMapID), 41, 255, 255, 255), 300, { x, y, w, h })
+			end
+		else
+			DBMUI.OutputTip(DBMUI_SELECT_TYPE, this.dat, { x, y, w, h })
+		end
+	elseif szName == "Handle_TALK_L" or szName == "Handle_TALK_R" then
+		this:Lookup("Image_Light"):Show()
+		DBMUI.OutputTip(DBMUI_SELECT_TYPE, this.dat, { x, y, w, h })
+	end
+end
+
+function DBM_UI.OnItemLButtonDrag()
+	local szName = this:GetName()
+	if szName == "Handle_L" or szName == "Handle_TALK_L" then
+		if DBMUI_SELECT_TYPE == "CIRCLE" then
+			return
+		end
+		OpenRaidDragPanel(this.dat)
+		local frame = DBMUI.GetFrame()
+		local handle = frame.hTreeH
+		for i = 0, handle:GetItemCount() - 1 do
+			local item = handle:Lookup(i)
+			if item:IsExpand() then
+				item:Collapse()
+			end
+		end
+		frame.hTreeH:FormatAllItemPos()
+	end
+end
+
+function DBM_UI.OnItemLButtonDragEnd()
+	local szName = this:GetName()
+	if szName == "TreeLeaf_Content" then
+		local data = CloseRaidDragPanel()
+		if data.dwMapID ~= this.dwMapID then
+			DBMUI.MoveData(data.dwMapID, data.nIndex, this.dwMapID, IsCtrlKeyDown())
+		end
+	elseif szName == "Handle_L" or szName == "Handle_TALK_L" then
+		CloseRaidDragPanel()
+	end
+	DBMUI.UpdateTree()
+end
+
 function DBMUI.OutputTip(szType, data, rect)
 	if szType == "BUFF" or szType == "DEBUFF" then
 		OutputBuffTipA(data.dwID, data.nLevel, rect)
@@ -175,7 +379,7 @@ end
 function DBMUI.InsertDungeonMenu(menu, fnAction)
 	local me = GetClientPlayer()
 	local dwMapID = me.GetMapID()
-	local tClass, tDungeon, nCount = {}, DBM_API.GetDungeon()
+	local tDungeon =  DBM_API.GetDungeon()
 	local data = DBM_API.GetTable(DBMUI_SELECT_TYPE)
 	table.insert(menu, { szOption = g_tStrings.CHANNEL_COMMON .. " (" .. (data[-1] and #data[-1] or 0) .. ")", fnAction = function()
 		if fnAction then
@@ -184,22 +388,22 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 	end })
 	table.insert(menu, { bDevide = true })
 	for k, v in ipairs(tDungeon) do
-		if not tClass[v.szLayer3Name] then
-			tClass[v.szLayer3Name] = { szOption = v.szLayer3Name }
-			table.insert(menu, tClass[v.szLayer3Name])
-		end
-		table.insert(tClass[v.szLayer3Name], {
-			szOption = Table_GetMapName(v.dwMapID) .. " (" .. (data[v.dwMapID] and #data[v.dwMapID] or 0) .. ")",
-			rgb = { 255, 128, 0 },
-			szIcon = dwMapID == v.dwMapID and "ui/Image/Minimap/Minimap.uitex",
-			szLayer = dwMapID == v.dwMapID and "ICON_RIGHT",
-			nFrame = dwMapID == v.dwMapID and 10,
-			fnAction = function()
-				if fnAction then
-					fnAction(v.dwMapID)
+		local tMenu = { szOption = v.szLayer3Name }
+		for _, vv in ipairs(v.aList) do
+			table.insert(tMenu, {
+				szOption = Table_GetMapName(vv) .. " (" .. (data[vv] and #data[vv] or 0) .. ")",
+				rgb      = { 255, 128, 0 },
+				szIcon   = dwMapID == vv and "ui/Image/Minimap/Minimap.uitex",
+				szLayer  = dwMapID == vv and "ICON_RIGHT",
+				nFrame   = dwMapID == vv and 10,
+				fnAction = function()
+					if fnAction then
+						fnAction(vv)
+					end
 				end
-			end
-		})
+			})
+		end
+		table.insert(menu, tMenu)
 	end
 end
 
@@ -305,13 +509,11 @@ function DBMUI.GetClassMenu()
 		local txt = this:GetParent():Lookup("", "Text_Default")
 		local tClass, tDungeon = {}, DBM_API.GetDungeon()
 		table.insert(menu, { szOption = _L["All Data"], fnAction = function()
-			txt:SetText(_L["All Data"])
 			DBMUI_SELECT_MAP = _L["All Data"]
 			FireUIEvent("DBMUI_DATA_RELOAD")
 		end })
 		table.insert(menu, { bDevide = true })
 		DBMUI.InsertDungeonMenu(menu, function(dwMapID)
-			txt:SetText(DBMUI.GetMapName(dwMapID))
 			DBMUI_SELECT_MAP = dwMapID
 			FireUIEvent("DBMUI_DATA_RELOAD")
 		end)
@@ -468,22 +670,11 @@ function DBMUI.SetBuffItemAction(h, dat)
 	end
 	h:Lookup("Image_RBg"):Show()
 	local box = h:Lookup("Box")
-	-- box:SetObjectIcon(nIcon)
 	box.nIocn = nIcon
 	if dat.nCount then
 		box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 		box:SetOverTextFontScheme(0, 15)
 		box:SetOverText(0, dat.nCount)
-	end
-	h.OnItemMouseEnter = function()
-		box:SetObjectMouseOver(true)
-		local x, y = this:GetAbsPos()
-		local w, h = this:GetSize()
-		DBMUI.OutputTip("BUFF", dat, { x, y, w, h })
-	end
-	h.OnItemMouseLeave = function()
-		box:SetObjectMouseOver(false)
-		HideTip()
 	end
 end
 
@@ -494,18 +685,7 @@ function DBMUI.SetCastingItemAction(h, dat)
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
 	end
 	local box = h:Lookup("Box")
-	-- box:SetObjectIcon(nIcon)
 	box.nIocn = nIcon
-	h.OnItemMouseEnter = function()
-		box:SetObjectMouseOver(true)
-		local x, y = this:GetAbsPos()
-		local w, h = this:GetSize()
-		DBMUI.OutputTip("CASTING", dat, { x, y, w, h })
-	end
-	h.OnItemMouseLeave = function()
-		box:SetObjectMouseOver(false)
-		HideTip()
-	end
 end
 
 function DBMUI.SetNpcItemAction(h, dat)
@@ -517,20 +697,6 @@ function DBMUI.SetNpcItemAction(h, dat)
 	local box = h:Lookup("Box")
 	box:ClearObjectIcon()
 	box:SetExtentImage("ui/Image/TargetPanel/Target.UITex", dat.nFrame)
-	h.OnItemMouseEnter = function()
-		if this:IsValid() then
-			box:SetObjectMouseOver(true)
-			local x, y = this:GetAbsPos()
-			local w, h = this:GetSize()
-			DBMUI.OutputTip("NPC", dat, { x, y, w, h })
-		end
-	end
-	h.OnItemMouseLeave = function()
-		if this:IsValid() then
-			box:SetObjectMouseOver(false)
-			HideTip()
-		end
-	end
 end
 
 function DBMUI.SetCircleItemAction(h, dat)
@@ -539,26 +705,7 @@ function DBMUI.SetCircleItemAction(h, dat)
 	if dat.tCircles then
 		h:Lookup("Text"):SetFontColor(unpack(dat.tCircles[1].col))
 	end
-	-- box:SetObjectIcon(2673)
 	box.nIocn = 2673
-	h.OnItemMouseEnter = function()
-		if this:IsValid() then
-			box:SetObjectMouseOver(true)
-			local x, y = this:GetAbsPos()
-			local w, h = this:GetSize()
-			if tonumber(dat.key) then
-				DBMUI.OutputTip("NPC", dat, { x, y, w, h })
-			else
-				OutputTip(GetFormatText((dat.szNote and string.format("%s (%s)", dat.key, dat.szNote) or dat.key) .. "\n" .. Circle.GetMapName(dat.dwMapID), 41, 255, 255, 255), 300, { x, y, w, h })
-			end
-		end
-	end
-	h.OnItemMouseLeave = function()
-		if this:IsValid() then
-			box:SetObjectMouseOver(false)
-			HideTip()
-		end
-	end
 end
 
 function DBMUI.SetTalkItemAction(h, t, i)
@@ -570,27 +717,18 @@ function DBMUI.SetTalkItemAction(h, t, i)
 	if t.col then
 		h:Lookup("Text_Content"):SetFontColor(unpack(t.col))
 	end
-	h.OnItemMouseEnter = function()
-		if this:IsValid() then
-			this:Lookup("Image_Light"):Show()
-			local x, y = this:GetAbsPos()
-			local w, h = this:GetSize()
-			DBMUI.OutputTip("TALK", t, { x, y, w, h })
-		end
-	end
-	h.OnItemMouseLeave = function()
-		if this:IsValid() then
-			this:Lookup("Image_Light"):Hide()
-			HideTip()
-		end
-	end
 end
 
-function DBMUI.GetMapName(mapid)
-	if mapid == -1 then
+function DBMUI.GetMapName(dwMapID)
+	if DBMUI_SELECT_TYPE == "CIRCLE" then
+		return Circle.GetMapName(dwMapID)
+	end
+	if type(dwMapID) == "string" then
+		return dwMapID
+	elseif dwMapID == -1 then
 		return g_tStrings.CHANNEL_COMMON
 	else
-		return Table_GetMapName(mapid) or mapid
+		return Table_GetMapName(dwMapID)
 	end
 end
 
@@ -660,6 +798,7 @@ function DBMUI.DrawTableL(szType, data)
 	if #data > 0 then
 		for k, v in JH.bpairs(data) do
 			local h = handle:AppendItemFromData(hItemData)
+			h.dat = v
 			SetDataAction(h, v, k)
 		end
 	end
@@ -756,6 +895,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 		if #data > 0 then
 			for k, v in JH.bpairs(data) do
 				local h = handle:AppendItemFromData(hItemData)
+				h.dat = v
 				SetDataAction(h, v, k)
 			end
 		end
@@ -765,12 +905,15 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 		local name = szType == "TALK" and "Handle_TALK_R" or "Handle_R"
 		if not DBMUI_SEARCH or DBMUI.CheckSearch(szType, data) then
 			handle:InsertItemFromIni(0, false, ini, name)
-			SetDataAction(handle:Lookup(0), data, 0)
+			local h = handle:Lookup(0)
+			h.dat = data
+			SetDataAction(h, data, 0)
 			DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "R", 0)
 		end
 	end
 	handle:FormatAllItemPos()
 end
+
 -- 添加面板
 function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
@@ -779,10 +922,6 @@ function DBMUI.OpenAddPanel(szType, data)
 		local szName, nIcon = _L["TALK"], 340
 		if szType ~= "TALK" then
 			szName, nIcon = DBMUI.GetBoxInfo(szType, data)
-		end
-		local nClass
-		if DBMUI_SELECT_MAP ~= _L["All Data"] then
-			nClass = DBMUI_SELECT_MAP
 		end
 		GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, focus = true, close = true })
 		local frame = Station.Lookup("Normal/DBM_NewData")
@@ -808,22 +947,53 @@ function DBMUI.OpenAddPanel(szType, data)
 				HideTip()
 			end
 		end)
-		nX, nY = ui:Append("WndComboBox", "Select_Class", { x = 100, y = nY + 15, txt = nClass and DBMUI.GetMapName(nClass) or _L["Please Select Class"] }):Menu(function()
-			local t = {}
-			local txt = ui:Fetch("Select_Class")
-			DBMUI.InsertDungeonMenu(t, function(dwMapID)
-				txt:Text(DBMUI.GetMapName(dwMapID))
-				nClass = dwMapID
-			end)
-			return t
-		end):Pos_()
+		nX, nY = ui:Append("WndEdit", "map", { x = 100, y = nY + 15 })
+		:Change(function()
+			local me = this
+			if me:GetText() == "" then
+				if IsPopupMenuOpened() then
+					return
+				end
+				local menu = {}
+				DBMUI.InsertDungeonMenu(menu, function(dwMapID)
+					me:SetText(DBMUI.GetMapName(dwMapID))
+				end)
+				local nX, nY = this:GetAbsPos()
+				local nW, nH = this:GetSize()
+				menu.nMiniWidth = nW
+				menu.x = nX
+				menu.y = nY + nH
+				menu.fnAutoClose = function() return not me or not me:IsValid() end
+				menu.bShowKillFocus = true
+				menu.bDisableSound = true
+				PopupMenu(menu)
+			else
+				if IsPopupMenuOpened() then
+					Wnd.CloseWindow("PopupMenuPanel")
+				end
+			end
+		end)
+		:Text(nClass and DBMUI.GetMapName(nClass) or ""):Focus():Pos_()
 		ui:Append("WndButton3", { x = 120, y = nY + 40, txt = _L["Add"] }):Click(function()
+			local nClass
+			local txt = ui:Fetch("map"):Text()
+			if txt == g_tStrings.CHANNEL_COMMON then
+				nClass = -1
+			else
+				for k, v in ipairs(GetMapList()) do
+					if Table_GetMapName(v) == txt then
+						nClass = v
+						break
+					end
+				end
+			end
+			nClass = JH_MAP_NAME_FIX[nClass] or nClass
 			if not nClass then
-				return JH.Alert(_L["Please Select Class"])
+				return JH.Alert(_L["The map does not exist"])
 			end
 			local tab = select(2, DBM_API.CheckRepeatData(szType, nClass, data.dwID or data.szContent, data.nLevel or data.szTarget))
 			if tab then
-				return JH.Confirm(_L["Data already exists, whether editor?"], function()
+				return JH.Confirm(_L["Data exists, editor?"], function()
 					DBMUI.OpenSettingPanel(tab, szType)
 					ui:Remove()
 				end)
@@ -835,6 +1005,7 @@ function DBMUI.OpenAddPanel(szType, data)
 				szContent = data.szContent,
 				szTarget  = data.szTarget
 			}
+			DBMUI_SELECT_MAP = nClass
 			DBMUI.OpenSettingPanel(DBM_API.AddData(szType, nClass, dat), szType)
 			ui:Remove()
 		end)
@@ -845,8 +1016,8 @@ function DBMUI.OpenJosnPanel(data, fnAction)
 	local json = JH.JsonEncode(data, true)
 	local wnd = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = _L["Json Data"], close = true })
 	wnd:Append("WndEdit", "WndEdit",{ w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999,txt = json })
-	if JH.bDebugClient then
-		wnd:Append("WndButton3",{ x = 10, y = 370,txt = _L["Enter"] }):Click(function()
+	wnd:Append("WndButton3",{ x = 10, y = 370,txt = _L["Enter"] }):Click(function()
+		JH.Confirm(_L["Confirm?"], function()
 			local json = wnd:Fetch("WndEdit"):Text()
 			local dat = JH.JsonToTable(json)
 			if fnAction and dat then
@@ -854,7 +1025,7 @@ function DBMUI.OpenJosnPanel(data, fnAction)
 				return fnAction(dat)
 			end
 		end)
-	end
+	end)
 end
 
 -- 设置面板
@@ -880,11 +1051,11 @@ function DBMUI.OpenSettingPanel(data, szType)
 		for k, v in ipairs(JH_KUNGFU_LIST) do
 			table.insert(menu, {
 				szOption = JH.GetSkillName(v[1], 1),
-				bCheck = true,
+				bCheck   = true,
 				bChecked = data.tKungFu and data.tKungFu["SKILL#" .. v[1]],
-				szIcon = v[2],
-				nFrame = v[3],
-				szLayer = "ICON_LEFT",
+				szIcon   = v[2],
+				nFrame   = v[3],
+				szLayer  = "ICON_LEFT",
 				fnAction = function()
 					data.tKungFu = data.tKungFu or {}
 					if not data.tKungFu["SKILL#" .. v[1]] then
@@ -1030,8 +1201,8 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end})
 			table.insert(menu, { bDevide = true })
 		end
-		table.insert(menu, { 
-			szOption = _L["Edit Color"], 
+		table.insert(menu, {
+			szOption = _L["Edit Color"],
 			szLayer = "ICON_RIGHT",
 			szIcon = "ui/Image/UICommon/Feedanimials.uitex",
 			nFrame = 86,
@@ -1045,7 +1216,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 					data.col = { r, g, b }
 					ui:Fetch("Shadow_Color"):Color(r, g, b):Alpha(255)
 				end)
-			end 
+			end
 		})
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = _L["raw data, Please be careful"], color = { 255, 255, 0 }, fnAction = function()

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-10 05:28:41
+-- @Last Modified time: 2015-07-12 08:55:10
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -108,13 +108,6 @@ local MAP_CACHE = {
 	[-1] = _L["All Map"],
 	[-2] = _L["Global Map"]
 }
-local MAP_NAME_FIX = {
-	[143] = 147,
-	[144] = 147,
-	[145] = 147,
-	[146] = 147,
-	[195] = 196,
-}
 setmetatable(MAP_CACHE, { __mode = "kv" })
 function C.GetMapName(mapid)
 	if not MAP_CACHE[mapid] then
@@ -126,7 +119,7 @@ end
 
 do
 	for k, v in ipairs(GetMapList()) do
-		if not MAP_NAME_FIX[v] then
+		if not JH_MAP_NAME_FIX[v] then
 			local szName = C.GetMapName(v)
 			local a = g_tTable.DungeonInfo:Search(v)
 			C.tMapList[szName] = { id = v }
@@ -145,14 +138,11 @@ function C.GetData()
 	return C.tData
 end
 
-function C.SaveFile(bMsg)
+function C.SaveFile()
 	SaveLUAData(GetDataPath(), { Circle = C.tData })
-	if bMsg then
-		JH.Alert(_L("Save success.\n Path:%s", szFullPath))
-	end
 end
 
--- 加载本地文件使用 bMsg相当于不需要效验
+-- 加载本地文件使用
 function C.LoadFile(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
@@ -303,8 +293,8 @@ end
 
 function C.GetMapID()
 	local mapid = GetClientPlayer().GetMapID()
-	if MAP_NAME_FIX[mapid] then
-		mapid = MAP_NAME_FIX[mapid]
+	if JH_MAP_NAME_FIX[mapid] then
+		mapid = JH_MAP_NAME_FIX[mapid]
 	end
 	return mapid
 end
@@ -930,7 +920,7 @@ function C.OpenAddPanel(szName, dwType, szMap)
 				end
 				tinsert(C.tData[map.id], data)
 				FireUIEvent("CIRCLE_CLEAR")
-				FireUIEvent("CIRCLE_DRAW_UI")
+				FireUIEvent("CIRCLE_DRAW_UI", map.id)
 				C.OpenDataPanel(map.id, #C.tData[map.id])
 				ui:Fetch("Btn_Close"):Click()
 			end

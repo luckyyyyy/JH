@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-28 18:27:24
+-- @Last Modified time: 2015-07-12 10:50:52
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -53,7 +53,7 @@ end
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
 -- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
--- 性能测试：for i = 65, 70 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = 1*i, nIcon = i }) end
+-- 性能测试：for i = 65, 70 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = Random(5, 15), nIcon = i }) end
 local function CreateCountdown(nType, szKey, tParam)
 	assert(type(tParam) == "table", "CreateCountdown failed!")
 	local tTime = {}
@@ -192,6 +192,8 @@ function ST_UI.OnFrameBreathe()
 			end
 		end
 	end
+	_ST_UI.handle:Sort()
+	_ST_UI.handle:FormatAllItemPos()
 end
 
 function _ST_UI.UpdateAnchor(frame)
@@ -262,6 +264,7 @@ function ST:SetInfo(tTime, nIcon)
 		self.ui.txt:SetText(tTime.szName)
 	end
 	if tTime.nTime then
+		self.ui:SetUserData(math.floor(tTime.nTime))
 		self.ui.time:SetText(JH_FormatTimeString(tTime.nTime))
 	end
 	if nIcon then
