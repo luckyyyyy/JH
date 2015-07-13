@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-13 12:51:16
+-- @Last Modified time: 2015-07-13 13:16:06
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -218,6 +218,12 @@ function DBMUI.UpdateTree()
 		local tFilter = { ... }
 		for i = 1, select("#", ...) do
 			szName = szName:gsub(tFilter[i], "") or szName
+		end
+		if key ~= _L["All Data"] then
+			local szClassName = hTreeT.szName or hTreeT:Lookup(1):GetText()
+			hTreeT.szName = szClassName
+			hTreeT.nCount = hTreeT.nCount and hTreeT.nCount + nCount or nCount
+			hTreeT:Lookup(1):SetText(hTreeT.szName .. " (".. hTreeT.nCount .. ")")
 		end
 		hTreeC:Lookup(1):SetText(szName .. " (".. nCount .. ")")
 		hTreeC.dwMapID = key
