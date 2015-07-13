@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 07:59:33
+-- @Last Modified time: 2015-07-13 09:50:54
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -457,30 +457,41 @@ function JH.GetAddonInfo()
 		szBuildDate = _JH.szBuildDate,
 	}
 end
--- (string) JH.GetTemplateName(userdata tar [, boolean bEmployer]) -- 根据对象获取模板名称
-function JH.GetTemplateName(tar, bEmployer)
-	if not tar then
-		return _L["Unknown"]
+
+-- 获取对象名称
+function JH.GetObjName(object)
+	if IsPlayer(object.dwID) then
+		return object.szName
+	else
+		return JH.GetTemplateName(object.szName, object.dwTemplateID)
 	end
-	local szName = tar.szName
-	if not tar.dwID or not IsPlayer(tar.dwID) then
-		if szName == "" then
-			szName = Table_GetNpcTemplateName(tar.dwTemplateID)
+end
+
+function JH.GetTemplateName(szName, dwTemplateID, dwEmployer)
+	if type(szName) == "userdata" then
+		if IsPlayer(szName.dwID) then
+			return szName.szName
+		else
+			szName, dwTemplateID, dwEmployer = szName.szName, szName.dwTemplateID, szName.dwEmployer
 		end
+	end
+	if dwTemplateID and not szName or JH.Trim(szName) == "" then
+		szName = Table_GetNpcTemplateName(dwTemplateID)
 		if JH.Trim(szName) == "" then
-			szName = tostring(tar.dwTemplateID)
+			szName = tostring(dwTemplateID)
 		end
-		if tar.dwEmployer and tar.dwEmployer ~= 0 and szName == Table_GetNpcTemplateName(tar.dwTemplateID) and bEmployer then
-			local emp = GetPlayer(tar.dwEmployer)
-			if not emp then
-				szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. szName
-			else
-				szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. szName
-			end
+	end
+	if dwEmployer and dwEmployer ~= 0 then
+		local emp = GetPlayer(dwEmployer)
+		if not emp then
+			szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. szName
+		else
+			szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. szName
 		end
 	end
 	return szName
 end
+
 -- 注册事件，和系统的区别在于可以指定一个 KEY 防止多次加载
 -- (void) JH.RegisterEvent(string szEvent, func fnAction[, string szKey])
 -- szEvent		-- 事件，可在后面加一个点并紧跟一个标识字符串用于防止重复或取消绑定，如 LOADING_END.xxx
@@ -828,8 +839,12 @@ function JH.IsInDungeon(dwMapID, bType)
 	end
 	dwMapID = dwMapID or me.GetMapID()
 	if bType then -- 只判断地图的类型 而不是严格判断25人本
-		local nMapType = select(2, GetMapParams(dwMapID))
-		return nMapType and nMapType == MAP_TYPE.DUNGEON
+		if tonumber(dwMapID) and dwMapID > 0 then
+			local nMapType = select(2, GetMapParams(dwMapID))
+			return nMapType and nMapType == MAP_TYPE.DUNGEON
+		else
+			return false
+		end
 	end
 	if IsEmpty(_JH.tDungeonList) then
 		for k, v in ipairs(GetMapList()) do
@@ -2414,13 +2429,13 @@ _GUI.Item = class(_GUI.Base)
 
 -- xml string
 _GUI.tItemXML = {
-	["Text"] = "<text>w=150 h=30 valign=1 font=162 eventid=257 </text>",
-	["Image"] = "<image>w=100 h=100 </image>",
+	["Text"]    = "<text>w=150 h=30 valign=1 font=162 eventid=257 </text>",
+	["Image"]   = "<image>w=100 h=100 </image>",
 	["Animate"] = "<Animate>w=100 h=100 </Animate>",
-	["Box"] = "<box>w=48 h=48 eventid=525311 </box>",
-	["Shadow"] = "<shadow>w=15 h=15 eventid=277 </shadow>",
-	["Handle"] = "<handle>firstpostype=0 w=10 h=10</handle>",
-	["Label"] = "<handle>w=150 h=30 eventid=257 <text>name=\"Text_Label\" w=150 h=30 font=162 valign=1 </text></handle>",
+	["Box"]     = "<box>w=48 h=48 eventid=525311 </box>",
+	["Shadow"]  = "<shadow>w=15 h=15 eventid=277 </shadow>",
+	["Handle"]  = "<handle>firstpostype=0 w=10 h=10</handle>",
+	["Label"]   = "<handle>w=150 h=30 eventid=257 <text>name=\"Text_Label\" w=150 h=30 font=162 valign=1 </text></handle>",
 }
 
 -- construct

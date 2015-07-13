@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 08:55:32
+-- @Last Modified time: 2015-07-13 08:04:04
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -755,56 +755,7 @@ end
 end
 
 if not OutputNpcTip then
-function OutputNpcTip(dwNpcID, Rect)
-	local npc = GetNpc(dwNpcID)
-	if not npc then
-		return
-	end
-
-	if not npc.IsSelectable() then
-		return
-	end
-
-	local clientPlayer = GetClientPlayer()
-	local r, g, b=GetForceFontColor(dwNpcID, clientPlayer.dwID)
-
-	local szTip = ""
-
-	--------------名字-------------------------
-
-	szTip = szTip.."<Text>text="..EncodeComponentsString(JH.GetTemplateName(npc).."\n").." font=80".." r="..r.." g="..g.." b="..b.." </text>"
-
-	-------------称号----------------------------
-	if npc.szTitle ~= "" then
-		szTip = szTip.."<Text>text="..EncodeComponentsString("<"..npc.szTitle..">\n").." font=0 </text>"
-	end
-
-	-------------等级----------------------------
-	if npc.nLevel - clientPlayer.nLevel > 10 then
-		szTip = szTip.."<Text>text="..EncodeComponentsString(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL).." font=82 </text>"
-	else
-		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel)).." font=0 </text>"
-	end
-
-	------------模版ID-----------------------
-	if IsCtrlKeyDown() then
-		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_NPC_ID, npc.dwID)).."font=102 </text>"
-		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, GetNpcIntensity(npc))).." font=102 </text>"
-		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, npc.dwModelID)).." font=102 </text>"
-		if IsShiftKeyDown() then
-			local tState = GetNpcQuestState(npc) or {}
-			for szKey, tQuestList in pairs(tState) do
-				tState[szKey] = table.concat(tQuestList, ",")
-			end
-			szTip = szTip .. GetFormatText(var2str(tState), 102)
-		end
-	end
-
-	OutputTip(szTip, 345, Rect)
-end
-end
-if not OutputNpcTip2 then
-function OutputNpcTip2(dwNpcTemplateID, Rect)
+function OutputNpcTip(dwNpcTemplateID, Rect)
 	local npc = GetNpcTemplate(dwNpcTemplateID)
 	if not npc then
 		return
