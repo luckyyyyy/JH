@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-10 23:42:19
+-- @Last Modified time: 2015-07-13 08:13:32
 local _L = JH.LoadLangPack
 
 TargetFace = {
@@ -165,7 +165,7 @@ _TargetFace.OnBreathe = function()
 	end
 	-- show name
 	if t.bTTName and tar and ttar then
-		local szName = JH.GetTemplateName(ttar, true)
+		local szName = JH.GetTemplateName(ttar)
 		if _t.bReRender or _t.tCache.dwTTID ~= ttar.dwID then
 			_t.DrawText(tar, _L[">>"] .. szName .. _L["<<"], ttar.dwID == me.dwID)
 		end

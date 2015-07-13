@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-09 21:41:37
+-- @Last Modified time: 2015-07-13 08:08:00
 
 local _L = JH.LoadLangPack
 
@@ -61,20 +61,20 @@ local RT_EQUIP_SPECIAL = {
 	PENDANT      = true
 }
 
-local RT_FOOD_TYPE = { 
+local RT_FOOD_TYPE = {
 	[24] = true,
 	[17] = true,
 	[18] = true,
 	[19] = true,
-	[20] = true 
+	[20] = true
 }
 -- 需要监控的BUFF
 local RT_BUFF_ID = {
 	-- 常规职业BUFF
-	[362]  = true, 
+	[362]  = true,
 	[673]  = true,
 	[112]  = true,
-	[382]  = true, 
+	[382]  = true,
 	[2837] = true,
 	-- 红篮球
 	[6329] = true,
@@ -663,7 +663,7 @@ function RT.UpdateList()
 			if v.tEquip and #v.tEquip > 0 then
 				local handle_equip = h.hHandle_Equip.self
 				for kk, vv in ipairs(v.tEquip) do
-					
+
 					local szName = tostring(vv.nUiId)
 					local box = handle_equip:Lookup(szName)
 					if not box then
@@ -825,19 +825,19 @@ function RT.GetEquipCache(p)
 			end
 			-- 永久的附魔 用于评分
 			if item.dwPermanentEnchantID and item.dwPermanentEnchantID ~= 0 then
-				tinsert(aInfo.tPermanentEnchant, { 
+				tinsert(aInfo.tPermanentEnchant, {
 					dwPermanentEnchantID = item.dwPermanentEnchantID,
 				})
 			end
 			-- 大附魔 / 临时附魔 用于评分
 			if item.dwTemporaryEnchantID and item.dwTemporaryEnchantID ~= 0 then
 				if Table_GetCommonEnchantDesc(item.dwTemporaryEnchantID) then
-					tinsert(aInfo.tTemporaryEnchant, { 
+					tinsert(aInfo.tTemporaryEnchant, {
 						dwTemporaryEnchantID         = item.dwTemporaryEnchantID,
 						nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
 					})
 				else
-					tinsert(aInfo.tPermanentEnchant, { 
+					tinsert(aInfo.tPermanentEnchant, {
 						dwPermanentEnchantID = item.dwTemporaryEnchantID,
 					})
 				end
@@ -1010,7 +1010,7 @@ function RaidTools.OnShowDeathInfo()
 		if data.tResult and data.szSkill then
 			local xml = {
 				GetFormatText("[" .. data.szSkill .. "]" .. (data.bCriticalStrike and g_tStrings.STR_SKILL_CRITICALSTRIKE or "") .. "\n" , 41, 255, 128, 0),
-			}				
+			}
 			for k, v in pairs(data.tResult) do
 				if v > 0 then
 					tinsert(xml, GetFormatText(_L[RT_SKILL_TYPE[k]] .. g_tStrings.STR_COLON, 157))
@@ -1097,7 +1097,7 @@ function RT.UpdatetDeathMsg(dwID)
 	frame.hDeatMsg:FormatAllItemPos()
 end
 
-function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCriticalStrike, nCount, tResult)	
+function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCriticalStrike, nCount, tResult)
 	local KCaster = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
 	local KTarget = IsPlayer(dwTarget) and GetPlayer(dwTarget) or GetNpc(dwTarget)
 	if not (KCaster and KTarget) then
@@ -1109,7 +1109,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 	-- 普通伤害
 	if IsPlayer(dwTarget) and (JH.IsParty(dwTarget) or dwTarget == me.dwID) then
 		-- 五类伤害
-		local szCaster = IsPlayer(dwCaster) and KCaster.szName or JH.GetTemplateName(KCaster)
+		local szCaster = IsPlayer(dwCaster) and KCaster.szName or JH.GetObjName(KCaster)
 		for k, v in ipairs({ "PHYSICS_DAMAGE", "SOLAR_MAGIC_DAMAGE", "NEUTRAL_MAGIC_DAMAGE", "LUNAR_MAGIC_DAMAGE", "POISON_DAMAGE" }) do
 			if tResult[SKILL_RESULT_TYPE[v]] and tResult[SKILL_RESULT_TYPE[v]] ~= 0 then
 				RT.tDamage[dwTarget == me.dwID and "self" or dwTarget] = {
@@ -1124,7 +1124,7 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 	end
 	-- 有反弹伤害
 	if IsPlayer(dwCaster) and (JH.IsParty(dwCaster) or dwCaster == me.dwID) and tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then
-		local szTarget = IsPlayer(dwTarget) and KTarget.szName or JH.GetTemplateName(KTarget)
+		local szTarget = IsPlayer(dwTarget) and KTarget.szName or JH.GetObjName(KTarget)
 		RT.tDamage[dwCaster == me.dwID and "self" or dwCaster] = {
 			szCaster        = szTarget,
 			szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),

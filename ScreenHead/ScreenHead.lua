@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:33:24
+-- @Last Modified time: 2015-07-13 08:08:44
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -25,8 +25,8 @@ local GetTime, IsPlayer = GetTime, IsPlayer
 local GetPlayer, GetClientPlayer, GetClientTeam =
 	  GetPlayer, GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
-local GetTarget, GetBuff, GetEndTime, GetBuffName, FormatTimeString, GetSkillName, GetDistance, GetTemplateName, JH_IsParty =
-	  JH.GetTarget, JH.GetBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, JH.IsParty
+local GetTarget, GetBuff, GetEndTime, GetBuffName, FormatTimeString, GetSkillName, GetDistance, GetObjName, JH_IsParty =
+	  JH.GetTarget, JH.GetBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetObjName, JH.IsParty
 local SCREEN_SELECT_FIX = 0.3
 
 local _ScreenHead = {
@@ -226,7 +226,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	if KTarget and KTarget.dwID == dwID then
 		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
 	end
-	local szName = IsPlayer(obj.dwID) and obj.szName or GetTemplateName(obj)
+	local szName = GetObjName(obj)
 
 	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
 	if dwID == UI_GetClientPlayerID() then
@@ -432,7 +432,7 @@ function _ScreenHead.OnBuffUpdate()
 end
 
 function _ScreenHead.OnNpcUpdate()
-	local szName = GetTemplateName(GetNpc(arg0))
+	local szName = GetObjName(GetNpc(arg0))
 	if ScreenHead.tNpcList[szName] then
 		_ScreenHead.RegisterHead(arg0,{ type = "Object", txt = _L["aim"] })
 	end

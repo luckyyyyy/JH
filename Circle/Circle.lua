@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 08:55:10
+-- @Last Modified time: 2015-07-13 12:46:07
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -391,16 +391,71 @@ function C.CreateData()
 		end
 	end
 	for k, v in pairs(JH.GetAllNpc()) do
-		local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(v)]
+		local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(v)]
 		if t then
 			C.tScrutiny[TARGET.NPC][v.dwID] = t
 		end
 	end
 	for k, v in pairs(JH.GetAllDoodad()) do
-		local t = C.tList[TARGET.DOODAD][v.dwTemplateID] or C.tList[TARGET.DOODAD][JH.GetTemplateName(v)]
+		local t = C.tList[TARGET.DOODAD][v.dwTemplateID] or C.tList[TARGET.DOODAD][JH.GetObjName(v)]
 		if t then
 			C.tScrutiny[TARGET.DOODAD][v.dwID] = t
 		end
+	end
+end
+
+function C.MoveOrder(dwMapID, nIndex, bUp)
+	if C.tData[dwMapID] then
+		if bUp then
+			if nIndex ~= 1 then
+				C.tData[dwMapID][nIndex], C.tData[dwMapID][nIndex - 1] = C.tData[dwMapID][nIndex - 1], C.tData[dwMapID][nIndex]
+			end
+		else
+			if nIndex ~= #C.tData[dwMapID] then
+				C.tData[dwMapID][nIndex], C.tData[dwMapID][nIndex + 1] = C.tData[dwMapID][nIndex + 1], C.tData[dwMapID][nIndex]
+			end
+		end
+		FireUIEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_DRAW_UI")
+	end
+end
+
+function C.CheckRepeatData(dwMapID, key)
+	if C.tData[dwMapID] then
+		for k, v in ipairs(C.tData[dwMapID]) do
+			if key == v.key then
+				return k, v
+			end
+		end
+	end
+end
+
+function C.MoveData(dwMapID, nIndex, dwTargetMapID, bCopy)
+	if dwMapID == dwTargetMapID then
+		return
+	end
+	if C.tData[dwMapID] and C.tData[dwMapID][nIndex] then
+		local data = C.tData[dwMapID][nIndex]
+		if C.CheckRepeatData(dwTargetMapID, data.key) then
+			return JH.Alert(_L["same data Exist"])
+		end
+		local map = C.GetMapType(dwTargetMapID)
+		if map.bDungeon then
+			local n = 0
+			if C.tData[dwTargetMapID] then
+				n = #C.tData[dwTargetMapID]
+			end
+			if n >= CIRCLE_MAP_COUNT[map.id] then
+				return JH.Alert(_L("%s Unable to add more data", C.GetMapName(map.id)))
+			end
+		end
+		C.tData[dwTargetMapID] = C.tData[dwTargetMapID] or {}
+		tinsert(C.tData[dwTargetMapID], clone(C.tData[dwMapID][nIndex]))
+		if not bCopy then
+			C.RemoveData(dwMapID, nIndex)
+		end
+		FireUIEvent("DBM_CREATE_CACHE")
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end
 end
 
@@ -599,14 +654,10 @@ function C.DrawTable()
 					}
 					if mapid ~= _L["All Data"] then
 						tinsert(menu, 4, { szOption = _L["Move up"], bDisable = k == 1, fnAction = function()
-							C.tData[mapid][k], C.tData[mapid][k - 1] = C.tData[mapid][k - 1], C.tData[mapid][k]
-							FireUIEvent("CIRCLE_CLEAR")
-							FireUIEvent("CIRCLE_DRAW_UI")
+							C.MoveOrder(mapid, k, true)
 						end })
 						tinsert(menu, 5, { szOption = _L["Move down"], bDisable = k == #tab, fnAction = function()
-							C.tData[mapid][k], C.tData[mapid][k + 1] = C.tData[mapid][k + 1], C.tData[mapid][k]
-							FireUIEvent("CIRCLE_CLEAR")
-							FireUIEvent("CIRCLE_DRAW_UI")
+							C.MoveOrder(mapid, k, false)
 						end })
 						tinsert(menu, 6, { bDevide = true })
 					end
@@ -620,8 +671,8 @@ function C.DrawTable()
 end
 
 function C.OnNpcEnter(szEvent)
-	local v = GetNpc(arg0)
-	local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(v)]
+	local npc = GetNpc(arg0)
+	local t = C.tList[TARGET.NPC][npc.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(npc)]
 	if t then
 		C.tScrutiny[TARGET.NPC][arg0] = t
 	end
@@ -733,10 +784,10 @@ function C.OnBreathe()
 				end
 				if dwID ~= 0 and dwType == TARGET.PLAYER then
 					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
-					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetTemplateName(tar), col })
+					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetObjName(tar), col })
 				end
 				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
-					local szName = JH.GetTemplateName(tar)
+					local szName = JH.GetObjName(tar)
 					C.tTarget[KGNpc.dwID] = dwID
 					if data.bScreenHead then
 						FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
@@ -849,7 +900,7 @@ end
 Target_AppendAddonMenu({ function(dwID, dwType)
 	if dwType == TARGET.NPC then
 		local p = GetNpc(dwID)
-		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(p)]
+		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(p)]
 		if data then
 			return {{
 				szOption = _L["Edit Face"],
@@ -867,7 +918,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
-				C.OpenAddPanel(not IsAltKeyDown() and JH.GetTemplateName(p) or p.dwTemplateID, dwType, C.GetMapName(C.GetMapID()))
+				C.OpenAddPanel(not IsAltKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, C.GetMapName(C.GetMapID()))
 			end }}
 		end
 	else
@@ -927,7 +978,7 @@ function C.OpenAddPanel(szName, dwType, szMap)
 			if C.tData[map.id] then
 				for k, v in ipairs(C.tData[map.id]) do
 					if v.key == key and v.dwType == dwType then
-						JH.Confirm(_L["Data already exists, whether editor?"], function()
+						JH.Confirm(_L["Data exists, editor?"], function()
 							C.OpenDataPanel(map.id, k)
 							ui:Fetch("Btn_Close"):Click()
 						end)
@@ -1356,5 +1407,9 @@ local ui = {
 	GetMemu             = C.GetMemu,
 	GetMapName          = C.GetMapName,
 	OpenDataPanel       = C.OpenDataPanel,
+	MoveOrder           = C.MoveOrder,
+	RemoveData          = C.RemoveData,
+	MoveData            = C.MoveData,
+	GetMapType          = C.GetMapType,
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )

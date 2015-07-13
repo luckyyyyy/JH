@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 10:56:40
+-- @Last Modified time: 2015-07-13 08:10:25
 local _L = JH.LoadLangPack
 
 TS = {
@@ -27,8 +27,8 @@ local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
 local MY_Recount_GetData
 local HATRED_COLLECT = g_tStrings.HATRED_COLLECT
-local GetBuff, GetBuffName, GetEndTime, GetTemplateName, GetForceColor =
-	  JH.GetBuff, JH.GetBuffName, JH.GetEndTime, JH.GetTemplateName, JH.GetForceColor
+local GetBuff, GetBuffName, GetEndTime, GetObjName, GetForceColor =
+	  JH.GetBuff, JH.GetBuffName, JH.GetEndTime, JH.GetObjName, JH.GetForceColor
 local GetNpcIntensity = GetNpcIntensity
 local GetTime = GetTime
 
@@ -204,7 +204,7 @@ function _TS.OnBreathe()
 		else
 			local lifeper = p.nCurrentLife / p.nMaxLife
 			_TS.CastBar:Hide()
-			_TS.txt:SetText(GetTemplateName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
+			_TS.txt:SetText(GetObjName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
 			_TS.Life:SetPercentage(lifeper)
 		end
 
@@ -241,7 +241,7 @@ function _TS.OnBreathe()
 						local team = GetClientTeam()
 						local szMember = team.GetClientTeamMemberName(p.dwDropTargetPlayerID)
 						local nGroup = team.GetMemberGroupIndex(p.dwDropTargetPlayerID) + 1
-						local name = GetTemplateName(p)
+						local name = GetObjName(p)
 						JH.Sysmsg2(_L("Well done! %s in %d group first to attack %s!!", nGroup, szMember, name), g_tStrings.HATRED_COLLECT, { 150, 250, 230 })
 					end
 				end
@@ -382,7 +382,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			else
 				local p = GetNpc(v.id)
 				if p then
-					szName = GetTemplateName(p, true)
+					szName = JH.GetTemplateName(p)
 				end
 			end
 			item:Lookup("Text_ThreatName"):SetText(v.sort .. "." .. szName)
