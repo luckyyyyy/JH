@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 11:30:49
+-- @Last Modified time: 2015-07-14 14:08:30
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -365,6 +365,15 @@ function DBM_UI.OnItemRButtonClick()
 				end
 			end })
 		end
+		table.insert(menu, { bDevide = true })
+		table.insert(menu, { szOption = _L["Share Data"], bDisable = not JH.IsInParty(), fnAction = function()
+			if JH.IsLeader() or JH.bDebugClient then
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_SHARE", DBMUI_SELECT_TYPE, t.dwMapID, t)
+				JH.Topmsg(g_tStrings.STR_MAIL_SUCCEED)
+			else
+				return JH.Alert(_L["You are not team leader."])
+			end
+		end })
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
 			if DBMUI_SELECT_TYPE == "CIRCLE" then

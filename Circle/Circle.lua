@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 10:47:44
+-- @Last Modified time: 2015-07-14 13:49:15
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -228,6 +228,14 @@ function C.CreateData()
 			C.tScrutiny[TARGET.DOODAD][v.dwID] = t
 		end
 	end
+end
+
+function C.AddData(dwMapID, data)
+	C.tData[dwMapID] = C.tData[dwMapID] or {}
+	tinsert(C.tData[dwMapID], data)
+	FireUIEvent("CIRCLE_CLEAR")
+	FireUIEvent("CIRCLE_DRAW_UI", dwMapID)
+	return C.tData[dwMapID][#C.tData[dwMapID]]
 end
 
 function C.MoveOrder(dwMapID, nIndex, bUp)
@@ -779,14 +787,8 @@ function C.OpenAddPanel(szName, dwType, szMap)
 					bEnable = true,
 					tCircles = { clone(CIRCLE_DEFAULT_DATA) }
 				}
-				if not C.tData[map] then
-					C.tData[map] = {}
-				end
-				tinsert(C.tData[map], data)
-				FireUIEvent("CIRCLE_CLEAR")
-				FireUIEvent("CIRCLE_DRAW_UI", map)
-				C.OpenDataPanel(C.tData[map][#C.tData[map]])
-				ui:Fetch("Btn_Close"):Click()
+				C.OpenDataPanel(C.AddData(map, data))
+				ui:Remove()
 			end
 			if C.tData[map] then
 				local tab = select(2, C.CheckRepeatData(map, key, dwType))
@@ -1138,10 +1140,11 @@ local ui = {
 	LoadCircleData      = C.LoadCircleData,
 	LoadCircleMergeData = C.LoadCircleMergeData,
 	GetData             = C.GetData,
-	GetMemu             = C.GetMemu,
 	OpenDataPanel       = C.OpenDataPanel,
 	MoveOrder           = C.MoveOrder,
 	RemoveData          = C.RemoveData,
 	MoveData            = C.MoveData,
+	CheckRepeatData     = C.CheckRepeatData,
+	AddData             = C.AddData
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )
