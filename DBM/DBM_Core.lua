@@ -1,16 +1,16 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-13 08:07:06
+-- @Last Modified time: 2015-07-14 10:51:23
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
 local setmetatable, tonumber, type, tostring, unpack = setmetatable, tonumber, type, tostring, unpack
 local tinsert, tconcat = table.insert, table.concat
-local GetTime, IsPlayer = GetTime, IsPlayer
+local GetTime, GetCurrentTime, IsPlayer = GetTime, GetCurrentTime, IsPlayer
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
 local FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow = FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow
-local GetPureText, GetFormatText = GetPureText, GetFormatText
+local GetPureText, GetFormatText, GetHeadTextForceFontColor = GetPureText, GetFormatText, GetHeadTextForceFontColor
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_PLAYER_NAME = "NONE"
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
@@ -458,11 +458,12 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 			local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
 			if not tWeak[key] then
 				local t = {
-					dwMapID   = me.GetMapID(),
-					dwID      = dwBuffID,
-					nLevel    = nBuffLevel,
-					bIsPlayer = dwSkillSrcID ~= 0 and IsPlayer(dwSkillSrcID),
-					szSrcName = D.GetSrcName(dwSkillSrcID)
+					dwMapID      = me.GetMapID(),
+					dwID         = dwBuffID,
+					nLevel       = nBuffLevel,
+					bIsPlayer    = dwSkillSrcID ~= 0 and IsPlayer(dwSkillSrcID),
+					szSrcName    = D.GetSrcName(dwSkillSrcID),
+					nCurrentTime = GetCurrentTime()
 				}
 				tWeak[key] = t
 				tTemp[#tTemp + 1] = tWeak[key]
@@ -608,11 +609,12 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	if not tWeak[key] then
 		if Table_IsSkillShow(dwCastID, dwLevel) or JH.bDebugClient then
 			local t = {
-				dwMapID   = me.GetMapID(),
-				dwID      = dwCastID,
-				nLevel    = dwLevel,
-				bIsPlayer = IsPlayer(dwCaster),
-				szSrcName = D.GetSrcName(dwCaster)
+				dwMapID      = me.GetMapID(),
+				dwID         = dwCastID,
+				nLevel       = dwLevel,
+				bIsPlayer    = IsPlayer(dwCaster),
+				szSrcName    = D.GetSrcName(dwCaster),
+				nCurrentTime = GetCurrentTime()
 			}
 			tWeak[key] = t
 			tTemp[#tTemp + 1] = tWeak[key]
@@ -721,10 +723,11 @@ function D.OnNpcEvent(npc, bEnter)
 		local tWeak, tTemp = CACHE.TEMP.NPC, D.TEMP.NPC
 		if not tWeak[npc.dwTemplateID] then
 			local t = {
-				dwMapID = me.GetMapID(),
-				dwID    = npc.dwTemplateID,
-				nFrame  = select(2, GetNpcHeadImage(npc.dwID)),
-				col     = { GetHeadTextForceFontColor(npc.dwID, me.dwID) }
+				dwMapID      = me.GetMapID(),
+				dwID         = npc.dwTemplateID,
+				nFrame       = select(2, GetNpcHeadImage(npc.dwID)),
+				col          = { GetHeadTextForceFontColor(npc.dwID, me.dwID) },
+				nCurrentTime = GetCurrentTime()
 			}
 			tWeak[npc.dwTemplateID] = t
 			tTemp[#tTemp + 1] = tWeak[npc.dwTemplateID]
@@ -852,9 +855,10 @@ function D.OnCallMessage(szContent, szNpcName, dwNpcID)
 	local tWeak, tTemp = CACHE.TEMP.TALK, D.TEMP.TALK
 	if not tWeak[key] then
 		local t = {
-			dwMapID   = me.GetMapID(),
-			szContent = szContent,
-			szTarget  = szNpcName
+			dwMapID      = me.GetMapID(),
+			szContent    = szContent,
+			szTarget     = szNpcName,
+			nCurrentTime = GetCurrentTime()
 		}
 		tWeak[key] = t
 		tTemp[#tTemp + 1] = tWeak[key]
@@ -1283,7 +1287,6 @@ function D.LoadConfigureFile(config)
 	local data = LoadLUAData(path)
 	root = root:gsub("\\", "/")
 	if not data then
-
 		return false, root .. path
 	else
 		if config.nMode == 1 then

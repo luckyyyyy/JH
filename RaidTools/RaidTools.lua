@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-13 08:08:00
+-- @Last Modified time: 2015-07-13 20:33:46
 
 local _L = JH.LoadLangPack
 
@@ -130,7 +130,7 @@ function RaidTools.OnFrameCreate()
 	if JH.IsInParty() then
 		local team = GetClientTeam()
 		local info = team.GetMemberInfo(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER))
-		title = _L("%s's Team", info.szName)
+		title = _L("%s's Team", info.szName) .. " (" .. #team.GetTeamMemberList() .. "/" .. team.GetTeamSize()  .. ")"
 	end
 	local ui          = GUI(this):Title(title):RegisterClose(RT.ClosePanel)
 	this.hPlayer      = this:CreateItemData(RT_INIFILE, "Handle_Item_Player")
@@ -248,7 +248,7 @@ function RaidTools.OnEvent(szEvent)
 		if arg0 == TEAM_AUTHORITY_TYPE.LEADER then
 			local team = GetClientTeam()
 			local info = team.GetMemberInfo(arg3)
-			GUI(this):Title(_L("%s's Team", info.szName))
+			GUI(this):Title(_L("%s's Team", info.szName  .. " (" .. #team.GetTeamMemberList() .. "/" .. team.GetTeamSize()  .. ")"))
 		end
 	elseif szEvent == "PARTY_SET_MEMBER_ONLINE_FLAG" then
 		if arg2 == 0 then
