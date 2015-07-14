@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 08:44:40
+-- @Last Modified time: 2015-07-14 11:32:15
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -879,6 +879,9 @@ function JH.IsMapExist(param)
 		end
 		setmetatable(_JH.tMapList, { __index = function(me, k)
 			if tonumber(k) then
+				if JH_MAP_NAME_FIX[k] then
+					k = JH_MAP_NAME_FIX[k]
+				end
 				return tMapListByID[k]
 			else
 				return tMapListByName[k]

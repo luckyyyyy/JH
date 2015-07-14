@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 10:50:52
+-- @Last Modified time: 2015-07-14 11:36:54
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -243,6 +243,7 @@ function ST:ctor(nType, szKey, tParam)
 			self.ui.txt            = self.ui:Lookup("SkillName")
 			self.ui.img            = self.ui:Lookup("Image")
 			self.ui.sha            = self.ui:Lookup("shadow")
+			self.ui.sfx            = self.ui:Lookup("SFX")
 			ST_CACHE[nType][szKey] = self.ui
 			self.ui:Show()
 			_ST_UI.handle:FormatAllItemPos()
@@ -277,8 +278,9 @@ end
 -- 设置进度条
 function ST:SetPercentage(fPercentage)
 	self.ui.img:SetPercentage(fPercentage)
+	self.ui.sfx:SetRelX(32 + 300 * fPercentage)
 	self.ui.sha:SetW(300 - 300 * fPercentage)
-	self.ui.sha:SetRelPos(32 + 300 * fPercentage, 0)
+	self.ui.sha:SetRelX(32 + 300 * fPercentage)
 	self.ui:FormatAllItemPos()
 	return self
 end
