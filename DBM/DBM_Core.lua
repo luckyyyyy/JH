@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 10:51:23
+-- @Last Modified time: 2015-07-14 14:02:15
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -17,8 +17,10 @@ local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
 local DBM_MAX_CACHE = 2000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE = 1000 -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
-local DBM_MARK_QUEUE = {}
-local DBM_MARK_FIRST = true -- 标记事件
+
+local DBM_SHARE_QUEUE = {}
+local DBM_MARK_QUEUE  = {}
+local DBM_MARK_FIRST  = true -- 标记事件
 ----
 local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
@@ -1438,6 +1440,47 @@ function D.GetIntervalData(szType, key)
 	end
 end
 
+function D.ConfirmShare()
+	if #DBM_SHARE_QUEUE > 0 then
+		local t = DBM_SHARE_QUEUE[1]
+		JH.Confirm(_L("%s share a %s data to you, accept?", t.szName, _L[t.szType]), function()
+			if t.szType ~= "CIRCLE" then
+				local data = t.tData
+				local nIndex = D.CheckRepeatData(t.szType, t.dwMapID, data.dwID or data.szContent, data.nLevel or data.szTarget)
+				if nIndex then
+					D.RemoveData(t.szType, t.dwMapID, nIndex)
+				end
+				D.AddData(t.szType, t.dwMapID, data)
+			else
+				local data = t.tData
+				local nIndex = Circle.CheckRepeatData(t.dwMapID, data.key, data.dwType)
+				if nIndex then
+					Circle.RemoveData(t.dwMapID, nIndex)
+				end
+				Circle.AddData(t.dwMapID, data)
+			end
+			table.remove(DBM_SHARE_QUEUE, 1)
+			JH.DelayCall(100, D.ConfirmShare)
+		end, function()
+			table.remove(DBM_SHARE_QUEUE, 1)
+			JH.DelayCall(100, D.ConfirmShare)
+		end)
+	end
+end
+
+function D.OnShare(nChannel, dwID, szName, data, bIsSelf)
+	if not bIsSelf then
+		if (data[1] == "CIRCLE" and type(Circle) ~= "nil") or data[1] ~= "CIRCLE" then
+			tinsert(DBM_SHARE_QUEUE, {
+				szType  = data[1],
+				tData   = data[3],
+				szName  = szName,
+				dwMapID = data[2]
+			})
+			D.ConfirmShare()
+		end
+	end
+end
 -- 公开接口
 local ui = {
 	Enable            = D.Enable,
@@ -1459,3 +1502,4 @@ DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metata
 JH.RegisterEvent("LOGIN_GAME", D.Init)
 JH.RegisterEvent("LOADING_END", D.LoadUserData)
 JH.RegisterExit(D.SaveData)
+JH.RegisterBgMsg("DBM_SHARE", D.OnShare)
