@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-13 09:50:54
+-- @Last Modified time: 2015-07-14 08:44:40
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -90,6 +90,7 @@ local _JH = {
 	tMapCache      = {},
 	tItemCache     = {},
 	tDungeonList   = {},
+	tMapList       = {},
 	aPlayer        = {},
 	aNpc           = {},
 	aDoodad        = {},
@@ -863,6 +864,28 @@ function JH.IsInArena()
 	local dwMapID = me.GetMapID()
 	local nMapType = select(2, GetMapParams(dwMapID))
 	return nMapType and nMapType == MAP_TYPE.BATTLE_FIELD
+end
+
+function JH.IsMapExist(param)
+	if not _JH.tMapList[-1] then
+		local tMapListByID   = { [-1] = g_tStrings.CHANNEL_COMMON }
+		local tMapListByName = { [g_tStrings.CHANNEL_COMMON] = -1 }
+		for k, v in ipairs(GetMapList()) do
+			if not JH_MAP_NAME_FIX[v] then
+				local szName           = Table_GetMapName(v)
+				tMapListByID[v]        = szName
+				tMapListByName[szName] = v
+			end
+		end
+		setmetatable(_JH.tMapList, { __index = function(me, k)
+			if tonumber(k) then
+				return tMapListByID[k]
+			else
+				return tMapListByName[k]
+			end
+		end })
+	end
+	return _JH.tMapList[param]
 end
 
 function JH.IsInParty()
