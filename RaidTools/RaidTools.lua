@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 18:10:48
+-- @Last Modified time: 2015-07-15 19:23:59
 
 local _L = JH.LoadLangPack
 
@@ -112,6 +112,7 @@ JH.RegisterCustomData("RaidTools")
 function RaidTools.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("PEEK_OTHER_PLAYER")
+	this:RegisterEvent("PARTY_ADD_MEMBER")
 	this:RegisterEvent("PARTY_DISBAND")
 	this:RegisterEvent("PARTY_DELETE_MEMBER")
 	this:RegisterEvent("PARTY_SET_MEMBER_ONLINE_FLAG")
@@ -244,12 +245,6 @@ function RaidTools.OnEvent(szEvent)
 		else
 			this.tViewInvite[arg1] = nil
 		end
-	elseif szEvent == "TEAM_AUTHORITY_CHANGED" then
-		if arg0 == TEAM_AUTHORITY_TYPE.LEADER then
-			local team = GetClientTeam()
-			local info = team.GetMemberInfo(arg3)
-			GUI(this):Title(_L("%s's Team", info.szName  .. " (" .. team.GetTeamSize() .. "/" .. team.nGroupNum * 5  .. ")"))
-		end
 	elseif szEvent == "PARTY_SET_MEMBER_ONLINE_FLAG" then
 		if arg2 == 0 then
 			this.tDataCache[arg1] = nil
@@ -282,6 +277,16 @@ function RaidTools.OnEvent(szEvent)
 		if nPage == 1 then
 			RT.UpdatetDeathPage()
 		end
+	end
+	-- update title
+	if szEvent == "PARTY_ADD_MEMBER"
+		or szEvent == "PARTY_DELETE_MEMBER"
+		or szEvent == "TEAM_AUTHORITY_CHANGED"
+	then
+		local team = GetClientTeam()
+		local dwID = team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
+		local info = team.GetMemberInfo(dwID)
+		GUI(this):Title(_L("%s's Team", info.szName) .. " (" .. team.GetTeamSize() .. "/" .. team.nGroupNum * 5  .. ")")
 	end
 end
 
@@ -390,7 +395,7 @@ end
 
 function RT.UpdateDungeonInfo(hDungeon)
 	local me = GetClientPlayer()
-	if JH.IsInDungeon(true) then
+	if JH.IsInDungeon() then
 		local scene = me.GetScene()
 		hDungeon:Lookup("Text_Dungeon"):SetText(Table_GetMapName(me.GetMapID()) .. "\n" .. "ID:(" .. scene.nCopyIndex  ..")")
 		hDungeon:Show()
