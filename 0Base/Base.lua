@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 11:32:15
+-- @Last Modified time: 2015-07-15 06:27:10
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1137,7 +1137,12 @@ function JH.GetBuff(dwID, nLevel, KObject)
 		end
 	end
 end
-
+function JH.CancelBuff( ... )
+	local tBuff = JH.GetBuff( ... )
+	if tBuff then
+		return GetClientPlayer().CancelBuff(tBuff.nIndex)
+	end
+end
 -- 格式化时间字符串
 function JH.FormatTimeString(nSec, nStyle, bDefault)
 	if nStyle == 1 then
