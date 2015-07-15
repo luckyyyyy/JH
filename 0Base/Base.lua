@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-15 06:27:10
+-- @Last Modified time: 2015-07-15 19:24:47
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -836,9 +836,11 @@ end
 function JH.IsInDungeon(dwMapID, bType)
 	local me = GetClientPlayer()
 	if type(dwMapID) == "boolean" then
-		bType = dwMapID
+		bType   = dwMapID
+		dwMapID = me.GetMapID()
+	else
+		dwMapID = dwMapID or me.GetMapID()
 	end
-	dwMapID = dwMapID or me.GetMapID()
 	if bType then -- 只判断地图的类型 而不是严格判断25人本
 		if tonumber(dwMapID) and dwMapID > 0 then
 			local nMapType = select(2, GetMapParams(dwMapID))
