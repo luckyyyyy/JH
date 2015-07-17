@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 11:36:54
+-- @Last Modified time: 2015-07-16 16:55:55
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -52,7 +52,7 @@ end
 --      nIcon    -- 倒计时图标ID
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
--- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = 20 })
+-- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = 20, szName = "demo" })
 -- 性能测试：for i = 65, 70 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = Random(5, 15), nIcon = i }) end
 local function CreateCountdown(nType, szKey, tParam)
 	assert(type(tParam) == "table", "CreateCountdown failed!")

@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-15 19:23:59
+-- @Last Modified time: 2015-07-15 19:34:11
 
 local _L = JH.LoadLangPack
 
@@ -395,7 +395,7 @@ end
 
 function RT.UpdateDungeonInfo(hDungeon)
 	local me = GetClientPlayer()
-	if JH.IsInDungeon() then
+	if JH.IsInDungeon(true) then
 		local scene = me.GetScene()
 		hDungeon:Lookup("Text_Dungeon"):SetText(Table_GetMapName(me.GetMapID()) .. "\n" .. "ID:(" .. scene.nCopyIndex  ..")")
 		hDungeon:Show()
