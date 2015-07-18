@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 14:08:30
+-- @Last Modified time: 2015-07-18 19:46:00
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -124,14 +124,20 @@ function DBM_UI.OnFrameCreate()
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndCheckBox", { x = 560, y = 38, checked = DBMUI_GLOBAL_SEARCH, txt = _L["Global Search"] }):Click(function(bCheck)
 		DBMUI_GLOBAL_SEARCH = bCheck
-		FireUIEvent("DBMUI_DATA_RELOAD")
 		FireUIEvent("DBMUI_TEMP_RELOAD")
+		if DBMUI_SELECT_TYPE == "CIRCLE" then
+			FireUIEvent("CIRCLE_DRAW_UI")
+		else
+			FireUIEvent("DBMUI_DATA_RELOAD")
+		end
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndButton2", "NewFace", { x = 720, y = 40, txt = _L["New Face"] }):Click(function()
 		Circle.OpenAddPanel(nil, nil, DBMUI_SELECT_MAP ~= _L["All Data"] and JH.IsMapExist(DBMUI_SELECT_MAP))
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 860, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
-		DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
+		JH.Confirm(_L["Confirm?"], function()
+			DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
+		end)
 	end)
 	DBMUI.UpdateAnchor(this)
 	-- 首次加载
@@ -655,7 +661,6 @@ function DBMUI.GetMenu()
 end
 
 -- 移动数据
-
 function DBMUI.MoveOrder( ... )
 	DBM_API.MoveOrder(DBMUI_SELECT_TYPE, ... )
 end
@@ -818,7 +823,7 @@ function DBMUI.SetCircleItemAction(h, dat)
 	box.nIocn = 2673
 end
 
-function DBMUI.SetTalkItemAction(h, t, i)
+function DBMUI.SetTalkItemAction(h, t)
 	h:Lookup("Text_Name"):SetText(t.szTarget or _L["Warning Box"])
 	if not t.szTarget or t.szTarget == "%" then -- system and %%
 		h:Lookup("Text_Name"):SetFontColor(255, 255, 0)
@@ -840,7 +845,7 @@ function DBMUI.DrawTableL(szType, data)
 	local frame = DBMUI.GetFrame()
 	local page = frame.hPageSet:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_L", "Handle_" .. szType .. "_List_L")
-	local function SetDataAction(h, t, i)
+	local function SetDataAction(h, t)
 		if szType == "BUFF" or szType == "DEBUFF" then
 			DBMUI.SetBuffItemAction(h, t)
 		elseif szType == "CASTING" then
@@ -850,7 +855,7 @@ function DBMUI.DrawTableL(szType, data)
 		elseif szType == "CIRCLE" then
 			DBMUI.SetCircleItemAction(h, t)
 		elseif szType == "TALK" then
-			DBMUI.SetTalkItemAction(h, t, i)
+			DBMUI.SetTalkItemAction(h, t)
 		end
 	end
 	local hItemData = szType == "TALK" and frame.hTalkL or frame.hItemL
@@ -859,7 +864,7 @@ function DBMUI.DrawTableL(szType, data)
 		for k, v in JH.bpairs(data) do
 			local h = handle:AppendItemFromData(hItemData)
 			h.dat = v
-			SetDataAction(h, v, k)
+			SetDataAction(h, v)
 		end
 	end
 	handle:FormatAllItemPos()
@@ -895,7 +900,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 	local frame = DBMUI.GetFrame()
 	local page = frame.hPageSet:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. szType .. "_R", "Handle_" .. szType .. "_List_R")
-	local function SetDataAction(h, t, i)
+	local function SetDataAction(h, t)
 		if szType == "BUFF" or szType == "DEBUFF" then
 			DBMUI.SetBuffItemAction(h, t)
 		elseif szType == "CASTING" then
@@ -903,7 +908,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 		elseif szType == "NPC" or szType == "CIRCLE" then
 			DBMUI.SetNpcItemAction(h, t)
 		elseif szType == "TALK" then
-			DBMUI.SetTalkItemAction(h, t, i)
+			DBMUI.SetTalkItemAction(h, t)
 		end
 	end
 	if not bInsert then
@@ -913,7 +918,7 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 			for k, v in JH.bpairs(data) do
 				local h = handle:AppendItemFromData(hItemData)
 				h.dat = v
-				SetDataAction(h, v, k)
+				SetDataAction(h, v)
 			end
 		end
 	else
@@ -929,23 +934,6 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 		end
 	end
 	handle:FormatAllItemPos()
-end
-
-function DBMUI.GetMapIDByName(szName)
-	local dwMapID
-	if szName == g_tStrings.CHANNEL_COMMON then
-		return -1
-	else
-		for k, v in ipairs(GetMapList()) do
-			if Table_GetMapName(v) == szName then
-				dwMapID = v
-				break
-			end
-		end
-	end
-	if dwMapID then
-		return JH_MAP_NAME_FIX[dwMapID] or dwMapID
-	end
 end
 
 -- 添加面板
@@ -1009,13 +997,12 @@ function DBMUI.OpenAddPanel(szType, data)
 		end)
 		:Text(DBMUI_SELECT_MAP ~= _L["All Data"] and DBMUI.GetMapName(DBMUI_SELECT_MAP) or DBMUI.GetMapName(data.dwMapID)):Pos_()
 		ui:Append("WndButton3", { x = 120, y = nY + 40, txt = _L["Add"] }):Click(function()
-			local nClass
 			local txt = ui:Fetch("map"):Text()
-			local nClass = DBMUI.GetMapIDByName(txt)
-			if not nClass then
+			local dwMapID = JH.IsMapExist(txt)
+			if not dwMapID then
 				return JH.Alert(_L["The map does not exist"])
 			end
-			local tab = select(2, DBM_API.CheckRepeatData(szType, nClass, data.dwID or data.szContent, data.nLevel or data.szTarget))
+			local tab = select(2, DBM_API.CheckRepeatData(szType, dwMapID, data.dwID or data.szContent, data.nLevel or data.szTarget))
 			if tab then
 				return JH.Confirm(_L["Data exists, editor?"], function()
 					DBMUI.OpenSettingPanel(tab, szType)
@@ -1029,8 +1016,8 @@ function DBMUI.OpenAddPanel(szType, data)
 				szContent = data.szContent,
 				szTarget  = data.szTarget
 			}
-			DBMUI_SELECT_MAP = nClass
-			DBMUI.OpenSettingPanel(DBM_API.AddData(szType, nClass, dat), szType)
+			DBMUI_SELECT_MAP = dwMapID
+			DBMUI.OpenSettingPanel(DBM_API.AddData(szType, dwMapID, dat), szType)
 			ui:Remove()
 		end)
 	end
