@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-13 08:04:04
+-- @Last Modified time: 2015-07-20 11:32:27
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -754,102 +754,6 @@ function MakeNameLink(szName, szFont)
 end
 end
 
-if not OutputNpcTip then
-function OutputNpcTip(dwNpcTemplateID, Rect)
-	local npc = GetNpcTemplate(dwNpcTemplateID)
-	if not npc then
-		return
-	end
-	local szName = npc.szName
-	if szName == "" then
-		szName = Table_GetNpcTemplateName(dwNpcTemplateID)
-	end
-	if JH.Trim(szName) == "" then
-		szName = tostring(dwNpcTemplateID)
-	end
-	local t = {}
-	table.insert(t, GetFormatText(szName .. "\n", 80, 255, 255, 0))
-    -------------等级----------------------------
-    if npc.nLevel - GetClientPlayer().nLevel > 10 then
-    	table.insert(t, GetFormatText(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL, 82))
-    else
-    	table.insert(t, GetFormatText(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel), 0))
-    end
-    ------------模版ID-----------------------
-    table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1), 101))
-
-    OutputTip(table.concat(t), 345, Rect)
-end
-end
-if not OutputPlayerTip then
-function OutputPlayerTip(dwPlayerID, Rect)
-	--如果是自己，则不显示tip
-	local player = GetPlayer(dwPlayerID)
-	if not player then
-		return
-	end
-
-	local clientPlayer = GetClientPlayer()
-
-	if not IsCursorInExclusiveMode() then
-		if clientPlayer.dwID == dwPlayerID then
-			return
-		end
-	end
-
-	local r, g, b = GetForceFontColor(dwPlayerID, clientPlayer.dwID)
-	local szTip = ""
-
-	--------------名字-------------------------
-	szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_NAME_PLAYER, player.szName)).." font=80".." r="..r.." g="..g.." b="..b.." </text>"
-
-	-------------称号----------------------------
-	if player.szTitle ~= "" then
-		szTip = szTip.."<Text>text="..EncodeComponentsString("<"..player.szTitle..">\n").." font=0 </text>"
-	end
-
-	if player.dwTongID ~= 0 then
-		local szName = GetTongClient().ApplyGetTongName(player.dwTongID)
-		if szName and szName ~= "" then
-			szTip = szTip.."<Text>text="..EncodeComponentsString("["..szName.."]\n").." font=0 </text>"
-		end
-	end
-
-	-------------等级----------------------------
-	if player.nLevel - clientPlayer.nLevel > 10 and not clientPlayer.IsPlayerInMyParty(dwPlayerID) then
-		szTip = szTip.."<Text>text="..EncodeComponentsString(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL).." font=82 </text>"
-	else
-		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.STR_PLAYER_H_WHAT_LEVEL, player.nLevel)).." font=82 </text>"
-	end
-
-	if IsParty(dwPlayerID, clientPlayer.dwID) then
-		local hTeam = GetClientTeam()
-		local tMemberInfo = hTeam.GetMemberInfo(dwPlayerID)
-		if tMemberInfo then
-			local szMapName = Table_GetMapName(tMemberInfo.dwMapID)
-			if szMapName then
-				szTip = szTip.."<Text>text="..EncodeComponentsString(szMapName.."\n").." font=82 </text>"
-			end
-		end
-	end
-
-	if player.bCampFlag then
-		szTip = szTip .. GetFormatText(g_tStrings.STR_TIP_CAMP_FLAG, 163)
-	end
-
-	local nCamp = player.nCamp
-	szTip = szTip .. GetFormatText(g_tStrings.STR_GUILD_CAMP_NAME[nCamp], 82)
-
-	if IsCtrlKeyDown() then
-		szTip = szTip.."<Text>text="..EncodeComponentsString(FormatString(g_tStrings.TIP_PLAYER_ID, player.dwID)).." font=102 </text>"
-		-- szTip = szTip.."<Text>text="
-		-- szTip = szTip..EncodeComponentsString(FormatString(g_tStrings.TIP_REPRESENTID_ID, player.dwModelID.." "..var2str(player.GetRepresentID()))).." font=102 </text>"
-	end
-
-	OutputTip(szTip, 345, Rect)
-end
-end
-
 if not GetCampImageFrame then
 function GetCampImageFrame(eCamp, bFight)	-- ui\Image\UICommon\CommonPanel2.UITex
 	local nFrame
@@ -889,65 +793,6 @@ function EditBox_AppendLinkItem(dwID)
 	edit:InsertObj(szName, { type = "item", text = szName, item = item.dwID })
 	Station.SetFocusWindow(edit)
 	return true
-end
-end
-if not OutputBuffTipA then
-local XML_LINE_BREAKER = GetFormatText("\n")
-function OutputBuffTipA(dwID, nLevel, Rect, nTime)
-	local t, tab = {}, {}
-	local szName = Table_GetBuffName(dwID, nLevel)
-	if szName == "" then
-		szName = g_tStrings.STR_HOTKEY_HIDE
-	end
-	table.insert(t, GetFormatText(szName .. "\t", 65))
-	local buffInfo = GetBuffInfo(dwID, nLevel, {})
-	if buffInfo and buffInfo.nDetachType and g_tStrings.tBuffDetachType[buffInfo.nDetachType] then
-		table.insert(t, GetFormatText(g_tStrings.tBuffDetachType[buffInfo.nDetachType] .. "\n", 106))
-	else
-		table.insert(t, XML_LINE_BREAKER)
-	end
-	local szDesc = GetBuffDesc(dwID, nLevel, "desc")
-	if szDesc and szDesc ~= "" then
-		table.insert(t, GetFormatText(szDesc .. g_tStrings.STR_FULL_STOP, 106))
-	else
-		table.insert(t, GetFormatText("BUFF#" .. dwID .. "#" .. nLevel, 106))
-	end
-
-	if nTime then
-		if nTime == 0 then
-			table.insert(t, XML_LINE_BREAKER)
-			table.insert(t, GetFormatText(g_tStrings.STR_BUFF_H_TIME_ZERO, 102))
-		else
-			local H, M, S = "", "", ""
-			local h = math.floor(nTime / 3600)
-			local m = math.floor(nTime / 60) % 60
-			local s = math.floor(nTime % 60)
-			if h > 0 then
-				H = h .. g_tStrings.STR_BUFF_H_TIME_H .. " "
-			end
-			if h > 0 or m > 0 then
-				M = m .. g_tStrings.STR_BUFF_H_TIME_M_SHORT .. " "
-			end
-			S = s..g_tStrings.STR_BUFF_H_TIME_S
-			if h < 720 then
-				table.insert(t, XML_LINE_BREAKER)
-				table.insert(t, GetFormatText(FormatString(g_tStrings.STR_BUFF_H_LEFT_TIME_MSG, H, M, S), 102))
-			end
-		end
-	end
-
-	-- For test
-	if IsCtrlKeyDown() then
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP, 102))
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText("ID:     " .. dwID, 102))
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText("Level:  " .. nLevel, 102))
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText("IconID: " .. tostring(Table_GetBuffIconID(dwID, nLevel)), 102))
-	end
-	OutputTip(table.concat(t), 300, Rect)
 end
 end
 

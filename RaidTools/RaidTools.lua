@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-15 19:34:11
+-- @Last Modified time: 2015-07-20 11:36:38
 
 local _L = JH.LoadLangPack
 
@@ -568,7 +568,7 @@ function RT.UpdateList()
 						local nTime = (nEndFrame - GetLogicFrameCount()) / 16
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
-						OutputBuffTipA(dwID, nLevel, { x, y, w, h }, nTime)
+						JH.OutputBuffTip(dwID, nLevel, { x, y, w, h }, nTime)
 					end
 					local nTime = (vv.nEndFrame - GetLogicFrameCount()) / 16
 					if nTime < 480 then
@@ -631,7 +631,7 @@ function RT.UpdateList()
 						local w, h = this:GetSize()
 						local kBuff = JH.GetBuff(RT_GONGZHAN_ID, v.p)
 						if kBuff then
-							OutputBuffTipA(kBuff.dwID, kBuff.nLevel, { x, y, w, h })
+							JH.OutputBuffTip(kBuff.dwID, kBuff.nLevel, { x, y, w, h })
 						end
 					end
 				end
