@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-18 19:46:00
+-- @Last Modified time: 2015-07-20 11:35:32
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -514,11 +514,11 @@ end
 
 function DBMUI.OutputTip(szType, data, rect)
 	if szType == "BUFF" or szType == "DEBUFF" then
-		OutputBuffTipA(data.dwID, data.nLevel, rect)
+		JH.OutputBuffTip(data.dwID, data.nLevel, rect)
 	elseif szType == "CASTING" then
 		OutputSkillTip(data.dwID, data.nLevel, rect)
 	elseif szType == "NPC" then
-		OutputNpcTip(data.dwID or data.key, rect)
+		JH.OutputNpcTip(data.dwID or data.key, rect)
 	elseif szType == "TALK" then
 		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText(DBMUI.GetMapName(data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
 	end
