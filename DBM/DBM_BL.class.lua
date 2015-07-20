@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-27 12:06:52
+-- @Last Modified time: 2015-07-20 11:36:01
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -89,7 +89,7 @@ function BL_UI.OnItemMouseEnter()
 		this:SetObjectMouseOver(true)
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
-		OutputBuffTipA(KBuff.dwID, KBuff.nLevel, { x, y, w, h }, JH.GetEndTime(KBuff.GetEndTime()))
+		JH.OutputBuffTip(KBuff.dwID, KBuff.nLevel, { x, y, w, h }, JH.GetEndTime(KBuff.GetEndTime()))
 	end
 end
 
