@@ -6,7 +6,7 @@
 # 方便在OSX下打包
 
 VERSION=$(grep "local _VERSION_" 0Base/Base.lua | awk '{print $4}')
-DATE=$(date +%Y%m%d%H%I)
+DATE=$(date +%Y%m%d%H%M)
 
 FILE=releases/${DATE}_${VERSION}.7z
 echo zippping...

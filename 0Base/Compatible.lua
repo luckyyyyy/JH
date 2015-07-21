@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-20 11:32:27
+-- @Last Modified time: 2015-07-21 15:30:09
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -810,10 +810,20 @@ end)
 end
 
 if not Table_GetCommonEnchantDesc then
-	function Table_GetCommonEnchantDesc(enchant_id)
-		local res = g_tTable.CommonEnchant:Search(enchant_id)
-		if res then
-			return res.desc
-		end
+function Table_GetCommonEnchantDesc(enchant_id)
+	local res = g_tTable.CommonEnchant:Search(enchant_id)
+	if res then
+		return res.desc
 	end
+end
+end
+if not Table_GetProfessionName then
+function Table_GetProfessionName(dwProfessionID)
+	local szName = ""
+	local tProfession = g_tTable.ProfessionName:Search(dwProfessionID)
+	if tProfession then
+		szName = tProfession.szName
+	end
+	return szName
+end
 end

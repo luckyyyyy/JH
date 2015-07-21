@@ -688,4 +688,17 @@ data = {
 	["OnMouseMove"] = "鼠標移動",
 	["OnMouseHover"] = "鼠標懸停",
 	["OnScroll"] = "滾輪事件",
+	-- Copy Book --
+	["No Books"] = "沒有這套書",
+	["Copy Book"] = "套書抄錄",
+	["Books Name"] = "套書名稱",
+	["Copy Count"] = "抄錄數量",
+	["Start Copy"] = "開始抄錄",
+	["%s, go on?"] = "%s，從這個進度繼續？",
+	["go on"] = "繼續",
+	["restart"] = "重新開始",
+	["Start Copy Book %s"] = "開始抄錄《%s》",
+	["Stop Copy Book %s"] = "停止抄錄《%s》，進度已記錄。",
+	["Not Enough Thew"] = "當前體力不足以抄錄壹套書",
+	["BOOK_143"] = "問世間情為何物之三",
 }
