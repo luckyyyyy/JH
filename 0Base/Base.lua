@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-20 11:33:53
+-- @Last Modified time: 2015-07-21 17:57:06
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1000400
+local _VERSION_   = 0x1000500
 
 ---------------------------------------------------------------------
 -- 多语言处理
@@ -72,7 +72,7 @@ do
 end
 
 local _JH = {
-	szBuildDate    = "20150717",
+	szBuildDate    = "20150721",
 	szTitle        = _L["JH, JX3 Plug-in Collection"],
 	tHotkey        = {},
 	tAnchor        = {},
@@ -2924,6 +2924,25 @@ function _GUI.Item:Event(dwEventID)
 	end
 	return self
 end
+
+function _GUI.Item:Clear()
+	if self.type == "Handle" then
+		self.self:Clear()
+	end
+	return self
+end
+
+function _GUI.Item:Enable(bEnable)
+	if self.type == "Box" then
+		if type(bEnable) ~= "nil" then
+			self.self:EnableObject(bEnable)
+		else
+			return self.self:IsObjectEnable()
+		end
+	end
+	return self
+end
+
 -- (self) Instance:Click()
 -- (self) Instance:Click(func fnAction[, boolean bSound[, boolean bSelect]])	-- 登记鼠标点击处理函数
 -- (self) Instance:Click(func fnAction[, table tLinkColor[, tHoverColor]])		-- 同上，只对文本

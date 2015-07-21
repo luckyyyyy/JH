@@ -688,4 +688,17 @@ data = {
 	["OnMouseMove"] = "鼠标移动",
 	["OnMouseHover"] = "鼠标悬停",
 	["OnScroll"] = "滚轮事件",
+	-- Copy Book --
+	["No Books"] = "没有这套书",
+	["Copy Book"] = "套书抄录",
+	["Books Name"] = "套书名称",
+	["Copy Count"] = "抄录数量",
+	["Start Copy"] = "开始抄录",
+	["%s, go on?"] = "%s，从这个进度继续？",
+	["go on"] = "继续",
+	["restart"] = "重新开始",
+	["Start Copy Book %s"] = "开始抄录《%s》",
+	["Stop Copy Book %s"] = "停止抄录《%s》，进度已记录。",
+	["Not Enough Thew"] = "当前体力不足以抄录一套书",
+	["BOOK_143"] = "问世间情为何物之三",
 }

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-08 12:19:55
+-- @Last Modified time: 2015-07-20 13:14:57
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -211,9 +211,6 @@ end
 function W.AppendItem(data, k)
 	local wnd = W.Container:AppendContentFromIni(JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_RR.ini", "WndWindow")
 	local item = wnd:Lookup("", "")
-	if k % 2 == 0 then
-		item:Lookup("Image_Line"):Hide()
-	end
 	if item then
 		item.data = data
 		item:Lookup("Text_Author"):SetText(data.author)
@@ -228,13 +225,13 @@ function W.AppendItem(data, k)
 				item:Lookup("Text_Download"):SetFontColor(255, 255, 0)
 			end
 			item.OnItemMouseEnter = function()
-				item:Lookup("Image_CoverBg"):Show()
+				item:Lookup("Image_Line"):SetFrame(8)
 				local szXml = GetFormatText(data.author .. "\n", 47, 255, 255, 0)
 				szXml = szXml ..GetFormatText(data.title, 47, 255, 255, 255)
 				W.MenuTip(item:Lookup("Text_Author"), szXml)
 			end
 			item.OnItemMouseLeave = function()
-				item:Lookup("Image_CoverBg"):Hide()
+				item:Lookup("Image_Line"):SetFrame(7)
 				HideTip()
 			end
 			item.OnItemLButtonClick = function()
