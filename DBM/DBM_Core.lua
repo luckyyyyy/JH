@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-16 15:41:58
+-- @Last Modified time: 2015-07-26 23:09:14
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -263,6 +263,7 @@ function D.CreateData(szEvent)
 	local me = GetClientPlayer()
 	local dwMapID = me.GetMapID()
 	local nTime = GetTime()
+	dwMapID = JH_MAP_NAME_FIX[dwMapID] or dwMapID -- 修正地图重名的问题
 	-- 清空当前数据和MAP
 	for k, v in pairs(D.DATA) do
 		D.DATA[k] = {}
