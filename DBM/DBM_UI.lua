@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-20 11:35:32
+-- @Last Modified time: 2015-08-03 17:27:27
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -51,7 +51,7 @@ local function CloseRaidDragPanel()
 	end
 end
 
-local function RaidDragPanelIsOpened( ... )
+local function RaidDragPanelIsOpened()
 	return Station.Lookup("Normal/RaidDragPanel") and Station.Lookup("Normal/RaidDragPanel"):IsVisible()
 end
 DBM_UI = {}
