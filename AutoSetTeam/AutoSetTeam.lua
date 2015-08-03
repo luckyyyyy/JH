@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 07:17:25
+-- @Last Modified time: 2015-08-03 17:13:50
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -613,7 +613,7 @@ function TI.CreateFrame(a, b)
 	if TI.GetFrame() then
 		an = GetFrameAnchor(TI.GetFrame())
 	end
-	local ui = GUI.CreateFrame2("JH_TeamInfo", { w = 300, h = 200, close = true, title = _L["Team_Info"]}):Point(an.s, 0, 0, an.r, an.x, an.y)
+	local ui = GUI.CreateFrame("JH_TeamInfo", { w = 300, h = 200, close = true, title = _L["Team_Info"], nStyle = 2 })
 	local nX, nY = ui:Append("Text", { x = 10, y = 5, txt = _L["YY:"], font = 48 }):Pos_()
 	nX = ui:Append("WndEdit", "YY", { w = 140, h = 26, x = nX + 5, y = 5, font = 48, color = { 128, 255, 0 }, txt = a })
 	:Change(function(szText)
@@ -649,7 +649,7 @@ function TI.CreateFrame(a, b)
 		end
 		ui:Remove()
 	end
-	ui:RegisterSetting(function() JH.OpenPanel(_L["AutoSetTeam"]) end)
+	ui:Setting(function() JH.OpenPanel(_L["AutoSetTeam"]) end)
 	-- ×¢²áÊÂ¼þ
 	local frame = TI.GetFrame()
 	frame:RegisterEvent("PARTY_DISBAND")
