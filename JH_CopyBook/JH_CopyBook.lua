@@ -268,10 +268,6 @@ function Book.Copy()
 			Stop()
 			return JH.Sysmsg(g_tStrings.STR_ERROR_PACKAGE_IS_FULL)
 		end
-		if me.nCurrentThew < nThew and nBook == 1 then -- 体力不够一套书
-			Stop()
-			return JH.Sysmsg(_L["Not Enough Thew"])
-		end
 		if me.nMoveState ~= MOVE_STATE.ON_STAND then -- 不是站立状态直接打断
 			JH.Debug("COPYBOOK # MOVE_STATE #" .. me.nMoveState)
 			return Stop()
@@ -294,6 +290,10 @@ function Book.Copy()
 				Book.nBook = Book.nBook + 1
 				if Book.nBook > dwBookNumber then -- 一套书抄完了
 					Book.nBook = 1
+					if me.nCurrentThew < nThew then -- 体力不够一套书
+						Stop()
+						return JH.Sysmsg(_L["Not Enough Thew"])
+					end
 					JH_CopyBook.nCopyNum = JH_CopyBook.nCopyNum - 1
 					if JH_CopyBook.nCopyNum == 0 then
 						JH_CopyBook.nCopyNum = 1
