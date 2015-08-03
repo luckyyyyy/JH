@@ -1,14 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-02 21:39:31
+-- @Last Modified time: 2015-08-03 15:58:04
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
 	tList       = {},
 	tNpcList    = {},
 	bTeamAlert  = false,
-	bIsMe       = false,
+	bIsMe       = true,
 	nTeamHp     = 0.3,
 	nTeamMp     = 0.1,
 	nTime       = 5,
@@ -29,7 +29,7 @@ local GetTarget, GetBuff, GetEndTime, GetBuffName, FormatTimeString, GetSkillNam
 	  JH.GetTarget, JH.GetBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetObjName, JH.IsParty
 local SCREEN_SELECT_FIX = 0.3
 
-local _ScreenHead = {
+local SH = {
 	tList = {},
 	tCache = {
 		["Life"] = {},
@@ -46,34 +46,34 @@ local _ScreenHead = {
 		{ 15, 25, 180 },
 	},
 	tFontCol = { -- font col
-		["BUFF"]   = { 255, 128, 0   },
-		["DEBUFF"] = { 255, 0,   255 },
-		["Life"]   = { 130, 255, 130 },
-		["Mana"]   = { 255, 255, 128 },
-		["Other"]  = { 128, 255, 255 },
-		["Object"] = { 0,   255, 255 },
-		["CASTING"]  = { 150, 200, 255 },
+		["BUFF"]    = { 255, 128, 0   },
+		["DEBUFF"]  = { 255, 0,   255 },
+		["Life"]    = { 130, 255, 130 },
+		["Mana"]    = { 255, 255, 128 },
+		["Other"]   = { 128, 255, 255 },
+		["Object"]  = { 0,   255, 255 },
+		["CASTING"] = { 150, 200, 255 },
 	},
 	tArrowCol = {
-		["BUFF"]   = { 0,   255, 0   },
-		["DEBUFF"] = { 255, 0,   0   },
-		["Life"]   = { 255, 0,   0   },
-		["Mana"]   = { 0,   0,   255 },
-		["Other"]  = { 255, 0,   0   },
-		["Object"] = { 0,   128, 255 },
-		["CASTING"]  = { 255, 128, 0   },
+		["BUFF"]    = { 0,   255, 0   },
+		["DEBUFF"]  = { 255, 0,   0   },
+		["Life"]    = { 255, 0,   0   },
+		["Mana"]    = { 0,   0,   255 },
+		["Other"]   = { 255, 0,   0   },
+		["Object"]  = { 0,   128, 255 },
+		["CASTING"] = { 255, 128, 0   },
 	},
 	szItemIni = JH.GetAddonInfo().szShadowIni,
 }
 
-_ScreenHead.tFontCol  = LoadLUAData(JH.GetAddonInfo().szRootPath .. "ScreenHead/tFontCol.jx3dat")  or _ScreenHead.tFontCol
-_ScreenHead.tArrowCol = LoadLUAData(JH.GetAddonInfo().szRootPath .. "ScreenHead/tArrowCol.jx3dat") or _ScreenHead.tArrowCol
+SH.tFontCol  = LoadLUAData(JH.GetAddonInfo().szRootPath .. "ScreenHead/tFontCol.jx3dat")  or SH.tFontCol
+SH.tArrowCol = LoadLUAData(JH.GetAddonInfo().szRootPath .. "ScreenHead/tArrowCol.jx3dat") or SH.tArrowCol
 
-function _ScreenHead.Init()
-	_ScreenHead.handle = JH.GetShadowHandle("ScreenHead")
+function SH.Init()
+	SH.handle = JH.GetShadowHandle("ScreenHead")
 end
 
-function _ScreenHead.GetListText(tab)
+function SH.GetListText(tab)
 	local tName = {}
 	for k, _ in pairs(tab) do
 		if type(k) == "string" then
@@ -83,7 +83,7 @@ function _ScreenHead.GetListText(tab)
 	return table.concat(tName, "\n")
 end
 
-function _ScreenHead:Create(obj, info, nIndex)
+function SH:Create(obj, info, nIndex)
 	local dwID = obj.dwID
 	local txt, handle, lifeper, manaper, data
 	local tManaCol = { 50, 100, 255 }
@@ -281,7 +281,7 @@ function _ScreenHead:Create(obj, info, nIndex)
 	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
 end
 
-function _ScreenHead:Remove(dwID, nIndex)
+function SH:Remove(dwID, nIndex)
 	local handle = self.handle:Lookup(tostring(dwID))
 	local data = self.tList[dwID]
 	if nIndex then
@@ -295,9 +295,9 @@ function _ScreenHead:Remove(dwID, nIndex)
 	self.handle:RemoveItem(tostring(dwID))
 end
 
-function _ScreenHead.Clear()
-	_ScreenHead.tList = {}
-	_ScreenHead.handle:Clear()
+function SH.Clear()
+	SH.tList = {}
+	SH.handle:Clear()
 	local _, _, szLang = GetVersion()
 	if szLang == "zhcn" and JH.IsInArena() and not JH.bDebugClient then
 		ARENAMAP = true
@@ -306,7 +306,7 @@ function _ScreenHead.Clear()
 	end
 end
 
-function _ScreenHead.GetObject(dwID)
+function SH.GetObject(dwID)
 	local p, info
 	if IsPlayer(dwID) then
 		local me = GetClientPlayer()
@@ -323,37 +323,37 @@ function _ScreenHead.GetObject(dwID)
 	return p, info
 end
 
-function _ScreenHead.OnBreathe()
+function SH.OnBreathe()
 	local me = GetClientPlayer()
 	if not me then return end
-	for dwID, t in pairs(_ScreenHead.tList) do
-		local p, info = _ScreenHead.GetObject(dwID)
+	for dwID, t in pairs(SH.tList) do
+		local p, info = SH.GetObject(dwID)
 		if not p then
-			_ScreenHead:Remove(dwID)
+			SH:Remove(dwID)
 		else
-			local handle = _ScreenHead.handle:Lookup(tostring(dwID))
+			local handle = SH.handle:Lookup(tostring(dwID))
 			if not handle then
 				if #t > 0 then
-					_ScreenHead:Create(p, info, #t)
+					SH:Create(p, info, #t)
 				end
 			else
-				_ScreenHead:Create(p, info)
+				SH:Create(p, info)
 			end
 		end
 	end
 end
 
-function _ScreenHead.KillBreathe()
+function SH.KillBreathe()
 	JH.BreatheCall("ScreenHead_Fight")
-	_ScreenHead.tCache["Mana"] = {}
-	_ScreenHead.tCache["Life"] = {}
+	SH.tCache["Mana"] = {}
+	SH.tCache["Life"] = {}
 end
 
-function _ScreenHead.OnBreatheFight()
+function SH.OnBreatheFight()
 	local me = GetClientPlayer()
 	if not me then return end
 	if not me.bFightState then -- kill fix bug
-		_ScreenHead.KillBreathe()
+		SH.KillBreathe()
 	end
 	local team = GetClientTeam()
 	local list = {}
@@ -363,78 +363,78 @@ function _ScreenHead.OnBreatheFight()
 		list[1] = me.dwID
 	end
 	for k, v in ipairs(list) do
-		local p, info = _ScreenHead.GetObject(v)
+		local p, info = SH.GetObject(v)
 		if p and info then
 			if p.nMoveState == MOVE_STATE.ON_DEATH then
-				_ScreenHead.tCache["Mana"][v] = nil
-				_ScreenHead.tCache["Life"][v] = nil
+				SH.tCache["Mana"][v] = nil
+				SH.tCache["Life"][v] = nil
 			else
 				if info.nMaxLife == 0 then info.nMaxLife = 1 end
 				if info.nMaxMana == 0 then info.nMaxMana = 1 end
 				local lifeper = info.nCurrentLife / info.nMaxLife
 				local manaper = info.nCurrentMana / info.nMaxMana
 				if lifeper < ScreenHead.nTeamHp then
-					if not _ScreenHead.tCache["Life"][v] then
-						_ScreenHead.tCache["Life"][v] = true
-						_ScreenHead.RegisterHead(v,{  type = "Life" })
+					if not SH.tCache["Life"][v] then
+						SH.tCache["Life"][v] = true
+						SH.RegisterHead(v,{  type = "Life" })
 					end
 				else
-					_ScreenHead.tCache["Life"][v] = nil
+					SH.tCache["Life"][v] = nil
 				end
 				if manaper < ScreenHead.nTeamMp and p.dwForceID < 7 then
-					if not _ScreenHead.tCache["Mana"][v] then
-						_ScreenHead.tCache["Mana"][v] = true
-						_ScreenHead.RegisterHead(v,{  type = "Mana" })
+					if not SH.tCache["Mana"][v] then
+						SH.tCache["Mana"][v] = true
+						SH.RegisterHead(v,{  type = "Mana" })
 					end
 				else
-					_ScreenHead.tCache["Mana"][v] = nil
+					SH.tCache["Mana"][v] = nil
 				end
 			end
 		end
 	end
 end
 
-function _ScreenHead.RegisterFight()
+function SH.RegisterFight()
 	if arg0 and ScreenHead.bTeamAlert then
-		JH.BreatheCall("ScreenHead_Fight", _ScreenHead.OnBreatheFight)
+		JH.BreatheCall("ScreenHead_Fight", SH.OnBreatheFight)
 	else
-		_ScreenHead.KillBreathe()
+		SH.KillBreathe()
 	end
 end
 
-function _ScreenHead.RegisterHead(dwID, tab)
+function SH.RegisterHead(dwID, tab)
 	if ARENAMAP then return end
-	if not _ScreenHead.tList[dwID] then
-		_ScreenHead.tList[dwID] = {}
+	if not SH.tList[dwID] then
+		SH.tList[dwID] = {}
 	end
 	if not tab then tab = {} end
 	if tab.type and tab.type == "BUFF" or tab.type == "DEBUFF" then
-		for k, v in ipairs(_ScreenHead.tList[dwID]) do
+		for k, v in ipairs(SH.tList[dwID]) do
 			if v.type == tab.type and v.dwID == tab.dwID then
 				return
 			end
 		end
 	end
-	table.insert(_ScreenHead.tList[dwID], tab)
-	local p, info = _ScreenHead.GetObject(dwID)
+	table.insert(SH.tList[dwID], tab)
+	local p, info = SH.GetObject(dwID)
 	if p and info then
-		_ScreenHead:Create(p, info, #_ScreenHead.tList[dwID])
+		SH:Create(p, info, #SH.tList[dwID])
 	end
 end
 
-function _ScreenHead.OnBuffUpdate()
+function SH.OnBuffUpdate()
 	if arg1 then return end
 	local szName = GetBuffName(arg4,arg8)
 	if ScreenHead.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
 		local type = arg3 and "BUFF" or "DEBUFF"
-		_ScreenHead.RegisterHead(arg0, { type = type, dwID = arg4 })
+		SH.RegisterHead(arg0, { type = type, dwID = arg4 })
 	end
 end
 
-function _ScreenHead.OnNpcUpdate()
+function SH.OnNpcUpdate()
 	local szName = GetObjName(GetNpc(arg0))
 	if ScreenHead.tNpcList[szName] then
-		_ScreenHead.RegisterHead(arg0,{ type = "Object", txt = _L["aim"] })
+		SH.RegisterHead(arg0,{ type = "Object", txt = _L["aim"] })
 	end
 end
 
@@ -456,9 +456,9 @@ function PS.OnPanelActive(frame)
 		ui:Fetch("bIsMe"):Enable(bChecked)
 		local me = GetClientPlayer()
 		if bChecked and me.bFightState then
-			JH.BreatheCall("ScreenHead_Fight",_ScreenHead.OnBreatheFight)
+			JH.BreatheCall("ScreenHead_Fight",SH.OnBreatheFight)
 		else
-			_ScreenHead.KillBreathe()
+			SH.KillBreathe()
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", "bIsMe", { x = nX + 10, y = nY + 10, checked = ScreenHead.bIsMe,enable = ScreenHead.bTeamAlert })
@@ -476,7 +476,7 @@ function PS.OnPanelActive(frame)
 
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
 	nX,nY =ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 70, limit = 4096,multi = true})
-	:Text(_ScreenHead.GetListText(ScreenHead.tList)):Change(function(szText)
+	:Text(SH.GetListText(ScreenHead.tList)):Change(function(szText)
 		local t = {}
 		for _, v in ipairs(JH.Split(szText, "\n")) do
 			v = JH.Trim(v)
@@ -488,7 +488,7 @@ function PS.OnPanelActive(frame)
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add Npc Name (One per line)"], font = 27 }):Pos_()
 	ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 70, limit = 4096,multi = true})
-	:Text(_ScreenHead.GetListText(ScreenHead.tNpcList)):Change(function(szText)
+	:Text(SH.GetListText(ScreenHead.tNpcList)):Change(function(szText)
 		local t = {}
 		for _, v in ipairs(JH.Split(szText, "\n")) do
 			v = JH.Trim(v)
@@ -501,14 +501,14 @@ function PS.OnPanelActive(frame)
 end
 
 JH.RegisterInit("ScreenHead",
-	{ "Breathe", _ScreenHead.OnBreathe },
-	{ "LOADING_END", _ScreenHead.Clear },
-	{ "FIGHT_HINT", _ScreenHead.RegisterFight },
-	{ "LOGIN_GAME", _ScreenHead.Init },
-	{ "BUFF_UPDATE", _ScreenHead.OnBuffUpdate },
-	{ "NPC_ENTER_SCENE", _ScreenHead.OnNpcUpdate },
+	{ "Breathe", SH.OnBreathe },
+	{ "LOADING_END", SH.Clear },
+	{ "FIGHT_HINT", SH.RegisterFight },
+	{ "LOGIN_GAME", SH.Init },
+	{ "BUFF_UPDATE", SH.OnBuffUpdate },
+	{ "NPC_ENTER_SCENE", SH.OnNpcUpdate },
 	{ "JH_SCREENHEAD", function()
-			_ScreenHead.RegisterHead(arg0, arg1)
+			SH.RegisterHead(arg0, arg1)
 	end }
 )
 

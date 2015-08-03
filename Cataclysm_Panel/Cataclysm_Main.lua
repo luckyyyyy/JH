@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 08:20:21
+-- @Last Modified time: 2015-08-03 16:28:46
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -1120,7 +1120,7 @@ function PS4.OnPanelActive(frame)
 
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Max buff count"]}):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 12, txt = "" })
-	:Range(0, 10):Value(Cataclysm_Main.nMaxShowBuff):Change(function(nVal)
+	:Range(0, 10, 10):Value(Cataclysm_Main.nMaxShowBuff):Change(function(nVal)
 		Cataclysm_Main.nMaxShowBuff = nVal
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["buff Size"]}):Pos_()

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-13 08:13:32
+-- @Last Modified time: 2015-08-03 16:30:03
 local _L = JH.LoadLangPack
 
 TargetFace = {
@@ -507,9 +507,10 @@ PS.OnPanelActive = function(frame)
 		_TargetFace.bReRender = true
 		ui:Fetch("fScale"):Enable(bChecked)
 	end):Pos_()
-	nX, nY = ui:Append("WndTrackBar", "fScale", { x = nX + 5, y = nY + 2, txt = _L[" Text Scale"] })
-	:Enable(TargetFace.bTTName):Range(1, 50, 49):Value(TargetFace.fScale * 10):Change(function(nVal)
-		TargetFace.fScale = nVal / 10
+	nX = ui:Append("Text", { txt = _L["Text Scale"], x = nX + 2, y = nY - 2 }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", "fScale", { x = nX + 5, y = nY + 2, txt = "" })
+	:Enable(TargetFace.bTTName):Range(1, 1.5, 5):Value(TargetFace.fScale):Change(function(nVal)
+		TargetFace.fScale = nVal
 		_TargetFace.bReRender = true
 	end):Pos_()
 
@@ -561,8 +562,3 @@ JH.RegisterInit("TargetFace",
 	{ "LOADING_END", function() _TargetFace.bReRender = true end }
 )
 GUI.RegisterPanel(_L["TargetFace"], { "ui/Image/TargetPanel/Target.uitex", 47 }, g_tStrings.CHANNEL_CHANNEL, PS)
-local function GetTargetID()
-	return _TargetFace.tCache.dwTargetID
-end
--- publick
-TargetFace.GetTargetID = GetTargetID
