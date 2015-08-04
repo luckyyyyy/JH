@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-28 18:07:09
+-- @Last Modified time: 2015-08-03 15:56:22
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/CA_UI.ini"
@@ -16,26 +16,18 @@ CA_UI = {
 JH.RegisterCustomData("CA_UI")
 -- FireUIEvent("JH_CA_CREATE", "test", 3)
 local function CreateCentralAlert(szMsg, nTime, bXml)
-	nTime = nTime or 3
-	CA.nTime = nTime
 	local msg = CA.msg
+	nTime = nTime or 3
 	msg:Clear()
 	if not bXml then
-		msg:SetHandleStyle(0)
-		msg:SetRelPos(0, -4)
-		CA.handle:FormatAllItemPos()
-		local txt = msg:AppendItemFromIni(CA_INIFILE, "Text_Message")
-		txt:SetText(szMsg)
-		msg:FormatAllItemPos()
-	else
-		msg:SetHandleStyle(3)
-		msg:AppendItemFromString(szMsg)
-		msg:FormatAllItemPos()
-		local w, h = msg:GetAllItemSize()
-		msg:SetRelPos((480 - w) / 2, (45 - h) / 2)
-		CA.handle:FormatAllItemPos()
+		szMsg = GetFormatText(szMsg, 44, 255, 255, 255)
 	end
-	msg.nTime = nTime
+	msg:AppendItemFromString(szMsg)
+	msg:FormatAllItemPos()
+	local w, h = msg:GetAllItemSize()
+	msg:SetRelPos((480 - w) / 2, (45 - h) / 2 - 1)
+	CA.handle:FormatAllItemPos()
+	msg.nTime   = nTime
 	msg.nCreate = GetTime()
 	CA.frame:SetAlpha(155)
 	CA.frame:Show()

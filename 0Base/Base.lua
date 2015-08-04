@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-29 12:48:40
+-- @Last Modified time: 2015-08-04 21:22:43
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1000500
+local _VERSION_   = 0x1000600
 
 ---------------------------------------------------------------------
 -- 多语言处理
@@ -72,34 +72,34 @@ do
 end
 
 local _JH = {
-	szBuildDate    = "20150721",
-	szTitle        = _L["JH, JX3 Plug-in Collection"],
-	tHotkey        = {},
-	tAnchor        = {},
-	tDelayCall     = {},
-	tRequest       = {},
-	tGlobalValue   = {},
-	tConflict      = {},
-	tEvent         = {},
-	tBgMsgHandle   = {},
-	tModule        = {},
-	szShort        = _L["JH"],
-	nDebug         = 2,
-	tBuffCache     = {},
-	tSkillCache    = {},
-	tMapCache      = {},
-	tItemCache     = {},
-	tDungeonList   = {},
-	tMapList       = {},
-	aPlayer        = {},
-	aNpc           = {},
-	aDoodad        = {},
-	tBreatheCall   = {},
-	tItem          = { {}, {}, {} },
-	tOption        = { szOption = _L["JH"] },
-	tOption2       = { szOption = _L["JH"] },
-	tClass         = { _L["General"], _L["RGES"], _L["Other"] },
-	szIniFile      = ROOT_PATH .. "JH.ini",
+	szBuildDate  = "20150804",
+	szTitle      = _L["JH, JX3 Plug-in Collection"],
+	tHotkey      = {},
+	tAnchor      = {},
+	tDelayCall   = {},
+	tRequest     = {},
+	tGlobalValue = {},
+	tConflict    = {},
+	tEvent       = {},
+	tBgMsgHandle = {},
+	tModule      = {},
+	szShort      = _L["JH"],
+	nDebug       = 2,
+	tBuffCache   = {},
+	tSkillCache  = {},
+	tMapCache    = {},
+	tItemCache   = {},
+	tDungeonList = {},
+	tMapList     = {},
+	aPlayer      = {},
+	aNpc         = {},
+	aDoodad      = {},
+	tBreatheCall = {},
+	tItem        = { {}, {}, {} },
+	tOption      = { szOption = _L["JH"] },
+	tOption2     = { szOption = _L["JH"] },
+	tClass       = { _L["General"], _L["RGES"], _L["Other"] },
+	szIniFile    = ROOT_PATH .. "JH.ini",
 }
 
 local JH = JH
@@ -1181,6 +1181,7 @@ function JH.GetBuffList(tar)
 			tinsert(aBuff, {
 				dwID = dwID, nLevel = nLevel, bCanCancel = bCanCancel, nEndFrame = nEndFrame,
 				nIndex = nIndex, nStackNum = nStackNum, dwSkillSrcID = dwSkillSrcID, bValid = bValid,
+				nCount = i
 			})
 		end
 	end
@@ -1542,6 +1543,32 @@ function JH.OutputNpcTip(dwNpcTemplateID, Rect)
     OutputTip(table.concat(t), 345, Rect)
 end
 
+function JH.OutputDoodadTip(dwTemplateID, Rect)
+	local doodad = GetDoodadTemplate(dwTemplateID)
+	if not doodad then
+		return
+	end
+	local t = {}
+	--------------名字-------------------------
+	local szName = doodad.szName
+	if doodad.nKind == DOODAD_KIND.CORPSE then
+		szName = szName .. g_tStrings.STR_DOODAD_CORPSE
+	end
+	table.insert(t, GetFormatText(szName .. "\n", 65))
+	table.insert(t, GetDoodadQuestTip(dwTemplateID))
+    ------------模版ID-----------------------
+   	table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 37))
+    if IsCtrlKeyDown() then
+    	table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
+    end
+    if doodad.nKind == DOODAD_KIND.GUIDE then
+		local x, y = Cursor.GetPos()
+		w, h = 40, 40
+		Rect = {x, y, w, h}
+    end
+    OutputTip(table.concat(t), 300, Rect)
+end
+
 local XML_LINE_BREAKER = GetFormatText("\n")
 function JH.OutputBuffTip(dwID, nLevel, Rect, nTime)
 	local t, tab = {}, {}
@@ -1864,10 +1891,53 @@ function _GUI.Base:Alpha(nAlpha)
 	return self
 end
 
+------------------------------------------------
+
+_GUI.Frame = class(_GUI.Base)
+
+-- (string) Instance:Title()					-- 取得窗体标题
+-- (self) Instance:Title(string szTitle)	-- 设置窗体标题
+function _GUI.Frame:Title(szTitle)
+	local ttl = self.self:Lookup("", "Text_Title")
+	if not szTitle then
+		return ttl:GetText()
+	end
+	ttl:SetText(szTitle)
+	return self
+end
+
+-- (boolean) Instance:Drag()						-- 判断窗体是否可拖移
+-- (self) Instance:Drag(boolean bEnable)	-- 设置窗体是否可拖移
+function _GUI.Frame:Drag(bEnable)
+	local frm = self.self
+	if bEnable == nil then
+		return frm:IsDragable()
+	end
+	frm:EnableDrag(bEnable == true)
+	return self
+end
+
+-- (string) Instance:Relation()
+-- (self) Instance:Relation(string szName)	-- Normal/Lowest ...
+function _GUI.Frame:Relation(szName)
+	local frm = self.self
+	if not szName then
+		return frm:GetParent():GetName()
+	end
+	frm:ChangeRelation(szName)
+	return self
+end
+
+-- (userdata) Instance:Lookup(...)
+function _GUI.Frame:Lookup(...)
+	local wnd = self.wnd or self.self
+	return self.wnd:Lookup(...)
+end
+
 -------------------------------------
 -- Dialog frame
 -------------------------------------
-_GUI.Frm = class(_GUI.Base)
+_GUI.Frm = class(_GUI.Frame)
 
 -- constructor
 function _GUI.Frm:ctor(szName, bEmpty)
@@ -1944,47 +2014,7 @@ function _GUI.Frm:Size(nW, nH)
 	return self
 end
 
--- (string) Instance:Title()					-- 取得窗体标题
--- (self) Instance:Title(string szTitle)	-- 设置窗体标题
-function _GUI.Frm:Title(szTitle)
-	local ttl = self.self:Lookup("", "Text_Title")
-	if not szTitle then
-		return ttl:GetText()
-	end
-	ttl:SetText(szTitle)
-	return self
-end
-
--- (boolean) Instance:Drag()						-- 判断窗体是否可拖移
--- (self) Instance:Drag(boolean bEnable)	-- 设置窗体是否可拖移
-function _GUI.Frm:Drag(bEnable)
-	local frm = self.self
-	if bEnable == nil then
-		return frm:IsDragable()
-	end
-	frm:EnableDrag(bEnable == true)
-	return self
-end
-
--- (string) Instance:Relation()
--- (self) Instance:Relation(string szName)	-- Normal/Lowest ...
-function _GUI.Frm:Relation(szName)
-	local frm = self.self
-	if not szName then
-		return frm:GetParent():GetName()
-	end
-	frm:ChangeRelation(szName)
-	return self
-end
-
--- (userdata) Instance:Lookup(...)
-function _GUI.Frm:Lookup(...)
-	local wnd = self.wnd or self.self
-	return self.wnd:Lookup(...)
-end
-
-_GUI.Frm2 = class(_GUI.Base)
-
+_GUI.Frm2 = class(_GUI.Frame)
 -- constructor
 function _GUI.Frm2:ctor(szName, bEmpty)
 	local frm, szIniFile = nil, ROOT_PATH .. "ui/WndFrame2.ini"
@@ -2008,6 +2038,13 @@ function _GUI.Frm2:ctor(szName, bEmpty)
 		frm:Lookup("Btn_Close").OnLButtonClick = function()
 			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 			self:Remove()
+		end
+		frm.OnFrameKeyDown = function()
+			if GetKeyName(Station.GetMessageKey()) == "Esc" then
+				PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+				self:Remove()
+				return 1
+			end
 		end
 		self.wnd = frm:Lookup("Window_Main")
 		self.handle = self.wnd:Lookup("", "")
@@ -2046,18 +2083,9 @@ function _GUI.Frm2:Size(nW, nH)
 	return self
 end
 
-function _GUI.Frm2:RegisterSetting(fnAction)
+function _GUI.Frm2:Setting(fnAction)
 	local wnd = self.self
 	wnd:Lookup("Btn_Setting").OnLButtonClick = fnAction
-	return self
-end
-
-function _GUI.Frm2:Title(szTitle)
-	local ttl = self.self:Lookup("", "Text_Title")
-	if not szTitle then
-		return ttl:GetText()
-	end
-	ttl:SetText(szTitle)
 	return self
 end
 
@@ -2100,7 +2128,11 @@ function _GUI.Wnd:ctor(pFrame, szType, szName)
 			scroll.nVal = scroll.nMin
 			self.txt:SetText(scroll.nVal .. scroll.szText)
 			scroll.OnScrollBarPosChanged = function()
-				this.nVal = this.nMin + mceil((this:GetScrollPos() / this:GetStepCount()) * (this.nMax - this.nMin))
+				if (this.nMax - this.nMin) < this:GetStepCount() then
+					this.nVal = this.nMin + (this:GetScrollPos() / this:GetStepCount()) * (this.nMax - this.nMin)
+				else
+					this.nVal = this.nMin + mceil((this:GetScrollPos() / this:GetStepCount()) * (this.nMax - this.nMin))
+				end
 				if this.OnScrollBarPosChanged_ then
 					this.OnScrollBarPosChanged_(this.nVal)
 				end
@@ -3031,7 +3063,7 @@ function GUI.CreateFrame(szName, tArg)
 		szName, tArg = nil, szName
 	end
 	tArg = tArg or {}
-	local ui = _GUI.Frm.new(szName, tArg.empty == true)
+	local ui = tArg.nStyle == 2 and _GUI.Frm2.new(szName, tArg.empty == true) or _GUI.Frm.new(szName, tArg.empty == true)
 	if tArg.focus then
 		Station.SetFocusWindow(ui.self)
 	end
@@ -3052,28 +3084,7 @@ end
 function GUI.CreateFrameEmpty(szName, szParent)
 	return GUI.CreateFrame(szName, { empty  = true, parent = szParent })
 end
--- 透明的窗口
-function GUI.CreateFrame2(szName, tArg)
-	if type(szName) == "table" then
-		szName, tArg = nil, szName
-	end
-	tArg = tArg or {}
-	local ui = _GUI.Frm2.new(szName, tArg.empty == true)
-	if tArg.focus then
-		Station.SetFocusWindow(ui.self)
-	end
-	-- apply init setting
-	if tArg.w and tArg.h then ui:Size(tArg.w, tArg.h) end
-	if tArg.x and tArg.y then ui:Pos(tArg.x, tArg.y) end
-	if tArg.title then ui:Title(tArg.title) end
-	if tArg.drag ~= nil then ui:Drag(tArg.drag) end
-	if tArg.close ~= nil then ui.self.bClose = tArg.close end
-	if tArg.fnCreate then tArg.fnCreate(ui:Raw()) end
-	if tArg.fnDestroy then ui.fnDestroy = tArg.fnDestroy end
-	if tArg.parent then ui:Relation(tArg.parent) end
-	ui:Point() -- fix Size
-	return ui
-end
+
 -- 往某一父窗体或容器添加  INI 配置文件中的部分，并返回 GUI 封装对象
 -- (class) GUI.Append(userdata hParent, string szIniFile, string szTag, string szName)
 -- hParent		-- 父窗体或容器原始对象（GUI 对象请直接用  :Append 方法）
@@ -3278,7 +3289,7 @@ end
 
 -- 字体选择器
 function GUI.OpenFontTablePanel(fnAction)
-	local wnd = GUI.CreateFrame2("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, close = true })
+	local wnd = GUI.CreateFrame("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, nStyle = 2 , close = true })
 	for i = 0, 236 do
 		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
 		:Click(function()
@@ -3297,7 +3308,7 @@ end
 
 -- 调色板
 function GUI.OpenColorTablePanel(fnAction)
-	local wnd = GUI.CreateFrame2("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], close = true })
+	local wnd = GUI.CreateFrame("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], nStyle = 2 , close = true })
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			wnd:Fetch("Select"):Color(r, g, b)
@@ -3377,7 +3388,7 @@ function GUI.OpenColorTablePanel(fnAction)
 		if GetRGBValue() then
 			fnClick(GetRGBValue())
 		else
-			JH.Sysmsg("RGB value error")
+			JH.Alert("RGB value error")
 		end
 	end)
 end
@@ -3385,7 +3396,7 @@ local ICON_PAGE = 20
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
 	local nMaxIocn, boxs, txts = 7006, {}, {}
-	local ui = GUI.CreateFrame2("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], close = true })
+	local ui = GUI.CreateFrame("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], nStyle = 2 , close = true })
 	local function GetPage(nPage)
 		local nStart = nPage * 144 - 1
 		for i = 1, 144 do

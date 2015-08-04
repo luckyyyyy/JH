@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-11 18:51:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-05-11 19:26:44
+-- @Last Modified time: 2015-08-04 00:17:47
 
 -- 因为相机的原点是在玩家的位置 所以这个不是很科学
 
@@ -13,7 +13,7 @@ local function Open()
 	local X, Y, Z = 0, 0, 0
 	local step = 50
 	_G["JH_camera"] = {}
-	local ui = GUI.CreateFrame2("JH_camera", { w = 200, h = 100, close = true, title = "camera offset" })
+	local ui = GUI.CreateFrame("JH_camera", { w = 200, h = 100, close = true, title = "camera offset", nStyle = 2 })
 	ui:Append("WndTrackBar", { x = 30, y = 20 }):Range(1, 100, 99):Value(step):Change(function(nVal)
 		step = nVal
 	end)

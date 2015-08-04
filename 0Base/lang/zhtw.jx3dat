@@ -44,7 +44,7 @@ data = {
 	["Show direction (adjust position by SHIFT-U)"] = "開啟目標方向指示（Shift+U可以移動位置）",
 	["OnlyPlane direction"] = "只計算平面距離",
 	["Show TTarget Name"] = "顯示目標的目標名稱",
-	[" Text Scale"] = " 文字縮放",
+	["Text Scale"] = "文字縮放",
 	["Show Target Hatred"] = "顯示目標仇恨",
 	["Lock Panel"] = "鎖定位置",
 	["Show Background"] = "顯示背景圖片",
@@ -77,10 +77,9 @@ data = {
 	-- LargeText.lua --
 	["LargeText"] = "特大文字",
 	["Font Scale"] = "字體縮放",
-	["Pause time(s)"] = "停留時間（秒）",
-	["FadeOut time(s)"] = "淡出時間（秒）",
+	["Pause time"] = "停留時間",
+	["FadeOut time"] = "淡出時間",
 	["preview"] = "預覽",
-	["Hello World"] = "妳好，世界。",
 	-- RaidTools --
 	["Equip Score"] = "裝備得分",
 	["Buff Score"] = "增益得分",
@@ -657,6 +656,7 @@ data = {
 	["Open JH Panel"] = "打開菊花設置面板",
 	["JH, JX3 Plug-in Collection"] = "《劍網3》菊花插件集",
 	["Color Picker"] = "顏色選擇器（按住Ctrl點擊相當於應用）",
+	["Icon Picker"] = "圖標選擇器",
 	-- FontList.lua --
 	["Font"] = "字體大全",
 	["Up"] = "上壹頁",
