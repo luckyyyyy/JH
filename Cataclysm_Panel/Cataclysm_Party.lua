@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-18 10:59:12
+-- @Last Modified time: 2015-08-04 17:34:25
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -37,6 +37,7 @@ local CTM_TARGET
 local CTM_TTARGET
 local CTM_CACHE              = setmetatable({}, { __mode = "v" })
 local CTM_LIFE_CACHE         = {}
+local CTM_BUFF_CACHE         = {}
 -- Package func
 local HIDE_FORCE = {
 	[7]  = true,
@@ -875,104 +876,107 @@ function CTM:FormatFrame(frame, nMemberCount)
 end
 
 -- 注册buff
--- arg0:dwMemberID, arg1:dwID, arg2:nLevel, arg3:tColor, arg4:nIocn
-function CTM:RecBuff(dwMemberID, dwID, nLevel, col, nIocn, bDemo)
-	if CTM_CACHE[dwMemberID] and CTM_CACHE[dwMemberID]:IsValid() then
-		local handle = CTM_CACHE[dwMemberID]:Lookup("Handle_Buff_Boxes")
-		local nTotal = handle:GetItemCount()
-		if nTotal >= CFG.nMaxShowBuff then
-			return
-		end
-		for i = 0, nTotal - 1 do
-			local h = handle:Lookup(i)
-			if h and h:IsValid() then -- 防止溢出
-				local _, hdwID, hnLevel = h:Lookup("Box"):GetObject()
-				if hdwID == dwID and hnLevel == nLevel then
-					return
-				end
-			end
-		end
-		local p = GetPlayer(dwMemberID)
-		if p then
-			local KBuff = GetBuff(dwID, p)
-			if KBuff or bDemo then
-				local hBuff = Cataclysm_Main.GetFrame().hBuff
-				local item = handle:AppendItemFromData(hBuff)
-				if not col then
-					item:Lookup("Shadow"):Hide()
-				else
-					item:Lookup("Shadow"):SetColorRGB(unpack(col))
-				end
-				local szName, icon = JH.GetBuffName(dwID, nLevel)
-				if nIcon and tonumber(nIcon) then
-					icon = nIcon
-				end
-				local box = item:Lookup("Box")
-				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, dwID, nLevel)
-				box:SetObjectIcon(icon)
-				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				box:SetObjectStaring(CFG.bStaring)
-				if CFG.bAutoBuffSize then
-					if CFG.fScaleY > 1 then
-						item:Scale(CFG.fScaleY, CFG.fScaleY)
-					end
-				else
-					item:Scale(CFG.fBuffScale, CFG.fBuffScale)
-				end
-				handle:FormatAllItemPos()
-			end
-		end
-	end
+function CTM:RecBuff(dwMemberID, data)
+	CTM_BUFF_CACHE[data.dwID] = data
 end
 
 function CTM:RefresBuff()
-	for k, v in pairs(CTM_CACHE) do
-		if v:IsValid() then
-			local handle = v:Lookup("Handle_Buff_Boxes")
-			if handle:GetItemCount() > 0 then
-				local p = GetPlayer(k)
-				if p then
-					for i = 0, handle:GetItemCount() - 1 do
-						local h = handle:Lookup(i)
-						if h and h:IsValid() then -- 因为是呼吸
-							local hBox = h:Lookup("Box")
-							local _, dwID, nLevel = hBox:GetObject()
-							local KBuff = GetBuff(dwID, p)
-							if KBuff then
-								if CFG.bShowBuffTime then
-									local nTime = GetEndTime(KBuff.GetEndTime())
-									if nTime < 5 then
-										if nTime >= 0 then
-											hBox:SetOverTextFontScheme(0, 219)
-											hBox:SetOverText(0, floor(nTime) .. " ")
-										end
-									elseif nTime < 10 then
-										hBox:SetOverTextFontScheme(0, 27)
-										hBox:SetOverText(0, floor(nTime) .. " ")
-									else
-										hBox:SetOverText(0, "")
-									end
-								else
-									hBox:SetOverText(0, "")
-								end
-								if CFG.bShowBuffNum and KBuff.nStackNum > 1 then
-									hBox:SetOverTextFontScheme(1, 15)
-									hBox:SetOverText(1, KBuff.nStackNum .. " ")
-								else
-									hBox:SetOverText(1, "")
-								end
-							else
-								handle:RemoveItem(i)
-								handle:FormatAllItemPos() -- 格式化buff的位置
+	local team, me = GetClientTeam(), GetClientPlayer()
+	local tCheck = {}
+	for k, v in ipairs(team.GetTeamMemberList()) do
+		local p = GetPlayer(v)
+		if CTM_CACHE[v] and CTM_CACHE[v]:IsValid() and p then
+			local handle = CTM_CACHE[v]:Lookup("Handle_Buff_Boxes")
+			for dwID, data in pairs(CTM_BUFF_CACHE) do
+				local KBuff = GetBuff(dwID, data.nLevel, p)
+				local key = dwID .. "," .. data.nLevel
+				local item = handle:Lookup(key)
+				local nEndFrame, _, nStackNum
+				-- init check
+				if KBuff then
+					if not data.bOnlySelf then
+						nEndFrame, nStackNum = KBuff.GetEndTime(), KBuff.nStackNum
+					else
+						for kk, vv in ipairs(JH.GetBuffList(p)) do
+							if vv.dwID == dwID and vv.dwSkillSrcID == me.dwID and (data.nLevel == 0 or data.nLevel == vv.nLevel) then
+								nEndFrame, _, nStackNum = select(4, p.GetBuff(vv.nCount - 1))
+								break
 							end
 						end
 					end
+				end
+				if nEndFrame then
+					-- create
+					if not item and handle:GetItemCount() < CFG.nMaxShowBuff then
+						 item = handle:AppendItemFromData(Cataclysm_Main.GetFrame().hBuff, key)
+						if not data.col then
+							item:Lookup("Shadow"):Hide()
+						else
+							item:Lookup("Shadow"):SetColorRGB(unpack(data.col))
+						end
+						local szName, icon = JH.GetBuffName(data.dwID, data.nLevelEx)
+						if data.nIcon and tonumber(data.nIcon) then
+							icon = data.nIcon
+						end
+						local box = item:Lookup("Box")
+						box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, data.dwID, data.nLevelEx)
+						box:SetObjectIcon(icon)
+						box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
+						box:SetObjectStaring(CFG.bStaring)
+						if CFG.bAutoBuffSize then
+							if CFG.fScaleY > 1 then
+								item:Scale(CFG.fScaleY, CFG.fScaleY)
+							end
+						else
+							item:Scale(CFG.fBuffScale, CFG.fBuffScale)
+						end
+						handle:FormatAllItemPos()
+					end
+					-- revise
+					if item then
+						local hBox = item:Lookup("Box")
+						if CFG.bShowBuffTime then
+							local nTime = GetEndTime(nEndFrame)
+							if nTime < 5 then
+								if nTime >= 0 then
+									hBox:SetOverTextFontScheme(0, 219)
+									hBox:SetOverText(0, floor(nTime) .. " ")
+								end
+							elseif nTime < 10 then
+								hBox:SetOverTextFontScheme(0, 27)
+								hBox:SetOverText(0, floor(nTime) .. " ")
+							else
+								hBox:SetOverText(0, "")
+							end
+						else
+							hBox:SetOverText(0, "")
+						end
+						if CFG.bShowBuffNum and nStackNum > 1 then
+							hBox:SetOverTextFontScheme(1, 15)
+							hBox:SetOverText(1, nStackNum .. " ")
+						else
+							hBox:SetOverText(1, "")
+						end
+					end
+					tCheck[dwID] = true
 				else
-					handle:Clear()
+					if item then
+						handle:RemoveItem(item)
+						handle:FormatAllItemPos() -- 格式化buff的位置
+					end
 				end
 			end
+		elseif CTM_CACHE[v] and CTM_CACHE[v]:IsValid() then
+			local handle = CTM_CACHE[v]:Lookup("Handle_Buff_Boxes")
+			handle:Clear()
 		end
 	end
+	for k, v in pairs(CTM_BUFF_CACHE) do
+		if not tCheck[k] then
+			CTM_BUFF_CACHE[k] = nil
+		end
+	end
+	-- print(CTM_BUFF_CACHE)
 end
 
 function CTM:RefreshDistance()
