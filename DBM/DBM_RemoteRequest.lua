@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-20 13:14:57
+-- @Last Modified time: 2015-07-29 13:01:03
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -13,13 +13,13 @@ JH.RegisterCustomData("DBM_RemoteRequest")
 local ROOT_URL = "http://game.j3ui.com/"
 local _, _, CLIENT_LANG = GetVersion()
 local W = {
-	szIniFile = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_RemoteRequest.ini",
-	szFileList =    ROOT_URL .. "data/top/",
-	szFileList2 =   ROOT_URL .. "data/other/",
-	szSearch =      ROOT_URL .. "data/search/",
-	szUser =        ROOT_URL .. "data/user/",
-	szDownload =    ROOT_URL .. "down/json/",
-	szLoginUrl =    ROOT_URL .. "user/login/",
+	szIniFile   = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_RemoteRequest.ini",
+	szFileList  = ROOT_URL .. "data/top/",
+	szFileList2 = ROOT_URL .. "data/other/",
+	szSearch    = ROOT_URL .. "data/search/",
+	szUser      = ROOT_URL .. "data/user/",
+	szDownload  = ROOT_URL .. "down/json/",
+	szLoginUrl  = ROOT_URL .. "user/login/",
 }
 -- 打开界面
 function W.OpenPanel()

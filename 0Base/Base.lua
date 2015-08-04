@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-21 17:57:06
+-- @Last Modified time: 2015-07-29 12:48:40
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -341,11 +341,11 @@ end
 
 function JH.OnFrameCreate()
 	-- var
-	_JH.frame = this
-	_JH.hTotal = this:Lookup("Wnd_Content", "")
-	_JH.hList = this:Lookup("Wnd_Content/WndScroll_List", "")
+	_JH.frame    = this
+	_JH.hTotal   = this:Lookup("Wnd_Content", "")
+	_JH.hList    = this:Lookup("Wnd_Content/WndScroll_List", "")
 	_JH.hContent = _JH.hTotal:Lookup("Handle_Content")
-	_JH.hBox = _JH.hTotal:Lookup("Box_1")
+	_JH.hBox     = _JH.hTotal:Lookup("Box_1")
 	-- title
 	local szTitle = _JH.szTitle .. " v" ..  JH.GetVersion() .. " (" .. _JH.szBuildDate .. ")"
 	_JH.hTotal:Lookup("Text_Title"):SetText(szTitle)
@@ -459,7 +459,7 @@ function JH.GetAddonInfo()
 	}
 end
 
--- 获取对象名称
+-- (string) JH.GetObjName(Kobject object) -- 根据类型获取对象的真实名称
 function JH.GetObjName(object)
 	if IsPlayer(object.dwID) then
 		return object.szName
@@ -467,8 +467,10 @@ function JH.GetObjName(object)
 		return JH.GetTemplateName(object.szName, object.dwTemplateID)
 	end
 end
-
-function JH.GetTemplateName(szName, dwTemplateID, dwEmployer)
+-- 根据信息获取对象的真实名称 并可返回归属权 可防止dwEmployer刷日志的问题
+-- (string) JH.GetemplateName(string szName[, number dwTemplateID. number dwEmployer])
+-- (string) JH.GetemplateName(Kobject szName[, number dwTemplateID. number dwEmployer])
+function JH.GetemplateName(szName, dwTemplateID, dwEmployer)
 	if type(szName) == "userdata" then
 		if IsPlayer(szName.dwID) then
 			return szName.szName
