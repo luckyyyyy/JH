@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-20 11:35:32
+-- @Last Modified time: 2015-08-04 15:12:08
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -51,7 +51,7 @@ local function CloseRaidDragPanel()
 	end
 end
 
-local function RaidDragPanelIsOpened( ... )
+local function RaidDragPanelIsOpened()
 	return Station.Lookup("Normal/RaidDragPanel") and Station.Lookup("Normal/RaidDragPanel"):IsVisible()
 end
 DBM_UI = {}
@@ -518,7 +518,11 @@ function DBMUI.OutputTip(szType, data, rect)
 	elseif szType == "CASTING" then
 		OutputSkillTip(data.dwID, data.nLevel, rect)
 	elseif szType == "NPC" then
-		JH.OutputNpcTip(data.dwID or data.key, rect)
+		if data.dwType == TARGET.DOODAD then
+			JH.OutputDoodadTip(data.key, rect)
+		else
+			JH.OutputNpcTip(data.dwID or data.key, rect)
+		end
 	elseif szType == "TALK" then
 		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText(DBMUI.GetMapName(data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
 	end

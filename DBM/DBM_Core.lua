@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-26 23:09:14
+-- @Last Modified time: 2015-08-04 17:32:11
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -574,7 +574,14 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				end
 				-- 添加到团队面板
 				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID) then
-					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col, data.nIcon)
+					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, {
+						dwID      = data.dwID,
+						nLevel    = data.bCheckLevel and data.nLevel or 0,
+						nLevelEx  = data.nLevel,
+						col       = data.col,
+						nIcon     = data.nIcon,
+						bOnlySelf = cfg.bOnlySelfSrc,
+					})
 				end
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -794,7 +801,7 @@ function D.OnNpcEvent(npc, bEnter)
 					D.SetTeamMark("NPC", cfg.tMark, npc.dwID, npc.dwTemplateID)
 				end
 				if DBM.bPushScreenHead and cfg.bScreenHead then
-					FireUIEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col })
+					FireUIEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col, szName = data.szName })
 				end
 			end
 			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5秒内进入相同的NPC直接忽略
