@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-04 21:22:43
+-- @Last Modified time: 2015-08-04 21:53:21
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -468,9 +468,9 @@ function JH.GetObjName(object)
 	end
 end
 -- 根据信息获取对象的真实名称 并可返回归属权 可防止dwEmployer刷日志的问题
--- (string) JH.GetemplateName(string szName[, number dwTemplateID. number dwEmployer])
--- (string) JH.GetemplateName(Kobject szName[, number dwTemplateID. number dwEmployer])
-function JH.GetemplateName(szName, dwTemplateID, dwEmployer)
+-- (string) JH.GetTemplateName(string szName[, number dwTemplateID. number dwEmployer])
+-- (string) JH.GetTemplateName(Kobject szName[, number dwTemplateID. number dwEmployer])
+function JH.GetTemplateName(szName, dwTemplateID, dwEmployer)
 	if type(szName) == "userdata" then
 		if IsPlayer(szName.dwID) then
 			return szName.szName
