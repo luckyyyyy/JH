@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-03 17:16:10
+-- @Last Modified time: 2015-08-04 17:13:08
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1000500
+local _VERSION_   = 0x1000600
 
 ---------------------------------------------------------------------
 -- 多语言处理
@@ -72,34 +72,34 @@ do
 end
 
 local _JH = {
-	szBuildDate    = "20150721",
-	szTitle        = _L["JH, JX3 Plug-in Collection"],
-	tHotkey        = {},
-	tAnchor        = {},
-	tDelayCall     = {},
-	tRequest       = {},
-	tGlobalValue   = {},
-	tConflict      = {},
-	tEvent         = {},
-	tBgMsgHandle   = {},
-	tModule        = {},
-	szShort        = _L["JH"],
-	nDebug         = 2,
-	tBuffCache     = {},
-	tSkillCache    = {},
-	tMapCache      = {},
-	tItemCache     = {},
-	tDungeonList   = {},
-	tMapList       = {},
-	aPlayer        = {},
-	aNpc           = {},
-	aDoodad        = {},
-	tBreatheCall   = {},
-	tItem          = { {}, {}, {} },
-	tOption        = { szOption = _L["JH"] },
-	tOption2       = { szOption = _L["JH"] },
-	tClass         = { _L["General"], _L["RGES"], _L["Other"] },
-	szIniFile      = ROOT_PATH .. "JH.ini",
+	szBuildDate  = "20150804",
+	szTitle      = _L["JH, JX3 Plug-in Collection"],
+	tHotkey      = {},
+	tAnchor      = {},
+	tDelayCall   = {},
+	tRequest     = {},
+	tGlobalValue = {},
+	tConflict    = {},
+	tEvent       = {},
+	tBgMsgHandle = {},
+	tModule      = {},
+	szShort      = _L["JH"],
+	nDebug       = 2,
+	tBuffCache   = {},
+	tSkillCache  = {},
+	tMapCache    = {},
+	tItemCache   = {},
+	tDungeonList = {},
+	tMapList     = {},
+	aPlayer      = {},
+	aNpc         = {},
+	aDoodad      = {},
+	tBreatheCall = {},
+	tItem        = { {}, {}, {} },
+	tOption      = { szOption = _L["JH"] },
+	tOption2     = { szOption = _L["JH"] },
+	tClass       = { _L["General"], _L["RGES"], _L["Other"] },
+	szIniFile    = ROOT_PATH .. "JH.ini",
 }
 
 local JH = JH
@@ -1179,6 +1179,7 @@ function JH.GetBuffList(tar)
 			tinsert(aBuff, {
 				dwID = dwID, nLevel = nLevel, bCanCancel = bCanCancel, nEndFrame = nEndFrame,
 				nIndex = nIndex, nStackNum = nStackNum, dwSkillSrcID = dwSkillSrcID, bValid = bValid,
+				nCount = i
 			})
 		end
 	end
@@ -1538,6 +1539,32 @@ function JH.OutputNpcTip(dwNpcTemplateID, Rect)
     table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1), 101))
 
     OutputTip(table.concat(t), 345, Rect)
+end
+
+function JH.OutputDoodadTip(dwTemplateID, Rect)
+	local doodad = GetDoodadTemplate(dwTemplateID)
+	if not doodad then
+		return
+	end
+	local t = {}
+	--------------名字-------------------------
+	local szName = doodad.szName
+	if doodad.nKind == DOODAD_KIND.CORPSE then
+		szName = szName .. g_tStrings.STR_DOODAD_CORPSE
+	end
+	table.insert(t, GetFormatText(szName .. "\n", 65))
+	table.insert(t, GetDoodadQuestTip(dwTemplateID))
+    ------------模版ID-----------------------
+   	table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 37))
+    if IsCtrlKeyDown() then
+    	table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
+    end
+    if doodad.nKind == DOODAD_KIND.GUIDE then
+		local x, y = Cursor.GetPos()
+		w, h = 40, 40
+		Rect = {x, y, w, h}
+    end
+    OutputTip(table.concat(t), 300, Rect)
 end
 
 local XML_LINE_BREAKER = GetFormatText("\n")
