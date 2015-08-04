@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-12 08:20:21
+-- @Last Modified time: 2015-08-04 17:32:30
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -477,14 +477,19 @@ function Cataclysm_Main.OnEvent(szEvent)
 		-- oldid£¬ oldtype, newid, newtype
 		Grid_CTM:RefreshTarget(arg0, arg1, arg2, arg3)
 	elseif szEvent == "JH_RAID_REC_BUFF" then
-		Grid_CTM:RecBuff(arg0, arg1, arg2, arg3, arg4)
+		Grid_CTM:RecBuff(arg0, arg1)
 	elseif szEvent == "BUFF_UPDATE" then
 		if arg1 then return end
 		local szName = GetBuffName(arg4, arg8)
 		local tab = Cataclysm_Main.tBuffList[szName] or Cataclysm_Main.tBuffList[tostring(arg4)]
 		if tab and Table_BuffIsVisible(arg4, arg8) then
 			if tab.bSelf and arg9 == UI_GetClientPlayerID() or not tab.bSelf then
-				Grid_CTM:RecBuff(arg0, arg4, arg8, tab.col)
+				Grid_CTM:RecBuff(arg0, {
+					dwID      = arg4,
+					nLevel    = 0,
+					col       = tab.col,
+					bOnlySelf = tab.bSelf
+				})
 			end
 		end
 	elseif szEvent == "GKP_RECORD_TOTAL" then
@@ -1120,7 +1125,7 @@ function PS4.OnPanelActive(frame)
 
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Max buff count"]}):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 12, txt = "" })
-	:Range(0, 10):Value(Cataclysm_Main.nMaxShowBuff):Change(function(nVal)
+	:Range(0, 10, 10):Value(Cataclysm_Main.nMaxShowBuff):Change(function(nVal)
 		Cataclysm_Main.nMaxShowBuff = nVal
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["buff Size"]}):Pos_()
@@ -1131,9 +1136,6 @@ function PS4.OnPanelActive(frame)
 	nX, nY = ui:Append("WndTrackBar", "BuffSize", { x = nX + 5, y = nY + 2, h = 25, w = 200 })
 	:Enable(not Cataclysm_Main.bAutoBuffSize):Range(50, 200, 150):Value(Cataclysm_Main.fBuffScale * 100):Change(function(nVal)
 		Cataclysm_Main.fBuffScale = nVal / 100
-		if GetFrame() then
-			Grid_CTM:RecBuff(UI_GetClientPlayerID(), 684, 1, nil, nil, true)
-		end
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Buff Staring"], checked = Cataclysm_Main.bStaring }):Click(function(bCheck)
 		Cataclysm_Main.bStaring = bCheck

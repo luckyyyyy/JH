@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-14 13:49:15
+-- @Last Modified time: 2015-08-04 13:01:09
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -582,9 +582,11 @@ function C.OnBreathe()
 				end
 			end
 			if data.bDrawName then
-				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
+				local tSelectObject = Scene_SelectObject("nearest")
+				if (KGNpc.CanSeeName() and tSelectObject[1]["ID"] == KGNpc.dwID) or not KGNpc.CanSeeName() then
+					tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
+				end
 			end
-
 			if data.bTarget then
 				local sha = C.tCache[TARGET.NPC][k].Line
 				local dwType, dwID = KGNpc.GetTarget()
@@ -703,13 +705,11 @@ function C.OnBreathe()
 	if C.shName then
 		C.shName:ClearTriangleFanPoint()
 		for _, v in ipairs(C.tDrawText) do
-			if not TargetFace or (TargetFace and (not TargetFace.bTTName or TargetFace.bTTName and TargetFace.GetTargetID() ~= v[1])) then
-				local r, g, b = unpack(v[3])
-				if v[4] ~= TARGET.DOODAD then
-					C.shName:AppendCharacterID(v[1], v[5] or false, r, g, b, 255, 50, 40, v[2], 1, 1)
-				else
-					C.shName:AppendDoodadID(v[1], r, g, b, 255, 50, 40, v[2], 1, 1)
-				end
+			local r, g, b = unpack(v[3])
+			if v[4] ~= TARGET.DOODAD then
+				C.shName:AppendCharacterID(v[1], v[5] or false, r, g, b, 255, 50, 40, v[2], 1, 1)
+			else
+				C.shName:AppendDoodadID(v[1], r, g, b, 255, 50, 40, v[2], 1, 1)
 			end
 		end
 		C.tDrawText = {}
