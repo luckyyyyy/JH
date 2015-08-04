@@ -1,4 +1,5 @@
-.git\
+.git
+.DS_Store
 .gitignore
 7zip.sh
 7zipignore.txt
