@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-02 21:37:34
+-- @Last Modified time: 2015-08-04 17:32:11
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -574,7 +574,14 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				end
 				-- 添加到团队面板
 				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID) then
-					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, data.dwID, data.nLevel, data.col, data.nIcon)
+					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, {
+						dwID      = data.dwID,
+						nLevel    = data.bCheckLevel and data.nLevel or 0,
+						nLevelEx  = data.nLevel,
+						col       = data.col,
+						nIcon     = data.nIcon,
+						bOnlySelf = cfg.bOnlySelfSrc,
+					})
 				end
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
