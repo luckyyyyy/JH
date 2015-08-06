@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-04 17:32:11
+-- @Last Modified time: 2015-08-06 16:14:34
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -553,7 +553,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				end
 				-- 头顶报警
 				if DBM.bPushScreenHead and cfg.bScreenHead then
-					FireUIEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, szName = data.szName or szName, col = data.col })
+					FireUIEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, col = data.col, txt = szName })
 				end
 				if me.dwID == dwCaster then
 					if DBM.bPushBuffList and cfg.bBuffList then

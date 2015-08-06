@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-03 15:58:04
+-- @Last Modified time: 2015-08-06 16:13:21
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -113,9 +113,9 @@ function SH:Create(obj, info, nIndex)
 					nSec = 0
 				end
 				if KBuff.nStackNum > 1 then
-					txt = sFormat("%s(%d)_%s", data.szName or GetBuffName(KBuff.dwID, KBuff.nLevel), KBuff.nStackNum, FormatTimeString(nSec, 1, true))
+					txt = sFormat("%s(%d)_%s", data.txt or GetBuffName(KBuff.dwID, KBuff.nLevel), KBuff.nStackNum, FormatTimeString(nSec, 1, true))
 				else
-					txt = sFormat("%s_%s", data.szName or GetBuffName(KBuff.dwID, KBuff.nLevel), FormatTimeString(nSec, 1, true))
+					txt = sFormat("%s_%s", data.txt or GetBuffName(KBuff.dwID, KBuff.nLevel), FormatTimeString(nSec, 1, true))
 				end
 			else
 				return self:Remove(dwID, nIndex)
