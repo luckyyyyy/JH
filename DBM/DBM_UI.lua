@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-04 15:12:08
+-- @Last Modified time: 2015-08-10 23:22:04
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -196,6 +196,7 @@ function DBM_UI.OnActivePage()
 	else
 		DBMUI.RefreshIcon(DBMUI_SELECT_TYPE, "L", 0)
 	end
+	FireUIEvent("DBMUI_SWITCH_PAGE")
 end
 
 function DBMUI.UpdateTree()
@@ -1181,10 +1182,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")
 	local ui = GUI(frame)
 	frame:RegisterEvent("DBMUI_DATA_RELOAD")
+	frame:RegisterEvent("DBMUI_SWITCH_PAGE")
 	frame.OnEvent = function(szEvent)
-		if szEvent == "DBMUI_DATA_RELOAD" then
-			ui:Remove()
-		end
+		ui:Remove()
 	end
 	frame.OnFrameDragEnd = function()
 		DBMUI_PANEL_ANCHOR = GetFrameAnchor(frame, "LEFTTOP")
