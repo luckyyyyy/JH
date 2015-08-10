@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 07:17:16
+-- @Last Modified time: 2015-08-10 10:38:29
 
 -- 早期代码 需要重写
 
@@ -702,7 +702,7 @@ function GKP.OnFrameCreate()
 			end
 		end
 	end
-	
+
 end
 ---------------------------------------------------------------------->
 -- 获取设置菜单
@@ -792,7 +792,7 @@ _GKP.GetSubsidiesMenu = function()
 			GetUserInput(_L["New Protocol  Format: Protocol's Name, Money"], function(txt)
 				local t = JH.Split(txt, ",")
 				table.insert(_GKP.Config.Subsidies, { t[1], tonumber(t[2]) or "", true })
-				_GKP.SaveConfi()
+				_GKP.SaveConfig()
 			end)
 		end
 	})
@@ -804,7 +804,7 @@ _GKP.GetSubsidiesMenu = function()
 			bChecked = v[3],
 			fnAction = function()
 				v[3] = not v[3]
-				_GKP.SaveConfig(	)
+				_GKP.SaveConfig()
 			end,
 		})
 	end
@@ -1065,7 +1065,7 @@ end
 ----------------------------------------------------------------------<
 _GKP.GKP_Sync = function()
 	local me = GetClientPlayer()
-	if me.IsInParty() then 
+	if me.IsInParty() then
 		local tMember = GetClientTeam().GetTeamMemberList()
 		local tTeam,menu = {},{}
 		for _,v in ipairs(tMember) do
