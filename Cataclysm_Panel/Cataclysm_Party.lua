@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-04 17:34:25
+-- @Last Modified time: 2015-08-10 15:56:55
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -905,7 +905,7 @@ function CTM:RefresBuff()
 						end
 					end
 				end
-				if nEndFrame then
+				if nEndFrame and (not data.nStackNum or nStackNum >= data.nStackNum) then
 					-- create
 					if not item and handle:GetItemCount() < CFG.nMaxShowBuff then
 						 item = handle:AppendItemFromData(Cataclysm_Main.GetFrame().hBuff, key)
