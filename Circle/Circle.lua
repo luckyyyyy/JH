@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-04 13:01:09
+-- @Last Modified time: 2015-08-12 14:48:36
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -816,10 +816,9 @@ function C.OpenDataPanel(data)
 	local frame = Station.Lookup("Normal/C_Data")
 	local ui = GUI(frame)
 	frame:RegisterEvent("CIRCLE_DRAW_UI")
+	frame:RegisterEvent("DBMUI_SWITCH_PAGE")
 	frame.OnEvent = function(szEvent)
-		if szEvent == "CIRCLE_DRAW_UI" then
-			ui:Remove()
-		end
+		ui:Remove()
 	end
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
 	--58
