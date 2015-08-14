@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-13 17:07:13
+-- @Last Modified time: 2015-08-13 17:17:07
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -643,23 +643,22 @@ function Cataclysm_Main.OnFrameDragEnd()
 	Cataclysm_Main.tAnchor = GetFrameAnchor(this, "TOPLEFT")
 	Grid_CTM:AutoLinkAllPanel() -- fix screen pos
 end
-
-local PS = {}
-function PS.OnPanelActive(frame)
-	local function EnableTeamPanel()
-		Cataclysm_Main.bRaidEnable = not Cataclysm_Main.bRaidEnable
-		if CheckCataclysmEnable() then
-			ReloadCataclysmPanel()
-		end
-		if not Cataclysm_Main.bRaidEnable then
-			local me = GetClientPlayer()
-			if me.IsInRaid() then
-				FireUIEvent("CTM_PANEL_RAID", true)
-			elseif me.IsInParty() then
-				FireUIEvent("CTM_PANEL_TEAMATE", true)
-			end
+local function EnableTeamPanel()
+	Cataclysm_Main.bRaidEnable = not Cataclysm_Main.bRaidEnable
+	if CheckCataclysmEnable() then
+		ReloadCataclysmPanel()
+	end
+	if not Cataclysm_Main.bRaidEnable then
+		local me = GetClientPlayer()
+		if me.IsInRaid() then
+			FireUIEvent("CTM_PANEL_RAID", true)
+		elseif me.IsInParty() then
+			FireUIEvent("CTM_PANEL_TEAMATE", true)
 		end
 	end
+end
+local PS = {}
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Cataclysm Team Panel"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable Cataclysm Team Panel"], checked = Cataclysm_Main.bRaidEnable }):Click(EnableTeamPanel):Pos_()

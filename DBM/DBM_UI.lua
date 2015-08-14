@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-10 23:22:04
+-- @Last Modified time: 2015-08-14 19:02:07
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -465,12 +465,8 @@ function DBM_UI.OnItemMouseEnter()
 		this:Lookup("Image"):SetFrame(8)
 		local box = this:Lookup("Box")
 		box:SetObjectMouseOver(true)
-		if DBMUI_SELECT_TYPE == "CIRCLE" then
-			if tonumber(this.dat.key) or tonumber(this.dat.dwID) then
-				DBMUI.OutputTip("NPC", this.dat, { x, y, w, h })
-			else
-				OutputTip(GetFormatText((this.dat.szNote and string.format("%s (%s)", this.dat.key, this.dat.szNote) or this.dat.key) .. "\n" .. DBMUI.GetMapName(this.dat.dwMapID), 41, 255, 255, 255), 300, { x, y, w, h })
-			end
+		if szName == "Handle_R" and DBMUI_SELECT_TYPE == "CIRCLE" then -- circle fix
+			DBMUI.OutputTip("NPC", this.dat, { x, y, w, h })
 		else
 			DBMUI.OutputTip(DBMUI_SELECT_TYPE, this.dat, { x, y, w, h })
 		end
@@ -519,13 +515,11 @@ function DBMUI.OutputTip(szType, data, rect)
 	elseif szType == "CASTING" then
 		OutputSkillTip(data.dwID, data.nLevel, rect)
 	elseif szType == "NPC" then
-		if data.dwType == TARGET.DOODAD then
-			JH.OutputDoodadTip(data.key, rect)
-		else
-			JH.OutputNpcTip(data.dwID or data.key, rect)
-		end
+		JH.OutputNpcTip(data.dwID, rect)
 	elseif szType == "TALK" then
 		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText(DBMUI.GetMapName(data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
+	elseif szType == "CIRCLE" then
+		Circle.OutputTip(data, rect)
 	end
 end
 
@@ -602,13 +596,13 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 		end
 		local bStatus, path = DBM_API.LoadConfigureFile(config)
 		if bStatus then
-			JH.Alert(_L("Import success %s", path))
+			JH.Alert(_L("Import success %s", szTitle or path))
 			ui:Remove()
 			if fnAction then
 				fnAction()
 			end
 		else
-			JH.Alert(_L("Import failed %s", path))
+			JH.Alert(_L("Import failed %s", szTitle or path))
 		end
 	end)
 end
@@ -725,7 +719,7 @@ function DBMUI.GetBoxInfo(szType, data)
 		szName, nIcon = JH.GetSkillName(data.dwID, data.nLevel)
 	elseif szType == "NPC" or szType == "CIRCLE" then
 		if data.dwID then
-			szName = JH.GetTemplateName(data.szName, data.dwID)
+			szName = JH.GetTemplateName(data.dwID)
 			nIcon = data.nFrame
 		end
 	elseif szType == "TALK" then
@@ -1669,9 +1663,12 @@ function DBMUI.TogglePanel()
 		DBMUI.OpenPanel()
 	end
 end
-function DBMUI.OpenPanel()
+function DBMUI.OpenPanel(szType)
 	if not DBMUI.IsOpened() then
-		local wnd = Wnd.OpenWindow(DBMUI_INIFILE, "DBM_UI")
+		if szType then
+			DBMUI_SELECT_TYPE = szType
+		end
+		Wnd.OpenWindow(DBMUI_INIFILE, "DBM_UI")
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 	end
 end

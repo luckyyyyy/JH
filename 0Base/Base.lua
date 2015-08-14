@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-04 21:53:21
+-- @Last Modified time: 2015-08-14 18:45:20
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -459,40 +459,42 @@ function JH.GetAddonInfo()
 	}
 end
 
--- (string) JH.GetObjName(Kobject object) -- 根据类型获取对象的真实名称
-function JH.GetObjName(object)
+function JH.GetObjName(object, bEmployer)
 	if IsPlayer(object.dwID) then
 		return object.szName
 	else
-		return JH.GetTemplateName(object.szName, object.dwTemplateID)
+		return JH.GetTemplateName(object, bEmployer)
 	end
 end
--- 根据信息获取对象的真实名称 并可返回归属权 可防止dwEmployer刷日志的问题
--- (string) JH.GetTemplateName(string szName[, number dwTemplateID. number dwEmployer])
--- (string) JH.GetTemplateName(Kobject szName[, number dwTemplateID. number dwEmployer])
-function JH.GetTemplateName(szName, dwTemplateID, dwEmployer)
-	if type(szName) == "userdata" then
-		if IsPlayer(szName.dwID) then
-			return szName.szName
-		else
-			szName, dwTemplateID, dwEmployer = szName.szName, szName.dwTemplateID, szName.dwEmployer
-		end
-	end
-	if dwTemplateID and not szName or JH.Trim(szName) == "" then
-		szName = Table_GetNpcTemplateName(dwTemplateID)
-		if JH.Trim(szName) == "" then
-			szName = tostring(dwTemplateID)
-		end
-	end
-	if dwEmployer and dwEmployer ~= 0 then
-		local emp = GetPlayer(dwEmployer)
-		if not emp then
-			szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. szName
-		else
-			szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. szName
-		end
+
+local function JH_GetNpcName(dwTemplateID)
+	local szName = Table_GetNpcTemplateName(dwTemplateID)
+	if JH.Trim(szName) == "" then
+		szName = tostring(dwTemplateID)
 	end
 	return szName
+end
+
+function JH.GetTemplateName(dwTemplateID, bEmployer)
+	if type(dwTemplateID) == "userdata" then
+		local szName
+		if IsPlayer(dwTemplateID.dwID) then
+			return dwTemplateID.szName
+		else
+			szName = JH_GetNpcName(dwTemplateID.dwTemplateID)
+		end
+		if bEmployer and dwTemplateID.dwEmployer ~= 0 then
+			local emp = GetPlayer(dwEmployer)
+			if not emp then
+				szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. szName
+			else
+				szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. szName
+			end
+		end
+		return szName
+	else
+		return JH_GetNpcName(dwTemplateID)
+	end
 end
 
 -- 注册事件，和系统的区别在于可以指定一个 KEY 防止多次加载
@@ -1522,25 +1524,19 @@ function JH.OutputNpcTip(dwNpcTemplateID, Rect)
 	if not npc then
 		return
 	end
-	local szName = npc.szName
-	if szName == "" then
-		szName = Table_GetNpcTemplateName(dwNpcTemplateID)
-	end
-	if JH.Trim(szName) == "" then
-		szName = tostring(dwNpcTemplateID)
-	end
+	local szName = JH.GetTemplateName(dwNpcTemplateID)
 	local t = {}
-	table.insert(t, GetFormatText(szName .. "\n", 80, 255, 255, 0))
+	tinsert(t, GetFormatText(szName .. "\n", 80, 255, 255, 0))
     -------------等级----------------------------
     if npc.nLevel - GetClientPlayer().nLevel > 10 then
-    	table.insert(t, GetFormatText(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL, 82))
+    	tinsert(t, GetFormatText(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL, 82))
     else
-    	table.insert(t, GetFormatText(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel), 0))
+    	tinsert(t, GetFormatText(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel), 0))
     end
     ------------模版ID-----------------------
-    table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1), 101))
+    tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1), 101))
 
-    OutputTip(table.concat(t), 345, Rect)
+    OutputTip(tconcat(t), 345, Rect)
 end
 
 function JH.OutputDoodadTip(dwTemplateID, Rect)
@@ -1554,19 +1550,19 @@ function JH.OutputDoodadTip(dwTemplateID, Rect)
 	if doodad.nKind == DOODAD_KIND.CORPSE then
 		szName = szName .. g_tStrings.STR_DOODAD_CORPSE
 	end
-	table.insert(t, GetFormatText(szName .. "\n", 65))
-	table.insert(t, GetDoodadQuestTip(dwTemplateID))
+	tinsert(t, GetFormatText(szName .. "\n", 65))
+	tinsert(t, GetDoodadQuestTip(dwTemplateID))
     ------------模版ID-----------------------
-   	table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 37))
+   	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 37))
     if IsCtrlKeyDown() then
-    	table.insert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
+    	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
     end
     if doodad.nKind == DOODAD_KIND.GUIDE then
 		local x, y = Cursor.GetPos()
 		w, h = 40, 40
 		Rect = {x, y, w, h}
     end
-    OutputTip(table.concat(t), 300, Rect)
+    OutputTip(tconcat(t), 300, Rect)
 end
 
 local XML_LINE_BREAKER = GetFormatText("\n")
@@ -1576,24 +1572,24 @@ function JH.OutputBuffTip(dwID, nLevel, Rect, nTime)
 	if szName == "" then
 		szName = g_tStrings.STR_HOTKEY_HIDE
 	end
-	table.insert(t, GetFormatText(szName .. "\t", 65))
+	tinsert(t, GetFormatText(szName .. "\t", 65))
 	local buffInfo = GetBuffInfo(dwID, nLevel, {})
 	if buffInfo and buffInfo.nDetachType and g_tStrings.tBuffDetachType[buffInfo.nDetachType] then
-		table.insert(t, GetFormatText(g_tStrings.tBuffDetachType[buffInfo.nDetachType] .. "\n", 106))
+		tinsert(t, GetFormatText(g_tStrings.tBuffDetachType[buffInfo.nDetachType] .. "\n", 106))
 	else
-		table.insert(t, XML_LINE_BREAKER)
+		tinsert(t, XML_LINE_BREAKER)
 	end
 	local szDesc = GetBuffDesc(dwID, nLevel, "desc")
 	if szDesc and szDesc ~= "" then
-		table.insert(t, GetFormatText(szDesc .. g_tStrings.STR_FULL_STOP, 106))
+		tinsert(t, GetFormatText(szDesc .. g_tStrings.STR_FULL_STOP, 106))
 	else
-		table.insert(t, GetFormatText("BUFF#" .. dwID .. "#" .. nLevel, 106))
+		tinsert(t, GetFormatText("BUFF#" .. dwID .. "#" .. nLevel, 106))
 	end
 
 	if nTime then
 		if nTime == 0 then
-			table.insert(t, XML_LINE_BREAKER)
-			table.insert(t, GetFormatText(g_tStrings.STR_BUFF_H_TIME_ZERO, 102))
+			tinsert(t, XML_LINE_BREAKER)
+			tinsert(t, GetFormatText(g_tStrings.STR_BUFF_H_TIME_ZERO, 102))
 		else
 			local H, M, S = "", "", ""
 			local h = math.floor(nTime / 3600)
@@ -1607,22 +1603,22 @@ function JH.OutputBuffTip(dwID, nLevel, Rect, nTime)
 			end
 			S = s..g_tStrings.STR_BUFF_H_TIME_S
 			if h < 720 then
-				table.insert(t, XML_LINE_BREAKER)
-				table.insert(t, GetFormatText(FormatString(g_tStrings.STR_BUFF_H_LEFT_TIME_MSG, H, M, S), 102))
+				tinsert(t, XML_LINE_BREAKER)
+				tinsert(t, GetFormatText(FormatString(g_tStrings.STR_BUFF_H_LEFT_TIME_MSG, H, M, S), 102))
 			end
 		end
 	end
 
 	-- For test
 	if IsCtrlKeyDown() then
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP, 102))
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText("ID:     " .. dwID, 102))
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText("Level:  " .. nLevel, 102))
-		table.insert(t, XML_LINE_BREAKER)
-		table.insert(t, GetFormatText("IconID: " .. tostring(Table_GetBuffIconID(dwID, nLevel)), 102))
+		tinsert(t, XML_LINE_BREAKER)
+		tinsert(t, GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP, 102))
+		tinsert(t, XML_LINE_BREAKER)
+		tinsert(t, GetFormatText("ID:     " .. dwID, 102))
+		tinsert(t, XML_LINE_BREAKER)
+		tinsert(t, GetFormatText("Level:  " .. nLevel, 102))
+		tinsert(t, XML_LINE_BREAKER)
+		tinsert(t, GetFormatText("IconID: " .. tostring(Table_GetBuffIconID(dwID, nLevel)), 102))
 	end
 	OutputTip(table.concat(t), 300, Rect)
 end

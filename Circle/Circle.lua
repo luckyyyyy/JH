@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-12 14:48:36
+-- @Last Modified time: 2015-08-14 18:57:56
 local _L = JH.LoadLangPack
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -301,6 +301,30 @@ function C.RemoveData(mapid, index, bConfirm)
 	end
 end
 
+function C.OutputTip(data, rect)
+	local xml = {}
+	if tonumber(data.key) then
+		tinsert(xml, GetFormatText(JH.GetTemplateName(data.key), 80, 255, 255, 0))
+	else
+		tinsert(xml, GetFormatText(data.key, 80, 255, 255, 0))
+	end
+	tinsert(xml, GetFormatText(" (" .. (data.dwType == TARGET.NPC and _L["NPC"] or _L["DOODAD"]) .. ")", 80, 255, 255, 0))
+	tinsert(xml, GetFormatText("\t" .. JH.IsMapExist(data.dwMapID), 41, 255, 255, 255))
+	if data.szNote then
+		tinsert(xml, GetFormatText(data.szNote .. "\n", 41, 255, 255, 255))
+	end
+	if data.tCircles then
+		for k, v in ipairs(data.tCircles) do
+			local txt = _L("Circle %d", k)
+			txt = txt .. g_tStrings.STR_COLON
+			txt = txt .. v.nAngle .. _L[" degree"] .. "  "
+			txt = txt .. v.nRadius .. _L[" feet"] .. "\n"
+			local r, g, b = unpack(v.col)
+			tinsert(xml, GetFormatText(txt, 41, r, g, b))
+		end
+	end
+	OutputTip(tconcat(xml), 400, rect)
+end
 function C.DrawLine(tar, ttar, sha, col, dwType)
 	sha:SetTriangleFan(GEOMETRY_TYPE.LINE, 3)
 	sha:ClearTriangleFanPoint()
@@ -811,7 +835,8 @@ function C.OpenDataPanel(data)
 	if Station.Lookup("Normal/C_Data") then
 		a = GetFrameAnchor(Station.Lookup("Normal/C_Data"))
 	end
-	GUI.CreateFrame("C_Data", { w = 380, h = 380, title = _L["Setting"], close = true, focus = true }):Point(a.s, 0, 0, a.r, a.x, a.y)
+	local title = data.szNote and string.format("%s(%s)", data.key, data.szNote) or data.key
+	GUI.CreateFrame("C_Data", { w = 770, h = 390, title = title, close = true, focus = true }):Point(a.s, 0, 0, a.r, a.x, a.y)
 	-- update ui = wnd
 	local frame = Station.Lookup("Normal/C_Data")
 	local ui = GUI(frame)
@@ -822,17 +847,23 @@ function C.OpenDataPanel(data)
 	end
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
 	--58
-	local title = data.szNote and string.format("%s(%s)", data.key, data.szNote) or data.key
-	ui:Append("Image", { x = 59.5, y = 45, w = 261, h = 25, alpha = 180}):File(file, 58)
-	local nX, nY = ui:Append("Text", "Name", { txt = title, font = 48, w = 380, h = 30, x = 0, y = 40, align = 1 }):Pos_()
-	ui:Append("WndRadioBox", { x = 100, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC })
-	:Click(function()
+	local nX, nY = ui:Append("Box", { w = 48, h = 48, x = 361, y = 40, icon = 2673 }):Hover(function(bHover)
+		this:SetObjectMouseOver(bHover)
+		if bHover then
+			local x, y = this:GetAbsPos()
+			local w, h = this:GetSize()
+			Circle.OutputTip(data, { x, y, w, h })
+		else
+			HideTip()
+		end
+	end):Pos_()
+
+	nX = ui:Append("WndRadioBox", { x = 300, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC }):Click(function()
 		data.dwType = TARGET.NPC
 		C.OpenDataPanel(data)
 		FireUIEvent("CIRCLE_CLEAR")
-	end)
-	local nX, nY = ui:Append("WndRadioBox", { x = 180, y = nY + 5, txt = _L["DOODAD"], group = "type", checked = data.dwType == TARGET.DOODAD })
-	:Click(function()
+	end):Pos_()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 5, txt = _L["DOODAD"], group = "type", checked = data.dwType == TARGET.DOODAD }):Click(function()
 		data.dwType = TARGET.DOODAD
 		C.OpenDataPanel(data)
 		FireUIEvent("CIRCLE_CLEAR")
@@ -908,11 +939,11 @@ function C.OpenDataPanel(data)
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bWhisperChat = bChecked
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", "bScreenHead", { x = nX + 5, y = nY, checked = data.bScreenHead, txt = _L["Screen Head Alarm"] })
+	nX = ui:Append("WndCheckBox", "bScreenHead", { x = nX + 5, y = nY, checked = data.bScreenHead, txt = _L["Screen Head Alarm"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bScreenHead = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bFlash", { x = 25, y = nY, checked = data.bFlash, txt = _L["Center Alarm"] })
+	nX = ui:Append("WndCheckBox", "bFlash", { x = nX + 5, y = nY, checked = data.bFlash, txt = _L["Center Alarm"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bFlash = bChecked
 	end):Pos_()
@@ -936,7 +967,8 @@ function C.OpenDataPanel(data)
 	:Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
 		data.bDoodadLine = bChecked
 	end):Pos_()
-	ui:Append("WndEdit", { x = 25, y = nY + 10, w = 310, h = 26 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK, limit = 30, })
+	nX, nY = ui:Append("Text", { x = 15, y = nY, txt = g_tStrings.STR_GUILD_REMARK, font = 27 }):Pos_()
+	ui:Append("WndEdit", { x = 25, y = nY + 10, w = 720, h = 24 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK, limit = 30, })
 	:Focus(function()
 		if this:GetText() == g_tStrings.STR_FRIEND_REMARK then
 			this:SetText("")
@@ -944,25 +976,25 @@ function C.OpenDataPanel(data)
 	end):Change(function(szText)
 		if JH.Trim(szText) ~= "" then
 			data.szNote = szText
-			ui:Fetch("Name"):Text(string.format("%s(%s)", data.key, data.szNote))
+			ui:Title(string.format("%s(%s)", data.key, data.szNote))
 		else
-			ui:Fetch("Name"):Text(data.key)
+			ui:Title(data.key)
 			data.szNote = nil
 		end
 	end)
-	local n = 0
-	if data.tCircles then n = #data.tCircles end
-	ui:Append("WndButton2", { x = 260, y = 330, txt = _L["Add Circle"] }):Enable(n < CIRCLE_MAX_CIRCLE)
-	:Click(function()
+	local nCount = data.tCircles and #data.tCircles or 0
+	ui:Append("WndButton2", { x = 20, y = 340, txt = _L["Add Circle"] }):Enable(nCount < CIRCLE_MAX_CIRCLE):Click(function()
 		data.tCircles = data.tCircles or {}
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
 		C.OpenDataPanel(data)
 		FireUIEvent("CIRCLE_CLEAR")
 	end)
-	ui:Append("WndButton2", { x = 20, y = 330, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } })
-	:Click(function()
+	ui:Append("WndButton2", { x = 335, y = 340, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } }):Click(function()
 		C.RemoveData(data.dwMapID, data.nIndex, not IsAltKeyDown())
+	end)
+	ui:Append("WndButton2", { x = 640, y = 340, txt = g_tStrings.HELP_PANEL }):Click(function()
+		OpenInternetExplorer("http://www.j3ui.com/DBM/")
 	end)
 end
 
@@ -1064,28 +1096,33 @@ function PS.OnPanelActive(frame)
 		Circle.bBorder = bChecked
 		FireUIEvent("CIRCLE_CLEAR")
 	end):Pos_()
-	if not C.dwSelMapID then C.dwSelMapID = _L["All Data"] end
-	nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = JH.IsMapExist(C.dwSelMapID) or _L["All Data"] }):Menu(C.GetMemu):Pos_()
+	if DBM_UI then
+		ui:Append("WndButton3", { x = 180, y = 80, txt = _L["Data Panel"]}):Click(function()
+			DBM_UI.OpenPanel("CIRCLE")
+		end)
+	else
+		if not C.dwSelMapID then C.dwSelMapID = _L["All Data"] end
+		nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = JH.IsMapExist(C.dwSelMapID) or _L["All Data"] }):Menu(C.GetMemu):Pos_()
 
-	ui:Append("WndEdit", "Search", { x = 330, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
-		if ui:Fetch("Search"):Text() == g_tStrings.SEARCH then
-			ui:Fetch("Search"):Text("")
-		end
-	end):Change(function(szText)
-		if JH.Trim(szText) == "" then szText = nil end
-		C.szSearch = szText
+		ui:Append("WndEdit", "Search", { x = 330, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
+			if ui:Fetch("Search"):Text() == g_tStrings.SEARCH then
+				ui:Fetch("Search"):Text("")
+			end
+		end):Change(function(szText)
+			if JH.Trim(szText) == "" then szText = nil end
+			C.szSearch = szText
+			FireUIEvent("CIRCLE_DRAW_UI")
+		end):Pos_()
+		local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
+		local win = fx:Lookup("WndScroll")
+		win:ChangeRelation(frame, true, true)
+		Wnd.CloseWindow(fx)
+		win:SetRelPos(0, 80)
+		C.hTable = win
+		C.hSelect = ui:Fetch("Select")
+		C.szSearch = nil
 		FireUIEvent("CIRCLE_DRAW_UI")
-	end):Pos_()
-
-	local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
-	local win = fx:Lookup("WndScroll")
-	win:ChangeRelation(frame, true, true)
-	Wnd.CloseWindow(fx)
-	win:SetRelPos(0, 80)
-	C.hTable = win
-	C.hSelect = ui:Fetch("Select")
-	C.szSearch = nil
-	FireUIEvent("CIRCLE_DRAW_UI")
+	end
 end
 
 GUI.RegisterPanel(_L["Circle"], { "ui/Image/UICommon/RaidTotal.uitex", 50 }, _L["Dungeon"], PS)
@@ -1144,6 +1181,7 @@ local ui = {
 	RemoveData          = C.RemoveData,
 	MoveData            = C.MoveData,
 	CheckRepeatData     = C.CheckRepeatData,
-	AddData             = C.AddData
+	AddData             = C.AddData,
+	OutputTip           = C.OutputTip
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )
