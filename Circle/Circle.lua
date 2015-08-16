@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-16 17:28:46
+-- @Last Modified time: 2015-08-16 18:26:08
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -792,6 +792,7 @@ function C.OpenDataPanel(data)
 		ui:Fetch("bDrawLine"):Enable(bChecked)
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
 		FireUIEvent("CIRCLE_RELOAD")
+		C.OpenDataPanel(data)
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 25, y = nY, checked = data.bTeamChat, txt = _L["Team Channel"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
