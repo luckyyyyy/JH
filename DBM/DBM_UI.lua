@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-14 19:02:07
+-- @Last Modified time: 2015-08-16 17:21:30
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -61,7 +61,7 @@ function DBM_UI.OnFrameCreate()
 	this:RegisterEvent("DBMUI_TEMP_RELOAD")
 	this:RegisterEvent("DBMUI_DATA_RELOAD")
 	if type(Circle) ~= "nil" then
-		this:RegisterEvent("CIRCLE_DRAW_UI")
+		this:RegisterEvent("CIRCLE_RELOAD")
 	end
 	this:RegisterEvent("UI_SCALED")
 	-- Esc
@@ -116,20 +116,12 @@ function DBM_UI.OnFrameCreate()
 			DBMUI_SEARCH = JH.Trim(szText)
 		end
 		FireUIEvent("DBMUI_TEMP_RELOAD")
-		if DBMUI_SELECT_TYPE == "CIRCLE" then
-			FireUIEvent("CIRCLE_DRAW_UI")
-		else
-			FireUIEvent("DBMUI_DATA_RELOAD")
-		end
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndCheckBox", { x = 560, y = 38, checked = DBMUI_GLOBAL_SEARCH, txt = _L["Global Search"] }):Click(function(bCheck)
 		DBMUI_GLOBAL_SEARCH = bCheck
 		FireUIEvent("DBMUI_TEMP_RELOAD")
-		if DBMUI_SELECT_TYPE == "CIRCLE" then
-			FireUIEvent("CIRCLE_DRAW_UI")
-		else
-			FireUIEvent("DBMUI_DATA_RELOAD")
-		end
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	end)
 	ui:Fetch("PageSet_Main"):Append("WndButton2", "NewFace", { x = 720, y = 40, txt = _L["New Face"] }):Click(function()
 		Circle.OpenAddPanel(nil, nil, DBMUI_SELECT_MAP ~= _L["All Data"] and JH.IsMapExist(DBMUI_SELECT_MAP))
@@ -154,8 +146,8 @@ function DBM_UI.OnEvent(szEvent)
 		DBMUI.UpdateAnchor(this)
 	elseif szEvent == "DBMUI_TEMP_UPDATE" then
 		DBMUI.UpdateRList(szEvent, arg0, arg1)
-	elseif szEvent == "DBMUI_TEMP_RELOAD" or szEvent == "DBMUI_DATA_RELOAD" or szEvent == "CIRCLE_DRAW_UI" then
-		if szEvent == "CIRCLE_DRAW_UI" and arg0 then
+	elseif szEvent == "DBMUI_TEMP_RELOAD" or szEvent == "DBMUI_DATA_RELOAD" or szEvent == "CIRCLE_RELOAD" then
+		if szEvent == "CIRCLE_RELOAD" and arg0 and DBM_SELECT_TYPE == "CIRCLE" then
 			DBMUI_SELECT_MAP = arg0
 		end
 		local nIndex = this.hPageSet:GetActivePageIndex()
@@ -177,7 +169,7 @@ function DBM_UI.OnActivePage()
 		DBMUI.UpdateLList("DBMUI_DATA_RELOAD")
 	else
 		this:Lookup("NewFace"):Show()
-		DBMUI.UpdateLList("CIRCLE_DRAW_UI")
+		DBMUI.UpdateLList("CIRCLE_RELOAD")
 	end
 	-- update tree
 	DBMUI.UpdateTree()
@@ -307,11 +299,7 @@ function DBM_UI.OnItemLButtonClick()
 		this:GetParent():FormatAllItemPos()
 	elseif szName == "TreeLeaf_Content" then
 		DBMUI_SELECT_MAP = this.dwMapID
-		if DBMUI_SELECT_TYPE == "CIRCLE" then
-			FireUIEvent("CIRCLE_DRAW_UI")
-		else
-			FireUIEvent("DBMUI_DATA_RELOAD")
-		end
+		FireUIEvent("DBMUI_DATA_RELOAD")
 	elseif szName == "Handle_L" or szName == "Handle_TALK_L" then
 		if DBMUI_SELECT_TYPE == "CIRCLE" then
 			Circle.OpenDataPanel(this.dat)
@@ -650,10 +638,10 @@ end
 
 function DBMUI.GetMenu()
 	local menu = {}
-	table.insert(menu, { szOption = _L["Import Data"], fnAction = function() DBMUI.OpenImportPanel() end }) -- 有传惨 不要改
+	table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBMUI.OpenImportPanel() end }) -- 有传惨 不要改
 	local szLang = select(3, GetVersion())
 	if szLang == "zhcn" or szLang == "zhtw" then
-		table.insert(menu, { szOption = _L["import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
+		table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
 	end
 	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
 	return menu

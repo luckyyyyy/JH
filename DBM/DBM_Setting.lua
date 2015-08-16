@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:15:27
+-- @Last Modified time: 2015-08-16 17:27:03
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -18,6 +18,19 @@ function PS.OnPanelActive(frame)
 		DBM_API.Enable(bCheck, true)
 		DBM.bEnable = bCheck
 	end):Pos_()
+	if Circle then
+		nY = 17
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = Circle.bEnable, txt = _L["Circle Enable"] }):Click(function(bCheck)
+			Circle.Enable(bCheck)
+			if bCheck then
+				FireUIEvent("CIRCLE_RELOAD")
+			end
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = Circle.bBorder, txt = _L["Circle Border"] }):Click(function(bCheck)
+			Circle.bBorder = bCheck
+			FireUIEvent("CIRCLE_RELOAD")
+		end):Pos_()
+	end
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Enable alarm (master switch)"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true), checked = DBM.bPushTeamChannel }):Click(function(bCheck)
 		DBM.bPushTeamChannel = bCheck
@@ -72,12 +85,17 @@ function PS.OnPanelActive(frame)
 		DBM.bCommon = bCheck
 	end):Pos_()
 	nX = ui:Append("WndButton2", { x = 5, y = nY + 15, txt = _L["Data Panel"] }):Click(DBM_UI.TogglePanel):Pos_()
-	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY + 15, txt = _L["Export Data"] }):Click(DBM_UI.OpenExportPanel):Pos_()
-	nX = ui:Append("WndButton2", { x = 5, y = nY + 5, txt = _L["Import Data"], w = 155, h = 32 }):Click(DBM_UI.OpenImportPanel):Pos_()
-	local szLang = select(3, GetVersion())
-	if szLang == "zhcn" or szLang == "zhtw" then
-		nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 5, txt = _L["import Data (web)"], w = 155, h = 32 }):Click(DBM_RemoteRequest.OpenPanel):Pos_()
-	end
+	nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 15, txt = _L["Export Data"] }):Click(DBM_UI.OpenExportPanel):Pos_()
+	nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 15, txt = _L["Import Data"] }):Click(function()
+		local szLang = select(3, GetVersion())
+		local menu = {}
+		table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBM_UI.OpenImportPanel() end }) -- 有传惨 不要改
+		local szLang = select(3, GetVersion())
+		if szLang == "zhcn" or szLang == "zhtw" then
+			table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
+		end
+		PopupMenu(menu)
+	end):Pos_()
 end
 
 GUI.RegisterPanel(_L["DBM"], { "ui/Image/UICommon/FBlist.uitex", 34 }, _L["Dungeon"], PS)
