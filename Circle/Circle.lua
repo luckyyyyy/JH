@@ -1,11 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-14 18:57:56
+-- @Last Modified time: 2015-08-16 17:28:46
+-- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
--- these global functions are accessed all the time by the event handler
--- so caching them is worth the effort
-local reverse, type, unpack, pcall = string.reverse, type, unpack, pcall
+local type, unpack, pcall = type, unpack, pcall
 local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
@@ -14,7 +13,7 @@ local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
 local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 local GetClientPlayer = GetClientPlayer
 local TARGET = TARGET
--- 常量 副本外大部分不受此限制
+
 local SHADOW              = JH.GetAddonInfo().szShadowIni
 local CIRCLE_ALPHA_STEP   = 2.5
 local CIRCLE_MAX_RADIUS   = 30    -- 最大的半径
@@ -23,7 +22,7 @@ local CIRCLE_MAX_CIRCLE   = 2
 local CIRCLE_RESERT_DRAW  = false -- 全局重绘
 local CIRCLE_PLAYER_NAME  = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
-
+local CIRCLE_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local CIRCLE_COLOR = {
 	{ r = 0,   g = 255, b = 0   },
 	{ r = 0,   g = 255, b = 255 },
@@ -36,13 +35,9 @@ local CIRCLE_COLOR = {
 	{ r = 255, g = 128, b = 0   },
 }
 
-local function Confuse(tCode)
-	return tCode
-end
-
 -- 获取数据路径
 local function GetDataPath()
-	if DBM and DBM.bCommon then
+	if DBM.bCommon then
 		return JH.GetAddonInfo().szDataPath .. "Circle/Common/Circle.jx3dat"
 	else
 		return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
@@ -52,15 +47,12 @@ end
 Circle = {
 	nMaxAlpha = 50,
 	bEnable = true,
-	bTeamChat = false, -- 控制全局的团队频道
-	bWhisperChat = false, -- 控制全局的密聊频道
 	bBorder = true, -- 全局的边框模式 边框会造成卡
 }
 JH.RegisterCustomData("Circle")
 
 local Circle = Circle
 local C = {
-	szIniFile = JH.GetAddonInfo().szRootPath .. "Circle/Circle.ini",
 	tData = {},
 	tDrawText = {},
 	tTarget = {},
@@ -110,8 +102,7 @@ function C.LoadCircleData(tData, bMsg)
 	tData.Circle["mt"] = nil
 	tData.Circle[-2]   = nil
 	C.tData = tData.Circle
-	FireUIEvent("CIRCLE_CLEAR")
-	FireUIEvent("CIRCLE_DRAW_UI")
+	FireUIEvent("CIRCLE_RELOAD")
 	if bMsg then
 		JH.Sysmsg(_L["Circle loaded."])
 	end
@@ -137,8 +128,7 @@ function C.LoadCircleMergeData(tData)
 			C.tData[k] = v
 		end
 	end
-	FireUIEvent("CIRCLE_CLEAR")
-	FireUIEvent("CIRCLE_DRAW_UI")
+	FireUIEvent("CIRCLE_RELOAD")
 	JH.Sysmsg(_L["Circle loaded."])
 end
 
@@ -233,8 +223,7 @@ end
 function C.AddData(dwMapID, data)
 	C.tData[dwMapID] = C.tData[dwMapID] or {}
 	tinsert(C.tData[dwMapID], data)
-	FireUIEvent("CIRCLE_CLEAR")
-	FireUIEvent("CIRCLE_DRAW_UI", dwMapID)
+	FireUIEvent("CIRCLE_RELOAD", dwMapID)
 	return C.tData[dwMapID][#C.tData[dwMapID]]
 end
 
@@ -249,8 +238,7 @@ function C.MoveOrder(dwMapID, nIndex, bUp)
 				C.tData[dwMapID][nIndex], C.tData[dwMapID][nIndex + 1] = C.tData[dwMapID][nIndex + 1], C.tData[dwMapID][nIndex]
 			end
 		end
-		FireUIEvent("CIRCLE_CLEAR")
-		FireUIEvent("CIRCLE_DRAW_UI")
+		FireUIEvent("CIRCLE_RELOAD")
 	end
 end
 
@@ -278,8 +266,7 @@ function C.MoveData(dwMapID, nIndex, dwTargetMapID, bCopy)
 		if not bCopy then
 			C.RemoveData(dwMapID, nIndex)
 		end
-		FireUIEvent("CIRCLE_CLEAR")
-		FireUIEvent("CIRCLE_DRAW_UI")
+		FireUIEvent("CIRCLE_RELOAD")
 	end
 end
 
@@ -290,8 +277,7 @@ function C.RemoveData(mapid, index, bConfirm)
 			if #C.tData[mapid] == 0 then
 				C.tData[mapid] = nil
 			end
-			FireUIEvent("CIRCLE_CLEAR")
-			FireUIEvent("CIRCLE_DRAW_UI")
+			FireUIEvent("CIRCLE_RELOAD")
 		end
 		if bConfirm then
 			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
@@ -423,97 +409,6 @@ function C.DrawBorder(tar, sha, nAngle, nRadius, col, dwType)
 	until dwRad1 > dwRad2
 end
 
--- 绘制设置UI表格
-function C.DrawTable()
-	if not C.hSelect or not C.hSelect.self:IsValid() then
-		return
-	end
-	if type(arg0) == "string" then
-		C.hSelect:Text(arg0)
-	elseif type(arg0) == "number" then
-		C.hSelect:Text(JH.IsMapExist(arg0))
-	end
-	if C.hTable and C.hTable:IsValid() then
-		local h, tab = C.hTable:Lookup("", "Handle_List"), {}
-		local mapid = C.dwSelMapID or C.GetMapID()
-		if mapid == _L["All Data"] then
-			tab = C.tData[_L["All Data"]]
-		else
-			tab = C.tData[mapid] or tab
-		end
-		h:Clear()
-		for k, v in ipairs(tab) do
-			local szName = v.szNote or v.key
-			if not C.szSearch or C.szSearch and tostring(szName):match(C.szSearch) or tostring(v.key):match(C.szSearch) then
-				local item = h:AppendItemFromIni(C.szIniFile, "Handle_Item", k)
-				if k % 2 == 0 then
-					item:Lookup("Image_Line"):Hide()
-				end
-				local text = item:Lookup("Text_I_Name")
-				text:SetText(v.szNote and string.format("%s (%s)", v.key, v.szNote) or v.key)
-				local r, g, b = 255, 255, 255
-				local vv = C.tData[v.dwMapID][v.nIndex]
-				if vv.tCircles then
-					r, g, b = unpack(vv.tCircles[1].col)
-				end
-				text:SetFontColor(r, g, b)
-				local szMapName = JH.IsMapExist(v.dwMapID)
-				item:Lookup("Text_I_Map"):SetText(szMapName)
-				item.OnItemMouseEnter = function()
-					this:Lookup("Image_Light"):Show()
-				end
-				item.OnItemMouseLeave = function()
-					if this:Lookup("Image_Light") then
-						this:Lookup("Image_Light"):Hide()
-					end
-				end
-				if not v.bEnable then
-					item:Lookup("Image_Btn"):SetFrame(5)
-				end
-				item:Lookup("Image_Btn").OnItemMouseEnter = function()
-					local nFrame = this:GetFrame()
-					this:SetFrame(nFrame == 6 and 7 or 3)
-				end
-				item:Lookup("Image_Btn").OnItemMouseLeave = function()
-					local nFrame = this:GetFrame()
-					this:SetFrame(nFrame == 7 and 6 or 5)
-				end
-				item:Lookup("Image_Btn").OnItemLButtonClick = function()
-					local nFrame = this:GetFrame()
-					C.tData[v.dwMapID][v.nIndex].bEnable = nFrame ~= 7
-					FireUIEvent("CIRCLE_CLEAR")
-					FireUIEvent("CIRCLE_DRAW_UI")
-				end
-				item.OnItemLButtonClick = function()
-					C.OpenDataPanel(v)
-				end
-				item.OnItemRButtonClick = function()
-					local szNote = v.szNote or g_tStrings.STR_NONE
-					local menu = {
-						{ szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. v.key, bDisable = true },
-						{ szOption = g_tStrings.CYCLOPAEDIA_NOTE_TEXT .. szNote, bDisable = true },
-						{ bDevide = true },
-						{ szOption = g_tStrings.STR_FRIEND_DEL, rgb = { 255, 0, 0 }, fnAction = function()
-							C.RemoveData(v.dwMapID, v.nIndex, not IsAltKeyDown())
-						end }
-					}
-					if mapid ~= _L["All Data"] then
-						tinsert(menu, 4, { szOption = _L["Move up"], bDisable = k == 1, fnAction = function()
-							C.MoveOrder(mapid, k, true)
-						end })
-						tinsert(menu, 5, { szOption = _L["Move down"], bDisable = k == #tab, fnAction = function()
-							C.MoveOrder(mapid, k, false)
-						end })
-						tinsert(menu, 6, { bDevide = true })
-					end
-					PopupMenu(menu)
-				end
-				item:Show()
-			end
-		end
-		h:FormatAllItemPos()
-	end
-end
 
 function C.OnNpcEnter(szEvent)
 	local npc = GetNpc(arg0)
@@ -567,109 +462,107 @@ function C.OnBreathe()
 	if not me then return end
 	for k, v in pairs(C.tScrutiny[TARGET.NPC]) do
 		local data = v
-		if data.bEnable then
-			local KGNpc = GetNpc(k)
-			if not C.tCache[TARGET.NPC][k] then
-				C.tCache[TARGET.NPC][k] = {
-					Circle = {},
-					Line = {},
-				}
-			end
-			if data.tCircles then
-				if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
-				for i = #data.tCircles, 1, -1 do
-					local kk, vv = i, data.tCircles[i]
-					if vv.bEnable then
-						local sha = C.tCache[TARGET.NPC][k].Circle
-						if not sha[kk] then
-							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
+		local KGNpc = GetNpc(k)
+		if not C.tCache[TARGET.NPC][k] then
+			C.tCache[TARGET.NPC][k] = {
+				Circle = {},
+				Line = {},
+			}
+		end
+		if data.tCircles then
+			if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
+			for i = #data.tCircles, 1, -1 do
+				local kk, vv = i, data.tCircles[i]
+				if vv.bEnable then
+					local sha = C.tCache[TARGET.NPC][k].Circle
+					if not sha[kk] then
+						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
+					end
+					if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+						sha[kk].nFaceDirection = KGNpc.nFaceDirection
+						local __Alpha
+						if #data.tCircles == 2 then
+							__Alpha = data.tCircles[1].nAngle
 						end
-						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-							sha[kk].nFaceDirection = KGNpc.nFaceDirection
-							local __Alpha
-							if #data.tCircles == 2 then
-								__Alpha = data.tCircles[1].nAngle
-							end
-							C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
+						C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
+					end
+					if Circle.bBorder and vv.bBorder then
+						local key = "B" .. kk
+						if not sha[key] then
+							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
 						end
-						if Circle.bBorder and vv.bBorder then
-							local key = "B" .. kk
-							if not sha[key] then
-								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
-							end
-							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-								sha[key].nFaceDirection = KGNpc.nFaceDirection
-								C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-							end
+						if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							sha[key].nFaceDirection = KGNpc.nFaceDirection
+							C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
 					end
 				end
 			end
-			if data.bDrawName then
-				local tSelectObject = Scene_SelectObject("nearest")
-				if (KGNpc.CanSeeName() and tSelectObject[1]["ID"] == KGNpc.dwID) or not KGNpc.CanSeeName() then
-					tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
-				end
+		end
+		if data.bDrawName then
+			local tSelectObject = Scene_SelectObject("nearest")
+			if (KGNpc.CanSeeName() and tSelectObject[1]["ID"] == KGNpc.dwID) or not KGNpc.CanSeeName() then
+				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
 			end
-			if data.bTarget then
-				local sha = C.tCache[TARGET.NPC][k].Line
-				local dwType, dwID = KGNpc.GetTarget()
-				local tar = JH.GetTarget(dwType, dwID)
-				if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and (not sha.item or sha.item and sha.item.dwID ~= dwID) and tar then
-					if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
-						sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-						sha.item.dwID = dwID
-						local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
-						C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
-					elseif sha.item then
-						C.shLine:RemoveItem(sha.item)
-						C.tCache[TARGET.NPC][k].Line = {}
-					end
-				elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
+		end
+		if data.bTarget then
+			local sha = C.tCache[TARGET.NPC][k].Line
+			local dwType, dwID = KGNpc.GetTarget()
+			local tar = JH.GetTarget(dwType, dwID)
+			if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and (not sha.item or sha.item and sha.item.dwID ~= dwID) and tar then
+				if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
+					sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
+					sha.item.dwID = dwID
+					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
+					C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
+				elseif sha.item then
 					C.shLine:RemoveItem(sha.item)
 					C.tCache[TARGET.NPC][k].Line = {}
 				end
-				if dwID ~= 0 and dwType == TARGET.PLAYER then
-					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
-					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetObjName(tar), col })
+			elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
+				C.shLine:RemoveItem(sha.item)
+				C.tCache[TARGET.NPC][k].Line = {}
+			end
+			if dwID ~= 0 and dwType == TARGET.PLAYER then
+				local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
+				tinsert(C.tDrawText, { KGNpc.dwID, JH.GetObjName(tar), col })
+			end
+			if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
+				local szName = JH.GetObjName(tar)
+				C.tTarget[KGNpc.dwID] = dwID
+				if data.bScreenHead then
+					FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
 				end
-				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
-					local szName = JH.GetObjName(tar)
-					C.tTarget[KGNpc.dwID] = dwID
-					if data.bScreenHead then
-						FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
+				if me.IsInRaid() then
+					if DBM.bPushWhisperChannel and data.bWhisperChat then
+						JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, g_tStrings.STR_YOU))
 					end
-					if me.IsInRaid() then
-						if Circle.bWhisperChat and data.bWhisperChat then
-							JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, g_tStrings.STR_YOU))
-						end
-						if Circle.bTeamChat and data.bTeamChat then
-							JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
-						end
+					if DBM.bPushTeamChannel and data.bTeamChat then
+						JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
 					end
-					if data.bFlash then
-						if me.dwID == dwID then
-							local xml = {}
-							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
-							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
-							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-							FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
-							FireUIEvent("JH_FS_CREATE", "Circle", { nTime  = 3, col = { 255, 0, 0 }, bFlash = true })
-						else
-							local xml = {}
-							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
-							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
-							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-							FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
-						end
+				end
+				if data.bFlash then
+					if me.dwID == dwID then
+						local xml = {}
+						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
+						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+						FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+						FireUIEvent("JH_FS_CREATE", "Circle", { nTime  = 3, col = { 255, 0, 0 }, bFlash = true })
+					else
+						local xml = {}
+						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
+						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+						FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 					end
 				end
 			end
@@ -678,52 +571,50 @@ function C.OnBreathe()
 	-- DOODAD面向绘制
 	for k, v in pairs(C.tScrutiny[TARGET.DOODAD]) do
 		local data = v
-		if data.bEnable then
-			local KGDoodad = GetDoodad(k)
-			if not C.tCache[TARGET.DOODAD][k] then
-				C.tCache[TARGET.DOODAD][k] = {
-					Circle = {},
-					Line = {},
-				}
-			end
-			if data.tCircles then
-				if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
-				for i = #data.tCircles, 1, -1 do
-					local kk, vv = i, data.tCircles[i]
-					if vv.bEnable then
-						local sha = C.tCache[TARGET.DOODAD][k].Circle
-						if not sha[kk] then
-							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. kk)
+		local KGDoodad = GetDoodad(k)
+		if not C.tCache[TARGET.DOODAD][k] then
+			C.tCache[TARGET.DOODAD][k] = {
+				Circle = {},
+				Line = {},
+			}
+		end
+		if data.tCircles then
+			if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
+			for i = #data.tCircles, 1, -1 do
+				local kk, vv = i, data.tCircles[i]
+				if vv.bEnable then
+					local sha = C.tCache[TARGET.DOODAD][k].Circle
+					if not sha[kk] then
+						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
+					end
+					if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+						sha[kk].nFaceDirection = KGDoodad.nFaceDirection
+						local __Alpha = #data.tCircles == 2 and data.tCircles[1].nAngle or nil
+						C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
+					end
+					if Circle.bBorder and vv.bBorder then
+						local key = "B" .. kk
+						if not sha[key] then
+							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 						end
-						if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-							sha[kk].nFaceDirection = KGDoodad.nFaceDirection
-							local __Alpha = #data.tCircles == 2 and data.tCircles[1].nAngle or nil
-							C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
-						end
-						if Circle.bBorder and vv.bBorder then
-							local key = "B" .. kk
-							if not sha[key] then
-								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
-							end
-							if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-								sha[key].nFaceDirection = KGDoodad.nFaceDirection
-								C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
-							end
+						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							sha[key].nFaceDirection = KGDoodad.nFaceDirection
+							C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
 					end
 				end
 			end
-			local sha = C.tCache[TARGET.DOODAD][k].Line
-			if data.bDoodadLine and not sha.item then
-				sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-				C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
-			elseif not data.bDoodadLine and sha.item then
-				C.shLine:RemoveItem(sha.item)
-				C.tCache[TARGET.DOODAD][k].Line = {}
-			end
-			if data.bDrawName then
-				tinsert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
-			end
+		end
+		local sha = C.tCache[TARGET.DOODAD][k].Line
+		if data.bDoodadLine and not sha.item then
+			sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
+			C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
+		elseif not data.bDoodadLine and sha.item then
+			C.shLine:RemoveItem(sha.item)
+			C.tCache[TARGET.DOODAD][k].Line = {}
+		end
+		if data.bDrawName then
+			tinsert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
 		end
 	end
 	if C.shName then
@@ -740,36 +631,6 @@ function C.OnBreathe()
 	end
 	CIRCLE_RESERT_DRAW = false
 end
-
--- 注册头像右键菜单
-Target_AppendAddonMenu({ function(dwID, dwType)
-	if dwType == TARGET.NPC then
-		local p = GetNpc(dwID)
-		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(p)]
-		if data then
-			return {{
-				szOption = _L["Edit Face"],
-				rgb = { 255, 128, 0 },
-				szLayer = "ICON_RIGHT",
-				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
-				nFrame = 86,
-				nMouseOverFrame = 87,
-				fnClickIcon = function()
-					C.RemoveData(data.dwMapID, data.nIndex, not IsCtrlKeyDown())
-				end,
-				fnAction = function()
-					C.OpenDataPanel(data)
-				end
-			}}
-		else
-			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
-				C.OpenAddPanel(not IsAltKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, JH.IsMapExist(C.GetMapID()))
-			end }}
-		end
-	else
-		return {}
-	end
-end })
 
 function C.OpenAddPanel(szName, dwType, szMap)
 	dwType = dwType or TARGET.NPC
@@ -808,7 +669,6 @@ function C.OpenAddPanel(szName, dwType, szMap)
 				local data = {
 					key = key,
 					dwType = dwType,
-					bEnable = true,
 					tCircles = { clone(CIRCLE_DEFAULT_DATA) }
 				}
 				C.OpenDataPanel(C.AddData(map, data))
@@ -831,19 +691,19 @@ function C.OpenAddPanel(szName, dwType, szMap)
 end
 
 function C.OpenDataPanel(data)
-	local a = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-	if Station.Lookup("Normal/C_Data") then
-		a = GetFrameAnchor(Station.Lookup("Normal/C_Data"))
-	end
 	local title = data.szNote and string.format("%s(%s)", data.key, data.szNote) or data.key
-	GUI.CreateFrame("C_Data", { w = 770, h = 390, title = title, close = true, focus = true }):Point(a.s, 0, 0, a.r, a.x, a.y)
+	local a = CIRCLE_PANEL_ANCHOR
+	GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 390, title = title, close = true, focus = true }):Point(a.s, 0, 0, a.r, a.x, a.y)
 	-- update ui = wnd
-	local frame = Station.Lookup("Normal/C_Data")
+	local frame = Station.Lookup("Normal/DBM_SettingPanel")
 	local ui = GUI(frame)
-	frame:RegisterEvent("CIRCLE_DRAW_UI")
+	frame:RegisterEvent("CIRCLE_RELOAD")
 	frame:RegisterEvent("DBMUI_SWITCH_PAGE")
 	frame.OnEvent = function(szEvent)
 		ui:Remove()
+	end
+	frame.OnFrameDragEnd = function()
+		CIRCLE_PANEL_ANCHOR = GetFrameAnchor(frame, "LEFTTOP")
 	end
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
 	--58
@@ -860,26 +720,27 @@ function C.OpenDataPanel(data)
 
 	nX = ui:Append("WndRadioBox", { x = 300, y = nY + 5, txt = _L["NPC"], group = "type", checked = data.dwType == TARGET.NPC }):Click(function()
 		data.dwType = TARGET.NPC
+		FireUIEvent("CIRCLE_RELOAD")
 		C.OpenDataPanel(data)
-		FireUIEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 5, txt = _L["DOODAD"], group = "type", checked = data.dwType == TARGET.DOODAD }):Click(function()
 		data.dwType = TARGET.DOODAD
+		FireUIEvent("CIRCLE_RELOAD")
 		C.OpenDataPanel(data)
-		FireUIEvent("CIRCLE_CLEAR")
 	end):Pos_()
 	for k, v in ipairs(data.tCircles or {}) do
 		nX = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Face Circle"], font = 27, checked = v.bEnable })
 		:Click(function(bChecked)
 			v.bEnable = bChecked
-			FireUIEvent("CIRCLE_CLEAR")
+			FireUIEvent("CIRCLE_RELOAD")
+			C.OpenDataPanel(data)
 		end):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 2, w = 35, h = 25, limit = 4 })
 		:Enable(k ~= 2):Text(v.nAngle):Change(function(nVal)
 			local n = tonumber(nVal) or 30
 			if n < 1 or n > 360 then
 				n = 30
-				JH.Sysmsg2(_L["Limit 1, "] .. 360)
+				JH.Alert("Limit (1, 360)")
 			end
 			v.nAngle = n
 			FireUIEvent("CIRCLE_RESERT_DRAW")
@@ -890,7 +751,7 @@ function C.OpenDataPanel(data)
 			local n = tonumber(nVal) or 1
 			if n <= 0 or n > CIRCLE_MAX_RADIUS then
 				n = 1
-				JH.Sysmsg2(_L["Limit 0, "] .. CIRCLE_MAX_RADIUS)
+				JH.Alert("Limit (0.1, " .. CIRCLE_MAX_RADIUS ..")")
 			end
 			v.nRadius = n
 			FireUIEvent("CIRCLE_RESERT_DRAW")
@@ -907,7 +768,8 @@ function C.OpenDataPanel(data)
 		nX = ui:Append("WndCheckBox", { x = nX + 2, y = nY + 1, txt = _L["Draw Border"], checked = v.bBorder })
 		:Click(function(bChecked)
 			v.bBorder = bChecked
-			FireUIEvent("CIRCLE_CLEAR")
+			FireUIEvent("CIRCLE_RELOAD")
+			C.OpenDataPanel(data)
 		end):Pos_()
 		nX, nY = ui:Append("Image", { x = nX + 5, y = nY + 1, w = 26, h = 26 }):File(file, 86):Event(525311)
 		:Hover(function() this:SetFrame(87) end, function() this:SetFrame(86) end):Click(function()
@@ -916,8 +778,8 @@ function C.OpenDataPanel(data)
 			else
 				table.remove(data.tCircles, k)
 			end
+			FireUIEvent("CIRCLE_RELOAD")
 			C.OpenDataPanel(data)
-			FireUIEvent("CIRCLE_CLEAR")
 		end):Pos_()
 	end
 	nX, nY = ui:Append("WndCheckBox", { x = 15, y = nY, txt = _L["Mon Target"], font = 27, checked = data.bTarget })
@@ -929,7 +791,7 @@ function C.OpenDataPanel(data)
 		ui:Fetch("bFlash"):Enable(bChecked)
 		ui:Fetch("bDrawLine"):Enable(bChecked)
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
-		FireUIEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_RELOAD")
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", "bTeamChat", { x = 25, y = nY, checked = data.bTeamChat, txt = _L["Team Channel"], color = GetMsgFontColor("MSG_TEAM", true) })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
@@ -950,13 +812,15 @@ function C.OpenDataPanel(data)
 	nX = ui:Append("WndCheckBox", "bDrawLine", { x = nX + 5, y = nY, checked = data.bDrawLine, txt = _L["Draw Line"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bDrawLine = bChecked
-		FireUIEvent("CIRCLE_CLEAR")
 		ui:Fetch("bDrawLineSelf"):Enable(bChecked)
+		FireUIEvent("CIRCLE_RELOAD")
+		C.OpenDataPanel(data)
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC and data.bDrawLine == true):Click(function(bChecked)
 		data.bDrawLineSelf = bChecked
-		FireUIEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_RELOAD")
+		C.OpenDataPanel(data)
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 15, y = nY, txt = _L["Other"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 25, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
@@ -987,8 +851,8 @@ function C.OpenDataPanel(data)
 		data.tCircles = data.tCircles or {}
 		tinsert(data.tCircles, clone(CIRCLE_DEFAULT_DATA) )
 		if #data.tCircles == 2 then	data.tCircles[2].nAngle = 360 end
+		FireUIEvent("CIRCLE_RELOAD")
 		C.OpenDataPanel(data)
-		FireUIEvent("CIRCLE_CLEAR")
 	end)
 	ui:Append("WndButton2", { x = 335, y = 340, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } }):Click(function()
 		C.RemoveData(data.dwMapID, data.nIndex, not IsAltKeyDown())
@@ -998,135 +862,6 @@ function C.OpenDataPanel(data)
 	end)
 end
 
-function C.GetMemu()
-	local menu = {
-		{ szOption = _L["All Data"], fnAction = function()
-			C.dwSelMapID = _L["All Data"]
-			FireUIEvent("CIRCLE_DRAW_UI", _L["All Data"])
-		end },
-		{ bDevide = true },
-		{ szOption = _L["Dungeon"] },
-		{ szOption = _L["Other"] },
-	}
-	for i = -1, -2, -1 do
-		if C.tData[i] then
-			tinsert(menu, { szOption = JH.IsMapExist(i) .. string.format(" (%d)", #C.tData[i]),
-				rgb = { 255, 180, 0 },
-				szLayer = "ICON_RIGHT",
-				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
-				nFrame = 86,
-				nMouseOverFrame = 87,
-				fnClickIcon = function()
-					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, JH.IsMapExist(i) .. string.format(" (%d)", #C.tData[i])), function()
-						C.tData[i] = nil
-						FireUIEvent("CIRCLE_DRAW_UI")
-						FireUIEvent("CIRCLE_CLEAR")
-					end)
-				end,
-				fnAction = function()
-					C.dwSelMapID = i
-					FireUIEvent("CIRCLE_DRAW_UI", i)
-				end
-			})
-		end
-	end
-	for k, v in pairs(C.tData) do
-		if k ~= -1 and k ~= -2 and JH.IsMapExist(k) then
-			local tm, txt = menu[4], string.format(" (%d)", #v)
-			if JH.IsInDungeon(k) then
-				tm = menu[3]
-			end
-			tinsert(tm, { szOption = JH.IsMapExist(k) .. txt,
-				rgb = { 255, 180, 0 },
-				szLayer = "ICON_RIGHT",
-				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
-				nFrame = 86,
-				nMouseOverFrame = 87,
-				fnClickIcon = function()
-					JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, JH.IsMapExist(k) .. txt), function()
-						C.tData[k] = nil
-						FireUIEvent("CIRCLE_DRAW_UI")
-						FireUIEvent("CIRCLE_CLEAR")
-					end)
-				end,
-				fnAction = function()
-					C.dwSelMapID = k
-					FireUIEvent("CIRCLE_DRAW_UI", k)
-				end
-			})
-			if k == C.GetMapID() then
-				tm[#tm].szIcon = "ui/Image/Minimap/Minimap.uitex"
-				tm[#tm].szLayer = "ICON_RIGHT"
-				tm[#tm].nFrame = 10
-				tm[#tm].nMouseOverFrame = nil
-			end
-		end
-	end
-	return menu
-end
-
-local PS = {}
-function PS.OnPanelActive(frame)
-	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Circle"], font = 27 }):Pos_()
-	ui:Append("WndButton2", { x = 420, y = 0, txt = _L["New Face"] }):Click(C.OpenAddPanel)
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = Circle.bEnable, txt = _L["Circle Enable"] }):Click(function(bChecked)
-		Circle.bEnable = bChecked
-		if bChecked then
-			C.Init()
-			C.CreateData()
-		else
-			C.UnInit()
-			C.Release()
-		end
-		ui:Fetch("bTeamChat"):Enable(bChecked)
-		ui:Fetch("bWhisperChat"):Enable(bChecked)
-		ui:Fetch("bBorder"):Enable(bChecked)
-	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bTeamChat", { x = nX + 5, y = nY + 10, checked = Circle.bTeamChat, txt = _L["Team Channel"], color = GetMsgFontColor("MSG_TEAM", true) })
-	:Enable(Circle.bEnable):Click(function(bChecked)
-		Circle.bTeamChat = bChecked
-	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bWhisperChat", { x = nX + 5, y = nY + 10, checked = Circle.bWhisperChat, txt = _L["Whisper Channel"], color = GetMsgFontColor("MSG_WHISPER", true) })
-	:Enable(Circle.bEnable):Click(function(bChecked)
-		Circle.bWhisperChat = bChecked
-	end):Pos_()
-
-	nX,nY = ui:Append("WndCheckBox", "bBorder", { x = nX + 5, y = nY + 10, checked = Circle.bBorder, txt = _L["Circle Border"] }):Enable(Circle.bEnable):Click(function(bChecked)
-		Circle.bBorder = bChecked
-		FireUIEvent("CIRCLE_CLEAR")
-	end):Pos_()
-	if DBM_UI then
-		ui:Append("WndButton3", { x = 180, y = 80, txt = _L["Data Panel"]}):Click(function()
-			DBM_UI.OpenPanel("CIRCLE")
-		end)
-	else
-		if not C.dwSelMapID then C.dwSelMapID = _L["All Data"] end
-		nX = ui:Append("WndComboBox", "Select", { x = 0, y = nY + 2, txt = JH.IsMapExist(C.dwSelMapID) or _L["All Data"] }):Menu(C.GetMemu):Pos_()
-
-		ui:Append("WndEdit", "Search", { x = 330, y = nY + 2, txt = g_tStrings.SEARCH }):Focus(function()
-			if ui:Fetch("Search"):Text() == g_tStrings.SEARCH then
-				ui:Fetch("Search"):Text("")
-			end
-		end):Change(function(szText)
-			if JH.Trim(szText) == "" then szText = nil end
-			C.szSearch = szText
-			FireUIEvent("CIRCLE_DRAW_UI")
-		end):Pos_()
-		local fx = Wnd.OpenWindow(C.szIniFile, "Circle")
-		local win = fx:Lookup("WndScroll")
-		win:ChangeRelation(frame, true, true)
-		Wnd.CloseWindow(fx)
-		win:SetRelPos(0, 80)
-		C.hTable = win
-		C.hSelect = ui:Fetch("Select")
-		C.szSearch = nil
-		FireUIEvent("CIRCLE_DRAW_UI")
-	end
-end
-
-GUI.RegisterPanel(_L["Circle"], { "ui/Image/UICommon/RaidTotal.uitex", 50 }, _L["Dungeon"], PS)
-
 function C.Init()
 	JH.RegisterInit("Circle",
 		{ "Breathe", C.OnBreathe },
@@ -1135,7 +870,7 @@ function C.Init()
 		{ "DOODAD_ENTER_SCENE", C.OnDoodadEnter },
 		{ "DOODAD_LEAVE_SCENE", C.OnDoodadLeave },
 		{ "LOADING_END", C.CreateData },
-		{ "CIRCLE_CLEAR", C.CreateData },
+		{ "CIRCLE_RELOAD", C.CreateData },
 		{ "CIRCLE_RESERT_DRAW", function()
 			CIRCLE_RESERT_DRAW = true
 		end }
@@ -1144,9 +879,23 @@ end
 
 function C.UnInit()
 	JH.UnRegisterInit("Circle")
+	C.Release()
 end
+
+function C.Enable(bEnable)
+	if type(bEnable) == "boolean" then
+		Circle.bEnable = bEnable
+	else
+		bEnable = Circle.bEnable
+	end
+	if bEnable then
+		C.Init()
+	else
+		C.UnInit()
+	end
+end
+
 JH.RegisterExit(C.SaveFile)
-JH.RegisterEvent("CIRCLE_DRAW_UI", C.DrawTable)
 JH.RegisterEvent("LOADING_END", function()
 	if CIRCLE_PLAYER_NAME == "NONE" then
 		local me = GetClientPlayer()
@@ -1154,22 +903,44 @@ JH.RegisterEvent("LOADING_END", function()
 		C.LoadFile()
 	end
 end)
+
 JH.RegisterEvent("CIRCLE_DEBUG", function()
 	if JH_About.CheckNameEx() then
 		Circle.nMaxAlpha, CIRCLE_ALPHA_STEP = arg0, arg1
-		FireUIEvent("CIRCLE_CLEAR")
+		FireUIEvent("CIRCLE_RELOAD")
 	end
 end)
-JH.RegisterEvent("LOGIN_GAME", function()
-	if Circle.bEnable then
-		C.Init()
-	end
-end)
+JH.RegisterEvent("LOGIN_GAME", C.Enable)
 
-JH.PlayerAddonMenu({ szOption = _L["Open Circle Panel"], fnAction = function()
-	JH.OpenPanel(_L["Circle"])
+-- 注册头像右键菜单
+Target_AppendAddonMenu({ function(dwID, dwType)
+	if dwType == TARGET.NPC then
+		local p = GetNpc(dwID)
+		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(p)]
+		if data then
+			return {{
+				szOption = _L["Edit Face"],
+				rgb = { 255, 128, 0 },
+				szLayer = "ICON_RIGHT",
+				szIcon = "ui/Image/UICommon/Feedanimials.uitex",
+				nFrame = 86,
+				nMouseOverFrame = 87,
+				fnClickIcon = function()
+					C.RemoveData(data.dwMapID, data.nIndex, not IsCtrlKeyDown())
+				end,
+				fnAction = function()
+					C.OpenDataPanel(data)
+				end
+			}}
+		else
+			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
+				C.OpenAddPanel(not IsAltKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, JH.IsMapExist(C.GetMapID()))
+			end }}
+		end
+	else
+		return {}
+	end
 end })
-
 -- public
 local ui = {
 	OpenAddPanel        = C.OpenAddPanel,
@@ -1182,6 +953,7 @@ local ui = {
 	MoveData            = C.MoveData,
 	CheckRepeatData     = C.CheckRepeatData,
 	AddData             = C.AddData,
-	OutputTip           = C.OutputTip
+	OutputTip           = C.OutputTip,
+	Enable              = C.Enable
 }
 setmetatable(Circle, { __index = ui, __metatable = true, __newindex = function() end } )

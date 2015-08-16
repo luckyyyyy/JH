@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-10 15:56:55
+-- @Last Modified time: 2015-08-15 13:21:12
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -262,7 +262,7 @@ function CTM_Party_Base.OnItemLButtonDrag()
 		OpenRaidDragPanel(this.dwID)
 	end
 end
-
+--[[ -- DragEnd bug fix
 function CTM_Party_Base.OnItemLButtonUp()
 	JH.DelayCall(50, function()
 		if CTM_DRAG then
@@ -273,7 +273,7 @@ function CTM_Party_Base.OnItemLButtonUp()
 		end
 	end)
 end
-
+]]
 function CTM_Party_Base.OnItemLButtonDragEnd()
 	if CTM_DRAG and this.dwID ~= CTM_DRAG_ID then
 		local team = GetClientTeam()
