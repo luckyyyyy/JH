@@ -304,7 +304,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 	if IsFileExist(szPath .. szFileName) then -- 本地文件存在则优先
 		fnAction(szFileName)
 	else -- 否则 remote request
-		JH.RemoteRequest(W.szDownload .. data.tid .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+		JH.RemoteRequest(W.szDownload .. data.tid .. "/" .. data.md5 .."?lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 			local tab, err = JH.JsonToTable(szDoc)
 			if err then
 				return JH.Alert(_L["update failed! Please try again."])

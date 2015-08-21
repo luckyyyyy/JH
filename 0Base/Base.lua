@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1000600
+local _VERSION_   = 0x1000700
 
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
