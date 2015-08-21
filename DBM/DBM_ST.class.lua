@@ -1,7 +1,8 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-16 16:55:55
+-- @Last Modified time: 2015-08-22 07:01:52
+-- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
 local ST = class()
@@ -52,8 +53,8 @@ end
 --      nIcon    -- 倒计时图标ID
 --      bTalk    -- 是否发布倒计时 5秒内聊天框提示 【szName】 剩余 n 秒。
 -- }
--- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = 20, szName = "demo" })
--- 性能测试：for i = 65, 70 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = Random(5, 15), nIcon = i }) end
+-- 例子：FireUIEvent("JH_ST_CREATE", 0, "test", { nTime = "5,test;15,测试;25,c", szName = "demo" })
+-- 性能测试：for i = 1, 200 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = Random(5, 15), nIcon = i }) end
 local function CreateCountdown(nType, szKey, tParam)
 	assert(type(tParam) == "table", "CreateCountdown failed!")
 	local tTime = {}
@@ -104,10 +105,10 @@ function ST_UI.OnEvent(szEvent)
 	if szEvent == "JH_ST_CREATE" then
 		CreateCountdown(arg0, arg1, arg2)
 	elseif szEvent == "JH_ST_DEL" then
-		local obj = ST.new(arg0, arg1)
-		if obj then
+		local ui = ST_CACHE[arg0][arg1]
+		if ui then
 			if arg2 then -- 强制无条件删除
-				obj:RemoveItem()
+				ui.obj:RemoveItem()
 				ST_TIME_CACHE[arg0][arg1] = nil
 			end
 		end
@@ -130,8 +131,9 @@ function ST_UI.OnFrameDragEnd()
 	ST_UI.tAnchor = GetFrameAnchor(this)
 end
 
-local function SetSTAction(obj, nLeft, nPer)
+local function SetSTAction(ui, nLeft, nPer)
 	local me = GetClientPlayer()
+	local obj = ui.obj
 	if nLeft < 5 then
 		local nTimeLeft = nLeft * 1000 % 1000
 		local nAlpha = 255 * nTimeLeft / 1000
@@ -139,16 +141,16 @@ local function SetSTAction(obj, nLeft, nPer)
 			nAlpha = 255 - nAlpha
 		end
 		obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):Switch(true):SetAlpha(100 + nAlpha)
-		if obj.ui.bTalk and me.IsInParty() then
-			if not obj.ui.szTalk or obj.ui.szTalk ~= floor(nLeft) then
-				obj.ui.szTalk = floor(nLeft)
+		if ui.bTalk and me.IsInParty() then
+			if not ui.szTalk or ui.szTalk ~= floor(nLeft) then
+				ui.szTalk = floor(nLeft)
 				JH.Talk(_L("[%s] left over %d.", obj:GetName(), floor(nLeft)))
 			end
 		end
 	else
-		if obj.ui.nAlpha < ST_UI_ALPHA then
-			obj.ui.nAlpha = math.min(ST_UI_ALPHA, obj.ui.nAlpha + 15)
-			obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):SetAlpha(obj.ui.nAlpha)
+		if ui.nAlpha < ST_UI_ALPHA then
+			ui.nAlpha = math.min(ST_UI_ALPHA, ui.nAlpha + 15)
+			obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer):SetAlpha(ui.nAlpha)
 		else
 			obj:SetInfo({ nTime = nLeft }):SetPercentage(nPer)
 		end
@@ -162,30 +164,28 @@ function ST_UI.OnFrameBreathe()
 	for k, v in pairs(ST_CACHE) do
 		for kk, vv in pairs(v) do
 			if vv:IsValid() then
-				local obj = ST.new(k, kk)
-				if type(obj.ui.countdown) == "number" then
-					local nLeft  = obj.ui.countdown - ((nNow - obj.ui.nLeft) / 1000)
+				if type(vv.countdown) == "number" then
+					local nLeft  = vv.countdown - ((nNow - vv.nLeft) / 1000)
 					if nLeft >= 0 then
-						SetSTAction(obj, nLeft, nLeft / obj.ui.countdown)
+						SetSTAction(vv, nLeft, nLeft / vv.countdown)
 					else
-						obj:RemoveItem()
+						vv.obj:RemoveItem()
 					end
 				else
-					local time = obj.ui.countdown[1]
-					local nLeft = time.nTime - (nNow - obj.ui.nLeft) / 1000
+					local time = vv.countdown[1]
+					local nLeft = time.nTime - (nNow - vv.nLeft) / 1000
 					if nLeft >= 0 then
-						SetSTAction(obj, nLeft, nLeft / time.nTime)
+						SetSTAction(vv, nLeft, nLeft / time.nTime)
 					else
-						if #obj.ui.countdown == 1 then
-							obj:RemoveItem()
+						if #vv.countdown == 1 then
+							vv.obj:RemoveItem()
 						else
-							local nATime = (nNow - obj.ui.nCreate) / 1000
-							-- Output(nATime)
-							obj.ui.nLeft = nNow
-							table.remove(obj.ui.countdown, 1)
-							local time = obj.ui.countdown[1]
+							local nATime = (nNow - vv.nCreate) / 1000
+							vv.nLeft = nNow
+							table.remove(vv.countdown, 1)
+							local time = vv.countdown[1]
 							time.nTime = time.nTime - nATime
-							obj:SetInfo(time):Switch(false)
+							vv.obj:SetInfo(time):Switch(false)
 						end
 					end
 				end
@@ -244,6 +244,7 @@ function ST:ctor(nType, szKey, tParam)
 			self.ui.img            = self.ui:Lookup("Image")
 			self.ui.sha            = self.ui:Lookup("shadow")
 			self.ui.sfx            = self.ui:Lookup("SFX")
+			self.ui.obj            = self
 			ST_CACHE[nType][szKey] = self.ui
 			self.ui:Show()
 			_ST_UI.handle:FormatAllItemPos()
