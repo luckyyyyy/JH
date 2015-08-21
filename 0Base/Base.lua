@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-14 18:45:20
+-- @Last Modified time: 2015-08-21 10:13:31
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -484,7 +484,7 @@ function JH.GetTemplateName(dwTemplateID, bEmployer)
 			szName = JH_GetNpcName(dwTemplateID.dwTemplateID)
 		end
 		if bEmployer and dwTemplateID.dwEmployer ~= 0 then
-			local emp = GetPlayer(dwEmployer)
+			local emp = GetPlayer(dwTemplateID.dwEmployer)
 			if not emp then
 				szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. szName
 			else
