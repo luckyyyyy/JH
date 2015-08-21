@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-14 18:22:32
+-- @Last Modified time: 2015-08-18 07:04:31
 local _L = JH.LoadLangPack
 
 TS = {
@@ -383,6 +383,9 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 				local p = GetNpc(v.id)
 				if p then
 					szName = JH.GetTemplateName(p, true)
+					if tonumber(szName) then
+						szName = v.id
+					end
 				end
 			end
 			item:Lookup("Text_ThreatName"):SetText(v.sort .. "." .. szName)
