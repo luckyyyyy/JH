@@ -307,6 +307,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 		JH.RemoteRequest(W.szDownload .. data.tid .. "/" .. data.md5 .."?lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 			local tab, err = JH.JsonToTable(szDoc)
 			if err then
+				JH.SaveLUAData("log/error/err_" .. data.tid, err)
 				return JH.Alert(_L["update failed! Please try again."])
 			end
 			SaveLUAData(szPath .. szFileName, tab, nil, false) -- »º´æÎÄ¼þ

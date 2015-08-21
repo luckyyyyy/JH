@@ -1,7 +1,8 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-28 18:17:31
+-- @Last Modified time: 2015-08-22 07:01:41
+-- JX3_Client 全屏泛光类
 local FS = class()
 
 local type, ipairs, pairs, assert, unpack = type, ipairs, pairs, assert, unpack
@@ -14,7 +15,7 @@ local FS_UI_CACHE = setmetatable({}, { __mode = "v" })
 local FS_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/FS_UI.ini"
 local SHADOW      = JH.GetAddonInfo().szShadowIni
 
--- FireUIEvent("JH_FS_CREATE", "test", { nTime = 3, col = { 255, 255, 0 }, bFlash = true})
+-- FireUIEvent("JH_FS_CREATE", Random(50, 255), { col = { Random(50, 255), Random(50, 255), Random(50, 255) }, bFlash = true})
 local function CreateFullScreen(szKey, tArgs)
 	assert(type(arg1) == "table", "CreateFullScreen failed!")
 	tArgs.nTime = tArgs.nTime or 3
@@ -45,10 +46,7 @@ function FS_UI.OnEvent(szEvent)
 		CreateFullScreen(arg0, arg1)
 	elseif szEvent == "UI_SCALED" then
 		for k, v in pairs(FS_UI_CACHE) do
-			local obj = FS.new(k)
-			if obj then
-				obj:DrawEdge()
-			end
+			v.obj:DrawEdge()
 		end
 	elseif szEvent == "LOADING_END" then
 		FS_HANDLE:Clear()
@@ -59,9 +57,8 @@ function FS_UI.OnFrameRender()
 	local nNow = GetTime()
 	for k, v in pairs(FS_CACHE) do
 		if v:IsValid() then
-			local obj = FS.new(k)
-			local nTime = ((nNow - obj.ui.nCreate) / 1000)
-			local nLeft  = obj.ui.nTime - nTime
+			local nTime = ((nNow - v.nCreate) / 1000)
+			local nLeft  = v.nTime - nTime
 			if nLeft > 0 then
 				if v.bFlash then
 					local nTimeLeft = nTime * 1000 % 750
@@ -69,17 +66,17 @@ function FS_UI.OnFrameRender()
 					if floor(nTime / 0.75) % 2 == 1 then
 						nAlpha = 150 - nAlpha
 					end
-					obj:DrawFullScreen(floor(nAlpha))
+					v.obj:DrawFullScreen(floor(nAlpha))
 				else
 					local nAlpha = 150 - 150 * nTime / v.nTime
-					obj:DrawFullScreen(nAlpha)
+					v.obj:DrawFullScreen(nAlpha)
 				end
 			else
 				if v.sha1:IsValid() then
 					if v.tBindBuff then
-						obj:RemoveFullScreen()
+						v.obj:RemoveFullScreen()
 					else
-						obj:RemoveItem()
+						v.obj:RemoveItem()
 					end
 				end
 			end
@@ -87,7 +84,7 @@ function FS_UI.OnFrameRender()
 				local dwID, nLevel = unpack(v.tBindBuff)
 				local KBuff = GetBuff(dwID)
 				if not KBuff then
-					obj:RemoveItem()
+					v.obj:RemoveItem()
 				end
 			end
 		end
@@ -115,6 +112,7 @@ function FS:ctor(szKey, tArgs)
 			ui.tBindBuff = tArgs.tBindBuff
 		end
 		self.ui = ui
+		self.ui.obj = self
 		FS_CACHE[szKey] = self.ui
 		FS_FRAME:Show()
 		return self
@@ -142,7 +140,7 @@ end
 function FS:DrawShadow(sha, nAlpha, fScreenX, fScreenY)
 	local r, g, b = unpack(self.ui.col)
 	local w, h = Station.GetClientSize()
-	local bW, bH = fScreenX or w * 0.15, fScreenY or h * 0.15
+	local bW, bH = fScreenX or w * 0.10, fScreenY or h * 0.10
 	if sha:IsValid() then
 		sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 		sha:SetD3DPT(D3DPT.TRIANGLESTRIP)
