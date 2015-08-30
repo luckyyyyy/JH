@@ -84,7 +84,7 @@ function Book.UpdateInfo(szName)
 		if JH_CopyBook.nCopyNum > nMax then
 			JH_CopyBook.nCopyNum = nMax
 		end
-		ui:Fetch("Count"):Enable(bCanCopy):Change(nil):Range(1, nMax, math.max(nMax - 1, 1)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
+		ui:Fetch("Count"):Enable(bCanCopy):Change(nil):Range(0, nMax, math.max(nMax, 0)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
 			JH_CopyBook.nCopyNum = nNum
 			Book.UpdateInfo()
 		end)
@@ -183,7 +183,7 @@ function Book.UpdateInfo(szName)
 				end
 			end):Pos_()
 		end
-		ui:Fetch("Copy"):Enable(bCanCopy)
+		ui:Fetch("Copy"):Enable(bCanCopy and JH_CopyBook.nCopyNum > 0)
 		if szName then
 			JH_CopyBook.szBookName = szName
 		end
@@ -220,19 +220,6 @@ function Book.CheckCopy()
 	end
 end
 
-function Book.IsBigBagFull()
-	local me = GetClientPlayer()
-	for dwBox = 1, BigBagPanel_nCount do
-		for dwX = 0, me.GetBoxSize(dwBox) - 1 do
-			local d = me.GetItem(dwBox, dwX)
-			if not d then
-				return false
-			end
-		end
-	end
-	return true
-end
-
 function Book.Copy()
 	local me = GetClientPlayer()
 	Book.bEnable     = true
@@ -264,10 +251,6 @@ function Book.Copy()
 			return
 		end
 		local nBook = Book.nBook
-		if Book.IsBigBagFull() then -- 包满了
-			Stop()
-			return JH.Sysmsg(g_tStrings.STR_ERROR_PACKAGE_IS_FULL)
-		end
 		if me.nMoveState ~= MOVE_STATE.ON_STAND then -- 不是站立状态直接打断
 			JH.Debug("COPYBOOK # MOVE_STATE #" .. me.nMoveState)
 			return Stop()
@@ -296,7 +279,6 @@ function Book.Copy()
 					end
 					JH_CopyBook.nCopyNum = JH_CopyBook.nCopyNum - 1
 					if JH_CopyBook.nCopyNum == 0 then
-						JH_CopyBook.nCopyNum = 1
 						return Stop()
 					end
 					Book.UpdateInfo()
