@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-20 11:36:38
+-- @Last Modified time: 2015-08-30 19:05:40
 
 local _L = JH.LoadLangPack
 
@@ -821,7 +821,7 @@ function RT.GetEquipCache(p)
 					-- 黄字装备
 					local aMagicAttrib = item.GetMagicAttrib()
 					for _, tAttrib in ipairs(aMagicAttrib) do
-						if tAttrib.nID == 317 or tAttrib.nID == 318 then
+						if tAttrib.nID == 319 then
 							tinsert(aInfo.tEquip, CreateItemTable(item, dwBox, dwX))
 							break
 						end

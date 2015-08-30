@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-22 07:01:41
+-- @Last Modified time: 2015-08-22 19:19:01
 -- JX3_Client 全屏泛光类
 local FS = class()
 
@@ -96,19 +96,23 @@ function FS:ctor(szKey, tArgs)
 	local nTime = GetTime()
 	self.key = szKey
 	if tArgs then
-		local h
 		if ui and ui:IsValid() then
 			-- ui:Clear()
 		else
 			ui = FS_HANDLE:AppendItemFromIni(FS_INIFILE, "Handle_Item")
 		end
 		ui.sha1 = ui.sha1 or ui:AppendItemFromIni(SHADOW, "shadow")
-		ui.bFlash = tArgs.bFlash
-		ui.nTime = tArgs.nTime
+		ui.sha1:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
+		ui.sha1:SetD3DPT(D3DPT.TRIANGLESTRIP)
+
+		ui.bFlash  = tArgs.bFlash
+		ui.nTime   = tArgs.nTime
 		ui.nCreate = nTime
-		ui.col = tArgs.col or { 255, 128, 0 }
+		ui.col     = tArgs.col or { 255, 128, 0 }
 		if tArgs.tBindBuff then
 			ui.sha2 = ui.sha2 or ui:AppendItemFromIni(SHADOW, "shadow")
+			ui.sha2:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
+			ui.sha2:SetD3DPT(D3DPT.TRIANGLESTRIP)
 			ui.tBindBuff = tArgs.tBindBuff
 		end
 		self.ui = ui
@@ -142,8 +146,6 @@ function FS:DrawShadow(sha, nAlpha, fScreenX, fScreenY)
 	local w, h = Station.GetClientSize()
 	local bW, bH = fScreenX or w * 0.10, fScreenY or h * 0.10
 	if sha:IsValid() then
-		sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
-		sha:SetD3DPT(D3DPT.TRIANGLESTRIP)
 		sha:ClearTriangleFanPoint()
 		sha:AppendTriangleFanPoint(0, 0, r, g, b, nAlpha)
 		sha:AppendTriangleFanPoint(bW, bH, r, g, b, 0)
