@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-13 17:17:07
+-- @Last Modified time: 2015-08-31 16:27:16
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -323,7 +323,7 @@ function Cataclysm_Main.OnFrameCreate()
 	this:RegisterEvent("TEAM_VOTE_REQUEST")
 	-- arg0 回应状态 arg1 dwID arg2 同意=1 反对=0
 	this:RegisterEvent("TEAM_VOTE_RESPOND")
-	this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
+	-- this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
 	--
 	this:RegisterEvent("JH_KUNGFU_SWITCH")
 	this:RegisterEvent("JH_RAID_REC_BUFF")
@@ -410,37 +410,15 @@ function Cataclysm_Main.OnEvent(szEvent)
 	-- elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_QUESTION" then
 	elseif szEvent == "TEAM_VOTE_REQUEST" then
 		if arg0 == 1 then
-			TEAM_VOTE_REQUEST = {}
-			local team = GetClientTeam()
-			for k, v in ipairs(team.GetTeamMemberList()) do
-				TEAM_VOTE_REQUEST[v] = false
-			end
 			if JH.IsLeader() then
 				Grid_CTM:Send_RaidReadyConfirm(true)
 			end
 		end
 	elseif szEvent == "TEAM_VOTE_RESPOND" then
-		if arg0 == 1 and not IsEmpty(TEAM_VOTE_REQUEST) then
+		if arg0 == 1 then
 			if JH.IsLeader() then
 				Grid_CTM:ChangeReadyConfirm(arg1, arg2 == 1)
 			end
-			if arg2 == 1 then
-				TEAM_VOTE_REQUEST[arg1] = true
-			end
-			local team  = GetClientTeam()
-			local num   = team.GetTeamSize()
-			local agree = 0
-			for k, v in pairs(TEAM_VOTE_REQUEST) do
-				if v then
-					agree = agree + 1
-				end
-			end
-			JH.Topmsg(_L("Team Members: %d, %d agree %d%%", num, agree, agree / num * 100))
-		end
-	elseif szEvent == "TEAM_INCOMEMONEY_CHANGE_NOTIFY" then
-		local nTotalRaidMoney = GetClientTeam().nInComeMoney
-		if nTotalRaidMoney and nTotalRaidMoney == 0 then
-			TEAM_VOTE_REQUEST = {}
 		end
 	elseif szEvent == "RIAD_READY_CONFIRM_RECEIVE_ANSWER" then
 		Grid_CTM:ChangeReadyConfirm(arg0, arg1 == 1)
