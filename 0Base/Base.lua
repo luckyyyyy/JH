@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-21 10:13:31
+-- @Last Modified time: 2015-08-31 16:25:02
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1454,6 +1454,7 @@ JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 		end
 	end
 end)
+
 JH.RegisterEvent("PLAYER_ENTER_SCENE", function() _JH.aPlayer[arg0] = true end)
 JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() _JH.aPlayer[arg0] = nil end)
 JH.RegisterEvent("NPC_ENTER_SCENE", function() _JH.aNpc[arg0] = true end)
