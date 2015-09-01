@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 07:17:07
+-- @Last Modified time: 2015-09-01 11:55:58
 local _L = JH.LoadLangPack
 JH_Love = {
 	bQuiet = false,				-- 免打扰（拒绝其它人的查看请求）
@@ -261,7 +261,7 @@ _JH_Love.ToLocalLover = function(aInfo)
 		_JH_Love.szName = aInfo.name
 		_JH_Love.dwAvatar = aInfo.miniavatar
 		_JH_Love.nRoleType = aInfo.roletype
-		if aInfo.miniavatar == 0 then
+		if aInfo.forceid and (not aInfo.miniavatar or aInfo.miniavatar == 0) then
 			_JH_Love.dwAvatar = 0 - aInfo.forceid
 		end
 	end
@@ -484,7 +484,7 @@ _JH_Love.UpdatePage = function()
 	end
 	-- lover info
 	local inf = h:Lookup("Text_LoverInfo")
-	if t[5] and t[6] and dwAvatar ~= 0 then
+	if t[5] and t[6] then
 		local szText = _JH_Love.GetLoverType(tonumber(t[5]) or 0) .. "   " .. _JH_Love.GetLoverTime(tonumber(t[6]) or 0)
 		inf:SetText(szText)
 	else
@@ -664,7 +664,7 @@ _JH_Love.ReplyLove = function(bCancel)
 				_JH_Love.nRoleType = p.nRoleType
 				_JH_Love.nLoveType = 1
 				_JH_Love.nStartTime =  GetCurrentTime() - 1173600
-				if p.dwMiniAvatarID == 0 then
+				if not p.dwMiniAvatarID or p.dwMiniAvatarID == 0 then
 					_JH_Love.dwAvatar = 0 - p.dwForceID
 				end
 			end
