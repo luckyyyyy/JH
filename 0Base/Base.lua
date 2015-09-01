@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-31 16:25:02
+-- @Last Modified time: 2015-09-01 11:58:05
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -72,7 +72,7 @@ do
 end
 
 local _JH = {
-	szBuildDate  = "20150804",
+	szBuildDate  = "20150831",
 	szTitle      = _L["JH, JX3 Plug-in Collection"],
 	tHotkey      = {},
 	tAnchor      = {},
@@ -703,9 +703,6 @@ function JH.BgTalk(nChannel, szKey, ...)
 	local tSay = { { type = "eventlink", name = "BG_CHANNEL_MSG", linkinfo = szKey } }
 	local tArg = { ... }
 	for _, v in ipairs(tArg) do
-		if v == nil then
-			break
-		end
 		tinsert(tSay, { type = "eventlink", name = "", linkinfo = var2str(v) })
 	end
 	JH.Talk(nChannel, tSay, nil, true)
@@ -3265,22 +3262,6 @@ function GUI.RegisterPanel(szTitle, dwIcon, szClass, fn)
 	end
 	if fn and fn.OnConflictCheck then
 		_JH.RegisterConflictCheck(fn.OnConflictCheck)
-	end
-end
-
-function GUI.UnRegisterPanel(szTitle)
-	local find = false
-	for k, vv in pairs(_JH.tItem) do
-		for _, v in ipairs(vv) do
-			if v.szTitle == szTitle then
-				tremove(vv, _)
-				find = true
-				break
-			end
-		end
-	end
-	if _JH.frame and find then
-		_JH.UpdateTabBox(_JH.frame)
 	end
 end
 
