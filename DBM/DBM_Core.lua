@@ -1,13 +1,13 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-14 19:01:01
+-- @Last Modified time: 2015-09-08 23:18:35
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
 local setmetatable, tonumber, type, tostring, unpack = setmetatable, tonumber, type, tostring, unpack
 local tinsert, tconcat = table.insert, table.concat
-local GetTime, GetCurrentTime, IsPlayer = GetTime, GetCurrentTime, IsPlayer
+local GetTime, GetLogicFrameCount, GetCurrentTime, IsPlayer = GetTime, GetLogicFrameCount, GetCurrentTime, IsPlayer
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
 local FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow = FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow
 local GetPureText, GetFormatText, GetHeadTextForceFontColor = GetPureText, GetFormatText, GetHeadTextForceFontColor
@@ -99,9 +99,16 @@ end
 
 function DBM.OnFrameBreathe()
 	D.CheckNpcState()
-end
-
-function DBM.OnFrameRender()
+	-- timer
+	-- 注意玩家机器受限 并不保证这个时间会一定被执行 用于不重要的内容
+	local nFrameCount = GetLogicFrameCount()
+	if nFrameCount % 160 == 0 then
+		for k, v in ipairs(DBM_TYPE_LIST) do
+			if #D.TEMP[v] > DBM_MAX_CACHE then
+				D.FreeCache(v)
+			end
+		end
+	end
 end
 
 function DBM.OnEvent(szEvent)
@@ -225,6 +232,7 @@ local function CreateTalkData(dwMapID)
 			talk[#talk + 1] = v
 		end
 	end
+	D.Log("Create TALK data Succeed!")
 end
 
 function D.CreateMeTaTable()
@@ -289,7 +297,6 @@ function D.CreateData(szEvent)
 		end
 	end
 	CreateTalkData(dwMapID)
-	D.Log("Create TALK data Succeed!")
 
 	-- 清空缓存
 	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
@@ -322,7 +329,6 @@ function D.CreateData(szEvent)
 end
 
 function D.FreeCache(szType)
-	-- D.Log(szType .. " cache clear!")
 	local t = {}
 	local tTemp = D.TEMP[szType]
 	for i = DBM_DEL_CACHE, #tTemp do
@@ -331,6 +337,7 @@ function D.FreeCache(szType)
 	D.TEMP[szType] = t
 	collectgarbage("collect")
 	FireUIEvent("DBMUI_TEMP_RELOAD", szType)
+	D.Log(szType .. " cache clear!")
 end
 
 function D.CheckScrutinyType(nScrutinyType, dwID, me)
@@ -470,11 +477,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				}
 				tWeak[key] = t
 				tTemp[#tTemp + 1] = tWeak[key]
-				if #tTemp > DBM_MAX_CACHE then
-					D.FreeCache(szType)
-				else
-					FireUIEvent("DBMUI_TEMP_UPDATE", szType, t)
-				end
+				FireUIEvent("DBMUI_TEMP_UPDATE", szType, t)
 			end
 		end
 		-- 记录时间
@@ -629,11 +632,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			}
 			tWeak[key] = t
 			tTemp[#tTemp + 1] = tWeak[key]
-			if #tTemp > DBM_MAX_CACHE then
-				D.FreeCache("CASTING")
-			else
-				FireUIEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
-			end
+			FireUIEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
 		end
 	end
 	-- 监控数据
@@ -742,11 +741,7 @@ function D.OnNpcEvent(npc, bEnter)
 			}
 			tWeak[npc.dwTemplateID] = t
 			tTemp[#tTemp + 1] = tWeak[npc.dwTemplateID]
-			if #tTemp > DBM_MAX_CACHE then
-				D.FreeCache("NPC")
-			else
-				FireUIEvent("DBMUI_TEMP_UPDATE", "NPC", t)
-			end
+			FireUIEvent("DBMUI_TEMP_UPDATE", "NPC", t)
 		end
 		CACHE.INTERVAL.NPC[npc.dwTemplateID] = CACHE.INTERVAL.NPC[npc.dwTemplateID] or {}
 		if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 300 then
@@ -873,11 +868,7 @@ function D.OnCallMessage(szContent, szNpcName, dwNpcID)
 		}
 		tWeak[key] = t
 		tTemp[#tTemp + 1] = tWeak[key]
-		if #tTemp > DBM_MAX_CACHE then
-			D.FreeCache("TALK")
-		else
-			FireUIEvent("DBMUI_TEMP_UPDATE", "TALK", t)
-		end
+		FireUIEvent("DBMUI_TEMP_UPDATE", "TALK", t)
 	end
 	for k, v in ipairs(D.DATA.TALK) do
 		local content = v.szContent
