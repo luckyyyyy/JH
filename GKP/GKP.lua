@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-10 10:38:29
+-- @Last Modified time: 2015-09-08 20:03:05
 
 -- 早期代码 需要重写
 
@@ -489,8 +489,9 @@ function GKP.OnFrameCreate()
 	local ui = GUI(this)
 	local PageSet = ui:Fetch("PageSet_Menu")
 	local record = GUI(frm)
-	ui:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(_GKP.ClosePanel)
-	:Append("WndComboBox", { x = 805, y = 52, txt = _L["Setting"] }):Click(_GKP.GetSettingMenu)
+	ui:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(_GKP.ClosePanel):Append("WndComboBox", { x = 805, y = 52, txt = _L["Setting"] }):Click(function()
+		JH.OpenPanel(_L["GKP Golden Team Record"])
+	end)
 	PageSet:Append("WndButton3", { x = 15, y = 610, txt = _L["Add Manually"] }):Click(function()
 		if IsCtrlKeyDown() and JH_About.CheckNameEx() then -- 和谐自用
 			return _GKP.GKP_Bidding()
@@ -771,15 +772,6 @@ PS.OnPanelActive = function(frame)
 end
 GUI.RegisterPanel(_L["GKP Golden Team Record"], { "ui/Image/Common/Money.uitex", 15 }, g_tStrings.CHANNEL_CHANNEL, PS)
 
-
-_GKP.GetSettingMenu = function()
-	if JH.IsPanelOpened() then
-		JH.ClosePanel()
-	else
-		JH.OpenPanel(_L["GKP Golden Team Record"])
-	end
-	return
-end
 ---------------------------------------------------------------------->
 -- 获取补贴方案菜单
 ----------------------------------------------------------------------<
