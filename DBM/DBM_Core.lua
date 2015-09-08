@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-08 23:18:35
+-- @Last Modified time: 2015-09-08 23:49:40
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -14,6 +14,7 @@ local GetPureText, GetFormatText, GetHeadTextForceFontColor = GetPureText, GetFo
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_PLAYER_NAME = "NONE"
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
+local DBM_MAX_INTERVAL = 300
 local DBM_MAX_CACHE = 2000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE = 1000 -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
@@ -106,6 +107,13 @@ function DBM.OnFrameBreathe()
 		for k, v in ipairs(DBM_TYPE_LIST) do
 			if #D.TEMP[v] > DBM_MAX_CACHE then
 				D.FreeCache(v)
+			end
+		end
+		for k, v in pairs(CACHE.INTERVAL) do
+			for kk, vv in pairs(v) do
+				if #vv > DBM_MAX_INTERVAL then
+					CACHE.INTERVAL[k][kk] = {}
+				end
 			end
 		end
 	end
@@ -482,9 +490,6 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 		end
 		-- 记录时间
 		CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
-		if #CACHE.INTERVAL[szType][key] > 300 then
-			CACHE.INTERVAL[szType][key] = {}
-		end
 		if #CACHE.INTERVAL[szType][key] > 0 then
 			if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
 				CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
@@ -612,9 +617,6 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		end
 	end
 	CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
-	if #CACHE.INTERVAL.CASTING[key] > 300 then
-		CACHE.INTERVAL.CASTING[key] = {}
-	end
 	CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
 	CACHE.SKILL_LIST[dwCaster][key] = nTime
 	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
@@ -744,9 +746,6 @@ function D.OnNpcEvent(npc, bEnter)
 			FireUIEvent("DBMUI_TEMP_UPDATE", "NPC", t)
 		end
 		CACHE.INTERVAL.NPC[npc.dwTemplateID] = CACHE.INTERVAL.NPC[npc.dwTemplateID] or {}
-		if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 300 then
-			CACHE.INTERVAL.NPC[npc.dwTemplateID] = {}
-		end
 		if #CACHE.INTERVAL.NPC[npc.dwTemplateID] > 0 then
 			if nTime - CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID]] > 500 then
 				CACHE.INTERVAL.NPC[npc.dwTemplateID][#CACHE.INTERVAL.NPC[npc.dwTemplateID] + 1] = nTime
