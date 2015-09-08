@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-22 07:01:52
+-- @Last Modified time: 2015-09-08 12:56:24
 -- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
@@ -106,7 +106,7 @@ function ST_UI.OnEvent(szEvent)
 		CreateCountdown(arg0, arg1, arg2)
 	elseif szEvent == "JH_ST_DEL" then
 		local ui = ST_CACHE[arg0][arg1]
-		if ui then
+		if ui and ui:IsValid() then
 			if arg2 then -- 强制无条件删除
 				ui.obj:RemoveItem()
 				ST_TIME_CACHE[arg0][arg1] = nil
