@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-16 17:21:30
+-- @Last Modified time: 2015-09-14 18:23:54
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -957,12 +957,9 @@ function DBMUI.OpenAddPanel(szType, data)
 			end
 		end)
 		nX, nY = ui:Append("WndEdit", "map", { x = 100, y = nY + 15 })
-		:Change(function()
+		:Autocomplete(JH.GetAllMap()):Change(function()
 			local me = this
 			if me:GetText() == "" then
-				if IsPopupMenuOpened() then
-					return
-				end
 				local menu = {}
 				DBMUI.InsertDungeonMenu(menu, function(dwMapID)
 					me:SetText(DBMUI.GetMapName(dwMapID))
@@ -976,10 +973,6 @@ function DBMUI.OpenAddPanel(szType, data)
 				menu.bShowKillFocus = true
 				menu.bDisableSound = true
 				PopupMenu(menu)
-			else
-				if IsPopupMenuOpened() then
-					Wnd.CloseWindow("PopupMenuPanel")
-				end
 			end
 		end)
 		:Text(DBMUI_SELECT_MAP ~= _L["All Data"] and DBMUI.GetMapName(DBMUI_SELECT_MAP) or DBMUI.GetMapName(data.dwMapID)):Pos_()
