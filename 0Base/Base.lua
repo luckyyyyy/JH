@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-01 11:58:05
+-- @Last Modified time: 2015-09-14 17:41:58
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2404,6 +2404,95 @@ function _GUI.Wnd:Limit(nLimit)
 	end
 	return self
 end
+-- Autocomplete
+function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
+	if self.type == "WndEdit" then
+		local wnd = self.edit
+		local tab = {}
+		local Autocomplete = function()
+			local tList, tTab  = {}, {}
+			local szText = this:GetText()
+			if type(fnTable) == "function" then
+				tTab = fnTable(szText)
+			else
+				tTab = fnTable
+			end
+			for k, v in ipairs(tTab) do
+				if v.szOption:find(szText) then
+					table.insert(tList, v)
+				end
+				if #tList > (nMaxOption or 15) then break end
+			end
+
+			if #tList == 0 or #tList == 1 and tList[1].szOption == szText then
+				if IsPopupMenuOpened() then
+					Wnd.CloseWindow(GetPopupMenu())
+				end
+			else
+				local menu = {}
+				for k, v in ipairs(tList) do
+					table.insert(menu, {
+						szOption = v.szOption,
+						rgb      = v.rgb,
+						szLayer  = v.szLayer,
+						nFrame   = v.nFrame,
+						szIcon   = v.szIcon,
+						fnAction = function()
+							local f = wnd.OnEditChanged
+							wnd.OnEditChanged = nil
+							wnd:SetText(v.szOption)
+							Wnd.CloseWindow(GetPopupMenu())
+							if fnAction then
+								local _this = this
+								this = wnd
+								fnAction(v.szOption, v.data) -- callback
+								this = _this
+							end
+							wnd.OnEditChanged = f
+						end
+					})
+				end
+				local nX, nY = this:GetAbsPos()
+				local nW, nH = this:GetSize()
+				menu.nMiniWidth = nW
+				menu.x = nX
+				menu.y = nY + nH
+				menu.bShowKillFocus = true
+				menu.bDisableSound = true
+				PopupMenu(menu)
+			end
+			if fnAction then
+				fnAction(szText)
+			end
+		end
+		if not wnd.__Autocomplete then
+			wnd.__Autocomplete = Autocomplete
+			if wnd.OnEditChanged then
+				local OnEditChanged = wnd.OnEditChanged
+				wnd.OnEditChanged = function()
+					this.__Autocomplete()
+					OnEditChanged()
+				end
+			else
+				wnd.OnEditChanged = wnd.__Autocomplete
+			end
+		else
+			wnd.__Autocomplete = Autocomplete
+		end
+		wnd.OnSetFocus = function()
+			this.OnEditChanged()
+		end
+		wnd.OnKillFocus = function()
+			if IsPopupMenuOpened() then
+				local frame = Station.GetFocusWindow()
+				if frame and frame:GetName() ~= "PopupMenuPanel" then
+					Wnd.CloseWindow(GetPopupMenu())
+				end
+			end
+		end
+	end
+	return self
+end
 
 -- (self) Instance:Change()			-- 触发编辑框修改处理函数
 -- (self) Instance:Change(func fnAction)
@@ -2424,6 +2513,9 @@ function _GUI.Wnd:Change(fnAction)
 			edit.OnEditChanged = function()
 				if not this.bChanging then
 					this.bChanging = true
+					if this.__Autocomplete then
+						this.__Autocomplete()
+					end
 					fnAction(this:GetText())
 					this.bChanging = false
 				end
