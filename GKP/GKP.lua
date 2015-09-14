@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-08 20:03:05
+-- @Last Modified time: 2015-09-14 17:54:44
 
 -- 早期代码 需要重写
 
@@ -533,109 +533,46 @@ function GKP.OnFrameCreate()
 	record:Append("WndComboBox", "TeamList", {x = 135,y = 53,txt = g_tStrings.PLAYER_NOT_EMPTY}):Menu(GKP.GetTeamList)
 	record:Append("WndEdit", "Source", {x = 135,y = 155,w = 185,h = 25})
 
-
-	local fnAction_Name = function()
-		local me = this
-		local txt = me:GetText()
-		if txt ~= "" then
-			if IsPopupMenuOpened() then
-				Wnd.CloseWindow("PopupMenuPanel")
-				me.txt = nil
-			end
-			return
-		end
-		if IsPopupMenuOpened() then
-			return
-		end
-		local menu = {}
-		for k,v in ipairs(_GKP.Config.Subsidies) do
+	record:Append("WndEdit", "Name", {x = 135, y = 125, w = 185, h = 25}):Autocomplete(function(szText)
+		local tList = {}
+		for k, v in ipairs(_GKP.Config.Subsidies) do
 			if v[3] then
-				table.insert(menu,{
-					szOption = v[1],
-					fnAction = function()
-						me:SetText(v[1])
-						record:Fetch("Money"):Text(v[2]):Focus()
-					end
-				})
+				table.insert(tList, { szOption = v[1], data = v })
 			end
 		end
-		local nX, nY = this:GetAbsPos()
-		local nW, nH = this:GetSize()
-		menu.nMiniWidth = nW
-		menu.x = nX
-		menu.y = nY + nH
-		menu.bShowKillFocus = true
-		menu.bDisableSound = true
-		PopupMenu(menu)
-		Station.SetFocusWindow(me)
-	end
-	record:Append("WndEdit", "Name", {x = 135, y = 125, w = 185, h = 25}):Focus(fnAction_Name, function()
-		if not Station.GetFocusWindow() then return end
-		local szFocusWindow = Station.GetFocusWindow():GetName()
-		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
-			Wnd.CloseWindow("PopupMenuPanel")
+		return tList
+	end, function(szText, data)
+		if data then
+			record:Fetch("Money"):Focus()
 		end
-	end):Change(fnAction_Name)
+	end)
 
-	local fnAction =  function()
-		local me = this
-		local txt = me:GetText()
-		if IsPopupMenuOpened() and me.txt and me.txt == txt then
-			return
-		end
-		if tonumber(txt) then
-			me.txt = txt
-			me:SetFontColor(GKP.GetMoneyCol(me:GetText()))
-			if tonumber(me:GetText()) >= 1000 or tonumber(me:GetText()) <= -1000 or tonumber(me:GetText()) == 0 then
-				if IsPopupMenuOpened() then
-					Wnd.CloseWindow("PopupMenuPanel")
-				end
-				return
-			end
+	record:Append("WndEdit", "Money", { x = 135, y = 185 ,w = 185, h = 25, limit = 8 }):Type(1):Autocomplete(function(szText)
+		if tonumber(szText) and tonumber(szText) <= 1000 and tonumber(szText) >= -1000 and tonumber(szText) ~= 0 then
 			local menu = {}
 			for k, v in ipairs({2, 3, 4}) do
-				local nMoney = string.format("%0.".. v .."f", me:GetText()):gsub("%.", "")
-				table.insert(menu,{
+				local nMoney = string.format("%0.".. v .."f", szText):gsub("%.", "")
+				table.insert(menu, {
 					szOption = nMoney,
-					rgb = {GKP.GetMoneyCol(nMoney)},
+					rgb = { GKP.GetMoneyCol(nMoney) },
 					szLayer = "ICON_RIGHT",
 					nFrame = 11,
 					szIcon = "ui/image/LootPanel/LootPanel.UITex",
-					fnAction = function()
-						me:SetText(nMoney)
-					end
 				})
 			end
-			local nX, nY = me:GetAbsPos()
-			local nW, nH = me:GetSize()
-			menu.nMiniWidth = nW
-			menu.x = nX
-			menu.y = nY + nH
-			menu.bShowKillFocus = true
-			menu.bDisableSound = true
-			PopupMenu(menu)
-			Station.SetFocusWindow(me)
-		elseif txt == "" then
-			me.txt = nil
-			if IsPopupMenuOpened() then
-				Wnd.CloseWindow("PopupMenuPanel")
-			end
-		elseif txt ~= "-" then
-			if me.txt then
-				me:SetText(me.txt)
-			else
-				me:SetText(0)
-			end
+			return menu
+		else
+			return {}
 		end
-	end
-	record:Append("WndEdit", "Money", { x = 135, y = 185 ,w = 185, h = 25, limit = 8 }):Type(1):Focus(fnAction, function()
-		if not Station.GetFocusWindow() then return end
-		local szFocusWindow = Station.GetFocusWindow():GetName()
-		if szFocusWindow ~= "Edit_Default" and szFocusWindow ~= "PopupMenuPanel" then
-			Wnd.CloseWindow("PopupMenuPanel")
+	end, function(szText)
+		if tonumber(szText) or szText == "" or szText == "-" then
+			this.txt = szText
+			this:SetFontColor(GKP.GetMoneyCol(szText))
+		else
+			JH.Sysmsg(_L["Please enter numbers"])
+			this:SetText(this.txt or "")
 		end
-	end):Change(fnAction)
-
+	end)
 
 	-- 排序
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Record")

@@ -291,82 +291,26 @@ end
 
 local PS = {}
 function PS.OnPanelActive(frame)
-	local function Autocomplete()
-		local me = this
-		local szText = JH.Trim(me:GetText())
+	local ui, nX, nY = GUI(frame), 10, 0
+	Book.ui = ui
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Copy Book"], font = 27 }):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Books Name"] }):Pos_()
+	nX = ui:Append("WndEdit", "Name", { x = nX + 5, y = nY + 12, txt = JH_CopyBook.szBookName })
+	:Autocomplete(function(szText)
 		if not Book.tBookList then
 			local tName = {}
 			Book.tBookList = {}
 			for i = 2, g_tTable.BookSegment:GetRowCount() do
 				local item = g_tTable.BookSegment:GetRow(i)
 				if not tName[item.szBookName] then
-					-- local nThew, nExamPrint = select(3, Book.GetBook(item.szBookName))
-					local nSort = 0
-					-- if nExamPrint > 1 then
-					-- 	nSort = nThew / nExamPrint
-					-- end
-					table.insert(Book.tBookList, { szName = item.szBookName, nSort = nSort })
+					table.insert(Book.tBookList, { szOption = item.szBookName })
 					tName[item.szBookName] = true
 				end
 			end
-			-- table.sort(Book.tBookList, function(a, b)
-			-- 	if a.nSort == 0 then
-			-- 		return false
-			-- 	end
-			-- 	return a.nSort < b.nSort
-			-- end)
 			setmetatable(Book.tBookList, { __index = tName })
 		end
-		if Book.tBookList[szText] then
-			if szText ~= JH_CopyBook.szBookName then
-				JH_CopyBook.tIgnore = {}
-			end
-			if IsPopupMenuOpened() then
-				Wnd.CloseWindow(GetPopupMenu())
-			end
-		else
-			local tList, menu = {}, {}
-			for k, v in ipairs(Book.tBookList) do
-				if v.szName:find(szText) then
-					table.insert(tList, v)
-				end
-				if #tList > 15 then break end
-			end
-			if #tList > 0 then
-				for k, v in ipairs(tList) do
-					table.insert(menu, { szOption = v.szName, fnAction = function() me:SetText(v.szName) end })
-				end
-				local nX, nY = me:GetAbsPos()
-				local nW, nH = me:GetSize()
-				menu.nMiniWidth = nW
-				menu.x = nX
-				menu.y = nY + nH
-				menu.bShowKillFocus = true
-				menu.bDisableSound = true
-				PopupMenu(menu)
-			elseif IsPopupMenuOpened() then
-				Wnd.CloseWindow(GetPopupMenu())
-			end
-		end
-	end
-	local ui, nX, nY = GUI(frame), 10, 0
-	Book.ui = ui
-	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Copy Book"], font = 27 }):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Books Name"] }):Pos_()
-	nX = ui:Append("WndEdit", "Name", { x = nX + 5, y = nY + 12, txt = JH_CopyBook.szBookName }):Focus(Autocomplete, function()
-		if IsPopupMenuOpened() then
-			local frame = Station.GetFocusWindow()
-			if frame then
-				local szFocus = Station.GetFocusWindow():GetName()
-				if szFocus ~= "PopupMenuPanel" then
-					Wnd.CloseWindow(GetPopupMenu())
-				end
-			end
-		end
-	end):Change(function()
-		pcall(Autocomplete)
-		Book.UpdateInfo(this:GetText())
-	end):Pos_()
+		return Book.tBookList
+	end, Book.UpdateInfo):Pos_()
 	nX = ui:Append("WndButton2", "Copy", { x = nX + 5, y = nY + 12, txt = _L["Start Copy"] }):Click(Book.CheckCopy):Pos_()
 	nX, nY = ui:Append("WndButton2", "go_on", { x = nX + 5, y = nY + 12, txt = _L["go on"] }):Toggle(false):Click(Book.Copy):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Copy Count"] }):Pos_()
