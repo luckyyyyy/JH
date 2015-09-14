@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-31 16:19:51
+-- @Last Modified time: 2015-09-14 15:53:03
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -1245,9 +1245,9 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			life:SetFontColor(128, 128, 128)
 			life:SetText(COINSHOP_SOURCE_NULL)
 		end
-		if info.dwMountKungfuID == 0 then -- 没有同步成功时显示的内容
-			life:SetText("sync ...")
-		end
+		-- if info.dwMountKungfuID == 0 then -- 没有同步成功时显示的内容
+			-- life:SetText("sync ...")
+		-- end
 	end
 end
 
