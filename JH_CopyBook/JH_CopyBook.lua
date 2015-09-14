@@ -81,7 +81,7 @@ function Book.UpdateInfo(szName)
 		local green, red = { 255, 255, 255 }, { 255, 0, 0 }
 		ui:Fetch("Copy"):Enable(true)
 		local nMax = math.max(math.floor(me.nCurrentThew / math.max(nThew, 1)), 1)
-		if JH_CopyBook.nCopyNum > nMax then
+		if JH_CopyBook.nCopyNum > nMax and not Book.bEnable then
 			JH_CopyBook.nCopyNum = nMax
 		end
 		ui:Fetch("Count"):Enable(bCanCopy):Change(nil):Range(0, nMax, math.max(nMax, 0)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
