@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-14 17:41:58
+-- @Last Modified time: 2015-09-14 18:28:16
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -833,6 +833,19 @@ function JH.GetDistance(nX, nY, nZ)
 	end
 	return floor(((me.nX - nX) ^ 2 + (me.nY - nY) ^ 2 + (me.nZ/8 - nZ/8) ^ 2) ^ 0.5)/64
 end
+
+function JH.GetAllMap()
+	local tList, tMap = {}, {}
+	for k, v in ipairs(GetMapList()) do
+		local szName = Table_GetMapName(v)
+		if not tMap[szName] then
+			tMap[szName] = true
+			tinsert(tList, 1, szName)
+		end
+	end
+	return tList
+end
+
 -- 判断是不是副本地图
 function JH.IsInDungeon(dwMapID, bType)
 	local me = GetClientPlayer()
@@ -849,16 +862,17 @@ function JH.IsInDungeon(dwMapID, bType)
 		else
 			return false
 		end
-	end
-	if IsEmpty(_JH.tDungeonList) then
-		for k, v in ipairs(GetMapList()) do
-			local a = g_tTable.DungeonInfo:Search(v)
-			if a and a.dwClassID == 3 then
-				_JH.tDungeonList[a.dwMapID] = true
+	else
+		if IsEmpty(_JH.tDungeonList) then
+			for k, v in ipairs(GetMapList()) do
+				local a = g_tTable.DungeonInfo:Search(v)
+				if a and a.dwClassID == 3 then
+					_JH.tDungeonList[a.dwMapID] = true
+				end
 			end
 		end
+		return _JH.tDungeonList[dwMapID] or false
 	end
-	return _JH.tDungeonList[dwMapID] or false
 end
 
 -- JJC地图
@@ -2418,13 +2432,14 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 				tTab = fnTable
 			end
 			for k, v in ipairs(tTab) do
-				if v.szOption:find(szText) then
-					table.insert(tList, v)
+				local txt = v.szOption or v
+				if txt:find(szText) then
+					table.insert(tList, v.szOption and v or v)
 				end
 				if #tList > (nMaxOption or 15) then break end
 			end
 
-			if #tList == 0 or #tList == 1 and tList[1].szOption == szText then
+			if #tList == 0 or (#tList == 1 and (tList[1].szOption == szText or tList[1] == szText)) then
 				if IsPopupMenuOpened() then
 					Wnd.CloseWindow(GetPopupMenu())
 				end
@@ -2432,7 +2447,7 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 				local menu = {}
 				for k, v in ipairs(tList) do
 					table.insert(menu, {
-						szOption = v.szOption,
+						szOption = v.szOption or v,
 						rgb      = v.rgb,
 						szLayer  = v.szLayer,
 						nFrame   = v.nFrame,
@@ -2440,12 +2455,12 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 						fnAction = function()
 							local f = wnd.OnEditChanged
 							wnd.OnEditChanged = nil
-							wnd:SetText(v.szOption)
+							wnd:SetText(v.szOption or v)
 							Wnd.CloseWindow(GetPopupMenu())
 							if fnAction then
 								local _this = this
 								this = wnd
-								fnAction(v.szOption, v.data) -- callback
+								fnAction(v.szOption or v, v.data) -- callback
 								this = _this
 							end
 							wnd.OnEditChanged = f

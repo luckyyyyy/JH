@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-16 18:26:08
+-- @Last Modified time: 2015-09-14 18:26:30
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -647,7 +647,7 @@ function C.OpenAddPanel(szName, dwType, szMap)
 	if not szMap then
 		szMap = tonumber(C.dwSelMapID) and JH.IsMapExist(C.dwSelMapID) or JH.IsMapExist(C.GetMapID())
 	end
-	ui:Append("WndEdit", "Map", { txt = szMap, x = 115, y = 113 })
+	ui:Append("WndEdit", "Map", { txt = szMap, x = 115, y = 113 }):Autocomplete(JH.GetAllMap())
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
 	:Enable(szName == nil):Click(function()
 		dwType = TARGET.NPC
