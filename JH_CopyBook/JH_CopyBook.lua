@@ -295,8 +295,7 @@ function PS.OnPanelActive(frame)
 	Book.ui = ui
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Copy Book"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Books Name"] }):Pos_()
-	nX = ui:Append("WndEdit", "Name", { x = nX + 5, y = nY + 12, txt = JH_CopyBook.szBookName })
-	:Autocomplete(function(szText)
+	nX = ui:Append("WndEdit", "Name", { x = nX + 5, y = nY + 12, txt = JH_CopyBook.szBookName }):Autocomplete(function(szText)
 		if not Book.tBookList then
 			local tName = {}
 			Book.tBookList = {}
