@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-16 19:04:00
+-- @Last Modified time: 2015-09-17 04:09:15
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -913,6 +913,18 @@ function JH.IsInParty()
 	return me and me.IsInParty()
 end
 
+local function KeyToNumber(data, tab)
+	for k, v in pairs(tab) do
+		local key = tonumber(k) or k
+		data[key] = {}
+		if type(v) == "table" then
+			KeyToNumber(data[key], v)
+		else
+			data[key] = v
+		end
+	end
+end
+
 function JH.JsonToTable(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
@@ -923,28 +935,8 @@ function JH.JsonToTable(szJson)
 		return false, "data is invalid"
 	end
 	local data = {}
-	for k, v in pairs(result) do
-		local key = tonumber(k) or k
-		data[key] = {}
-		if type(v) == "table" then
-			JH.TableFIXNumber(data[key], v)
-		else
-			data[key] = v
-		end
-	end
+	KeyToNumber(data, result)
 	return data, nil
-end
-
-function JH.TableFIXNumber(self, tab)
-	for k,v in pairs(tab) do
-		local key = tonumber(k) or k
-		self[key] = {}
-		if type(v) == "table" then
-			JH.TableFIXNumber(self[key], v)
-		else
-			self[key] = v
-		end
-	end
 end
 
 -- 输出一条密聊信息
