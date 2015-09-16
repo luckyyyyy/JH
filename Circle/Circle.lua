@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-14 18:26:30
+-- @Last Modified time: 2015-09-16 15:14:07
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -290,7 +290,19 @@ end
 function C.OutputTip(data, rect)
 	local xml = {}
 	if tonumber(data.key) then
-		tinsert(xml, GetFormatText(JH.GetTemplateName(data.key), 80, 255, 255, 0))
+		if data.dwType == TARGET.NPC then
+			tinsert(xml, GetFormatText(JH.GetTemplateName(data.key), 80, 255, 255, 0))
+		else
+			local szName = data.key
+			local doodad = GetDoodadTemplate(data.key)
+			if doodad then
+				szName = doodad.szName
+				if doodad.nKind == DOODAD_KIND.CORPSE then
+					szName = szName .. g_tStrings.STR_DOODAD_CORPSE
+				end
+			end
+			tinsert(xml, GetFormatText(szName, 80, 255, 255, 0))
+		end
 	else
 		tinsert(xml, GetFormatText(data.key, 80, 255, 255, 0))
 	end
@@ -311,6 +323,7 @@ function C.OutputTip(data, rect)
 	end
 	OutputTip(tconcat(xml), 400, rect)
 end
+
 function C.DrawLine(tar, ttar, sha, col, dwType)
 	sha:SetTriangleFan(GEOMETRY_TYPE.LINE, 3)
 	sha:ClearTriangleFanPoint()

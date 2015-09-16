@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-14 18:28:16
+-- @Last Modified time: 2015-09-16 14:30:10
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1539,16 +1539,16 @@ function JH.OutputNpcTip(dwNpcTemplateID, Rect)
 	local szName = JH.GetTemplateName(dwNpcTemplateID)
 	local t = {}
 	tinsert(t, GetFormatText(szName .. "\n", 80, 255, 255, 0))
-    -------------等级----------------------------
-    if npc.nLevel - GetClientPlayer().nLevel > 10 then
-    	tinsert(t, GetFormatText(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL, 82))
-    else
-    	tinsert(t, GetFormatText(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel), 0))
-    end
-    ------------模版ID-----------------------
-    tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1), 101))
+		-------------等级----------------------------
+	if npc.nLevel - GetClientPlayer().nLevel > 10 then
+		tinsert(t, GetFormatText(g_tStrings.STR_PLAYER_H_UNKNOWN_LEVEL, 82))
+	else
+		tinsert(t, GetFormatText(FormatString(g_tStrings.STR_NPC_H_WHAT_LEVEL, npc.nLevel), 0))
+	end
+	------------模版ID-----------------------
+	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID_NPC_INTENSITY, npc.dwTemplateID, npc.nIntensity or 1), 101))
 
-    OutputTip(tconcat(t), 345, Rect)
+	OutputTip(tconcat(t), 345, Rect)
 end
 
 function JH.OutputDoodadTip(dwTemplateID, Rect)
@@ -1564,17 +1564,17 @@ function JH.OutputDoodadTip(dwTemplateID, Rect)
 	end
 	tinsert(t, GetFormatText(szName .. "\n", 65))
 	tinsert(t, GetDoodadQuestTip(dwTemplateID))
-    ------------模版ID-----------------------
-   	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 37))
-    if IsCtrlKeyDown() then
-    	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
-    end
-    if doodad.nKind == DOODAD_KIND.GUIDE then
+	------------模版ID-----------------------
+	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 37))
+	if IsCtrlKeyDown() then
+		tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
+	end
+	if doodad.nKind == DOODAD_KIND.GUIDE then
 		local x, y = Cursor.GetPos()
 		w, h = 40, 40
 		Rect = {x, y, w, h}
-    end
-    OutputTip(tconcat(t), 300, Rect)
+	end
+	OutputTip(tconcat(t), 300, Rect)
 end
 
 local XML_LINE_BREAKER = GetFormatText("\n")
@@ -2434,7 +2434,7 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 			for k, v in ipairs(tTab) do
 				local txt = v.szOption or v
 				if txt:find(szText) then
-					table.insert(tList, v.szOption and v or v)
+					table.insert(tList, v)
 				end
 				if #tList > (nMaxOption or 15) then break end
 			end
@@ -2497,6 +2497,22 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 		wnd.OnSetFocus = function()
 			this.OnEditChanged()
 		end
+
+		wnd.OnEditSpecialKeyDown = function()
+			local szKey = GetKeyName(Station.GetMessageKey())
+			if IsPopupMenuOpened() and PopupMenu_ProcessHotkey then
+				if szKey == "Enter"
+				or szKey == "Up"
+				or szKey == "Down"
+				-- or szKey == "Left"
+				-- or szKey == "Right" then
+			then
+					return PopupMenu_ProcessHotkey(szKey)
+				end
+			end
+		end
+
+
 		wnd.OnKillFocus = function()
 			if IsPopupMenuOpened() then
 				local frame = Station.GetFocusWindow()
