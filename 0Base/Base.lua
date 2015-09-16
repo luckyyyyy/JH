@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-16 14:30:10
+-- @Last Modified time: 2015-09-16 19:04:00
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1427,7 +1427,7 @@ function JH.GetShadowHandle(szName)
 	JH.Debug3("Create sh # " .. szName)
 	return sh:Lookup("", szName)
 end
-
+JH.GetPlayerAddonMenu = _JH.GetPlayerAddonMenu
 JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel(true):Hide()
 	_JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
