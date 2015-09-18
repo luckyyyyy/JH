@@ -89,12 +89,12 @@ function Book.UpdateInfo(szName)
 			Book.UpdateInfo()
 		end)
 		local handle = ui:Fetch("Require"):Clear()
-		local nX ,nY = 10, 0
+		local nX, nY = 10, 0
 		if IsEmpty(JH_CopyBook.tIgnore) then
-			nX ,nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint .. " ") .. string.format("  (1 = %.2f)", nThew / nExamPrint), color = { 255, 128, 0 } }):Pos_()
+			nX, nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint .. " ") .. string.format("  (1 = %.2f)", nThew / nExamPrint), color = { 255, 128, 0 } }):Pos_()
 		end
 		bCanCopy = bCanCopy and JH_CopyBook.nCopyNum * nThew <= me.nCurrentThew
-		nX ,nY = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(g_tStrings.STR_MSG_NEED_COST_THEW, me.nCurrentThew .. "/" .. JH_CopyBook.nCopyNum * nThew), color = JH_CopyBook.nCopyNum * nThew <= me.nCurrentThew and green or red }):Pos_()
+		nX, nY = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(g_tStrings.STR_MSG_NEED_COST_THEW, me.nCurrentThew .. "/" .. JH_CopyBook.nCopyNum * nThew), color = JH_CopyBook.nCopyNum * nThew <= me.nCurrentThew and green or red }):Pos_()
 		-- 阅读等级需求
 		local nPlayerLevel = me.GetProfessionLevel(8)
 		bCanCopy = bCanCopy and nPlayerLevel >= nMaxLevel

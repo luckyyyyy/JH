@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-17 03:58:23
+-- @Last Modified time: 2015-09-19 06:53:59
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -641,7 +641,7 @@ function DBMUI.GetMenu()
 	table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBMUI.OpenImportPanel() end }) -- 有传惨 不要改
 	local szLang = select(3, GetVersion())
 	if szLang == "zhcn" or szLang == "zhtw" then
-		table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
+		table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.TogglePanel })
 	end
 	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
 	return menu

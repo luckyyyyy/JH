@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-16 17:27:03
+-- @Last Modified time: 2015-09-19 06:55:00
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -92,7 +92,7 @@ function PS.OnPanelActive(frame)
 		table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBM_UI.OpenImportPanel() end }) -- 有传惨 不要改
 		local szLang = select(3, GetVersion())
 		if szLang == "zhcn" or szLang == "zhtw" then
-			table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.OpenPanel })
+			table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.TogglePanel })
 		end
 		PopupMenu(menu)
 	end):Pos_()
