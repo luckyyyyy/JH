@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-31 16:25:46
+-- @Last Modified time: 2015-09-19 06:32:11
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -566,9 +566,19 @@ JH.RegisterBgMsg("RL", function(nChannel, dwID, szName, data, bIsSelf)
 		end
 	end
 end)
-
 -- TI 面板部分
 local TI = {}
+function TI.SaveList()
+	JH.SaveLUAData("TI/YY.jx3dat", TI.tList, "\t", false)
+end
+
+function TI.GetList()
+	if not TI.tList then
+		TI.tList = JH.LoadLUAData("TI/YY.jx3dat") or {}
+	end
+	return TI.tList
+end
+
 function TI.GetEvent()
 	if JH_AutoSetTeam.bTeamInfo then
 		return
@@ -577,6 +587,13 @@ function TI.GetEvent()
 					JH.Confirm(_L["Edit team info?"], function()
 						TI.CreateFrame()
 					end)
+				end
+			end },
+			{ "FIRST_LOADING_END", function() 
+				-- 不存在队长不队长的问题了
+				local me = GetClientPlayer()
+				if me.IsInRaid() then
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "ASK")
 				end
 			end }
 	end
@@ -601,8 +618,6 @@ JH.RegisterBgMsg("TI", function(nChannel, dwID, szName, data, bIsSelf)
 				if JH.Trim(data[3]) ~= "" or JH.Trim(data[4]) ~= "" then
 					TI.CreateFrame(data[3], data[4])
 				end
-			elseif data[1] == "Close" then
-				TI.CloseFrame()
 			end
 		end
 	end
@@ -613,45 +628,65 @@ function TI.CreateFrame(a, b)
 	if TI.GetFrame() then
 		an = GetFrameAnchor(TI.GetFrame())
 	end
-	local ui = GUI.CreateFrame("JH_TeamInfo", { w = 300, h = 200, close = true, title = _L["Team_Info"], nStyle = 2 })
+	local ui = GUI.CreateFrame("JH_TeamInfo", { w = 320, h = 195, close = true, title = _L["Team Message"], nStyle = 2 }):Point(an.s, 0, 0, an.r, an.x, an.y)
 	local nX, nY = ui:Append("Text", { x = 10, y = 5, txt = _L["YY:"], font = 48 }):Pos_()
-	nX = ui:Append("WndEdit", "YY", { w = 140, h = 26, x = nX + 5, y = 5, font = 48, color = { 128, 255, 0 }, txt = a })
-	:Change(function(szText)
+	nX = ui:Append("WndEdit", "YY", { w = 160, h = 26, x = nX + 5, y = 5, font = 48, color = { 128, 255, 0 }, txt = a }):Autocomplete(function()
+		TI.tList = TI.GetList()
+		local tList = {}
+		for k, v in pairs(TI.tList) do
+			table.insert(tList, k)
+		end
+		return tList
+	end, nil, function(szText)
+		TI.tList[tonumber(szText)] = nil
+		TI.SaveList()
+	end):Change(function(szText)
 		if JH.IsLeader() then
 			TI.szYY = szText
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", szText, ui:Fetch("introduction"):Text())
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", szText, ui:Fetch("Message"):Text())
 		else
 			ui:Fetch("YY"):Text(TI.szYY, true)
-			JH.Sysmsg(_L["You are not team leader."])
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = 5, txt = _L["Paste YY"]})
-	:Click(function()
+	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = 5, txt = _L["Paste YY"]}):Click(function()
 		local yy = ui:Fetch("YY"):Text()
-		if yy ~= "" then JH.Talk(yy) end
+		if tonumber(yy) then
+			TI.tList = TI.GetList()
+			if not TI.tList[tonumber(yy)] then
+				TI.tList[tonumber(yy)] = true
+				TI.SaveList()
+			end
+		end
+		if yy ~= "" then
+			for i = 0, 2 do -- 发三次
+				JH.Talk(yy)
+			end
+		end
 	end):Pos_()
-	ui:Append("WndEdit", "introduction", { w = 280, h = 80, x = 10, y = nY + 5, multi = true, limit = 600, txt = b})
-	:Change(function(szText)
+	ui:Append("WndEdit", "Message", { w = 300, h = 80, x = 10, y = nY + 5, multi = true, limit = 512, txt = b}):Change(function(szText)
 		if JH.IsLeader() then
 			TI.szNote = szText
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Edit", ui:Fetch("YY"):Text(), szText)
 		else
-			ui:Fetch("introduction"):Text(TI.szNote, true)
-			JH.Sysmsg(_L["You are not team leader."])
+			ui:Fetch("Message"):Text(TI.szNote, true)
 		end
 	end)
-	ui:Append("Text", { txt = _L["TI_TIP"], x = 10, y = 112, w = 280, h = 60, alpha = 80, multi = true })
-	TI.szYY = ui:Fetch("YY"):Text()
-	TI.szNote = ui:Fetch("introduction"):Text()
-	ui.self:Lookup("Btn_Close").OnLButtonClick = function()
-		if JH.IsLeader() then
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "Close")
-		end
-		ui:Remove()
+	nX, nY = 5, 130
+	if RaidTools then
+		nX = ui:Append("WndButton2", { x = nX, y = nY, txt = _L["Raid Tools"] }):Click(RaidTools.TogglePanel):Pos_()
 	end
+	if GKP then
+		nX = ui:Append("WndButton2", { x = nX + 5, y = nY, txt = _L["GKP Golden Team Record"] }):Click(GKP.TogglePanel):Pos_()
+	end
+	if DBM_RemoteRequest then
+		nX = ui:Append("WndButton2", { x = nX + 5, y = nY, txt = _L["Import Data"] }):Click(DBM_RemoteRequest.TogglePanel):Pos_()
+	end
+	TI.szYY   = ui:Fetch("YY"):Text()
+	TI.szNote = ui:Fetch("Message"):Text()
 	ui:Setting(function() JH.OpenPanel(_L["AutoSetTeam"]) end)
 	-- 注册事件
 	local frame = TI.GetFrame()
+	frame.OnFrameKeyDown = nil -- esc close --> nil
 	frame:RegisterEvent("PARTY_DISBAND")
 	frame:RegisterEvent("PARTY_DELETE_MEMBER")
 	frame:RegisterEvent("PARTY_ADD_MEMBER")
@@ -670,27 +705,18 @@ function TI.CreateFrame(a, b)
 	end
 end
 
-function TI.CloseFrame()
-	if TI.GetFrame() then
-		Wnd.CloseWindow(TI.GetFrame())
-	end
-end
-
 JH.AddonMenu(function()
 	return {
-		szOption = _L["Enable TeamInfo"], fnDisable = function() local me = GetClientPlayer(); return not me.IsInRaid() end, fnAction = function()
+		szOption = _L["Team Message"], fnDisable = function() local me = GetClientPlayer(); return not me.IsInRaid() end, fnAction = function()
 			local me = GetClientPlayer()
-			if TI.GetFrame() then
-				TI.CloseFrame()
-			else
-				JH_AutoSetTeam.bTeamInfo = true
-				JH.RegisterInit("TI", TI.GetEvent())
-				if me.IsInRaid() then
-					if JH.IsLeader() then
-						TI.CreateFrame()
-					else
-						JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "ASK")
-					end
+			JH_AutoSetTeam.bTeamInfo = true
+			JH.RegisterInit("TI", TI.GetEvent())
+			if me.IsInRaid() then
+				if JH.IsLeader() then
+					TI.CreateFrame()
+				else
+					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "ASK")
+					JH.Sysmsg(_L["Asking..., If no response in longtime, team leader not enable plug-in."])
 				end
 			end
 		end
@@ -870,7 +896,7 @@ function PS.OnPanelActive(frame)
 		JH_AutoSetTeam.bRequestList = bChecked
 		JH.RegisterInit("RequestList", _RL.GetEvent())
 	end):Pos_()
-	ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bTeamInfo, txt = _L["Enable TeamInfo"] }):Click(function(bChecked)
+	ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bTeamInfo, txt = _L["Team Message"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bTeamInfo = bChecked
 		JH.RegisterInit("TI", TI.GetEvent())
 	end)

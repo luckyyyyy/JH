@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-30 19:05:40
+-- @Last Modified time: 2015-09-19 06:55:30
 
 local _L = JH.LoadLangPack
 
@@ -1249,3 +1249,8 @@ JH.RegisterEvent("LOGIN_GAME", RT.SetStyle)
 
 JH.PlayerAddonMenu({ szOption = _L["Open Raid Tools Panel"], fnAction = RT.TogglePanel })
 JH.AddHotKey("JH_RaidTools", _L["Open Raid Tools Panel"], RT.TogglePanel)
+
+local ui = {
+	TogglePanel = RT.TogglePanel
+}
+setmetatable(RaidTools, { __index = ui, __newindex = function() end, __metatable = true })
