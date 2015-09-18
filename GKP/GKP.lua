@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-14 17:54:44
+-- @Last Modified time: 2015-09-19 06:53:24
 
 -- 早期代码 需要重写
 
@@ -36,18 +36,6 @@ local _GKP = {
 	tDungeonList = {},
 	tViewInvite = {},
 	DeathWarn = {},
-	aPartyMember = {
-		{szName = "test user 1", dwForceID = 1, dwForce = 1, bOnlineFlag = true, dwID = 0},
-		{szName = "test user 2", dwForceID = 2, dwForce = 2, bOnlineFlag = true, dwID = 1},
-		{szName = "test user 3", dwForceID = 5, dwForce = 5, bOnlineFlag = true, dwID = 2},
-		{szName = "test user 4", dwForceID = 7, dwForce = 7, bOnlineFlag = true, dwID = 3},
-		{szName = "test user 5", dwForceID = 9, dwForce = 9, bOnlineFlag = true, dwID = 4},
-		{szName = "test user 6", dwForceID = 0, dwForce = 0, bOnlineFlag = true, dwID = 5},
-		{szName = "test user 7", dwForceID = 6, dwForce = 6, bOnlineFlag = true, dwID = 6},
-		{szName = "test user 8", dwForceID = 21, dwForce = 21, bOnlineFlag = true, dwID = 8},
-		{szName = "test user 9", dwForceID = 6, dwForce = 6, bOnlineFlag = true, dwID = 9},
-		{szName = "test user 10 ban", dwForceID = 5, dwForce = 5, bOnlineFlag = false, dwID = 10},
-	},
 	tSyncQueue = {},
 	bSync = {},
 	GKP_Record = {},
@@ -450,13 +438,9 @@ end
 function GKP.GetTeamList()
 	local TeamMemberList = GetClientTeam().GetTeamMemberList()
 	local tTeam,menu = {},{}
-	if JH.bDebug then
-		tTeam = _GKP.aPartyMember
-	else
-		for _,v in ipairs(TeamMemberList) do
-			local player = GetClientTeam().GetMemberInfo(v)
-			table.insert(tTeam,{ szName = player.szName ,dwForce = player.dwForceID})
-		end
+	for _,v in ipairs(TeamMemberList) do
+		local player = GetClientTeam().GetMemberInfo(v)
+		table.insert(tTeam,{ szName = player.szName ,dwForce = player.dwForceID})
 	end
 	table.sort(tTeam,function(a,b) return a.dwForce < b.dwForce end)
 	for _,v in ipairs(tTeam) do
@@ -564,7 +548,7 @@ function GKP.OnFrameCreate()
 		else
 			return {}
 		end
-	end, function(szText)
+	end):Change(function(szText)
 		if tonumber(szText) or szText == "" or szText == "-" then
 			this.txt = szText
 			this:SetFontColor(GKP.GetMoneyCol(szText))
@@ -1542,10 +1526,6 @@ end
 function _GKP.GetaPartyMember(doodad)
 	local team = GetClientTeam()
 	local aPartyMember = doodad.GetLooterList()
-	if JH.bDebug then
-		aPartyMember = _GKP.aPartyMember
-	end
-
 	if not aPartyMember then
 		_GKP.OnOpenDoodad(_GKP.dwOpenID)
 		return GKP.Sysmsg(_L["Pick up time limit exceeded, please try again."])

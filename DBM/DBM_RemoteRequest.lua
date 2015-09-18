@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-04 21:22:21
+-- @Last Modified time: 2015-09-19 06:54:04
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -21,9 +21,16 @@ local W = {
 	szDownload  = ROOT_URL .. "down/json/",
 	szLoginUrl  = ROOT_URL .. "user/login/",
 }
+
+function W.GetFrame()
+	return Station.Lookup("Normal/DBM_RemoteRequest")
+end
+
+W.IsOpened = W.GetFrame
+
 -- 打开界面
 function W.OpenPanel()
-	local frame = Station.Lookup("Normal/DBM_RemoteRequest") or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
+	local frame = W.GetFrame() or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
 	frame:BringToTop()
 	Station.SetActiveFrame(frame)
 	W.RequestList()
@@ -31,9 +38,17 @@ function W.OpenPanel()
 end
 
 function W.ClosePanel()
-	Wnd.CloseWindow(Station.Lookup("Normal/DBM_RemoteRequest"))
+	Wnd.CloseWindow(W.GetFrame())
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 	W.Container = nil
+end
+
+function W.TogglePanel()
+	if W.IsOpened() then
+		W.ClosePanel()
+	else
+		W.OpenPanel()
+	end
 end
 
 function DBM_RemoteRequest.OnFrameCreate()
@@ -172,7 +187,7 @@ function W.RequestList(szUrl)
 end
 
 function W.ListCallBack(result)
-	if not Station.Lookup("Normal/DBM_RemoteRequest") then return end
+	if not W.IsOpened() then return end
 	W.Container:Clear()
 	W.UseData = nil
 	if result["msg"] then
@@ -342,6 +357,6 @@ JH.RegisterBgMsg("DBM_RemoteRequest", function(nChannel, dwID, szName, data, bIs
 end)
 
 local UIProtect = {
-	OpenPanel = W.OpenPanel,
+	TogglePanel = W.TogglePanel,
 }
 setmetatable(DBM_RemoteRequest, { __index = UIProtect, __metatable = true, __newindex = function() --[[ print("Protect") ]] end } )

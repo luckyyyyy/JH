@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-17 04:09:15
+-- @Last Modified time: 2015-09-19 06:52:13
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2183,7 +2183,7 @@ function _GUI.Wnd:Size(nW, nH)
 				self.handle:FormatAllItemPos()
 			elseif self.type == "WndTrackBar" then
 				wnd:Lookup("Scroll_Track"):SetSize(nW, nH - 13)
-				wnd:Lookup("Scroll_Track/Btn_Track"):SetSize(mceil(nW/5), nH - 13)
+				wnd:Lookup("Scroll_Track/Btn_Track"):SetH(nH - 13)
 				self.handle:Lookup("Image_BG"):SetSize(nW, nH - 15)
 				self.handle:Lookup("Text_Default"):SetRelPos(nW + 5, mceil((nH - 25)/2))
 				self.handle:FormatAllItemPos()
@@ -2411,7 +2411,7 @@ function _GUI.Wnd:Limit(nLimit)
 	return self
 end
 -- Autocomplete
-function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
+function _GUI.Wnd:Autocomplete(fnTable, fnCallBack, fnRecovery, nMaxOption)
 	if self.type == "WndEdit" then
 		local wnd = self.edit
 		local tab = {}
@@ -2424,40 +2424,57 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 				tTab = fnTable
 			end
 			for k, v in ipairs(tTab) do
-				local txt = v.szOption or v
-				if txt:find(szText) then
+				local txt = type(v) ~= "table" and tostring(v) or v.szOption
+				if txt:find(szText) and txt ~= szText then
 					table.insert(tList, v)
 				end
 				if #tList > (nMaxOption or 15) then break end
 			end
 
-			if #tList == 0 or (#tList == 1 and (tList[1].szOption == szText or tList[1] == szText)) then
+			if #tList == 0 or (#tList == 1 and ((type(tList[1]) == "table" and tList[1].szOption == szText) or tostring(tList[1]) == szText)) then
 				if IsPopupMenuOpened() then
 					Wnd.CloseWindow(GetPopupMenu())
 				end
 			else
 				local menu = {}
 				for k, v in ipairs(tList) do
-					table.insert(menu, {
-						szOption = v.szOption or v,
-						rgb      = v.rgb,
-						szLayer  = v.szLayer,
-						nFrame   = v.nFrame,
-						szIcon   = v.szIcon,
-						fnAction = function()
-							local f = wnd.OnEditChanged
-							wnd.OnEditChanged = nil
-							wnd:SetText(v.szOption or v)
-							Wnd.CloseWindow(GetPopupMenu())
-							if fnAction then
+					local t = {}
+					if type(v) == "table" then
+						t.szOption = v.szOption
+						t.rgb      = v.rgb
+						t.szLayer  = v.szLayer
+						t.nFrame   = v.nFrame
+						t.szIcon   = v.szIcon
+					else
+						t.szOption = v
+					end
+					t.fnAction = function()
+						wnd:SetText(t.szOption)
+						Wnd.CloseWindow(GetPopupMenu())
+						if fnCallBack then
+							local _this = this
+							this = wnd
+							fnCallBack(t.szOption, type(v) == "table" and v.data) -- callback
+							this = _this
+						end
+					end
+					if fnRecovery then
+						t.szLayer  = "ICON_RIGHT"
+						t.nFrame   = 86
+						t.szIcon   = "ui/Image/UICommon/Feedanimials.uitex"
+						t.fnClickIcon = function()
+							JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, t.szOption), function()
 								local _this = this
 								this = wnd
-								fnAction(v.szOption or v, v.data) -- callback
+								fnRecovery(t.szOption) -- callback
 								this = _this
-							end
-							wnd.OnEditChanged = f
+								Wnd.CloseWindow(GetPopupMenu())
+								Station.SetFocusWindow(wnd)
+								return
+							end)
 						end
-					})
+					end
+					table.insert(menu, t)
 				end
 				local nX, nY = this:GetAbsPos()
 				local nW, nH = this:GetSize()
@@ -2466,10 +2483,17 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 				menu.y = nY + nH
 				menu.bShowKillFocus = true
 				menu.bDisableSound = true
+				menu.fnAutoClose = function()
+					local frame = Station.GetFocusWindow()
+					if not frame or frame and frame:GetName() ~= "PopupMenuPanel" and frame:GetName() ~= wnd:GetName() then
+						return true
+					end
+				end
 				PopupMenu(menu)
+				-- PopupMenu_ProcessHotkey("Down") -- 还是不加的好
 			end
-			if fnAction then
-				fnAction(szText)
+			if fnCallBack then
+				fnCallBack(szText)
 			end
 		end
 		if not wnd.__Autocomplete then
@@ -2489,23 +2513,20 @@ function _GUI.Wnd:Autocomplete(fnTable, fnAction, nMaxOption)
 		wnd.OnSetFocus = function()
 			this.OnEditChanged()
 		end
-
 		wnd.OnEditSpecialKeyDown = function()
 			local szKey = GetKeyName(Station.GetMessageKey())
 			if IsPopupMenuOpened() and PopupMenu_ProcessHotkey then
 				if szKey == "Enter"
 				or szKey == "Up"
 				or szKey == "Down"
-				-- or szKey == "Left"
-				-- or szKey == "Right" then
+				or szKey == "Left"
+				or szKey == "Right"
 			then
 					return PopupMenu_ProcessHotkey(szKey)
 				end
 			end
 		end
-
-
-		wnd.OnKillFocus = function()
+		wnd.OnKillFocus = function() -- 这里是切换edit
 			if IsPopupMenuOpened() then
 				local frame = Station.GetFocusWindow()
 				if frame and frame:GetName() ~= "PopupMenuPanel" then
@@ -3400,8 +3421,37 @@ function GUI.OpenFontTablePanel(fnAction)
 end
 
 -- 调色板
+local COLOR_HUE = 0
 function GUI.OpenColorTablePanel(fnAction)
-	local wnd = GUI.CreateFrame("JH_ColorTable", { w = 900, h = 500, title = _L["Color Picker"], nStyle = 2 , close = true })
+	local fX, fY = Cursor.GetPos(true)
+	local tUI = {}
+	local function hsv2rgb(h, s, v)
+		s = s / 100
+		v = v / 100
+		local r, g, b = 0, 0, 0
+		local h = h / 60
+		local i = floor(h)
+		local f = h - i
+		local p = v * (1 - s)
+		local q = v * (1 - s * f)
+		local t = v * (1 - s * (1 - f))
+		if i == 0 or i == 6 then
+			r, g, b = v, t, p
+		elseif i == 1 then
+			r, g, b = q, v, p
+		elseif i == 2 then
+			r, g, b = p, v, t
+		elseif i == 3 then
+			r, g, b = p, q, v
+		elseif i == 4 then
+			r, g, b = t, p, v
+		elseif i == 5 then
+			r, g, b = v, p, q
+		end
+		return floor(r * 255), floor(g * 255), floor(b * 255)
+	end
+
+	local wnd = GUI.CreateFrame("JH_ColorTable", { w = 346, h = 430, title = _L["Color Picker"], nStyle = 2 , close = true }):Pos(fX + 15, fY + 15)
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			wnd:Fetch("Select"):Color(r, g, b)
@@ -3415,80 +3465,46 @@ function GUI.OpenColorTablePanel(fnAction)
 		if fnAction then fnAction( ... ) end
 		if not IsCtrlKeyDown() then wnd:Remove() end
 	end
-	for nRed = 1, 8 do
-		for nGreen = 1, 8 do
-			for nBlue = 1, 8 do
-				local x = 20 + ((nRed - 1) % 4) * 220 + (nGreen - 1) * 25
-				local y = 10 + math.modf((nRed - 1) / 4) * 220 + (nBlue - 1) * 25
-				local r, g, b  = nRed * 32 - 1, nGreen * 32 - 1, nBlue * 32 - 1
-				wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b } })
-				:Hover(function(bHover)
-					wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(bHover)
-					fnHover(bHover, r, g, b)
-				end)
-				:Click(function()
-					fnClick(r, g, b)
-				end)
+	local function SetColor()
+		for v = 100, 0, -3 do
+			tUI[v] = tUI[v] or {}
+			for s = 0, 100, 3 do
+				local x = 20 + s * 3
+				local y = 10 + (100 - v) * 3
+				local r, g, b = hsv2rgb(COLOR_HUE, s, v)
+				if tUI[v][s] then
+					tUI[v][s]:Color(r, g, b)
+				else
+					tUI[v][s] = wnd:Append("Shadow", { w = 9, h = 9, x = x, y = y, color = { r, g, b } })
+					:Hover(function(bHover)
+						wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(bHover)
+						local r, g, b = this:GetColorRGB()
+						fnHover(bHover, r, g, b)
+					end)
+					:Click(function()
+						fnClick(this:GetColorRGB())
+					end)
+				end
 			end
 		end
 	end
-
-	for i = 1, 16 do
-		local x = 480 + (i - 1) * 25
-		local y = 435
-		local r, g, b  = i * 16 - 1, i * 16 - 1, i * 16 - 1
-		local key = x .. y
-		wnd:Append("Shadow", { w = 23, h = 23, x = x, y = y, color = { r, g, b }, alpha = 200 })
-		:Hover(function(bHover)
-			wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(bHover)
-			fnHover(bHover, r, g, b)
-		end)
-		:Click(function()
-			fnClick(r, g, b)
-		end)
-	end
-	wnd:Append("Image", "Select_Image", { w = 23, h = 23 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
-	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 435 })
-	wnd:Append("Text", "Select_Text", { x = 50, y = 435 })
-	local GetRGBValue = function()
-		local r, g, b  = tonumber(wnd:Fetch("R"):Text()), tonumber(wnd:Fetch("G"):Text()), tonumber(wnd:Fetch("B"):Text())
-		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
-			return r, g, b
-		end
-	end
-	nX = wnd:Append("Text", { txt = "R", x = 205, y = 435 }):Pos_()
-	nX = wnd:Append("WndEdit", "R", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
-		if GetRGBValue() then
-			local r, g, b = GetRGBValue()
-			fnHover(true, r, g, b)
-		end
-	end):Pos_()
-	nX = wnd:Append("Text", { txt = "G", x = nX + 5, y = 435 }):Pos_()
-	nX = wnd:Append("WndEdit", "G", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
-		if GetRGBValue() then
-			local r, g, b = GetRGBValue()
-			fnHover(true, r, g, b)
-		end
-	end):Pos_()
-	nX = wnd:Append("Text", { txt = "B", x = nX + 5, y = 435 }):Pos_()
-	nX = wnd:Append("WndEdit", "B", { x = nX + 5, y = 438, w = 32, h = 25, limit = 3 }):Type(0):Change(function()
-		if GetRGBValue() then
-			local r, g, b = GetRGBValue()
-			fnHover(true, r, g, b)
-		end
-	end):Pos_()
-	wnd:Append("WndButton2", { txt = g_tStrings.STR_HOTKEY_SURE, x = nX + 5, y = 440, w = 60, h = 25 }):Click(function()
-		if GetRGBValue() then
-			fnClick(GetRGBValue())
-		else
-			JH.Alert("RGB value error")
-		end
+	SetColor()
+	wnd:Append("Image", "Select_Image", { w = 9, h = 9, x = 0, y = 0 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
+	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 325, color = { 255, 255, 255 } })
+	wnd:Append("Text", "Select_Text", { x = 50, y = 325, txt = g_tStrings.STR_NONE })
+	wnd:Append("WndTrackBar", { x = 20, y = 350, h = 25, w = 270, txt = " H" }):Range(0, 360, 360):Value(COLOR_HUE):Change(function(nVal)
+		COLOR_HUE = nVal
+		SetColor()
 	end)
+	for i = 0, 360, 8 do
+		wnd:Append("Shadow", { x = 20 + (0.74 * i), y = 375, h = 10, w = 6, color = { hsv2rgb(i, 100, 100) } })
+	end
 end
+
 local ICON_PAGE = 20
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
-	local nMaxIocn, boxs, txts = 7006, {}, {}
+	local nMaxIocn, boxs, txts = 7044, {}, {}
 	local ui = GUI.CreateFrame("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], nStyle = 2 , close = true })
 	local function GetPage(nPage)
 		local nStart = nPage * 144 - 1
@@ -3527,22 +3543,8 @@ function GUI.OpenIconPanel(fnAction)
 			ui:Remove()
 		end
 	end)
-	local btn1 = ui:Append("WndButton2", { txt = _L["Up"], x = 350, y = 580 }):Enable(ICON_PAGE ~= 0)
-	local btn2 = ui:Append("WndButton2", { txt = _L["Next"], x = 470, y = 580 }):Enable((ICON_PAGE + 1) * 144 < nMaxIocn)
-	btn1:Click(function()
-		if ICON_PAGE == 1 then
-			this:Enable(false)
-		end
-		ICON_PAGE = ICON_PAGE - 1
-		btn2:Enable(true)
-		GetPage(ICON_PAGE)
-	end)
-	btn2:Click(function()
-		ICON_PAGE = ICON_PAGE + 1
-		if (ICON_PAGE + 1) * 144 > nMaxIocn then
-			this:Enable(false)
-		end
-		btn1:Enable(true)
+	ui:Append("WndTrackBar", { x = 10, y = 580, h = 25, w = 500, txt = " Page" }):Range(1, math.floor(nMaxIocn / 144), math.floor(nMaxIocn / 144) - 1):Value(ICON_PAGE):Change(function(nVal)
+		ICON_PAGE = nVal
 		GetPage(ICON_PAGE)
 	end)
 	GetPage(ICON_PAGE)
