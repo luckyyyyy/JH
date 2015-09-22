@@ -1,20 +1,20 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-14 19:14:02
+-- @Last Modified time: 2015-09-22 17:35:59
 local _L = JH.LoadLangPack
 
 TargetFace = {
 	bTTName = true, -- 显示目标的目标名字
 	bSelfFace = false, -- 绘制自身面向
 	tSelfFace = {
-		{ bEnable = false, col = { 255, 255, 255 }, nAlpha = 220, nAngle = 360, nRadius = 2  },
-		{ bEnable = true, col = { 255, 128, 0 }, nAlpha = 240, nAngle = 45, nRadius = 6  }
+		{ bEnable = false, col = { 255, 255, 255 }, nAlpha = 100, nAngle = 360, nRadius = 2  },
+		{ bEnable = true, col = { 255, 128, 0 }, nAlpha = 100, nAngle = 45, nRadius = 6  }
 	},
 	bTargetFace = false, -- 绘制目标面向
 	tTargetFace = {
-		{ bEnable = false, col = { 255, 255, 0 }, nAlpha = 220, nAngle = 360, nRadius = 2  },
-		{ bEnable = true, col = { 255, 128, 0 }, nAlpha = 255, nAngle = 90, nRadius = 8  }
+		{ bEnable = false, col = { 255, 255, 0 }, nAlpha = 100, nAngle = 360, nRadius = 2  },
+		{ bEnable = true, col = { 255, 128, 0 }, nAlpha = 100, nAngle = 90, nRadius = 8  }
 	},
 	bConnect = true,				-- 启用目标追踪线
 	bTTConnect = true,		-- 显示目标与目标的目标连接线

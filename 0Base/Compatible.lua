@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-21 15:30:09
+-- @Last Modified time: 2015-09-22 16:46:37
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -34,6 +34,7 @@ JH_KUNGFU_LIST = {
 	{ 10080, "ui/Image/icon/skill_qixiu02.UITex", 0 }, -- 云裳
 	{ 10176, "ui/Image/icon/wudu_neigong_2.UITex", 0 }, -- 补天
 	{ 10028, "ui/Image/icon/skill_wanhua23.UITex", 0 }, -- 离经
+	-- { 10448, "ui/Image/icon/skill_0514_23.UITex", 0 }, -- 相知
 	-- 内功
 	{ 10225, "ui/Image/icon/skill_tangm_20.UITex", 0 }, -- 天罗
 	{ 10081, "ui/Image/icon/skill_qixiu03.UITex", 0 }, -- 冰心
@@ -42,6 +43,7 @@ JH_KUNGFU_LIST = {
 	{ 10014, "ui/Image/icon/skill_chunyang21.UITex", 0 }, -- 紫霞
 	{ 10021, "ui/Image/icon/skill_wanhua17.UITex", 0 }, -- 花间
 	{ 10003, "ui/Image/icon/skill_shaolin10.UITex", 0 }, -- 易经
+	-- { 10447, "ui/Image/icon/skill_0514_27.UITex", 0 }, -- 莫问
 	-- 外功
 	{ 10390, "ui/Image/icon/Skill_CangY_32.UITex", 0 }, -- 分山
 	{ 10224, "ui/Image/icon/skill_tangm_01.UITex", 0 }, -- 鲸鱼
@@ -50,6 +52,7 @@ JH_KUNGFU_LIST = {
 	{ 10015, "ui/Image/icon/skill_chunyang13.UITex", 0 }, -- 备胎剑意
 	{ 10026, "ui/Image/icon/skill_tiance02.UITex", 0 }, -- 傲雪
 	{ 10268, "ui/Image/icon/skill_GB_30.UITex", 0 }, -- 笑尘
+
 }
 
 setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)
@@ -72,7 +75,8 @@ JH_FORCE_COLOR = {
 	[8]  = { 214, 249, 93  },
 	[9]  = { 205, 133, 63  },
 	[10] = { 240, 70,  96  },
-	[21] = { 180, 60,  0   }
+	[21] = { 180, 60,  0   },
+	-- [22] = { x,   x,   x   }
 }
 
 setmetatable(JH_FORCE_COLOR, {
