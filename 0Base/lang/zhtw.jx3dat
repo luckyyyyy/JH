@@ -578,6 +578,8 @@ data = {
 	["KUNGFU_10268"] = "丐",
 	["KUNGFU_10390"] = "分",
 	["KUNGFU_10389"] = "衣",
+	["KUNGFU_10448"] = "相",
+	["KUNGFU_10447"] = "莫",
 	["KUNGFU_0"] = "俠",
 	["take back all permissions"] = "收回所有權限",
 	-- AutoTeam.lua --

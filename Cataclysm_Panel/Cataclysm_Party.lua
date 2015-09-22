@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-14 15:53:03
+-- @Last Modified time: 2015-09-22 16:40:12
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -9,7 +9,7 @@ local _L = JH.LoadLangPack
 -- global cache
 local pairs, ipairs = pairs, ipairs
 local type, unpack = type, unpack
-local floor = math.floor
+local floor, mmax = math.floor, math.max
 local setmetatable = setmetatable
 local GetDistance, GetBuff, GetEndTime, GetTarget = JH.GetDistance, JH.GetBuff, JH.GetEndTime, JH.GetTarget
 local GetClientPlayer, GetClientTeam, GetPlayer = GetClientPlayer, GetClientTeam, GetPlayer
@@ -181,7 +181,7 @@ local function InsertChangeGroupMenu(tMenu, dwMemberID)
 end
 
 local CTM_FORCE_COLOR = {
-	[0] =  { 255, 255, 255 },
+	-- [0] =  { 255, 255, 255 },
 	[1] =  { 255, 255, 170 },
 	[2] =  { 175, 25 , 255 },
 	[3] =  { 250, 75 , 100 },
@@ -192,9 +192,9 @@ local CTM_FORCE_COLOR = {
 	[8] =  { 255, 200, 0   },
 	[9] =  { 185, 125, 60  },
 	[10] = { 240, 50 , 200 },
-	[21] = { 180, 60 , 0   },
+	-- [21] = { 180, 60 , 0   },
 }
-setmetatable(CTM_FORCE_COLOR, { __index = function() return 168, 168, 168 end, __metatable = true })
+setmetatable(CTM_FORCE_COLOR, { __index = JH_FORCE_COLOR, __metatable = true })
 local function GetForceColor(dwForceID) --获得成员颜色
 	return unpack(CTM_FORCE_COLOR[dwForceID])
 end
@@ -222,6 +222,8 @@ local CTM_KUNGFU_TEXT = {
 	[10268] = _L["KUNGFU_10268"], -- "丐",
 	[10390] = _L["KUNGFU_10390"], -- "分",
 	[10389] = _L["KUNGFU_10389"], -- "衣",
+	[10448] = _L["KUNGFU_10448"], -- "衣",
+	[10447] = _L["KUNGFU_10447"], -- "衣",
 }
 setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, __metatable = true })
 
@@ -1080,6 +1082,8 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		nCurrentLife = info.nCurrentLife
 		nMaxLife = info.nMaxLife
 	end
+	nMaxLife     = mmax(1, nMaxLife)
+	nCurrentLife = mmax(0, nCurrentLife)
 	nLifePercentage = nCurrentLife / nMaxLife
 	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
 
