@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-19 06:53:59
+-- @Last Modified time: 2015-10-07 12:53:12
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -218,7 +218,7 @@ function DBMUI.UpdateTree()
 	end
 	local function Format(hTreeT, hTreeC, key, ...)
 		local nCount = GetCount(data[key])
-		local szName = DBMUI.GetMapName(key)
+		local szName = DBMUI.GetMapName(key) or key
 		local tFilter = { ... }
 		for i = 1, select("#", ...) do
 			szName = szName:gsub(tFilter[i], "") or szName
@@ -318,7 +318,7 @@ function DBM_UI.OnItemRButtonClick()
 		if DBMUI_SELECT_TYPE ~= "TALK" then -- 太长
 			table.insert(menu, { szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. name, bDisable = true })
 		end
-		table.insert(menu, { szOption = _L["Class"] .. g_tStrings.STR_COLON .. DBMUI.GetMapName(t.dwMapID), bDisable = true })
+		table.insert(menu, { szOption = _L["Class"] .. g_tStrings.STR_COLON .. (DBMUI.GetMapName(t.dwMapID) or t.dwMapID), bDisable = true })
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = g_tStrings.STR_FRIEND_MOVE_TO })
 		table.insert(menu[#menu], { szOption = _L["Manual input"], fnAction = function()
@@ -443,7 +443,7 @@ function DBM_UI.OnItemMouseEnter()
 	if szName == "TreeLeaf_Node" or szName == "TreeLeaf_Content" then
 		this:Lookup(0):Show()
 		if szName == "TreeLeaf_Content" then
-			local szXml = GetFormatText(DBMUI.GetMapName(this.dwMapID) .. "\n", 47, 255, 255, 0)
+			local szXml = GetFormatText((DBMUI.GetMapName(this.dwMapID) or this.dwMapID) .. "\n", 47, 255, 255, 0)
 			szXml = szXml .. GetFormatText(this.nCount, 47, 255, 255, 255)
 			OutputTip(szXml, 300, { x, y, w, h })
 		elseif szName == "TreeLeaf_Node" and RaidDragPanelIsOpened() then
@@ -505,7 +505,7 @@ function DBMUI.OutputTip(szType, data, rect)
 	elseif szType == "NPC" then
 		JH.OutputNpcTip(data.dwID, rect)
 	elseif szType == "TALK" then
-		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText(DBMUI.GetMapName(data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
+		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText((DBMUI.GetMapName(data.dwMapID) or data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
 	elseif szType == "CIRCLE" then
 		Circle.OutputTip(data, rect)
 	end
