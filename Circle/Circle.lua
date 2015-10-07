@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-16 15:14:07
+-- @Last Modified time: 2015-10-07 12:51:26
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -307,7 +307,7 @@ function C.OutputTip(data, rect)
 		tinsert(xml, GetFormatText(data.key, 80, 255, 255, 0))
 	end
 	tinsert(xml, GetFormatText(" (" .. (data.dwType == TARGET.NPC and _L["NPC"] or _L["DOODAD"]) .. ")", 80, 255, 255, 0))
-	tinsert(xml, GetFormatText("\t" .. JH.IsMapExist(data.dwMapID), 41, 255, 255, 255))
+	tinsert(xml, GetFormatText("\t" .. (JH.IsMapExist(data.dwMapID) or data.dwMapID), 41, 255, 255, 255))
 	if data.szNote then
 		tinsert(xml, GetFormatText(data.szNote .. "\n", 41, 255, 255, 255))
 	end
