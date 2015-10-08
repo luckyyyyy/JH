@@ -25,9 +25,6 @@
 <p>本插件适用于国产网游<code>《剑侠情缘网络版叁》</code>，由于游戏版本较多，本插件基于<code>zhcn</code>版本编译，所有的功能以及API针对于<code>zhcn</code>版本，其他版本需要做一些兼容性的修改，可以参考下文的兼容性修改部分。</p>
 
 <ul>
-<li>插件下载：请通过游戏内的插件管理下载</li>
-<li>更新日志：<a href="https://github.com/Webster-jx3/JH/commits/master">https://github.com/Webster-jx3/JH/commits/master</a>
-</li>
 <li>插件官网：<a href="http://www.j3ui.com">http://www.j3ui.com</a>
 </li>
 <li>作者微博：<a href="http://weibo.com/techvicky">http://weibo.com/techvicky</a>
@@ -44,6 +41,53 @@
 <li>事件查询：<a href="http://www.j3ui.com/dev">http://www.j3ui.com/dev</a>
 </li>
 </ul>
+
+<h2>
+<a id="使用方法" class="anchor" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95" aria-hidden="true"><span class="octicon octicon-link"></span></a>使用方法</h2>
+
+<p>在<code>./bin/{ version }/interface/</code>目录下载仓库所有文件，但是请注意，目前<code>zhcn</code>版本需要key验证，否则会被判为非法插件。</p>
+
+<pre><code>git clone git@github.com:Webster-jx3/JH.git
+或者也可以直接下载所有文件，文件夹名称为JH。
+https://github.com/Webster-jx3/JH/archive/master.zip
+</code></pre>
+
+<h2>
+<a id="兼容性修改" class="anchor" href="#%E5%85%BC%E5%AE%B9%E6%80%A7%E4%BF%AE%E6%94%B9" aria-hidden="true"><span class="octicon octicon-link"></span></a>兼容性修改</h2>
+
+<p>对于非<code>zhcn</code>版本的客户端，可能需要做一些改动请参考如下方案。</p>
+
+<h3>
+<a id="路径修改" class="anchor" href="#%E8%B7%AF%E5%BE%84%E4%BF%AE%E6%94%B9" aria-hidden="true"><span class="octicon octicon-link"></span></a>路径修改</h3>
+
+<p>对于较老的游戏版本，可能不支持目前的路径方案，请修改<code>JH/0Base/Base.lua</code>，请将以下路径修改正确。</p>
+
+<div class="highlight highlight-source-lua"><pre><span class="pl-c">-- 请将 interface/JH/ 修改为 interface/ ，并且将文件夹从JH中移出到interface。</span>
+<span class="pl-k">local</span> ROOT_PATH   <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>interface/JH/0Base/<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> DATA_PATH   <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>interface/JH/@DATA/<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> SHADOW_PATH <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>interface/JH/0Base/item/shadow.ini<span class="pl-pds">"</span></span>
+<span class="pl-k">local</span> ADDON_PATH  <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>interface/JH/<span class="pl-pds">"</span></span></pre></div>
+
+<h3>
+<a id="翻译" class="anchor" href="#%E7%BF%BB%E8%AF%91" aria-hidden="true"><span class="octicon octicon-link"></span></a>翻译</h3>
+
+<p>请新增相应版本的语言文件到 <code>JH/0Base/lang/</code>路径，根据内容翻译即可。</p>
+
+<h3>
+<a id="infoini" class="anchor" href="#infoini" aria-hidden="true"><span class="octicon octicon-link"></span></a>info.ini</h3>
+
+<p>对于inifo.ini，请做单独的翻译，需要针对不同服对文件编码进行修改。
+对于较老的游戏版本，可能需要修改路径，请补全<code>interface/{ sid }</code>。</p>
+
+<h3>
+<a id="图片文件" class="anchor" href="#%E5%9B%BE%E7%89%87%E6%96%87%E4%BB%B6" aria-hidden="true"><span class="octicon octicon-link"></span></a>图片文件</h3>
+
+<p>对于较老的游戏版本，可能出现图片丢失的情况，请根据源码中的路径修改相应的图片资源。</p>
+
+<h3>
+<a id="无法加载" class="anchor" href="#%E6%97%A0%E6%B3%95%E5%8A%A0%E8%BD%BD" aria-hidden="true"><span class="octicon octicon-link"></span></a>无法加载</h3>
+
+<p>您可能需要在控制面板，把非Unicode使用的语言更改为United States (English)，并且推荐开启日志记录<code>./bin/{ version }/logs/</code>查看报错信息做对应的修改。</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/Webster-jx3/JH">《剑网3》菊花插件集</a> is maintained by <a href="https://github.com/Webster-jx3">Webster-jx3</a>.</span>
