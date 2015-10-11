@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-18 07:04:31
+-- @Last Modified time: 2015-10-11 22:42:36
 local _L = JH.LoadLangPack
 
 TS = {
@@ -187,14 +187,7 @@ end
 function _TS.OnBreathe()
 	local p = GetNpc(_TS.dwTargetID)
 	if p then
-		-- 官方的代码 直接抄
-		local frame = _TS.frame
-		if not frame.nCount or frame.nCount > 16 then
-			frame.nCount = 0
-			ApplyCharacterThreatRankList(_TS.dwTargetID)
-		end
-		frame.nCount = frame.nCount + 1
-
+		ApplyCharacterThreatRankList(_TS.dwTargetID)
 		local bIsPrepare, dwSkillID, dwSkillLevel, per = p.GetSkillPrepareState()
 		if bIsPrepare then
 			_TS.CastBar:Show()
