@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-19 06:53:24
+-- @Last Modified time: 2015-10-11 23:11:37
 
 -- 早期代码 需要重写
 
@@ -1530,12 +1530,10 @@ function _GKP.GetaPartyMember(doodad)
 		_GKP.OnOpenDoodad(_GKP.dwOpenID)
 		return GKP.Sysmsg(_L["Pick up time limit exceeded, please try again."])
 	end
-	if not JH.bDebug then
-		for k, v in ipairs(aPartyMember) do
-			local player = team.GetMemberInfo(v.dwID)
-			aPartyMember[k].dwForceID = player.dwForceID
-			aPartyMember[k].dwMapID   = player.dwMapID
-		end
+	for k, v in ipairs(aPartyMember) do
+		local player = team.GetMemberInfo(v.dwID)
+		aPartyMember[k].dwForceID = player.dwForceID
+		aPartyMember[k].dwMapID   = player.dwMapID
 	end
 	return aPartyMember or {}
 end
