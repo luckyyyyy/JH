@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-22 16:46:37
+-- @Last Modified time: 2015-10-12 18:32:38
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -81,7 +81,7 @@ JH_FORCE_COLOR = {
 
 setmetatable(JH_FORCE_COLOR, {
 	__index = function()
-		return { 192, 192, 192 }
+		return { 225, 225, 225 }
 	end,
 	__metatable = true,
 })
