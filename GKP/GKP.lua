@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-12 19:01:49
+-- @Last Modified time: 2015-10-12 23:02:46
 
 -- 早期代码 需要重写
 
@@ -143,7 +143,7 @@ function _GKP.GKP_LoadData(szFile)
 end
 function _GKP.OpenLootPanel()
 	if not Station.Lookup("Normal/GKP_Loot") then
-		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini","GKP_Loot")
+		local loot = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Loot.ini", "GKP_Loot")
 		loot:Hide()
 		GUI(loot):Title(g_tStrings.STR_LOOT_SHOW_LIST):Point():RegisterClose(_GKP.CloseLootWindow)
 		loot:Lookup("Btn_Style").OnLButtonClick = function()
@@ -243,17 +243,17 @@ function GKP.DistributionItem()
 	end
 	local szName = string.match(h:Lookup(i+3):GetText(), "%[(.*)%]")
 	local me = Station.Lookup("Normal/GKP_Chat")
-	local box = me:Lookup("", "Box") or me:Lookup("", "iteminfolink") or me:Lookup("", "booklink") -- fix setname
+	local box = me:Lookup("", "Box")
 	if not _GKP.dwOpenID then
 		return JH.Alert(_L["No open doodad"])
 	end
-	local _, nUiId, dwID, nVersion, dwTabType, dwIndex = box:GetObject()
+	local nUiId, nVersion, dwTabType, dwIndex = select(2, box:GetObject())
 	local doodad = GetDoodad(_GKP.dwOpenID)
 	if type(doodad) ~= "userdata" then return JH.Alert(_L["No open doodad"]) end
 	_GKP.OnOpenDoodad(_GKP.dwOpenID)
 	local item
 	for k, v in ipairs(_GKP.aDistributeList) do
-		if v.nUiId == nUiId and v.dwID == dwID and v.nVersion == nVersion and v.dwTabType == dwTabType and v.dwIndex == dwIndex then
+		if v.nUiId == nUiId and v.nVersion == nVersion and v.dwTabType == dwTabType and v.dwIndex == dwIndex then
 			item = v
 			break
 		end
@@ -313,18 +313,14 @@ function _GKP.SetChatWindow(item, ui)
 			JH.DelayCall(1000,function() UnRegisterMsgMonitor(_GKP.OnMsgArrive) end)
 		end)
 	end
-	local box = me:Lookup("","Box") or me:Lookup("","iteminfolink") or me:Lookup("","booklink") -- fix setname
-	local txt = me:Lookup("","Text")
+	local box = me:Lookup("", "Box")
+	local txt = me:Lookup("", "Text")
 	txt:SetText(GetItemNameByItem(item))
 	txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
-	local h = Station.Lookup("Normal/GKP_Chat/WndScroll_Chat"):Lookup("","")
+	local h = me:Lookup("WndScroll_Chat"):Lookup("", "")
 	h:Clear()
-	box:SetObject(UI_OBJECT_ITEM_ONLY_ID, item.nUiId, item.dwID, item.nVersion, item.dwTabType, item.dwIndex)
-	local iName, iIcon = JH.GetItemName(item.nUiId)
-	box:SetObjectIcon(iIcon)
+	UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.bCanStack and item.nStackNum)
 	box.OnItemLButtonClick = ui.OnItemLButtonClick
-	box.OnItemMouseLeave = ui.OnItemMouseLeave
-	box.OnItemMouseEnter = ui.OnItemMouseEnter
 	RegisterMsgMonitor(_GKP.OnMsgArrive,{"MSG_TEAM"})
 	me:Show()
 	Station.SetFocusWindow(me)
@@ -334,9 +330,9 @@ function _GKP.CloseChatWindow(bCheck)
 	local me = Station.Lookup("Normal/GKP_Chat")
 	if not me then return end
 	if type(bCheck) == "userdata" then
-		local box = me:Lookup("","Box") or me:Lookup("","iteminfolink") or me:Lookup("","booklink") -- fix setname
-		local _,nUiId,dwID,nVersion,dwTabType,dwIndex = box:GetObject()
-		if bCheck.nUiId ~= nUiId or bCheck.dwID ~= dwID or bCheck.nVersion ~= nVersion or bCheck.dwTabType ~= dwTabType or bCheck.dwIndex ~= dwIndex then
+		local box = me:Lookup("", "Box")
+		local nUiId, nVersion, dwTabType, dwIndex = select(2, box:GetObject())
+		if bCheck.nUiId ~= nUiId or bCheck.nVersion ~= nVersion or bCheck.dwTabType ~= dwTabType or bCheck.dwIndex ~= dwIndex then
 			return
 		end
 	end
@@ -1558,7 +1554,7 @@ _GKP.DrawDistributeList = function(doodad)
 			txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
 			handle:FormatAllItemPos()
 		end
-		UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.nStackNum)
+		UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.bCanStack and item.nStackNum)
 
 		if _GKP.tDistributeRecords[szItemName] then
 			box:SetObjectStaring(true)
@@ -1597,12 +1593,12 @@ _GKP.DrawDistributeList = function(doodad)
 				end
 			})
 			table.insert(tMenu,{bDevide = true})
-			for k,v in ipairs(_GKP.Config.Scheme) do
+			for k, v in ipairs(_GKP.Config.Scheme) do
 				if v[2] then
 					table.insert(tMenu,{
 						szOption = v[1],
 						fnAction = function()
-							_GKP.SetChatWindow(item,box)
+							_GKP.SetChatWindow(item, box)
 							_GKP.tLootListMoney[item.dwID] = v[1]
 							JH.Talk({ GKP.GetFormatLink(_item), GKP.GetFormatLink(_L(" %d Gold Start Bidding, off a price if you want.", v[1])) })
 						end
@@ -1735,7 +1731,7 @@ _GKP.DrawDistributeList = function(doodad)
 					fnAction()
 				end
 			end
-			for k, v in ipairs({"OnItemMouseEnter", "OnItemMouseLeave", "OnItemRButtonClick", "OnItemLButtonClick"}) do
+			for k, v in ipairs({"OnItemMouseEnter", "OnItemMouseLeave", "OnItemRButtonClick", "OnItemLButtonClick", "OnItemLButtonDown", "OnItemLButtonUp"}) do
 				h[v] = function()
 					this = box
 					box[v]()
