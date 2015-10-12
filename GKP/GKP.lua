@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-11 23:11:37
+-- @Last Modified time: 2015-10-12 19:01:49
 
 -- 早期代码 需要重写
 
@@ -273,7 +273,6 @@ function GKP.DistributionItem()
 			break
 		end
 	end
-	if JH.bDebug then p = aPartyMember[1] end
 	if not p or (p and not p.bOnlineFlag) then -- bOnlineFlag 刷新其实有延迟
 		return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 	end
@@ -791,13 +790,12 @@ _GKP.Draw_GKP_Record = function(key,sort)
 			item:Lookup("Image_NameIcon"):FromUITex(GetForceImage(v.dwForceID))
 			item:Lookup("Text_Name"):SetText(v.szPlayer)
 			item:Lookup("Text_Name"):SetFontColor(JH.GetForceColor(v.dwForceID))
-			local iName, iIcon = JH.GetItemName(v.nUiId)
-			local szName = v.szName or iName
+			local szName = v.szName or JH.GetItemName(v.nUiId)
 			item:Lookup("Text_ItemName"):SetText(szName)
 			if v.nQuality then
 				item:Lookup("Text_ItemName"):SetFontColor(GetItemFontColorByQuality(v.nQuality))
 			else
-				item:Lookup("Text_ItemName"):SetFontColor(255,255,0)
+				item:Lookup("Text_ItemName"):SetFontColor(255, 255, 0)
 			end
 			item:Lookup("Text_Money"):SetText(v.nMoney)
 			item:Lookup("Text_Money"):SetFontColor(GKP.GetMoneyCol(v.nMoney))
@@ -811,50 +809,21 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				item:Lookup("Text_Time"):SetFontColor(255,255,0)
 			end
 			local box = item:Lookup("Box_Item")
-			box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
-			local iName, iIcon = JH.GetItemName(v.nUiId)
-			box:SetObjectIcon(iIcon)
-			JH.UpdateItemBoxExtend(box, v.nQuality)
-			if v.nStackNum then
-				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				box:SetOverTextFontScheme(0,15)
-				box:SetOverText(0, v.nStackNum .. " ")
+			if v.dwTabType == 0 and v.dwIndex == 0 then
+				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
+				box:SetObjectIcon(582)
+			else
+				UpdataItemInfoBoxObject(box, v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum)
 			end
-			if v.dwTabType == 0 and v.dwIndex == 0 then box:SetObjectIcon(582) end
-			item:Lookup("Text_ItemName"):RegisterEvent(786)
-			box:RegisterEvent(786)
-			local OnItemMouseEnter = function()
-				box:SetObjectMouseOver(true)
-				local x, y = box:GetAbsPos()
-				local w, h = box:GetSize()
-				if v.nBookID then
-					local dwBookID, dwSubID = GlobelRecipeID2BookID(v.nBookID)
-					OutputBookTipByID(dwBookID, dwSubID,{x, y, w, h})
-				else
-					local _,dwTabType,dwIndex = box:GetObjectData()
-					if dwTabType == 0 and dwIndex == 0 then return end
-					OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
+			local hItemName = item:Lookup("Text_ItemName")
+			for kk, vv in ipairs({"OnItemMouseEnter", "OnItemMouseLeave", "OnItemLButtonDown", "OnItemLButtonUp"}) do
+				hItemName[vv] = function()
+					if box[vv] then
+						this = box
+						box[vv]()
+					end
 				end
 			end
-
-			item:Lookup("Text_ItemName").OnItemMouseEnter = OnItemMouseEnter
-			box.OnItemMouseEnter = OnItemMouseEnter
-
-			local OnItemMouseLeave = function()
-				box:SetObjectMouseOver(false)
-				HideTip()
-			end
-
-			item:Lookup("Text_ItemName").OnItemMouseLeave = OnItemMouseLeave
-			box.OnItemMouseLeave = OnItemMouseLeave
-			local OnItemLButtonClick = function()
-				if IsCtrlKeyDown() or IsAltKeyDown() then
-					return GKP.OnItemLinkDown(v,this)
-				end
-			end
-			item:Lookup("Text_ItemName").OnItemLButtonClick = OnItemLButtonClick
-			box.OnItemLButtonClick = OnItemLButtonClick
-
 			wnd:Lookup("WndButton_Delete").OnLButtonClick = function()
 				if not JH.IsDistributer() and not JH_About.CheckNameEx() then
 					return JH.Alert(_L["You are not the distrubutor."])
@@ -1163,45 +1132,20 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						if v.bDelete then
 							alpha = 60
 						end
-						local box = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha }).self
-						JH.UpdateItemBoxExtend(box, v.nQuality)
-						box:SetObject(UI_OBJECT_ITEM_INFO, v.nVersion, v.dwTabType, v.dwIndex)
-						local icon = 582
+						local hBox = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha })
+
 						if v.nUiId ~= 0 then
-							local iName, iIcon = JH.GetItemName(v.nUiId)
-							icon = iIcon
-						end
-						box:SetObjectIcon(icon)
-						box:RegisterEvent(786)
-						if v.nStackNum then
-							box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-							box:SetOverTextFontScheme(0,15)
-							box:SetOverText(0, v.nStackNum .. " ")
-						end
-						box.OnItemMouseEnter = function()
-							this:SetObjectMouseOver(true)
-							local x, y = this:GetAbsPos()
-							local w, h = this:GetSize()
-							if v.nBookID then
-								local dwBookID, dwSubID = GlobelRecipeID2BookID(v.nBookID)
-								OutputBookTipByID(dwBookID, dwSubID,{x, y, w, h})
-							else
-								local _,dwTabType,dwIndex = this:GetObjectData()
-								if dwTabType == 0 and dwIndex == 0 then
+							UpdataItemInfoBoxObject(hBox.self, v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum)
+						else
+							hBox:Icon(582):Hover(function(bHover)
+								if bHover then
+									local x, y = this:GetAbsPos()
+									local w, h = this:GetSize()
 									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP,136,255,255,0), 250, { x, y, w, h })
 								else
-									OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
+									HideTip()
 								end
-							end
-						end
-						box.OnItemMouseLeave = function()
-							this:SetObjectMouseOver(false)
-							HideTip()
-						end
-						box.OnItemLButtonClick = function()
-							if IsCtrlKeyDown() or IsAltKeyDown() then
-								return GKP.OnItemLinkDown(v,this)
-							end
+							end)
 						end
 					end
 					if frm.n > 5 then
@@ -1500,12 +1444,12 @@ _GKP.OnOpenDoodad = function(dwID)
 			-- item Roll Distribute  Bidding
 			local item, _ , bDist = d.GetLootItem(i,me)
 			if item and item.dwID then
-				if bDist or JH.bDebug then
+				if bDist or JH.bDebugClient then
 					if not refresh then
 						refresh = true
 						_GKP.aDistributeList = {}
 					end
-					table.insert(_GKP.aDistributeList,item)
+					table.insert(_GKP.aDistributeList, item)
 				else
 					if item.nQuality > 0 then
 						LootItem(d.dwID, item.dwID)
@@ -1527,7 +1471,6 @@ function _GKP.GetaPartyMember(doodad)
 	local team = GetClientTeam()
 	local aPartyMember = doodad.GetLooterList()
 	if not aPartyMember then
-		_GKP.OnOpenDoodad(_GKP.dwOpenID)
 		return GKP.Sysmsg(_L["Pick up time limit exceeded, please try again."])
 	end
 	for k, v in ipairs(aPartyMember) do
@@ -1554,7 +1497,8 @@ end
 _GKP.DrawDistributeList = function(doodad)
 	local frame = _GKP.OpenLootPanel()
 	local me = GetClientPlayer()
-	if #_GKP.aDistributeList == 0 or (not me.IsInParty() and not JH.bDebug) then
+
+	if #_GKP.aDistributeList == 0 then
 		return _GKP.CloseLootWindow()
 	end
 	frame:Show()
@@ -1596,88 +1540,45 @@ _GKP.DrawDistributeList = function(doodad)
 	local bSpecial = false
 	for item_k, item in ipairs(_GKP.aDistributeList) do
 		local szItemName = GetItemNameByItem(item)
-		local fnSetBox = function(box)
-			box:SetObject(UI_OBJECT_ITEM_ONLY_ID, item.nUiId, item.dwID, item.nVersion, item.dwTabType, item.dwIndex)
-			local iName, iIcon = JH.GetItemName(item.nUiId)
-			if iName == JH.GetItemName(72592) or iName == JH.GetItemName(68363) or iName == JH.GetItemName(66190) then
-				bSpecial = true
-			end
-			box:SetObjectIcon(iIcon)
-			if item.bCanStack and item.nStackNum > 1 then
-				box:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
-				box:SetOverTextFontScheme(0, 15)
-				box:SetOverText(0, item.nStackNum .. " ")
-			end
-			return box
+		if szItemName == JH.GetItemName(72592) or szItemName == JH.GetItemName(68363) or szItemName == JH.GetItemName(66190) then
+			bSpecial = true
 		end
-
-		local box
+		local box, h
 		if GKP.bLootStyle then
 			handle:AppendItemFromString(string.format("<Box>name=\"box_%s\" EventID=816 w=64 h=64 </Box>", item_k))
 			box = handle:Lookup("box_" .. item_k)
-			box = fnSetBox(box)
 			-- append box
 			local x, y = (item_k - 1) % 6, math.ceil(item_k / 6) - 1
 			box:SetRelPos(x * 70 + 5, y * 70 + 5)
-			JH.UpdateItemBoxExtend(box, item.nQuality)
 		else
-			local h = handle:AppendItemFromIni(PATH_ROOT .. "ui/GKP_Loot.ini", "Handle_Item", item_k)
-			box = fnSetBox(h:Lookup("Box_Item"))
+			h = handle:AppendItemFromIni(PATH_ROOT .. "ui/GKP_Loot.ini", "Handle_Item", item_k)
+			box = h:Lookup("Box_Item")
 			local txt = h:Lookup("Text_Item")
 			txt:SetText(szItemName)
 			txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
 			handle:FormatAllItemPos()
-			box = h -- list
 		end
-		-- MouseEnter
-		box.OnItemMouseEnter = function()
-			local me = this
-			if not GKP.bLootStyle and me:GetType() == "Handle" then
-				me:Lookup("Image_Copper"):Show()
-				me = me:Lookup("Box_Item")
-			end
-			me:SetObjectMouseOver(true)
-			local x, y = me:GetAbsPos()
-			local w, h = me:GetSize()
-			local _,dwID = me:GetObjectData()
-			OutputItemTip(UI_OBJECT_ITEM_ONLY_ID, dwID, nil, nil, {x, y, w, h}, nil, "loot")
+		UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.nStackNum)
+
+		if _GKP.tDistributeRecords[szItemName] then
+			box:SetObjectStaring(true)
 		end
 
-		box.OnItemMouseLeave = function()
-			local me = this
-			if not GKP.bLootStyle and me:GetType() == "Handle" then
-				if me:Lookup("Image_Copper") then
-					me:Lookup("Image_Copper"):Hide()
-				end
-				me = me:Lookup("Box_Item")
-			end
-			if me then
-				me:SetObjectMouseOver(false)
-			end
-			HideTip()
-		end
-		if _GKP.tDistributeRecords[szItemName] then
-			if GKP.bLootStyle then
-				box:SetObjectStaring(true)
-			else
-				box:Lookup("Box_Item"):SetObjectStaring(true)
-			end
-		end
 		local _item = { -- 分配后 userdata缓存
-			nVersion = item.nVersion,
+			nVersion  = item.nVersion,
 			dwTabType = item.dwTabType,
-			dwIndex = item.dwIndex,
-			nBookID = item.nBookID,
-			nGenre = item.nGenre,
+			dwIndex   = item.dwIndex,
+			nBookID   = item.nBookID,
+			nGenre    = item.nGenre,
 		}
 		-- Click
 		box.OnItemRButtonClick = function()
 			local me = GetClientPlayer()
 			local nLootMode = team.nLootMode
-			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- 需要分配者模式
+			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then -- 需要分配者模式
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
-			if not JH.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
+			if not JH.IsDistributer() and not JH.bDebugClient then -- 需要自己是分配者
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			local tMenu = {}
@@ -1713,19 +1614,19 @@ _GKP.DrawDistributeList = function(doodad)
 
 		box.OnItemLButtonClick = function()
 			if IsCtrlKeyDown() or IsAltKeyDown() then
-				return GKP.OnItemLinkDown(item,this)
+				return
 			end
 			local me = GetClientPlayer()
 			local nLootMode = team.nLootMode
-			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebug then -- 需要分配者模式
+			if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then -- 需要分配者模式
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 			end
-			if not JH.IsDistributer() and not JH.bDebug then -- 需要自己是分配者
+			if not JH.IsDistributer() and not JH.bDebugClient then -- 需要自己是分配者
 				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 			end
 			-- 只是为了刷新一次信息
 			local aPartyMember = _GKP.GetaPartyMember(doodad)
-			table.sort(aPartyMember,function(a, b)
+			table.sort(aPartyMember, function(a, b)
 				return a.dwForceID < b.dwForceID
 			end)
 			local tMenu = {}
@@ -1819,7 +1720,30 @@ _GKP.DrawDistributeList = function(doodad)
 			end
 			PopupMenu(tMenu)
 		end
+		if h then
+			local fnAction = box.OnItemMouseEnter
+			box.OnItemMouseEnter = function()
+				if this:IsValid() then
+					this:GetParent():Lookup("Image_Copper"):Show()
+					fnAction()
+				end
+			end
+			local fnAction = box.OnItemMouseLeave
+			box.OnItemMouseLeave = function()
+				if this:IsValid() then
+					this:GetParent():Lookup("Image_Copper"):Hide()
+					fnAction()
+				end
+			end
+			for k, v in ipairs({"OnItemMouseEnter", "OnItemMouseLeave", "OnItemRButtonClick", "OnItemLButtonClick"}) do
+				h[v] = function()
+					this = box
+					box[v]()
+				end
+			end
+		end
 	end
+
 	handle:FormatAllItemPos()
 	if bSpecial then -- 玄晶
 		frame:Lookup("", "Image_Bg"):FromUITex("ui/Image/OperationActivity/RedEnvelope1.uitex", 9)
@@ -1897,7 +1821,7 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 	end
 	_GKP.CloseChatWindow(item)
 	local szName = GetItemNameByItem(item)
-	if _GKP.Config.Special[szName] or JH.bDebug then -- 记住上次分给谁
+	if _GKP.Config.Special[szName] then -- 记住上次分给谁
 		_GKP.tDistributeRecords[szName] = player.dwID
 		JH.Debug("memory " .. szName .. " -> " .. player.dwID)
 	end
@@ -1984,44 +1908,10 @@ _GKP.Record = function(tab, item, bEnter)
 	end
 
 	if tab and tab.nVersion and tab.nUiId and tab.dwTabType and tab.dwIndex and tab.nUiId ~= 0 then
-		-- Box
-		box:SetObject(UI_OBJECT_ITEM_INFO, tab.nVersion, tab.dwTabType, tab.dwIndex)
-		local _, iIcon = JH.GetItemName(tab.nUiId)
-		box:SetObjectIcon(iIcon)
-		box:SetOverTextPosition(0,ITEM_POSITION.RIGHT_BOTTOM)
-		box:SetOverTextFontScheme(0, 15)
-		if tab.nStackNum and tab.nStackNum > 1 then
-			box:SetOverText(0,tab.nStackNum .. " ")
-		else
-			box:SetOverText(0,"")
-		end
-		box.OnItemLButtonClick = function()
-			if IsCtrlKeyDown() or IsAltKeyDown() then
-				return GKP.OnItemLinkDown(tab, this)
-			end
-		end
-		-- MouseEnter
-		box.OnItemMouseEnter = function()
-			this:SetObjectMouseOver(true)
-			local x, y = this:GetAbsPos()
-			local w, h = this:GetSize()
-			local _,dwID = this:GetObjectData()
-			if tab.nBookID then
-				local dwBookID, dwSubID = GlobelRecipeID2BookID(tab.nBookID)
-				OutputBookTipByID(dwBookID, dwSubID,{x, y, w, h})
-			else
-				local _,dwTabType,dwIndex = this:GetObjectData()
-				if dwTabType == 0 and dwIndex == 0 then return end
-				OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION,dwTabType,dwIndex,{x, y, w, h})
-			end
-		end
-
-		box.OnItemMouseLeave = function()
-			this:SetObjectMouseOver(false)
-			HideTip()
-		end
+		UpdataItemInfoBoxObject(box, tab.nVersion, tab.dwTabType, tab.dwIndex, tab.nStackNum)
 		box:Show()
 	else
+		UpdataItemBoxObject(box)
 		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 		box:SetObjectIcon(582)
 	end
@@ -2124,7 +2014,7 @@ _GKP.OpenDoodad = function(arg0)
 	local me = GetClientPlayer()
 	if me and team then
 		local nLootMode = team.nLootMode
-		if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE or JH.bDebug then -- 需要分配者模式
+		if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE then -- 需要分配者模式
 			_GKP.dwOpenID = arg0
 			_GKP.OnOpenDoodad(arg0)
 		end
@@ -2255,7 +2145,7 @@ RegisterEvent("OPEN_DOODAD", function()
 	local team = GetClientTeam()
 	local me = GetClientPlayer()
 	local nLootMode = team.nLootMode
-	if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE or JH.bDebug then
+	if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE then
 		_GKP.OpenDoodad(arg0)
 		JH.Debug("OPEN_DOODAD " .. arg0)
 	end
