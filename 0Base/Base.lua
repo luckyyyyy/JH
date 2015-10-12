@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-08 12:01:21
+-- @Last Modified time: 2015-10-12 16:39:45
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -978,7 +978,7 @@ function JH.Debug3(szMsg, szHead) JH.Debug(szMsg, szHead, 3) end
 function JH.Alert(szMsg, fnAction, szSure)
 	local nW, nH = Station.GetClientSize()
 	local tMsg = {
-		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Alert",
+		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Alert", szAlignment = "CENTER",
 		{
 			szOption = szSure or g_tStrings.STR_HOTKEY_SURE,
 			fnAction = fnAction,
@@ -990,7 +990,7 @@ end
 function JH.Confirm(szMsg, fnAction, fnCancel, szSure, szCancel)
 	local nW, nH = Station.GetClientSize()
 	local tMsg = {
-		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Confirm",
+		x = nW / 2, y = nH / 3, szMessage = szMsg, szName = "JH_Confirm", szAlignment = "CENTER",
 		{
 			szOption = szSure or g_tStrings.STR_HOTKEY_SURE,
 			fnAction = fnAction,

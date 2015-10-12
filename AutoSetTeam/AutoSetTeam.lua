@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-19 06:32:11
+-- @Last Modified time: 2015-10-12 16:58:45
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -973,3 +973,5 @@ end)
 -- 注销了代码就懒得删了
 -- JH.RegisterEvent("LOADING_END", AutoCancelBuff.Init)
 -- JH.RegisterEvent("SKILL_MOUNT_KUNG_FU", AutoCancelBuff.Init)
+-- JH.RegisterEvent("ON_FRAME_CREATE", function()
+-- end)
