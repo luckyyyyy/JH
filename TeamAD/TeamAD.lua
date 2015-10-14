@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-09 09:53:02
+-- @Last Modified time: 2015-10-14 01:58:01
 local _L = JH.LoadLangPack
 local TeamAD = {
 	szDataFile = "TeamAD.jx3dat",
@@ -86,23 +86,7 @@ TeamAD.PS.OnPanelActive = function(frame)
 	end
 	for k, v in ipairs(t) do
 		if k % #t == 1 then nX = 10 end
-		nX = ui:Append("Box", "iteminfolink", { x = nX + 12, y = nY + 5, w = 38, h = 38, icon = Table_GetItemIconID(v.nUiId)})
-		:Click(function()
-			this.nVersion = GLOBAL.CURRENT_ITEM_VERSION
-			this.dwTabType = v.dwTabType
-			this.dwIndex = v.dwIndex
-			return OnItemLinkDown(this)
-		end):Hover(function(bHover)
-			if bHover then
-				this:SetObjectMouseOver(true)
-				local x, y = this:GetAbsPos()
-				local w, h = this:GetSize()
-				OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, {x, y, w, h})
-			else
-				this:SetObjectMouseOver(false)
-				HideTip()
-			end
-		end):Pos_()
+		nX = ui:Append("Box", { x = nX + 12, y = nY + 5, w = 38, h = 38 }):ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex):Pos_()
 	end
 	nY = nY + 48
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AD List"], font = 27 }):Pos_()

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-12 16:39:45
+-- @Last Modified time: 2015-10-14 15:35:52
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2711,13 +2711,13 @@ _GUI.Item = class(_GUI.Base)
 
 -- xml string
 _GUI.tItemXML = {
-	["Text"]    = "<text>w=150 h=30 valign=1 font=162 eventid=257 </text>",
+	["Text"]    = "<text>w=150 h=30 valign=1 font=162 </text>",
 	["Image"]   = "<image>w=100 h=100 </image>",
 	["Animate"] = "<Animate>w=100 h=100 </Animate>",
-	["Box"]     = "<box>w=48 h=48 eventid=525311 </box>",
-	["Shadow"]  = "<shadow>w=15 h=15 eventid=277 </shadow>",
+	["Box"]     = "<box>w=48 h=48 </box>",
+	["Shadow"]  = "<shadow>w=15 h=15 </shadow>",
 	["Handle"]  = "<handle>firstpostype=0 w=10 h=10</handle>",
-	["Label"]   = "<handle>w=150 h=30 eventid=257 <text>name=\"Text_Label\" w=150 h=30 font=162 valign=1 </text></handle>",
+	["Label"]   = "<handle>w=150 h=30 <text>name=\"Text_Label\" w=150 h=30 font=162 valign=1 </text></handle>",
 }
 
 -- construct
@@ -3013,6 +3013,19 @@ function _GUI.Item:ToGray(bGray)
 	end
 	return self
 end
+-- (self) Instance:ItemInfo( ... )
+-- NOTICE：only for Box
+function _GUI.Item:ItemInfo( ... )
+	if self.type == "Box" then
+		if IsEmpty({ ... }) then
+			UpdataItemBoxObject(self.self)
+		else
+			UpdataItemInfoBoxObject(self.self, ...)
+		end
+	end
+	return self
+end
+
 
 -- (self) Instance:Icon(number dwIcon)
 -- NOTICE：only for Box，Image，BoxButton
@@ -3112,22 +3125,22 @@ end
 -- (self) Instance:Click(func fnAction[, table tLinkColor[, tHoverColor]])		-- 同上，只对文本
 function _GUI.Item:Click(fnAction, bSound, bSelect)
 	local hnd = self.self
-	--hnd:RegisterEvent(0x001)
+	hnd:RegisterEvent(0x10)
 	if not fnAction then
-		if hnd.OnItemLButtonDown then
+		if hnd.OnItemLButtonClick then
 			local _this = this
 			this = hnd
-			hnd.OnItemLButtonDown()
+			hnd.OnItemLButtonClick()
 			this = _this
 		end
 	elseif self.type == "BoxButton" or self.type == "TxtButton" then
-		hnd.OnItemLButtonDown = function()
+		hnd.OnItemLButtonClick = function()
 			if bSound then PlaySound(SOUND.UI_SOUND, g_sound.Button) end
 			if bSelect then self:Select() end
 			fnAction()
 		end
 	else
-		hnd.OnItemLButtonDown = fnAction
+		hnd.OnItemLButtonClick = fnAction
 		-- text link：tLinkColor，tHoverColor
 		local txt = self.txt
 		if txt then
@@ -3157,7 +3170,7 @@ end
 -- fnLeave = function(false)		-- 鼠标移出时调用，若省略则和进入函数一样
 function _GUI.Item:Hover(fnEnter, fnLeave)
 	local hnd = self.self
-	--hnd:RegisterEvent(0x300)
+	hnd:RegisterEvent(0x100)
 	fnLeave = fnLeave or fnEnter
 	if fnEnter then
 		hnd.OnItemMouseEnter = function() fnEnter(true) end
@@ -3470,7 +3483,7 @@ function GUI.OpenColorTablePanel(fnAction)
 			tUI[v] = tUI[v] or {}
 			for s = 0, 100, 3 do
 				local x = 20 + s * 3
-				local y = 10 + (100 - v) * 3
+				local y = 80 + (100 - v) * 3
 				local r, g, b = hsv2rgb(COLOR_HUE, s, v)
 				if tUI[v][s] then
 					tUI[v][s]:Color(r, g, b)
@@ -3490,21 +3503,21 @@ function GUI.OpenColorTablePanel(fnAction)
 	end
 	SetColor()
 	wnd:Append("Image", "Select_Image", { w = 9, h = 9, x = 0, y = 0 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
-	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 325, color = { 255, 255, 255 } })
-	wnd:Append("Text", "Select_Text", { x = 50, y = 325, txt = g_tStrings.STR_NONE })
-	wnd:Append("WndTrackBar", { x = 20, y = 350, h = 25, w = 270, txt = " H" }):Range(0, 360, 360):Value(COLOR_HUE):Change(function(nVal)
+	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 10, color = { 255, 255, 255 } })
+	wnd:Append("Text", "Select_Text", { x = 50, y = 10, txt = g_tStrings.STR_NONE })
+	wnd:Append("WndTrackBar", { x = 20, y = 35, h = 25, w = 270, txt = " H" }):Range(0, 360, 360):Value(COLOR_HUE):Change(function(nVal)
 		COLOR_HUE = nVal
 		SetColor()
 	end)
 	for i = 0, 360, 8 do
-		wnd:Append("Shadow", { x = 20 + (0.74 * i), y = 375, h = 10, w = 6, color = { hsv2rgb(i, 100, 100) } })
+		wnd:Append("Shadow", { x = 20 + (0.74 * i), y = 60, h = 10, w = 6, color = { hsv2rgb(i, 100, 100) } })
 	end
 end
 
 local ICON_PAGE = 20
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
-	local nMaxIocn, boxs, txts = 7044, {}, {}
+	local nMaxIocn, boxs, txts = 7811, {}, {}
 	local ui = GUI.CreateFrame("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], nStyle = 2 , close = true })
 	local function GetPage(nPage)
 		local nStart = nPage * 144 - 1

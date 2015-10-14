@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-12 23:02:46
+-- @Last Modified time: 2015-10-14 15:08:23
 
 -- 早期代码 需要重写
 
@@ -65,14 +65,15 @@ local _GKP = {
 			{50000,true},
 			{100000,true},
 		},
-		Special = {
-			[JH.GetItemName(72591)] = true,
-			[JH.GetItemName(68362)] = true,
-			[JH.GetItemName(66189)] = true,
-			[JH.GetItemName(4097)]  = true,
-			[JH.GetItemName(73214)] = true,
-			[JH.GetItemName(74368)] = true,
-		},
+	},
+	tSpecial = {
+		[JH.GetItemName(72591)]  = true,
+		[JH.GetItemName(68362)]  = true,
+		[JH.GetItemName(66189)]  = true,
+		[JH.GetItemName(4097)]   = true,
+		[JH.GetItemName(73214)]  = true,
+		[JH.GetItemName(74368)]  = true,
+		[JH.GetItemName(153896)] = true,
 	}
 }
 _GKP.Config = JH.LoadLUAData("config/gkp.cfg") or _GKP.Config
@@ -250,7 +251,6 @@ function GKP.DistributionItem()
 	local nUiId, nVersion, dwTabType, dwIndex = select(2, box:GetObject())
 	local doodad = GetDoodad(_GKP.dwOpenID)
 	if type(doodad) ~= "userdata" then return JH.Alert(_L["No open doodad"]) end
-	_GKP.OnOpenDoodad(_GKP.dwOpenID)
 	local item
 	for k, v in ipairs(_GKP.aDistributeList) do
 		if v.nUiId == nUiId and v.nVersion == nVersion and v.dwTabType == dwTabType and v.dwIndex == dwIndex then
@@ -319,7 +319,7 @@ function _GKP.SetChatWindow(item, ui)
 	txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
 	local h = me:Lookup("WndScroll_Chat"):Lookup("", "")
 	h:Clear()
-	UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.bCanStack and item.nStackNum)
+	UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.nBookID or item.bCanStack and item.nStackNum)
 	box.OnItemLButtonClick = ui.OnItemLButtonClick
 	RegisterMsgMonitor(_GKP.OnMsgArrive,{"MSG_TEAM"})
 	me:Show()
@@ -415,37 +415,25 @@ function GKP.GetFormatLink(item, bName)
 	end
 end
 
-function GKP.OnItemLinkDown(item,ui)
-	ui.nVersion = item.nVersion
-	ui.dwTabType = item.dwTabType
-	ui.dwIndex = item.dwIndex
-	if item.nGenre == ITEM_GENRE.BOOK then
-		ui.nBookRecipeID = BookID2GlobelRecipeID(GlobelRecipeID2BookID(item.nBookID))
-		ui:SetName("booklink")
-	else
-		ui:SetName("iteminfolink")
-	end
-	return OnItemLinkDown(ui)
-end
 ---------------------------------------------------------------------->
 -- 获取团队成员 menu
 ----------------------------------------------------------------------<
 function GKP.GetTeamList()
-	local TeamMemberList = GetClientTeam().GetTeamMemberList()
-	local tTeam,menu = {},{}
-	for _,v in ipairs(TeamMemberList) do
-		local player = GetClientTeam().GetMemberInfo(v)
-		table.insert(tTeam,{ szName = player.szName ,dwForce = player.dwForceID})
+	local team = GetClientTeam()
+	local tTeam, menu = {}, {}
+	for _, v in ipairs(team.GetTeamMemberList()) do
+		local player = team.GetMemberInfo(v)
+		table.insert(tTeam, { szName = player.szName, dwForce = player.dwForceID })
 	end
-	table.sort(tTeam,function(a,b) return a.dwForce < b.dwForce end)
-	for _,v in ipairs(tTeam) do
-		local szIcon,nFrame = GetForceImage(v.dwForce)
+	table.sort(tTeam, function(a, b) return a.dwForce < b.dwForce end)
+	for _, v in ipairs(tTeam) do
+		local szIcon, nFrame = GetForceImage(v.dwForce)
 		table.insert(menu,{
 			szOption = v.szName,
-			szLayer = "ICON_RIGHT",
-			szIcon = szIcon,
-			nFrame = nFrame ,
-			rgb = {JH.GetForceColor(v.dwForce)},
+			szLayer  = "ICON_RIGHT",
+			szIcon   = szIcon,
+			nFrame   = nFrame,
+			rgb      = { JH.GetForceColor(v.dwForce) },
 			fnAction = function()
 				local list = GUI(Station.Lookup("Normal1/GKP_Record/TeamList"))
 				local teamlist = list:Text(v.szName):Color(JH.GetForceColor(v.dwForce)).self
@@ -809,7 +797,7 @@ _GKP.Draw_GKP_Record = function(key,sort)
 				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 				box:SetObjectIcon(582)
 			else
-				UpdataItemInfoBoxObject(box, v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum)
+				UpdataItemInfoBoxObject(box, v.nVersion, v.dwTabType, v.dwIndex, v.nBookID or v.nStackNum)
 			end
 			local hItemName = item:Lookup("Text_ItemName")
 			for kk, vv in ipairs({"OnItemMouseEnter", "OnItemMouseLeave", "OnItemLButtonDown", "OnItemLButtonUp"}) do
@@ -1131,7 +1119,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						local hBox = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha })
 
 						if v.nUiId ~= 0 then
-							UpdataItemInfoBoxObject(hBox.self, v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum)
+							hBox:ItemInfo(v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum)
 						else
 							hBox:Icon(582):Hover(function(bHover)
 								if bHover then
@@ -1554,7 +1542,7 @@ _GKP.DrawDistributeList = function(doodad)
 			txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
 			handle:FormatAllItemPos()
 		end
-		UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.bCanStack and item.nStackNum)
+		UpdateBoxObject(box, UI_OBJECT_ITEM_ONLY_ID, item.dwID)
 
 		if _GKP.tDistributeRecords[szItemName] then
 			box:SetObjectStaring(true)
@@ -1817,7 +1805,7 @@ _GKP.DistributeItem = function(item,player,doodad,bEnter)
 	end
 	_GKP.CloseChatWindow(item)
 	local szName = GetItemNameByItem(item)
-	if _GKP.Config.Special[szName] then -- 记住上次分给谁
+	if _GKP.tSpecial[szName] then -- 记住上次分给谁
 		_GKP.tDistributeRecords[szName] = player.dwID
 		JH.Debug("memory " .. szName .. " -> " .. player.dwID)
 	end
@@ -1904,7 +1892,7 @@ _GKP.Record = function(tab, item, bEnter)
 	end
 
 	if tab and tab.nVersion and tab.nUiId and tab.dwTabType and tab.dwIndex and tab.nUiId ~= 0 then
-		UpdataItemInfoBoxObject(box, tab.nVersion, tab.dwTabType, tab.dwIndex, tab.nStackNum)
+		UpdataItemInfoBoxObject(box, tab.nVersion, tab.dwTabType, tab.dwIndex, tab.nBookID or tab.nStackNum)
 		box:Show()
 	else
 		UpdataItemBoxObject(box)
@@ -2312,7 +2300,7 @@ RegisterEvent("MONEY_UPDATE",function() --金钱变动
 end)
 
 JH.PlayerAddonMenu({ szOption = _L["GKP Golden Team Record"], fnAction = _GKP.OpenPanel })
-JH.AddHotKey("JH_GKP",_L["Open/Close Golden Team Record"],_GKP.TogglePanel)
+JH.AddHotKey("JH_GKP", _L["Open/Close Golden Team Record"], _GKP.TogglePanel)
 
 
 RegisterEvent("LOADING_END",function()
