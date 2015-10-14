@@ -126,23 +126,9 @@ function Book.UpdateInfo(szName)
 			local nCount = me.GetItemAmount(v.dwTabType, v.dwIndex)
 			bCanCopy = bCanCopy and nCount >= v.nCount * JH_CopyBook.nCopyNum
 			nX = handle:Append("Box", "iteminfolink", { x = (i % 9) * 58, y = nY + math.floor(i / 9 ) * 55 + 15, w = 48, h = 48, icon = Table_GetItemIconID(v.nUiId)})
+			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex)
 			:OverText(ITEM_POSITION.RIGHT_BOTTOM, nCount .. "/" .. v.nCount * JH_CopyBook.nCopyNum, 0, nCount >= v.nCount * JH_CopyBook.nCopyNum and 15 or 159)
-			:Click(function()
-				this.nVersion  = GLOBAL.CURRENT_ITEM_VERSION
-				this.dwTabType = v.dwTabType
-				this.dwIndex   = v.dwIndex
-				return OnItemLinkDown(this)
-			end):Hover(function(bHover)
-				if bHover then
-					this:SetObjectMouseOver(true)
-					local x, y = this:GetAbsPos()
-					local w, h = this:GetSize()
-					OutputItemTip(UI_OBJECT_ITEM_INFO,GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, { x, y, w, h })
-				else
-					this:SetObjectMouseOver(false)
-					HideTip()
-				end
-			end):Pos_()
+			:Pos_()
 			i = i + 1
 		end
 		local hBooks = ui:Fetch("Books"):Toggle(true):Clear()
@@ -158,28 +144,12 @@ function Book.UpdateInfo(szName)
 			nX = hBooks:Append("Box", "booklink", { x = nX + 10, y = 5, w = 32, h = 32, icon = Table_GetItemIconID(v.nUiId)})
 			:ToGray(not tCheck[k])
 			:Enable(not JH_CopyBook.tIgnore[k] and true or false)
+			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, dwBookID, k)
 			:Click(function()
 				if not IsCtrlKeyDown() then
 					this:EnableObject(this:IsObjectEnable())
 					JH_CopyBook.tIgnore[k] = this:IsObjectEnable() or nil
 					Book.UpdateInfo()
-				else
-					this.nVersion      = GLOBAL.CURRENT_ITEM_VERSION
-					this.dwTabType     = v.dwTabType
-					this.dwIndex       = v.dwIndex
-					this.nBookRecipeID = BookID2GlobelRecipeID(dwBookID, k)
-					return OnItemLinkDown(this)
-				end
-			end):Hover(function(bHover)
-				if bHover then
-					this:SetObjectMouseOver(true)
-					local x, y = this:GetAbsPos()
-					local w, h = this:GetSize()
-
-					OutputTip(GetBookTipByItemInfo(GetItemInfo(v.dwTabType, v.dwIndex), dwBookID, k, true), 400, { x, y, w, h })
-				else
-					this:SetObjectMouseOver(false)
-					HideTip()
 				end
 			end):Pos_()
 		end

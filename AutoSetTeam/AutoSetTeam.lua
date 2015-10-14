@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-12 16:58:45
+-- @Last Modified time: 2015-10-13 14:04:09
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -273,56 +273,57 @@ do
 		end)
 	end
 end
+JH.RegisterEvent("ON_FRAME_CREATE", function()
+	if JH_AutoSetTeam.bAppendMark then
+		if arg0 and arg0:GetName() == "WorldMark" then
+			local WorldMark = arg0
+			local Wnd_WorldMark = WorldMark:Lookup("Wnd_WorldMark")
+			local w,h = Wnd_WorldMark:Lookup("","Image_Bg"):GetSize()
+			WorldMark:SetSize(w,h*2+22)
+			Wnd_WorldMark:SetSize(w,h*2+22)
+			local handle = Wnd_WorldMark:Lookup("","")
+			handle:SetSize(w,h*2)
+			Wnd_WorldMark:Lookup("","Image_Bg"):SetSize(w,h*2)
+			handle:AppendItemFromString("<handle>w=195 h=82 name=\"Mark\"</handle>")
+			local Mark = Wnd_WorldMark:Lookup("","Mark")
+			Mark:SetHandleStyle(3)
+			Mark:SetRelPos(5,82+22)
+			handle:FormatAllItemPos()
+			local tTeamMark,tMark = GetClientTeam().GetTeamMark() or {},{}
+			for k,v in pairs(tTeamMark) do
+				tMark[v] = true
+			end
+			for k,v in ipairs(AutoSetTeam.tMarkFrame) do
+				Mark:AppendItemFromString(GetFormatImage(AutoSetTeam.szMarkImage,v,33,33,816,"Mark" ..k))
+				local img = Mark:Lookup("Mark" ..k)
+				if tMark[k] and tMark[k] ~= 0 then
+					img:SetAlpha(50)
+					img.alpha = 50
+				else
+					img:SetAlpha(180)
+					img.alpha = 180
+				end
+				img.OnItemLButtonClick = function()
+					local dwID,_ = Target_GetTargetData()
+					GetClientTeam().SetTeamMark(k,dwID)
+				end
+				img.OnItemRButtonClick = function()
+					GetClientTeam().SetTeamMark(k,0)
+				end
+				img.OnItemMouseEnter = function()
+					this:SetAlpha(255)
+				end
+				img.OnItemMouseLeave = function()
+					this:SetAlpha(this.alpha)
+				end
+				AutoSetTeam.Mark[k] = img
+			end
+			Mark:FormatAllItemPos()
+			WorldMark.bAppend = true
+		end
+	end
+end)
 
-local function AppendMark()
-	local WorldMark = Station.Lookup("Normal1/WorldMark")
-	if not WorldMark or WorldMark.bAppend then
-		return
-	end
-	local Wnd_WorldMark = WorldMark:Lookup("Wnd_WorldMark")
-	local w,h = Wnd_WorldMark:Lookup("","Image_Bg"):GetSize()
-	WorldMark:SetSize(w,h*2+22)
-	Wnd_WorldMark:SetSize(w,h*2+22)
-	local handle = Wnd_WorldMark:Lookup("","")
-	handle:SetSize(w,h*2)
-	Wnd_WorldMark:Lookup("","Image_Bg"):SetSize(w,h*2)
-	handle:AppendItemFromString("<handle>w=195 h=82 name=\"Mark\"</handle>")
-	local Mark = Wnd_WorldMark:Lookup("","Mark")
-	Mark:SetHandleStyle(3)
-	Mark:SetRelPos(5,82+22)
-	handle:FormatAllItemPos()
-	local tTeamMark,tMark = GetClientTeam().GetTeamMark() or {},{}
-	for k,v in pairs(tTeamMark) do
-		tMark[v] = true
-	end
-	for k,v in ipairs(AutoSetTeam.tMarkFrame) do
-		Mark:AppendItemFromString(GetFormatImage(AutoSetTeam.szMarkImage,v,33,33,816,"Mark" ..k))
-		local img = Mark:Lookup("Mark" ..k)
-		if tMark[k] and tMark[k] ~= 0 then
-			img:SetAlpha(50)
-			img.alpha = 50
-		else
-			img:SetAlpha(180)
-			img.alpha = 180
-		end
-		img.OnItemLButtonClick = function()
-			local dwID,_ = Target_GetTargetData()
-			GetClientTeam().SetTeamMark(k,dwID)
-		end
-		img.OnItemRButtonClick = function()
-			GetClientTeam().SetTeamMark(k,0)
-		end
-		img.OnItemMouseEnter = function()
-			this:SetAlpha(255)
-		end
-		img.OnItemMouseLeave = function()
-			this:SetAlpha(this.alpha)
-		end
-		AutoSetTeam.Mark[k] = img
-	end
-	Mark:FormatAllItemPos()
-	WorldMark.bAppend = true
-end
 
 local function SetMark()
 	if AutoSetTeam.Mark then
@@ -343,10 +344,10 @@ local function SetMark()
 		end
 	end
 end
+
 local function GetEvent()
 	if JH_AutoSetTeam.bAppendMark then
 		return
-			{ "Breathe", AppendMark, 500 },
 			{ "PARTY_SET_MARK", SetMark }
 	end
 end
@@ -973,5 +974,3 @@ end)
 -- 注销了代码就懒得删了
 -- JH.RegisterEvent("LOADING_END", AutoCancelBuff.Init)
 -- JH.RegisterEvent("SKILL_MOUNT_KUNG_FU", AutoCancelBuff.Init)
--- JH.RegisterEvent("ON_FRAME_CREATE", function()
--- end)

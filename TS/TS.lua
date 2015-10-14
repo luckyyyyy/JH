@@ -1,22 +1,22 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-11 22:42:36
+-- @Last Modified time: 2015-10-13 23:34:12
 local _L = JH.LoadLangPack
 
 TS = {
-	bEnable = true, -- 开启
-	bInDungeon = false, -- 只有副本内才开启
-	nBGAlpha = 30, -- 背景透明度
-	nMaxBarCount = 7, -- 最大列表
-	bForceColor = false, --根据门派着色
-	bForceIcon = true, -- 显示门派图标 团队时显示心法
-	nOTAlertLevel = 1, -- OT提醒
-	bOTAlertSound = true, -- OT 播放声音
-	bSpecialSelf = true, -- 特殊颜色显示自己
-	bTopTarget = true, -- 置顶当前目标
-	tAnchor = {},
-	nStyle = 2,
+	bEnable       = true,  -- 开启
+	bInDungeon    = false, -- 只有副本内才开启
+	nBGAlpha      = 30,    -- 背景透明度
+	nMaxBarCount  = 7,     -- 最大列表
+	bForceColor   = false, -- 根据门派着色
+	bForceIcon    = true,  -- 显示门派图标 团队时显示心法
+	nOTAlertLevel = 1,     -- OT提醒
+	bOTAlertSound = true,  -- OT 播放声音
+	bSpecialSelf  = true,  -- 特殊颜色显示自己
+	bTopTarget    = true,  -- 置顶当前目标
+	tAnchor       = {},
+	nStyle        = 2,
 }
 JH.RegisterCustomData("TS")
 
@@ -66,8 +66,6 @@ function _TS.ClosePanel()
 	_TS.dwTargetID = 0
 	_TS.bSelfTreatRank = 0
 	_TS.dwDropTargetPlayerID = 0
-	_TS.DPS_TIME  = 0
-	_TS.DPS_TOTAL = 0
 end
 
 function TS.OnFrameCreate()
@@ -133,7 +131,7 @@ function TS.OnEvent(szEvent)
 			_TS.dwTargetID = dwTargetID
 			_TS.frame.nCount = 0
 			JH.BreatheCall("TS", _TS.OnBreathe)
-			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 2000)
+			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 1000)
 			this:Show()
 		else
 			_TS.UnBreathe()
@@ -148,8 +146,6 @@ function TS.OnEvent(szEvent)
 		end
 	elseif szEvent == "MY_FIGHT_HINT" then
 		if not arg0 then
-			_TS.DPS_TIME  = 0
-			_TS.DPS_TOTAL = 0
 			_TS.frame:Lookup("", "Text_Title").szText = ""
 		end
 	end
@@ -167,19 +163,13 @@ function _TS.OnDpsBreathe()
 		if not me then return end
 		if me.bFightState then
 			local dps = MY_Recount_GetData(0)
-			local nTotalEffect = 0
+			local nTotal = 0
+			local nTimeDuring = dps.nTimeDuring
 			for k, v in pairs(dps["Damage"]) do
-				nTotalEffect = nTotalEffect + v["nTotalEffect"]
+				nTotal = nTotal + v["nTotalEffect"]
 			end
-			local nTime  = GetTime() - _TS.DPS_TIME
-			if _TS.DPS_TIME ~= 0 then
-				local nTotal = nTotalEffect - _TS.DPS_TOTAL
-				local nTime  = GetTime() - _TS.DPS_TIME
-				local nDps   = math.ceil(nTotal / (nTime / 1000))
-				_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%dw", math.floor(nDps / 10000))
-			end
-			_TS.DPS_TIME  = GetTime()
-			_TS.DPS_TOTAL = nTotalEffect
+			local nDps = nTotal / math.max(nTimeDuring, 1)
+			_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%dw", math.floor(nDps / 10000))
 		end
 	end
 end
@@ -255,8 +245,6 @@ function _TS.UnBreathe()
 	_TS.Life:SetPercentage(0)
 	-- 取消DPS的统计
 	JH.UnBreatheCall("TS_DPS")
-	_TS.DPS_TIME  = 0
-	_TS.DPS_TOTAL = 0
 	_TS.frame:Lookup("", "Text_Title").szText = ""
 end
 
