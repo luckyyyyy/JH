@@ -239,6 +239,8 @@ data = {
 	["Buff Size"] = "BUFF格子大小",
 	["Data save mode"] = "數據保存模式",
 	["Use common data"] = "使用通用數據（即當前角色和其他角色共用同壹個數據）",
+	["%s life has left %d%."] = "【%s】的血量剩余%d%",
+	["%s mana has reached %d%."] = "【%s】的內力達到%d%",
 	-- ST.class.lua --
 	["Countdown format Error"] = "倒計時格式錯誤",
 	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",
