@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-12 16:38:43
+-- @Last Modified time: 2015-10-17 23:29:40
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1517,11 +1517,11 @@ function DBMUI.OpenSettingPanel(data, szType)
 					end })
 				end
 			elseif szType == "NPC" then
-				for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE }) do
+				for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE, DBM_TYPE.NPC_MANA }) do
 					table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
 						SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
-						if vv == DBM_TYPE.NPC_LIFE then
-							JH.Alert(_L["Npc Life Alarm, different format, Recommended reading Help!"])
+						if vv == DBM_TYPE.NPC_LIFE or vv == DBM_TYPE.NPC_MANA then
+							JH.Alert(_L["Npc Life/Mana Alarm, different format, Recommended reading Help!"])
 						end
 					end })
 				end
@@ -1539,7 +1539,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 				box:SetObjectIcon(nIcon)
 			end)
 		end):Pos_()
-		local bLife = v.nClass ~= DBM_TYPE.NPC_LIFE and tonumber(v.nTime)
+		local bLife = v.nClass ~= DBM_TYPE.NPC_LIFE and v.nClass ~= DBM_TYPE.NPC_MANA and tonumber(v.nTime)
 		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY - 2, txt = _L["TC"], color = GetMsgFontColor("MSG_TEAM", true), checked = v.bTeamChannel }):Click(function(bCheck)
 			v.bTeamChannel = bCheck and true or nil
 		end):Pos_()
@@ -1552,7 +1552,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			if szNum == "" then
 				return
 			end
-			if v.nClass == DBM_TYPE.NPC_LIFE then
+			if v.nClass == DBM_TYPE.NPC_LIFE or v.nClass == DBM_TYPE.NPC_MANA then
 				return
 			else
 				if tonumber(szNum) then
