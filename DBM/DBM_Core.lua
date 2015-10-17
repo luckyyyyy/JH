@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-17 23:35:41
+-- @Last Modified time: 2015-10-18 01:48:29
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -172,6 +172,7 @@ function DBM.OnEvent(szEvent)
 	elseif szEvent == "DBM_NPC_FIGHT" then
 		D.OnNpcFight(arg0, arg1)
 	elseif szEvent == "DBM_NPC_LIFE_CHANGE" or szEvent == "DBM_NPC_MANA_CHANGE" then
+		Output(szEvent, arg0, arg1)
 		D.OnNpcInfoChange(szEvent, arg0, arg1)
 	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" or szEvent == "DBM_LOADING_END" then
 		D.CreateData(szEvent)
@@ -1026,22 +1027,29 @@ function D.OnNpcFight(dwTemplateID, bFight)
 end
 
 -- NPC 血量倒计时处理 这个很可能以后会是 最大的性能消耗 格外留意
-function D.OnNpcInfoChange(szEvent, dwTemplateID, nLife)
+function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data and data.tCountdown then
 		local dwType = szEvent == "DBM_NPC_LIFE_CHANGE" and DBM_TYPE.NPC_LIFE or DBM_TYPE.NPC_MANA
 		for k, v in ipairs(data.tCountdown) do
-			if v.nClass == DBM_TYPE.NPC_LIFE then
+			if v.nClass == dwType then
 				local t = JH_Split(v.nTime, ";")
 				for kk, vv in ipairs(t) do
 					local time = JH_Split(vv, ",")
 					if time[1] and time[2] and tonumber(JH_Trim(time[1])) and JH_Trim(time[2]) ~= "" then
-						if tonumber(JH_Trim(time[1])) * 100 == nLife then -- hit
+						local nVper = tonumber(JH_Trim(time[1])) * 100
+						if nVper == nPer then -- hit
+							local szName = v.szName or JH.GetTemplateName(dwTemplateID)
+							local szMsg = dwType == DBM_TYPE.NPC_LIFE and _L("%s life has left %d%.", szName, nVper) or _L("%s mana has reached %d%.", szName, nVper)
 							if DBM.bPushCenterAlarm then
-								FireUIEvent("JH_CA_CREATE", time[2], 3)
+								FireUIEvent("JH_CA_CREATE", szMsg .. " " .. time[2], 3)
 							end
 							if DBM.bPushBigFontAlarm then
-								FireUIEvent("JH_LARGETEXT", time[2], { 255, 128, 0 }, true)
+								FireUIEvent("JH_LARGETEXT", szMsg .. " " .. time[2], { 255, 128, 0 }, true)
+							end
+							FireUIEvent("JH_LARGETEXT", 12345, { 255, 128, 0 }, true)
+							if DBM.bPushTeamChannel and v.bTeamChannel then
+								D.Talk(szMsg)
 							end
 							if time[3] and tonumber(time[3]) then
 								local szKey = k .. "." .. dwTemplateID .. "." .. kk
@@ -1118,7 +1126,7 @@ function D.CheckNpcState()
 					step = 2
 				end
 				for i = 1, nCount, step do
-					FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana - i)
+					FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana + i)
 				end
 			end
 			v.nLife = fLifePer
