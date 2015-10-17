@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-18 01:48:29
+-- @Last Modified time: 2015-10-18 01:50:52
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -172,7 +172,6 @@ function DBM.OnEvent(szEvent)
 	elseif szEvent == "DBM_NPC_FIGHT" then
 		D.OnNpcFight(arg0, arg1)
 	elseif szEvent == "DBM_NPC_LIFE_CHANGE" or szEvent == "DBM_NPC_MANA_CHANGE" then
-		Output(szEvent, arg0, arg1)
 		D.OnNpcInfoChange(szEvent, arg0, arg1)
 	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" or szEvent == "DBM_LOADING_END" then
 		D.CreateData(szEvent)
