@@ -1,12 +1,13 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-14 16:27:06
+-- @Last Modified time: 2015-10-17 23:35:41
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
 local setmetatable, tonumber, type, tostring, unpack = setmetatable, tonumber, type, tostring, unpack
 local tinsert, tconcat = table.insert, table.concat
+local floor = math.floor
 local GetTime, GetLogicFrameCount, GetCurrentTime, IsPlayer = GetTime, GetLogicFrameCount, GetCurrentTime, IsPlayer
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
 local FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow = FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow
@@ -94,6 +95,7 @@ function DBM.OnFrameCreate()
 	this:RegisterEvent("DBM_NPC_FIGHT")
 	this:RegisterEvent("DBM_NPC_ALLLEAVE_SCENE")
 	this:RegisterEvent("DBM_NPC_LIFE_CHANGE")
+	this:RegisterEvent("DBM_NPC_MANA_CHANGE")
 	this:RegisterEvent("DBM_SET_MARK")
 	this:RegisterEvent("PARTY_SET_MARK")
 end
@@ -169,8 +171,8 @@ function DBM.OnEvent(szEvent)
 		D.OnNpcAllLeave(arg0)
 	elseif szEvent == "DBM_NPC_FIGHT" then
 		D.OnNpcFight(arg0, arg1)
-	elseif szEvent == "DBM_NPC_LIFE_CHANGE" then
-		D.OnNpcLife(arg0, arg1)
+	elseif szEvent == "DBM_NPC_LIFE_CHANGE" or szEvent == "DBM_NPC_MANA_CHANGE" then
+		D.OnNpcInfoChange(szEvent, arg0, arg1)
 	elseif szEvent == "LOADING_END" or szEvent == "DBM_CREATE_CACHE" or szEvent == "DBM_LOADING_END" then
 		D.CreateData(szEvent)
 	end
@@ -730,7 +732,13 @@ function D.OnNpcEvent(npc, bEnter)
 	local data = D.GetData("NPC", npc.dwTemplateID)
 	local nTime = GetTime()
 	if bEnter then
-		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { bFightState = false, tList = {}, nTime = -1, nLife = math.floor(npc.nCurrentLife / npc.nMaxLife * 100) }
+		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { 
+			bFightState = false,
+			tList       = {},
+			nTime       = -1,
+			nLife       = floor(npc.nCurrentLife / npc.nMaxLife * 100),
+			nMana       = floor(npc.nCurrentMana / npc.nMaxMana * 100)
+		}
 		tinsert(CACHE.NPC_LIST[npc.dwTemplateID].tList, npc.dwID)
 		local tWeak, tTemp = CACHE.TEMP.NPC, D.TEMP.NPC
 		if not tWeak[npc.dwTemplateID] then
@@ -1018,9 +1026,10 @@ function D.OnNpcFight(dwTemplateID, bFight)
 end
 
 -- NPC 血量倒计时处理 这个很可能以后会是 最大的性能消耗 格外留意
-function D.OnNpcLife(dwTemplateID, nLife)
+function D.OnNpcInfoChange(szEvent, dwTemplateID, nLife)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data and data.tCountdown then
+		local dwType = szEvent == "DBM_NPC_LIFE_CHANGE" and DBM_TYPE.NPC_LIFE or DBM_TYPE.NPC_MANA
 		for k, v in ipairs(data.tCountdown) do
 			if v.nClass == DBM_TYPE.NPC_LIFE then
 				local t = JH_Split(v.nTime, ";")
@@ -1067,13 +1076,18 @@ function D.CheckNpcState()
 		local data = D.GetData("NPC", k)
 		if data then
 			local bFightFlag = false
-			local fNpcPer = 1
+			local fLifePer = 1
+			local fManaPer = 1
 			for kk, vv in ipairs(v.tList) do
 				local npc = GetNpc(vv)
 				if npc then
-					local fPer = npc.nCurrentLife / npc.nMaxLife
-					if fPer < fNpcPer then -- 取血量最少的NPC
-						fNpcPer = fPer
+					local fLife = npc.nCurrentLife / npc.nMaxLife
+					local fMana = npc.nCurrentMana / npc.nMaxMana
+					if fLife < fLifePer then -- 取血量最少的NPC
+						fLifePer = fLife
+					end
+					if fMana < fManaPer then -- 取蓝量最少的NPC
+						fManaPer = fMana
 					end
 					-- 战斗标记检查
 					if npc.bFightState then
@@ -1087,17 +1101,28 @@ function D.CheckNpcState()
 			else
 				bFightFlag = nil
 			end
-			fNpcPer = math.floor(fNpcPer * 100)
-			if v.nLife > fNpcPer then
-				local nCount, step = v.nLife - fNpcPer, 1
-				if nCount > 50 then -- 如果boss血量一下被干掉50%以上 那直接步进2 【鄙视秒BOSS的 小心扯着蛋
+			fLifePer = floor(fLifePer * 100)
+			fManaPer = floor(fManaPer * 100)
+			if v.nLife > fLifePer then
+				local nCount, step = v.nLife - fLifePer, 1
+				if nCount > 50 then
 					step = 2
 				end
 				for i = 1, nCount, step do
 					FireUIEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
 				end
 			end
-			v.nLife = fNpcPer
+			if v.nMana < fManaPer then
+				local nCount, step = fManaPer - v.nMana, 1
+				if nCount > 50 then
+					step = 2
+				end
+				for i = 1, nCount, step do
+					FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana - i)
+				end
+			end
+			v.nLife = fLifePer
+			v.nMana = fManaPer
 			if bFightFlag then
 				local nTime = GetTime()
 				v.nSec = GetTime()

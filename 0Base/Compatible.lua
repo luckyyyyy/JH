@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-12 18:32:38
+-- @Last Modified time: 2015-10-17 23:21:03
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -20,6 +20,7 @@ DBM_TYPE = {
 	NPC_ALLDEATH = 13,
 	TALK_MONITOR = 14,
 	COMMON       = 15,
+	NPC_MANA     = 16,
 }
 DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3 }
 
@@ -34,7 +35,7 @@ JH_KUNGFU_LIST = {
 	{ 10080, "ui/Image/icon/skill_qixiu02.UITex", 0 }, -- 云裳
 	{ 10176, "ui/Image/icon/wudu_neigong_2.UITex", 0 }, -- 补天
 	{ 10028, "ui/Image/icon/skill_wanhua23.UITex", 0 }, -- 离经
-	-- { 10448, "ui/Image/icon/skill_0514_23.UITex", 0 }, -- 相知
+	{ 10448, "ui/Image/icon/skill_0514_23.UITex", 0 }, -- 相知
 	-- 内功
 	{ 10225, "ui/Image/icon/skill_tangm_20.UITex", 0 }, -- 天罗
 	{ 10081, "ui/Image/icon/skill_qixiu03.UITex", 0 }, -- 冰心
@@ -43,7 +44,7 @@ JH_KUNGFU_LIST = {
 	{ 10014, "ui/Image/icon/skill_chunyang21.UITex", 0 }, -- 紫霞
 	{ 10021, "ui/Image/icon/skill_wanhua17.UITex", 0 }, -- 花间
 	{ 10003, "ui/Image/icon/skill_shaolin10.UITex", 0 }, -- 易经
-	-- { 10447, "ui/Image/icon/skill_0514_27.UITex", 0 }, -- 莫问
+	{ 10447, "ui/Image/icon/skill_0514_27.UITex", 0 }, -- 莫问
 	-- 外功
 	{ 10390, "ui/Image/icon/Skill_CangY_32.UITex", 0 }, -- 分山
 	{ 10224, "ui/Image/icon/skill_tangm_01.UITex", 0 }, -- 鲸鱼
