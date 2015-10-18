@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-18 01:50:52
+-- @Last Modified time: 2015-10-18 17:05:41
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -12,6 +12,7 @@ local GetTime, GetLogicFrameCount, GetCurrentTime, IsPlayer = GetTime, GetLogicF
 local GetClientPlayer, GetClientTeam, GetPlayer, GetNpc = GetClientPlayer, GetClientTeam, GetPlayer, GetNpc
 local FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow = FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow
 local GetPureText, GetFormatText, GetHeadTextForceFontColor = GetPureText, GetFormatText, GetHeadTextForceFontColor
+local TargetPanel_SetOpenState = TargetPanel_SetOpenState
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_PLAYER_NAME = "NONE"
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
@@ -1039,16 +1040,23 @@ function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 						local nVper = tonumber(JH_Trim(time[1])) * 100
 						if nVper == nPer then -- hit
 							local szName = v.szName or JH.GetTemplateName(dwTemplateID)
-							local szMsg = dwType == DBM_TYPE.NPC_LIFE and _L("%s life has left %d%.", szName, nVper) or _L("%s mana has reached %d%.", szName, nVper)
+							local xml = {}
+							tinsert(xml, DBM_LEFT_LINE)
+							tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+							tinsert(xml, DBM_RIGHT_LINE)
+							tinsert(xml, GetFormatText(dwType == DBM_TYPE.NPC_LIFE and _L["life has left"] or _L["mana has reached"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(" " .. nVper .. "%", 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(" " .. time[2], 44, 255, 255, 255))
+							local txt = GetPureText(tconcat(xml))
 							if DBM.bPushCenterAlarm then
-								FireUIEvent("JH_CA_CREATE", szMsg .. " " .. time[2], 3)
+								FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 							end
 							if DBM.bPushBigFontAlarm then
-								FireUIEvent("JH_LARGETEXT", szMsg .. " " .. time[2], { 255, 128, 0 }, true)
+								FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true)
 							end
 							FireUIEvent("JH_LARGETEXT", 12345, { 255, 128, 0 }, true)
 							if DBM.bPushTeamChannel and v.bTeamChannel then
-								D.Talk(szMsg)
+								D.Talk(txt)
 							end
 							if time[3] and tonumber(time[3]) then
 								local szKey = k .. "." .. dwTemplateID .. "." .. kk
@@ -1079,15 +1087,30 @@ function D.OnNpcAllLeave(dwTemplateID)
 end
 
 function D.CheckNpcState()
+	local me = GetClientPlayer()
+	if not me then return end
+	local dwType, dwID = me.GetTarget()
 	for k, v in pairs(CACHE.NPC_LIST) do
 		local data = D.GetData("NPC", k)
 		if data then
+			local bTempTarget = false
+			for kk, vv in ipairs(data.tCountdown or {}) do
+				if vv.nClass == DBM_TYPE.NPC_MANA then
+					bTempTarget = true
+					break
+				end
+			end
 			local bFightFlag = false
 			local fLifePer = 1
 			local fManaPer = 1
+			TargetPanel_SetOpenState(true)
 			for kk, vv in ipairs(v.tList) do
 				local npc = GetNpc(vv)
 				if npc then
+					if bTempTarget then
+						JH.SetTarget(TARGET.NPC, vv)
+						JH.SetTarget(dwType, dwID)
+					end
 					local fLife = npc.nCurrentLife / npc.nMaxLife
 					local fMana = npc.nCurrentMana / npc.nMaxMana
 					if fLife < fLifePer then -- 取血量最少的NPC
@@ -1103,6 +1126,7 @@ function D.CheckNpcState()
 					end
 				end
 			end
+			TargetPanel_SetOpenState(false)
 			if bFightFlag ~= v.bFightState then
 				CACHE.NPC_LIST[k].bFightState = bFightFlag
 			else
@@ -1119,13 +1143,15 @@ function D.CheckNpcState()
 					FireUIEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
 				end
 			end
-			if v.nMana < fManaPer then
-				local nCount, step = fManaPer - v.nMana, 1
-				if nCount > 50 then
-					step = 2
-				end
-				for i = 1, nCount, step do
-					FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana + i)
+			if bTempTarget then
+				if v.nMana < fManaPer then
+					local nCount, step = fManaPer - v.nMana, 1
+					if nCount > 50 then
+						step = 2
+					end
+					for i = 1, nCount, step do
+						FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana + i)
+					end
 				end
 			end
 			v.nLife = fLifePer
