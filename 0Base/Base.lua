@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-14 15:35:52
+-- @Last Modified time: 2015-10-18 16:32:00
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1108,6 +1108,22 @@ function JH.GetMapName(dwMapID)
 		end
 	end
 	return _JH.tMapCache[dwMapID]
+end
+
+-- 根据 dwType 类型和 dwID 设置目标
+-- (void) JH.SetTarget([number dwType, ]number dwID)
+-- dwType	-- *可选* 目标类型
+-- dwID		-- 目标 ID
+function JH.SetTarget(dwType, dwID)
+	if not dwType or dwType <= 0 then
+		dwType, dwID = TARGET.NO_TARGET, 0
+	elseif not dwID then
+		dwID, dwType = dwType, TARGET.NPC
+		if IsPlayer(dwID) then
+			dwType = TARGET.PLAYER
+		end
+	end
+	SetTarget(dwType, dwID)
 end
 
 -- 根据BUFF ID 或者 KBUFF 对象 如不传 nLevel 或 nLevel 等于0 代表忽略 nLevel
