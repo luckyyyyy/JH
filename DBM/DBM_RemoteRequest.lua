@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-19 06:54:04
+-- @Last Modified time: 2015-10-21 13:35:01
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -284,6 +284,8 @@ function W.AppendItem(data, k)
 					btn:Lookup("", "Text_Default"):SetText(_L["update"])
 					btn:Lookup("", "Text_Default"):SetFontColor(255, 255, 0)
 				end
+			else
+				btn:Lookup("", "Text_Default"):SetText(_L["Download"])
 			end
 		else
 			wnd:Lookup("WndButton"):Hide()

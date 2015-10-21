@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-17 23:29:40
+-- @Last Modified time: 2015-10-21 13:53:50
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -126,7 +126,7 @@ function DBM_UI.OnFrameCreate()
 	ui:Fetch("PageSet_Main"):Append("WndButton2", "NewFace", { x = 720, y = 40, txt = _L["New Face"] }):Click(function()
 		Circle.OpenAddPanel(nil, nil, DBMUI_SELECT_MAP ~= _L["All Data"] and JH.IsMapExist(DBMUI_SELECT_MAP))
 	end)
-	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 860, y = 40, txt = _L["Clear Temp Record"] }):Click(function()
+	ui:Fetch("PageSet_Main"):Append("WndButton2", { x = 860, y = 40, txt = _L["Clear Record"] }):Click(function()
 		JH.Confirm(_L["Confirm?"], function()
 			DBM_API.ClearTemp(DBMUI_SELECT_TYPE)
 		end)

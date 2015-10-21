@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-12 21:23:32
+-- @Last Modified time: 2015-10-21 13:29:28
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -272,9 +272,11 @@ function _SkillCD.UpdateCount()
 	if not me then return end
 	local tMonitor, member, tKungfu, tCount = _SkillCD.tCache, {}, {}, {}
 	for k, v in pairs(SkillCD.tMonitor) do
-		tCount[k] = {}
-		tCount[k].nCount = 0
-		tCount[k].tList = {}
+		if _SkillCD.tSkill[k] then
+			tCount[k] = {}
+			tCount[k].nCount = 0
+			tCount[k].tList = {}
+		end
 	end
 	if me.IsInParty() and not SkillCD.bSelf then
 		member = team.GetTeamMemberList()
