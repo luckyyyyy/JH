@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-21 15:13:57
+-- @Last Modified time: 2015-10-22 00:18:36
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -3036,7 +3036,10 @@ function _GUI.Item:ItemInfo( ... )
 		if IsEmpty({ ... }) then
 			UpdataItemBoxObject(self.self)
 		else
-			UpdataItemInfoBoxObject(self.self, ...)
+			local res, err = pcall(UpdataItemInfoBoxObject, self.self, ...) -- ·ÀÖ¹itemtab²»Ò»Ñù
+			if not res then
+				JH.Debug(err)
+			end
 		end
 	end
 	return self
