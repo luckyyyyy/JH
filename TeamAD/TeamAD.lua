@@ -1,36 +1,22 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-14 01:58:01
+-- @Last Modified time: 2015-10-21 14:47:20
 local _L = JH.LoadLangPack
 local TeamAD = {
 	szDataFile = "TeamAD.jx3dat",
 	szAD = _L["Edit AD"],
 	tItem = {
-		{
-			{ dwTabType = 5, dwIndex = 6386, nUiId = 65944 },
-			{ dwTabType = 5, dwIndex = 6376, nUiId = 65934 },
-			{ dwTabType = 5, dwIndex = 6366, nUiId = 65924 },
-			{ dwTabType = 5, dwIndex = 6356, nUiId = 65914 },
-			{ dwTabType = 5, dwIndex = 6345, nUiId = 65903 },
-			{ dwTabType = 5, dwIndex = 22084, nUiId = 150827 },
-			{ dwTabType = 5, dwIndex = 22085, nUiId = 150828 },
-			{ dwTabType = 5, dwIndex = 22086, nUiId = 150829 },
-			{ dwTabType = 5, dwIndex = 22087, nUiId = 150830 },
-			{ dwTabType = 5, dwIndex = 20522, nUiId = 72592 },
-		},
-		{
-			{ dwTabType = 5, dwIndex = 3822, nUiId = 13909 },
-			{ dwTabType = 5, dwIndex = 20522, nUiId = 72592 },
-			{ dwTabType = 5, dwIndex = 6387, nUiId = 65945 },
-			{ dwTabType = 5, dwIndex = 6377, nUiId = 65935 },
-			{ dwTabType = 5, dwIndex = 6367, nUiId = 65925 },
-			{ dwTabType = 5, dwIndex = 6357, nUiId = 65915 },
-			{ dwTabType = 5, dwIndex = 6347, nUiId = 65905 },
-			{ dwTabType = 5, dwIndex = 18575, nUiId = 71865 },
-			{ dwTabType = 6, dwIndex = 8819, nUiId = 63192 },
-			{ dwTabType = 5, dwIndex = 11916, nUiId = 69938 },
-		}
+		{ dwTabType = 5, dwIndex = 24430, nUiId = 153192 },
+		{ dwTabType = 5, dwIndex = 23988, nUiId = 152748 },
+		{ dwTabType = 5, dwIndex = 23841, nUiId = 152596 },
+		{ dwTabType = 5, dwIndex = 22939, nUiId = 151677 },
+		{ dwTabType = 5, dwIndex = 23759, nUiId = 152512 },
+		{ dwTabType = 5, dwIndex = 22084, nUiId = 150827 },
+		{ dwTabType = 5, dwIndex = 22085, nUiId = 150828 },
+		{ dwTabType = 5, dwIndex = 22086, nUiId = 150829 },
+		{ dwTabType = 5, dwIndex = 22087, nUiId = 150830 },
+		{ dwTabType = 5, dwIndex = 25831, nUiId = 153898 },
 	}
 }
 
@@ -80,10 +66,7 @@ TeamAD.PS.OnPanelActive = function(frame)
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
 		TeamAD.SetEdit(TeamAD.edit,edit:GetTextStruct())
 	end):Pos_()
-	local t = TeamAD.tItem[1]
-	if JH_About and JH_About.CheckNameEx() then
-		t = TeamAD.tItem[2]
-	end
+	local t = TeamAD.tItem
 	for k, v in ipairs(t) do
 		if k % #t == 1 then nX = 10 end
 		nX = ui:Append("Box", { x = nX + 12, y = nY + 5, w = 38, h = 38 }):ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex):Pos_()

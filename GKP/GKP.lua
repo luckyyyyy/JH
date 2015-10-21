@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-14 15:08:23
+-- @Last Modified time: 2015-10-21 13:53:12
 
 -- 早期代码 需要重写
 
@@ -474,7 +474,7 @@ function GKP.OnFrameCreate()
 	PageSet:Append("WndButton3", { x = 840, y = 570, txt = g_tStrings.GOLD_TEAM_SYLARY_LIST }):Click(_GKP.GKP_Calculation)
 	PageSet:Append("WndButton3", "GOLD_TEAM_BID_LIST", {x = 840, y = 610, txt = g_tStrings.GOLD_TEAM_BID_LIST }):Click(_GKP.GKP_SpendingList)
 	PageSet:Append("WndButton3", "Debt", { x = 690, y = 610, txt = _L["Debt Issued"] }):Click(_GKP.GKP_OweList)
-	PageSet:Append("WndButton3", { x = 540, y = 610, txt = _L["Wipe Record"] }):Click(_GKP.GKP_Clear)
+	PageSet:Append("WndButton3", { x = 540, y = 610, txt = _L["Clear Record"] }):Click(_GKP.GKP_Clear)
 	PageSet:Append("WndButton3", { x = 390, y = 610, txt = _L["Loading Record"] }):Click(_GKP.GKP_Recovery)
 	PageSet:Append("WndButton3", { x = 240, y = 610, txt = _L["Manual SYNC"] }):Click(_GKP.GKP_Sync)
 

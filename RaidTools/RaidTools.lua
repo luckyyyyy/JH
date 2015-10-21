@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-16 13:18:00
+-- @Last Modified time: 2015-10-21 14:30:33
 
 local _L = JH.LoadLangPack
 
@@ -222,7 +222,7 @@ function RaidTools.OnFrameCreate()
 		RT.UpdatetDeathMsg()
 	end)
 	ui:Fetch("PageSet_Main/Page_Death"):Fetch("Btn_Clear"):Click(function()
-		JH.Confirm(_L["Wipe Record"], function()
+		JH.Confirm(_L["Clear Record"], function()
 			RT.tDeath = {}
 			RT.UpdatetDeathPage()
 		end)
@@ -234,6 +234,18 @@ function RaidTools.OnFrameCreate()
 		RT.OpenPanel()
 	end)
 	RT.UpdateAnchor(this)
+	-- lang
+	this.hPageSet:Lookup("CheckBox_Info"):Lookup("", "Text_Basic"):SetText(_L["Team Info"])
+	this.hPageSet:Lookup("CheckBox_Death"):Lookup("", "Text_Battle"):SetText(_L["Battle Info"])
+	this.hPageSet:Lookup("Page_Death/Btn_Clear", "Text_BtnClear"):SetText(_L["Clear Record"])
+	this.hPageSet:Lookup("Page_Info"):Lookup("", "Handle_Player_BG/Text_Title_3"):SetText(_L["BUFF"])
+	this.hPageSet:Lookup("Page_Info"):Lookup("", "Handle_Player_BG/Text_Title_4"):SetText(_L["Equip"])
+	this.hPageSet:Lookup("Page_Info"):Lookup("", "Handle_Player_BG/Text_Title_6"):SetText(_L["Fight"])
+	if RaidTools.nStyle == 1 then
+		this.hPageSet:Lookup("Page_Info"):Lookup("", "Handle_Progress/Text_Progress_Title"):SetText(_L["Team Members"])
+	end
+
+	-- member
 end
 
 function RaidTools.OnEvent(szEvent)

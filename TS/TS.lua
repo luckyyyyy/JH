@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-13 23:34:12
+-- @Last Modified time: 2015-10-21 00:29:40
 local _L = JH.LoadLangPack
 
 TS = {
@@ -317,7 +317,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			if UI_GetClientPlayerID() == v.id then
 				if TS.nOTAlertLevel > 0 and GetNpcIntensity(KGnpc) > 2 then
 					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
-						OutputMessage("MSG_ANNOUNCE_YELLOW", _L("** You Threat more than %.1f, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
+						JH.Topmsg(_L("** You Threat more than %d, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
 						if TS.bOTAlertSound then
 							PlaySound(SOUND.UI_SOUND, _L["SOUND_nat_view2"])
 						end

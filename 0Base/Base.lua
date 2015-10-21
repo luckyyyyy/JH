@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-18 16:32:00
+-- @Last Modified time: 2015-10-21 15:13:57
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1000800
+local _VERSION_   = 0x1010000
 
 ---------------------------------------------------------------------
 -- 多语言处理
@@ -72,7 +72,7 @@ do
 end
 
 local _JH = {
-	szBuildDate  = "20151008",
+	szBuildDate  = "20151021",
 	szTitle      = _L["JH, JX3 Plug-in Collection"],
 	tHotkey      = {},
 	tAnchor      = {},
@@ -1438,7 +1438,7 @@ end
 JH.GetPlayerAddonMenu = _JH.GetPlayerAddonMenu
 JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel(true):Hide()
-	_JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
+	-- _JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
 	-- 注册快捷键
 	Hotkey.AddBinding("JH_Total", _L["JH"], _JH.szTitle, _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do
