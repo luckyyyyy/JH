@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-13 14:04:09
+-- @Last Modified time: 2015-10-21 14:27:32
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -500,7 +500,7 @@ function _RL.UpdateFrame()
 			end
 		end)
 		if dat then
-			ui:Append("WndButton2","Details",{ x = 370, y = 10, w = 90, h = 34, txt = _L["View Equip"] }):Click(function()
+			ui:Append("WndButton2", "Details",{ x = 370, y = 10, w = 90, h = 34, txt = g_tStrings.STR_LOOKUP }):Click(function()
 				ViewInviteToPlayer(dat.dwID)
 			end):Hover(function(bHover)
 				if bHover then
@@ -510,7 +510,7 @@ function _RL.UpdateFrame()
 				end
 			end)
 		else
-			ui:Append("WndButton2","Details",{ x = 370, y = 10,w = 90, h = 34, txt = _L["Details"] }):Click(function()
+			ui:Append("WndButton2", "Details",{ x = 370, y = 10,w = 90, h = 34, txt = _L["Details"] }):Click(function()
 				JH.BgTalk(v.szName, "RL", "ASK")
 				ui:Fetch("Details"):Enable(false):Text(_L["loading..."])
 				JH.Sysmsg(_L["If it is always loading, the target may not install plugin or refuse."])
