@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-17 13:46:43
+-- @Last Modified time: 2015-10-22 22:44:54
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -133,7 +133,7 @@ function PBL.UpdateAnchor(frame)
 end
 
 function PBL.SwitchSelect()
-	local dwID, dwType = Target_GetTargetData()
+	local dwType, dwID = Target_GetTargetData()
 	for i = PBL.handle:GetItemCount() -1, 0, -1 do
 		local h = PBL.handle:Lookup(i)
 		if h and h:IsValid() then
@@ -210,7 +210,7 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	if not KBuff then
 		return
 	end
-	local dwTargetID, dwTargetType = Target_GetTargetData()
+	local dwTargetType, dwTargetID = Target_GetTargetData()
 	local data = { dwID = dwID, dwBuffID = dwBuffID, nLevel = nLevel }
 	local h = PBL.handle:AppendItemFromData(PBL.hItem)
 	local nCount = PBL.handle:GetItemCount()

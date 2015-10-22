@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-21 00:29:40
+-- @Last Modified time: 2015-10-22 22:46:04
 local _L = JH.LoadLangPack
 
 TS = {
@@ -44,7 +44,7 @@ local _TS = {
 }
 function _TS.OpenPanel()
 	local frame = _TS.frame or Wnd.OpenWindow(_TS.szIniFile, "TS")
-	local dwID, dwType = Target_GetTargetData()
+	local dwType = Target_GetTargetData()
 	if dwType ~= TARGET.NPC then
 		frame:Hide()
 	end
@@ -86,7 +86,7 @@ function TS.OnFrameCreate()
 	_TS.Life = this:Lookup("","Handle_TargetInfo"):Lookup("Image_Life")
 	local ui = GUI(this)
 	ui:Title(g_tStrings.HATRED_COLLECT):Fetch("CheckBox_ScrutinyLock"):Click(function(bChecked)
-		local dwID, dwType = Target_GetTargetData()
+		local dwType, dwID = Target_GetTargetData()
 		if bChecked then
 			_TS.dwLockTargetID = _TS.dwTargetID
 		else
@@ -111,7 +111,7 @@ function TS.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		_TS.UpdateAnchor(this)
 	elseif szEvent == "TARGET_CHANGE" then
-		local dwID, dwType = Target_GetTargetData()
+		local dwType, dwID = Target_GetTargetData()
 		local dwTargetID
 		-- check tar
 		if dwType == TARGET.NPC or GetNpc(_TS.dwLockTargetID) then
@@ -267,7 +267,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 	local team = GetClientTeam()
 	local tThreat, tRank, tMyRank, nTopRank = {}, {}, {}, 1
 	-- 修复arg2反馈不准 当前目标才修复 非当前目标也不准。。
-	local dwID, dwType = Target_GetTargetData()
+	local dwType, dwID = Target_GetTargetData()
 	if dwID == dwApplyID and dwType == TARGET.NPC then
 		local p = GetNpc(dwApplyID)
 		if p then

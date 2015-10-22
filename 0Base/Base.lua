@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-22 00:18:36
+-- @Last Modified time: 2015-10-22 22:42:01
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1527,7 +1527,7 @@ function JH.SetTempTarget(dwMemberID, bEnter)
 		return
 	end
 	JH_TAR_TEMP_STATUS = bEnter
-	local dwID, dwType = Target_GetTargetData() -- 如果没有目标输出的是 nil, TARGET.NO_TARGET
+	local dwType, dwID = Target_GetTargetData()
 	if bEnter then
 		JH_TAR_TEMP = dwID
 		if dwMemberID ~= dwID then
