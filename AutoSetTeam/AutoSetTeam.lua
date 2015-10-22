@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-21 14:27:32
+-- @Last Modified time: 2015-10-22 22:43:06
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -268,8 +268,8 @@ end
 do
 	for k,v in ipairs(AutoSetTeam.tMarkName) do
 		JH.AddHotKey("AutoSetTeam" .. k,_L["Mark"] .. " [" .. v .. "]",function()
-			local dwID,_ = Target_GetTargetData()
-			GetClientTeam().SetTeamMark(k,dwID)
+			local dwID = select(2, Target_GetTargetData())
+			GetClientTeam().SetTeamMark(k, dwID)
 		end)
 	end
 end
@@ -304,11 +304,11 @@ JH.RegisterEvent("ON_FRAME_CREATE", function()
 					img.alpha = 180
 				end
 				img.OnItemLButtonClick = function()
-					local dwID,_ = Target_GetTargetData()
-					GetClientTeam().SetTeamMark(k,dwID)
+					local dwID = select(2, Target_GetTargetData())
+					GetClientTeam().SetTeamMark(k, dwID)
 				end
 				img.OnItemRButtonClick = function()
-					GetClientTeam().SetTeamMark(k,0)
+					GetClientTeam().SetTeamMark(k, 0)
 				end
 				img.OnItemMouseEnter = function()
 					this:SetAlpha(255)

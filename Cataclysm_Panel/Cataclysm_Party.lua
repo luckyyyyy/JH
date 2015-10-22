@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-22 16:40:12
+-- @Last Modified time: 2015-10-22 22:44:02
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -531,7 +531,7 @@ end
 
 function CTM:RefreshTTarget()
 	if CFG.bShowTargetTargetAni then
-		local dwID, dwType = Target_GetTargetData()
+		local dwType, dwID = Target_GetTargetData()
 		if dwID then
 			local KObject = GetTarget(dwID)
 			if KObject then
@@ -815,7 +815,7 @@ function CTM:DrawParty(nIndex)
 	-- 刷新
 	CTM_TTARGET = nil
 	CTM_TARGET = nil
-	local dwID, dwType = Target_GetTargetData()
+	local dwType, dwID = Target_GetTargetData()
 	self:RefreshTarget(dwID, dwType, dwID, dwType)
 	self:RefreshTTarget()
 end
