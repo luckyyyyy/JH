@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-18 17:05:41
+-- @Last Modified time: 2015-10-22 22:23:36
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1054,7 +1054,6 @@ function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 							if DBM.bPushBigFontAlarm then
 								FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true)
 							end
-							FireUIEvent("JH_LARGETEXT", 12345, { 255, 128, 0 }, true)
 							if DBM.bPushTeamChannel and v.bTeamChannel then
 								D.Talk(txt)
 							end
