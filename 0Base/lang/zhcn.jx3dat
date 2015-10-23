@@ -699,6 +699,7 @@ data = {
 	["OnMouseHover"] = "鼠标悬停",
 	["OnScroll"] = "滚轮事件",
 	-- Copy Book --
+	["Acquisition:"] = "获取方式：",
 	["No Books"] = "没有这套书",
 	["Copy Book"] = "套书抄录",
 	["Books Name"] = "套书名称",
