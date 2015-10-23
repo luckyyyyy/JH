@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-07 12:51:26
+-- @Last Modified time: 2015-10-23 02:37:01
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -20,7 +20,6 @@ local CIRCLE_MAX_RADIUS   = 30    -- 最大的半径
 local CIRCLE_LINE_ALPHA   = 165   -- 线和边框最大透明度
 local CIRCLE_MAX_CIRCLE   = 2
 local CIRCLE_RESERT_DRAW  = false -- 全局重绘
-local CIRCLE_PLAYER_NAME  = "NONE"
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 local CIRCLE_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local CIRCLE_COLOR = {
@@ -40,7 +39,7 @@ local function GetDataPath()
 	if DBM.bCommon then
 		return JH.GetAddonInfo().szDataPath .. "Circle/Common/Circle.jx3dat"
 	else
-		return JH.GetAddonInfo().szDataPath .. "Circle/" .. CIRCLE_PLAYER_NAME .. "/Circle.jx3dat"
+		return JH.GetAddonInfo().szDataPath .. "Circle/" .. GetUserRoleName() .. "/Circle.jx3dat"
 	end
 end
 
@@ -910,16 +909,12 @@ function C.Enable(bEnable)
 end
 
 JH.RegisterExit(C.SaveFile)
-JH.RegisterEvent("LOADING_END", function()
-	if CIRCLE_PLAYER_NAME == "NONE" then
-		local me = GetClientPlayer()
-		CIRCLE_PLAYER_NAME = me.szName -- 防止测试reload毁了所有数据
-		C.LoadFile()
-	end
+JH.RegisterEvent("PLAYER_ENTER_GAME", function()
+	C.LoadFile()
 end)
 
 JH.RegisterEvent("CIRCLE_DEBUG", function()
-	if JH_About.CheckNameEx() then
+	if JH.bDebugClient then
 		Circle.nMaxAlpha, CIRCLE_ALPHA_STEP = arg0, arg1
 		FireUIEvent("CIRCLE_RELOAD")
 	end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-22 22:46:04
+-- @Last Modified time: 2015-10-23 00:39:43
 local _L = JH.LoadLangPack
 
 TS = {
@@ -187,7 +187,7 @@ function _TS.OnBreathe()
 		else
 			local lifeper = p.nCurrentLife / p.nMaxLife
 			_TS.CastBar:Hide()
-			_TS.txt:SetText(GetObjName(p) .. string.format(" (%0.1f%%)", lifeper * 100))
+			_TS.txt:SetText(GetObjName(p, true) .. string.format(" (%0.1f%%)", lifeper * 100))
 			_TS.Life:SetPercentage(lifeper)
 		end
 
@@ -364,6 +364,7 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 				local p = GetNpc(v.id)
 				if p then
 					szName = JH.GetTemplateName(p, true)
+					Output(szName)
 					if tonumber(szName) then
 						szName = v.id
 					end
