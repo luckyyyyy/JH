@@ -21,3 +21,4 @@ DBM/data/DBM*
 */publisher.key
 0Base/About.ini
 update_lang.php
+JH_BookTip.lua

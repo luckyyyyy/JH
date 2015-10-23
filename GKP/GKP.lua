@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 11:58:28
+-- @Last Modified time: 2015-10-23 13:54:57
 
 -- 早期代码 需要重写
 
@@ -1022,8 +1022,8 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 							hBox:Icon(582):Hover(function(bHover)
 								if bHover then
 									local x, y = this:GetAbsPos()
-									local w, h = this:GetSize()
-									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1 .. v.nMoney .. g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP,136,255,255,0), 250, { x, y, w, h })
+									local w, h = this:GetSize()									
+									OutputTip(GetFormatText(v.szName .. g_tStrings.STR_TALK_HEAD_SAY1, 136) .. GetGoldText(v.nMoney, 136), 250, { x, y, w, h })
 								else
 									HideTip()
 								end

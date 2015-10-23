@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 00:54:56
+-- @Last Modified time: 2015-10-23 17:03:36
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1329,7 +1329,8 @@ function JH.AddHotKey(szName, szTitle, fnAction)
 	end
 	tinsert(_JH.tHotkey, { szName = szName, szTitle = szTitle, fnAction = fnAction })
 end
-
+-- (KObject) JH.GetTarget() -- 取得当前目标操作对象
+-- (KObject) JH.GetTarget([number dwType, ]number dwID)	-- 根据 dwType 类型和 dwID 取得操作对象
 function JH.GetTarget(dwType, dwID)
 	if not dwType then
 		local me = GetClientPlayer()

@@ -1,12 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 12:01:27
+-- @Last Modified time: 2015-10-23 18:28:01
 local _L = JH.LoadLangPack
 
 TS = {
 	bEnable       = true,  -- 开启
-	bInDungeon    = false, -- 只有副本内才开启
+	bInDungeon    = true, -- 只有副本内才开启
 	nBGAlpha      = 30,    -- 背景透明度
 	nMaxBarCount  = 7,     -- 最大列表
 	bForceColor   = false, -- 根据门派着色
