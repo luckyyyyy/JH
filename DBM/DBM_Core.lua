@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-22 22:23:36
+-- @Last Modified time: 2015-10-23 02:33:55
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -14,7 +14,6 @@ local FireUIEvent, Table_BuffIsVisible, Table_IsSkillShow = FireUIEvent, Table_B
 local GetPureText, GetFormatText, GetHeadTextForceFontColor = GetPureText, GetFormatText, GetHeadTextForceFontColor
 local TargetPanel_SetOpenState = TargetPanel_SetOpenState
 local JH_Split, JH_Trim = JH.Split, JH.Trim
-local DBM_PLAYER_NAME = "NONE"
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
 local DBM_MAX_INTERVAL = 300
 local DBM_MAX_CACHE = 2000 -- 最大的cache数量 主要是UI的问题
@@ -34,7 +33,7 @@ local function GetDataPath()
 	if DBM.bCommon then
 		return "DBM/Common/DBM.jx3dat"
 	else
-		return "DBM/" .. DBM_PLAYER_NAME .. "/DBM.jx3dat"
+		return "DBM/" .. GetUserRoleName() .. "/DBM.jx3dat"
 	end
 end
 
@@ -1308,35 +1307,26 @@ function D.GetData(szType, dwID, nLevel)
 end
 
 function D.LoadUserData()
-	if DBM_PLAYER_NAME == "NONE" then
-		local me = GetClientPlayer()
-		if me then
-			if IsRemotePlayer(me.dwID) and not DBM.bCommon then
-				return
-			end
-			DBM_PLAYER_NAME = me.szName
-			local data = JH.LoadLUAData(GetDataPath())
-			if data then
-				for k, v in pairs(D.FILE) do
-					D.FILE[k] = data[k] or {}
-				end
-			else
-				local szLang = select(3, GetVersion())
-				local config = {
-					nMode = 1,
-					tList = { -- 初始化读取的数据 以后会增加 doodad
-						BUFF    = true,
-						DEBUFF  = true,
-						CASTING = true,
-						NPC     = true,
-						TALK    = true,
-						CIRCLE  = true
-					},
-					szFileName = szLang ..  "_default.jx3dat",
-				}
-				D.LoadConfigureFile(config)
-			end
+	local data = JH.LoadLUAData(GetDataPath())
+	if data then
+		for k, v in pairs(D.FILE) do
+			D.FILE[k] = data[k] or {}
 		end
+	else
+		local szLang = select(3, GetVersion())
+		local config = {
+			nMode = 1,
+			tList = { -- 初始化读取的数据 以后会增加 doodad
+				BUFF    = true,
+				DEBUFF  = true,
+				CASTING = true,
+				NPC     = true,
+				TALK    = true,
+				CIRCLE  = true
+			},
+			szFileName = szLang ..  "_default.jx3dat",
+		}
+		D.LoadConfigureFile(config)
 	end
 end
 
@@ -1555,6 +1545,6 @@ local ui = {
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
 JH.RegisterEvent("LOGIN_GAME", D.Init)
-JH.RegisterEvent("LOADING_END", D.LoadUserData)
+JH.RegisterEvent("PLAYER_ENTER_GAME", D.LoadUserData)
 JH.RegisterExit(D.SaveData)
 JH.RegisterBgMsg("DBM_SHARE", D.OnShare)
