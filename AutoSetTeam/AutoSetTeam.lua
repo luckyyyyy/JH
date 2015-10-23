@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-22 22:43:06
+-- @Last Modified time: 2015-10-23 12:03:53
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -556,7 +556,7 @@ JH.RegisterBgMsg("RL", function(nChannel, dwID, szName, data, bIsSelf)
 			JH.Confirm(_L("[%s] want to see your info, OK?", szName), function()
 				local me, nGongZhan = GetClientPlayer(), 0
 				if JH.GetBuff(3219) then nGongZhan = 1 end
-				if JH_About.CheckNameEx() then
+				if JH.bDebugClient then
 					JH.BgTalk(szName, "RL", "Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Author")
 				else
 					JH.BgTalk(szName, "RL", "Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Player")

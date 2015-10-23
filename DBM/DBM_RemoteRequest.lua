@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-21 13:35:01
+-- @Last Modified time: 2015-10-23 12:04:38
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -341,7 +341,7 @@ function W.SyncTeam()
 	if not me.IsInParty() then
 		return JH.Alert(_L["You are not in the team."])
 	end
-	if not JH.IsLeader() and not JH_About.CheckNameEx() then
+	if not JH.IsLeader() and not JH.bDebugClient then
 		return JH.Alert(_L["You are not team leader."])
 	end
 	JH.Confirm(_L["Confirm?"], function()

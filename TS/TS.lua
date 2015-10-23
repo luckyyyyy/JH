@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 00:39:43
+-- @Last Modified time: 2015-10-23 12:01:27
 local _L = JH.LoadLangPack
 
 TS = {
@@ -364,7 +364,6 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 				local p = GetNpc(v.id)
 				if p then
 					szName = JH.GetTemplateName(p, true)
-					Output(szName)
 					if tonumber(szName) then
 						szName = v.id
 					end

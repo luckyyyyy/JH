@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-06-30 07:17:35
+-- @Last Modified time: 2015-10-23 12:03:31
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS = {},
@@ -12,15 +12,11 @@ function _JH_About.PS.GetAuthorInfo()
 	return _L["AUTHOR"]
 end
 
-function _JH_About.CheckNameEx()
-	return JH.bDebugClient
-end
-
 function _JH_About.CheckInstall()
 	local me = GetClientPlayer()
 	local me, team = GetClientPlayer(), GetClientTeam()
-	if me.IsInParty() and JH.IsLeader() or _JH_About.CheckNameEx() then
-		if IsCtrlKeyDown() and _JH_About.CheckNameEx() then
+	if me.IsInParty() and JH.IsLeader() or JH.bDebugClient then
+		if IsCtrlKeyDown() and JH.bDebugClient then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "Author")
 			JH.Sysmsg2(_L["Checking command sent, please see talk channel"])
 		else
@@ -96,7 +92,7 @@ JH.RegisterBgMsg("JH_ABOUT", function(nChannel, dwID, szName, data, bIsSelf)
 			szServer,
 			JH.GetBuff(3219)
 		)
-	elseif data[1] == "info" and _JH_About.CheckNameEx() then
+	elseif data[1] == "info" and JH.bDebugClient then
 		_JH_About.ShowInfo(dwID, data)
 	elseif data[1] == "TeamAuth" then -- 防止有人睡着 遇到了不止一次了
 		local team = GetClientTeam()
@@ -175,6 +171,5 @@ local _About = {
 	OnTaboxCheck  = _JH_About.PS.OnTaboxCheck,
 	OnPanelActive = _JH_About.PS.OnPanelActive,
 	GetAuthorInfo = _JH_About.PS.GetAuthorInfo,
-	CheckNameEx   = _JH_About.CheckNameEx,
 }
 JH_About = setmetatable({}, { __metatable = true, __index = _About, __newindex = function() end } )
