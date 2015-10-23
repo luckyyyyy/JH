@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-22 22:42:01
+-- @Last Modified time: 2015-10-23 00:54:56
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -475,25 +475,29 @@ local function JH_GetNpcName(dwTemplateID)
 	return szName
 end
 
-function JH.GetTemplateName(dwTemplateID, bEmployer)
-	if type(dwTemplateID) == "userdata" then
+function JH.GetTemplateName(KObject, bEmployer)
+	if type(KObject) == "userdata" then
 		local szName
-		if IsPlayer(dwTemplateID.dwID) then
-			return dwTemplateID.szName
+		if IsPlayer(KObject.dwID) then
+			return KObject.szName
 		else
-			szName = JH_GetNpcName(dwTemplateID.dwTemplateID)
+			szName = JH_GetNpcName(KObject.dwTemplateID)
 		end
-		if bEmployer and dwTemplateID.dwEmployer ~= 0 then
-			local emp = GetPlayer(dwTemplateID.dwEmployer)
+		if bEmployer and KObject.dwEmployer ~= 0 then
+			local emp = GetPlayer(KObject.dwEmployer)
 			if not emp then
 				szName =  g_tStrings.STR_SOME_BODY .. g_tStrings.STR_PET_SKILL_LOG .. szName
 			else
-				szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. szName
+				if KObject.szName == "" then
+					szName = emp.szName
+				else
+					szName = emp.szName .. g_tStrings.STR_PET_SKILL_LOG .. szName
+				end
 			end
 		end
 		return szName
 	else
-		return JH_GetNpcName(dwTemplateID)
+		return JH_GetNpcName(KObject)
 	end
 end
 
