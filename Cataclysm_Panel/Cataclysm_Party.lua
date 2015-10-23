@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-22 22:44:02
+-- @Last Modified time: 2015-10-23 12:04:15
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -372,7 +372,7 @@ function CTM_Party_Base.OnItemRButtonClick()
 	else
 		table.insert(menu, { bDevide = true })
 		InsertPlayerMenu(menu, dwID)
-		if JH.IsLeader() or JH_About.CheckNameEx() then
+		if JH.IsLeader() or JH.bDebugClient then
 			table.insert(menu, { bDevide = true })
 			table.insert(menu, { szOption = _L["take back all permissions"], rgb = { 255, 255, 0 }, fnAction = function()
 				if JH.IsLeader() then
