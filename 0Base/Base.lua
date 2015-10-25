@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 17:03:36
+-- @Last Modified time: 2015-10-25 19:08:18
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2591,20 +2591,17 @@ function _GUI.Wnd:Change(fnAction)
 end
 
 -- (self) Instance:Focus()
--- (self) Instance:Focus(func fnAction)
+-- (self) Instance:Focus(func fnFocus[, func fnKillFocus])
 -- NOTICE£ºonly for WndWindow, WndEdit
-function _GUI.Wnd:Focus(OnSetFocus, OnKillFocus)
+function _GUI.Wnd:Focus(fnFocus, fnKillFocus)
 	local wnd = self.self
 	if self.type == "WndEdit" then
 		wnd = self.edit
 	end
-	if type(OnSetFocus) == "function" then
-		if OnSetFocus then
-			wnd.OnSetFocus = OnSetFocus
-		end
-		if OnKillFocus then
-			wnd.OnKillFocus = OnKillFocus
-		end
+	if type(fnFocus) == "function" then
+		fnKillFocus = fnKillFocus or fnFocus
+		wnd.OnSetFocus  = function() fnFocus(true) end
+		wnd.OnKillFocus = function() fnKillFocus(false) end
 	else
 		Station.SetFocusWindow(wnd)
 	end

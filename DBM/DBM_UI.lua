@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-21 13:53:50
+-- @Last Modified time: 2015-10-25 19:22:45
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -16,7 +16,8 @@ local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "CIRCLE", "TALK"
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local DBMUI_SEARCH
-local DBMUI_GLOBAL_SEARCH = false
+local DBMUI_GLOBAL_SEARCH = true
+local DBMUI_SEARCH_CACHE  = {}
 local DBMUI_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local DBMUI = {
 	tAnchor = {}
@@ -54,6 +55,7 @@ end
 local function RaidDragPanelIsOpened()
 	return Station.Lookup("Normal/RaidDragPanel") and Station.Lookup("Normal/RaidDragPanel"):IsVisible()
 end
+
 DBM_UI = {}
 
 function DBM_UI.OnFrameCreate()
@@ -77,7 +79,7 @@ function DBM_UI.OnFrameCreate()
 	this.hTreeH = this:Lookup("PageSet_Main/WndScroll_Tree", "Handle_Tree_List")
 
 	DBMUI_SEARCH = nil -- 重置搜索
-	DBMUI_GLOBAL_SEARCH = false
+	DBMUI_GLOBAL_SEARCH = true
 
 	this.hPageSet = this:Lookup("PageSet_Main")
 	local ui = GUI(this)
@@ -105,9 +107,13 @@ function DBM_UI.OnFrameCreate()
 			ui:Fetch("On"):Enable(true)
 		end)
 	end
-	ui:Fetch("PageSet_Main"):Append("WndEdit", "WndEdit_Search", { x = 50, y = 38, txt = g_tStrings.SEARCH, w = 500, h = 25 }):Focus(function()
-		if this:GetText() == g_tStrings.SEARCH then
-			this:SetText("")
+	ui:Fetch("PageSet_Main"):Append("WndEdit", "WndEdit_Search", { x = 50, y = 38, txt = g_tStrings.SEARCH, w = 500, h = 25 }):Focus(function(bFocus)
+		if bFocus then
+			if this:GetText() == g_tStrings.SEARCH then
+				this:SetText("")
+			end
+		else
+			FireUIEvent("DBMUI_FREECACHE")
 		end
 	end):Change(function(szText)
 		if JH.Trim(szText) == "" then
@@ -667,6 +673,26 @@ function DBMUI.RemoveData(dwMapID, nIndex, szMsg, bConfirm)
 	end
 end
 
+function DBMUI.GetSearchCache(data)
+	if not DBMUI_SEARCH_CACHE[DBMUI_SELECT_TYPE] then
+		DBMUI_SEARCH_CACHE[DBMUI_SELECT_TYPE] = {}
+	end
+	local tab = DBMUI_SEARCH_CACHE[DBMUI_SELECT_TYPE]
+	local szString
+	if data.dwMapID and data.nIndex then
+		if tab[data.dwMapID] and tab[data.dwMapID][data.nIndex] then
+			szString = tab[data.dwMapID][data.nIndex]
+		else
+			tab[data.dwMapID] = tab[data.dwMapID] or {}
+			tab[data.dwMapID][data.nIndex] = JsonEncode(data)
+			szString = tab[data.dwMapID][data.nIndex]
+		end
+	else -- 临时记录 暂时还不做缓存处理
+		szString = JsonEncode(data)
+	end
+	return szString
+end
+
 function DBMUI.CheckSearch(szType, data)
 	local szName = DBMUI.GetBoxInfo(szType, data)
 	if tostring(szName):find(DBMUI_SEARCH)
@@ -674,7 +700,7 @@ function DBMUI.CheckSearch(szType, data)
 		or (data.key and tostring(data.key):find(DBMUI_SEARCH)) -- 画圈圈
 		or (data.dwID and tostring(data.dwID):find(DBMUI_SEARCH))
 		or (data.szTarget and tostring(data.szTarget):find(DBMUI_SEARCH))
-		or (DBMUI_GLOBAL_SEARCH and JsonEncode(data):find(DBMUI_SEARCH))
+		or (DBMUI_GLOBAL_SEARCH and DBMUI.GetSearchCache(data):find(DBMUI_SEARCH))
 	then
 		return true
 	else
@@ -1656,12 +1682,16 @@ end
 
 function DBMUI.ClosePanel()
 	if DBMUI.IsOpened() then
+		FireUIEvent("DBMUI_FREECACHE")
 		Wnd.CloseWindow(DBMUI.GetFrame())
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		JH.RegisterGlobalEsc("DBM")
 	end
 end
 
+JH.RegisterEvent("DBMUI_FREECACHE", function()
+	 DBMUI_SEARCH_CACHE = {}
+end)
 JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePanel })
 JH.AddHotKey("JH_DBMUI", _L["Open DBM Panel"], DBMUI.TogglePanel)
 
