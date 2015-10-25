@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 02:33:55
+-- @Last Modified time: 2015-10-25 19:20:44
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -335,6 +335,7 @@ function D.CreateData(szEvent)
 		collectgarbage("collect")
 		D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
 	end
+	FireUIEvent("DBMUI_FREECACHE")
 	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
 end
 

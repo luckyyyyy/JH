@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 02:37:01
+-- @Last Modified time: 2015-10-25 19:09:29
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -846,9 +846,11 @@ function C.OpenDataPanel(data)
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 15, y = nY, txt = g_tStrings.STR_GUILD_REMARK, font = 27 }):Pos_()
 	ui:Append("WndEdit", { x = 25, y = nY + 10, w = 720, h = 24 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK, limit = 30, })
-	:Focus(function()
-		if this:GetText() == g_tStrings.STR_FRIEND_REMARK then
-			this:SetText("")
+	:Focus(function(bFocus)
+		if bFocus then
+			if this:GetText() == g_tStrings.STR_FRIEND_REMARK then
+				this:SetText("")
+			end
 		end
 	end):Change(function(szText)
 		if JH.Trim(szText) ~= "" then
