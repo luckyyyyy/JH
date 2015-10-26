@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-25 19:20:44
+-- @Last Modified time: 2015-10-26 23:04:19
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -153,7 +153,7 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "PLAYER_SAY" then
 		if not IsPlayer(arg1) then
-			D.OnCallMessage(GetPureText(arg0), arg3, arg1)
+			D.OnCallMessage(GetPureText(arg0), arg1)
 		end
 	elseif szEvent == "ON_WARNING_MESSAGE" then
 		D.OnCallMessage(arg1)
@@ -859,9 +859,15 @@ function D.OnNpcEvent(npc, bEnter)
 end
 
 -- 系统和NPC喊话处理
-function D.OnCallMessage(szContent, szNpcName, dwNpcID)
-	if szNpcName == "" then
-		szNpcName = "%"
+function D.OnCallMessage(szContent, dwNpcID)
+	local szNpcName
+	if dwNpcID then
+		local KObject = GetNpc(dwNpcID)
+		if KObject then
+			szNpcName = JH.GetTemplateName(KObject)
+		else
+			szNpcName = "%"
+		end
 	end
 	-- 近期记录
 	local me = GetClientPlayer()
