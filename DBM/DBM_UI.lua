@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-25 19:22:45
+-- @Last Modified time: 2015-10-29 15:50:20
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -16,7 +16,7 @@ local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "CIRCLE", "TALK"
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local DBMUI_SEARCH
-local DBMUI_GLOBAL_SEARCH = true
+local DBMUI_GLOBAL_SEARCH = false
 local DBMUI_SEARCH_CACHE  = {}
 local DBMUI_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local DBMUI = {
@@ -79,7 +79,7 @@ function DBM_UI.OnFrameCreate()
 	this.hTreeH = this:Lookup("PageSet_Main/WndScroll_Tree", "Handle_Tree_List")
 
 	DBMUI_SEARCH = nil -- 重置搜索
-	DBMUI_GLOBAL_SEARCH = true
+	DBMUI_GLOBAL_SEARCH = false
 
 	this.hPageSet = this:Lookup("PageSet_Main")
 	local ui = GUI(this)

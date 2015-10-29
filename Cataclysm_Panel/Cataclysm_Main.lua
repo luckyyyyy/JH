@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-31 16:27:16
+-- @Last Modified time: 2015-10-29 15:50:41
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -16,7 +16,7 @@ local CTM_CONFIG = {
 	tAnchor              = {},
 	nAutoLinkMode        = 5,
 	nHPShownMode2        = 2,
-	nHPShownNumMode      = 1,
+	nHPShownNumMode      = 3,
 	nShowMP              = false,
 	bHPHitAlert          = true,
 	nColoredName         = 1,
