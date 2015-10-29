@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-29 15:49:40
+-- @Last Modified time: 2015-10-29 23:42:32
 local _L = JH.LoadLangPack
 local Advertising = {
 	szDataFile = "TeamAD.jx3dat",
@@ -23,13 +23,12 @@ local Advertising = {
 function Advertising.SetEdit(edit, tab)
 	edit:ClearText()
 	for k, v in ipairs(tab) do
-		for kk, vv in ipairs(v) do
-			local text = "[link]"
-			if vv.text then text = vv.text end
-			edit:InsertObj(text, vv)
-		end
 		if v.text then
-			edit:InsertObj(v.text,v)
+			if v.type == "text" then
+				edit:InsertText(v.text)
+			else
+				edit:InsertObj(v.text, v)
+			end
 		end
 	end
 end
@@ -38,7 +37,7 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	Advertising.tADList = JH.LoadLUAData(Advertising.szDataFile) or {}
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Advertising"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Save Talk"], font = 27 }):Pos_()
 	nX = ui:Append("WndButton2", { x = 10, y = nY + 10, txt = _L["Save Advertising"] }):Click(function(bChecked)
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
 		local txt, data = edit:GetText(), edit:GetTextStruct()
@@ -48,7 +47,7 @@ function PS.OnPanelActive(frame)
 			GetUserInput(_L["Save Advertising Name"],function(text)
 				table.insert(Advertising.tADList, { key = text, txt = txt, ad = data })
 				JH.SaveLUAData(Advertising.szDataFile, Advertising.tADList, "\t")
-				JH.OpenPanel(_L["Advertising"])
+				JH.OpenPanel(_L["Save Talk"])
 			end, nil, nil, nil, nil, 5)
 		end
 	end):Pos_()
@@ -67,7 +66,7 @@ function PS.OnPanelActive(frame)
 			if IsCtrlKeyDown() then
 				table.remove(Advertising.tADList, k)
 				JH.SaveLUAData(Advertising.szDataFile, Advertising.tADList, "\t")
-				JH.OpenPanel(_L["Advertising"])
+				JH.OpenPanel(_L["Save Talk"])
 			else
 				local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
 				Advertising.SetEdit(edit, v.ad)
@@ -77,7 +76,7 @@ function PS.OnPanelActive(frame)
 	end
 end
 
-GUI.RegisterPanel(_L["Advertising"], 5958, g_tStrings.CHANNEL_CHANNEL, PS)
+GUI.RegisterPanel(_L["Save Talk"], 5958, g_tStrings.CHANNEL_CHANNEL, PS)
 -- public
 JH.TeamAD = {}
 JH.TeamAD.SetEdit = Advertising.SetEdit
