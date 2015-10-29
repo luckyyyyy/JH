@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 12:04:38
+-- @Last Modified time: 2015-10-29 15:49:47
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -299,13 +299,7 @@ function W.DoanloadData(data)
 		-- 简单本地缓存一下
 		local szPath = JH.GetAddonInfo().szRootPath .. "DBM/data/"
 		local szFileName = "DBM-Remote_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
-		if IsFileExist(szPath .. szFileName) then -- 本地文件存在则优先
-			W.CallDoanloadData(data, szPath, szFileName)
-		else
-			JH.Confirm(_L["Author:"] .. data.author .. "\n" .. _L["Title:"] .. data.title ,function()
-				W.CallDoanloadData(data, szPath, szFileName)
-			end, nil, _L["Download Data"])
-		end
+		W.CallDoanloadData(data, szPath, szFileName)
 	end
 end
 
@@ -321,6 +315,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 	if IsFileExist(szPath .. szFileName) then -- 本地文件存在则优先
 		fnAction(szFileName)
 	else -- 否则 remote request
+		JH.Topmsg(_L["Loading..., please wait."])
 		JH.RemoteRequest(W.szDownload .. data.tid .. "/" .. data.md5 .."?lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 			local tab, err = JH.JsonToTable(szDoc)
 			if err then

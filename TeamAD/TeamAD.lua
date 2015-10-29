@@ -1,11 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-21 14:47:20
+-- @Last Modified time: 2015-10-29 15:49:40
 local _L = JH.LoadLangPack
-local TeamAD = {
+local Advertising = {
 	szDataFile = "TeamAD.jx3dat",
-	szAD = _L["Edit AD"],
 	tItem = {
 		{ dwTabType = 5, dwIndex = 24430, nUiId = 153192 },
 		{ dwTabType = 5, dwIndex = 23988, nUiId = 152748 },
@@ -21,79 +20,64 @@ local TeamAD = {
 }
 
 
-TeamAD.SetEdit = function(edit,tab) -- 略奇葩 看不懂。。。 神经病一样的设置
+function Advertising.SetEdit(edit, tab)
 	edit:ClearText()
-	for kk,vv in ipairs(tab) do
-		for kkk,vvv in ipairs(vv) do
+	for k, v in ipairs(tab) do
+		for kk, vv in ipairs(v) do
 			local text = "[link]"
-			if vvv.text then text = vvv.text end
-			edit:InsertObj(text,vvv)
+			if vv.text then text = vv.text end
+			edit:InsertObj(text, vv)
 		end
-		if vv.text then
-			edit:InsertObj(vv.text,vv)
+		if v.text then
+			edit:InsertObj(v.text,v)
 		end
 	end
 end
-TeamAD.PS = {}
-TeamAD.PS.OnPanelActive = function(frame)
-	TeamAD.tADList = JH.LoadLUAData(TeamAD.szDataFile) or {}
+
+local PS = {}
+function PS.OnPanelActive(frame)
+	Advertising.tADList = JH.LoadLUAData(Advertising.szDataFile) or {}
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["TeamAD"], font = 27 }):Pos_()
-	nX,nY = ui:Append("WndEdit","WndEditAD", { x = 10, y = 28,w = 500, h = 80,multi = true,limit = 164 }):Pos_()
-	TeamAD.edit = ui:Fetch("WndEditAD").edit
-	nX = ui:Append("WndButton2", { x = 10, y = nY + 10 })
-	:Text(_L["Save AD"]):Click(function(bChecked)
-		local ad = ui:Fetch("WndEditAD"):Text()
-		local data = TeamAD.edit:GetTextStruct()
-		GetUserInput(_L["Save Name"],function(txt)
-			if #TeamAD.tADList == 18 then return end
-			table.insert(TeamAD.tADList,{key = txt,txt = ad,ad = data})
-			TeamAD.SetEdit(TeamAD.edit,data)
-			JH.SaveLUAData(TeamAD.szDataFile,TeamAD.tADList, "\t")
-			JH.OpenPanel(_L["TeamAD"])
-		end,nil,nil,nil,nil,5)
-	end):Pos_()
-	nX = ui:Append("WndButton2", { x = nX + 10, y = nY + 10 })
-	:Text(_L["push Edit"]):Click(function(bChecked)
-		local ad = ui:Fetch("WndEditAD"):Text()
-		local data = TeamAD.edit:GetTextStruct()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Advertising"], font = 27 }):Pos_()
+	nX = ui:Append("WndButton2", { x = 10, y = nY + 10, txt = _L["Save Advertising"] }):Click(function(bChecked)
 		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-		TeamAD.SetEdit(edit,data)
-		Station.SetFocusWindow(edit)
+		local txt, data = edit:GetText(), edit:GetTextStruct()
+		if JH.Trim(txt) == "" then
+			JH.Alert(_L["Chat box is empty"])
+		else
+			GetUserInput(_L["Save Advertising Name"],function(text)
+				table.insert(Advertising.tADList, { key = text, txt = txt, ad = data })
+				JH.SaveLUAData(Advertising.szDataFile, Advertising.tADList, "\t")
+				JH.OpenPanel(_L["Advertising"])
+			end, nil, nil, nil, nil, 5)
+		end
 	end):Pos_()
-	nX,nY = ui:Append("WndButton2", { x = nX + 10, y = nY + 10 })
-	:Text(_L["Import"]):Click(function()
-		local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-		TeamAD.SetEdit(TeamAD.edit,edit:GetTextStruct())
-	end):Pos_()
-	local t = TeamAD.tItem
-	for k, v in ipairs(t) do
-		if k % #t == 1 then nX = 10 end
-		nX = ui:Append("Box", { x = nX + 12, y = nY + 5, w = 38, h = 38 }):ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex):Pos_()
+	nX, nY = ui:Append("Text", { x = nX + 5, y = nY + 10, txt = _L["Advertising Tips"] }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["Gadgets"], font = 27 }):Pos_()
+	for k, v in ipairs(Advertising.tItem) do
+		nX = ui:Append("Box", { x = (k - 1) * 48 + 10, y = nY + 10, w = 38, h = 38 }):ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex):Pos_()
 	end
-	nY = nY + 48
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["AD List"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY + 53, txt = _L["Advertising List"], font = 27 }):Pos_()
 	nY = nY - 10
-	for k,v in ipairs(TeamAD.tADList) do
+	for k,v in ipairs(Advertising.tADList) do
 		if k % 4 == 1 then nX = 10 end
-		nX = ui:Append("WndButton2", { x = nX + 15, y = nY + math.ceil(k/4) * 32 })
-		:Text(v.key):Click(function()
+		nX = ui:Append("WndButton2", { x = nX + 15, y = nY + math.ceil(k/4) * 32, txt = v.key })
+		:Click(function()
 			local txt = GUI(this):Text()
 			if IsCtrlKeyDown() then
-				table.remove(TeamAD.tADList,k)
-				JH.SaveLUAData(TeamAD.szDataFile,TeamAD.tADList, "\t")
-				JH.OpenPanel(_L["TeamAD"])
+				table.remove(Advertising.tADList, k)
+				JH.SaveLUAData(Advertising.szDataFile, Advertising.tADList, "\t")
+				JH.OpenPanel(_L["Advertising"])
 			else
 				local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
-				TeamAD.SetEdit(edit,v.ad)
-				TeamAD.SetEdit(TeamAD.edit,v.ad)
+				Advertising.SetEdit(edit, v.ad)
 				Station.SetFocusWindow(edit)
 			end
 		end):Pos_()
 	end
 end
 
-GUI.RegisterPanel(_L["TeamAD"], 5958, g_tStrings.CHANNEL_CHANNEL, TeamAD.PS)
+GUI.RegisterPanel(_L["Advertising"], 5958, g_tStrings.CHANNEL_CHANNEL, PS)
 -- public
 JH.TeamAD = {}
-JH.TeamAD.SetEdit = TeamAD.SetEdit
+JH.TeamAD.SetEdit = Advertising.SetEdit

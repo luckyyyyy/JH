@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 18:28:01
+-- @Last Modified time: 2015-10-29 15:50:29
 local _L = JH.LoadLangPack
 
 TS = {
@@ -169,7 +169,7 @@ function _TS.OnDpsBreathe()
 				nTotal = nTotal + v["nTotalEffect"]
 			end
 			local nDps = nTotal / math.max(nTimeDuring, 1)
-			_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%dw", math.floor(nDps / 10000))
+			_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%dk", math.floor(nDps / 1000))
 		end
 	end
 end
