@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-25 19:09:29
+-- @Last Modified time: 2015-10-30 00:10:05
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -421,7 +421,6 @@ function C.DrawBorder(tar, sha, nAngle, nRadius, col, dwType)
 	until dwRad1 > dwRad2
 end
 
-
 function C.OnNpcEnter(szEvent)
 	local npc = GetNpc(arg0)
 	local t = C.tList[TARGET.NPC][npc.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(npc)]
@@ -475,106 +474,108 @@ function C.OnBreathe()
 	for k, v in pairs(C.tScrutiny[TARGET.NPC]) do
 		local data = v
 		local KGNpc = GetNpc(k)
-		if not C.tCache[TARGET.NPC][k] then
-			C.tCache[TARGET.NPC][k] = {
-				Circle = {},
-				Line = {},
-			}
-		end
-		if data.tCircles then
-			if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
-			for i = #data.tCircles, 1, -1 do
-				local kk, vv = i, data.tCircles[i]
-				if vv.bEnable then
-					local sha = C.tCache[TARGET.NPC][k].Circle
-					if not sha[kk] then
-						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
-					end
-					if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-						sha[kk].nFaceDirection = KGNpc.nFaceDirection
-						local __Alpha
-						if #data.tCircles == 2 then
-							__Alpha = data.tCircles[1].nAngle
+		if not data.bEmployer or data.bEmployer and KGNpc.dwEmployer == me.dwID then
+			if not C.tCache[TARGET.NPC][k] then
+				C.tCache[TARGET.NPC][k] = {
+					Circle = {},
+					Line = {},
+				}
+			end
+			if data.tCircles then
+				if #data.tCircles > CIRCLE_MAX_CIRCLE then return end
+				for i = #data.tCircles, 1, -1 do
+					local kk, vv = i, data.tCircles[i]
+					if vv.bEnable then
+						local sha = C.tCache[TARGET.NPC][k].Circle
+						if not sha[kk] then
+							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
 						end
-						C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
-					end
-					if Circle.bBorder and vv.bBorder then
-						local key = "B" .. kk
-						if not sha[key] then
-							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
+						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+							sha[kk].nFaceDirection = KGNpc.nFaceDirection
+							local __Alpha
+							if #data.tCircles == 2 then
+								__Alpha = data.tCircles[1].nAngle
+							end
+							C.DrawShape(KGNpc, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
 						end
-						if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
-							sha[key].nFaceDirection = KGNpc.nFaceDirection
-							C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+						if Circle.bBorder and vv.bBorder then
+							local key = "B" .. kk
+							if not sha[key] then
+								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
+							end
+							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- 面向不对 重绘
+								sha[key].nFaceDirection = KGNpc.nFaceDirection
+								C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
+							end
 						end
 					end
 				end
 			end
-		end
-		if data.bDrawName then
-			local tSelectObject = Scene_SelectObject("nearest")
-			if (KGNpc.CanSeeName() and tSelectObject[1]["ID"] == KGNpc.dwID) or not KGNpc.CanSeeName() then
-				tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
+			if data.bDrawName then
+				local tSelectObject = Scene_SelectObject("nearest")
+				if (KGNpc.CanSeeName() and tSelectObject[1]["ID"] == KGNpc.dwID) or not KGNpc.CanSeeName() then
+					tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
+				end
 			end
-		end
-		if data.bTarget then
-			local sha = C.tCache[TARGET.NPC][k].Line
-			local dwType, dwID = KGNpc.GetTarget()
-			local tar = JH.GetTarget(dwType, dwID)
-			if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and (not sha.item or sha.item and sha.item.dwID ~= dwID) and tar then
-				if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
-					sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-					sha.item.dwID = dwID
-					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
-					C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
-				elseif sha.item then
+			if data.bTarget then
+				local sha = C.tCache[TARGET.NPC][k].Line
+				local dwType, dwID = KGNpc.GetTarget()
+				local tar = JH.GetTarget(dwType, dwID)
+				if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and (not sha.item or sha.item and sha.item.dwID ~= dwID) and tar then
+					if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
+						sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
+						sha.item.dwID = dwID
+						local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
+						C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
+					elseif sha.item then
+						C.shLine:RemoveItem(sha.item)
+						C.tCache[TARGET.NPC][k].Line = {}
+					end
+				elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
 					C.shLine:RemoveItem(sha.item)
 					C.tCache[TARGET.NPC][k].Line = {}
 				end
-			elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
-				C.shLine:RemoveItem(sha.item)
-				C.tCache[TARGET.NPC][k].Line = {}
-			end
-			if dwID ~= 0 and dwType == TARGET.PLAYER then
-				local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
-				tinsert(C.tDrawText, { KGNpc.dwID, JH.GetObjName(tar), col })
-			end
-			if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
-				local szName = JH.GetObjName(tar)
-				C.tTarget[KGNpc.dwID] = dwID
-				if data.bScreenHead then
-					FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
+				if dwID ~= 0 and dwType == TARGET.PLAYER then
+					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
+					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetObjName(tar), col })
 				end
-				if me.IsInRaid() then
-					if DBM.bPushWhisperChannel and data.bWhisperChat then
-						JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, g_tStrings.STR_YOU))
+				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
+					local szName = JH.GetObjName(tar)
+					C.tTarget[KGNpc.dwID] = dwID
+					if data.bScreenHead then
+						FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
 					end
-					if DBM.bPushTeamChannel and data.bTeamChat then
-						JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
+					if me.IsInRaid() then
+						if DBM.bPushWhisperChannel and data.bWhisperChat then
+							JH.Talk(szName, _L("Warning: %s staring at %s", data.szNote or data.key, g_tStrings.STR_YOU))
+						end
+						if DBM.bPushTeamChannel and data.bTeamChat then
+							JH.Talk(_L("Warning: %s staring at %s", data.szNote or data.key, szName))
+						end
 					end
-				end
-				if data.bFlash then
-					if me.dwID == dwID then
-						local xml = {}
-						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
-						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
-						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-						FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
-						FireUIEvent("JH_FS_CREATE", "Circle", { nTime  = 3, col = { 255, 0, 0 }, bFlash = true })
-					else
-						local xml = {}
-						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
-						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
-						tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
-						tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
-						FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+					if data.bFlash then
+						if me.dwID == dwID then
+							local xml = {}
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(g_tStrings.STR_YOU, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+							FireUIEvent("JH_FS_CREATE", "Circle", { nTime  = 3, col = { 255, 0, 0 }, bFlash = true })
+						else
+							local xml = {}
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(data.szNote or data.key, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["staring at"], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(_L["["], 44, 255, 255, 255))
+							tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+							tinsert(xml, GetFormatText(_L["]"], 44, 255, 255, 255))
+							FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+						end
 					end
 				end
 			end
@@ -839,6 +840,12 @@ function C.OpenDataPanel(data)
 	nX = ui:Append("WndCheckBox", { x = 25, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
 	:Click(function(bChecked)
 		data.bDrawName = bChecked
+	end):Pos_()
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bEmployer, txt = _L["Check Employer"] })
+	:Enable(data.dwType == TARGET.NPC):Click(function(bChecked)
+		data.bEmployer = bChecked
+		FireUIEvent("CIRCLE_RELOAD")
+		C.OpenDataPanel(data)
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bDoodadLine, txt = _L["Draw Doodad Line"] })
 	:Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
