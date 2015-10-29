@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 12:03:53
+-- @Last Modified time: 2015-10-29 19:35:32
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -273,6 +273,7 @@ do
 		end)
 	end
 end
+
 JH.RegisterEvent("ON_FRAME_CREATE", function()
 	if JH_AutoSetTeam.bAppendMark then
 		if arg0 and arg0:GetName() == "WorldMark" then
@@ -353,37 +354,36 @@ local function GetEvent()
 end
 
 
--- RequestList
-RequestList = {}
-
-local _RL = {
-	tRequestList = {},
-	tRequestCache = {},
-	tDetails = {},
-	szIniFile = JH.GetAddonInfo().szRootPath .. "AutoSetTeam/ui/RequestList.ini",
+local PartyRequest = {
+	tEquipRequest = {},
+	tDetails      = {},
+	szIniFile     = JH.GetAddonInfo().szRootPath .. "AutoSetTeam/ui/PartyRequest.ini",
 }
+PartyRequest.mt = { __call = function(me, szName)
+	for k, v in ipairs(me) do
+		if v.szName == szName then
+			return true
+		end
+	end
+end }
+PartyRequest.tRequestList  = setmetatable({}, PartyRequest.mt)
 
-function RequestList.OnFrameCreate()
-	_RL.bg = this:Lookup("", "Image_Bg")
-	local ui = GUI(this)
-	ui:Point():Title(g_tStrings.STR_ARENA_INVITE):RegisterClose(_RL.ClosePanel, false, true)
+function PartyRequest.GetFrame()
+	return Station.Lookup("Normal2/PartyRequest")
 end
 
-function _RL.GetFrame()
-	return Station.Lookup("Normal2/RequestList")
-end
-
-function _RL.OpenPanel()
-	if not _RL.GetFrame() then
-		Wnd.OpenWindow(_RL.szIniFile, "RequestList")
+function PartyRequest.OpenPanel()
+	if not PartyRequest.GetFrame() then
+		local frame = Wnd.OpenWindow(PartyRequest.szIniFile, "PartyRequest")
+		PartyRequest.bg = frame:Lookup("", "Image_Bg")
+		GUI(frame):Point():Title(g_tStrings.STR_ARENA_INVITE):RegisterClose(PartyRequest.ClosePanel, false, true)
 	end
 end
 
-function _RL.ClosePanel(bCompulsory)
+function PartyRequest.ClosePanel(bCompulsory)
 	local fnAction = function()
-		Wnd.CloseWindow(_RL.GetFrame())
-		_RL.tRequestList = {}
-		_RL.tRequestCache = {}
+		Wnd.CloseWindow(PartyRequest.GetFrame())
+		PartyRequest.tRequestList = setmetatable({}, PartyRequest.mt)
 	end
 	if bCompulsory then
 		fnAction()
@@ -391,59 +391,92 @@ function _RL.ClosePanel(bCompulsory)
 		JH.Confirm(_L["Clear list and close?"], fnAction)
 	end
 end
-
-function _RL.OnApplyRequest()
-	if not JH_AutoSetTeam.bRequestList then return end
-	local MsgBox, szName = Station.Lookup("Topmost/MB_ATMP_" .. arg0), "ATMP_" .. arg0
-	if not MsgBox then
-		MsgBox, szName = Station.Lookup("Topmost/MB_IMTP_" .. arg0), "IMTP_" .. arg0
+function PartyRequest.OnPeekPlayer()
+	if PartyRequest.tEquipRequest[arg1] then
+		if arg0 == PEEK_OTHER_PLAYER_RESPOND.SUCCESS then
+			local me = GetClientPlayer()
+			local dwType, dwID = me.GetTarget()
+			JH.SetTarget(arg1)
+			JH.SetTarget(dwType, dwID)
+			local p = GetPlayer(arg1)
+			if p then
+				local mnt = p.GetKungfuMount()
+				local data = { nil, arg1, mnt and mnt.dwSkillID or nil, false }
+				PartyRequest.Feedback(p.szName, data)
+			end
+		end
+		PartyRequest.tEquipRequest[arg1] = nil
 	end
-	if MsgBox then
-		local btn = MsgBox:Lookup("Wnd_All/Btn_Option1")
-		local btn2 = MsgBox:Lookup("Wnd_All/Btn_Option2")
+end
+function PartyRequest.OnApplyRequest()
+	if not JH_AutoSetTeam.bRequestList then 
+		return 
+	end
+	local hMsgBox = Station.Lookup("Topmost/MB_ATMP_" .. arg0) or Station.Lookup("Topmost/MB_IMTP_" .. arg0)
+	if hMsgBox then
+		local btn  = hMsgBox:Lookup("Wnd_All/Btn_Option1")
+		local btn2 = hMsgBox:Lookup("Wnd_All/Btn_Option2")
 		if btn and btn:IsEnabled() then
-			if not _RL.tRequestCache[arg0] then
-				table.insert(_RL.tRequestList, {
-					szName = arg0,
-					nCamp = arg1,
+			if not PartyRequest.tRequestList(arg0) then
+				local tab = {
+					szName  = arg0,
+					nCamp   = arg1,
 					dwForce = arg2,
-					nLevel = arg3,
+					nLevel  = arg3,
 					fnAction = function()
 						pcall(btn.fnAction)
 					end,
 					fnCancelAction = function()
 						pcall(btn2.fnAction)
 					end
-				})
+				}
+				table.insert(PartyRequest.tRequestList, tab)
 			end
-			MsgBox.fnAutoClose = nil
-			MsgBox.fnCancelAction = nil
-			MsgBox.szCloseSound = nil
-			CloseMessageBox(szName)
-			_RL.tRequestCache[arg0] = true
-			pcall(_RL.UpdateFrame)
+			local data
+			local fnGetEqueip = function(dwID)
+				PartyRequest.tEquipRequest[dwID] = true
+				ViewInviteToPlayer(dwID, true)
+			end
+			if MY_Farbnamen and MY_Farbnamen.Get then
+				data = MY_Farbnamen.Get(arg0)
+				if data then
+					fnGetEqueip(data.dwID)
+				end
+			end
+			if not data then
+				for k, v in pairs(JH.GetAllPlayer()) do
+					if v.szName == arg0 then
+						fnGetEqueip(v.dwID)
+						break
+					end
+				end
+			end
+			hMsgBox.fnAutoClose = nil
+			hMsgBox.fnCancelAction = nil
+			hMsgBox.szCloseSound = nil
+			Wnd.CloseWindow(hMsgBox)
+			PartyRequest.UpdateFrame()
 		end
 	end
 end
 
-function _RL.UpdateFrame()
-	if not _RL.GetFrame() then
-		_RL.OpenPanel()
+function PartyRequest.UpdateFrame()
+	if not PartyRequest.GetFrame() then
+		PartyRequest.OpenPanel()
 	end
-	local frame = _RL.GetFrame()
+	local frame = PartyRequest.GetFrame()
 	-- update
-	if #_RL.tRequestList == 0 then
-		return _RL.ClosePanel(true)
+	if #PartyRequest.tRequestList == 0 then
+		return PartyRequest.ClosePanel(true)
 	end
-	local camp = { [0] = -1, [1] = 43, [2] = 40 }
-	local container = frame:Lookup("WndContainer_Request")
-	container:Clear()
+	local hContainer = frame:Lookup("WndContainer_Request")
+	hContainer:Clear()
 	local cover = "ui/Image/Common/CoverShadow.UITex"
-	for k, v in ipairs(_RL.tRequestList) do
-		local wnd = container:AppendContentFromIni(_RL.szIniFile, "WndWindow_Item", k)
+	for k, v in ipairs(PartyRequest.tRequestList) do
+		local wnd = hContainer:AppendContentFromIni(PartyRequest.szIniFile, "WndWindow_Item", k)
 		local ui = GUI(wnd)
-		local dat = _RL.tDetails[v.szName]
-		if dat then
+		local dat = PartyRequest.tDetails[v.szName]
+		if dat and dat.dwKungfuID then
 			ui:Append("Image", { x = 5, y = 5, w = 40, h = 40 }):File(Table_GetSkillIconID(dat.dwKungfuID, 1))
 			if dat.nGongZhan == 1 then
 				ui:Append("Image", { x = 25, y = 30, w = 15, h = 15 }):File(Table_GetBuffIconID(3219, 1))
@@ -451,8 +484,8 @@ function _RL.UpdateFrame()
 		else
 			ui:Append("Image", { x = 5, y = 5, w = 40, h = 40 }):File(GetForceImage(v.dwForce))
 		end
-		ui:Append("Image", { x = 215, y = 15, w = 20, h = 20 }):File("UI/Image/Button/ShopButton.uitex", camp[v.nCamp])
-		ui:Append("Image", { x = 0, y = 42, w = 420, h = 8 }):File("UI/Image/UICommon/CommonPanel.UITex", 45)
+		ui:Append("Image", { x = 215, y = 15, w = 20, h = 20 }):File("ui/Image/UICommon/CommonPanel2.UITex", GetCampImageFrame(v.nCamp) or -1)
+		ui:Append("Image", { x = 0, y = 42, w = 420, h = 8 }):File("ui/Image/UICommon/CommonPanel.UITex", 45)
 		ui:Append("Image", "Cover", { x = 0, y = 0, w = 420, h = 50 }):File(cover, 2):Toggle(false)
 		ui:Hover(function(bHover)
 			if bHover then
@@ -461,8 +494,10 @@ function _RL.UpdateFrame()
 				ui:Fetch("Cover"):Toggle(false)
 			end
 		end).self.OnRButtonDown = function()
-			JH.SwitchChat(v.szName)
-			Station.SetFocusWindow(Station.Lookup("Lowest2/EditBox/Edit_Input"))
+			local menu = {}
+			InsertPlayerCommonMenu(menu, 0, v.szName)
+			menu[4] = nil
+			PopupMenu(menu)
 		end
 		if dat and dat.bEx == "Author" then
 			ui:Append("Text",{ x = 47, y = 8, txt = v.szName, font = 15, color = { 255, 255, 0 } })
@@ -475,11 +510,10 @@ function _RL.UpdateFrame()
 				EditBox_AppendLinkPlayer(v.szName)
 			end
 		end
-		ui:Append("WndButton2", { x = 240, y = 10,w = 60, h = 34, txt = _L["Accept"] }):Click(function()
+		ui:Append("WndButton2", { x = 240, y = 10, w = 60, h = 34, txt = g_tStrings.STR_ACCEPT }):Click(function()
 			v.fnAction()
-			table.remove(_RL.tRequestList, k)
-			_RL.tRequestCache[v.szName] = nil
-			_RL.UpdateFrame()
+			table.remove(PartyRequest.tRequestList, k)
+			PartyRequest.UpdateFrame()
 		end):Hover(function(bHover)
 			if bHover then
 				ui:Fetch("Cover"):File(cover, 3):Toggle(true)
@@ -487,11 +521,10 @@ function _RL.UpdateFrame()
 				ui:Fetch("Cover"):Toggle(false)
 			end
 		end)
-		ui:Append("WndButton2",{ x = 305, y = 10, w = 60, h = 34, txt = _L["Refuse"] }):Click(function()
+		ui:Append("WndButton2", { x = 305, y = 10, w = 60, h = 34, txt = g_tStrings.STR_REFUSE }):Click(function()
 			v.fnCancelAction()
-			table.remove(_RL.tRequestList,k)
-			_RL.tRequestCache[v.szName] = nil
-			_RL.UpdateFrame()
+			table.remove(PartyRequest.tRequestList, k)
+			PartyRequest.UpdateFrame()
 		end):Hover(function(bHover)
 			if bHover then
 				ui:Fetch("Cover"):File(cover, 4):Toggle(true)
@@ -500,7 +533,7 @@ function _RL.UpdateFrame()
 			end
 		end)
 		if dat then
-			ui:Append("WndButton2", "Details",{ x = 370, y = 10, w = 90, h = 34, txt = g_tStrings.STR_LOOKUP }):Click(function()
+			ui:Append("WndButton2", "Details",{ x = 370, y = 10, w = 90, h = 34, txt = g_tStrings.STR_LOOKUP, color = { 255, 255, 0 } }):Click(function()
 				ViewInviteToPlayer(dat.dwID)
 			end):Hover(function(bHover)
 				if bHover then
@@ -524,32 +557,34 @@ function _RL.UpdateFrame()
 		end
 	end
 	local w, h = 470, 50
-	local n = container:GetAllContentCount()
-	container:SetSize(w, h * n)
-	frame:SetSize(w, h * n + 30)
+	local n = hContainer:GetAllContentCount()
+	hContainer:SetH(h * n)
+	frame:SetH(h * n + 30)
 	frame:SetDragArea(0, 0, w, h * n + 30)
-	_RL.bg:SetSize(w, h * n + 30)
-	container:FormatAllContentPos()
+	PartyRequest.bg:SetH(h * n + 30)
+	hContainer:FormatAllContentPos()
 end
 
-function _RL.Feedback(szName, data)
+function PartyRequest.Feedback(szName, data)
 	local dat = {
 		dwID       = data[2],
 		dwKungfuID = data[3],
 		nGongZhan  = data[4],
 		bEx        = data[5],
 	}
-	_RL.tDetails[szName] = dat
-	pcall(_RL.UpdateFrame)
+	PartyRequest.tDetails[szName] = dat
+	PartyRequest.UpdateFrame()
 end
 
-function _RL.GetEvent()
+function PartyRequest.GetEvent()
 	if JH_AutoSetTeam.bRequestList then
 		return
-			{ "PARTY_INVITE_REQUEST", _RL.OnApplyRequest },
-			{ "PARTY_APPLY_REQUEST", _RL.OnApplyRequest }
+			{ "PEEK_OTHER_PLAYER"   , PartyRequest.OnPeekPlayer   },
+			{ "PARTY_INVITE_REQUEST", PartyRequest.OnApplyRequest },
+			{ "PARTY_APPLY_REQUEST" , PartyRequest.OnApplyRequest }
 	end
 end
+
 JH.RegisterBgMsg("RL", function(nChannel, dwID, szName, data, bIsSelf)
 	if not bIsSelf then
 		if data[1] == "ASK" then
@@ -563,7 +598,7 @@ JH.RegisterBgMsg("RL", function(nChannel, dwID, szName, data, bIsSelf)
 				end
 			end)
 		elseif data[1] == "Feedback" then
-			_RL.Feedback(szName, data)
+			PartyRequest.Feedback(szName, data)
 		end
 	end
 end)
@@ -895,7 +930,7 @@ function PS.OnPanelActive(frame)
 	end)
 	nX, nY = ui:Append("WndCheckBox", { x = 230, y = nY + 10, checked = JH_AutoSetTeam.bRequestList, txt = _L["RequestList"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bRequestList = bChecked
-		JH.RegisterInit("RequestList", _RL.GetEvent())
+		JH.RegisterInit("RequestList", PartyRequest.GetEvent())
 	end):Pos_()
 	ui:Append("WndCheckBox", { x = 10, y = nY, checked = JH_AutoSetTeam.bTeamInfo, txt = _L["Team Message"] }):Click(function(bChecked)
 		JH_AutoSetTeam.bTeamInfo = bChecked
@@ -965,7 +1000,7 @@ end
 GUI.RegisterPanel(_L["AutoSetTeam"], 5962, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("LOGIN_GAME", function()
-	JH.RegisterInit("RequestList", _RL.GetEvent())
+	JH.RegisterInit("RequestList", PartyRequest.GetEvent())
 	JH.RegisterInit("Append_Mark", GetEvent())
 	JH.RegisterInit("TI", TI.GetEvent())
 	JH.RegisterInit("WorldMark", WorldMark.GetEvent())
