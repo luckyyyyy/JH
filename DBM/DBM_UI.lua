@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-29 15:50:20
+-- @Last Modified time: 2015-11-03 00:11:42
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1054,6 +1054,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			{ szOption = g_tStrings.MENTOR_SELF, bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.SELF, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.SELF end },
 			{ szOption = _L["Team"], bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.TEAM, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.TEAM end },
 			{ szOption = _L["Enemy"], bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.ENEMY end },
+			{ szOption = g_tStrings.STR_RAID_TIP_TARGET, bMCheck = true, bChecked = data.nScrutinyType == DBM_SCRUTINY_TYPE.TARGET, fnAction = function() data.nScrutinyType = DBM_SCRUTINY_TYPE.TARGET end },
 		}
 		return menu
 	end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-02 16:53:26
+-- @Last Modified time: 2015-11-02 19:06:09
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -964,7 +964,7 @@ function JH.Sysmsg2(szMsg, szHead, col)
 	szHead = szHead or _JH.szShort
 	local r, g, b = 255, 0, 0
 	if col then r, g, b = unpack(col) end
-	OutputMessage("MSG_SYS", " [" .. szHead .. "] " .. szMsg .. "\n", false, 10, { r, g, b })
+	OutputMessage("MSG_SYS", "[" .. szHead .. "] " .. szMsg .. "\n", false, 10, { r, g, b })
 end
 
 function JH.Debug(szMsg, szHead, nLevel)
