@@ -269,7 +269,8 @@ data = {
 	["details"] = "查看詳情",
 	["select"] = "上次選擇",
 	["update"] = "有更新",
-	["JH"] = "菊花插件集",
+	["JH Plugin"] = "菊花插件集",
+	["JH"] = "菊花插件",
 	["You are not in the team."] = "妳不在隊伍中。",
 	["You are not team leader."] = "妳不是隊長，無法執行這個操作。",
 	["Confirm?"] = "確定執行這個操作？",
@@ -640,7 +641,6 @@ data = {
 	["Mark:%s"] = "標記著：%s",
 	["Party %d"] = "小隊 %d",
 	-- About.lua --
-	["AUTHOR"] = "壹個普通的插件集",
 	["Checking command sent, please see talk channel"] = "檢查指令已發送，請查看聊天框。",
 	["I have installed JH plug-in v"] = "我安裝了菊花插件集 v",
 	["About"] = "關於本插件",

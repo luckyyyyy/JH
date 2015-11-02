@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-21 13:29:28
+-- @Last Modified time: 2015-11-02 18:33:52
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -12,8 +12,8 @@ SkillCD = {
 	tAnchor = {},
 	nMaxCountdown = 10,
 	tMonitor = {
-		[371] = true,
-		[551] = true,
+		[371]  = true,
+		[551]  = true,
 		[2235] = true,
 		[2234] = true,
 	}
@@ -32,12 +32,7 @@ local _SkillCD = {
 	tCD = {},
 	tIgnore = {},
 }
-do
-	local dat = LoadLUAData(JH.GetAddonInfo().szRootPath .. "SkillCD/Skill.jx3dat")
-	_SkillCD.tSkill = dat["tSkill"]
-	_SkillCD.tBuffEx = dat["tBuffEx"]
-	_SkillCD.tKungfu = dat["tKungfu"]
-end
+local S = LoadLUAData(JH.GetAddonInfo().szRootPath .. "SkillCD/Skill.jx3dat")
 
 function SkillCD.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
@@ -79,8 +74,8 @@ function SkillCD.OnEvent(szEvent)
 			_SkillCD.OnSkillCast(arg1, arg4, arg5, arg0)
 		end
 	elseif szEvent == "BUFF_UPDATE" then
-		if _SkillCD.tBuffEx[arg4] and not arg1 then
-			_SkillCD.OnSkillCast(arg9, _SkillCD.tBuffEx[arg4], arg8, "BUFF_UPDATE")
+		if S.tBuffEx[arg4] and not arg1 then
+			_SkillCD.OnSkillCast(arg9, S.tBuffEx[arg4], arg8, "BUFF_UPDATE")
 		end
 	elseif szEvent == "DO_SKILL_CAST" then
 		_SkillCD.OnSkillCast(arg0, arg1, arg2, "DO_SKILL_CAST")
@@ -97,7 +92,7 @@ function SkillCD.OnFrameBreathe()
 	-- ÅÅÐò
 	for k, v in pairs(_SkillCD.tCD) do
 		for kk, vv in ipairs(v) do
-			local nSec = _SkillCD.tSkill[vv.dwSkillID]
+			local nSec = S.tSkill[vv.dwSkillID]
 			local pre = min(1, JH.GetEndTime(vv.nEnd) / nSec)
 			if pre > 0 then
 				vv.pre = pre
@@ -117,8 +112,8 @@ function SkillCD.OnFrameBreathe()
 		for k, v in ipairs(data) do
 			if not _SkillCD.tIgnore[v.dwSkillID] then
 				local item = handle:AppendItemFromIni(_SkillCD.szIniFile, "Handle_Lister", i)
-				local nSec = _SkillCD.tSkill[v.dwSkillID]
-				local fP = min(1, JH.GetEndTime(v.nEnd) / nSec)
+				-- local nSec = S.tSkill[v.dwSkillID]
+				local fP = min(1, JH.GetEndTime(v.nEnd) / v.nTotal)
 				local szSec = floor(JH.GetEndTime(v.nEnd))
 				if fP < 0.15 then
 					item:Lookup("Image_LPlayer"):SetFrame(215)
@@ -207,7 +202,7 @@ function _SkillCD.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 		return
 	end
 
-	local nSec = _SkillCD.tSkill[dwSkillID]
+	local nSec = S.tSkill[dwSkillID]
 	if not nSec then
 		return
 	end
@@ -222,13 +217,30 @@ function _SkillCD.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not _SkillCD.tCD[dwCaster] then
 		_SkillCD.tCD[dwCaster] = {}
 	end
-
-	local nTotal = nSec * 16
-	local nEnd = GetLogicFrameCount() + nTotal
+	-- ÃØ¼® / ÆæÑ¨
+	local tEx = S.tTimeEx[dwSkillID]
+	if tEx then
+		if tEx.recipe then
+			local tRecipe = p.GetSkillRecipeKey(dwSkillID, dwLevel)
+			for k, v in pairs(tRecipe or {}) do
+				if tEx.recipe[v] then
+					nSec = nSec - tEx.recipe[v]
+				end
+			end
+		end
+		if tEx.skillex then
+			for k, v in pairs(tEx.skillex) do
+				if p.GetSkillLevel(k) ~= 0 then
+					nSec = nSec - v
+				end
+			end
+		end
+	end
+	local nEnd = GetLogicFrameCount() + nSec * 16
 	local find = false
 	local data = {
 		nEnd      = nEnd,
-		nTotal    = nTotal,
+		nTotal    = nSec,
 		dwSkillID = dwSkillID,
 		dwLevel   = dwLevel,
 		dwIconID  = dwIconID,
@@ -252,7 +264,7 @@ end
 function _SkillCD.UpdateMonitorCache()
 	local kungfu = {}
 	for k, v in pairs(SkillCD.tMonitor) do
-		for kk, vv in pairs(_SkillCD.tKungfu) do
+		for kk, vv in pairs(S.tKungfu) do
 			for kkk, vvv in ipairs(vv) do
 				if vvv == k then
 					if not kungfu[kk] then
@@ -272,7 +284,7 @@ function _SkillCD.UpdateCount()
 	if not me then return end
 	local tMonitor, member, tKungfu, tCount = _SkillCD.tCache, {}, {}, {}
 	for k, v in pairs(SkillCD.tMonitor) do
-		if _SkillCD.tSkill[k] then
+		if S.tSkill[k] then
 			tCount[k] = {}
 			tCount[k].nCount = 0
 			tCount[k].tList = {}
@@ -520,7 +532,7 @@ function PS.OnPanelActive(frame)
 	-- nMaxCountdown
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
 	local i = 0
-	for k, v in pairs(_SkillCD.tSkill) do
+	for k, v in pairs(S.tSkill) do
 		local a = 100
 		if SkillCD.tMonitor[k] then a = 255 end
 		ui:Append("Box", { x = (i % 9) * 56, y = nY + floor(i / 9 ) * 55 + 15, alpha = a } ):Icon(Table_GetSkillIconID(k))
