@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-30 21:35:19
+-- @Last Modified time: 2015-11-03 00:04:51
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -357,6 +357,8 @@ function D.CheckScrutinyType(nScrutinyType, dwID, me)
 	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TEAM and (not JH.IsParty(dwID) and dwID ~= me.dwID) then
 		return false
 	elseif nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY and not IsEnemy(me.dwID, dwID) then
+		return false
+	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TARGET and select(2, me.GetTarget()) ~= dwID then
 		return false
 	end
 	return true
