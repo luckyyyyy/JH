@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-17 23:21:03
+-- @Last Modified time: 2015-11-03 00:05:10
 
 DBM_TYPE = {
 	OTHER        = 0,
@@ -22,7 +22,7 @@ DBM_TYPE = {
 	COMMON       = 15,
 	NPC_MANA     = 16,
 }
-DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3 }
+DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3, TARGET = 4 }
 
 -- skillid, uitex, frame
 JH_KUNGFU_LIST = {
