@@ -1,15 +1,15 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 12:03:31
+-- @Last Modified time: 2015-11-02 17:13:22
 local _L = JH.LoadLangPack
 local _JH_About = {
-	PS = {},
+	PS   = {},
 	INFO = {},
 }
 -- author
 function _JH_About.PS.GetAuthorInfo()
-	return _L["AUTHOR"]
+	return _L["JH @ Double Dream Town"]
 end
 
 function _JH_About.CheckInstall()
@@ -141,12 +141,9 @@ function _JH_About.PS.OnPanelActive(frame)
 end
 
 function _JH_About.PS.OnTaboxCheck(frame)
-	local szName, me = _L["You"], GetClientPlayer()
-	if me then szName = me.szName end
-	-- info
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File("interface/JH/0Base/background.tga"):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { 255, 255, 0 }, txt = _L("%s are welcome to use JH plug-in", szName), font = 230 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { 255, 255, 0 }, txt = _L("%s are welcome to use JH plug-in", GetUserRoleName()), font = 230 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY, color = { 255, 255, 0 }, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 233 }):Pos_()
 	local time = TimeToDate(GetCurrentTime())
 	-- year, month, day, hour, minute, second, weekday
@@ -155,7 +152,7 @@ function _JH_About.PS.OnTaboxCheck(frame)
 	end
 	local L = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
 	local col = { 1, 1, 0, 4, 5, 5, 4 }
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { GetItemFontColorByQuality(col[time.weekday]) }, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 }):Pos_()
+	ui:Append("Text", { x = 10, y = nY + 15, color = { GetItemFontColorByQuality(col[time.weekday]) }, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 })
 end
 
 GUI.RegisterPanel(_L["About"], { "ui/Image/UICommon/PlugIn.uitex", 5 }, _L["Recreation"], _JH_About.PS)

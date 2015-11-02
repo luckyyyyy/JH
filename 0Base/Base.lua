@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-25 19:08:18
+-- @Last Modified time: 2015-11-02 16:53:26
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -96,8 +96,8 @@ local _JH = {
 	aDoodad      = {},
 	tBreatheCall = {},
 	tItem        = { {}, {}, {} },
-	tOption      = { szOption = _L["JH"] },
-	tOption2     = { szOption = _L["JH"] },
+	tOption      = { szOption = _L["JH Plugin"] },
+	tOption2     = { szOption = _L["JH Plugin"] },
 	tClass       = { _L["General"], _L["RGES"], _L["Other"] },
 	szIniFile    = ROOT_PATH .. "JH.ini",
 }
@@ -957,7 +957,7 @@ end
 function JH.Sysmsg(szMsg, szHead, szType)
 	szHead = szHead or _JH.szShort
 	szType = szType or "MSG_SYS"
-	OutputMessage(szType, " [" .. szHead .. "] " .. szMsg .. "\n")
+	OutputMessage(szType, "[" .. szHead .. "] " .. szMsg .. "\n")
 end
 -- err message
 function JH.Sysmsg2(szMsg, szHead, col)
@@ -1358,7 +1358,7 @@ end
 
 function _JH.GetMainMenu()
 	return {
-		szOption = _L["JH"],
+		szOption = _L["JH Plugin"],
 		fnAction = _JH.TogglePanel,
 		bCheck = true,
 		bChecked = _JH.frame:IsVisible(),
@@ -1371,7 +1371,7 @@ end
 
 function _JH.GetPlayerAddonMenu()
 	local menu = _JH.GetMainMenu()
-	tinsert(menu, { szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
+	tinsert(menu, { szOption = _L["JH Plugin"] .. " v" .. JH.GetVersion(), bDisable = true })
 	tinsert(menu, { bDevide = true })
 	tinsert(menu, { szOption = _L["Open JH Panel"], fnAction = _JH.TogglePanel })
 	tinsert(menu, { bDevide = true })
@@ -1412,7 +1412,7 @@ end
 
 function _JH.GetAddonMenu()
 	local menu = _JH.GetMainMenu()
-	tinsert(menu,{ szOption = _L["JH"] .. " v" .. JH.GetVersion(), bDisable = true })
+	tinsert(menu,{ szOption = _L["JH Plugin"] .. " v" .. JH.GetVersion(), bDisable = true })
 	tinsert(menu,{ bDevide = true })
 	for _, v in ipairs(_JH.tOption2) do
 		if type(v) == "function" then
@@ -1445,7 +1445,7 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel(true):Hide()
 	-- _JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
 	-- ×¢²á¿ì½Ý¼ü
-	Hotkey.AddBinding("JH_Total", _L["JH"], _JH.szTitle, _JH.TogglePanel , nil)
+	Hotkey.AddBinding("JH_Total", _L["JH Plugin"], _JH.szTitle, _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do
 		Hotkey.AddBinding(v.szName, v.szTitle, "", v.fnAction, nil)
 	end
