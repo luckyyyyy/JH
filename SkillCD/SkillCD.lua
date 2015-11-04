@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-02 19:12:54
+-- @Last Modified time: 2015-11-04 07:54:26
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -455,11 +455,11 @@ function SC.UpdateCount()
 			box:IconToGray()
 			item:Lookup("Text_Count"):SetFontColor(156, 156, 156)
 		end
-
+		item:SetUserData(#v.tList ~= 0 and k or 999999)
 		item:Show()
 		item:FormatAllItemPos()
 	end
-
+	handle:Sort()
 	handle:FormatAllItemPos()
 	local w, h = handle:GetAllItemSize()
 	SC.frame:Lookup("Wnd_Count"):SetSize(240, h + 5)
