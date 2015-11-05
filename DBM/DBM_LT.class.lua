@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-03 16:42:39
+-- @Last Modified time: 2015-11-05 19:02:42
 local _L = JH.LoadLangPack
 
 LargeText = {
@@ -10,12 +10,11 @@ LargeText = {
 	fPause       = 1,
 	fFadeOut     = 0.3,
 	dwFontScheme = 23,
-	bIsSelf      = true,
 }
 JH.RegisterCustomData("LargeText")
 
 local LT = {
-	szIniFile =  JH.GetAddonInfo().szRootPath ..  "DBM/ui/LT_UI.ini",
+	szIniFile = JH.GetAddonInfo().szRootPath ..  "DBM/ui/LT_UI.ini",
 }
 
 function LargeText.OnFrameCreate()
@@ -41,11 +40,7 @@ function LargeText.OnEvent(szEvent)
 	elseif szEvent == "UI_SCALED" then
 		LT.UpdateAnchor(this)
 	elseif szEvent == "JH_LARGETEXT" then
-		if not col then
-			col = { 255, 128, 0 }
-			bSelf = true
-		end
-		LT.UpdateText(arg0, arg1, arg2)
+		LT.UpdateText(arg0, arg1)
 	end
 end
 
@@ -68,9 +63,9 @@ function LT.Init()
 	return frame
 end
 
-function LT.UpdateText(txt, col, bSelf)
-	if not bSelf and LargeText.bIsSelf then
-		return
+function LT.UpdateText(txt, col)
+	if not col then
+		col = { 255, 128, 0 }
 	end
 	LT.txt:SetText(txt)
 	LT.txt:SetFontScheme(LargeText.dwFontScheme)
@@ -103,12 +98,8 @@ function PS.OnPanelActive(frame)
 			ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 		end)
 	end)
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = LargeText.bIsSelf })
-	:Text(_L["only Monitor self"]):Click(function(bChecked)
-		LargeText.bIsSelf = bChecked
-	end):Pos_()
-	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 3, txt = "" })
+	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY + 5 }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 8, txt = "" })
 	:Range(1, 2, 10):Value(LargeText.fScale):Change(function(nVal)
 		LargeText.fScale = nVal
 		ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
