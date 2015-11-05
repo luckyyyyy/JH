@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-04 09:29:09
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-03 15:56:22
+-- @Last Modified time: 2015-11-05 19:48:13
 
 local _L = JH.LoadLangPack
 local CA_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/CA_UI.ini"
@@ -29,7 +29,7 @@ local function CreateCentralAlert(szMsg, nTime, bXml)
 	CA.handle:FormatAllItemPos()
 	msg.nTime   = nTime
 	msg.nCreate = GetTime()
-	CA.frame:SetAlpha(155)
+	CA.frame:SetAlpha(255)
 	CA.frame:Show()
 end
 
@@ -54,11 +54,11 @@ function CA_UI.OnFrameRender()
 			CA.frame:Hide()
 		else
 			local nTimeLeft = nTime * 1000 % 750
-			local nAlpha = 100 * nTimeLeft / 750
+			local nAlpha = 50 * nTimeLeft / 750
 			if floor(nTime / 0.75) % 2 == 1 then
-				nAlpha = 100 - nAlpha
+				nAlpha = 50 - nAlpha
 			end
-			CA.frame:SetAlpha(155 + nAlpha)
+			CA.frame:SetAlpha(255 - nAlpha)
 		end
 	end
 end
