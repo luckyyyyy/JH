@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-03 00:04:51
+-- @Last Modified time: 2015-11-05 19:00:08
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -548,8 +548,8 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
 			-- 特大文字
-			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, me.dwID == dwCaster or not IsPlayer(dwCaster) )
+			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm and (me.dwID == dwCaster or not IsPlayer(dwCaster)) then
+				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) })
 			end
 
 			-- 获得处理
@@ -698,7 +698,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			end
 			-- 特大文字
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) }, true )
+				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(dwCaster, me.dwID) })
 			end
 			if JH.bDebugClient and cfg.bSelect then
 				SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
@@ -838,7 +838,7 @@ function D.OnNpcEvent(npc, bEnter)
 			end
 			-- 特大文字
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(npc.dwID, me.dwID) }, true )
+				FireUIEvent("JH_LARGETEXT", txt, { GetHeadTextForceFontColor(npc.dwID, me.dwID) })
 			end
 
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -960,7 +960,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 				end
 				-- 特大文字
 				if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-					FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true )
+					FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 })
 				end
 				if DBM.bPushFullScreen and cfg.bFullScreen then
 					if (tInfo and tInfo.dwID == me.dwID) or not tInfo then
@@ -1051,7 +1051,7 @@ function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 								FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 							end
 							if DBM.bPushBigFontAlarm then
-								FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 }, true)
+								FireUIEvent("JH_LARGETEXT", txt, { 255, 128, 0 })
 							end
 							if DBM.bPushTeamChannel and v.bTeamChannel then
 								D.Talk(txt)
