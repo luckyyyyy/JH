@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 13:54:57
+-- @Last Modified time: 2015-11-08 06:11:34
 
 -- 早期代码 需要重写
 
@@ -1947,7 +1947,7 @@ function _GKP.Record(tab, item, bEnter)
 		FireUIEvent("GKP_DEL_DISTRIBUTE_ITEM")
 	end)
 	if bEnter then
-		hSource:Click()
+		hButton:Click()
 	end
 end
 
