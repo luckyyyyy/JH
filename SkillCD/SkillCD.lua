@@ -37,7 +37,7 @@ local S = LoadLUAData(JH.GetAddonInfo().szRootPath .. "SkillCD/Skill.jx3dat")
 function SkillCD.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("SYS_MSG")
-	this:RegisterEvent("BUFF_UPDATE")
+	-- this:RegisterEvent("BUFF_UPDATE")
 	this:RegisterEvent("DO_SKILL_CAST")
 	this:RegisterEvent("PARTY_DISBAND")
 	this:RegisterEvent("PARTY_DELETE_MEMBER")
@@ -73,10 +73,10 @@ function SkillCD.OnEvent(szEvent)
 		then
 			SC.OnSkillCast(arg1, arg4, arg5, arg0)
 		end
-	elseif szEvent == "BUFF_UPDATE" then
-		if S.tBuffEx[arg4] and not arg1 then
-			SC.OnSkillCast(arg9, S.tBuffEx[arg4], arg8, "BUFF_UPDATE")
-		end
+	-- elseif szEvent == "BUFF_UPDATE" then
+	-- 	if S.tBuffEx[arg4] and not arg1 then
+	-- 		SC.OnSkillCast(arg9, S.tBuffEx[arg4], arg8, "BUFF_UPDATE")
+	-- 	end
 	elseif szEvent == "DO_SKILL_CAST" then
 		SC.OnSkillCast(arg0, arg1, arg2, "DO_SKILL_CAST")
 	elseif szEvent == "LOADING_END" then
