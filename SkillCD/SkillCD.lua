@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-04 07:54:26
+-- @Last Modified time: 2015-11-07 17:51:10
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -217,6 +217,7 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not SC.tCD[dwCaster] then
 		SC.tCD[dwCaster] = {}
 	end
+	--[[
 	-- √ÿºÆ / ∆Ê—®
 	local tEx = S.tTimeEx[dwSkillID]
 	if tEx then
@@ -236,6 +237,7 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 			end
 		end
 	end
+	]]
 	local nEnd = GetLogicFrameCount() + nSec * 16
 	local find = false
 	local data = {
