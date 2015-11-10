@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-09 09:57:45
+-- @Last Modified time: 2015-11-10 14:55:27
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1493,23 +1493,36 @@ function JH.Trim(szText)
 	return (sgsub(szText, "^%s*(.-)%s*$", "%1"))
 end
 
+local function get_urlencode(c)
+	return sformat("%%%02X", sbyte(c))
+end
 function JH.UrlEncode(szText)
-	local str = szText:gsub("([^0-9a-zA-Z ])", function (c) return sformat("%%%02X", sbyte(c)) end)
+	local str = szText:gsub("([^0-9a-zA-Z ])", get_urlencode)
 	str = str:gsub(" ", "+")
 	return str
 end
 
+local function get_urldecode(h)
+	return schar(tonumber(h, 16))
+end
 function JH.UrlDecode(szText)
-	return szText:gsub("+", " "):gsub("%%(%x%x)", function(h) return schar(tonumber(h, 16)) end)
+	return szText:gsub("+", " "):gsub("%%(%x%x)", get_urldecode)
 end
 
+local function get_asciiencode(s)
+	return sformat("%02x", s:byte())
+end
 function JH.AscIIEncode(szText)
-	return szText:gsub('(.)', function(s) return sformat("%02x", s:byte()) end)
+	return szText:gsub('(.)', get_asciiencode)
 end
 
-function JH.AscIIDecode(szText)
-	return szText:gsub('(%x%x)', function(s) return schar(tonumber(s, 16)) end)
+local function get_asciidecode(s)
+	return schar(tonumber(s, 16))
 end
+function JH.AscIIDecode(szText)
+	return szText:gsub('(%x%x)', get_asciidecode)
+end
+
 -- 临时选择集中处理
 local JH_TAR_TEMP
 local JH_TAR_TEMP_STATUS = false
