@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-29 15:50:29
+-- @Last Modified time: 2015-11-13 01:09:21
 local _L = JH.LoadLangPack
 
 TS = {
@@ -352,13 +352,21 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			if IsPlayer(v.id) then
 				local p = GetPlayer(v.id)
 				if p then
-					if TS.bForceColor then
-						r, g, b = GetForceColor(p.dwForceID)
-					else
-						r, g, b = 255, 255, 255
-					end
 					dwForceID = p.dwForceID
-					szName = p.szName
+					szName    = p.szName
+				else
+					if MY_Farbnamen and MY_Farbnamen.Get then
+						local data = MY_Farbnamen.Get(v.id)
+						if data then
+							szName    = data.szName
+							dwForceID = data.dwForceID
+						end
+					end
+				end
+				if TS.bForceColor then
+					r, g, b = GetForceColor(p.dwForceID)
+				else
+					r, g, b = 255, 255, 255
 				end
 			else
 				local p = GetNpc(v.id)
