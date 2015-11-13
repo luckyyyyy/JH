@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-05 19:00:08
+-- @Last Modified time: 2015-11-13 07:14:15
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -735,7 +735,7 @@ function D.OnNpcEvent(npc, bEnter)
 	local data = D.GetData("NPC", npc.dwTemplateID)
 	local nTime = GetTime()
 	if bEnter then
-		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or { 
+		CACHE.NPC_LIST[npc.dwTemplateID] = CACHE.NPC_LIST[npc.dwTemplateID] or {
 			bFightState = false,
 			tList       = {},
 			nTime       = -1,
@@ -1217,14 +1217,18 @@ function D.GetDungeon()
 	if IsEmpty(CACHE.DUNGEON) then
 		local tCache = {}
 		for k, v in JH.bpairs(GetMapList()) do
-			local a = g_tTable.DungeonInfo:Search(v)
-			if a and a.dwClassID == 3 then
-				if not tCache[a.szLayer3Name] then
-					local i = #CACHE.DUNGEON + 1
-					CACHE.DUNGEON[i] = { szLayer3Name = a.szLayer3Name, aList = {} }
-					tCache[a.szLayer3Name] = CACHE.DUNGEON[i]
+			if not JH_MAP_NAME_FIX[v] then
+				local a = g_tTable.DungeonInfo:Search(v) or {}
+				if a.dwClassID or not JH.IsInDungeon(v) and JH.IsInDungeon(v, true) then
+					a.dwClassID = a.dwClassID or 1
+					local szLayer3Name = a.dwClassID == 3 and a.szLayer3Name or g_tStrings.STR_FT_DUNGEON
+					if not tCache[szLayer3Name] then
+						local i = #CACHE.DUNGEON + 1
+						CACHE.DUNGEON[i] = { szLayer3Name = szLayer3Name, aList = {} }
+						tCache[szLayer3Name] = CACHE.DUNGEON[i]
+					end
+					tinsert(tCache[szLayer3Name].aList, v)
 				end
-				tinsert(tCache[a.szLayer3Name].aList, a.dwMapID)
 			end
 		end
 		table.sort(CACHE.DUNGEON, function(a, b) return a.szLayer3Name > b.szLayer3Name end)

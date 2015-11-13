@@ -1,5 +1,11 @@
--- 什么时候的代码我都忘记了
+-- @Author: Webster
+-- @Date:   2015-10-08 12:47:40
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2015-11-13 07:14:56
+
 local _L = JH.LoadLangPack
+local GetClientPlayer = GetClientPlayer
+
 JH_CopyBook = {
 	szBookName = _L["BOOK_143"],
 	nCopyNum   = 1,
@@ -10,24 +16,25 @@ JH.RegisterCustomData("JH_CopyBook")
 local Book = {
 	tCache  = {},
 	bEnable = false,
-	nBook   = 1
+	nBook   = 1,
 }
 
 -- 返回值 书本ID，书本数量，需要体力, 获得监本
 function Book.GetBook(szName)
 	local me = GetClientPlayer()
 	local nCount = g_tTable.BookSegment:GetRowCount() --获取表格总行
-	local dwBookID, dwBookNumber
 	local nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt = 0, 0, 0, 0, 0, 0
 	local tItems, tBooks, tTool = {}, {}, {}
-	for i = 1, nCount do
-		local item = g_tTable.BookSegment:GetRow(i)
-		if item.szBookName == szName then
-			dwBookID     = item.dwBookID
-			dwBookNumber = item.dwBookNumber
-			break
+	if not Book.tCache[szName] then
+		for i = 1, nCount do
+			local item = g_tTable.BookSegment:GetRow(i)
+			if item.szBookName == szName then
+				Book.tCache[szName] = { item.dwBookID, item.dwBookNumber }
+				break
+			end
 		end
 	end
+	local dwBookID, dwBookNumber = unpack(Book.tCache[szName] or {})
 	if dwBookID then
 		for i = 1, dwBookNumber do
 			local tRecipe = GetRecipe(12, dwBookID, i)
@@ -47,7 +54,7 @@ function Book.GetBook(szName)
 					local nCount    = tRecipe["dwRequireItemCount" .. nIndex]
 					if nCount > 0 then
 						local item = GetItemInfo(dwTabType, dwIndex)
-						tItems[item.szName] = tItems[item.szName] or { dwTabType = dwTabType, dwIndex = dwIndex, nUiId = item.nUiId, nCount = 0 }
+						tItems[item.szName] = tItems[item.szName] or { dwTabType = dwTabType, dwIndex = dwIndex, nCount = 0 }
 						tItems[item.szName].nCount = tItems[item.szName].nCount + nCount
 					end
 				end
@@ -59,8 +66,7 @@ function Book.GetBook(szName)
 			end
 			table.insert(tBooks, {
 				dwTabType = tRecipe.dwCreateItemType,
-				dwIndex   = tRecipe.dwCreateItemIndex,
-				nUiId     = GetItemInfo(tRecipe.dwCreateItemType, tRecipe.dwCreateItemIndex).nUiId
+				dwIndex   = tRecipe.dwCreateItemIndex
 			})
 		end
 		local tTable = g_tTable.BookEx:Search(dwBookID)
@@ -71,13 +77,28 @@ function Book.GetBook(szName)
 	return dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool
 end
 
+function Book.GetBookCount(dwRecipeID)
+	local nCount = 0
+	local me = GetClientPlayer(), {}
+	for dwBox = 1, BigBagPanel_nCount do
+		for dwX = 0, me.GetBoxSize(dwBox) - 1 do
+			local item = me.GetItem(dwBox, dwX)
+			if item and item.nGenre == ITEM_GENRE.BOOK and item.nStackNum == dwRecipeID then
+				nCount = nCount + 1
+			end
+		end
+	end
+	return nCount
+end
+
 function Book.UpdateInfo(szName)
 	local ui = Book.ui
 	if not ui then return end
 	local me = GetClientPlayer()
 	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool = Book.GetBook(szName and szName or JH_CopyBook.szBookName)
 	if dwBookID then
-		local bCanCopy = nThew > 0  and true or false
+		local bCanCopy = nThew > 0 and true or false
+		local szUitex = "ui/Image/Minimap/MapMark.UITex"
 		local green, red = { 255, 255, 255 }, { 255, 0, 0 }
 		ui:Fetch("Copy"):Enable(true)
 		local nMax = math.max(math.floor(me.nCurrentThew / math.max(nThew, 1)), 1)
@@ -91,27 +112,47 @@ function Book.UpdateInfo(szName)
 		local handle = ui:Fetch("Require"):Clear()
 		local nX, nY = 10, 0
 		if IsEmpty(JH_CopyBook.tIgnore) then
-			nX, nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint .. " ") .. string.format("  (1 = %.2f)", nThew / nExamPrint), color = { 255, 128, 0 } }):Pos_()
+			nX, nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint), color = { 255, 128, 0 } }):Pos_()
 		end
-		bCanCopy = bCanCopy and JH_CopyBook.nCopyNum * nThew <= me.nCurrentThew
-		nX, nY = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(g_tStrings.STR_MSG_NEED_COST_THEW, me.nCurrentThew .. "/" .. JH_CopyBook.nCopyNum * nThew), color = JH_CopyBook.nCopyNum * nThew <= me.nCurrentThew and green or red }):Pos_()
+		-- 计算体力
+		local nNumThew = JH_CopyBook.nCopyNum * nThew
+		local bStatus  = nNumThew <= me.nCurrentThew and true or false
+		bCanCopy = bCanCopy and bStatus
+		nX = handle:Append("Text", { x = 10, y = nY + 5, txt = _L["Need Thew:"]}):Pos_()
+		handle:Append("Image", { x = nX + 5, y = nY + 15, w = 200, h = 11 }):File(szUitex, 123)
+		handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(nNumThew / math.max(1, me.nCurrentThew))
+		nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = nNumThew .. "/" .. me.nCurrentThew, color = bStatus and green or red }):Pos_()
 		-- 阅读等级需求
 		local nPlayerLevel = me.GetProfessionLevel(8)
-		bCanCopy = bCanCopy and nPlayerLevel >= nMaxLevel
-		nX, nY = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(g_tStrings.CRAFT_READING_REQUIRE_LEVEL, nPlayerLevel .. "/" .. nMaxLevel), color = nPlayerLevel >= nMaxLevel and green or red }):Pos_()
+		local bStatus      = nPlayerLevel >= nMaxLevel
+		bCanCopy = bCanCopy and bStatus
+		nX = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(_L["Need<D0>Level:"], g_tStrings.CRAFT_READING)}):Pos_()
+		handle:Append("Image", { x = nX + 5, y = nY + 15, w = 200, h = 11 }):File(szUitex, 123)
+		handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(math.max(1, nPlayerLevel) / nMaxLevel)
+		nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = nPlayerLevel .. "/" .. nMaxLevel, color = bStatus and green or red }):Pos_()
 		-- XX等级需求
 		if dwProfessionIDExt ~= 0 then
 			local ProfessionExt = GetProfession(dwProfessionIDExt)
 			if ProfessionExt then
 				local nExtLevel = me.GetProfessionLevel(dwProfessionIDExt)
-				bCanCopy = bCanCopy and nExtLevel >= nMaxLevelEx
-				nX, nY = handle:Append("Text", { x = 10, y = nY + 5, txt = Table_GetProfessionName(dwProfessionIDExt) .. nExtLevel .. "/" .. nMaxLevelEx .. g_tStrings.LEVEL_BLANK, color = nExtLevel >= nMaxLevelEx and green or red }):Pos_()
+				local bStatus   = nExtLevel >= nMaxLevelEx
+				bCanCopy = bCanCopy and bStatus
+				nX = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(_L["Need<D0>Level:"], Table_GetProfessionName(dwProfessionIDExt))}):Pos_()
+				handle:Append("Image", { x = nX + 5, y = nY + 15, w = 200, h = 11 }):File(szUitex, 123)
+				handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(math.max(1, nExtLevel) / nMaxLevelEx)
+				nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = nExtLevel .. "/" .. nMaxLevelEx, color = bStatus and green or red }):Pos_()
 			end
 		end
+		-- 需要角色等级
 		if nMaxPlayerLevel ~= 0 then
-			bCanCopy = bCanCopy and me.nLevel >= nMaxPlayerLevel
-			nX, nY = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(g_tStrings.STR_CRAFT_READ_NEED_PLAYER_LEVEL, me.nLevel .. "/" .. nMaxPlayerLevel), color = me.nLevel >= nMaxPlayerLevel and green or red }):Pos_()
+			local bStatus = me.nLevel >= nMaxPlayerLevel
+			bCanCopy = bCanCopy and bStatus
+			nX = handle:Append("Text", { x = 10, y = nY + 5, txt = FormatString(_L["Need<D0>Level:"], _L["Role"])}):Pos_()
+			handle:Append("Image", { x = nX + 5, y = nY + 15, w = 200, h = 11 }):File(szUitex, 123)
+			handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(math.max(1, me.nLevel) / nMaxPlayerLevel)
+			nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = me.nLevel .. "/" .. nMaxPlayerLevel, color = bStatus and green or red }):Pos_()
 		end
+		-- 需求道具
 		if not IsEmpty(tTool) then
 			nX = handle:Append("Text", { x = 10, y = nY + 5, txt = g_tStrings.CRAFT_NEED_TOOL, color = green }):Pos_()
 			for k, v in pairs(tTool) do
@@ -120,17 +161,19 @@ function Book.UpdateInfo(szName)
 			end
 			nY = nY + 15
 		end
-		-- tTool[item.szName]
+		-- 需求的道具
 		local i = 0
 		for k, v in pairs(tItems) do
-			local nCount = me.GetItemAmount(v.dwTabType, v.dwIndex)
-			bCanCopy = bCanCopy and nCount >= v.nCount * JH_CopyBook.nCopyNum
-			nX = handle:Append("Box", "iteminfolink", { x = (i % 9) * 58, y = nY + math.floor(i / 9 ) * 55 + 15, w = 48, h = 48, icon = Table_GetItemIconID(v.nUiId)})
+			local nCount  = me.GetItemAmount(v.dwTabType, v.dwIndex)
+			local bStatus = nCount >= v.nCount * JH_CopyBook.nCopyNum and true or false
+			bCanCopy = bCanCopy and bStatus
+			nX = handle:Append("Box", "iteminfolink", { x = (i % 9) * 58, y = nY + math.floor(i / 9 ) * 55 + 15, w = 48, h = 48})
 			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex)
-			:OverText(ITEM_POSITION.RIGHT_BOTTOM, nCount .. "/" .. v.nCount * JH_CopyBook.nCopyNum, 0, nCount >= v.nCount * JH_CopyBook.nCopyNum and 15 or 159)
+			:OverText(ITEM_POSITION.RIGHT_BOTTOM, nCount .. "/" .. v.nCount * JH_CopyBook.nCopyNum, 0, bStatus and 15 or 159)
 			:Pos_()
 			i = i + 1
 		end
+		-- 书本
 		local hBooks = ui:Fetch("Books"):Toggle(true):Clear()
 		nX = 5
 		local tBS, tCheck = me.GetBookSegmentList(dwBookID), {}
@@ -141,10 +184,13 @@ function Book.UpdateInfo(szName)
 			if not JH_CopyBook.tIgnore[k] then
 				bCanCopy = bCanCopy and tCheck[k] or false
 			end
-			nX = hBooks:Append("Box", "booklink", { x = nX + 10, y = 5, w = 32, h = 32, icon = Table_GetItemIconID(v.nUiId)})
-			:ToGray(not tCheck[k])
+			local dwRecipeID = BookID2GlobelRecipeID(dwBookID, k)
+			local nCount  = Book.GetBookCount(dwRecipeID)
+			nX = hBooks:Append("Box", { x = nX + 10, y = 5, w = 32, h = 32 }):ToGray(not tCheck[k])
 			:Enable(not JH_CopyBook.tIgnore[k] and true or false)
 			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, dwBookID, k)
+			:OverText(ITEM_POSITION.RIGHT_BOTTOM, nCount)
+			:Staring(Book.nBook == k and Book.bLock)
 			:Click(function()
 				if not IsCtrlKeyDown() then
 					this:EnableObject(this:IsObjectEnable())
@@ -194,7 +240,7 @@ function Book.Copy()
 	local me = GetClientPlayer()
 	Book.bEnable     = true
 	Book.szBookName  = JH_CopyBook.szBookName
-	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks = Book.GetBook(szName and szName or JH_CopyBook.szBookName)
+	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks = Book.GetBook(JH_CopyBook.szBookName)
 	assert(dwBookID)
 	JH.Sysmsg(_L("Start Copy Book %s", Book.szBookName))
 	local function Stop()
@@ -214,6 +260,7 @@ function Book.Copy()
 	end)
 	JH.RegisterEvent("DO_RECIPE_PREPARE_PROGRESS.CopyBook", function()
 		Book.nTotalFrame = GetLogicFrameCount() + arg0
+		Book.UpdateInfo()
 	end)
 	JH.BreatheCall("CokyBook", function()
 		local me = GetClientPlayer()
@@ -285,7 +332,6 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Copy Count"] }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", "Count", { x = nX + 5, y = nY + 5, txt = "" }):Range(1, 1, 1):Pos_()
 	nX, nY = ui:Append("Handle", "Books", { x = 0, y = nY, h = 40, w = 500 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.STR_CRAFT_TIP_RECIPE_REQUIRE, font = 27 }):Pos_()
 	nX, nY = ui:Append("Handle", "Require", { x = 0, y = nY + 5, h = 200, w = 500})
 	Book.UpdateInfo()
 	JH.RegisterEvent("BAG_ITEM_UPDATE.CokyBook", function() Book.UpdateInfo() end)
