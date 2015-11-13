@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-13 07:31:46
+-- @Last Modified time: 2015-11-13 11:49:32
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -204,6 +204,8 @@ function DBMUI.UpdateTree()
 	local data      = DBM_API.GetTable(DBMUI_SELECT_TYPE)
 	local me        = GetClientPlayer()
 	local dwMapID   = me.GetMapID()
+	local tCount    = {}
+	local hSelect
 	dwMapID = JH_MAP_NAME_FIX[dwMapID] or dwMapID
 	local function GetCount(data)
 		if data then
@@ -233,8 +235,9 @@ function DBMUI.UpdateTree()
 		if key ~= _L["All Data"] then
 			local szClassName = hTreeT.szName or hTreeT:Lookup(1):GetText()
 			hTreeT.szName = szClassName
-			hTreeT.nCount = hTreeT.nCount and hTreeT.nCount + nCount or nCount
-			hTreeT:Lookup(1):SetText(hTreeT.szName .. " (".. hTreeT.nCount .. ")")
+			tCount[hTreeT] = tCount[hTreeT] or 0
+			tCount[hTreeT] = tCount[hTreeT] + nCount
+			hTreeT:Lookup(1):SetText(szClassName .. " (".. tCount[hTreeT] .. ")")
 		end
 		hTreeC:Lookup(1):SetText(szName .. " (".. nCount .. ")")
 		hTreeC.dwMapID = key
@@ -248,10 +251,7 @@ function DBMUI.UpdateTree()
 			hTreeC:Lookup(1):SetFontColor(168, 168, 168)
 		end
 		if dwMapID == key then
-			local hLocation = hTreeT:Lookup("Image_Location")
-			hLocation:Show()
-			local w, h = hTreeT:Lookup(1):GetTextExtent()
-			hLocation:SetRelX(w)
+			hSelect = hTreeT
 			hTreeC:Lookup(1):SetFontColor(168, 168, 255)
 			hTreeT:FormatAllItemPos()
 		end
@@ -287,6 +287,13 @@ function DBMUI.UpdateTree()
 			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
 			Format(hTreeT, hTreeC, vv, _L["Battle of Taiyuan"], v.szLayer3Name)
 		end
+	end
+	if hSelect then
+		local hLocation = hSelect:Lookup("Image_Location")
+		local w, h = hSelect:Lookup(1):GetTextExtent()
+		hLocation:SetRelX(w)
+		hLocation:Show()
+		hSelect:FormatAllItemPos()
 	end
 	frame.hTreeH:FormatAllItemPos()
 end
