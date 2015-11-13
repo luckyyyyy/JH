@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-03 00:11:42
+-- @Last Modified time: 2015-11-13 07:31:46
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -204,6 +204,7 @@ function DBMUI.UpdateTree()
 	local data      = DBM_API.GetTable(DBMUI_SELECT_TYPE)
 	local me        = GetClientPlayer()
 	local dwMapID   = me.GetMapID()
+	dwMapID = JH_MAP_NAME_FIX[dwMapID] or dwMapID
 	local function GetCount(data)
 		if data then
 			if DBMUI_SEARCH then
@@ -247,7 +248,12 @@ function DBMUI.UpdateTree()
 			hTreeC:Lookup(1):SetFontColor(168, 168, 168)
 		end
 		if dwMapID == key then
+			local hLocation = hTreeT:Lookup("Image_Location")
+			hLocation:Show()
+			local w, h = hTreeT:Lookup(1):GetTextExtent()
+			hLocation:SetRelX(w)
 			hTreeC:Lookup(1):SetFontColor(168, 168, 255)
+			hTreeT:FormatAllItemPos()
 		end
 	end
 	frame.hTreeH:Clear()
@@ -266,15 +272,14 @@ function DBMUI.UpdateTree()
 		end
 	end
 	-- 秘境
-	local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
-	hTreeT:Lookup(1):SetText(g_tStrings.STR_FT_DUNGEON)
-	for k, v in pairs(data) do
-		if not JH.IsInDungeon(k) and JH.IsInDungeon(k, true) then -- 不是团队秘境但是是小队秘境
-			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
-			Format(hTreeT, hTreeC, k)
-		end
-	end
-
+	-- local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
+	-- hTreeT:Lookup(1):SetText(g_tStrings.STR_FT_DUNGEON)
+	-- for k, v in pairs(data) do
+	-- 	if not JH.IsInDungeon(k) and JH.IsInDungeon(k, true) then -- 不是团队秘境但是是小队秘境
+	-- 		local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
+	-- 		Format(hTreeT, hTreeC, k)
+	-- 	end
+	-- end
 	for _, v in ipairs(tDungeon) do
 		local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
 		hTreeT:Lookup(1):SetText(v.szLayer3Name)
@@ -449,8 +454,20 @@ function DBM_UI.OnItemMouseEnter()
 	if szName == "TreeLeaf_Node" or szName == "TreeLeaf_Content" then
 		this:Lookup(0):Show()
 		if szName == "TreeLeaf_Content" then
-			local szXml = GetFormatText((DBMUI.GetMapName(this.dwMapID) or this.dwMapID) .. "\n", 47, 255, 255, 0)
-			szXml = szXml .. GetFormatText(this.nCount, 47, 255, 255, 255)
+			local info = g_tTable.DungeonInfo:Search(this.dwMapID)
+			local szXml = GetFormatText((DBMUI.GetMapName(this.dwMapID) or this.dwMapID) .." (" .. this.nCount ..  ")\n", 47, 255, 255, 0)
+			if info and JH.Trim(info.szBossInfo) ~= "" then
+				local tBoss = JH.Split(info.szBossInfo, " ")
+				for k, v in ipairs(tBoss or {}) do
+					if JH.Trim(v) ~= "" then
+						szXml = szXml .. GetFormatText(k .. ") " .. v .. "\n", 47, 255, 255, 255)
+					end
+				end
+				szXml = szXml .. GetFormatImage(info.szDungeonImage3, 0, 200, 200)
+			end
+			if IsCtrlKeyDown() then
+				szXml = szXml .. GetFormatText("\n\n" .. g_tStrings.DEBUG_INFO_ITEM_TIP .. "\nMapID:" .. this.dwMapID, 47, 255, 0, 0)
+			end
 			OutputTip(szXml, 300, { x, y, w, h })
 		elseif szName == "TreeLeaf_Node" and RaidDragPanelIsOpened() then
 			DBM_UI.OnItemLButtonClick()
@@ -952,7 +969,7 @@ end
 -- 添加面板
 function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
-		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetBoxInfo("NPC", data), TARGET.NPC, Table_GetMapName(data.dwMapID))
+		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetBoxInfo("NPC", data), TARGET.NPC, Table_GetMapName(data.dwMapID), DBMUI_SELECT_MAP)
 	else
 		local szName, nIcon = _L["TALK"], 340
 		if szType ~= "TALK" then

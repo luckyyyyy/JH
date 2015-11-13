@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-30 00:10:05
+-- @Last Modified time: 2015-11-13 07:33:56
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -645,7 +645,7 @@ function C.OnBreathe()
 	CIRCLE_RESERT_DRAW = false
 end
 
-function C.OpenAddPanel(szName, dwType, szMap)
+function C.OpenAddPanel(szName, dwType, szMap, dwSelMapID)
 	dwType = dwType or TARGET.NPC
 	GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = _L["Add Face"], close = true, focus = true })
 	-- update ui = wnd
@@ -657,8 +657,12 @@ function C.OpenAddPanel(szName, dwType, szMap)
 		ui:Fetch("Name"):Text(szText)
 	end)
 	ui:Append("Text", { txt = _L["Map:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
-	if not szMap then
-		szMap = tonumber(C.dwSelMapID) and JH.IsMapExist(C.dwSelMapID) or JH.IsMapExist(C.GetMapID())
+	if dwSelMapID then
+		if dwSelMapID ~= _L["All Data"] then
+			szMap = JH.IsMapExist(dwSelMapID)
+		else
+			szMap = JH.IsMapExist(C.GetMapID())
+		end
 	end
 	ui:Append("WndEdit", "Map", { txt = szMap, x = 115, y = 113 }):Autocomplete(JH.GetAllMap())
 	ui:Append("WndRadioBox", { x = 100, y = 150, txt = _L["NPC"], group = "type", checked = dwType == TARGET.NPC })
@@ -952,7 +956,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
-				C.OpenAddPanel(not IsAltKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, JH.IsMapExist(C.GetMapID()))
+				C.OpenAddPanel(not IsCtrlKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, JH.IsMapExist(C.GetMapID()))
 			end }}
 		end
 	else

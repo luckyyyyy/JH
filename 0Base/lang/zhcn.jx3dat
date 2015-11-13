@@ -699,6 +699,9 @@ data = {
 	["OnMouseHover"] = "鼠标悬停",
 	["OnScroll"] = "滚轮事件",
 	-- Copy Book --
+	["Role"] = "角色",
+	["Need Thew:"] = "需要消耗体力：",
+	["Need<D0>Level:"] = "需要<D0>等级：",
 	["Acquisition:"] = "获取方式：",
 	["No Books"] = "没有这套书",
 	["Copy Book"] = "套书抄录",
