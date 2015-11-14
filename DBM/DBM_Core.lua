@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-13 07:14:15
+-- @Last Modified time: 2015-11-14 07:23:23
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1219,7 +1219,7 @@ function D.GetDungeon()
 		for k, v in JH.bpairs(GetMapList()) do
 			if not JH_MAP_NAME_FIX[v] then
 				local a = g_tTable.DungeonInfo:Search(v) or {}
-				if a.dwClassID or not JH.IsInDungeon(v) and JH.IsInDungeon(v, true) then
+				if a.dwClassID or not JH.IsDungeon(v) and JH.IsDungeon(v, true) then
 					a.dwClassID = a.dwClassID or 1
 					local szLayer3Name = a.dwClassID == 3 and a.szLayer3Name or g_tStrings.STR_FT_DUNGEON
 					if not tCache[szLayer3Name] then
