@@ -354,6 +354,7 @@ data = {
 	["Recreation"] = "娛樂",
 	["View love info"] = "查看情緣信息",
 	-- GKP.lua --
+	["salary"] = "工資發放",
 	["Treasure Chests"] = "寶箱",
 	["Boss"] = "老板",
 	["Banquet Allowance"] = "宴席補貼",
