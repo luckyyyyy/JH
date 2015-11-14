@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-14 12:27:40
+-- @Last Modified time: 2015-11-14 21:11:46
 
 -- 早期代码 需要重写
 
@@ -845,9 +845,7 @@ function _GKP.DrawRecord(key, sort)
 
 	_GKP.hRecordContainer:FormatAllContentPos()
 end
----------------------------------------------------------------------->
--- 和谐
-----------------------------------------------------------------------<
+
 function _GKP.Bidding()
 	local team = GetClientTeam()
 	if not JH.IsDistributer() then
@@ -870,8 +868,9 @@ function _GKP.Bidding()
 	local fx, fy = Station.GetClientSize()
 	local w2, h2 = LeaderAddMoney:GetSize()
 	LeaderAddMoney:SetAbsPos((fx - w2) / 2, (fy - h2) / 2)
-	LeaderAddMoney:Lookup("Edit_Price"):SetText(nGold)
-	LeaderAddMoney:Lookup("Edit_Reason"):SetText("Auto Append Money")
+	LeaderAddMoney:Lookup("Edit_PriceB"):SetText(math.floor(nGold / 10000))
+	LeaderAddMoney:Lookup("Edit_Price"):SetText(nGold % 10000)
+	LeaderAddMoney:Lookup("Edit_Reason"):SetText("auto append")
 	LeaderAddMoney:Lookup("Btn_Ok").OnLButtonUp = function()
 		fnAction()
 		Station.SetActiveFrame("GoldTeam")
@@ -1003,14 +1002,21 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
 				ui:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
 				ui:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 }):Toggle(false):Click(function()
-					local scale = Station.GetUIScale()
-					local left, top = ui:Pos()
+					local scale         = Station.GetUIScale()
+					local left, top     = ui:Pos()
 					local right, bottom = ui:Pos_()
-					local path = GetRootPath() .. string.format("\\ScreenShot\\GKP_Ticket_%s.png", FormatTime("%Y-%m-%d_%H.%M.%S", GetCurrentTime()))
-					ScreenShot(path, 100, scale * left, scale * top, scale * right, scale * bottom)
-					JH.Sysmsg(_L("Shot screen succeed, file saved as %s .", path))
+					local btn           = this
+					local path          = GetRootPath() .. string.format("\\ScreenShot\\GKP_Ticket_%s.png", FormatTime("%Y-%m-%d_%H.%M.%S", GetCurrentTime()))
+					btn:Hide()
+					JH.DelayCall(50, function()
+						ScreenShot(path, 100, scale * left, scale * top, scale * right, scale * bottom)
+						JH.DelayCall(50, function()
+							JH.Alert(_L("Shot screen succeed, file saved as %s .", path))
+							btn:Show()
+						end)
+					end)
 				end)
-				ui:Append("Text", { w = 120, h = 30, x = 0, y = 35, txt = _L("Operator:%s", szName), font = 41 })
+				ui:Append("Text", { w = 120, h = 30, x = 10, y = 35, txt = _L("Operator:%s", szName), font = 41 })
 				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", _GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
 				_GKP.info = ui
 			end
@@ -1102,7 +1108,9 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 1 }):Type(3).self
 						handle:AppendItemFromString(GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(tonumber(data[4])))
 						handle:FormatAllItemPos()
-						ui:Append("Text", { w = 121, h = 30, x = 620, y = 120 + 30 * n + 1, txt = string.format("%d/%d = %d", tonumber(data[4]), team.GetTeamSize(), math.floor(tonumber(data[4]) / team.GetTeamSize())), color = { _GKP.GetMoneyCol(data[4]) }, align = 2 })
+						ui:Append("WndButton4", { w = 91, h = 26, x = 620, y = 120 + 30 * n + 1, txt = _L["salary"] }):Click(function()
+							JH.Confirm(_L["Confirm?"], _GKP.Bidding)
+						end)
 						if data[5] and tonumber(data[5]) then
 							local nTime = tonumber(data[5])
 							ui:Append("Text", { w = 725, h = 30, x = 0, y = 120 + 30 * n + 1, txt = _L("Spend time approx %d:%d", nTime / 3600, nTime % 3600 / 60), align = 1 })
