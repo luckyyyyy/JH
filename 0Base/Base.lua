@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-10 14:55:27
+-- @Last Modified time: 2015-11-14 12:03:28
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -850,22 +850,12 @@ function JH.GetAllMap()
 	return tList
 end
 
--- 判断是不是副本地图
-function JH.IsInDungeon(dwMapID, bType)
-	local me = GetClientPlayer()
-	if type(dwMapID) == "boolean" then
-		bType   = dwMapID
-		dwMapID = me.GetMapID()
-	else
-		dwMapID = dwMapID or me.GetMapID()
-	end
-	if bType then -- 只判断地图的类型 而不是严格判断25人本
-		if tonumber(dwMapID) and dwMapID > 0 then
-			local nMapType = select(2, GetMapParams(dwMapID))
-			return nMapType and nMapType == MAP_TYPE.DUNGEON
-		else
-			return false
-		end
+-- 判断一个地图是不是副本
+-- (bool) JH.IsDungeonMap(szMapName, bType)
+-- (bool) JH.IsDungeonMap(dwMapID, bType)
+function JH.IsDungeon(dwMapID, bType)
+	if bType then
+		return select(2, GetMapParams(dwMapID)) == MAP_TYPE.DUNGEON
 	else
 		if IsEmpty(_JH.tDungeonList) then
 			for k, v in ipairs(GetMapList()) do
@@ -877,6 +867,13 @@ function JH.IsInDungeon(dwMapID, bType)
 		end
 		return _JH.tDungeonList[dwMapID] or false
 	end
+end
+
+-- 判断是不是副本地图
+function JH.IsInDungeon(bType)
+	local me = GetClientPlayer()
+	local dwMapID = me.GetMapID()
+	return JH.IsDungeon(dwMapID, bType)
 end
 
 -- JJC地图
@@ -2458,8 +2455,11 @@ function _GUI.Wnd:Autocomplete(fnTable, fnCallBack, fnRecovery, nMaxOption)
 				tTab = fnTable
 			end
 			for k, v in ipairs(tTab) do
-				local txt = type(v) ~= "table" and tostring(v) or v.szOption
-				if txt:find(szText) and txt ~= szText then
+				local txt = type(v) ~= "table" and tostring(v) or v.bRichText and v.option or v.szOption
+				if txt and txt:find(szText) and (txt ~= szText or type(v) == "table" and v.self) then
+
+					table.insert(tList, v)
+				elseif type(v) == "table" and v.bDevide then
 					table.insert(tList, v)
 				end
 				if #tList > (nMaxOption or 15) then break end
@@ -2474,21 +2474,21 @@ function _GUI.Wnd:Autocomplete(fnTable, fnCallBack, fnRecovery, nMaxOption)
 				for k, v in ipairs(tList) do
 					local t = {}
 					if type(v) == "table" then
-						t.szOption = v.szOption
-						t.rgb      = v.rgb
-						t.szLayer  = v.szLayer
-						t.nFrame   = v.nFrame
-						t.szIcon   = v.szIcon
+						t = v
 					else
 						t.szOption = v
 					end
 					t.fnAction = function()
-						wnd:SetText(t.szOption)
+						local txt = t.szOption
+						if type(v) == "table" and v.bRichText then
+							txt = v.option
+						end
+						wnd:SetText(txt)
 						Wnd.CloseWindow(GetPopupMenu())
 						if fnCallBack then
 							local _this = this
 							this = wnd
-							fnCallBack(t.szOption, type(v) == "table" and v.data) -- callback
+							fnCallBack(txt, type(v) == "table" and v.data) -- callback
 							this = _this
 						end
 					end

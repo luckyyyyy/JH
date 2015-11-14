@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-13 01:09:21
+-- @Last Modified time: 2015-11-14 07:31:38
 local _L = JH.LoadLangPack
 
 TS = {
@@ -42,6 +42,19 @@ local _TS = {
 	DPS_TIME  = 0,
 	DPS_TOTAL = 0
 }
+
+function _TS.CheckOpen()
+	if TS.bInDungeon then
+		if JH.IsInDungeon(true) then
+			_TS.OpenPanel()
+		else
+			_TS.ClosePanel()
+		end
+	else
+		_TS.OpenPanel()
+	end
+end
+
 function _TS.OpenPanel()
 	local frame = _TS.frame or Wnd.OpenWindow(_TS.szIniFile, "TS")
 	local dwType = Target_GetTargetData()
@@ -52,20 +65,22 @@ function _TS.OpenPanel()
 end
 
 function _TS.ClosePanel()
-	Wnd.CloseWindow(_TS.frame)
-	JH.UnBreatheCall("TS")
-	JH.UnBreatheCall("TS_DPS")
-	-- 释放变量
-	_TS.frame = nil
-	_TS.bg = nil
-	_TS.handle = nil
-	_TS.txt = nil
-	_TS.CastBar = nil
-	_TS.Life = nil
-	_TS.dwLockTargetID = 0
-	_TS.dwTargetID = 0
-	_TS.bSelfTreatRank = 0
-	_TS.dwDropTargetPlayerID = 0
+	if _TS.frame then
+		Wnd.CloseWindow(_TS.frame)
+		JH.UnBreatheCall("TS")
+		JH.UnBreatheCall("TS_DPS")
+		-- 释放变量
+		_TS.frame = nil
+		_TS.bg = nil
+		_TS.handle = nil
+		_TS.txt = nil
+		_TS.CastBar = nil
+		_TS.Life = nil
+		_TS.dwLockTargetID = 0
+		_TS.dwTargetID = 0
+		_TS.bSelfTreatRank = 0
+		_TS.dwDropTargetPlayerID = 0
+	end
 end
 
 function TS.OnFrameCreate()
@@ -423,13 +438,7 @@ function PS.OnPanelActive(frame)
 		TS.bEnable = bChecked
 		ui:Fetch("bInDungeon"):Enable(bChecked)
 		if bChecked then
-			if TS.bInDungeon then
-				if JH.IsInDungeon(true) then
-					_TS.OpenPanel()
-				end
-			else
-				_TS.OpenPanel()
-			end
+			_TS.CheckOpen()
 		else
 			_TS.ClosePanel()
 		end
@@ -438,15 +447,7 @@ function PS.OnPanelActive(frame)
 	nX,nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = TS.bInDungeon })
 	:Enable(TS.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
 		TS.bInDungeon = bChecked
-		if bChecked then
-			if JH.IsInDungeon(true) then
-				_TS.OpenPanel()
-			else
-				_TS.ClosePanel()
-			end
-		else
-			_TS.OpenPanel()
-		end
+		_TS.CheckOpen()
 	end):Pos_()
 	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Alert Setting"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = TS.nOTAlertLevel == 1, txt = _L["OT Alert"] }):Click(function(bChecked)
@@ -531,15 +532,7 @@ GUI.RegisterPanel(g_tStrings.HATRED_COLLECT, 632, g_tStrings.CHANNEL_CHANNEL, PS
 
 JH.RegisterEvent("LOADING_END", function()
 	if not TS.bEnable then return end
-	if TS.bInDungeon then
-		if JH.IsInDungeon(true) then
-			_TS.OpenPanel()
-		else
-			_TS.ClosePanel()
-		end
-	else
-		_TS.OpenPanel()
-	end
+	_TS.CheckOpen()
 	_TS.dwLockTargetID = 0
 	_TS.dwTargetID = 0
 	_TS.bSelfTreatRank = 0

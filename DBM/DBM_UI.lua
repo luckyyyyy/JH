@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-13 11:49:32
+-- @Last Modified time: 2015-11-14 07:23:44
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -266,7 +266,7 @@ function DBMUI.UpdateTree()
 	Format(hTreeT, hTreeC, -1)
 	-- 其他
 	for k, v in pairs(data) do
-		if not JH.IsInDungeon(k, true) and (tonumber(k) and k > 0) then
+		if not JH.IsDungeon(k, true) and (tonumber(k) and k > 0) then
 			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
 			Format(hTreeT, hTreeC, k)
 		end
@@ -275,7 +275,7 @@ function DBMUI.UpdateTree()
 	-- local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
 	-- hTreeT:Lookup(1):SetText(g_tStrings.STR_FT_DUNGEON)
 	-- for k, v in pairs(data) do
-	-- 	if not JH.IsInDungeon(k) and JH.IsInDungeon(k, true) then -- 不是团队秘境但是是小队秘境
+	-- 	if not JH.IsDungeon(k) and JH.IsDungeon(k, true) then -- 不是团队秘境但是是小队秘境
 	-- 		local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
 	-- 		Format(hTreeT, hTreeC, k)
 	-- 	end
