@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-15 01:37:20
+-- @Last Modified time: 2015-11-15 01:46:32
 
 -- 早期代码 需要重写
 
@@ -1076,7 +1076,6 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						end
 						local hBox = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha })
 						if v.nUiId ~= 0 then
-							Output(v, v.nStackNum)
 							hBox:ItemInfo(v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum or v.nBookID)
 						else
 							hBox:Icon(582):Hover(function(bHover)
