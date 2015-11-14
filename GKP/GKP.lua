@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-15 01:46:32
+-- @Last Modified time: 2015-11-15 07:37:43
 
 -- 早期代码 需要重写
 
@@ -258,9 +258,7 @@ end
 function _GKP.IsOpened()
 	return _GKP.frame and _GKP.frame:IsVisible()
 end
-GKP.OpenPanel   = _GKP.OpenPanel
-GKP.ClosePanel  = _GKP.ClosePanel
-GKP.TogglePanel = _GKP.TogglePanel
+
 -- initlization
 function _GKP.Init()
 	local me = GetClientPlayer()
@@ -1070,11 +1068,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 							ui:Append("Text", { x = 290 + k * 32 + 5, y = 121 + 30 * n, w = 28, h = 28, txt = ".....", font = 23 })
 							break
 						end
-						local alpha = 255
-						if v.bDelete then
-							alpha = 60
-						end
-						local hBox = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha })
+						local hBox = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = v.bDelete and 60 })
 						if v.nUiId ~= 0 then
 							hBox:ItemInfo(v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum or v.nBookID)
 						else
@@ -2315,3 +2309,8 @@ RegisterEvent("LOADING_END",function()
 		end
 	end
 end)
+
+GKP.GetMoneyCol = _GKP.GetMoneyCol
+GKP.OpenPanel   = _GKP.OpenPanel
+GKP.ClosePanel  = _GKP.ClosePanel
+GKP.TogglePanel = _GKP.TogglePanel
