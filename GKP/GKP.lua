@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-14 21:11:46
+-- @Last Modified time: 2015-11-15 01:37:20
 
 -- 早期代码 需要重写
 
@@ -20,6 +20,7 @@ GKP = {
 	bDisplayEmptyRecords = true,  -- show 0 record
 	bAutoSync            = true,  -- 自动接收分配者的同步信息
 	bLootStyle           = true,
+	bShowGoldBrick       = true,
 }
 JH.RegisterCustomData("GKP")
 ---------------------------------------------------------------------->
@@ -166,7 +167,7 @@ function _GKP.UpdateStat()
 	if JH.IsDistributer() or not JH.IsInParty() then
 		if c + d < 0 then
 			szXml = szXml .. GetFormatText(" || " .. _L["Spending:"], 41) .. _GKP.GetMoneyTipText(d)
-		else
+		elseif c ~= 0 then
 			szXml = szXml .. GetFormatText(" || " .. _L["Reall income:"], 41) .. _GKP.GetMoneyTipText(c + d)
 		end
 		local e = (a + b) - (c + d)
@@ -179,19 +180,20 @@ function _GKP.UpdateStat()
 	hStat:FormatAllItemPos()
 	hStat:SetSizeByAllItemSize()
 	hStat.OnItemMouseEnter = function()
+		local br = GetFormatText("\n", 41)
 		local szXml = ""
 		if a > 0 then
-			szXml = szXml .. GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(a)
+			szXml = szXml .. GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(a) .. br
 			if b ~= 0 then
-				szXml = szXml .. GetFormatText("\n" .. _L["Salary Allowance:"], 41) .. _GKP.GetMoneyTipText(b)
-				szXml = szXml .. GetFormatText("\n" .. _L["Reall Salary:"], 41) .. _GKP.GetMoneyTipText(a + b)
+				szXml = szXml .. GetFormatText(_L["Salary Allowance:"], 41) .. _GKP.GetMoneyTipText(b) .. br
+				szXml = szXml .. GetFormatText(_L["Reall Salary:"], 41) .. _GKP.GetMoneyTipText(a + b) .. br
 			end
 		end
-		if JH.IsDistributer() or not JH.IsInParty() then
-			szXml = szXml .. GetFormatText("\n" .. _L["Total income:"], 41) .. _GKP.GetMoneyTipText(c)
+		if (JH.IsDistributer() or not JH.IsInParty()) and c > 0 then
+			szXml = szXml .. GetFormatText(_L["Total income:"], 41) .. _GKP.GetMoneyTipText(c) .. br
 			if d ~= 0 then
-				szXml = szXml .. GetFormatText("\n" .. _L["Spending:"], 41) .. _GKP.GetMoneyTipText(d)
-				szXml = szXml .. GetFormatText("\n" .. _L["Reall income:"], 41) .. _GKP.GetMoneyTipText(c + d)
+				szXml = szXml .. GetFormatText(_L["Spending:"], 41) .. _GKP.GetMoneyTipText(d) .. br
+				szXml = szXml .. GetFormatText(_L["Reall income:"], 41) .. _GKP.GetMoneyTipText(c + d) .. br
 			end
 		end
 		if szXml ~= "" then
@@ -227,6 +229,7 @@ function _GKP.OpenLootPanel()
 	end
 	return Station.Lookup("Normal/GKP_Loot")
 end
+
 function _GKP.OpenPanel(bDisableSound)
 	local frame = Station.Lookup("Normal/GKP") or Wnd.OpenWindow(_GKP.szIniFile, "GKP")
 	frame:Show()
@@ -237,24 +240,23 @@ function _GKP.OpenPanel(bDisableSound)
 	return frame
 end
 -- close
-function _GKP.ClosePanel(bRealClose)
+function _GKP.ClosePanel()
 	if _GKP.frame then
-		if not bRealClose then
-			_GKP.frame:Hide()
-		else
-			Wnd.CloseWindow(_GKP.frame)
-			_GKP.frame = nil
-		end
+		_GKP.frame:Hide()
 		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 	end
 end
 -- toggle
 function _GKP.TogglePanel()
-	if _GKP.frame and _GKP.frame:IsVisible() then
+	if _GKP.IsOpened() then
 		_GKP.ClosePanel()
 	else
 		_GKP.OpenPanel()
 	end
+end
+
+function _GKP.IsOpened()
+	return _GKP.frame and _GKP.frame:IsVisible()
 end
 GKP.OpenPanel   = _GKP.OpenPanel
 GKP.ClosePanel  = _GKP.ClosePanel
@@ -479,13 +481,11 @@ function GKP.OnFrameCreate()
 	_GKP.hAccountContainer = this:Lookup("PageSet_Menu/Page_GKP_Account/WndScroll_GKP_Account/WndContainer_Account_List")
 	local ui = GUI(this)
 	local hPageSet = ui:Fetch("PageSet_Menu")
-	ui:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(_GKP.ClosePanel):Append("WndComboBox", { x = 805, y = 52, txt = _L["Setting"] }):Click(function()
+	ui:Title(_L["GKP Golden Team Record"]):Point():RegisterClose(_GKP.ClosePanel)
+	ui:Append("WndComboBox", { x = 805, y = 52, txt = g_tStrings.STR_LOG_SET }):Click(function()
 		JH.OpenPanel(_L["GKP Golden Team Record"])
 	end)
 	ui:Append("WndButton3", { x = 15, y = 660, txt = _L["Add Manually"] }):Click(function()
-		if IsCtrlKeyDown() and JH.bDebugClient then -- 和谐自用
-			return _GKP.Bidding()
-		end
 		if _GKP.GetRecordWindow() then
 			return JH.Alert(_L["No Record For Current Object."])
 		end
@@ -503,7 +503,7 @@ function GKP.OnFrameCreate()
 
 	hPageSet:Fetch("WndCheck_GKP_Record"):Fetch("Text_GKP_Record"):Text(g_tStrings.GOLD_BID_RECORD_STATIC_TITLE)
 	hPageSet:Fetch("WndCheck_GKP_Account"):Fetch("Text_GKP_Account"):Text(g_tStrings.GOLD_BID_RPAY_STATIC_TITLE)
-
+	JH.RegisterGlobalEsc("GKP", _GKP.IsOpened, _GKP.ClosePanel)
 	-- 排序
 	local page = this:Lookup("PageSet_Menu/Page_GKP_Record")
 	local t = {
@@ -597,10 +597,13 @@ function PS.OnPanelActive(frame)
 	:Click(function(bChecked)
 		GKP.bAutoSetMoney = bChecked
 	end):Pos_()
-	-- nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Auto Fill the amount of BiXi Fragment as Price"], checked = GKP.bAutoBX })
-	-- :Click(function(bChecked)
-	-- 	GKP.bAutoBX = bChecked
-	-- end):Pos_()
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, color = { 255, 128, 0 } , txt = _L["Show Gold Brick"], checked = GKP.bShowGoldBrick })
+	:Click(function(bChecked)
+		GKP.bShowGoldBrick = bChecked
+		_GKP.DrawRecord()
+		_GKP.DrawAccount()
+		_GKP.UpdateStat()
+	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Remind Wipe Data When Enter Dungeon"], checked = GKP.bAlertMessage })
 	:Click(function(bChecked)
 		GKP.bAlertMessage = bChecked
@@ -713,11 +716,15 @@ end
 function _GKP.GetMoneyTipText(nGold)
 	local szUitex = "ui/image/common/money.UITex"
 	local r, g, b = _GKP.GetMoneyCol(nGold)
-	if nGold >= 0 then
-		return GetFormatText(math.floor(nGold / 10000), 41, r, g, b) .. GetFormatImage(szUitex, 27) .. GetFormatText(math.floor(nGold % 10000), 41, r, g, b) .. GetFormatImage(szUitex, 0)
+	if GKP.bShowGoldBrick then
+		if nGold >= 0 then
+			return GetFormatText(math.floor(nGold / 10000), 41, r, g, b) .. GetFormatImage(szUitex, 27) .. GetFormatText(math.floor(nGold % 10000), 41, r, g, b) .. GetFormatImage(szUitex, 0)
+		else
+			nGold = nGold * -1
+			return GetFormatText("-" .. math.floor(nGold / 10000), 41, r, g, b) .. GetFormatImage(szUitex, 27) .. GetFormatText(math.floor(nGold % 10000), 41, r, g, b) .. GetFormatImage(szUitex, 0)
+		end
 	else
-		nGold = nGold * -1
-		return GetFormatText("-" .. math.floor(nGold / 10000), 41, r, g, b) .. GetFormatImage(szUitex, 27) .. GetFormatText(math.floor(nGold % 10000), 41, r, g, b) .. GetFormatImage(szUitex, 0)
+		return GetFormatText(nGold, 41, r, g, b) .. GetFormatImage(szUitex, 0)
 	end
 end
 
@@ -992,11 +999,8 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 		end
 		if data[1] == "GKP_INFO" then
 			if data[2] == "Start" then
-				local szFrameName = "GKP_info"
-				if data[3] == "Information on Debt" then
-					szFrameName = "GKP_Debt"
-				end
-				if data[3] == "Information on Debt" and szName ~= me.szName then
+				local szFrameName = data[3] == "Information on Debt" and "GKP_Debt" or "GKP_info"
+				if data[3] == "Information on Debt" and szName ~= me.szName then -- 欠债记录只自己看
 					return
 				end
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
@@ -1018,7 +1022,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 				end)
 				ui:Append("Text", { w = 120, h = 30, x = 10, y = 35, txt = _L("Operator:%s", szName), font = 41 })
 				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", _GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
-				_GKP.info = ui
+				ui.self.self = ui
 			end
 			if data[2] == "Info" then
 				if data[3] == me.szName and tonumber(data[4]) and tonumber(data[4]) <= -100 then
@@ -1058,10 +1062,6 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						ui:Append("Image", { w = 28, h = 28, x = 30, y = 121 + 30 * n }):File(GetForceImage(dwForceID))
 					end
 					ui:Append("Text", { w = 140, h = 30, x = 60, y = 120 + 30 * n, txt = data[3], color = { JH.GetForceColor(dwForceID) } })
-					local r, g, b = _GKP.GetMoneyCol(data[4])
-					if tonumber(data[4]) < 0 then
-						r, g, b = _GKP.GetMoneyCol(tonumber(data[4]) * - 1) -- 就算是欠债 也要抓颜色
-					end
 					local handle = ui:Append("Handle", { w = 130, h = 20, x = 200, y = 120 + 30 * n }):Type(3).self
 					handle:AppendItemFromString(_GKP.GetMoneyTipText(tonumber(data[4])))
 					handle:FormatAllItemPos()
@@ -1076,7 +1076,8 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						end
 						local hBox = ui:Append("Box", { x = 290 + k * 32, y = 121 + 30 * n, w = 28, h = 28, alpha = alpha })
 						if v.nUiId ~= 0 then
-							hBox:ItemInfo(v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum)
+							Output(v, v.nStackNum)
+							hBox:ItemInfo(v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum or v.nBookID)
 						else
 							hBox:Icon(582):Hover(function(bHover)
 								if bHover then
@@ -1090,21 +1091,18 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						end
 					end
 					if frm.n > 5 then
-						_GKP.info:Size(760, 30 * frm.n + 200)
+						frm.self:Size(760, 30 * frm.n + 200)
 					end
 					frm.n = frm.n + 1
 				end
 			end
 			if data[2] == "End" then
-				local szFrameName = "GKP_Debt"
-				if data[4] then
-					szFrameName = "GKP_info"
-				end
+				local szFrameName = data[4] and "GKP_info" or "GKP_Debt"
 				local frm = Station.Lookup("Normal/" .. szFrameName)
 				if frm then
-					local ui = GUI(frm)
-					local n = frm.n or 0
 					if data[4] then
+						local ui = GUI(frm)
+						local n = frm.n or 0
 						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 1 }):Type(3).self
 						handle:AppendItemFromString(GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(tonumber(data[4])))
 						handle:FormatAllItemPos()
@@ -1115,14 +1113,13 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 							local nTime = tonumber(data[5])
 							ui:Append("Text", { w = 725, h = 30, x = 0, y = 120 + 30 * n + 1, txt = _L("Spend time approx %d:%d", nTime / 3600, nTime % 3600 / 60), align = 1 })
 						end
-						_GKP.info:Fetch("ScreenShot"):Toggle(true)
+						frm.self:Fetch("ScreenShot"):Toggle(true)
 						if n >= 4 then
 							ui:Append("Image", { x = 640, y = n * 30 + 10, w = 100, h = 107.5 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/zhcn_img.uitex", 0)
 						end
 						frm.done = true
 					elseif  szFrameName == "GKP_Debt" and not frm:IsVisible() then
 						Wnd.CloseWindow(frm)
-						_GKP.info = nil
 					end
 				end
 				_GKP.SetButton(true)
@@ -2311,7 +2308,6 @@ end)
 
 JH.PlayerAddonMenu({ szOption = _L["GKP Golden Team Record"], fnAction = _GKP.OpenPanel })
 JH.AddHotKey("JH_GKP", _L["Open/Close Golden Team Record"], _GKP.TogglePanel)
-
 
 RegisterEvent("LOADING_END",function()
 	if JH.IsInDungeon() and GKP.bAlertMessage then
