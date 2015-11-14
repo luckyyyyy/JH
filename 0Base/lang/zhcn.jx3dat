@@ -354,6 +354,7 @@ data = {
 	["Recreation"] = "娱乐",
 	["View love info"] = "查看情缘信息",
 	-- GKP.lua --
+	["Show Gold Brick"] = "显示单位为金砖",
 	["salary"] = "工资发放",
 	["Treasure Chests"] = "宝箱",
 	["Boss"] = "老板",
@@ -444,7 +445,7 @@ data = {
 	["Spending: %d Gold."] = "支出：%d 金。",
 	["--- Consumption ---"] = "------  消费情况  ------",
 	["Total Auction:"] = "总计拍卖：",
-	["Salary Allowance:"] = "补贴：",
+	["Salary Allowance:"] = "补贴金额：",
 	["Reall Salary:"] = "实际工资：",
 	["Spending:"] = "支出：",
 	["Total income:"] = "总计收入：",
