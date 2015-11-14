@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-14 07:23:23
+-- @Last Modified time: 2015-11-15 06:50:55
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -22,7 +22,7 @@ local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 
 local DBM_SHARE_QUEUE = {}
 local DBM_MARK_QUEUE  = {}
-local DBM_MARK_FIRST  = true -- 标记事件
+local DBM_MARK_FREE   = true -- 标记空闲
 ----
 local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
@@ -149,7 +149,7 @@ function DBM.OnEvent(szEvent)
 				JH.Debug("DBM_Mark ERROR: " .. err)
 			end
 		else
-			DBM_MARK_FIRST = true
+			DBM_MARK_FREE = true
 		end
 	elseif szEvent == "PLAYER_SAY" then
 		if not IsPlayer(arg1) then
@@ -417,8 +417,8 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 		FireUIEvent("DBM_SET_MARK", false) -- 标记失败的案例
 	end
 	tinsert(DBM_MARK_QUEUE, { fnAction = fnAction })
-	if DBM_MARK_FIRST then
-		DBM_MARK_FIRST = false
+	if DBM_MARK_FREE then
+		DBM_MARK_FREE = false
 		local f = table.remove(DBM_MARK_QUEUE, 1)
 		pcall(f.fnAction)
 	end
