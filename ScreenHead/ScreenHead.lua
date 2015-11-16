@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-08-06 16:13:21
+-- @Last Modified time: 2015-11-16 10:12:54
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -196,16 +196,9 @@ function SH:Create(obj, info, nIndex)
 	end
 	fY = fY - handle.fY
 	local nDistance = GetDistance(obj)
-	local value
-
-	if nDistance > 30 then
-		fX = fX - fX * 30 * 0.011
-		value = 1 - 30 * 0.01
-	else
-		fX = fX - fX * nDistance * 0.011
-		value = 1 - nDistance * 0.01
-	end
-
+	nDistance = math.max(15, nDistance)
+	fX = fX - fX * mMin(30, nDistance) * 0.012
+ 	local value = 1 - mMin(30, nDistance) * 0.01
 	handle.Arrow:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	handle.Arrow:SetD3DPT(D3DPT.TRIANGLEFAN)
 	handle.Arrow:ClearTriangleFanPoint()
@@ -262,23 +255,27 @@ function SH:Create(obj, info, nIndex)
 		handle.Init = nil
 	end
 	bcX, bcY = -49, -59
-	local r, g ,b = 220, 40, 0
-	if KTarget and KTarget.dwID == dwID then
-		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
-	end
-	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
-	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * lifeper) - 2, bcY })
-	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * lifeper) - 2, bcY + 5 })
-	handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
-	local r, g, b = unpack(tManaCol)
-	if KTarget and KTarget.dwID == dwID then
-		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
+	if lifeper ~= 0 then
+		local r, g ,b = 220, 40, 0
+		if KTarget and KTarget.dwID == dwID then
+			r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
+		end
+		handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
+		handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * lifeper), bcY })
+		handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * lifeper), bcY + 5 })
+		handle.Life:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
 	end
 	bcX, bcY = -49, -54
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * manaper) - 2, bcY })
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (100 * manaper) - 2, bcY + 5 })
-	handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
+	if manaper ~= 0 then
+		local r, g, b = unpack(tManaCol)
+		if KTarget and KTarget.dwID == dwID then
+			r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
+		end
+		handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
+		handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * manaper), bcY })
+		handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * manaper), bcY + 5 })
+		handle.Mana:AppendCharacterID(dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
+	end
 end
 
 function SH:Remove(dwID, nIndex)

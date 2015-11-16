@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-07 17:51:10
+-- @Last Modified time: 2015-11-16 09:19:30
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -217,27 +217,6 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not SC.tCD[dwCaster] then
 		SC.tCD[dwCaster] = {}
 	end
-	--[[
-	-- 秘籍 / 奇穴
-	local tEx = S.tTimeEx[dwSkillID]
-	if tEx then
-		if tEx.recipe then
-			local tRecipe = p.GetSkillRecipeKey(dwSkillID, dwLevel)
-			for k, v in pairs(tRecipe or {}) do
-				if tEx.recipe[v] then
-					nSec = nSec - tEx.recipe[v]
-				end
-			end
-		end
-		if tEx.skillex then
-			for k, v in pairs(tEx.skillex) do
-				if p.GetSkillLevel(k) ~= 0 then
-					nSec = nSec - v
-				end
-			end
-		end
-	end
-	]]
 	local nEnd = GetLogicFrameCount() + nSec * 16
 	local find = false
 	local data = {
@@ -295,7 +274,7 @@ function SC.UpdateCount()
 	if me.IsInParty() and not SkillCD.bSelf then
 		member = team.GetTeamMemberList()
 	else
-		tinsert(member,me.dwID)
+		tinsert(member, me.dwID)
 	end
 	-- 获取 id -> 心法 对应表
 	for k, v in ipairs(member) do
@@ -320,24 +299,20 @@ function SC.UpdateCount()
 	for k ,v in pairs(tKungfu) do
 		if tMonitor[v.dwMountKungfuID] then -- 如果心法在监控内
 			for kk, vv in ipairs(tMonitor[v.dwMountKungfuID]) do
+				local nEnd
 				if SC.tCD[k] then -- 如果有记录
-					local find, nEnd
 					for _, vvv in ipairs(SC.tCD[k]) do
 						if vvv.dwSkillID == vv then
-							find = true
 							nEnd = vvv.nEnd
 							break
 						end
 					end
-					if not find then
-						tCount[vv].nCount = tCount[vv].nCount + 1
-						tinsert(tCount[vv].tList, { nSec = 0, info = v })
-					else
-						tinsert(tCount[vv].tList, { nSec = nEnd, info = v })
-					end
-				else -- 无条件
+				end
+				if not nEnd then
 					tCount[vv].nCount = tCount[vv].nCount + 1
-					tinsert(tCount[vv].tList, { nSec = 0, info = v  })
+					tinsert(tCount[vv].tList, { nSec = 0, info = v })
+				else
+					tinsert(tCount[vv].tList, { nSec = nEnd, info = v })
 				end
 			end
 		end
@@ -401,10 +376,10 @@ function SC.UpdateCount()
 			if #v.tList > 0 then
 				if SC.tIgnore[k] then
 					SC.tIgnore[k] = nil
-					box:SetObjectCoolDown(false)
+					box:EnableObject(false)
 				else
 					SC.tIgnore[k] = true
-					box:SetObjectCoolDown(true)
+					box:EnableObject(true)
 					box:SetCoolDownPercentage(0)
 				end
 			end
@@ -445,17 +420,18 @@ function SC.UpdateCount()
 		end
 		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN) -- 其实是技能 不过用不到
 		box:SetObjectIcon(dwIconID)
-		-- box:SetObjectSparking(true)
-		item:Lookup("Text_Count"):SetText(v.nCount)
-		if v.nCount > 0 then
-			item:Lookup("Text_Count"):SetFontColor(0, 255, 0)
-		else
-			item:Lookup("Text_Count"):SetFontColor(255, 0, 0)
-		end
+		local hCount = item:Lookup("Text_Count")
+		hCount:SetText(v.nCount)
 		if #v.tList == 0 then
 			item:SetAlpha(100)
 			box:IconToGray()
-			item:Lookup("Text_Count"):SetFontColor(156, 156, 156)
+			hCount:SetFontColor(156, 156, 156)
+		else
+			if v.nCount > 0 then
+				hCount:SetFontColor(0, 255, 0)
+			else
+				hCount:SetFontColor(255, 0, 0)
+			end
 		end
 		item:SetUserData(#v.tList ~= 0 and k or 999999)
 		item:Show()
@@ -530,36 +506,21 @@ function PS.OnPanelActive(frame)
 		end
 		return t
 	end):Pos_()
-
-	-- nMaxCountdown
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
 	local i = 0
 	for k, v in pairs(S.tSkill) do
-		local a = 100
-		if SkillCD.tMonitor[k] then a = 255 end
-		ui:Append("Box", { x = (i % 9) * 56, y = nY + floor(i / 9 ) * 55 + 15, alpha = a } ):Icon(Table_GetSkillIconID(k))
-		:ToGray(not SC.IsPanelOpened()):Staring(SkillCD.tMonitor[k] or false):Hover(function(bHover)
-			if bHover then
-				local x, y = this:GetAbsPos()
-				local w, h = this:GetSize()
-				OutputSkillTip(k,1,{ x, y, w, h })
-				if a == 100 then this:SetAlpha(200) end
-				this:SetObjectMouseOver(true)
-			else
-				HideTip()
-				this:SetAlpha(a)
-				this:SetObjectMouseOver(false)
-			end
-		end):Click(function()
-			if not SC.IsPanelOpened() then return end
+		ui:Append("Box", { x = (i % 9) * 56, y = nY + floor(i / 9 ) * 55 + 15 }):BoxInfo(UI_OBJECT_SKILL, k, 1)
+		:Enable(SkillCD.tMonitor[k] or false):Click(function(bCheck)
 			if SkillCD.tMonitor[k] then
 				SkillCD.tMonitor[k] = nil
 			else
 				SkillCD.tMonitor[k] = true
 			end
-			SC.UpdateMonitorCache()
-			SC.UpdateCount()
-			JH.OpenPanel(_L["SkillCD"])
+			this:EnableObject(SkillCD.tMonitor[k] or false)
+			if SC.IsPanelOpened() then
+				SC.UpdateMonitorCache()
+				SC.UpdateCount()
+			end
 		end)
 		i = i + 1
 	end

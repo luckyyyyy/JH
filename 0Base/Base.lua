@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-14 12:03:28
+-- @Last Modified time: 2015-11-16 08:56:07
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -3059,8 +3059,19 @@ function _GUI.Item:ItemInfo( ... )
 	end
 	return self
 end
-
-
+function _GUI.Item:BoxInfo(nType, ...)
+	if self.type == "Box" then
+		if IsEmpty({ ... }) then
+			UpdataItemBoxObject(self.self)
+		else
+			local res, err = pcall(UpdateBoxObject, self.self, nType, ...) -- ·ÀÖ¹itemtab²»Ò»Ñù
+			if not res then
+				JH.Debug(err)
+			end
+		end
+	end
+	return self
+end
 -- (self) Instance:Icon(number dwIcon)
 -- NOTICE£ºonly for Box£¬Image£¬BoxButton
 function _GUI.Item:Icon(dwIcon)
