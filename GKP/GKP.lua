@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-15 07:37:43
+-- @Last Modified time: 2015-11-16 21:43:09
 
 -- 早期代码 需要重写
 
@@ -1491,7 +1491,11 @@ function _GKP.DrawDistributeList(doodad)
 	local bSpecial = false
 	for item_k, item in ipairs(_GKP.aDistributeList) do
 		local szItemName = GetItemNameByItem(item)
-		if szItemName == JH.GetItemName(72592) or szItemName == JH.GetItemName(68363) or szItemName == JH.GetItemName(66190) then
+		if szItemName == JH.GetItemName(72592)
+			or szItemName == JH.GetItemName(68363)
+			or szItemName == JH.GetItemName(66190)
+			or szItemName == JH.GetItemName(153897)
+		then
 			bSpecial = true
 		end
 		local box, h
