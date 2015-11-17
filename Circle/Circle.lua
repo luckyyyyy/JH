@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-17 10:03:35
+-- @Last Modified time: 2015-11-17 12:25:35
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -269,8 +269,8 @@ function C.RemoveData(mapid, index, bConfirm)
 				table.remove(C.tData[mapid], index)
 				if #C.tData[mapid] == 0 then
 					C.tData[mapid] = nil
-					FireUIEvent("CIRCLE_RELOAD")
 				end
+				FireUIEvent("CIRCLE_RELOAD")
 			end
 		end
 	else
