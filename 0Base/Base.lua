@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-16 08:56:07
+-- @Last Modified time: 2015-11-17 10:03:15
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -866,6 +866,17 @@ function JH.IsDungeon(dwMapID, bType)
 			end
 		end
 		return _JH.tDungeonList[dwMapID] or false
+	end
+end
+
+-- 获取主角当前所在地图
+-- JH.GetMapID(bool bFix) 是否做修正
+function JH.GetMapID(bFix)
+	local dwMapID = GetClientPlayer().GetMapID()
+	if not bFix then
+		return dwMapID
+	else
+		return JH_MAP_NAME_FIX[dwMapID] or dwMapID
 	end
 end
 

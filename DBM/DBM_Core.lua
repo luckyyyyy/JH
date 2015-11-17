@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-15 06:50:55
+-- @Last Modified time: 2015-11-17 10:03:04
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -272,16 +272,14 @@ function D.CreateMeTaTable()
 			end
 		end
 	end
-	D.Log("Create MeTaTable Succeed!")
+	D.Log("Create metatable Succeed!")
 end
 
 function D.CreateData(szEvent)
 	D.CreateMeTaTable()
 	local szLang = select(3, GetVersion())
-	local me = GetClientPlayer()
-	local dwMapID = me.GetMapID()
+	local dwMapID = JH.GetMapID()
 	local nTime = GetTime()
-	dwMapID = JH_MAP_NAME_FIX[dwMapID] or dwMapID -- 修正地图重名的问题
 	-- 清空当前数据和MAP
 	for k, v in pairs(D.DATA) do
 		D.DATA[k] = {}
@@ -1401,14 +1399,20 @@ end
 
 -- 删除 移动 添加 清空
 function D.RemoveData(szType, dwMapID, nIndex)
-	if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
-		table.remove(D.FILE[szType][dwMapID], nIndex)
-		if #D.FILE[szType][dwMapID] == 0 then
+	if nIndex then
+		if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
+			table.remove(D.FILE[szType][dwMapID], nIndex)
+			if #D.FILE[szType][dwMapID] == 0 then
+				D.FILE[szType][dwMapID] = nil
+			end
+		end
+	else
+		if D.FILE[szType][dwMapID] then
 			D.FILE[szType][dwMapID] = nil
 		end
-		FireUIEvent("DBM_CREATE_CACHE")
-		FireUIEvent("DBMUI_DATA_RELOAD")
 	end
+	FireUIEvent("DBM_CREATE_CACHE")
+	FireUIEvent("DBMUI_DATA_RELOAD")
 end
 
 function D.MoveOrder(szType, dwMapID, nIndex, bUp)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-14 07:23:44
+-- @Last Modified time: 2015-11-17 10:03:09
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -153,7 +153,7 @@ function DBM_UI.OnEvent(szEvent)
 	elseif szEvent == "DBMUI_TEMP_UPDATE" then
 		DBMUI.UpdateRList(szEvent, arg0, arg1)
 	elseif szEvent == "DBMUI_TEMP_RELOAD" or szEvent == "DBMUI_DATA_RELOAD" or szEvent == "CIRCLE_RELOAD" then
-		if szEvent == "CIRCLE_RELOAD" and arg0 and DBM_SELECT_TYPE == "CIRCLE" then
+		if szEvent == "CIRCLE_RELOAD" and arg0 and DBMUI_SELECT_TYPE == "CIRCLE" then
 			DBMUI_SELECT_MAP = arg0
 		end
 		local nIndex = this.hPageSet:GetActivePageIndex()
@@ -166,19 +166,18 @@ function DBM_UI.OnFrameDragEnd()
 end
 
 function DBM_UI.OnActivePage()
-	local frame = DBMUI.GetFrame()
+	local frame = this:GetRoot()
 	local nPage = this:GetActivePageIndex()
 	DBMUI_SELECT_TYPE = DBMUI_TYPE[nPage + 1]
 	DBMUI.UpdateRList("DBMUI_TEMP_RELOAD", DBMUI_SELECT_TYPE)
 	if DBMUI_SELECT_TYPE ~= "CIRCLE" then
 		this:Lookup("NewFace"):Hide()
-		DBMUI.UpdateLList("DBMUI_DATA_RELOAD")
 	else
 		this:Lookup("NewFace"):Show()
-		DBMUI.UpdateLList("CIRCLE_RELOAD")
 	end
+	DBMUI.UpdateLList()
 	-- update tree
-	DBMUI.UpdateTree()
+	DBMUI.UpdateTree(frame)
 	-- 初始化图标刷新逻辑
 	local hWndScrollL = this:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, "L", DBMUI_SELECT_TYPE, "L"))
 	local hWndScrollR = this:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, "R", DBMUI_SELECT_TYPE, "R"))
@@ -197,33 +196,24 @@ function DBM_UI.OnActivePage()
 	FireUIEvent("DBMUI_SWITCH_PAGE")
 end
 
-function DBMUI.UpdateTree()
+function DBMUI.UpdateTree(frame)
 	local nSelectID = DBMUI_SELECT_MAP
-	local frame     = DBMUI.GetFrame()
 	local tDungeon  = DBM_API.GetDungeon()
 	local data      = DBM_API.GetTable(DBMUI_SELECT_TYPE)
-	local me        = GetClientPlayer()
-	local dwMapID   = me.GetMapID()
+	local dwMapID   = JH.GetMapID()
 	local tCount    = {}
 	local hSelect
-	dwMapID = JH_MAP_NAME_FIX[dwMapID] or dwMapID
 	local function GetCount(data)
-		if data then
-			if DBMUI_SEARCH then
-				local data2 = {}
-				for k, v in ipairs(data) do
-					if DBMUI.CheckSearch(DBMUI_SELECT_TYPE, v) then
-						table.insert(data2, v)
-					end
+		local nCount = data and #data or 0
+		if DBMUI_SEARCH then
+			nCount = 0
+			for k, v in ipairs(data) do
+				if DBMUI.CheckSearch(DBMUI_SELECT_TYPE, v) then
+					nCount = nCount + 1
 				end
-				return #data2
-			else
-				return #data
 			end
-
-		else
-			return 0
 		end
+		return nCount
 	end
 	local function Format(hTreeT, hTreeC, key, ...)
 		local nCount = GetCount(data[key])
@@ -253,7 +243,6 @@ function DBMUI.UpdateTree()
 		if dwMapID == key then
 			hSelect = hTreeT
 			hTreeC:Lookup(1):SetFontColor(168, 168, 255)
-			hTreeT:FormatAllItemPos()
 		end
 	end
 	frame.hTreeH:Clear()
@@ -271,21 +260,12 @@ function DBMUI.UpdateTree()
 			Format(hTreeT, hTreeC, k)
 		end
 	end
-	-- 秘境
-	-- local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
-	-- hTreeT:Lookup(1):SetText(g_tStrings.STR_FT_DUNGEON)
-	-- for k, v in pairs(data) do
-	-- 	if not JH.IsDungeon(k) and JH.IsDungeon(k, true) then -- 不是团队秘境但是是小队秘境
-	-- 		local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
-	-- 		Format(hTreeT, hTreeC, k)
-	-- 	end
-	-- end
 	for _, v in ipairs(tDungeon) do
 		local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
 		hTreeT:Lookup(1):SetText(v.szLayer3Name)
 		for _, vv in ipairs(v.aList) do
 			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
-			Format(hTreeT, hTreeC, vv, _L["Battle of Taiyuan"], v.szLayer3Name)
+			Format(hTreeT, hTreeC, vv, _L["Battle of Taiyuan"], _L["YongWangXingGong"], v.szLayer3Name)
 		end
 	end
 	if hSelect then
@@ -329,7 +309,23 @@ end
 
 function DBM_UI.OnItemRButtonClick()
 	local szName = this:GetName()
-	if szName == "Handle_L" or szName == "Handle_TALK_L" then
+	if szName == "TreeLeaf_Content" then
+		local menu = {}
+		local dwMapID = this.dwMapID
+		if dwMapID ~= _L["All Data"] then
+			local szName =
+			table.insert(menu, { szOption = this:Lookup(1):GetText(), bDisable = true })
+			table.insert(menu, { bDevide = true })
+			table.insert(menu, { szOption = _L["Clear this map data"], rgb = { 255, 0, 0 }, fnAction = function()
+				if DBMUI_SELECT_TYPE == "CIRCLE" then
+					Circle.RemoveData(dwMapID, nil, true)
+				else
+					DBMUI.RemoveData(dwMapID, nil, JH.IsMapExist(dwMapID), true)
+				end
+			end })
+			PopupMenu(menu)
+		end
+	elseif szName == "Handle_L" or szName == "Handle_TALK_L" then
 		local t = this.dat
 		local menu = {}
 		local name = this:Lookup("Text") and this:Lookup("Text"):GetText() or t.szContent
@@ -498,7 +494,7 @@ function DBM_UI.OnItemLButtonDrag()
 	local szName = this:GetName()
 	if szName == "Handle_L" or szName == "Handle_TALK_L" then
 		OpenRaidDragPanel(this.dat)
-		local frame = DBMUI.GetFrame()
+		local frame = this:GetRoot()
 		local handle = frame.hTreeH
 		for i = 0, handle:GetItemCount() - 1 do
 			local item = handle:Lookup(i)
@@ -523,7 +519,7 @@ function DBM_UI.OnItemLButtonDragEnd()
 		end
 	elseif szName == "Handle_L" or szName == "Handle_TALK_L" then
 		CloseRaidDragPanel()
-		DBMUI.UpdateTree()
+		DBMUI.UpdateTree(this:GetRoot())
 	end
 end
 
@@ -733,7 +729,7 @@ function DBMUI.CheckSearch(szType, data)
 end
 
 -- 更新监控数据
-function DBMUI.UpdateLList(szEvent)
+function DBMUI.UpdateLList()
 	local szType = DBMUI_SELECT_TYPE
 	local tab = DBM_API.GetTable(szType)
 	if tab then

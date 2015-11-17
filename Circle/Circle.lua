@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-13 07:33:56
+-- @Last Modified time: 2015-11-17 10:03:35
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -131,14 +131,6 @@ function C.LoadCircleMergeData(tData)
 	JH.Sysmsg(_L["Circle loaded."])
 end
 
-function C.GetMapID()
-	local mapid = GetClientPlayer().GetMapID()
-	if JH_MAP_NAME_FIX[mapid] then
-		mapid = JH_MAP_NAME_FIX[mapid]
-	end
-	return mapid
-end
-
 function C.Release()
 	C.tScrutiny = {
 		[TARGET.NPC] = {},
@@ -193,7 +185,7 @@ end
 -- 构建data table
 function C.CreateData()
 	pcall(C.Release)
-	local mapid = C.GetMapID()
+	local mapid = JH.GetMapID()
 	-- 全地图数据
 	if C.tData[-1] then
 		for k, v in ipairs(C.tData[-1]) do
@@ -270,16 +262,32 @@ function C.MoveData(dwMapID, nIndex, dwTargetMapID, bCopy)
 end
 
 function C.RemoveData(mapid, index, bConfirm)
-	if C.tData[mapid] and C.tData[mapid][index] then
-		local fnAction = function()
-			table.remove(C.tData[mapid], index)
-			if #C.tData[mapid] == 0 then
-				C.tData[mapid] = nil
+	local fnAction
+	if index then
+		if C.tData[mapid] and C.tData[mapid][index] then
+			fnAction = function()
+				table.remove(C.tData[mapid], index)
+				if #C.tData[mapid] == 0 then
+					C.tData[mapid] = nil
+					FireUIEvent("CIRCLE_RELOAD")
+				end
 			end
-			FireUIEvent("CIRCLE_RELOAD")
 		end
+	else
+		if C.tData[mapid] then
+			fnAction = function()
+				C.tData[mapid] = nil
+				FireUIEvent("CIRCLE_RELOAD")
+			end
+		end
+	end
+	if fnAction then
 		if bConfirm then
-			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
+			if index then
+				JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
+			else
+				JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, JH.IsMapExist(mapid)), fnAction)
+			end
 		else
 			fnAction()
 		end
@@ -661,7 +669,7 @@ function C.OpenAddPanel(szName, dwType, szMap, dwSelMapID)
 		if dwSelMapID ~= _L["All Data"] then
 			szMap = JH.IsMapExist(dwSelMapID)
 		else
-			szMap = JH.IsMapExist(C.GetMapID())
+			szMap = JH.IsMapExist(JH.GetMapID())
 		end
 	end
 	ui:Append("WndEdit", "Map", { txt = szMap, x = 115, y = 113 }):Autocomplete(JH.GetAllMap())
@@ -956,7 +964,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
-				C.OpenAddPanel(not IsCtrlKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, JH.IsMapExist(C.GetMapID()))
+				C.OpenAddPanel(not IsCtrlKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, JH.IsMapExist(JH.GetMapID()))
 			end }}
 		end
 	else
