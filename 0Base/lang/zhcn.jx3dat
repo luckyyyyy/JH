@@ -119,10 +119,12 @@ data = {
 	["TRANSFER_LIFE"] = "吸取生命",
 	["TRANSFER_MANA"] = "吸取内力",
 	-- DBM_UI.lua --
+	["Clear this map data"] = "清空分类下数据（小心）",
 	["%s share a %s data to you, accept?"] = "【%s】共享了一个【%s】数据给你，接收？",
 	["Share Data"] = "共享数据",
 	["Manual input"] = "手动输入",
 	["Battle of Taiyuan"] = "太原之战·",
+	["YongWangXingGong"] = "永王行宫·",
 	["Self KungFu require"] = "自身心法要求",
 	["no request"] = "没有要求",
 	["infinite"] = "∞",
