@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-17 10:03:09
+-- @Last Modified time: 2015-11-17 12:24:15
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -205,7 +205,7 @@ function DBMUI.UpdateTree(frame)
 	local hSelect
 	local function GetCount(data)
 		local nCount = data and #data or 0
-		if DBMUI_SEARCH then
+		if DBMUI_SEARCH and data then
 			nCount = 0
 			for k, v in ipairs(data) do
 				if DBMUI.CheckSearch(DBMUI_SELECT_TYPE, v) then
