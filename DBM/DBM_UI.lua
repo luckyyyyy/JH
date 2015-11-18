@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-17 12:24:15
+-- @Last Modified time: 2015-11-19 07:51:29
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -268,6 +268,10 @@ function DBMUI.UpdateTree(frame)
 			Format(hTreeT, hTreeC, vv, _L["Battle of Taiyuan"], _L["YongWangXingGong"], v.szLayer3Name)
 		end
 	end
+	local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
+	hTreeT:Lookup(1):SetText(_L["recycle bin"])
+	local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
+	Format(hTreeT, hTreeC, -9)
 	if hSelect then
 		local hLocation = hSelect:Lookup("Image_Location")
 		local w, h = hSelect:Lookup(1):GetTextExtent()
@@ -686,7 +690,7 @@ function DBMUI.RemoveData(dwMapID, nIndex, szMsg, bConfirm)
 	local function fnAction()
 		DBM_API.RemoveData(DBMUI_SELECT_TYPE, dwMapID, nIndex)
 	end
-	if bConfirm then
+	if bConfirm and not nIndex then
 		JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, szMsg), fnAction)
 	else
 		fnAction()

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-16 21:43:09
+-- @Last Modified time: 2015-11-19 07:51:37
 
 -- 早期代码 需要重写
 
@@ -1020,7 +1020,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 				end)
 				ui:Append("Text", { w = 120, h = 30, x = 10, y = 35, txt = _L("Operator:%s", szName), font = 41 })
 				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", _GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
-				ui.self.self = ui
+				ui:Raw().self = ui
 			end
 			if data[2] == "Info" then
 				if data[3] == me.szName and tonumber(data[4]) and tonumber(data[4]) <= -100 then
@@ -1060,7 +1060,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						ui:Append("Image", { w = 28, h = 28, x = 30, y = 121 + 30 * n }):File(GetForceImage(dwForceID))
 					end
 					ui:Append("Text", { w = 140, h = 30, x = 60, y = 120 + 30 * n, txt = data[3], color = { JH.GetForceColor(dwForceID) } })
-					local handle = ui:Append("Handle", { w = 130, h = 20, x = 200, y = 120 + 30 * n }):Type(3).self
+					local handle = ui:Append("Handle", { w = 130, h = 20, x = 200, y = 120 + 30 * n }):Type(3):Raw()
 					handle:AppendItemFromString(_GKP.GetMoneyTipText(tonumber(data[4])))
 					handle:FormatAllItemPos()
 					for k, v in ipairs(tBox) do
@@ -1096,7 +1096,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					if data[4] then
 						local ui = GUI(frm)
 						local n = frm.n or 0
-						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 1 }):Type(3).self
+						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 1 }):Type(3):Raw()
 						handle:AppendItemFromString(GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(tonumber(data[4])))
 						handle:FormatAllItemPos()
 						ui:Append("WndButton4", { w = 91, h = 26, x = 620, y = 120 + 30 * n + 1, txt = _L["salary"] }):Click(function()
@@ -1920,7 +1920,7 @@ function _GKP.Record(tab, item, bEnter)
 		-- elseif GKP.bAutoBX and tab.szName == JH.GetItemName(73214) and tab.nStackNum and tab.nStackNum >= 1 then
 		-- 	nAuto = tab.nStackNum
 		end
-		ui:Fetch("btn_Close").self.userdata = true
+		ui:Fetch("btn_Close"):Raw().userdata = true
 	else
 		hPlayer:Text(g_tStrings.PLAYER_NOT_EMPTY):Color(255, 255, 255)
 		hSource:Text(_L["Add Manually"]):Enable(false)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-17 10:03:04
+-- @Last Modified time: 2015-11-19 07:51:13
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -252,8 +252,10 @@ function D.CreateMeTaTable()
 			if index == _L["All Data"] then
 				local t = {}
 				for k, v in pairs(vTable) do
-					for kk, vv in ipairs(v) do
-						t[#t +1] = vv
+					if k ~= -9 then
+						for kk, vv in ipairs(v) do
+							t[#t +1] = vv
+						end
 					end
 				end
 				return t
@@ -1401,18 +1403,24 @@ end
 function D.RemoveData(szType, dwMapID, nIndex)
 	if nIndex then
 		if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
-			table.remove(D.FILE[szType][dwMapID], nIndex)
-			if #D.FILE[szType][dwMapID] == 0 then
-				D.FILE[szType][dwMapID] = nil
+			if dwMapID == -9 then
+				table.remove(D.FILE[szType][dwMapID], nIndex)
+				if #D.FILE[szType][dwMapID] == 0 then
+					D.FILE[szType][dwMapID] = nil
+				end
+				FireUIEvent("DBM_CREATE_CACHE")
+				FireUIEvent("DBMUI_DATA_RELOAD")
+			else
+				D.MoveData(szType, dwMapID, nIndex, -9)
 			end
 		end
 	else
 		if D.FILE[szType][dwMapID] then
 			D.FILE[szType][dwMapID] = nil
+			FireUIEvent("DBM_CREATE_CACHE")
+			FireUIEvent("DBMUI_DATA_RELOAD")
 		end
 	end
-	FireUIEvent("DBM_CREATE_CACHE")
-	FireUIEvent("DBMUI_DATA_RELOAD")
 end
 
 function D.MoveOrder(szType, dwMapID, nIndex, bUp)
@@ -1433,14 +1441,16 @@ end
 
 function D.CheckRepeatData(szType, dwMapID, dwID, nLevel)
 	if D.FILE[szType][dwMapID] then
-		for k, v in ipairs(D.FILE[szType][dwMapID]) do
-			if type(dwID) == "string" then
-				if dwID == v.szContent and nLevel == v.szTarget then
-					return k, v
-				end
-			else
-				if dwID == v.dwID and nLevel == v.nLevel then
-					return k, v
+		if dwMapID ~= -9 then
+			for k, v in ipairs(D.FILE[szType][dwMapID]) do
+				if type(dwID) == "string" then
+					if dwID == v.szContent and nLevel == v.szTarget then
+						return k, v
+					end
+				else
+					if dwID == v.dwID and nLevel == v.nLevel then
+						return k, v
+					end
 				end
 			end
 		end
@@ -1459,7 +1469,10 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 		D.FILE[szType][dwTargetMapID] = D.FILE[szType][dwTargetMapID] or {}
 		tinsert(D.FILE[szType][dwTargetMapID], clone(D.FILE[szType][dwMapID][nIndex]))
 		if not bCopy then
-			D.RemoveData(szType, dwMapID, nIndex)
+			table.remove(D.FILE[szType][dwMapID], nIndex)
+			if #D.FILE[szType][dwMapID] == 0 then
+				D.FILE[szType][dwMapID] = nil
+			end
 		end
 		FireUIEvent("DBM_CREATE_CACHE")
 		FireUIEvent("DBMUI_DATA_RELOAD")

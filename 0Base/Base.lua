@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-17 10:03:15
+-- @Last Modified time: 2015-11-19 07:49:57
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -538,17 +538,17 @@ function JH.UnRegisterEvent(szEvent)
 	JH.RegisterEvent(szEvent, nil)
 end
 -- 注册用户定义数据，支持全局变量数组遍历
--- (void) JH.RegisterCustomData(string szVarPath)
-function JH.RegisterCustomData(szVarPath)
+-- (void) JH.RegisterCustomData(string szVarPath[, number nVersion])
+function JH.RegisterCustomData(szVarPath, nVersion)
 	if _G and type(_G[szVarPath]) == "table" then
 		for k, _ in pairs(_G[szVarPath]) do
-			RegisterCustomData(szVarPath .. "." .. k)
+			RegisterCustomData(szVarPath .. "." .. k, nVersion)
 		end
 	else
-		RegisterCustomData(szVarPath)
+		RegisterCustomData(szVarPath, nVersion)
 	end
 end
-
+-- 开发函数 修改全局变量
 function JH.SetGlobalValue(szVarPath, Val)
 	local t = JH.Split(szVarPath, ".")
 	local tab = _G
@@ -562,7 +562,6 @@ function JH.SetGlobalValue(szVarPath, Val)
 		tab = tab[v]
 	end
 end
-
 -- 初始化一个模块
 function JH.RegisterInit(key, ...)
 	local events = { ... }
@@ -649,7 +648,6 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	if nChannel == PLAYER_TALK_CHANNEL.RAID and not me.IsInParty() then
 		return
 	end
-
 	-- say body
 	local tSay = nil
 	if type(szText) == "table" then
@@ -723,11 +721,9 @@ function JH.BgHear(szKey, bIgnore)
 			end
 			nOff = nOff + 1
 		end
-
 		for i = nOff, #tSay do
 			tinsert(tData, tSay[i].linkinfo)
 		end
-
 		return tData
 	end
 end
@@ -897,8 +893,14 @@ end
 
 function JH.IsMapExist(param)
 	if not _JH.tMapList[-1] then
-		local tMapListByID   = { [-1] = g_tStrings.CHANNEL_COMMON }
-		local tMapListByName = { [g_tStrings.CHANNEL_COMMON] = -1 }
+		local tMapListByID   = {
+			[-1] = g_tStrings.CHANNEL_COMMON,
+			[-9] = _L["recycle bin"],
+		}
+		local tMapListByName = {
+			[g_tStrings.CHANNEL_COMMON] = -1,
+			[_L["recycle bin"]]         = -9,
+		}
 		for k, v in ipairs(GetMapList()) do
 			if not JH_MAP_NAME_FIX[v] then
 				local szName           = Table_GetMapName(v)
