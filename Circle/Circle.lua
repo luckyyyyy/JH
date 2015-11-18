@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-17 12:25:35
+-- @Last Modified time: 2015-11-19 07:50:59
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -102,9 +102,6 @@ function C.LoadCircleData(tData, bMsg)
 	tData.Circle[-2]   = nil
 	C.tData = tData.Circle
 	FireUIEvent("CIRCLE_RELOAD")
-	if bMsg then
-		JH.Sysmsg(_L["Circle loaded."])
-	end
 end
 
 function C.LoadCircleMergeData(tData)
@@ -172,8 +169,10 @@ function C.Release()
 			if mapid == _L["All Data"] then
 				local dat = {}
 				for k, v in pairs(me) do
-					for kk, vv in ipairs(v) do
-						tinsert(dat, vv)
+					if k ~= -9 then
+						for kk, vv in ipairs(v) do
+							tinsert(dat, vv)
+						end
 					end
 				end
 				return dat
@@ -235,9 +234,11 @@ end
 
 function C.CheckRepeatData(dwMapID, key, dwType)
 	if C.tData[dwMapID] then
-		for k, v in ipairs(C.tData[dwMapID]) do
-			if key == v.key and dwType == v.dwType then
-				return k, v
+		if dwMapID ~= -9 then
+			for k, v in ipairs(C.tData[dwMapID]) do
+				if key == v.key and dwType == v.dwType then
+					return k, v
+				end
 			end
 		end
 	end
@@ -255,39 +256,42 @@ function C.MoveData(dwMapID, nIndex, dwTargetMapID, bCopy)
 		C.tData[dwTargetMapID] = C.tData[dwTargetMapID] or {}
 		tinsert(C.tData[dwTargetMapID], clone(C.tData[dwMapID][nIndex]))
 		if not bCopy then
-			C.RemoveData(dwMapID, nIndex)
+			table.remove(C.tData[dwMapID], nIndex)
+			if #C.tData[dwMapID] == 0 then
+				C.tData[dwMapID] = nil
+			end
 		end
 		FireUIEvent("CIRCLE_RELOAD")
 	end
 end
 
-function C.RemoveData(mapid, index, bConfirm)
+function C.RemoveData(dwMapID, nIndex, bConfirm)
 	local fnAction
-	if index then
-		if C.tData[mapid] and C.tData[mapid][index] then
+	if nIndex then
+		if C.tData[dwMapID] and C.tData[dwMapID][nIndex] then
 			fnAction = function()
-				table.remove(C.tData[mapid], index)
-				if #C.tData[mapid] == 0 then
-					C.tData[mapid] = nil
+				if dwMapID == -9 then
+					table.remove(C.tData[dwMapID], nIndex)
+					if #C.tData[dwMapID] == 0 then
+						C.tData[dwMapID] = nil
+					end
+					FireUIEvent("CIRCLE_RELOAD")
+				else
+					C.MoveData(dwMapID, nIndex, -9)
 				end
-				FireUIEvent("CIRCLE_RELOAD")
 			end
 		end
 	else
-		if C.tData[mapid] then
+		if C.tData[dwMapID] then
 			fnAction = function()
-				C.tData[mapid] = nil
+				C.tData[dwMapID] = nil
 				FireUIEvent("CIRCLE_RELOAD")
 			end
 		end
 	end
 	if fnAction then
-		if bConfirm then
-			if index then
-				JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, C.tData[mapid][index].szNote or C.tData[mapid][index].key), fnAction)
-			else
-				JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, JH.IsMapExist(mapid)), fnAction)
-			end
+		if not nIndex then
+			JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, JH.IsMapExist(dwMapID)), fnAction)
 		else
 			fnAction()
 		end
