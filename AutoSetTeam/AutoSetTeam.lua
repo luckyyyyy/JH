@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-29 19:35:32
+-- @Last Modified time: 2015-11-19 07:50:35
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark = true,
@@ -409,8 +409,8 @@ function PartyRequest.OnPeekPlayer()
 	end
 end
 function PartyRequest.OnApplyRequest()
-	if not JH_AutoSetTeam.bRequestList then 
-		return 
+	if not JH_AutoSetTeam.bRequestList then
+		return
 	end
 	local hMsgBox = Station.Lookup("Topmost/MB_ATMP_" .. arg0) or Station.Lookup("Topmost/MB_IMTP_" .. arg0)
 	if hMsgBox then
@@ -493,7 +493,7 @@ function PartyRequest.UpdateFrame()
 			else
 				ui:Fetch("Cover"):Toggle(false)
 			end
-		end).self.OnRButtonDown = function()
+		end):Raw().OnRButtonDown = function()
 			local menu = {}
 			InsertPlayerCommonMenu(menu, 0, v.szName)
 			menu[4] = nil
@@ -625,7 +625,7 @@ function TI.GetEvent()
 					end)
 				end
 			end },
-			{ "FIRST_LOADING_END", function() 
+			{ "FIRST_LOADING_END", function()
 				-- 不存在队长不队长的问题了
 				local me = GetClientPlayer()
 				if me.IsInRaid() then

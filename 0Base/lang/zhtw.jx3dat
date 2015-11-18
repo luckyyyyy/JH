@@ -1,7 +1,7 @@
 -- language data (zhcn) updated at 2015/02/23 10:11:27
 data = {
 	-- TS.lua --
-	["Well done! %s in %d group first to attack %s!!"] = "%d小隊的 %s 率先攻擊了 %s！獲取不壹定淮確，僅供參考！",
+	["Well done! %s in %d group first to attack %s!!"] = "%d小隊的 %s 率先攻擊了 %s！獲取不壹定準確，僅供參考！",
 	["Loading..."] = "Loading...",
 	["** You Threat more than %d, 120% is Out of Taunt! **"] = "** 妳的仇恨超過了 %d％ 達到 120％ 則ＯＴ！**",
 	["SOUND_nat_view2"] = "data/sound/場景/view/nat_view2.wav",
@@ -671,6 +671,7 @@ data = {
 	["Today is %d-%d-%d (%s)"] = "今天是 %d年%d月%d日 (%s)",
 	["Version"] = "當前版本",
 	-- Base.lua --
+	["recycle bin"] = "回收站",
 	["Open JH Panel"] = "打開菊花設置面板",
 	["JH, JX3 Plug-in Collection"] = "《劍網3》菊花插件集",
 	["Color Picker"] = "顏色選擇器（按住Ctrl點擊相當於應用）",

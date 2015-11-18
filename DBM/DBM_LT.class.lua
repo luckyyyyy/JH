@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-05 19:02:42
+-- @Last Modified time: 2015-11-19 07:51:19
 local _L = JH.LoadLangPack
 
 LargeText = {
@@ -11,7 +11,7 @@ LargeText = {
 	fFadeOut     = 0.3,
 	dwFontScheme = 23,
 }
-JH.RegisterCustomData("LargeText")
+JH.RegisterCustomData("LargeText", 2)
 
 local LT = {
 	szIniFile = JH.GetAddonInfo().szRootPath ..  "DBM/ui/LT_UI.ini",

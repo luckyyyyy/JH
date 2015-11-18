@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-16 10:12:54
+-- @Last Modified time: 2015-11-19 07:51:46
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -100,15 +100,12 @@ function SH:Create(obj, info, nIndex)
 	manaper = info.nCurrentMana / info.nMaxMana -- 苍云啥的懒得修正了 反正没意义
 	if manaper > 1 then manaper = 1 end
 	if lifeper > 1 then lifeper = 1 end
-	local _r, _g, _b
+	local nSec
 	if data.type and data.type ~= "Other" then
 		if data.type == "BUFF" or data.type == "DEBUFF" then
 			local KBuff = GetBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
 			if KBuff then
-				local nSec = GetEndTime(KBuff.GetEndTime())
-				if nSec < 5 then
-					_r, _g, _b = 255, 0, 0
-				end
+				nSec = GetEndTime(KBuff.GetEndTime())
 				if nSec < 0 then
 					nSec = 0
 				end
@@ -221,14 +218,17 @@ function SH:Create(obj, info, nIndex)
 	end
 	local szName = data.szName or GetObjName(obj)
 
-	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
+	handle.Text:AppendCharacterID(dwID, true, r, g, b, 240, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
 	if dwID == UI_GetClientPlayerID() then
-		handle.Text:AppendCharacterID(dwID, true, 255, 0, 0, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L["_ME_"], 1, 1)
+		handle.Text:AppendCharacterID(dwID, true, 240, 0, 0, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L["_ME_"], 1, 1)
 	else
-		handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", nDistance), 1, 1)
+		handle.Text:AppendCharacterID(dwID, true, r, g, b, 240, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", nDistance), 1, 1)
 	end
-	if _r then r, g, b = _r, _g, _b end -- 5秒内显示红色倒计时
-	handle.Text:AppendCharacterID(dwID, true, r, g, b, 255, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
+	if nSec and nSec < 5 then
+		handle.Text:AppendCharacterID(dwID, true, 255, 0, 0, 240, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
+	else
+		handle.Text:AppendCharacterID(dwID, true, r, g, b, 240, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
+	end
 
 	for k,v in ipairs({ handle.Life, handle.Mana }) do
 		v:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
