@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-20 09:48:55
+-- @Last Modified time: 2015-11-22 15:15:17
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -55,6 +55,7 @@ JH = {
 	bDebug       = false, -- debug
 	bDebugClient = false, -- 测试客户端版本
 	nChannel     = PLAYER_TALK_CHANNEL.RAID, -- JH.Talk默认频道
+	LoadLangPack = _L,
 }
 RegisterCustomData("JH.bDebug")
 RegisterCustomData("JH.nChannel") -- 方便debug切到TONG
@@ -98,13 +99,11 @@ local _JH = {
 	tItem        = { {}, {}, {} },
 	tOption      = { szOption = _L["JH Plugin"] },
 	tOption2     = { szOption = _L["JH Plugin"] },
-	tClass       = { _L["General"], _L["RGES"], _L["Other"] },
+	tClass       = { _L["General"], _L["Other"] },
 	szIniFile    = ROOT_PATH .. "JH.ini",
 }
 
 local JH = JH
-JH.LoadLangPack = GetLang()
-
 -- parse emotion in talking message
 function _JH.ParseFaceIcon(t)
 	if not _JH.tFaceIcon then
@@ -216,7 +215,7 @@ function _JH.IsPanelOpened()
 	return _JH.frame and _JH.frame:IsVisible()
 end
 
-JH.ClosePanel = _JH.ClosePanel
+JH.ClosePanel  = _JH.ClosePanel
 JH.TogglePanel = _JH.TogglePanel
 
 -- register conflict checker
@@ -355,14 +354,17 @@ function JH.OnFrameCreate()
 	-- update list/detail
 	_JH.UpdateTabBox(this)
 end
+
 function JH.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		_JH.UpdateAnchor(this)
 	end
 end
+
 function JH.OnFrameDragEnd()
 	_JH.tAnchor = GetFrameAnchor(this)
 end
+
 function JH.OnFrameBreathe()
 	-- run breathe calls
 	local nFrame = GetLogicFrameCount()
@@ -386,7 +388,6 @@ function JH.OnFrameBreathe()
 			tremove(_JH.tDelayCall, k)
 		end
 	end
-
 	-- run remote request (10s)
 	if not _JH.nRequestExpire or _JH.nRequestExpire < nTime then
 		if _JH.nRequestExpire then
@@ -413,14 +414,6 @@ function JH.OnDocumentComplete()
 		pcall(r.fnAction, this:GetLocationName(), this:GetDocument())
 	end
 end
--- key down
-function JH.OnFrameKeyDown()
-	if GetKeyName(Station.GetMessageKey()) == "Esc" then
-		_JH.ClosePanel()
-		return 1
-	end
-	return 0
-end
 -- button click
 function JH.OnLButtonClick()
 	local szName = this:GetName()
@@ -428,7 +421,6 @@ function JH.OnLButtonClick()
 		_JH.ClosePanel()
 	end
 end
-
 --------------------------------------- * 常用函数 * ---------------------------------------
 
 -- (void) JH.SetHotKey()               -- 打开快捷键设置面板
@@ -459,14 +451,6 @@ function JH.GetAddonInfo()
 	}
 end
 
-function JH.GetObjName(object, bEmployer)
-	if IsPlayer(object.dwID) then
-		return object.szName
-	else
-		return JH.GetTemplateName(object, bEmployer)
-	end
-end
-
 local function JH_GetNpcName(dwTemplateID)
 	local szName = Table_GetNpcTemplateName(dwTemplateID)
 	if JH.Trim(szName) == "" then
@@ -474,7 +458,8 @@ local function JH_GetNpcName(dwTemplateID)
 	end
 	return szName
 end
-
+-- (string) JH.GetTemplateName(KObject KObject[, boolean bEmployer])  -- 获取或格式化NPC对象真实名称
+-- (string) JH.GetTemplateName(number KObject[, boolean bEmployer])
 function JH.GetTemplateName(KObject, bEmployer)
 	if type(KObject) == "userdata" then
 		local szName
@@ -500,7 +485,6 @@ function JH.GetTemplateName(KObject, bEmployer)
 		return JH_GetNpcName(KObject)
 	end
 end
-
 -- 注册事件，和系统的区别在于可以指定一个 KEY 防止多次加载
 -- (void) JH.RegisterEvent(string szEvent, func fnAction[, string szKey])
 -- szEvent		-- 事件，可在后面加一个点并紧跟一个标识字符串用于防止重复或取消绑定，如 LOADING_END.xxx
@@ -560,6 +544,28 @@ function JH.SetGlobalValue(szVarPath, Val)
 			tab[v] = Val
 		end
 		tab = tab[v]
+	end
+end
+-- 开发函数 CallGlobalFun
+function JH.CallGlobalFun(funname, ...)
+	if not string.find(funname, ".") then
+		return _G[funname](...)
+	end
+	local t = JH.Split(funname, ".")
+	local len = #t
+	if len == 2 then
+		return _G[t[1]][t[2]](...)
+	end
+	local fun = _G
+	for k, v in ipairs(t) do
+		if fun[v] then
+			fun = fun[v]
+		else
+			return
+		end
+	end
+	if fun then
+		return fun(...)
 	end
 end
 -- 初始化一个模块
@@ -1490,11 +1496,11 @@ JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 end)
 
 JH.RegisterEvent("PLAYER_ENTER_SCENE", function() _JH.aPlayer[arg0] = true end)
-JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() _JH.aPlayer[arg0] = nil end)
-JH.RegisterEvent("NPC_ENTER_SCENE", function() _JH.aNpc[arg0] = true end)
-JH.RegisterEvent("NPC_LEAVE_SCENE", function() _JH.aNpc[arg0] = nil end)
+JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() _JH.aPlayer[arg0] = nil  end)
+JH.RegisterEvent("NPC_ENTER_SCENE",    function() _JH.aNpc[arg0]    = true end)
+JH.RegisterEvent("NPC_LEAVE_SCENE",    function() _JH.aNpc[arg0]    = nil  end)
 JH.RegisterEvent("DOODAD_ENTER_SCENE", function() _JH.aDoodad[arg0] = true end)
-JH.RegisterEvent("DOODAD_LEAVE_SCENE", function() _JH.aDoodad[arg0] = nil end)
+JH.RegisterEvent("DOODAD_LEAVE_SCENE", function() _JH.aDoodad[arg0] = nil  end)
 -- 字符串类
 function JH.Trim(szText)
 	if not szText or szText == "" then
@@ -1541,15 +1547,6 @@ JH.RegisterEvent("JH_TAR_TEMP_UPDATE", function()
 	JH_TAR_TEMP = arg0
 end)
 
-local function JH_SetTarget(dwTargetID)
-	if dwTargetID and dwTargetID > 0 then
-		local nType = IsPlayer(dwTargetID) and TARGET.PLAYER or TARGET.NPC
-		SetTarget(nType, dwTargetID)
-	else
-		SetTarget(TARGET.NO_TARGET, 0)
-	end
-end
-
 function JH.SetTempTarget(dwMemberID, bEnter)
 	if JH_TAR_TEMP_STATUS == bEnter then -- 防止偶尔UIBUG
 		return
@@ -1559,10 +1556,10 @@ function JH.SetTempTarget(dwMemberID, bEnter)
 	if bEnter then
 		JH_TAR_TEMP = dwID
 		if dwMemberID ~= dwID then
-			JH_SetTarget(dwMemberID)
+			JH.SetTarget(dwMemberID)
 		end
 	else
-		JH_SetTarget(JH_TAR_TEMP)
+		JH.SetTarget(JH_TAR_TEMP)
 	end
 end
 

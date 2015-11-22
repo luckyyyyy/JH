@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-19 07:51:46
+-- @Last Modified time: 2015-11-22 14:45:42
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -26,7 +26,7 @@ local GetPlayer, GetClientPlayer, GetClientTeam =
 	  GetPlayer, GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID = UI_GetClientPlayerID
 local GetTarget, GetBuff, GetEndTime, GetBuffName, FormatTimeString, GetSkillName, GetDistance, GetObjName, JH_IsParty =
-	  JH.GetTarget, JH.GetBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetObjName, JH.IsParty
+	  JH.GetTarget, JH.GetBuff, JH.GetEndTime, JH.GetBuffName, JH.FormatTimeString, JH.GetSkillName, JH.GetDistance, JH.GetTemplateName, JH.IsParty
 local SCREEN_SELECT_FIX = 0.3
 
 local SH = {
