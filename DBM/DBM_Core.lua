@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-19 07:51:13
+-- @Last Modified time: 2015-11-22 14:45:12
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -461,7 +461,7 @@ function D.GetSrcName(dwID)
 	end
 	local KObject = IsPlayer(dwID) and GetPlayer(dwID) or GetNpc(dwID)
 	if KObject then
-		return JH.GetObjName(KObject)
+		return JH.GetTemplateName(KObject)
 	else
 		return dwID
 	end
@@ -528,7 +528,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 			end
 			szName = data.szName or szName
 			nIcon  = data.nIcon or nIcon
-			local szSrcName = JH.GetObjName(KObject)
+			local szSrcName = JH.GetTemplateName(KObject)
 			local xml = {}
 			tinsert(xml, DBM_LEFT_LINE)
 			tinsert(xml, GetFormatText(szSrcName == me.szName and g_tStrings.STR_YOU or szSrcName, 44, 255, 255, 0))
@@ -657,11 +657,11 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		end
 		szName = data.szName or szName
 		nIcon  = data.nIcon or nIcon
-		local szSrcName = JH.GetObjName(KObject)
+		local szSrcName = JH.GetTemplateName(KObject)
 		local dwTargetType, dwTargetID = KObject.GetTarget()
 		local szTargetName
 		if dwTargetID > 0 then
-			szTargetName = JH.GetObjName(IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID))
+			szTargetName = JH.GetTemplateName(IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID))
 		end
 		local cfg, nClass
 		if szEvent == "UI_OME_SKILL_CAST_LOG" then
@@ -818,7 +818,7 @@ function D.OnNpcEvent(npc, bEnter)
 		end
 		D.CountdownEvent(data, nClass)
 		if cfg then
-			local szName = JH.GetObjName(npc)
+			local szName = JH.GetTemplateName(npc)
 			local xml = {}
 			tinsert(xml, DBM_LEFT_LINE)
 			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))

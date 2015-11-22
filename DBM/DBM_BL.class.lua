@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-07-20 11:36:01
+-- @Last Modified time: 2015-11-22 14:02:01
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -95,10 +95,7 @@ end
 
 function BL_UI.OnItemRButtonClick()
 	local h = this:GetParent()
-	local KBuff = GetBuff(h.dwID, h.nLevel)
-	if KBuff then
-		GetClientPlayer().CancelBuff(KBuff.nIndex)
-	end
+	JH.CancelBuff(h.dwID, h.nLevel)
 end
 
 function BL_UI.OnItemMouseLeave()

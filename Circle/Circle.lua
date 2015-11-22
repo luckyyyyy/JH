@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-19 07:50:59
+-- @Last Modified time: 2015-11-22 14:44:44
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -197,13 +197,13 @@ function C.CreateData()
 		end
 	end
 	for k, v in pairs(JH.GetAllNpc()) do
-		local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(v)]
+		local t = C.tList[TARGET.NPC][v.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(v)]
 		if t then
 			C.tScrutiny[TARGET.NPC][v.dwID] = t
 		end
 	end
 	for k, v in pairs(JH.GetAllDoodad()) do
-		local t = C.tList[TARGET.DOODAD][v.dwTemplateID] or C.tList[TARGET.DOODAD][JH.GetObjName(v)]
+		local t = C.tList[TARGET.DOODAD][v.dwTemplateID] or C.tList[TARGET.DOODAD][JH.GetTemplateName(v)]
 		if t then
 			C.tScrutiny[TARGET.DOODAD][v.dwID] = t
 		end
@@ -435,7 +435,7 @@ end
 
 function C.OnNpcEnter(szEvent)
 	local npc = GetNpc(arg0)
-	local t = C.tList[TARGET.NPC][npc.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(npc)]
+	local t = C.tList[TARGET.NPC][npc.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(npc)]
 	if t then
 		C.tScrutiny[TARGET.NPC][arg0] = t
 	end
@@ -549,10 +549,10 @@ function C.OnBreathe()
 				end
 				if dwID ~= 0 and dwType == TARGET.PLAYER then
 					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
-					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetObjName(tar), col })
+					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetTemplateName(tar), col })
 				end
 				if dwID ~= 0 and dwType == TARGET.PLAYER and tar and (not C.tTarget[KGNpc.dwID] or C.tTarget[KGNpc.dwID] and C.tTarget[KGNpc.dwID] ~= dwID) then
-					local szName = JH.GetObjName(tar)
+					local szName = JH.GetTemplateName(tar)
 					C.tTarget[KGNpc.dwID] = dwID
 					if data.bScreenHead then
 						FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
@@ -950,7 +950,7 @@ JH.RegisterEvent("LOGIN_GAME", C.Enable)
 Target_AppendAddonMenu({ function(dwID, dwType)
 	if dwType == TARGET.NPC then
 		local p = GetNpc(dwID)
-		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetObjName(p)]
+		local data = C.tList[TARGET.NPC][p.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(p)]
 		if data then
 			return {{
 				szOption = _L["Edit Face"],
@@ -968,7 +968,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
-				C.OpenAddPanel(not IsCtrlKeyDown() and JH.GetObjName(p) or p.dwTemplateID, dwType, JH.IsMapExist(JH.GetMapID()))
+				C.OpenAddPanel(not IsCtrlKeyDown() and JH.GetTemplateName(p) or p.dwTemplateID, dwType, JH.IsMapExist(JH.GetMapID()))
 			end }}
 		end
 	else

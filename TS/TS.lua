@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-14 07:31:38
+-- @Last Modified time: 2015-11-22 14:45:55
 local _L = JH.LoadLangPack
 
 TS = {
@@ -28,7 +28,7 @@ local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
 local MY_Recount_GetData
 local HATRED_COLLECT = g_tStrings.HATRED_COLLECT
 local GetBuff, GetBuffName, GetEndTime, GetObjName, GetForceColor =
-	  JH.GetBuff, JH.GetBuffName, JH.GetEndTime, JH.GetObjName, JH.GetForceColor
+	  JH.GetBuff, JH.GetBuffName, JH.GetEndTime, JH.GetTemplateName, JH.GetForceColor
 local GetNpcIntensity = GetNpcIntensity
 local GetTime = GetTime
 
