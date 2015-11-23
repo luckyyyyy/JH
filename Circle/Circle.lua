@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-22 15:19:41
+-- @Last Modified time: 2015-11-23 20:44:16
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -182,7 +182,7 @@ end
 -- 构建data table
 function C.CreateData()
 	pcall(C.Release)
-	local mapid = JH.GetMapID()
+	local mapid = JH.GetMapID(true)
 	-- 全地图数据
 	if C.tData[-1] then
 		for k, v in ipairs(C.tData[-1]) do
@@ -671,7 +671,7 @@ function C.OpenAddPanel(szName, dwType, szMap, dwSelMapID)
 		if dwSelMapID ~= _L["All Data"] then
 			szMap = JH.IsMapExist(dwSelMapID)
 		else
-			szMap = JH.IsMapExist(JH.GetMapID())
+			szMap = JH.IsMapExist(JH.GetMapID(true))
 		end
 	end
 	ui:Append("WndEdit", "Map", { txt = szMap, x = 115, y = 113 }):Autocomplete(JH.GetAllMap())
@@ -966,7 +966,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 			}}
 		else
 			return {{ szOption = _L["Add Face"], rgb = { 255, 255, 0 }, fnAction = function()
-				C.OpenAddPanel(not IsCtrlKeyDown() and JH.GetTemplateName(p) or p.dwTemplateID, dwType, JH.IsMapExist(JH.GetMapID()))
+				C.OpenAddPanel(not IsCtrlKeyDown() and JH.GetTemplateName(p) or p.dwTemplateID, dwType, JH.IsMapExist(JH.GetMapID(true)))
 			end }}
 		end
 	else
