@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-22 14:44:44
+-- @Last Modified time: 2015-11-22 15:19:41
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -9,8 +9,6 @@ local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
 local tinsert, tconcat = table.insert, table.concat
-local JsonEncode, JsonDecode = JH.JsonEncode, JH.JsonDecode
-local IsRemotePlayer, UI_GetClientPlayerID = IsRemotePlayer, UI_GetClientPlayerID
 local GetClientPlayer = GetClientPlayer
 local TARGET = TARGET
 

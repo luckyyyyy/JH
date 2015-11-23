@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-22 14:45:42
+-- @Last Modified time: 2015-11-23 08:46:05
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -106,9 +106,6 @@ function SH:Create(obj, info, nIndex)
 			local KBuff = GetBuff(data.dwID, obj) -- 只判断dwID 反正不可能同时获得不同lv
 			if KBuff then
 				nSec = GetEndTime(KBuff.GetEndTime())
-				if nSec < 0 then
-					nSec = 0
-				end
 				if KBuff.nStackNum > 1 then
 					txt = sFormat("%s(%d)_%s", data.txt or GetBuffName(KBuff.dwID, KBuff.nLevel), KBuff.nStackNum, FormatTimeString(nSec, 1, true))
 				else

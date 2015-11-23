@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-19 07:51:19
+-- @Last Modified time: 2015-11-23 08:45:46
 local _L = JH.LoadLangPack
 
 LargeText = {
@@ -91,31 +91,30 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["LargeText"], font = 27 }):Pos_()
-	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT })
-	:Click(function()
+	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT }):Click(function()
 		GUI.OpenFontTablePanel(function(nFont)
 			LargeText.dwFontScheme = nFont
 			ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 		end)
 	end)
-	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY + 5 }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 8, txt = "" })
-	:Range(1, 2, 10):Value(LargeText.fScale):Change(function(nVal)
+	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY + 10 }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 13, txt = "" }):Range(1, 2, 10):Value(LargeText.fScale):Change(function(nVal)
 		LargeText.fScale = nVal
 		ui:Fetch("preview"):Font(LargeText.dwFontScheme):Scale(LargeText.fScale)
 	end):Pos_()
+
 	nX = ui:Append("Text", { txt = _L["Pause time"], x = 10, y = nY }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 3, txt = _L["s"]  })
-	:Range(0.5, 3, 25):Value(LargeText.fPause):Change(function(nVal)
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 3, txt = _L["s"] }):Range(0.5, 3, 25):Value(LargeText.fPause):Change(function(nVal)
 		LargeText.fPause = nVal
 	end):Pos_()
+
 	nX = ui:Append("Text", { txt = _L["FadeOut time"], x = 10, y = nY }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 3, txt = _L["s"]  })
-	:Range(0, 3, 30):Value(LargeText.fFadeOut):Change(function(nVal)
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 3, txt = _L["s"] }):Range(0, 3, 30):Value(LargeText.fFadeOut):Change(function(nVal)
 		LargeText.fFadeOut = nVal
 	end):Pos_()
-	ui:Append("WndButton2", { txt = _L["preview"], x = 10, y = nY }):Click(function()
-		LT.UpdateText(_L("%s are welcome to use JH plug-in",GetClientPlayer().szName),{ 255, 128, 0 }, true)
+
+	ui:Append("WndButton2", { txt = _L["preview"], x = 10, y = nY + 5 }):Click(function()
+		LT.UpdateText(_L("%s are welcome to use JH plug-in", GetUserRoleName()))
 	end)
 	ui:Append("Text", "preview", { x = 20, y = nY + 50, txt = _L["JX3"], font = LargeText.dwFontScheme}):Scale(LargeText.fScale)
 	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = 230, font = 27 }):Pos_()
