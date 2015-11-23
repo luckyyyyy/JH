@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-22 14:02:01
+-- @Last Modified time: 2015-11-23 08:45:51
 
 local _L = JH.LoadLangPack
 local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
@@ -124,14 +124,11 @@ function BL_UI.OnFrameBreathe()
 				local KBuff = GetBuff(h.dwID, h.nLevel)
 				if KBuff then
 					local nSec = JH.GetEndTime(KBuff.GetEndTime())
-					if nSec < 0 then nSec = 0 end
-					local szTime
 					if nSec > 24 * 60 * 60 then
-						szTime = ""
+						h:Lookup("Text_Time"):SetText("")
 					else
-						szTime = JH.FormatTimeString(nSec, 1)
+						h:Lookup("Text_Time"):SetText(JH.FormatTimeString(nSec, 1))
 					end
-					h:Lookup("Text_Time"):SetText(szTime)
 					local nAlpha = h:Lookup("Animate_Update"):GetAlpha()
 					if nAlpha > 0 then
 						h:Lookup("Animate_Update"):SetAlpha(math.max(0, nAlpha - 8))

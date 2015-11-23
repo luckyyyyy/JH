@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-02 17:13:22
+-- @Last Modified time: 2015-11-23 05:12:47
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS   = {},
@@ -82,7 +82,7 @@ JH.RegisterBgMsg("JH_ABOUT", function(nChannel, dwID, szName, data, bIsSelf)
 			szTong = GetTongClient().ApplyGetTongName(me.dwTongID)
 			if not szTong then szTong = "Failed" end
 		end
-		local _,szServer = GetUserServer()
+		local szServer = select(2, GetUserServer())
 		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "info",
 			me.GetTotalEquipScore(),
 			me.GetMapID(),

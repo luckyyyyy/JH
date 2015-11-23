@@ -73,7 +73,6 @@ data = {
 	-- PartyBuffList.lua --
 	["PartyBuffList"] = "重要BUFF列表",
 	["Mouse Enter select"] = "鼠標滑過選中目標",
-	["PartyBuffList_TIPS"] = "1.妳可以按Shift+U來拖動面板的位置。\n2.重要Buff列表可以單獨使用，也可以配合其他插件使用。",
 	-- LargeText.lua --
 	["LargeText"] = "特大文字",
 	["Font Scale"] = "字體縮放",

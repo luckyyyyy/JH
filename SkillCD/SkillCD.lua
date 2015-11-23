@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-16 09:19:30
+-- @Last Modified time: 2015-11-23 08:39:42
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -247,7 +247,7 @@ function SC.UpdateMonitorCache()
 	for k, v in pairs(SkillCD.tMonitor) do
 		for kk, vv in pairs(S.tKungfu) do
 			for kkk, vvv in ipairs(vv) do
-				if vvv == k then
+				if vvv == k or k == 17 then
 					if not kungfu[kk] then
 						kungfu[kk] = {}
 					end
@@ -330,14 +330,7 @@ function SC.UpdateCount()
 				return a.nSec < b.nSec
 			end
 		end)
-		if #v.tList > 0 then
-			if SC.tIgnore[k] then
-				box:SetObjectCoolDown(true)
-				box:SetCoolDownPercentage(0)
-			else
-				box:SetObjectCoolDown(false)
-			end
-		end
+		box:EnableObject(not (SC.tIgnore[k] or false))
 		item.OnItemRefreshTip = function()
 			if box:IsValid() then
 				if #v.tList > 0 then
@@ -376,12 +369,10 @@ function SC.UpdateCount()
 			if #v.tList > 0 then
 				if SC.tIgnore[k] then
 					SC.tIgnore[k] = nil
-					box:EnableObject(false)
 				else
 					SC.tIgnore[k] = true
-					box:EnableObject(true)
-					box:SetCoolDownPercentage(0)
 				end
+				box:EnableObject(not (SC.tIgnore[k] or false))
 			end
 		end
 

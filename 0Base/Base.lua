@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-22 15:15:17
+-- @Last Modified time: 2015-11-23 08:45:31
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1190,11 +1190,10 @@ function JH.CancelBuff( ... )
 end
 -- 格式化时间字符串
 function JH.FormatTimeString(nSec, nStyle, bDefault)
+	nSec = nSec > 0 and nSec or 0
 	if nStyle == 1 then
 		if bDefault then
-			if nSec > 5999 then
-				nSec = 5999
-			end
+			nSec = nSec < 5999 and nSec or 5999
 		end
 		if nSec > 60 then
 			return floor(nSec / 60) .. "'" .. floor(nSec % 60) .. "\""
