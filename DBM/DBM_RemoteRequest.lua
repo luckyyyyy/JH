@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-29 15:49:47
+-- @Last Modified time: 2015-11-23 08:45:56
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -35,12 +35,14 @@ function W.OpenPanel()
 	Station.SetActiveFrame(frame)
 	W.RequestList()
 	PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+	JH.RegisterGlobalEsc("DBM_RemoteRequest", W.IsOpened, W.ClosePanel)
 end
 
 function W.ClosePanel()
 	Wnd.CloseWindow(W.GetFrame())
 	PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 	W.Container = nil
+	JH.RegisterGlobalEsc("DBM_RemoteRequest")
 end
 
 function W.TogglePanel()

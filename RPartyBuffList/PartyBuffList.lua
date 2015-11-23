@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-22 22:44:54
+-- @Last Modified time: 2015-11-23 08:46:11
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -99,7 +99,9 @@ function PartyBuffList.OnFrameBreathe()
 				local box = h:Lookup("Box_Icon")
 				local nSec = JH.GetEndTime(KBuff.GetEndTime())
 				if nSec < 60 then
-					box:SetOverText(1, math.floor(nSec) .. "\"")
+					box:SetOverText(1, JH.FormatTimeString(nSec, 1, true))
+				else
+					box:SetOverText(1, "")
 				end
 				if KBuff.nStackNum > 1 then
 					box:SetOverText(0, KBuff.nStackNum)
@@ -109,6 +111,30 @@ function PartyBuffList.OnFrameBreathe()
 				PBL.handle:FormatAllItemPos()
 				PBL.SwitchPanel(PBL.handle:GetItemCount())
 			end
+		end
+	end
+end
+
+
+function PartyBuffList.OnItemLButtonDown()
+	if this:GetName() == "Handle_Item" then
+		SetTarget(TARGET.PLAYER, this.data.dwID)
+		FireUIEvent("JH_TAR_TEMP_UPDATE", this.data.dwID)
+	end
+end
+
+function PartyBuffList.OnItemMouseLeave()
+	if this:GetName() == "Handle_Item" then
+		if PartyBuffList.bHoverSelect then
+			JH.SetTempTarget(this.data.dwID, false)
+		end
+	end
+end
+
+function PartyBuffList.OnItemMouseEnter()
+	if this:GetName() == "Handle_Item" then
+		if PartyBuffList.bHoverSelect then
+			JH.SetTempTarget(this.data.dwID, true)
 		end
 	end
 end
@@ -239,20 +265,6 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	if KBuff.nStackNum > 1 then
 		box:SetOverText(0, KBuff.nStackNum)
 	end
-	h.OnItemLButtonDown = function()
-		SetTarget(TARGET.PLAYER, dwID)
-		FireUIEvent("JH_TAR_TEMP_UPDATE", dwID)
-	end
-	h.OnItemMouseLeave = function()
-		if PartyBuffList.bHoverSelect then
-			JH.SetTempTarget(dwID, false)
-		end
-	end
-	h.OnItemMouseEnter = function()
-		if PartyBuffList.bHoverSelect then
-			JH.SetTempTarget(dwID, true)
-		end
-	end
 	h.data = data
 	h:Show()
 	PBL.handle:FormatAllItemPos()
@@ -264,14 +276,11 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["PartyBuffList"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = PartyBuffList.bHoverSelect })
-	:Text(_L["Mouse Enter select"]):Click(function(bChecked)
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = PartyBuffList.bHoverSelect, txt = _L["Mouse Enter select"] }):Click(function(bChecked)
 		PartyBuffList.bHoverSelect = bChecked
 	end):Pos_()
-
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
-	nX,nY = ui:Append("WndEdit",{ x = 10, y = nY + 10, w = 450, h = 100, limit = 4096,multi = true})
-	:Text(PBL.GetListText()):Change(function(szText)
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 10, y = nY + 10, w = 450, h = 100, limit = 4096, multi = true, txt = PBL.GetListText() }):Change(function(szText)
 		local t = {}
 		for _, v in ipairs(JH.Split(szText, "\n")) do
 			v = JH.Trim(v)
@@ -281,8 +290,6 @@ function PS.OnPanelActive(frame)
 		end
 		PartyBuffList.tList = t
 	end):Pos_()
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Tips"], font = 27 }):Pos_()
-	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 40, multi = true, txt = _L["PartyBuffList_TIPS"] }):Pos_()
 end
 
 GUI.RegisterPanel(_L["PartyBuffList"], 1451, _L["Dungeon"], PS)
