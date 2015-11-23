@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-22 14:45:12
+-- @Last Modified time: 2015-11-23 20:44:32
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -280,7 +280,7 @@ end
 function D.CreateData(szEvent)
 	D.CreateMeTaTable()
 	local szLang = select(3, GetVersion())
-	local dwMapID = JH.GetMapID()
+	local dwMapID = JH.GetMapID(true)
 	local nTime = GetTime()
 	-- 清空当前数据和MAP
 	for k, v in pairs(D.DATA) do
