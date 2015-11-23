@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 08:45:31
+-- @Last Modified time: 2015-11-23 09:50:29
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -347,9 +347,12 @@ function JH.OnFrameCreate()
 	_JH.hBox     = _JH.hTotal:Lookup("Box_1")
 	-- title
 	local szTitle = _JH.szTitle .. " v" ..  JH.GetVersion() .. " (" .. _JH.szBuildDate .. ")"
-	_JH.hTotal:Lookup("Text_Title"):SetText(szTitle)
-	-- position
-	this:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+	local ui = GUI(this)
+	-- Text_Title
+	ui:Title(szTitle):Point()
+	ui:Append("WndButton4", { x = 670, y = 52, txt = g_tStrings.BUG_SUBMIT }):Click(function()
+		OpenInternetExplorer("http://www.diaochapai.com/survey1592748")
+	end)
 	this:RegisterEvent("UI_SCALED")
 	-- update list/detail
 	_JH.UpdateTabBox(this)
