@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 20:44:16
+-- @Last Modified time: 2015-11-24 09:49:33
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -123,7 +123,6 @@ function C.LoadCircleMergeData(tData)
 		end
 	end
 	FireUIEvent("CIRCLE_RELOAD")
-	JH.Sysmsg(_L["Circle loaded."])
 end
 
 function C.Release()
