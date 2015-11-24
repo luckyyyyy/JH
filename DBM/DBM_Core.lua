@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 20:44:32
+-- @Last Modified time: 2015-11-24 09:28:21
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -784,12 +784,13 @@ function D.OnNpcEvent(npc, bEnter)
 		end
 	end
 	if data then
-		local cfg, nClass
+		local cfg, nClass, nCount
 		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
 			return
 		end
 		if bEnter then
 			cfg, nClass = data[DBM_TYPE.NPC_ENTER], DBM_TYPE.NPC_ENTER
+			nCount = #CACHE.NPC_LIST[npc.dwTemplateID].tList
 		else
 			cfg, nClass = data[DBM_TYPE.NPC_LEAVE], DBM_TYPE.NPC_LEAVE
 		end
@@ -799,7 +800,7 @@ function D.OnNpcEvent(npc, bEnter)
 			end
 		else
 			-- 场地上的NPC数量没达到预期数量
-			if data.nCount and #CACHE.NPC_LIST[npc.dwTemplateID].tList < data.nCount then
+			if data.nCount and nCount < data.nCount then
 				return
 			end
 			if cfg then
@@ -825,6 +826,9 @@ function D.OnNpcEvent(npc, bEnter)
 			tinsert(xml, DBM_RIGHT_LINE)
 			if nClass == DBM_TYPE.NPC_ENTER then
 				tinsert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
+				if nCount > 1 then
+					tinsert(xml, GetFormatText(" x" .. nCount, 44, 255, 255, 0))
+				end
 				if data.szNote then
 					tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
 				end
@@ -1392,7 +1396,9 @@ function D.SaveConfigureFile(config)
 	local root, path = GetRootPath(), "/" .. JH.GetAddonInfo().szRootPath .. "DBM/data/" .. config.szFileName
 	root = root:gsub("\\", "/")
 	if config.bJson then
-		SaveLUAData(path, JH.JsonEncode(data, config.bFormat), nil, false)
+		path = path .. ".json"
+		Log(path, JH.JsonEncode(data, config.bFormat), "close")
+		-- SaveLUAData(path, JH.JsonEncode(data, config.bFormat), nil, false)
 	else
 		SaveLUAData(path, data, config.bFormat and "\t", false)
 	end
