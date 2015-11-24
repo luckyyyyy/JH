@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-19 07:51:37
+-- @Last Modified time: 2015-11-24 23:11:04
 
 -- 早期代码 需要重写
 
@@ -68,6 +68,18 @@ local _GKP = {
 		},
 	},
 	tSpecial = {
+		-- 材料
+		[JH.GetItemName(153532)] = true,
+		[JH.GetItemName(153533)] = true,
+		[JH.GetItemName(153534)] = true,
+		[JH.GetItemName(153535)] = true,
+		-- 五行石
+		[JH.GetItemName(153190)] = true,
+		-- 五彩石
+		[JH.GetItemName(150241)] = true,
+		[JH.GetItemName(150242)] = true,
+		[JH.GetItemName(150243)] = true,
+		-- 90
 		[JH.GetItemName(72591)]  = true,
 		[JH.GetItemName(68362)]  = true,
 		[JH.GetItemName(66189)]  = true,
@@ -1020,7 +1032,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 				end)
 				ui:Append("Text", { w = 120, h = 30, x = 10, y = 35, txt = _L("Operator:%s", szName), font = 41 })
 				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", _GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
-				ui:Raw().self = ui
+				ui.self.self = ui
 			end
 			if data[2] == "Info" then
 				if data[3] == me.szName and tonumber(data[4]) and tonumber(data[4]) <= -100 then
@@ -1096,15 +1108,15 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					if data[4] then
 						local ui = GUI(frm)
 						local n = frm.n or 0
-						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 1 }):Type(3):Raw()
+						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 5 }):Type(3):Raw()
 						handle:AppendItemFromString(GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(tonumber(data[4])))
 						handle:FormatAllItemPos()
-						ui:Append("WndButton4", { w = 91, h = 26, x = 620, y = 120 + 30 * n + 1, txt = _L["salary"] }):Click(function()
+						ui:Append("WndButton4", { w = 91, h = 26, x = 620, y = 120 + 30 * n + 5, txt = _L["salary"] }):Click(function()
 							JH.Confirm(_L["Confirm?"], _GKP.Bidding)
 						end)
 						if data[5] and tonumber(data[5]) then
 							local nTime = tonumber(data[5])
-							ui:Append("Text", { w = 725, h = 30, x = 0, y = 120 + 30 * n + 1, txt = _L("Spend time approx %d:%d", nTime / 3600, nTime % 3600 / 60), align = 1 })
+							ui:Append("Text", { w = 725, h = 30, x = 0, y = 120 + 30 * n + 5, txt = _L("Spend time approx %d:%d", nTime / 3600, nTime % 3600 / 60), align = 1 })
 						end
 						frm.self:Fetch("ScreenShot"):Toggle(true)
 						if n >= 4 then

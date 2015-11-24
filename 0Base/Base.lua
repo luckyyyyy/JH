@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-24 07:53:12
+-- @Last Modified time: 2015-11-24 11:06:47
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1400,11 +1400,17 @@ function _JH.GetPlayerAddonMenu()
 			tinsert(menu, v)
 		end
 	end
-	if JH.bDebug then
+	if JH.bDebugClient then
+		tinsert(menu, { bDevide = true })
+		tinsert(menu, { szOption = "ReloadUIAddon", fnAction = function()
+			ReloadUIAddon()
+		end })
 		tinsert(menu, { bDevide = true })
 		tinsert(menu, { szOption = "Enable Debug mode", bCheck = true, bChecked = JH.bDebug, fnAction = function()
 			JH.bDebug = not JH.bDebug
 		end })
+	end
+	if JH.bDebug then
 		tinsert(menu, { bDevide = true })
 		tinsert(menu, { szOption = "Debug Level 1", bMCheck = true, bChecked = _JH.nDebug == 1, fnAction = function()
 			_JH.nDebug = 1
