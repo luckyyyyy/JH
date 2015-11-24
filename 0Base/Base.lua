@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 09:50:29
+-- @Last Modified time: 2015-11-24 07:53:12
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2117,7 +2117,7 @@ function _GUI.Frm2:Size(nW, nH)
 	hnd:Lookup("Image_Title"):SetW(nW)
 	hnd:Lookup("Text_Title"):SetW(nW - 90)
 	hnd:FormatAllItemPos()
-	frm:Lookup("Btn_Close"):SetRelPos(nW - 30, 5)
+	frm:Lookup("Btn_Close"):SetRelPos(nW - 28, 5)
 	self.wnd:SetSize(nW, nH)
 	self.wnd:Lookup("", ""):SetSize(nW, nH)
 	-- reset position

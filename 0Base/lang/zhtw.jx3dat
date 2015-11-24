@@ -491,7 +491,6 @@ data = {
 	["Save success.\n Path:%s"] = "保存成功\n路徑：%s",
 	["content errors."] = "內容錯誤",
 	["File does not exist, or content errors."] = "文件不存在或內容錯誤",
-	["Circle loaded."] = "圈圈加載完成",
 	["The map does not exist"] = "這個地圖不存在",
 	["this map"] = "這個地圖",
 	["All Data"] = "全部的數據",
