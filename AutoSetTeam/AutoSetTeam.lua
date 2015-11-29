@@ -1,14 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-19 07:50:35
+-- @Last Modified time: 2015-11-29 16:44:25
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
-	bAppendMark = true,
-	bRequestList = true,
-	bTeamInfo = true,
+	bAppendMark     = true,
+	bRequestList    = true,
+	bTeamInfo       = true,
 	bAutoCancelBuff = false,
-	bWorldMark = true,
+	bWorldMark      = true,
 }
 JH.RegisterCustomData("JH_AutoSetTeam")
 
