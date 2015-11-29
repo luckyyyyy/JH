@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-22 17:35:59
+-- @Last Modified time: 2015-11-29 21:52:18
 local _L = JH.LoadLangPack
 
 TargetFace = {
@@ -44,7 +44,6 @@ local _Hatred = {
 	szIniFile = JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Hatred.ini"
 }
 local _TargetFace = {
-	szItemIni = JH.GetAddonInfo().szShadowIni,
 	bReRender = false,
 	tCache = {
 		nTarget    = -1,
@@ -54,17 +53,17 @@ local _TargetFace = {
 	},
 }
 
-_TargetFace.Init = function()
+function _TargetFace.Init()
 	local handle = JH.GetShadowHandle("TargetFace")
 	-- shadows
 	for _, v in ipairs({ "hTargetFace1", "hTargetFace2", "hSelfFace1", "hSelfFace2", "hTLine", "hTTLine", "hName" }) do
-		_TargetFace[v]  = handle:AppendItemFromIni(_TargetFace.szItemIni, "shadow", v)
+		_TargetFace[v]  = handle:AppendItemFromIni(JH.GetAddonInfo().szShadowIni, "shadow", v)
 	end
 	_TargetFace.hName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 	JH.BreatheCall("TargetFace", _TargetFace.OnBreathe)
 end
 
-_TargetFace.DrawText = function(tar, txt, bSelf)
+function _TargetFace.DrawText(tar, txt, bSelf)
 	local sha = _TargetFace.hName
 	_TargetFace.hName:ClearTriangleFanPoint()
 	local r, g, b = 255, 255, 0
@@ -75,7 +74,7 @@ _TargetFace.DrawText = function(tar, txt, bSelf)
 	sha:Show()
 end
 
-_TargetFace.DrawLine = function(tar, ttar, sha, col, nAlpha)
+function _TargetFace.DrawLine(tar, ttar, sha, col, nAlpha)
 	sha:SetTriangleFan(GEOMETRY_TYPE.LINE, TargetFace.nConnWidth)
 	sha:ClearTriangleFanPoint()
 	local r, g, b = unpack(col)
@@ -84,7 +83,7 @@ _TargetFace.DrawLine = function(tar, ttar, sha, col, nAlpha)
 	sha:Show()
 end
 -- draw shape
-_TargetFace.DrawShape = function(tar, sha, nDegree, nRadius, nAlpha, col)
+function _TargetFace.DrawShape(tar, sha, nDegree, nRadius, nAlpha, col)
 	nRadius = nRadius * 64
 	local nFace = math.ceil(128 * nDegree / 360)
 	local dwRad1 = math.pi * (tar.nFaceDirection - nFace) / 128
@@ -113,7 +112,7 @@ _TargetFace.DrawShape = function(tar, sha, nDegree, nRadius, nAlpha, col)
 	until dwRad1 >= dwRad2
 end
 
-_TargetFace.OnBreathe = function()
+function _TargetFace.OnBreathe()
 	local _t, t, ttar = _TargetFace, TargetFace, nil
 	local me = GetClientPlayer()
 	if not me then return end
@@ -209,6 +208,38 @@ _TargetFace.OnBreathe = function()
 	_t.bReRender = false
 end
 
+function _TargetFace.CalcFace(me, tar, nDis)
+	local nX = tar.nX - me.nX
+	local nY = tar.nY - me.nY
+	local nFace =  me.nFaceDirection / 256 * 360
+	local nDeg = 0
+	if nY == 0 then
+		if nX < 0 then
+			nDeg = 180
+		end
+	elseif nX == 0 then
+		if nY > 0 then
+			nDeg = 90
+		else
+			nDeg = 270
+		end
+	else
+		nDeg = math.deg(math.atan(nY / nX))
+		if nX < 0 then
+			nDeg = 180 + nDeg
+		elseif nY < 0 then
+			nDeg = 360 + nDeg
+		end
+	end
+	local nAngle = nFace - nDeg
+	if nAngle < -180 then
+		nAngle = nAngle + 360
+	elseif nAngle > 180 then
+		nAngle = nAngle - 360
+	end
+	return math.abs(nAngle)
+end
+
 function _Direction.OpenPanel()
 	local frame = _Direction.frame or Wnd.OpenWindow(_Direction.szIniFile,"Direction")
 	return frame
@@ -223,10 +254,10 @@ end
 
 function Direction.OnFrameCreate()
 	_Direction.frame = this
-	_Direction.Arrow = this:Lookup("","Handle_Main/Image_Player")
+	_Direction.Arrow = this:Lookup("", "Handle_Main/Image_Player")
 	_Direction.Arrow:FromUITex(JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Direction.uitex", 1)
-	this:Lookup("","Handle_Main/Image_Arrow"):FromUITex(JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Direction.uitex", 0)
-	_Direction.txt = this:Lookup("","Handle_Main/Text_Distance")
+	this:Lookup("", "Handle_Main/Image_Arrow"):FromUITex(JH.GetAddonInfo().szRootPath .. "TargetFace/ui/Direction.uitex", 0)
+	_Direction.txt = this:Lookup("", "Handle_Main/Text_Distance")
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
@@ -270,7 +301,7 @@ end
 
 -- Г№Ко
 function _Hatred.OpenPanel()
-	local frame = _Hatred.frame or Wnd.OpenWindow(_Hatred.szIniFile,"Hatred")
+	local frame = _Hatred.frame or Wnd.OpenWindow(_Hatred.szIniFile, "Hatred")
 	return frame
 end
 
@@ -284,6 +315,7 @@ end
 
 function Hatred.OnFrameCreate()
 	this:RegisterEvent("TARGET_CHANGE")
+	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("CHARACTER_THREAT_RANKLIST")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
 	this:EnableDrag(not TargetFace.bHatredLockPanel)
@@ -299,11 +331,11 @@ function Hatred.OnFrameCreate()
 end
 
 function Hatred.OnEvent(szEvent)
-	if szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
+	if szEvent == "ON_LEAVE_CUSTOM_UI_MODE" or szEvent == "UI_SCALED" then
 		_Hatred.UpdateAnchor(this)
 	elseif szEvent == "TARGET_CHANGE" then
 		_Hatred.UpdateAnchor(this)
-		local dwID, dwType = Target_GetTargetData()
+		local dwType, dwID = Target_GetTargetData()
 		if dwType == TARGET.NPC then
 			_Hatred.dwTarget = dwID
 			JH.BreatheCall("Hatred", function() ApplyCharacterThreatRankList(dwID) end)
@@ -340,27 +372,28 @@ function Hatred.OnEvent(szEvent)
 end
 
 function Hatred.OnFrameDragEnd()
-	local target = Station.Lookup("Normal/Target")
-	if target then
-		local tX,tY = target:GetRelPos()
-		local mX,mY = this:GetRelPos()
-		TargetFace.tHatredAnchor.nX = tX - mX
-		TargetFace.tHatredAnchor.nY = tY - mY
+	local hTarget = Station.Lookup("Normal/Target")
+	if hTarget then
+		local hX, hY = hTarget:GetAbsPos()
+		local nX, nY = this:GetAbsPos()
+		TargetFace.tHatredAnchor.nX = hX - nX
+		TargetFace.tHatredAnchor.nY = hY - nY
 	end
 	_Hatred.UpdateAnchor(this)
 end
 
 function _Hatred.UpdateAnchor(frame)
-	local target = Station.Lookup("Normal/Target")
-	if target then
-		local tX,tY = target:GetRelPos()
-		local mX,mY = tX - TargetFace.tHatredAnchor.nX, tY - TargetFace.tHatredAnchor.nY
-		frame:SetRelPos(mX, mY)
+	local hTarget = Station.Lookup("Normal/Target")
+	if hTarget then
+		local an = GetFrameAnchor(hTarget, "TOPLEFT")
+		local nX, nY = TargetFace.tHatredAnchor.nX, TargetFace.tHatredAnchor.nY
+		frame:SetPoint(an.s, 0, 0, an.r, an.x - nX, an.y - nY)
+		frame:CorrectPos()
 	end
 end
 
 local PS = {}
-PS.OnPanelActive = function(frame)
+function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("WndCheckBox", { txt = _L["Display the sector of target facing"], font = 27, checked = TargetFace.bTargetFace })
 	:Click(function(bChecked)
@@ -373,30 +406,29 @@ PS.OnPanelActive = function(frame)
 			v.bEnable = bChecked
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Shadow", "Color_TargetFace2" .. k, { x = nX, y = nY + 2, w = 18, h = 18 })
-		:Color(unpack(v.col)):Click(function()
+		nX = ui:Append("Shadow", "Color_TargetFace" .. k, { x = nX, y = nY + 2, w = 18, h = 18, color = v.col })
+		:Click(function()
 			GUI.OpenColorTablePanel(function(r, g, b)
-				ui:Fetch("Color_TargetFace2" .. k):Color(r, g, b)
+				ui:Fetch("Color_TargetFace" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				_TargetFace.bReRender = true
 			end)
 		end):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
-		:Text(v.nAngle):Change(function(nVal)
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23, txt = v.nAngle })
+		:Change(function(nVal)
 			v.nAngle = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" degree"] }):Pos_()
-
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
-		:Text(v.nRadius):Change(function(nVal)
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23, txt = v.nRadius, limit = 2 })
+		:Change(function(nVal)
 			v.nRadius = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" feet"] }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 2, y = nY, w = 75, h = 25, txt = g_tStrings.STR_ALPHA }):Menu(function()
 			local menu = {}
-			for kk, vv in ipairs({25, 50, 75, 100, 125, 150}) do
+			for kk, vv in ipairs({25, 50, 75, 100}) do
 				table.insert(menu, { szOption = vv, bMCheck = true, bChecked = v.nAlpha == vv, fnAction = function()
 					v.nAlpha = vv
 					_TargetFace.bReRender = true
@@ -416,30 +448,30 @@ PS.OnPanelActive = function(frame)
 			v.bEnable = bChecked
 			_TargetFace.bReRender = true
 		end):Pos_()
-		nX = ui:Append("Shadow", "Color_TargetFace2" .. k, { x = nX, y = nY + 2, w = 18, h = 18 })
-		:Color(unpack(v.col)):Click(function()
+		nX = ui:Append("Shadow", "Color_TargetFace2" .. k, { x = nX, y = nY + 2, w = 18, h = 18, color = v.col })
+		:Click(function()
 			GUI.OpenColorTablePanel(function(r, g, b)
 				ui:Fetch("Color_TargetFace2" .. k):Color(r, g, b)
 				v.col = { r, g, b }
 				_TargetFace.bReRender = true
 			end)
 		end):Pos_()
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
-		:Text(v.nAngle):Change(function(nVal)
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23, txt = v.nAngle })
+		:Change(function(nVal)
 			v.nAngle = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" degree"] }):Pos_()
 
-		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23 })
-		:Text(v.nRadius):Change(function(nVal)
+		nX = ui:Append("WndEdit", { x = nX + 8, y = nY, w = 35, h = 23, txt = v.nRadius, limit = 2 })
+		:Change(function(nVal)
 			v.nRadius = tonumber(nVal) or 0
 			_TargetFace.bReRender = true
 		end):Pos_()
 		nX = ui:Append("Text", { x = nX + 2, y = nY - 2, txt = _L[" feet"] }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 2, y = nY, w = 75, h = 25, txt = g_tStrings.STR_ALPHA }):Menu(function()
 			local menu = {}
-			for kk, vv in ipairs({25, 50, 75, 100, 125, 150}) do
+			for kk, vv in ipairs({25, 50, 75, 100}) do
 				table.insert(menu, { szOption = vv, bMCheck = true, bChecked = v.nAlpha == vv, fnAction = function()
 					v.nAlpha = vv
 					_TargetFace.bReRender = true
@@ -544,8 +576,8 @@ PS.OnPanelActive = function(frame)
 			end
 		end
 	end):Pos_()
-	nX,nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
-	nX,nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
+	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Enable KG3DEngineDX11 better effect"] }):Pos_()
 end
 
 JH.RegisterInit("TargetFace",
@@ -561,4 +593,5 @@ JH.RegisterInit("TargetFace",
 	{ "TARGET_CHANGE", function() _TargetFace.bReRender = true end },
 	{ "LOADING_END", function() _TargetFace.bReRender = true end }
 )
+
 GUI.RegisterPanel(_L["TargetFace"], { "ui/Image/TargetPanel/Target.uitex", 47 }, g_tStrings.CHANNEL_CHANNEL, PS)

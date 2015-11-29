@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 08:46:05
+-- @Last Modified time: 2015-11-25 14:06:37
 local _L = JH.LoadLangPack
 local ARENAMAP = false
 ScreenHead = {
@@ -214,13 +214,7 @@ function SH:Create(obj, info, nIndex)
 		r, g, b = mMin(255, r + r * SCREEN_SELECT_FIX), mMin(255, g + g * SCREEN_SELECT_FIX), mMin(255, b + b * SCREEN_SELECT_FIX)
 	end
 	local szName = data.szName or GetObjName(obj)
-
-	handle.Text:AppendCharacterID(dwID, true, r, g, b, 240, { 0, 0, 0, 0, -110 }, ScreenHead.nFont, szName, 1, 1)
-	if dwID == UI_GetClientPlayerID() then
-		handle.Text:AppendCharacterID(dwID, true, 240, 0, 0, 255, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L["_ME_"], 1, 1)
-	else
-		handle.Text:AppendCharacterID(dwID, true, r, g, b, 240, { 0, 0, 0, 0, -95 }, ScreenHead.nFont, _L("%.1f feet", nDistance), 1, 1)
-	end
+	handle.Text:AppendCharacterID(dwID, true, r, g, b, 240, { 0, 0, 0, 0, -100 }, ScreenHead.nFont, szName, 1, 1)
 	if nSec and nSec < 5 then
 		handle.Text:AppendCharacterID(dwID, true, 255, 0, 0, 240, { 0, 0, 0, 0, -80 }, ScreenHead.nFont, txt, 1, 1)
 	else
