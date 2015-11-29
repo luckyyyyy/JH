@@ -722,4 +722,15 @@ data = {
 	["Stop Copy Book %s"] = "停止抄录《%s》，进度已记录。",
 	["Not Enough Thew"] = "当前体力不足以抄录一套书",
 	["BOOK_143"] = "问世间情为何物之三",
+	-- JH_RecipeSwitch --
+	["Skill Recipe Switch"] = "秘籍切换",
+	["Save Current Recipe"] = "保存当前秘籍",
+	["Input Recipe key"] = "输入一个方案名",
+	["Program already exists, please try again"] = "方案已存在，请更换其他名称。",
+	["Skill Recipe Program"] = "秘籍方案",
+	["Program %d: %s"] = "方案 %d：%s",
+	["Bind %d Suit"] = "绑定第%d套",
+	["Bind Suit"] = "绑定装备",
+	["Switch"] = "切换",
+	["delete Bind Suit"] = "删除套装绑定",
 }
