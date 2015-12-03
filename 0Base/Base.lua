@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-24 11:06:47
+-- @Last Modified time: 2015-12-02 23:28:28
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -318,7 +318,7 @@ function _JH.UpdateTabBox(frame)
 end
 
 function _JH.EventHandler(szEvent)
-	local tEvent = 	_JH.tEvent[szEvent]
+	local tEvent = _JH.tEvent[szEvent]
 	if tEvent then
 		for k, v in pairs(tEvent) do
 			local res, err = pcall(v, szEvent)

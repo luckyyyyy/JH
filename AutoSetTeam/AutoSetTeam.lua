@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-29 16:44:25
+-- @Last Modified time: 2015-11-30 23:39:29
 local _L = JH.LoadLangPack
 JH_AutoSetTeam = {
 	bAppendMark     = true,
@@ -868,6 +868,7 @@ function WorldMark.GetEvent()
 			{ "DO_SKILL_CAST", function()
 				WorldMark.OnCast(arg1)
 			end },
+			{ "NPC_LEAVE_SCENE", WorldMark.OnNpcLeave },
 			{ "NPC_ENTER_SCENE", WorldMark.OnNpcEvent },
 			{ "LOADING_END", function()
 				WorldMark.tPoint = {}
@@ -883,11 +884,29 @@ function WorldMark.OnNpcEvent()
 	if npc then
 		local mark = WorldMark.tMark[npc.dwTemplateID]
 		if mark then
-			local point = { npc.nX, npc.nY, npc.nZ }
+			local tPoint = { npc.nX, npc.nY, npc.nZ }
 			local handle = JH.GetShadowHandle("Handle_World_Mark")
-			local sha = handle:Lookup("w_" .. mark.id) or handle:AppendItemFromIni(WorldMark.hShadow, "shadow", "w_" .. mark.id)
-			WorldMark.tPoint[mark.id] = point
-			WorldMark.Draw(point, sha, mark.col)
+			local szName = "w_" .. mark.id
+			if handle:Lookup(szName) then
+				handle:RemoveItem(szName)
+			end
+			WorldMark.tPoint[mark.id] = tPoint
+		end
+	end
+end
+
+function WorldMark.OnNpcLeave()
+	local npc = GetNpc(arg0)
+	if npc then
+		local mark = WorldMark.tMark[npc.dwTemplateID]
+		if mark then
+			local tPoint = WorldMark.tPoint[mark.id]
+			if tPoint then
+				local handle = JH.GetShadowHandle("Handle_World_Mark")
+				local szName = "w_" .. mark.id
+				local sha = handle:Lookup(szName) or handle:AppendItemFromIni(WorldMark.hShadow, "shadow", szName)
+				WorldMark.Draw(tPoint, sha, mark.col)
+			end
 		end
 	end
 end
@@ -905,7 +924,7 @@ function WorldMark.Draw(Point, sha, col)
 	local dwRad1 = math.pi
 	local dwRad2 = 3 * math.pi + math.pi / 20
 	local r, g, b = unpack(col)
-	local nX ,nY, nZ = unpack(Point)
+	local nX, nY, nZ = unpack(Point)
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:SetD3DPT(D3DPT.TRIANGLEFAN)
 	sha:ClearTriangleFanPoint()
