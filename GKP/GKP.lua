@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-24 23:11:04
+-- @Last Modified time: 2015-12-03 22:32:47
 
 -- 早期代码 需要重写
 
@@ -581,6 +581,7 @@ function GKP.OnFrameCreate()
 		end
 	end
 end
+
 function GKP.OnItemLButtonDown()
 	local szName = this:GetName()
 	if szName == "Text_Name" then
@@ -590,9 +591,55 @@ function GKP.OnItemLButtonDown()
 	end
 end
 
+function GKP.OnItemMouseEnter()
+	if this:GetName() == "Text_Name" then
+		local data = this.data
+		local szIcon, nFrame = GetForceImage(data.dwForceID)
+		local r, g, b = JH.GetForceColor(data.dwForceID)
+		local szXml = GetFormatImage(szIcon,nFrame,20,20) .. GetFormatText("  " .. data.szPlayer .. g_tStrings.STR_COLON .. "\n", 136, r, g, b)
+		if IsCtrlKeyDown() then
+			szXml = szXml .. GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP .. "\n", 136, 255, 0, 0)
+			szXml = szXml .. GetFormatText(var2str(data, " "), 136, 255, 255, 255)
+		else
+			szXml = szXml .. GetFormatText(_L["System Information as Shown Below\n\n"],136,255,255,255)
+			local nNum,nNum1,nNum2 = 0,0,0
+			for kk,vv in ipairs(GKP("GKP_Record")) do
+				if vv.szPlayer == data.szPlayer and not vv.bDelete then
+					if  vv.nMoney > 0 then
+						nNum = nNum + vv.nMoney
+					else
+						nNum1 = nNum1 + vv.nMoney
+					end
+				end
+			end
+			local r, g, b = _GKP.GetMoneyCol(nNum)
+			szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+			local r, g, b = _GKP.GetMoneyCol(nNum1)
+			szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+			for kk,vv in ipairs(GKP("GKP_Account")) do
+				if vv.szPlayer == data.szPlayer and not vv.bDelete and vv.nGold > 0 then
+					nNum2 = nNum2 + vv.nGold
+				end
+			end
+			local r, g, b = _GKP.GetMoneyCol(nNum2)
+			szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+			local nNum3 = nNum+nNum1-nNum2
+			if nNum3 < 0 then
+				nNum3 = 0
+			end
+			local r, g, b = _GKP.GetMoneyCol(nNum3)
+			szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
+		end
+		local x, y = this:GetAbsPos()
+		local w, h = this:GetSize()
+		OutputTip(szXml, 400, { x, y, w, h })
+	end
+end
+
 function GKP.OnItemMouseLeave()
 	HideTip()
 end
+
 local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
@@ -810,56 +857,12 @@ function _GKP.DrawRecord(key, sort)
 				_GKP.DrawRecord()
 			end
 			-- tip
-			item:Lookup("Text_Name"):RegisterEvent(257)
-			item:Lookup("Text_Name").OnItemMouseEnter = function()
-				local szIcon, nFrame = GetForceImage(v.dwForceID)
-				local r, g, b = JH.GetForceColor(v.dwForceID)
-				local szXml = GetFormatImage(szIcon,nFrame,20,20) .. GetFormatText("  " .. v.szPlayer .. g_tStrings.STR_COLON .. "\n", 136, r, g, b)
-				if IsCtrlKeyDown() then
-					szXml = szXml .. GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP .. "\n", 136, 255, 0, 0)
-					szXml = szXml .. GetFormatText(var2str(v, " "), 136, 255, 255, 255)
-				else
-					szXml = szXml .. GetFormatText(_L["System Information as Shown Below\n\n"],136,255,255,255)
-					local nNum,nNum1,nNum2 = 0,0,0
-					for kk,vv in ipairs(GKP("GKP_Record")) do
-						if vv.szPlayer == v.szPlayer and not vv.bDelete then
-							if  vv.nMoney > 0 then
-								nNum = nNum + vv.nMoney
-							else
-								nNum1 = nNum1 + vv.nMoney
-							end
-						end
-					end
-					local r,g,b = _GKP.GetMoneyCol(nNum)
-					szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-					local r,g,b = _GKP.GetMoneyCol(nNum1)
-					szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-
-					for kk,vv in ipairs(GKP("GKP_Account")) do
-						if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
-							nNum2 = nNum2 + vv.nGold
-						end
-					end
-					local r,g,b = _GKP.GetMoneyCol(nNum2)
-					szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-					local nNum3 = nNum+nNum1-nNum2
-					if nNum3 < 0 then
-						nNum3 = 0
-					end
-					local r,g,b = _GKP.GetMoneyCol(nNum3)
-					szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-				end
-				local x, y = item:Lookup("Text_No"):GetAbsPos()
-				local w, h = item:Lookup("Text_No"):GetSize()
-				OutputTip(szXml, 400, { x, y, w, h })
-			end
+			item:Lookup("Text_Name").data = v
 			if v.bDelete then
 				wnd:SetAlpha(80)
 			end
-
 		end
 	end
-
 	_GKP.hRecordContainer:FormatAllContentPos()
 end
 
@@ -1014,7 +1017,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					return
 				end
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
-				ui:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 199, color = { 255, 255, 0 } })
+				ui:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 236, color = { 255, 255, 0 } })
 				ui:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 }):Toggle(false):Click(function()
 					local scale         = Station.GetUIScale()
 					local left, top     = ui:Pos()
@@ -1120,7 +1123,23 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						end
 						frm.self:Fetch("ScreenShot"):Toggle(true)
 						if n >= 4 then
-							ui:Append("Image", { x = 640, y = n * 30 + 10, w = 100, h = 107.5 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/zhcn_img.uitex", 0)
+							local nMoney = tonumber(data[4]) or 0
+							local t = {
+								{ 50000,   1 }, -- 黑出翔
+								{ 100000,  0 }, -- 背锅
+								{ 250000,  2 }, -- 脸帅
+								{ 500000,  6 }, -- 自称小红手
+								{ 3000000, 3 }, -- 特别红
+								{ 5000000, 5 }, -- 玄晶专用r
+							}
+							local nFrame = 4
+							for k, v in ipairs(t) do
+								if v[1] >= nMoney then
+									nFrame = v[2]
+									break
+								end
+							end
+							ui:Append("Image", { x = 590, y = n * 30 - 30, w = 150, h = 150, alpha = 180 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/GKPSeal.uitex", nFrame)
 						end
 						frm.done = true
 					elseif  szFrameName == "GKP_Debt" and not frm:IsVisible() then
@@ -1385,7 +1404,7 @@ function _GKP.Calculation()
 		else
 			JH.Talk(_L["The Account is Negative, no money is coming out!"])
 		end
-	end,nil,nil,nil,team.GetTeamSize())
+	end, nil, nil, nil, team.GetTeamSize())
 end
 ---------------------------------------------------------------------->
 -- open doodad (loot)
@@ -1817,7 +1836,7 @@ function _GKP.DistributeItem(item,player,doodad,bEnter)
 	end
 
 	if GKP.bOn then
-		_GKP.Record(tab,item,bEnter)
+		_GKP.Record(tab, item, bEnter)
 	else -- 关闭的情况所有东西全部绕过
 		tab.nMoney = 0
 		GKP("GKP_Record", tab)
@@ -2165,7 +2184,7 @@ RegisterEvent("SYNC_LOOT_LIST", function()
 	if _GKP.dwOpenID == arg0 and frame and frame:IsVisible() then
 		_GKP.OpenDoodad(arg0)
 	end
-	if JH.bDebugClient and GKP.bDebug2 and JH.IsInDungeon() and not _GKP.aDoodadCache[arg0] and not frame then
+	if JH.bDebugClient and GKP.bDebug2 and JH.IsInDungeon(true) and not _GKP.aDoodadCache[arg0] and not frame then
 		_GKP.OpenDoodad(arg0)
 	end
 	_GKP._OpenDoodad(arg0)
@@ -2187,7 +2206,7 @@ end)
 _GKP.TradingTarget = {}
 
 function _GKP.MoneyUpdate(nGold, nSilver, nCopper)
-	if nGold > -20 and nGold < 20  then
+	if nGold > -20 and nGold < 20 then
 		return
 	end
 	if not _GKP.TradingTarget then
@@ -2197,11 +2216,11 @@ function _GKP.MoneyUpdate(nGold, nSilver, nCopper)
 		return
 	end
 	GKP("GKP_Account", {
-		nGold = nGold, -- API给的有问题 …… 只算金
-		szPlayer = _GKP.TradingTarget.szName or "System",
+		nGold     = nGold, -- API给的有问题 …… 只算金
+		szPlayer  = _GKP.TradingTarget.szName or "System",
 		dwForceID = _GKP.TradingTarget.dwForceID,
-		nTime = GetCurrentTime(),
-		dwMapID = GetClientPlayer().GetMapID()
+		nTime     = GetCurrentTime(),
+		dwMapID   = GetClientPlayer().GetMapID()
 	})
 	_GKP.DrawAccount()
 	if _GKP.TradingTarget.szName and GKP.bMoneyTalk then
@@ -2251,53 +2270,11 @@ function _GKP.DrawAccount(key,sort)
 		item:Lookup("Text_Map"):SetText(Table_GetMapName(v.dwMapID))
 		item:Lookup("Text_Time"):SetText(_GKP.GetTimeString(v.nTime))
 		c:Lookup("WndButton_Delete").OnLButtonClick = function()
-			GKP("GKP_Account","del",k)
+			GKP("GKP_Account", "del", k)
 			_GKP.DrawAccount()
 		end
 		-- tip
-		item:Lookup("Text_Name"):RegisterEvent(257)
-		item:Lookup("Text_Name").OnItemMouseEnter = function()
-			local szIcon, nFrame = GetForceImage(v.dwForceID)
-			local r, g, b = JH.GetForceColor(v.dwForceID)
-			local szXml = GetFormatImage(szIcon, nFrame, 20, 20) .. GetFormatText("  " .. v.szPlayer .. g_tStrings.STR_COLON .. "\n", 136, r, g, b)
-			if IsCtrlKeyDown() then
-				szXml = szXml .. GetFormatText(g_tStrings.DEBUG_INFO_ITEM_TIP .. "\n", 136, 255, 0, 0)
-				szXml = szXml .. GetFormatText(var2str(v, " "), 136, 255, 255, 255)
-			else
-				szXml = szXml .. GetFormatText(_L["System Information as Shown Below\n\n"],136,255,255,255)
-				local nNum,nNum1,nNum2 = 0,0,0
-				for kk,vv in ipairs(GKP("GKP_Record")) do
-					if vv.szPlayer == v.szPlayer and not vv.bDelete then
-						if  vv.nMoney > 0 then
-							nNum = nNum + vv.nMoney
-						else
-							nNum1 = nNum1 + vv.nMoney
-						end
-					end
-				end
-				local r,g,b = _GKP.GetMoneyCol(nNum)
-				szXml = szXml .. GetFormatText(_L["Total Cosumption:"],136,255,128,0) .. GetFormatText(nNum ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-				local r,g,b = _GKP.GetMoneyCol(nNum1)
-				szXml = szXml .. GetFormatText(_L["Total Allowance:"],136,255,128,0) .. GetFormatText(nNum1 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-
-				for kk,vv in ipairs(GKP("GKP_Account")) do
-					if vv.szPlayer == v.szPlayer and not vv.bDelete and vv.nGold > 0 then
-						nNum2 = nNum2 + vv.nGold
-					end
-				end
-				local r,g,b = _GKP.GetMoneyCol(nNum2)
-				szXml = szXml .. GetFormatText(_L["Total Payment:"],136,255,128,0) .. GetFormatText(nNum2 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-				local nNum3 = nNum+nNum1-nNum2
-				if nNum3 < 0 then
-					nNum3 = 0
-				end
-				local r,g,b = _GKP.GetMoneyCol(nNum3)
-				szXml = szXml .. GetFormatText(_L["Money on Debt:"],136,255,128,0) .. GetFormatText(nNum3 ..g_tStrings.STR_GOLD .. g_tStrings.STR_FULL_STOP .. "\n",136,r,g,b)
-			end
-			local x, y = item:Lookup("Text_No"):GetAbsPos()
-			local w, h = item:Lookup("Text_No"):GetSize()
-			OutputTip(szXml,400,{x,y,w,h})
-		end
+		item:Lookup("Text_Name").data = v
 		if v.bDelete then
 			c:SetAlpha(80)
 		end
@@ -2312,7 +2289,7 @@ RegisterEvent("TRADING_CLOSE",function() -- 交易结束
 	_GKP.TradingTarget = {}
 end)
 RegisterEvent("MONEY_UPDATE",function() --金钱变动
-	_GKP.MoneyUpdate(arg0,arg1,arg2)
+	_GKP.MoneyUpdate(arg0, arg1, arg2)
 end)
 
 JH.PlayerAddonMenu({ szOption = _L["GKP Golden Team Record"], fnAction = _GKP.OpenPanel })
