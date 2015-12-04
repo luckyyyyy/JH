@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 08:39:42
+-- @Last Modified time: 2015-12-04 01:21:06
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -32,7 +32,37 @@ local SC = {
 	tCD = {},
 	tIgnore = {},
 }
-local S = LoadLUAData(JH.GetAddonInfo().szRootPath .. "SkillCD/Skill.jx3dat")
+local S = {
+	["tSkill"] = { -- 这个表代表的是技能对应的CD时间
+		[371] = 300, -- 震山河
+		[551] = 660, -- 心鼓弦
+		[131] = 180, -- 碧水滔天
+		[252] = 25, -- 大狮子吼
+		[2235] = 90, -- 千蝶吐瑞
+		[3985] = 300, -- 朝圣言
+		[2234] = 120, -- 仙王蛊鼎
+		[411] = 90, -- 掠如火
+		[3971] = 45, -- 极乐引
+		[2663] = 120, -- 听风吹雪
+		[2220] = 1500, -- 凤凰谷
+		[259] = 300, -- 轮回决
+		[1645] = 120, -- 风来吴山
+		[2957] = 18, -- 圣手
+		[13072] = 90, -- 盾护
+		[555] = 40, -- 风秀
+		[569] = 15, -- 王母
+		[132] = 36, -- 春泥
+		[258] = 45, -- 舍身
+		[568] = 120, -- 梵音
+		[17] = 10, -- 打坐测试
+		[6800] = 180, -- 收盾
+		[14084] = 180, -- 长歌ZF
+		[14075] = 80, -- 长歌 伤害平摊
+		[15132] = 40, -- 五毒草
+		[15115] = 180, -- 号令三军
+		[14963] = 105, -- 奶花免死
+	}
+}
 
 function SkillCD.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
@@ -243,17 +273,32 @@ end
 
 -- 生成监控列表
 function SC.UpdateMonitorCache()
+	local tab = KG_Table.Load("Settings/skill/MainKungfuInfo.tab", {
+		{ f = "i", t = "KungfuID"    },
+		{ f = "i", t = "KungfuIndex" },
+		{ f = "i", t = "ForceID"     },
+		{ f = "i", t = "TalentGroup" },
+	})
+	local tKungfuMain = { [0] = {} }
+	for i = 1, tab:GetRowCount() do
+		local data = tab:GetRow(i)
+		local dwKungfuID = data.KungfuID
+		local hSkill = GetSkill(dwKungfuID, 1)
+		tKungfuMain[hSkill.dwBelongSchool] = tKungfuMain[hSkill.dwBelongSchool] or {}
+		tinsert(tKungfuMain[hSkill.dwBelongSchool], dwKungfuID)
+		tinsert(tKungfuMain[0], dwKungfuID)
+	end
+	tab = nil
 	local kungfu = {}
 	for k, v in pairs(SkillCD.tMonitor) do
-		for kk, vv in pairs(S.tKungfu) do
-			for kkk, vvv in ipairs(vv) do
-				if vvv == k or k == 17 then
-					if not kungfu[kk] then
-						kungfu[kk] = {}
-					end
-					tinsert(kungfu[kk], k)
-					break
-				end
+		local hSkill = GetSkill(k, 1)
+		if hSkill.dwMountRequestDetail ~= 0 then
+			kungfu[hSkill.dwMountRequestDetail] = kungfu[hSkill.dwMountRequestDetail] or {}
+			tinsert(kungfu[hSkill.dwMountRequestDetail], k)
+		else
+			for kk, vv in ipairs(tKungfuMain[hSkill.dwMountRequestType] or {}) do
+				kungfu[vv] = kungfu[vv] or {}
+				tinsert(kungfu[vv], k)
 			end
 		end
 	end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-03 19:06:11
+-- @Last Modified time: 2015-12-04 14:43:30
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -84,6 +84,7 @@ local function SetConfigure()
 		__index = CTM_CONFIG_PLAYER,
 		__newindex = CTM_CONFIG_PLAYER,
 	})
+	CTM_CONFIG_PLAYER.bFasterHP = false
 end
 
 local function GetFrame()
@@ -112,16 +113,21 @@ local function CreateControlBar()
 	local szIniFile    = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Button.ini"
 	hContainer:Clear()
 	-- 分配模式
+	local line = 22
 	local hLootMode = hContainer:AppendContentFromIni(szIniFile, "Wnd_LootMode")
 	hLootMode:Lookup("", "Image_LootMode"):FromUITex(unpack(CTM_LOOT_MODE[nLootMode]))
+	hLootMode:SetRelX((hContainer:GetAllContentCount() - 1) * line)
 	if nLootMode == PARTY_LOOT_MODE.DISTRIBUTE then
 		local hLootQuality = hContainer:AppendContentFromIni(szIniFile, "Wnd_LootQuality")
 		hLootQuality:Lookup("", "Image_LootQuality"):FromIconID(CTM_LOOT_QUALITY[nRollQuality])
-		hContainer:AppendContentFromIni(szIniFile, "Wnd_GKP")
+		hLootQuality:SetRelX((hContainer:GetAllContentCount() - 1) * line)
+		local hGKP = hContainer:AppendContentFromIni(szIniFile, "Wnd_GKP")
+		hGKP:SetRelX((hContainer:GetAllContentCount() - 1) * line)
 	end
 	-- 世界标记
 	if JH.IsLeader() then
-		hContainer:AppendContentFromIni(szIniFile, "Btn_WorldMark")
+		local hWorldMark = hContainer:AppendContentFromIni(szIniFile, "Btn_WorldMark")
+		hWorldMark:SetRelX((hContainer:GetAllContentCount() - 1) * line)
 	end
 	hContainer:FormatAllContentPos()
 end
@@ -206,7 +212,7 @@ local function GetGroupTotal()
 	return nGroup
 end
 
-local function SetFrameSize(bLeave)
+local function SetFrameSize()
 	if GetFrame() then
 		if Cataclysm_Main.nAutoLinkMode == 5 then
 			local nGroup = GetGroupTotal()
@@ -216,13 +222,6 @@ local function SetFrameSize(bLeave)
 			GetFrame():SetSize(w, h)
 			GetFrame():SetDragArea(0, 0, w, h)
 			GetFrame():Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
-			if bLeave then
-				local w = 128
-				if Cataclysm_Main.fScaleX > 1 then
-					w = w * Cataclysm_Main.fScaleX
-				end
-				GetFrame():Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
-			end
 		else
 			local w = 128
 			local _, h = GetFrame():GetSize()
@@ -340,8 +339,8 @@ end
 -------------------------------------------------
 -- 拖动窗体 OnFrameDrag
 -------------------------------------------------
-function Cataclysm_Main.OnFrameDrag()
-	this:Lookup("Container_Main"):Hide()
+
+function Cataclysm_Main.OnFrameDragSetPosEnd()
 	Grid_CTM:AutoLinkAllPanel()
 end
 
@@ -349,7 +348,6 @@ function Cataclysm_Main.OnFrameDragEnd()
 	this:CorrectPos()
 	Cataclysm_Main.tAnchor = GetFrameAnchor(this, "TOPLEFT")
 	Grid_CTM:AutoLinkAllPanel() -- fix screen pos
-	this:Lookup("Container_Main"):Show()
 end
 
 -------------------------------------------------
@@ -489,6 +487,7 @@ function Cataclysm_Main.OnEvent(szEvent)
 		ReloadCataclysmPanel()
 		RaidPanel_Switch(DEBUG)
 		TeammatePanel_Switch(false)
+		SetFrameSize()
 	end
 end
 
@@ -756,7 +755,7 @@ function PS.OnPanelActive(frame)
 	:Click(function(bCheck)
 		Cataclysm_Main.bTempTargetFightTip = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Faster Refresh HP(Greater performance loss)"], checked = Cataclysm_Main.bFasterHP })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Faster Refresh HP(Greater performance loss)"], checked = Cataclysm_Main.bFasterHP, enable = false })
 	:Click(function(bCheck)
 		Cataclysm_Main.bFasterHP = bCheck
 		if GetFrame() then
@@ -1021,6 +1020,7 @@ function PS3.OnPanelActive(frame)
 		Cataclysm_Main.nAutoLinkMode = 5
 		if GetFrame() then
 			Grid_CTM:AutoLinkAllPanel()
+			SetFrameSize()
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 1/4"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 1 })
@@ -1028,6 +1028,7 @@ function PS3.OnPanelActive(frame)
 		Cataclysm_Main.nAutoLinkMode = 1
 		if GetFrame() then
 			Grid_CTM:AutoLinkAllPanel()
+			SetFrameSize()
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 2/3"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 2 })
@@ -1035,6 +1036,7 @@ function PS3.OnPanelActive(frame)
 		Cataclysm_Main.nAutoLinkMode = 2
 		if GetFrame() then
 			Grid_CTM:AutoLinkAllPanel()
+			SetFrameSize()
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 3/2"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 3 })
@@ -1042,6 +1044,7 @@ function PS3.OnPanelActive(frame)
 		Cataclysm_Main.nAutoLinkMode = 3
 		if GetFrame() then
 			Grid_CTM:AutoLinkAllPanel()
+			SetFrameSize()
 		end
 	end):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY, txt = _L["Two lines: 4/1"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 4 })
@@ -1049,6 +1052,7 @@ function PS3.OnPanelActive(frame)
 		Cataclysm_Main.nAutoLinkMode = 4
 		if GetFrame() then
 			Grid_CTM:AutoLinkAllPanel()
+			SetFrameSize()
 		end
 	end):Pos_()
 end
