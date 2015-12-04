@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-19 07:51:29
+-- @Last Modified time: 2015-12-04 02:21:02
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -836,6 +836,13 @@ function DBMUI.SetCastingItemAction(h, dat)
 	if dat.col then
 		h:Lookup("Text"):SetFontColor(unpack(dat.col))
 	end
+	local hSkill = GetSkillInfo({ skill_id = dat.dwID, skill_level = dat.nLevel })
+	if not hSkill or hSkill.AreaRadius == 0 then
+		h:Lookup("Text_R"):SetText("N/A")
+	else
+		h:Lookup("Text_R"):SetText(hSkill.AreaRadius / 64 .. g_tStrings.STR_METER)
+	end
+	h:Lookup("Image_RBg"):Show()
 	local box = h:Lookup("Box")
 	box.nIocn = nIcon
 end
