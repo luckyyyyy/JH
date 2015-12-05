@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-04 14:43:30
+-- @Last Modified time: 2015-12-05 01:32:20
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -213,6 +213,7 @@ local function GetGroupTotal()
 end
 
 local function SetFrameSize()
+	--[[
 	if GetFrame() then
 		if Cataclysm_Main.nAutoLinkMode == 5 then
 			local nGroup = GetGroupTotal()
@@ -230,6 +231,7 @@ local function SetFrameSize()
 			GetFrame():Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
 		end
 	end
+	]]
 end
 
 local function OpenCataclysmPanel()
