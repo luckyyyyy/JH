@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 19:52:24
+-- @Last Modified time: 2015-12-05 21:23:18
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -555,6 +555,8 @@ function DBMUI.OutputTip(szType, data, rect)
 		OutputSkillTip(data.dwID, data.nLevel, rect)
 	elseif szType == "NPC" then
 		JH.OutputNpcTip(data.dwID, rect)
+	elseif szType == "DOODAD" then
+		JH.OutputDoodadTip(data.dwID, rect)
 	elseif szType == "TALK" then
 		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText((DBMUI.GetMapName(data.dwMapID) or data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
 	elseif szType == "CIRCLE" then

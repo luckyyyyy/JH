@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 20:51:38
+-- @Last Modified time: 2015-12-05 21:13:35
 
 local pairs, ipairs, select = pairs, ipairs, select
 
@@ -156,7 +156,7 @@ function ScreenArrow.OnBreathe()
 				end
 				obj:DrawLifeBar(fLifePer, fManaPer):DrawText(txt, szName):DrowArrow()
 			else
-				for _, vv in pairs(CACHE[dwType][dwID]) do
+				for _, vv in pairs(v) do
 					vv:Free()
 				end
 			end
