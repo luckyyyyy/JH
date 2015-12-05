@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-04 02:21:02
+-- @Last Modified time: 2015-12-05 19:52:24
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -12,7 +12,7 @@ local DBMUI_ITEM_L      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_L.ini
 local DBMUI_TALK_L      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_TALK_L.ini"
 local DBMUI_ITEM_R      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_R.ini"
 local DBMUI_TALK_R      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_TALK_R.ini"
-local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "CIRCLE", "TALK" }
+local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "CIRCLE", "TALK" }
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local DBMUI_SEARCH
@@ -23,6 +23,27 @@ local DBMUI = {
 	tAnchor = {}
 }
 
+local DBMUI_DOODAD_ICON = {
+	[DOODAD_KIND.INVALID]      = 1434, -- 无效
+	[DOODAD_KIND.NORMAL]       = 4956, --
+	[DOODAD_KIND.CORPSE]       = 179,  -- 尸体
+	[DOODAD_KIND.QUEST]        = 1676, -- 任务
+	[DOODAD_KIND.READ]         = 243,  -- 阅读
+	[DOODAD_KIND.DIALOG]       = 3267, -- 对话
+	[DOODAD_KIND.ACCEPT_QUEST] = 1678, -- 接受任务
+	[DOODAD_KIND.TREASURE]     = 3557, -- 宝箱
+	[DOODAD_KIND.ORNAMENT]     = 1395, -- 装饰物
+	[DOODAD_KIND.CRAFT_TARGET] = 351,
+	[DOODAD_KIND.CHAIR]        = 3912, -- 椅子
+	[DOODAD_KIND.CLIENT_ONLY]  = 240,  --
+	[DOODAD_KIND.GUIDE]        = 885,  -- 路牌
+	[DOODAD_KIND.DOOR]         = 1890, -- 门
+	[DOODAD_KIND.NPCDROP]      = 381,
+}
+setmetatable(DBMUI_DOODAD_ICON, { __index = function(me, key)
+	JH.Debug("UnKown Kind" .. key)
+	return 369
+end })
 local function OpenRaidDragPanel(data)
 	local hFrame = Wnd.OpenWindow("RaidDragPanel")
 	local nX, nY = Cursor.GetPos()
@@ -407,7 +428,7 @@ function DBM_UI.OnItemRButtonClick()
 			table.insert(menu, { szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. szName, bDisable = true })
 		end
 		table.insert(menu, { szOption = g_tStrings.MAP_TALK .. g_tStrings.STR_COLON .. Table_GetMapName(t.dwMapID), bDisable = true })
-		if DBMUI_SELECT_TYPE ~= "NPC" and DBMUI_SELECT_TYPE ~= "CIRCLE" and DBMUI_SELECT_TYPE ~= "TALK" then
+		if DBMUI_SELECT_TYPE ~= "NPC" and DBMUI_SELECT_TYPE ~= "CIRCLE" and DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "DOODAD" then
 			table.insert(menu, { szOption = g_tStrings.STR_SKILL_H_CAST_TIME .. (t.szSrcName or g_tStrings.STR_CRAFT_NONE) .. (t.bIsPlayer and _L["(player)"] or ""), bDisable = true })
 		end
 		if DBMUI_SELECT_TYPE ~= "TALK" then
@@ -581,7 +602,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 		end
 	end
 
-	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = szTitle or _L["Import Data"], close = true })
+	GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = szTitle or _L["Import Data"], close = true })
 	local ui, nX, nY = GUI(Station.Lookup("Normal/DBM_DatatPanel")), 0, 0
 	nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
@@ -626,7 +647,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 end
 
 function DBMUI.OpenExportPanel()
-	GUI.CreateFrame("DBM_DatatPanel", { w = 550, h = 300, title = _L["Export Data"], close = true })
+	GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Export Data"], close = true })
 	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
 	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
@@ -760,6 +781,10 @@ function DBMUI.GetBoxInfo(szType, data)
 			szName = JH.GetTemplateName(data.dwID)
 			nIcon = data.nFrame
 		end
+	elseif szType == "DOODAD" then
+		local doodad = GetDoodadTemplate(data.dwID)
+		szName = doodad.szName
+		nIcon  = DBMUI_DOODAD_ICON[doodad.nKind]
 	elseif szType == "TALK" then
 		szName = data.szContent
 	else
@@ -858,6 +883,16 @@ function DBMUI.SetNpcItemAction(h, dat)
 	box:SetExtentImage("ui/Image/TargetPanel/Target.UITex", dat.nFrame)
 end
 
+function DBMUI.SetDoodadItemAction(h, dat)
+	local szName, nIcon = DBMUI.GetBoxInfo("DOODAD", dat)
+	h:Lookup("Text"):SetText(szName)
+	if dat.col then
+		h:Lookup("Text"):SetFontColor(unpack(dat.col))
+	end
+	local box = h:Lookup("Box")
+	box.nIocn = nIcon
+end
+
 function DBMUI.SetCircleItemAction(h, dat)
 	h:Lookup("Text"):SetText(dat.szNote and string.format("%s (%s)", dat.key, dat.szNote) or dat.key)
 	local box = h:Lookup("Box")
@@ -896,6 +931,8 @@ function DBMUI.DrawTableL(szType, data)
 			DBMUI.SetCastingItemAction(h, t)
 		elseif szType == "NPC" then
 			DBMUI.SetNpcItemAction(h, t)
+		elseif szType == "DOODAD" then
+			DBMUI.SetDoodadItemAction(h, t)
 		elseif szType == "CIRCLE" then
 			DBMUI.SetCircleItemAction(h, t)
 		elseif szType == "TALK" then
@@ -951,6 +988,8 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 			DBMUI.SetCastingItemAction(h, t)
 		elseif szType == "NPC" or szType == "CIRCLE" then
 			DBMUI.SetNpcItemAction(h, t)
+		elseif szType == "DOODAD" then
+			DBMUI.SetDoodadItemAction(h, t)
 		elseif szType == "TALK" then
 			DBMUI.SetTalkItemAction(h, t)
 		end
@@ -1432,7 +1471,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Self KungFu require"] }):Menu(function()
 			return GetKungFuMenu(data)
 		end):Pos_()
-		nX = ui:Append("Text", { x = nX + 5, y = nY + 10, txt = _L["Npc Count Achieve"] }):Pos_()
+		nX = ui:Append("Text", { x = nX + 5, y = nY + 10, txt = _L["Count Achieve"] }):Pos_()
 		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
 			data.nCount = UI_tonumber(nNum)
 			if data.nCount == 1 then
@@ -1442,13 +1481,13 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bAllLeave, txt = _L["Must All leave scene"] }):Click(function(bCheck)
 			data.bAllLeave = bCheck and true or nil
 			if bCheck then
-				ui:Fetch("NPC_LEAVE_TEXT"):Text(_L["Npc All Leave scene"])
+				ui:Fetch("NPC_LEAVE_TEXT"):Text(_L["All Leave scene"])
 			else
-				ui:Fetch("NPC_LEAVE_TEXT"):Text(_L["Npc Leave scene"])
+				ui:Fetch("NPC_LEAVE_TEXT"):Text(_L["Leave scene"])
 			end
 		end):Pos_()
 		local cfg = data[DBM_TYPE.NPC_ENTER] or {}
-		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Npc Enter scene"], font = 27 }):Pos_()
+		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Enter scene"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
 			return GetMarkMenu(DBM_TYPE.NPC_ENTER)
 		end):Pos_()
@@ -1470,7 +1509,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.NPC_ENTER, "bFullScreen", bCheck)
 		end):Pos_()
-		nX, nY = ui:Append("Text", "NPC_LEAVE_TEXT", { x = 20, y = nY + 5, txt = data.bAllLeave and _L["Npc All Leave scene"] or _L["Npc Leave scene"], font = 27 }):Pos_()
+		nX, nY = ui:Append("Text", "NPC_LEAVE_TEXT", { x = 20, y = nY + 5, txt = data.bAllLeave and _L["All Leave scene"] or _L["Leave scene"], font = 27 }):Pos_()
 		local cfg = data[DBM_TYPE.NPC_LEAVE] or {}
 		nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.NPC_LEAVE, "bTeamChannel", bCheck)
@@ -1483,6 +1522,60 @@ function DBMUI.OpenSettingPanel(data, szType)
 		end):Pos_()
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.NPC_LEAVE, "bBigFontAlarm", bCheck)
+		end):Pos_()
+	elseif szType == "DOODAD" then
+		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
+		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Self KungFu require"] }):Menu(function()
+			return GetKungFuMenu(data)
+		end):Pos_()
+		nX = ui:Append("Text", { x = nX + 5, y = nY + 10, txt = _L["Count Achieve"] }):Pos_()
+		nX = ui:Append("WndEdit", { x = nX + 2, y = nY + 12, w = 30, h = 26, txt = data.nCount or 1 }):Type(0):Change(function(nNum)
+			data.nCount = UI_tonumber(nNum)
+			if data.nCount == 1 then
+				data.nCount = nil
+			end
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bAllLeave, txt = _L["Must All leave scene"] }):Click(function(bCheck)
+			data.bAllLeave = bCheck and true or nil
+			if bCheck then
+				ui:Fetch("DOODAD_LEAVE_TEXT"):Text(_L["All Leave scene"])
+			else
+				ui:Fetch("DOODAD_LEAVE_TEXT"):Text(_L["Leave scene"])
+			end
+		end):Pos_()
+		local cfg = data[DBM_TYPE.DOODAD_ENTER] or {}
+		nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Enter scene"], font = 27 }):Pos_()
+		nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_ENTER, "bTeamChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bWhisperChannel, txt = _L["Whisper Channel Alarm"], color = GetMsgFontColor("MSG_WHISPER", true) }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_ENTER, "bWhisperChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bCenterAlarm, txt = _L["Center Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_ENTER, "bCenterAlarm", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_ENTER, "bBigFontAlarm", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bScreenHead, txt = _L["Screen Head Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_ENTER, "bScreenHead", bCheck)
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_ENTER, "bFullScreen", bCheck)
+		end):Pos_()
+		nX, nY = ui:Append("Text", "DOODAD_LEAVE_TEXT", { x = 20, y = nY + 5, txt = data.bAllLeave and _L["All Leave scene"] or _L["Leave scene"], font = 27 }):Pos_()
+		local cfg = data[DBM_TYPE.DOODAD_LEAVE] or {}
+		nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_LEAVE, "bTeamChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bWhisperChannel, txt = _L["Whisper Channel Alarm"], color = GetMsgFontColor("MSG_WHISPER", true) }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_LEAVE, "bWhisperChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bCenterAlarm, txt = _L["Center Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_LEAVE, "bCenterAlarm", bCheck)
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.DOODAD_LEAVE, "bBigFontAlarm", bCheck)
 		end):Pos_()
 	elseif szType == "TALK" then
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Alert Content"], font = 27 }):Pos_()
@@ -1581,6 +1674,12 @@ function DBMUI.OpenSettingPanel(data, szType)
 						if vv == DBM_TYPE.NPC_LIFE or vv == DBM_TYPE.NPC_MANA then
 							JH.Alert(_L["Npc Life/Mana Alarm, different format, Recommended reading Help!"])
 						end
+					end })
+				end
+			elseif szType == "DOODAD" then
+				for kk, vv in ipairs({ DBM_TYPE.DOODAD_ENTER, DBM_TYPE.DOODAD_LEAVE, DBM_TYPE.DOODAD_ALLLEAVE }) do
+					table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
+						SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
 					end })
 				end
 			elseif szType == "TALK" then

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-24 09:49:33
+-- @Last Modified time: 2015-12-05 19:47:54
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -552,7 +552,7 @@ function C.OnBreathe()
 					local szName = JH.GetTemplateName(tar)
 					C.tTarget[KGNpc.dwID] = dwID
 					if data.bScreenHead then
-						FireUIEvent("JH_SCREENHEAD", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
+						FireUIEvent("JH_SA_CREATE", "TIME", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
 					end
 					if me.IsInRaid() then
 						if DBM.bPushWhisperChannel and data.bWhisperChat then

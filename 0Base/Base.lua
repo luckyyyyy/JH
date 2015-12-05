@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-02 23:28:28
+-- @Last Modified time: 2015-12-05 20:24:09
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1733,6 +1733,16 @@ function _JH.HandlePool:Free(item)
 	end
 end
 
+function _JH.HandlePool:GetAllItem(bShow)
+	local t = {}
+	for i = self.handle:GetItemCount() - 1, 0, -1 do
+		local item = self.handle:Lookup(i)
+		if bShow and item:IsVisible() or not bShow then
+			table.insert(t, item)
+		end
+	end
+	return t
+end
 -- public api, create pool
 -- (class) JH.HandlePool(userdata handle, string szXml)
 JH.HandlePool = _JH.HandlePool.new

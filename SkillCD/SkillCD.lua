@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-04 01:21:06
+-- @Last Modified time: 2015-12-05 00:24:17
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -36,7 +36,7 @@ local S = {
 	["tSkill"] = { -- 这个表代表的是技能对应的CD时间
 		[371] = 300, -- 震山河
 		[551] = 660, -- 心鼓弦
-		[131] = 180, -- 碧水滔天
+		[131] = 150, -- 碧水滔天
 		[252] = 25, -- 大狮子吼
 		[2235] = 90, -- 千蝶吐瑞
 		[3985] = 300, -- 朝圣言
