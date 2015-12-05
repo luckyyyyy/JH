@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-24 09:28:21
+-- @Last Modified time: 2015-12-05 19:45:31
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -27,7 +27,7 @@ local DBM_MARK_FREE   = true -- 标记空闲
 local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
 ----
-local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "TALK" }
+local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD","TALK" }
 
 local function GetDataPath()
 	if DBM.bCommon then
@@ -38,12 +38,13 @@ local function GetDataPath()
 end
 
 local CACHE = {
-	TEMP       = {}, -- 近期事件记录MAP 这里用弱表 方便处理
-	MAP        = {},
-	NPC_LIST   = {},
-	SKILL_LIST = {},
-	INTERVAL   = {},
-	DUNGEON    = {},
+	TEMP        = {}, -- 近期事件记录MAP 这里用弱表 方便处理
+	MAP         = {},
+	NPC_LIST    = {},
+	DOODAD_LIST = {},
+	SKILL_LIST  = {},
+	INTERVAL    = {},
+	DUNGEON     = {},
 }
 
 local D = {
@@ -82,8 +83,18 @@ local DBM = DBM
 
 function DBM.OnFrameCreate()
 	this:RegisterEvent("NPC_ENTER_SCENE")
-	this:RegisterEvent("DBM_NPC_ENTER_SCENE")
 	this:RegisterEvent("NPC_LEAVE_SCENE")
+	this:RegisterEvent("DBM_NPC_FIGHT")
+	this:RegisterEvent("DBM_NPC_ENTER_SCENE")
+	this:RegisterEvent("DBM_NPC_ALLLEAVE_SCENE")
+	this:RegisterEvent("DBM_NPC_LIFE_CHANGE")
+	this:RegisterEvent("DBM_NPC_MANA_CHANGE")
+
+	this:RegisterEvent("DOODAD_ENTER_SCENE")
+	this:RegisterEvent("DOODAD_LEAVE_SCENE")
+	this:RegisterEvent("DBM_DOODAD_ENTER_SCENE")
+	this:RegisterEvent("DBM_DOODAD_ALLLEAVE_SCENE")
+
 	this:RegisterEvent("BUFF_UPDATE")
 	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("DO_SKILL_CAST")
@@ -92,10 +103,7 @@ function DBM.OnFrameCreate()
 	this:RegisterEvent("ON_WARNING_MESSAGE")
 	this:RegisterEvent("DBM_LOADING_END")
 	this:RegisterEvent("DBM_CREATE_CACHE")
-	this:RegisterEvent("DBM_NPC_FIGHT")
-	this:RegisterEvent("DBM_NPC_ALLLEAVE_SCENE")
-	this:RegisterEvent("DBM_NPC_LIFE_CHANGE")
-	this:RegisterEvent("DBM_NPC_MANA_CHANGE")
+
 	this:RegisterEvent("DBM_SET_MARK")
 	this:RegisterEvent("PARTY_SET_MARK")
 end
@@ -157,6 +165,19 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "ON_WARNING_MESSAGE" then
 		D.OnCallMessage(arg1)
+
+	elseif szEvent == "DOODAD_ENTER_SCENE" or szEvent == "DBM_DOODAD_ENTER_SCENE" then
+		local doodad = GetDoodad(arg0)
+		if doodad then
+			D.OnDoodadEvent(doodad, true)
+		end
+	elseif szEvent == "DOODAD_LEAVE_SCENE" then
+		local doodad = GetDoodad(arg0)
+		if doodad then
+			D.OnDoodadEvent(doodad, false)
+		end
+	elseif szEvent == "DBM_DOODAD_ALLLEAVE_SCENE" then
+		D.OnDoodadAllLeave(arg0)
 	elseif szEvent == "NPC_ENTER_SCENE" or szEvent == "DBM_NPC_ENTER_SCENE" then
 		local npc = GetNpc(arg0)
 		if npc then
@@ -296,14 +317,14 @@ function D.CreateData(szEvent)
 		return
 	end
 	-- 重建MAP
-	for _, szType in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC" }) do
+	for _, szType in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD" }) do
 		local data  = D.DATA[szType]
 		local cache = CACHE.MAP[szType]
-		if D.FILE[szType][-1] then -- 通用数据
-			CreateCache(szType, D.FILE[szType][-1])
-		end
 		if D.FILE[szType][dwMapID] then -- 本地图数据
 			CreateCache(szType, D.FILE[szType][dwMapID])
+		end
+		if D.FILE[szType][-1] then -- 通用数据
+			CreateCache(szType, D.FILE[szType][-1])
 		end
 	end
 	CreateTalkData(dwMapID)
@@ -566,7 +587,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				end
 				-- 头顶报警
 				if DBM.bPushScreenHead and cfg.bScreenHead then
-					FireUIEvent("JH_SCREENHEAD", dwCaster, { type = szType, dwID = data.dwID, col = data.col, txt = szName })
+					FireUIEvent("JH_SA_CREATE", szType, dwCaster, { dwID = data.dwID, col = data.col, txt = szName })
 				end
 				if me.dwID == dwCaster then
 					if DBM.bPushBuffList and cfg.bBuffList then
@@ -708,7 +729,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			end
 			-- 头顶报警
 			if DBM.bPushScreenHead and cfg.bScreenHead then
-				FireUIEvent("JH_SCREENHEAD", dwCaster, { type = "CASTING", txt = data.szName or szName, col = data.col })
+				FireUIEvent("JH_SA_CREATE", "CASTING", dwCaster, { txt = data.szName or szName, col = data.col })
 			end
 			-- 全屏泛光
 			if DBM.bPushFullScreen and cfg.bFullScreen then
@@ -808,7 +829,7 @@ function D.OnNpcEvent(npc, bEnter)
 					D.SetTeamMark("NPC", cfg.tMark, npc.dwID, npc.dwTemplateID)
 				end
 				if DBM.bPushScreenHead and cfg.bScreenHead then
-					FireUIEvent("JH_SCREENHEAD", npc.dwID, { type = "Object", txt = data.szNote, col = data.col, szName = data.szName })
+					FireUIEvent("JH_SA_CREATE", "NPC", npc.dwID, { txt = data.szNote, col = data.col, szName = data.szName })
 				end
 			end
 			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5秒内进入相同的NPC直接忽略
@@ -861,6 +882,137 @@ function D.OnNpcEvent(npc, bEnter)
 				end
 			end
 		end
+	end
+end
+
+-- DOODAD事件
+function D.OnDoodadEvent(doodad, bEnter)
+	local me = GetClientPlayer()
+	local data = D.GetData("DOODAD", doodad.dwTemplateID)
+	local nTime = GetTime()
+	if bEnter then
+		CACHE.DOODAD_LIST[doodad.dwTemplateID] = CACHE.DOODAD_LIST[doodad.dwTemplateID] or {
+			tList       = {},
+			nTime       = -1,
+		}
+		tinsert(CACHE.DOODAD_LIST[doodad.dwTemplateID].tList, doodad.dwID)
+		if doodad.nKind ~= DOODAD_KIND.ORNAMENT or JH.bDebugClient then
+			local tWeak, tTemp = CACHE.TEMP.DOODAD, D.TEMP.DOODAD
+			if not tWeak[doodad.dwTemplateID] then
+				local t = {
+					dwMapID      = me.GetMapID(),
+					dwID         = doodad.dwTemplateID,
+					nFrame       = 1, -- select(2, GetNpcHeadImage(npc.dwID)),
+					-- col          = { GetHeadTextForceFontColor(npc.dwID, me.dwID) },
+					nCurrentTime = GetCurrentTime()
+				}
+				tWeak[doodad.dwTemplateID] = t
+				tTemp[#tTemp + 1] = tWeak[doodad.dwTemplateID]
+				FireUIEvent("DBMUI_TEMP_UPDATE", "DOODAD", t)
+			end
+		end
+		CACHE.INTERVAL.DOODAD[doodad.dwTemplateID] = CACHE.INTERVAL.DOODAD[doodad.dwTemplateID] or {}
+		if #CACHE.INTERVAL.DOODAD[doodad.dwTemplateID] > 0 then
+			if nTime - CACHE.INTERVAL.DOODAD[doodad.dwTemplateID][#CACHE.INTERVAL.DOODAD[doodad.dwTemplateID]] > 500 then
+				CACHE.INTERVAL.DOODAD[doodad.dwTemplateID][#CACHE.INTERVAL.DOODAD[doodad.dwTemplateID] + 1] = nTime
+			end
+		else
+			CACHE.INTERVAL.DOODAD[doodad.dwTemplateID][#CACHE.INTERVAL.DOODAD[doodad.dwTemplateID] + 1] = nTime
+		end
+	else
+		if CACHE.DOODAD_LIST[doodad.dwTemplateID] and CACHE.DOODAD_LIST[doodad.dwTemplateID].tList then
+			local tab = CACHE.DOODAD_LIST[doodad.dwTemplateID]
+			for k, v in ipairs(tab.tList) do
+				if v == doodad.dwID then
+					table.remove(tab.tList, k)
+					if #tab.tList == 0 then
+						CACHE.DOODAD_LIST[doodad.dwTemplateID] = nil
+						FireUIEvent("DBM_DOODAD_ALLLEAVE_SCENE", doodad.dwTemplateID)
+					end
+					break
+				end
+			end
+		end
+	end
+	if data then
+		local cfg, nClass, nCount
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
+			return
+		end
+		if bEnter then
+			cfg, nClass = data[DBM_TYPE.DOODAD_ENTER], DBM_TYPE.DOODAD_ENTER
+			nCount = #CACHE.DOODAD_LIST[doodad.dwTemplateID].tList
+		else
+			cfg, nClass = data[DBM_TYPE.DOODAD_LEAVE], DBM_TYPE.DOODAD_LEAVE
+		end
+		if nClass == DBM_TYPE.DOODAD_LEAVE then
+			if data.bAllLeave and CACHE.DOODAD_LIST[doodad.dwTemplateID] then
+				return
+			end
+		else
+			-- 场地上的DOODAD数量没达到预期数量
+			if data.nCount and nCount < data.nCount then
+				return
+			end
+			if cfg then
+				if DBM.bPushScreenHead and cfg.bScreenHead then
+					FireUIEvent("JH_SA_CREATE", "DOODAD", doodad.dwID, { txt = data.szNote, col = data.col, szName = data.szName })
+				end
+			end
+			if nTime - CACHE.DOODAD_LIST[doodad.dwTemplateID].nTime < 500 then
+				return
+			else
+				CACHE.DOODAD_LIST[doodad.dwTemplateID].nTime = nTime
+			end
+		end
+		D.CountdownEvent(data, nClass)
+		if cfg then
+			local szName = doodad.szName
+			local xml = {}
+			tinsert(xml, DBM_LEFT_LINE)
+			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
+			tinsert(xml, DBM_RIGHT_LINE)
+			if nClass == DBM_TYPE.DOODAD_ENTER then
+				tinsert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
+				if nCount > 1 then
+					tinsert(xml, GetFormatText(" x" .. nCount, 44, 255, 255, 0))
+				end
+				if data.szNote then
+					tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
+				end
+			else
+				tinsert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
+			end
+
+			local txt = GetPureText(tconcat(xml))
+			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
+				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
+			end
+			-- 特大文字
+			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
+				FireUIEvent("JH_LARGETEXT", txt, { 255, 255, 0 })
+			end
+
+			if DBM.bPushTeamChannel and cfg.bTeamChannel then
+				D.Talk(txt)
+			end
+			if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
+				D.Talk(txt, true)
+			end
+
+			if nClass == DBM_TYPE.DOODAD_ENTER then
+				if DBM.bPushFullScreen and cfg.bFullScreen then
+					FireUIEvent("JH_FS_CREATE", "DOODAD", { nTime  = 3, col = data.col, bFlash = true })
+				end
+			end
+		end
+	end
+end
+
+function D.OnDoodadAllLeave(dwTemplateID)
+	local data = D.GetData("DOODAD", dwTemplateID)
+	if data then
+		D.CountdownEvent(data, DBM_TYPE.DOODAD_ALLLEAVE)
 	end
 end
 

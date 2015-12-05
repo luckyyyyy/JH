@@ -1,26 +1,29 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-03 00:05:10
+-- @Last Modified time: 2015-12-04 17:25:08
 
 DBM_TYPE = {
-	OTHER        = 0,
-	BUFF_GET     = 1,
-	BUFF_LOSE    = 2,
-	NPC_ENTER    = 3,
-	NPC_LEAVE    = 4,
-	NPC_TALK     = 5,
-	NPC_LIFE     = 6,
-	NPC_FIGHT    = 7,
-	SKILL_BEGIN  = 8,
-	SKILL_END    = 9,
-	SYS_TALK     = 10,
-	NPC_ALLLEAVE = 11,
-	NPC_DEATH    = 12,
-	NPC_ALLDEATH = 13,
-	TALK_MONITOR = 14,
-	COMMON       = 15,
-	NPC_MANA     = 16,
+	OTHER           = 0,
+	BUFF_GET        = 1,
+	BUFF_LOSE       = 2,
+	NPC_ENTER       = 3,
+	NPC_LEAVE       = 4,
+	NPC_TALK        = 5,
+	NPC_LIFE        = 6,
+	NPC_FIGHT       = 7,
+	SKILL_BEGIN     = 8,
+	SKILL_END       = 9,
+	SYS_TALK        = 10,
+	NPC_ALLLEAVE    = 11,
+	NPC_DEATH       = 12,
+	NPC_ALLDEATH    = 13,
+	TALK_MONITOR    = 14,
+	COMMON          = 15,
+	NPC_MANA        = 16,
+	DOODAD_ENTER    = 17,
+	DOODAD_LEAVE    = 18,
+	DOODAD_ALLLEAVE = 19,
 }
 DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3, TARGET = 4 }
 
