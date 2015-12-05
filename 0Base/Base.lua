@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 20:24:09
+-- @Last Modified time: 2015-12-05 21:24:29
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1606,7 +1606,7 @@ function JH.OutputDoodadTip(dwTemplateID, Rect)
 	tinsert(t, GetFormatText(szName .. "\n", 65))
 	tinsert(t, GetDoodadQuestTip(dwTemplateID))
 	------------Ä£°æID-----------------------
-	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 37))
+	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 101))
 	if IsCtrlKeyDown() then
 		tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
 	end
