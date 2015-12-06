@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 21:13:35
+-- @Last Modified time: 2015-12-05 22:50:00
 
 local pairs, ipairs, select = pairs, ipairs, select
 
@@ -10,7 +10,7 @@ DBM_SA = {
 	bOnlySelf = true,
 	fLifePer  = 0.3,
 	fManaPer  = 0.1,
-	nFont     = 15,
+	nFont     = 40,
 }
 JH.RegisterCustomData("DBM_SA")
 
@@ -91,6 +91,8 @@ function ScreenArrow.OnSort()
 end
 
 function ScreenArrow.OnBreathe()
+	local me = GetClientPlayer()
+	if not me then return end
 	for dwType, tab in pairs(CACHE) do
 		for dwID, v in pairs(tab) do
 			local object, tInfo = select(2, ScreenArrow.GetObject(dwType, dwID))
