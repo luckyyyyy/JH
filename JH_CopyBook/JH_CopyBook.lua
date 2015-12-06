@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-13 07:14:56
+-- @Last Modified time: 2015-12-06 18:28:49
 
 local _L = JH.LoadLangPack
 local GetClientPlayer = GetClientPlayer
@@ -336,11 +336,17 @@ function PS.OnPanelActive(frame)
 	Book.UpdateInfo()
 	JH.RegisterEvent("BAG_ITEM_UPDATE.CokyBook", function() Book.UpdateInfo() end)
 	JH.RegisterEvent("PROFESSION_LEVEL_UP.CokyBook", function() Book.UpdateInfo() end)
+	JH.RegisterEvent("SYS_MSG.CokyBook", function()
+		if arg0 == "UI_OME_CRAFT_RESPOND" then
+			Book.UpdateInfo()
+		end
+	end)
 end
 
 function PS.OnPanelDeactive()
 	JH.UnRegisterEvent("BAG_ITEM_UPDATE.CokyBook")
 	JH.UnRegisterEvent("PROFESSION_LEVEL_UP.CokyBook")
+	JH.UnRegisterEvent("SYS_MSG.CokyBook")
 end
 
 GUI.RegisterPanel(_L["Copy Book"], 415, g_tStrings.CHANNEL_CHANNEL, PS)
