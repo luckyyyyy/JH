@@ -1,15 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 00:24:17
+-- @Last Modified time: 2015-12-06 23:43:14
 local _L = JH.LoadLangPack
 
 SkillCD = {
-	bEnable = true,
-	bSelf = false,
-	bMini = true,
-	bInDungeon = true,
-	tAnchor = {},
+	bEnable       = true,
+	bMini         = true,
+	bInDungeon    = true,
+	tAnchor       = {},
 	nMaxCountdown = 10,
 	tMonitor = {
 		[371]  = true,
@@ -61,6 +60,7 @@ local S = {
 		[15132] = 40, -- 五毒草
 		[15115] = 180, -- 号令三军
 		[14963] = 105, -- 奶花免死
+		[14081] = 180, -- 孤影化双
 	}
 }
 
@@ -236,9 +236,6 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not nSec then
 		return
 	end
-	if SkillCD.bSelf and dwCaster ~= UI_GetClientPlayerID() then
-		return
-	end
 	-- get name
 	local p = GetPlayer(dwCaster)
 	if not p then return end
@@ -316,7 +313,7 @@ function SC.UpdateCount()
 			tCount[k].tList = {}
 		end
 	end
-	if me.IsInParty() and not SkillCD.bSelf then
+	if me.IsInParty() then
 		member = team.GetTeamMemberList()
 	else
 		tinsert(member, me.dwID)
@@ -486,7 +483,6 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SkillCD"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = SkillCD.bEnable, txt = _L["Enable SkillCD"] }):Click(function(bChecked)
 		SkillCD.bEnable = bChecked
-		ui:Fetch("bSelf"):Enable(bChecked)
 		ui:Fetch("bInDungeon"):Enable(bChecked)
 		if bChecked then
 			if SkillCD.bInDungeon then
@@ -500,13 +496,6 @@ function PS.OnPanelActive(frame)
 			SC.ClosePanel()
 		end
 		JH.OpenPanel(_L["SkillCD"])
-	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", "bSelf", { x = 25, y = nY, checked = SkillCD.bSelf })
-	:Enable(SkillCD.bEnable):Text(_L["only Monitor self"]):Click(function(bChecked)
-		SkillCD.bSelf = bChecked
-		if SC.IsPanelOpened() then
-			SC.UpdateCount()
-		end
 	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = SkillCD.bInDungeon })
 	:Enable(SkillCD.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)

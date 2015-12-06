@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 01:32:20
+-- @Last Modified time: 2015-12-06 23:21:31
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -212,26 +212,24 @@ local function GetGroupTotal()
 	return nGroup
 end
 
-local function SetFrameSize()
-	--[[
+local function SetFrameSize(bEnter)
+	local frame = GetFrame()
 	if GetFrame() then
+		local nGroup = GetGroupTotal()
+		local nGroupEx = nGroup
 		if Cataclysm_Main.nAutoLinkMode == 5 then
-			local nGroup = GetGroupTotal()
-			local w = 128 * nGroup
-			local _, h = GetFrame():GetSize()
-			w = w * Cataclysm_Main.fScaleX
-			GetFrame():SetSize(w, h)
-			GetFrame():SetDragArea(0, 0, w, h)
-			GetFrame():Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
-		else
-			local w = 128
-			local _, h = GetFrame():GetSize()
-			GetFrame():SetSize(w, h)
-			GetFrame():SetDragArea(0, 0, w, h)
-			GetFrame():Lookup("", "Handle_BG/Image_Title_BG"):SetSize(w, h)
+			nGroupEx = 1
 		end
+		local fScaleX = math.max(1, Cataclysm_Main.fScaleX)
+		local w = 128 * nGroup * fScaleX
+		local h = select(2, frame:GetSize())
+		frame:SetW(w)
+		if not bEnter then
+			w = 128 * fScaleX
+		end
+		frame:SetDragArea(0, 0, w, h)
+		frame:Lookup("", "Handle_BG/Image_Title_BG"):SetW(w)
 	end
-	]]
 end
 
 local function OpenCataclysmPanel()
@@ -367,12 +365,11 @@ function Cataclysm_Main.OnEvent(szEvent)
 		else
 			Grid_CTM:CreatePanel(arg2)
 			Grid_CTM:DrawParty(arg2)
-			SetFrameSize(true)
+			SetFrameSize()
 		end
 		if Cataclysm_Main.nAutoLinkMode ~= 5 then
 			Grid_CTM:AutoLinkAllPanel()
 		end
-		SetFrameSize()
 	elseif szEvent == "PARTY_DELETE_MEMBER" then
 		local me = GetClientPlayer()
 		if me.dwID == arg1 then
@@ -586,6 +583,9 @@ function Cataclysm_Main.OnMouseLeave()
 	if szName == "Wnd_GKP" or szName == "Wnd_LootMode" or szName == "Wnd_LootQuality" then
 		this:SetAlpha(220)
 	end
+	if not IsKeyDown("LButton") then
+		SetFrameSize()
+	end
 end
 
 function Cataclysm_Main.OnMouseEnter()
@@ -593,6 +593,7 @@ function Cataclysm_Main.OnMouseEnter()
 	if szName == "Wnd_GKP" or szName == "Wnd_LootMode" or szName == "Wnd_LootQuality" then
 		this:SetAlpha(255)
 	end
+	SetFrameSize(true)
 end
 
 local function EnableTeamPanel()
