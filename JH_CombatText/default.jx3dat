@@ -21,25 +21,8 @@ local SKILL_RESULT_TYPE = {
 	TRANSFER_LIFE        = 15, -- 吸取生命
 	TRANSFER_MANA        = 16, -- 吸取内力
 }
-local g_tStrings = { -- 这里字符串可以加可以改，也可以直接去下面加
-	STR_MSG_DEFENCE    = "拆招",
-	STR_MSG_COUNTERACT = "招架",
-	STR_MSG_ABSORB     = "化解",
-	STR_MSG_DODGE      = "闪躲",
-	STR_MSG_IMMUNITY   = "免疫",
-	STR_MSG_MISS       = "偏离",
-	STR_MSG_INSIGHT    = "识破",
-}
 -- 从这里开始可以修改了
 data = {
-	COMBAT_TEXT_RENDER         = true, -- 使用渲染帧67FPS 设置为false则16FPS
-	COMBAT_TEXT_MAX_ALPHA      = 240,  -- 文字的最大 alpha 就是透明度
-	COMBAT_TEXT_TIME           = 40, -- 这里 乘以 COMBAT_TEXT_TOTAL 就是总出现时间
-	COMBAT_TEXT_TOTAL          = 32, -- 如果修改这里 请注意其他也要跟着改
-	COMBAT_TEXT_MAX_COUNT      = 50, -- 最多同事出现的文字 大于此值的都忽略 别太大了 小心崩
-	COMBAT_TEXT_FADE_IN_FRAME  = 4,  -- 设置淡入的桢数
-	COMBAT_TEXT_FADE_OUT_FRAME = 8,  -- 设置淡出的桢数
-	COMBAT_TEXT_FONT           = 19, -- 字体
 	COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
 		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = true,
@@ -50,26 +33,6 @@ data = {
 		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = true,
 		[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
 		["EXP"]                                  = true,
-	},
-	COMBAT_TEXT_COLOR = { -- 颜色呗
-		["EXP"]                                  = { 255, 0,   255 }, -- 阅历
-		["DODGE"]                                = { 255, 0,   0   }, -- 闪避
-		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
-		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
-		["BUFF"]                                 = { 255, 255, 0   }, -- BUFF
-		["DEBUFF"]                               = { 255, 0,   0   }, -- DEBUFF
-		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- 外公
-		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- 阳
-		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- 混元
-		[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = { 12,  242, 255 }, -- 阴
-		[SKILL_RESULT_TYPE.POISON_DAMAGE]        = { 128, 255, 128 }, -- 有毒啊
-		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = { 255, 128, 128 }, -- 反弹 ？？
-	},
-	COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
-		[SKILL_RESULT_TYPE.SHIELD_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
-		[SKILL_RESULT_TYPE.ABSORB_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
-		[SKILL_RESULT_TYPE.PARRY_DAMAGE]   = g_tStrings.STR_MSG_COUNTERACT,
-		[SKILL_RESULT_TYPE.INSIGHT_DAMAGE] = g_tStrings.STR_MSG_INSIGHT,
 	},
 	COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 		CRITICAL = { -- 会心
