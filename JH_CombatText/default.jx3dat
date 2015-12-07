@@ -1,0 +1,117 @@
+-- 可以高亮成LUA文件看，
+-- 改完把文件改名成config.jx3dat，在游戏内点击重新载入配置就可以，无需小退！
+-- 以下local定义不要去修改 只是给你们看的
+
+local SKILL_RESULT_TYPE = {
+	PHYSICS_DAMAGE       = 0  -- 外功伤害
+	SOLAR_MAGIC_DAMAGE   = 1  -- 阳性内功伤害
+	NEUTRAL_MAGIC_DAMAGE = 2  -- 混元性内功伤害
+	LUNAR_MAGIC_DAMAGE   = 3  -- 阴性内功伤害
+	POISON_DAMAGE        = 4  -- 毒性伤害
+	REFLECTIED_DAMAGE    = 5  -- 反弹伤害
+	THERAPY              = 6  -- 治疗
+	STEAL_LIFE           = 7  -- 生命偷取(<D0>从<D1>获得了<D2>点气血。)
+	ABSORB_THERAPY       = 8  -- 化解治疗
+	ABSORB_DAMAGE        = 9  -- 化解伤害
+	SHIELD_DAMAGE        = 10 -- 无效伤害
+	PARRY_DAMAGE         = 11 -- 拆招/招架
+	INSIGHT_DAMAGE       = 12 -- 识破
+	EFFECTIVE_DAMAGE     = 13 -- 有效伤害
+	EFFECTIVE_THERAPY    = 14 -- 有效治疗
+	TRANSFER_LIFE        = 15 -- 吸取生命
+	TRANSFER_MANA        = 16 -- 吸取内力
+}
+local g_tStrings = { -- 这里字符串可以加可以改，也可以直接去下面加
+	STR_MSG_DEFENCE    = "拆招",
+	STR_MSG_COUNTERACT = "招架",
+	STR_MSG_ABSORB     = "化解",
+	STR_MSG_DODGE      = "闪躲",
+	STR_MSG_IMMUNITY   = "免疫",
+	STR_MSG_MISS       = "偏离",
+	STR_MSG_INSIGHT    = "识破",
+}
+-- 从这里开始可以修改了
+data = {
+	COMBAT_TEXT_RENDER         = true, -- 使用渲染帧（67 FPS）
+	COMBAT_TEXT_TIME           = 40, -- 这里 乘以 COMBAT_TEXT_TOTAL 就是总出现时间
+	COMBAT_TEXT_TOTAL          = 32, -- 如果修改这里 请注意其他也要跟着改
+	COMBAT_TEXT_MAX_COUNT      = 50, -- 最多同事出现的文字 大于此值的都忽略 别太大了 小心崩
+	COMBAT_TEXT_FADE_IN_FRAME  = 4,  -- 设置淡入的桢数
+	COMBAT_TEXT_FADE_OUT_FRAME = 8,  -- 设置淡出的桢数
+	COMBAT_TEXT_FONT           = 19, -- 字体
+	COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
+		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
+		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = true,
+		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = true,
+		[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = true,
+		[SKILL_RESULT_TYPE.POISON_DAMAGE]        = true,
+		[SKILL_RESULT_TYPE.THERAPY]              = true,
+		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = true,
+		[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
+	},
+	COMBAT_TEXT_COLOR = { -- 颜色呗
+		["DODGE"]                                = { 255, 0,   0   }, -- 闪避
+		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
+		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
+		["BUFF"]                                 = { 255, 255, 0   }, -- BUFF
+		["DEBUFF"]                               = { 255, 0,   0   }, -- DEBUFF
+		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- 外公
+		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- 阳
+		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- 混元
+		[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = { 12,  242, 255 }, -- 阴
+		[SKILL_RESULT_TYPE.POISON_DAMAGE]        = { 128, 255, 128 }, -- 有毒啊
+		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = { 255, 128, 128 }, -- 反弹 ？？
+	},
+	COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
+		[SKILL_RESULT_TYPE.SHIELD_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
+		[SKILL_RESULT_TYPE.ABSORB_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
+		[SKILL_RESULT_TYPE.PARRY_DAMAGE]   = g_tStrings.STR_MSG_COUNTERACT,
+		[SKILL_RESULT_TYPE.INSIGHT_DAMAGE] = g_tStrings.STR_MSG_INSIGHT,
+	},
+	COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
+		CRITICAL = { -- 会心
+			1, 2, 3, 5, 5, 3, 2, 2,
+			2, 2, 2, 2, 2, 2, 2, 2,
+			2, 2, 2, 2, 2, 2, 2, 2,
+			2, 2, 2, 2, 2, 2, 2, 2,
+		},
+		NORMAL = { -- 普通伤害
+			1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+			1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+			1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+			1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+		},
+	},
+	COMBAT_TEXT_POINT = { -- 伤害位置移动
+		TOP = { -- 伤害 往上的 分四组 普通 慢 慢 块~~
+			4,   8,   12,  16,  20,  24,  28,  32,
+			35,  38,  41,  44,  47,  50,  53,  60,
+			63,  66,  69,  72,  75,  78,  81,  84,
+			89,  94,  99,  104, 110, 118, 128, 136,
+		},
+		RIGHT = { -- 从左往右的
+			8,   16,  24,  32,  40,  48,  56,  64,
+			72,  80,  88,  96,  104, 112, 120, 128,
+			136, 142, 142, 142, 142, 142, 142, 142,
+			142, 142, 142, 142, 142, 142, 142, 142,
+		},
+		LEFT = { -- 从右到左
+			8,   16,  24,  32,  40,  48,  56,  64,
+			72,  80,  88,  96,  104, 112, 120, 128,
+			136, 142, 142, 142, 142, 142, 142, 142,
+			142, 142, 142, 142, 142, 142, 142, 142,
+		},
+		BOTTOM_LEFT = { -- 左下角
+			6,   12,  18,  24,  30,  36,  42,  48,
+			54,  60,  66,  72,  78,  84,  90,  96,
+			100, 100, 100, 100, 100, 100, 100, 100,
+			100, 100, 100, 100, 100, 100, 100, 100,
+		},
+		BOTTOM_RIGHT = {
+			6,   12,  18,  24,  30,  36,  42,  48,
+			54,  60,  66,  72,  78,  84,  90,  96,
+			100, 100, 100, 100, 100, 100, 100, 100,
+			100, 100, 100, 100, 100, 100, 100, 100,
+		}
+	}
+}
