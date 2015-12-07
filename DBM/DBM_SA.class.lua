@@ -1,10 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 22:50:00
+-- @Last Modified time: 2015-12-07 16:31:43
 
 local pairs, ipairs, select = pairs, ipairs, select
-
+local UI_SCALED = 1
 DBM_SA = {
 	bAlert    = false,
 	bOnlySelf = true,
@@ -302,10 +302,11 @@ function SA:DrawText( ... )
 	local i = 1
 	for k, v in ipairs({ ... }) do
 		if v ~= "" then
+			local top = nTop + i * -18 * UI_SCALED
 			if self.dwType == TARGET.DOODAD then
-				self.Text:AppendDoodadID(self.dwID, r, g, b, 240, { 0, 0, 0, 0, nTop + i * -18 }, DBM_SA.nFont, v, 1, 1)
+				self.Text:AppendDoodadID(self.dwID, r, g, b, 240, { 0, 0, 0, 0, top }, DBM_SA.nFont, v, 1, 1)
 			else
-				self.Text:AppendCharacterID(self.dwID, true, r, g, b, 240, { 0, 0, 0, 0, nTop + i * -18 }, DBM_SA.nFont, v, 1, 1)
+				self.Text:AppendCharacterID(self.dwID, true, r, g, b, 240, { 0, 0, 0, 0, top }, DBM_SA.nFont, v, 1, 1)
 			end
 			i = i + 1
 		end
@@ -390,7 +391,8 @@ end
 
 function SA:DrowArrow()
 	local cX, cY, cA = unpack(SA_POINT_C)
-	local fX, fY = 25, 50
+	cX, cY = cX * 0.7, cY * 0.7
+	local fX, fY = 15, 50
 	if self.bUp then
 		self.nTop = self.nTop + 2
 		if self.nTop >= 10 then
@@ -403,26 +405,27 @@ function SA:DrowArrow()
 		end
 	end
 	fY = fY - self.nTop
-	fX = fX - fX * 25 * 0.012
- 	local value = 1 - 25 * 0.01
+
  	self.Arrow:ClearTriangleFanPoint()
  	local r, g, b = unpack(self.col)
  	if self.dwType == TARGET.DOODAD then
-		self.Arrow:AppendDoodadID(self.dwID, r, g, b, cA, { 0, 0, 0, cX * value - fX, cY * value - fY })
+		self.Arrow:AppendDoodadID(self.dwID, r, g, b, cA, { 0, 0, 0, cX - fX, cY - fY })
 		for k, v in ipairs(SA_POINT) do
 			local x, y, a = unpack(v)
-			self.Arrow:AppendDoodadID(self.dwID, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
+			x, y = x * 0.7, y * 0.7
+			self.Arrow:AppendDoodadID(self.dwID, r, g, b, a, { 0, 0, 0, x - fX, y - fY })
 		end
 		local x, y, a = unpack(SA_POINT[1])
-		self.Arrow:AppendDoodadID(self.dwID, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
+		self.Arrow:AppendDoodadID(self.dwID, r, g, b, a, { 0, 0, 0, x - fX, y - fY })
  	else
-		self.Arrow:AppendCharacterID(self.dwID, true, r, g, b, cA, { 0, 0, 0, cX * value - fX, cY * value - fY })
+		self.Arrow:AppendCharacterID(self.dwID, true, r, g, b, cA, { 0, 0, 0, cX - fX, cY - fY })
 		for k, v in ipairs(SA_POINT) do
 			local x, y, a = unpack(v)
-			self.Arrow:AppendCharacterID(self.dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
+			x, y = x * 0.7, y * 0.7
+			self.Arrow:AppendCharacterID(self.dwID, true, r, g, b, a, { 0, 0, 0, x - fX, y - fY })
 		end
 		local x, y, a = unpack(SA_POINT[1])
-		self.Arrow:AppendCharacterID(self.dwID, true, r, g, b, a, { 0, 0, 0, x * value - fX, y * value - fY })
+		self.Arrow:AppendCharacterID(self.dwID, true, r, g, b, a, { 0, 0, 0, x- fX, y - fY })
 	end
 	return self
 end
@@ -499,6 +502,9 @@ JH.RegisterInit("ScreenArrow",
 	{ "Breathe", ScreenArrow.OnBreathe },
 	{ "FIGHT_HINT", ScreenArrow.RegisterFight },
 	{ "LOGIN_GAME", ScreenArrow.Init },
+	{ "UI_SCALED" , function()
+		UI_SCALED = Station.GetUIScale()
+	end },
 	{ "JH_SA_CREATE", function()
 			CreateScreenArrow(arg0, arg1, arg2)
 	end }
