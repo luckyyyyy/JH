@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-07 22:54:30
+-- @Last Modified time: 2015-12-08 00:26:50
 
 local _L = JH.LoadLangPack
 
@@ -10,15 +10,8 @@ local pairs, unpack = pairs, unpack
 local floor, ceil = math.floor, math.ceil
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
-local COMBAT_TEXT_MAX_ALPHA      = 240 -- 文字的最大 alpha 就是透明度
-local COMBAT_TEXT_RENDER         = true
-local COMBAT_TEXT_TIME           = 40 -- 这里 乘以 COMBAT_TEXT_TOTAL 就是总出现时间
 local COMBAT_TEXT_TOTAL          = 32 -- 如果修改这里 请注意其他也要跟着改
-local COMBAT_TEXT_MAX_COUNT      = 50 -- 最多同事出现的文字 大于此值的都忽略 别太大了 小心崩
-local COMBAT_TEXT_FADE_IN_FRAME  = 4  -- 设置淡入的桢数
-local COMBAT_TEXT_FADE_OUT_FRAME = 8  -- 设置淡出的桢数
 local COMBAT_TEXT_UI_SCALE       = 1  -- 需要对文字做调整哦
-local COMBAT_TEXT_FONT           = 19
 local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
 	[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = true,
@@ -85,21 +78,6 @@ local COMBAT_TEXT_POINT = {
 		100, 100, 100, 100, 100, 100, 100, 100,
 	},
 }
-local COMBAT_TEXT_COLOR = {
-	["EXP"]                                  = { 255, 0,   255 }, -- 阅历
-	["DODGE"]                                = { 255, 0,   0   }, -- 闪避
-	["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
-	[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
-	["BUFF"]                                 = { 255, 255, 0   }, -- BUFF
-	["DEBUFF"]                               = { 255, 0,   0   }, -- DEBUFF
-	[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- 外公
-	[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- 阳
-	[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- 混元
-	[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = { 12,  242, 255 }, -- 阴
-	[SKILL_RESULT_TYPE.POISON_DAMAGE]        = { 128, 255, 128 }, -- 有毒啊
-	[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = { 255, 128, 128 }, -- 反弹 ？？
-}
-setmetatable(COMBAT_TEXT_COLOR, { __index = function() return { 255, 255, 255 } end })
 
 local CombatText = {
 	tFree    = {}, -- 所有空闲的shadow 合集
@@ -108,9 +86,32 @@ local CombatText = {
 setmetatable(CombatText.tFree, { __mode = "v" })
 setmetatable(CombatText.tShadows, { __mode = "k" })
 JH_CombatText = {
-	bEnable = false;
+	bEnable   = false;
+	bRender   = true,
+	nMaxAlpha = 240,
+	nTime     = 40,
+	nMaxCount = 80,
+	nFadeIn   = 4,
+	nFadeOut  = 8,
+	nFont     = 19,
+	col = { -- 颜色呗
+		["EXP"]                                  = { 255, 0,   255 }, -- 阅历
+		["DODGE"]                                = { 255, 0,   0   }, -- 闪避
+		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
+		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
+		["BUFF"]                                 = { 255, 255, 0   }, -- BUFF
+		["DEBUFF"]                               = { 255, 0,   0   }, -- DEBUFF
+		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- 外公
+		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- 阳
+		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- 混元
+		[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = { 12,  242, 255 }, -- 阴
+		[SKILL_RESULT_TYPE.POISON_DAMAGE]        = { 128, 255, 128 }, -- 有毒啊
+		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = { 255, 128, 128 }, -- 反弹 ？？
+	}
 }
 JH.RegisterCustomData("JH_CombatText")
+
+local JH_CombatText = JH_CombatText
 
 function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("FIGHT_HINT")
@@ -164,7 +165,7 @@ end
 function CombatText.OnFrameRender()
 	local nTime = GetTime()
 	for k, v in pairs(CombatText.tShadows) do
-		local nFrame = (nTime - v.nTime) / COMBAT_TEXT_TIME + 1 -- 每一帧是多少毫秒 这里越小 动画越快
+		local nFrame = (nTime - v.nTime) / JH_CombatText.nTime + 1 -- 每一帧是多少毫秒 这里越小 动画越快
 		local nBefore = floor(nFrame)
 		local nAfter  = ceil(nFrame)
 		local fDiff   = nFrame - nBefore
@@ -172,13 +173,13 @@ function CombatText.OnFrameRender()
 		if nBefore < COMBAT_TEXT_TOTAL then
 			local nTop   = 0
 			local nLeft  = 0
-			local nAlpha = COMBAT_TEXT_MAX_ALPHA
+			local nAlpha = JH_CombatText.nMaxAlpha
 			local fScale = 1
 			local bTop   = true
-			if nFrame < COMBAT_TEXT_FADE_IN_FRAME then
-				nAlpha = COMBAT_TEXT_MAX_ALPHA * nFrame / COMBAT_TEXT_FADE_IN_FRAME
-			elseif nFrame > COMBAT_TEXT_TOTAL - COMBAT_TEXT_FADE_OUT_FRAME then
-				nAlpha = COMBAT_TEXT_MAX_ALPHA * (COMBAT_TEXT_TOTAL - nFrame) / COMBAT_TEXT_FADE_OUT_FRAME
+			if nFrame < JH_CombatText.nFadeIn then
+				nAlpha = JH_CombatText.nMaxAlpha * nFrame / JH_CombatText.nFadeIn
+			elseif nFrame > COMBAT_TEXT_TOTAL - JH_CombatText.nFadeOut then
+				nAlpha = JH_CombatText.nMaxAlpha * (COMBAT_TEXT_TOTAL - nFrame) / JH_CombatText.nFadeOut
 			end
 			if v.szPoint == "TOP" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
@@ -215,7 +216,7 @@ function CombatText.OnFrameRender()
 				-- end
 			end
 			local r, g, b = unpack(v.col)
-			k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, COMBAT_TEXT_FONT, v.szText, 1, fScale)
+			k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale)
 			v.nFrame = nFrame
 		else
 			k.free = true
@@ -277,9 +278,9 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 	end
 	local szPoint = "TOP"
-	local col     = COMBAT_TEXT_COLOR[nType]
+	local col     = JH_CombatText.col[nType]
 	if nType == SKILL_RESULT_TYPE.STEAL_LIFE then
-		col     = COMBAT_TEXT_COLOR[SKILL_RESULT_TYPE.THERAPY]
+		col     = JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY]
 		szText  = "+" .. nValue
 		if dwTargetID == dwID then
 			szPoint = "BOTTOM_RIGHT"
@@ -290,7 +291,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		szText = COMBAT_TEXT_STRING[nType]
 		if dwTargetID == dwID then
 			szPoint = "LEFT"
-			col = COMBAT_TEXT_COLOR["BUFF"]
+			col = JH_CombatText.col["BUFF"]
 		end
 	else
 		if nType == SKILL_RESULT_TYPE.THERAPY then
@@ -304,7 +305,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 	end
 	if szPoint == "BOTTOM_LEFT" then -- 左下角肯定是伤害
-		col = COMBAT_TEXT_COLOR["DAMAGE"]
+		col = JH_CombatText.col["DAMAGE"]
 		if bCriticalStrike then
 			szText = (szName or "") .. g_tStrings.STR_COLON .. g_tStrings.STR_CS_NAME ..  " -" .. nValue
 		else
@@ -336,7 +337,7 @@ function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local col = bCanCancel and COMBAT_TEXT_COLOR.BUFF or COMBAT_TEXT_COLOR.DEBUFF
+	local col = bCanCancel and JH_CombatText.col.BUFF or JH_CombatText.col.DEBUFF
 	local nTime = GetTime()
 	CombatText.tShadows[shadow] = {
 		szPoint    = "RIGHT",
@@ -371,7 +372,7 @@ function CombatText.OnSkillMiss(dwTargetID)
 		nType      = "SKILL_MISS",
 		nTime      = nTime,
 		nFrame     = 0,
-		col        = COMBAT_TEXT_COLOR["SKILL_MISS"],
+		col        = JH_CombatText.col["SKILL_MISS"],
 	}
 end
 
@@ -389,7 +390,7 @@ function CombatText.OnBuffImmunity(dwTargetID)
 		nType      = "BUFF_IMMUNITY",
 		nTime      = nTime,
 		nFrame     = 0,
-		col        = COMBAT_TEXT_COLOR["BUFF_IMMUNITY"],
+		col        = JH_CombatText.col["BUFF_IMMUNITY"],
 	}
 end
 -- FireUIEvent("COMMON_HEALTH_TEXT", GetClientPlayer().dwID, -8888)
@@ -419,7 +420,7 @@ function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
 		nType      = "COMMON_HEALTH",
 		nTime      = nTime,
 		nFrame     = 0,
-		col        = nDeltaLife > 0 and COMBAT_TEXT_COLOR[SKILL_RESULT_TYPE.THERAPY] or COMBAT_TEXT_COLOR["DAMAGE"],
+		col        = nDeltaLife > 0 and JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY] or JH_CombatText.col["DAMAGE"],
 	}
 end
 
@@ -437,7 +438,7 @@ function CombatText.OnSkillDodge(dwTargetID)
 		nType      = "SKILL_DODGE",
 		nTime      = nTime,
 		nFrame     = 0,
-		col        = COMBAT_TEXT_COLOR["DODGE"],
+		col        = JH_CombatText.col["DODGE"],
 	}
 end
 
@@ -455,7 +456,7 @@ function CombatText.OnExpLog(dwCharacterID, nExp)
 		nType           = "EXP",
 		nTime           = nTime,
 		nFrame          = 0,
-		col             = COMBAT_TEXT_COLOR["EXP"],
+		col             = JH_CombatText.col["EXP"],
 	}
 end
 
@@ -467,7 +468,7 @@ function CombatText.GetFreeShadow()
 			return v
 		end
 	end
-	if #CombatText.tFree < COMBAT_TEXT_MAX_COUNT then
+	if #CombatText.tFree < JH_CombatText.nMaxCount then
 		local sha = handle:AppendItemFromIni(COMBAT_TEXT_INIFILE, "Shadow_Content")
 		sha:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 		sha:ClearTriangleFanPoint()
@@ -477,30 +478,19 @@ function CombatText.GetFreeShadow()
 end
 
 function CombatText.LoadConfig()
+	if JH_CombatText.bRender then
+		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
+	else
+		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText.ini"
+	end
 	local path = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
 	local bExist = IsFileExist(path)
 	if bExist then
 		local data = LoadLUAData(path)
 		if data then
-			COMBAT_TEXT_RENDER         = type(data.COMBAT_TEXT_RENDER) ~= "nil" and data.COMBAT_TEXT_RENDER or COMBAT_TEXT_RENDER
-			if COMBAT_TEXT_RENDER then
-				COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
-			else
-				COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText.ini"
-			end
-			COMBAT_TEXT_MAX_ALPHA      = data.COMBAT_TEXT_MAX_ALPHA or COMBAT_TEXT_MAX_ALPHA
-			COMBAT_TEXT_TIME           = data.COMBAT_TEXT_TIME or COMBAT_TEXT_TIME
-			COMBAT_TEXT_TOTAL          = data.COMBAT_TEXT_TOTAL or COMBAT_TEXT_TOTAL
-			COMBAT_TEXT_MAX_COUNT      = data.COMBAT_TEXT_MAX_COUNT or COMBAT_TEXT_MAX_COUNT
-			COMBAT_TEXT_FADE_IN_FRAME  = data.COMBAT_TEXT_FADE_IN_FRAME or COMBAT_TEXT_FADE_IN_FRAME
-			COMBAT_TEXT_FADE_OUT_FRAME = data.COMBAT_TEXT_FADE_OUT_FRAME or COMBAT_TEXT_FADE_OUT_FRAME
-			COMBAT_TEXT_FONT           = data.COMBAT_TEXT_FONT or COMBAT_TEXT_FONT
 			COMBAT_TEXT_CRITICAL       = data.COMBAT_TEXT_CRITICAL or COMBAT_TEXT_CRITICAL
-			COMBAT_TEXT_COLOR          = data.COMBAT_TEXT_COLOR or COMBAT_TEXT_COLOR
-			COMBAT_TEXT_STRING         = data.COMBAT_TEXT_STRING or COMBAT_TEXT_STRING
 			COMBAT_TEXT_SCALE          = data.COMBAT_TEXT_SCALE or COMBAT_TEXT_SCALE
 			COMBAT_TEXT_POINT          = data.COMBAT_TEXT_POINT or COMBAT_TEXT_POINT
-			setmetatable(COMBAT_TEXT_COLOR, { __index = function() return { 255, 255, 255 } end })
 			JH.Sysmsg(_L["CombatText Config loaded"])
 		else
 			JH.Sysmsg(_L["CombatText Config failed"])
@@ -531,6 +521,7 @@ function CombatText.CheckEnable()
 			collectgarbage("collect")
 		end
 	end
+	setmetatable(JH_CombatText.col, { __index = function() return { 255, 255, 255 } end })
 end
 
 local PS = {}
@@ -541,7 +532,48 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.bEnable = bCheck
 		CombatText.CheckEnable()
 	end):Pos_()
-	ui:Append("WndButton3", { x = 10, y = nY + 10, txt = _L["Load CombatText Config"] }):Click(CombatText.CheckEnable)
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Enable Render"], checked = JH_CombatText.bRender }):Click(function(bCheck)
+		JH_CombatText.bRender = bCheck
+		CombatText.CheckEnable()
+	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_QUESTTRACE_CHANGE_ALPHA }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L[" alpha"] }):Range(1, 255, 254):Value(JH_CombatText.nMaxAlpha):Change(function(nVal)
+		JH_CombatText.nMaxAlpha = nVal
+	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["Hold time"] }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["ms"] }):Range(500, 3000, 2500):Value(JH_CombatText.nTime * COMBAT_TEXT_TOTAL):Change(function(nVal)
+		JH_CombatText.nTime = nVal / COMBAT_TEXT_TOTAL
+	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["FadeIn time"] }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeIn):Change(function(nVal)
+		JH_CombatText.nFadeIn = nVal
+	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["FadeOut time"] }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeOut):Change(function(nVal)
+		JH_CombatText.nFadeOut = nVal
+	end):Pos_()
+	nX, nY = ui:Append("WndButton3", { x = 10, y = nY + 10, txt = _L["Font edit"] }):Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			JH_CombatText.nFont = nFont
+		end)
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Color edit"], font = 27 }):Pos_()
+	nY = nY + 10
+	local i = 0
+	for k, v in pairs(JH_CombatText.col) do
+		ui:Append("Text", { x = (i % 4) * 80, y = nY + 30 * floor(i / 4), txt = _L["CombatText Color " .. k] })
+		ui:Append("Shadow", { x = (i % 4) * 80 + 40, y = nY + 30 * floor(i / 4), color = v, w = 25, h = 25 }):Click(function()
+			local ui = this
+			GUI.OpenColorTablePanel(function(r, g, b)
+				JH_CombatText.col[k] = { r, g, b }
+				ui:SetColorRGB(r, g, b)
+			end)
+		end)
+		i = i + 1
+	end
+	if IsFileExist(JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat") then
+		ui:Append("WndButton3", { x = 10, y = nY + 10, txt = _L["Load CombatText Config"] }):Click(CombatText.CheckEnable)
+	end
 end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
 
