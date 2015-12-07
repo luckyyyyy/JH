@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-07 21:53:20
+-- @Last Modified time: 2015-12-07 22:22:02
 
 local _L = JH.LoadLangPack
 
@@ -10,6 +10,7 @@ local pairs, unpack = pairs, unpack
 local floor, ceil = math.floor, math.ceil
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
+local COMBAT_TEXT_MAX_ALPHA      = 240 -- 文字的最大 alpha 就是透明度
 local COMBAT_TEXT_RENDER         = true
 local COMBAT_TEXT_TIME           = 40 -- 这里 乘以 COMBAT_TEXT_TOTAL 就是总出现时间
 local COMBAT_TEXT_TOTAL          = 32 -- 如果修改这里 请注意其他也要跟着改
@@ -27,6 +28,7 @@ local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.THERAPY]              = true,
 	[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = true,
 	[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
+	["EXP"]                                  = true,
 }
 
 local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
@@ -84,6 +86,7 @@ local COMBAT_TEXT_POINT = {
 	},
 }
 local COMBAT_TEXT_COLOR = {
+	["EXP"]                                  = { 255, 0,   255 }, -- 阅历
 	["DODGE"]                                = { 255, 0,   0   }, -- 闪避
 	["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
 	[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
@@ -105,21 +108,21 @@ local CombatText = {
 setmetatable(CombatText.tFree, { __mode = "v" })
 setmetatable(CombatText.tShadows, { __mode = "k" })
 JH_CombatText = {
-	bEnable = true;
+	bEnable = false;
 }
 JH.RegisterCustomData("JH_CombatText")
 
 function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("FIGHT_HINT")
 	this:RegisterEvent("UI_SCALED")
-    this:RegisterEvent("COMMON_HEALTH_TEXT")
-    this:RegisterEvent("SKILL_EFFECT_TEXT")
-    this:RegisterEvent("SKILL_MISS")
-    this:RegisterEvent("SKILL_DODGE")
-    this:RegisterEvent("SKILL_BUFF")
-    this:RegisterEvent("BUFF_IMMUNITY")
-    this:RegisterEvent("SYS_MSG")
-    CombatText.handle = this:Lookup("", "")
+	this:RegisterEvent("COMMON_HEALTH_TEXT")
+	this:RegisterEvent("SKILL_EFFECT_TEXT")
+	this:RegisterEvent("SKILL_MISS")
+	this:RegisterEvent("SKILL_DODGE")
+	this:RegisterEvent("SKILL_BUFF")
+	this:RegisterEvent("BUFF_IMMUNITY")
+	this:RegisterEvent("SYS_MSG")
+	CombatText.handle = this:Lookup("", "")
 end
 
 function JH_CombatText.OnEvent(szEvent)
@@ -149,6 +152,12 @@ function JH_CombatText.OnEvent(szEvent)
 		if arg0 == UI_GetClientPlayerID() then
 			CombatText.OnSkillDodge(arg1)
 		end
+	elseif szEvent == "SYS_MSG" then
+		if arg0 == "UI_OME_EXP_LOG" then
+			if arg2 > 0 then
+				CombatText.OnExpLog(arg1, arg2)
+			end
+		end
 	end
 end
 
@@ -163,13 +172,13 @@ function CombatText.OnFrameRender()
 		if nBefore < COMBAT_TEXT_TOTAL then
 			local nTop   = 0
 			local nLeft  = 0
-			local nAlpha = 255
+			local nAlpha = COMBAT_TEXT_MAX_ALPHA
 			local fScale = 1
 			local bTop   = true
 			if nFrame < COMBAT_TEXT_FADE_IN_FRAME then
-				nAlpha = 255 * nFrame / COMBAT_TEXT_FADE_IN_FRAME
+				nAlpha = COMBAT_TEXT_MAX_ALPHA * nFrame / COMBAT_TEXT_FADE_IN_FRAME
 			elseif nFrame > COMBAT_TEXT_TOTAL - COMBAT_TEXT_FADE_OUT_FRAME then
-				nAlpha = 255 * (COMBAT_TEXT_TOTAL - nFrame) / COMBAT_TEXT_FADE_OUT_FRAME
+				nAlpha = COMBAT_TEXT_MAX_ALPHA * (COMBAT_TEXT_TOTAL - nFrame) / COMBAT_TEXT_FADE_OUT_FRAME
 			end
 			if v.szPoint == "TOP" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
@@ -428,6 +437,24 @@ function CombatText.OnSkillDodge(dwTargetID)
 	}
 end
 
+function CombatText.OnExpLog(dwCharacterID, nExp)
+	local shadow = CombatText.GetFreeShadow()
+	if not shadow then -- 没有空闲的shadow
+		return
+	end
+	local nTime = GetTime()
+	CombatText.tShadows[shadow] = {
+		nSort           = 0,
+		bCriticalStrike = true,
+		dwTargetID      = dwCharacterID,
+		szText          = g_tStrings.STR_COMBATMSG_EXP .. nExp,
+		nType           = "EXP",
+		nTime           = nTime,
+		nFrame          = 0,
+		col             = COMBAT_TEXT_COLOR["EXP"],
+	}
+end
+
 function CombatText.GetFreeShadow()
 	local handle = CombatText.handle
 	for k, v in ipairs(CombatText.tFree) do
@@ -457,6 +484,7 @@ function CombatText.LoadConfig()
 			else
 				COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText.ini"
 			end
+			COMBAT_TEXT_MAX_ALPHA      = data.COMBAT_TEXT_MAX_ALPHA or COMBAT_TEXT_MAX_ALPHA
 			COMBAT_TEXT_TIME           = data.COMBAT_TEXT_TIME or COMBAT_TEXT_TIME
 			COMBAT_TEXT_TOTAL          = data.COMBAT_TEXT_TOTAL or COMBAT_TEXT_TOTAL
 			COMBAT_TEXT_MAX_COUNT      = data.COMBAT_TEXT_MAX_COUNT or COMBAT_TEXT_MAX_COUNT
@@ -513,4 +541,4 @@ function PS.OnPanelActive(frame)
 end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
 
-RegisterEvent("LOGIN_GAME", CombatText.CheckEnable)
+JH.RegisterEvent("LOGIN_GAME", CombatText.CheckEnable)

@@ -3,23 +3,23 @@
 -- 以下local定义不要去修改 只是给你们看的
 
 local SKILL_RESULT_TYPE = {
-	PHYSICS_DAMAGE       = 0  -- 外功伤害
-	SOLAR_MAGIC_DAMAGE   = 1  -- 阳性内功伤害
-	NEUTRAL_MAGIC_DAMAGE = 2  -- 混元性内功伤害
-	LUNAR_MAGIC_DAMAGE   = 3  -- 阴性内功伤害
-	POISON_DAMAGE        = 4  -- 毒性伤害
-	REFLECTIED_DAMAGE    = 5  -- 反弹伤害
-	THERAPY              = 6  -- 治疗
-	STEAL_LIFE           = 7  -- 生命偷取(<D0>从<D1>获得了<D2>点气血。)
-	ABSORB_THERAPY       = 8  -- 化解治疗
-	ABSORB_DAMAGE        = 9  -- 化解伤害
-	SHIELD_DAMAGE        = 10 -- 无效伤害
-	PARRY_DAMAGE         = 11 -- 拆招/招架
-	INSIGHT_DAMAGE       = 12 -- 识破
-	EFFECTIVE_DAMAGE     = 13 -- 有效伤害
-	EFFECTIVE_THERAPY    = 14 -- 有效治疗
-	TRANSFER_LIFE        = 15 -- 吸取生命
-	TRANSFER_MANA        = 16 -- 吸取内力
+	PHYSICS_DAMAGE       = 0,  -- 外功伤害
+	SOLAR_MAGIC_DAMAGE   = 1,  -- 阳性内功伤害
+	NEUTRAL_MAGIC_DAMAGE = 2,  -- 混元性内功伤害
+	LUNAR_MAGIC_DAMAGE   = 3,  -- 阴性内功伤害
+	POISON_DAMAGE        = 4,  -- 毒性伤害
+	REFLECTIED_DAMAGE    = 5,  -- 反弹伤害
+	THERAPY              = 6,  -- 治疗
+	STEAL_LIFE           = 7,  -- 生命偷取(<D0>从<D1>获得了<D2>点气血。)
+	ABSORB_THERAPY       = 8,  -- 化解治疗
+	ABSORB_DAMAGE        = 9,  -- 化解伤害
+	SHIELD_DAMAGE        = 10, -- 无效伤害
+	PARRY_DAMAGE         = 11, -- 拆招/招架
+	INSIGHT_DAMAGE       = 12, -- 识破
+	EFFECTIVE_DAMAGE     = 13, -- 有效伤害
+	EFFECTIVE_THERAPY    = 14, -- 有效治疗
+	TRANSFER_LIFE        = 15, -- 吸取生命
+	TRANSFER_MANA        = 16, -- 吸取内力
 }
 local g_tStrings = { -- 这里字符串可以加可以改，也可以直接去下面加
 	STR_MSG_DEFENCE    = "拆招",
@@ -32,7 +32,8 @@ local g_tStrings = { -- 这里字符串可以加可以改，也可以直接去下面加
 }
 -- 从这里开始可以修改了
 data = {
-	COMBAT_TEXT_RENDER         = true, -- 使用渲染帧（67 FPS）
+	COMBAT_TEXT_RENDER         = true, -- 使用渲染帧67FPS 设置为false则16FPS
+	COMBAT_TEXT_MAX_ALPHA      = 240,  -- 文字的最大 alpha 就是透明度
 	COMBAT_TEXT_TIME           = 40, -- 这里 乘以 COMBAT_TEXT_TOTAL 就是总出现时间
 	COMBAT_TEXT_TOTAL          = 32, -- 如果修改这里 请注意其他也要跟着改
 	COMBAT_TEXT_MAX_COUNT      = 50, -- 最多同事出现的文字 大于此值的都忽略 别太大了 小心崩
@@ -48,8 +49,10 @@ data = {
 		[SKILL_RESULT_TYPE.THERAPY]              = true,
 		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = true,
 		[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
+		["EXP"]                                  = true,
 	},
 	COMBAT_TEXT_COLOR = { -- 颜色呗
+		["EXP"]                                  = { 255, 0,   255 }, -- 阅历
 		["DODGE"]                                = { 255, 0,   0   }, -- 闪避
 		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
 		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
