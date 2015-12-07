@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-07 22:22:02
+-- @Last Modified time: 2015-12-07 22:54:30
 
 local _L = JH.LoadLangPack
 
@@ -238,7 +238,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 	local dwID = UI_GetClientPlayerID()
-	if (nType == SKILL_RESULT_TYPE.STEAL_LIFE and nEffectType == SKILL_EFFECT_TYPE.BUFF) or nType == SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
+	if nType == SKILL_RESULT_TYPE.STEAL_LIFE or nType == SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
 		local _    = dwCasterID
 		dwCasterID = dwTargetID
 		dwTargetID = _
@@ -394,6 +394,10 @@ function CombatText.OnBuffImmunity(dwTargetID)
 end
 -- FireUIEvent("COMMON_HEALTH_TEXT", GetClientPlayer().dwID, -8888)
 function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
+	local dwID = UI_GetClientPlayerID()
+	if nDeltaLife < 0 and dwCharacterID ~= dwID then
+		return
+	end
 	local shadow = CombatText.GetFreeShadow()
 	if not shadow then -- 没有空闲的shadow
 		return
@@ -401,7 +405,7 @@ function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
 	local nTime = GetTime()
 	local szPoint = "BOTTOM_LEFT"
 	if nDeltaLife > 0 then
-		if dwCharacterID ~= UI_GetClientPlayerID() then
+		if dwCharacterID ~= dwID then
 			szPoint = "TOP"
 		else
 			szPoint = "BOTTOM_RIGHT"
