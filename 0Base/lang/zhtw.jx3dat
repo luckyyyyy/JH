@@ -723,4 +723,10 @@ data = {
 	["Stop Copy Book %s"] = "停止抄錄《%s》，進度已記錄。",
 	["Not Enough Thew"] = "當前體力不足以抄錄壹套書",
 	["BOOK_143"] = "問世間情為何物之三",
+	-- CombatText --
+	["CombatText"] = "戰鬥文字",
+	["CombatText Config loaded"] = "戰鬥文字配置加載完成。",
+	["CombatText Config failed"] = "戰鬥文字配置加載失敗。",
+	["Load CombatText Config"] = "重新載入配置",
+	["Enable CombatText"] = "啟用戰鬥文字",
 }
