@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 21:24:29
+-- @Last Modified time: 2015-12-08 16:22:05
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1010300
+local _VERSION_   = 0x1020000
 
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
@@ -73,7 +73,7 @@ do
 end
 
 local _JH = {
-	szBuildDate  = "20151120",
+	szBuildDate  = "20151208",
 	szTitle      = _L["JH, JX3 Plug-in Collection"],
 	tHotkey      = {},
 	tAnchor      = {},
