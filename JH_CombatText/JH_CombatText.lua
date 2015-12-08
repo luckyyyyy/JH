@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-08 17:39:16
+-- @Last Modified time: 2015-12-08 20:38:42
 
 local _L = JH.LoadLangPack
 
@@ -194,7 +194,7 @@ function CombatText.OnFrameRender()
 			end
 			if v.szPoint == "TOP" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
-				nTop = -80 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
+				nTop = -70 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
 			elseif v.szPoint == "LEFT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				nLeft = -100 - (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
@@ -270,14 +270,6 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 	local nTime = GetTime()
-	-- 对某些 一次性出现多次伤害的技能 做排序
-	local nSort = 0
-	for k, v in pairs(CombatText.tShadows) do
-		if v.dwTargetID == dwTargetID and v.nFrame <= nSort * 2 + 2 then
-			v.nSort = v.nSort + 1
-			nSort = nSort + 1
-		end
-	end
 	-- 会心 剑破虚空：20000
 	-- 翔舞：会心 + 2000
 	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
@@ -331,7 +323,16 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 			szText = p.szName .. g_tStrings.STR_CONNECT .. szText
 		end
 	end
-
+	-- 对某些 一次性出现多次伤害的技能 做排序
+	local nSort = 0
+	if szPoint == "TOP" then
+		for k, v in pairs(CombatText.tShadows) do
+			if v.dwTargetID == dwTargetID and v.nFrame <= v.nSort * 5 + 5 and v.szPoint == "TOP" then
+				nSort = nSort + 1
+				v.nSort = v.nSort + nSort - v.nSort
+			end
+		end
+	end
 	CombatText.tShadows[shadow] = {
 		szPoint         = szPoint,
 		nSort           = 0,
@@ -405,15 +406,18 @@ function CombatText.OnSkillMiss(dwTargetID)
 		return
 	end
 	local nTime = GetTime()
+	local szPoint = dwTargetID == UI_GetClientPlayerID() and "LEFT" or "TOP"
 	local nSort = 0
-	for k, v in pairs(CombatText.tShadows) do
-		if v.dwTargetID == dwTargetID and v.nFrame <= nSort * 2 + 2 then
-			v.nSort = v.nSort + 1
-			nSort = nSort + 1
+	if szPoint == "TOP" then
+		for k, v in pairs(CombatText.tShadows) do
+			if v.dwTargetID == dwTargetID and v.nFrame <= v.nSort * 5 + 5 and v.szPoint == "TOP" then
+				nSort = nSort + 1
+				v.nSort = v.nSort + nSort - v.nSort
+			end
 		end
 	end
 	CombatText.tShadows[shadow] = {
-		szPoint    = dwTargetID == UI_GetClientPlayerID() and "LEFT" or "TOP",
+		szPoint    = szPoint,
 		dwTargetID = dwTargetID,
 		nSort      = nSort,
 		szText     = g_tStrings.STR_MSG_MISS,
