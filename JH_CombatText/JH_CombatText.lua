@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-08 00:26:50
+-- @Last Modified time: 2015-12-08 15:09:15
 
 local _L = JH.LoadLangPack
 
@@ -48,10 +48,10 @@ local COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 
 local COMBAT_TEXT_POINT = {
 	TOP = { -- 伤害 往上的 分四组 普通 慢 慢 块~~
-		4,   8,   12,  16,  20,  24,  28,  32,
-		35,  38,  41,  44,  47,  50,  53,  60,
-		63,  66,  69,  72,  75,  78,  81,  84,
-		89,  94,  99,  104, 110, 118, 128, 136,
+		6,   12,  18,  24,  30,  36,  42,  48,
+		53,  58,  63,  68,  73,  78,  83,  88,
+		93,  98,  103, 108, 113, 118, 123, 128,
+		136, 142, 150, 158, 166, 172, 180, 188,
 	},
 	RIGHT = { -- 从左往右的
 		8,   16,  24,  32,  40,  48,  56,  64,
@@ -80,6 +80,7 @@ local COMBAT_TEXT_POINT = {
 }
 
 local CombatText = {
+	tCache   = {},
 	tFree    = {}, -- 所有空闲的shadow 合集
 	tShadows = {}  -- 所有伤害UI的合集 shadow -> data
 }
@@ -88,6 +89,7 @@ setmetatable(CombatText.tShadows, { __mode = "k" })
 JH_CombatText = {
 	bEnable   = false;
 	bRender   = true,
+	bShowName = false,
 	nMaxAlpha = 240,
 	nTime     = 40,
 	nMaxCount = 80,
@@ -122,6 +124,10 @@ function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("SKILL_DODGE")
 	this:RegisterEvent("SKILL_BUFF")
 	this:RegisterEvent("BUFF_IMMUNITY")
+	-- this:RegisterEvent("PLAYER_ENTER_SCENE")
+	-- this:RegisterEvent("PLAYER_LEAVE_SCENE")
+	-- this:RegisterEvent("NPC_ENTER_SCENE")
+	-- this:RegisterEvent("NPC_LEAVE_SCENE")
 	this:RegisterEvent("SYS_MSG")
 	CombatText.handle = this:Lookup("", "")
 end
@@ -159,6 +165,10 @@ function JH_CombatText.OnEvent(szEvent)
 				CombatText.OnExpLog(arg1, arg2)
 			end
 		end
+	elseif szEvent == "NPC_ENTER_SCENE" or szEvent == "PLAYER_ENTER_SCENE" then
+		CombatText.tCache[arg0] = true
+	elseif szEvent == "NPC_LEAVE_SCENE" or szEvent == "PLAYER_LEAVE_SCENE" then
+		CombatText.tCache[arg0] = nil
 	end
 end
 
@@ -203,20 +213,18 @@ function CombatText.OnFrameRender()
 				fScale = 1.5
 			end
 			if COMBAT_TEXT_CRITICAL[v.nType] then
-				-- if v.szPoint == "BOTTOM_RIGHT" and v.nType == SKILL_RESULT_TYPE.THERAPY and v.bCriticalStrike then
-				-- 	fScale = 1.5 -- 右下角的治疗文字 不跳帧
-				-- else
-					local tScale  = v.bCriticalStrike and COMBAT_TEXT_SCALE.CRITICAL or COMBAT_TEXT_SCALE.NORMAL
-					fScale  = tScale[nBefore]
-					if tScale[nBefore] > tScale[nAfter] then
-						fScale = fScale - ((tScale[nBefore] - tScale[nAfter]) * fDiff)
-					elseif tScale[nBefore] < tScale[nAfter] then
-						fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
-					end
-				-- end
+				local tScale  = v.bCriticalStrike and COMBAT_TEXT_SCALE.CRITICAL or COMBAT_TEXT_SCALE.NORMAL
+				fScale  = tScale[nBefore]
+				if tScale[nBefore] > tScale[nAfter] then
+					fScale = fScale - ((tScale[nBefore] - tScale[nAfter]) * fDiff)
+				elseif tScale[nBefore] < tScale[nAfter] then
+					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
+				end
 			end
-			local r, g, b = unpack(v.col)
-			k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale)
+			-- if CombatText.tCache[v.dwTargetID] then -- 这样还不行 有死亡的问题
+				local r, g, b = unpack(v.col)
+				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale)
+			-- end
 			v.nFrame = nFrame
 		else
 			k.free = true
@@ -238,11 +246,24 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	then
 		return
 	end
+
 	local dwID = UI_GetClientPlayerID()
-	if nType == SKILL_RESULT_TYPE.STEAL_LIFE or nType == SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
+	-- if nType == SKILL_RESULT_TYPE.STEAL_LIFE then -- 这个太奇葩了 下面条件兼容
+		-- Output(dwCasterID, dwTargetID, bCriticalStrike, nType, nValue, dwSkillID, dwSkillLevel, nEffectType)
+	-- end
+	if nType == SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
 		local _    = dwCasterID
 		dwCasterID = dwTargetID
 		dwTargetID = _
+	elseif nType == SKILL_RESULT_TYPE.STEAL_LIFE then -- 太奇葩了 WTF！
+		-- dwCasterID 是玩家 dwTargetID 是NPC 需要替换
+		-- 否则如果是BUFF也需要替换
+		-- 自己是治疗的时候 部分技能 无解了。。。
+		if (IsPlayer(dwCasterID) and not IsPlayer(dwTargetID)) or nEffectType == SKILL_EFFECT_TYPE.BUFF then
+			local _    = dwCasterID
+			dwCasterID = dwTargetID
+			dwTargetID = _
+		end
 	end
 	if dwCasterID ~= dwID and dwTargetID ~= dwID then -- 和我没什么卵关系
 		return
@@ -305,13 +326,23 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 	end
 	if szPoint == "BOTTOM_LEFT" then -- 左下角肯定是伤害
-		col = JH_CombatText.col["DAMAGE"]
+		if nType ~= SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
+			col = JH_CombatText.col["DAMAGE"]
+		end
 		if bCriticalStrike then
 			szText = (szName or "") .. g_tStrings.STR_COLON .. g_tStrings.STR_CS_NAME ..  " -" .. nValue
 		else
 			szText = (szName or "") .. g_tStrings.STR_COLON .. "-" .. nValue
 		end
 	end
+
+	if JH_CombatText.bShowName and nType ~= SKILL_RESULT_TYPE.STEAL_LIFE then
+		local p = IsPlayer(dwCasterID) and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
+		if p and p.szName ~= "" then
+			szText = p.szName .. g_tStrings.STR_CONNECT .. szText
+		end
+	end
+
 	CombatText.tShadows[shadow] = {
 		szPoint         = szPoint,
 		nSort           = 0,
@@ -528,13 +559,16 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["CombatText"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable CombatText"], checked = JH_CombatText.bEnable }):Click(function(bCheck)
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable CombatText"], checked = JH_CombatText.bEnable }):Click(function(bCheck)
 		JH_CombatText.bEnable = bCheck
 		CombatText.CheckEnable()
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Enable Render"], checked = JH_CombatText.bRender }):Click(function(bCheck)
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Enable Render"], checked = JH_CombatText.bRender }):Click(function(bCheck)
 		JH_CombatText.bRender = bCheck
 		CombatText.CheckEnable()
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME, checked = JH_CombatText.bShowName }):Click(function(bCheck)
+		JH_CombatText.bShowName = bCheck
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_QUESTTRACE_CHANGE_ALPHA }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L[" alpha"] }):Range(1, 255, 254):Value(JH_CombatText.nMaxAlpha):Change(function(nVal)
