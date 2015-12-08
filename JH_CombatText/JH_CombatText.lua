@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-08 17:27:37
+-- @Last Modified time: 2015-12-08 17:39:16
 
 local _L = JH.LoadLangPack
 
@@ -562,6 +562,9 @@ function CombatText.CheckEnable()
 		Wnd.OpenWindow(COMBAT_TEXT_INIFILE, "JH_CombatText")
 	else
 		if CombatTextWnd then
+			for k, v in ipairs({ "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }) do
+				CombatTextWnd:UnRegisterEvent(v)
+			end
 			for k, v in ipairs({ "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }) do
 				CombatTextWnd:RegisterEvent(v)
 			end
