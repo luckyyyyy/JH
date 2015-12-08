@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-08 16:14:39
+-- @Last Modified time: 2015-12-08 17:27:37
 
 local _L = JH.LoadLangPack
 
@@ -551,7 +551,9 @@ function CombatText.CheckEnable()
 	local ui = Station.Lookup("Lowest/JH_CombatText")
 	if JH_CombatText.bEnable then
 		if CombatTextWnd then
-			CombatTextWnd:Hide()
+			for k, v in ipairs({ "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }) do
+				CombatTextWnd:UnRegisterEvent(v)
+			end
 		end
 		CombatText.LoadConfig()
 		Wnd.CloseWindow(ui)
@@ -560,7 +562,9 @@ function CombatText.CheckEnable()
 		Wnd.OpenWindow(COMBAT_TEXT_INIFILE, "JH_CombatText")
 	else
 		if CombatTextWnd then
-			CombatTextWnd:Show()
+			for k, v in ipairs({ "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }) do
+				CombatTextWnd:RegisterEvent(v)
+			end
 		end
 		if ui then
 			Wnd.CloseWindow(ui)
