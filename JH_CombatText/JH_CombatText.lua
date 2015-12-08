@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-08 15:09:15
+-- @Last Modified time: 2015-12-08 16:14:39
 
 local _L = JH.LoadLangPack
 
@@ -97,12 +97,8 @@ JH_CombatText = {
 	nFadeOut  = 8,
 	nFont     = 19,
 	col = { -- 颜色呗
-		["EXP"]                                  = { 255, 0,   255 }, -- 阅历
-		["DODGE"]                                = { 255, 0,   0   }, -- 闪避
 		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
 		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
-		["BUFF"]                                 = { 255, 255, 0   }, -- BUFF
-		["DEBUFF"]                               = { 255, 0,   0   }, -- DEBUFF
 		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- 外公
 		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- 阳
 		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- 混元
@@ -111,7 +107,7 @@ JH_CombatText = {
 		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = { 255, 128, 128 }, -- 反弹 ？？
 	}
 }
-JH.RegisterCustomData("JH_CombatText")
+JH.RegisterCustomData("JH_CombatText", 2)
 
 local JH_CombatText = JH_CombatText
 
@@ -163,6 +159,11 @@ function JH_CombatText.OnEvent(szEvent)
 		if arg0 == "UI_OME_EXP_LOG" then
 			if arg2 > 0 then
 				CombatText.OnExpLog(arg1, arg2)
+			end
+		elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then
+			local value = arg9[SKILL_RESULT_TYPE.STEAL_LIFE]
+			if value and value > 0 then
+				CombatText.OnStealLife(arg1, arg2, arg7, value)
 			end
 		end
 	elseif szEvent == "NPC_ENTER_SCENE" or szEvent == "PLAYER_ENTER_SCENE" then
@@ -243,27 +244,23 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	or nType == SKILL_RESULT_TYPE.TRANSFER_MANA
 	or nType == SKILL_RESULT_TYPE.ABSORB_THERAPY
 	or nType == SKILL_RESULT_TYPE.TRANSFER_LIFE
+	or nType == SKILL_RESULT_TYPE.STEAL_LIFE
 	then
 		return
 	end
 
 	local dwID = UI_GetClientPlayerID()
-	-- if nType == SKILL_RESULT_TYPE.STEAL_LIFE then -- 这个太奇葩了 下面条件兼容
-		-- Output(dwCasterID, dwTargetID, bCriticalStrike, nType, nValue, dwSkillID, dwSkillLevel, nEffectType)
-	-- end
 	if nType == SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
 		local _    = dwCasterID
 		dwCasterID = dwTargetID
 		dwTargetID = _
-	elseif nType == SKILL_RESULT_TYPE.STEAL_LIFE then -- 太奇葩了 WTF！
-		-- dwCasterID 是玩家 dwTargetID 是NPC 需要替换
-		-- 否则如果是BUFF也需要替换
-		-- 自己是治疗的时候 部分技能 无解了。。。
-		if (IsPlayer(dwCasterID) and not IsPlayer(dwTargetID)) or nEffectType == SKILL_EFFECT_TYPE.BUFF then
-			local _    = dwCasterID
-			dwCasterID = dwTargetID
-			dwTargetID = _
-		end
+	-- elseif nType == SKILL_RESULT_TYPE.STEAL_LIFE then -- 太奇葩了 WTF！
+		-- if --[[(IsPlayer(dwCasterID) and not IsPlayer(dwTargetID)) or ]]nEffectType == SKILL_EFFECT_TYPE.BUFF then
+		-- if dwTargetID ~= dwID and nEffectType ~= SKILL_EFFECT_TYPE.BUFF or nEffectType == SKILL_EFFECT_TYPE.BUFF then
+		-- 	local _    = dwCasterID
+		-- 	dwCasterID = dwTargetID
+		-- 	dwTargetID = _
+		-- end
 	end
 	if dwCasterID ~= dwID and dwTargetID ~= dwID then -- 和我没什么卵关系
 		return
@@ -300,19 +297,11 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	end
 	local szPoint = "TOP"
 	local col     = JH_CombatText.col[nType]
-	if nType == SKILL_RESULT_TYPE.STEAL_LIFE then
-		col     = JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY]
-		szText  = "+" .. nValue
-		if dwTargetID == dwID then
-			szPoint = "BOTTOM_RIGHT"
-		else
-			szPoint = "TOP"
-		end
-	elseif COMBAT_TEXT_STRING[nType] then
+	if COMBAT_TEXT_STRING[nType] then
 		szText = COMBAT_TEXT_STRING[nType]
 		if dwTargetID == dwID then
 			szPoint = "LEFT"
-			col = JH_CombatText.col["BUFF"]
+			col = { 255, 255, 0 }
 		end
 	else
 		if nType == SKILL_RESULT_TYPE.THERAPY then
@@ -336,7 +325,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 	end
 
-	if JH_CombatText.bShowName and nType ~= SKILL_RESULT_TYPE.STEAL_LIFE then
+	if JH_CombatText.bShowName then
 		local p = IsPlayer(dwCasterID) and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
 		if p and p.szName ~= "" then
 			szText = p.szName .. g_tStrings.STR_CONNECT .. szText
@@ -356,6 +345,34 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	}
 end
 
+-- 吸血
+function CombatText.OnStealLife(dwCaster, dwTarget, bCriticalStrike, nValue)
+	local dwID = UI_GetClientPlayerID()
+	if dwCaster ~= dwID and dwTarget ~= dwID then
+		return
+	end
+	local shadow = CombatText.GetFreeShadow()
+	if not shadow then -- 没有空闲的shadow
+		return
+	end
+	local nTime = GetTime()
+	if dwCaster == dwID then
+		szPoint = "BOTTOM_RIGHT"
+	else
+		szPoint = "TOP"
+	end
+	CombatText.tShadows[shadow] = {
+		szPoint    = szPoint,
+		nSort      = 0,
+		dwTargetID = dwCaster,
+		szText     = "+" .. nValue,
+		nType      = SKILL_RESULT_TYPE.STEAL_LIFE,
+		nTime      = nTime,
+		nFrame     = 0,
+		col        = JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY],
+	}
+end
+
 function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if not Table_BuffIsVisible(dwID, nLevel) then
 		return
@@ -368,7 +385,7 @@ function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local col = bCanCancel and JH_CombatText.col.BUFF or JH_CombatText.col.DEBUFF
+	local col = bCanCancel and { 255, 255, 0 } or { 255, 0, 0}
 	local nTime = GetTime()
 	CombatText.tShadows[shadow] = {
 		szPoint    = "RIGHT",
@@ -469,7 +486,7 @@ function CombatText.OnSkillDodge(dwTargetID)
 		nType      = "SKILL_DODGE",
 		nTime      = nTime,
 		nFrame     = 0,
-		col        = JH_CombatText.col["DODGE"],
+		col        = { 255, 0, 0 },
 	}
 end
 
@@ -487,7 +504,7 @@ function CombatText.OnExpLog(dwCharacterID, nExp)
 		nType           = "EXP",
 		nTime           = nTime,
 		nFrame          = 0,
-		col             = JH_CombatText.col["EXP"],
+		col             = { 255, 0, 255 },
 	}
 end
 
