@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-06 23:21:31
+-- @Last Modified time: 2015-12-10 03:16:10
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -220,8 +220,8 @@ local function SetFrameSize(bEnter)
 		if Cataclysm_Main.nAutoLinkMode == 5 then
 			nGroupEx = 1
 		end
-		local fScaleX = math.max(1, Cataclysm_Main.fScaleX)
-		local w = 128 * nGroup * fScaleX
+		local fScaleX = math.max(nGroupEx == 1 and 1 or 0, Cataclysm_Main.fScaleX)
+		local w = 128 * nGroupEx * fScaleX
 		local h = select(2, frame:GetSize())
 		frame:SetW(w)
 		if not bEnter then

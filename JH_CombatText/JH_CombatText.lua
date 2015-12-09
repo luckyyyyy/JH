@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-08 20:38:42
+-- @Last Modified time: 2015-12-10 03:07:26
 
 local _L = JH.LoadLangPack
 
@@ -634,7 +634,7 @@ function PS.OnPanelActive(frame)
 		i = i + 1
 	end
 	if IsFileExist(JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat") then
-		ui:Append("WndButton3", { x = 10, y = nY + 10, txt = _L["Load CombatText Config"] }):Click(CombatText.CheckEnable)
+		ui:Append("WndButton3", { x = 350, y = 0, txt = _L["Load CombatText Config"] }):Click(CombatText.CheckEnable)
 	end
 end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
