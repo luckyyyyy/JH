@@ -52,6 +52,9 @@ data = {
 	["TargetFace"] = "目標輔助",
 	-- SkillCD.lua --
 	["SkillCD"] = "技能CD監控",
+	["Skill ID:"] = "技能ID:",
+	["Cool Down:"] = "CD時間:",
+	["Can not delete default data"] = "這不是妳添加的，不能刪除默認的技能。",
 	["ready"] = "就緒",
 	["s"] = "秒",
 	["%dm%ds"] = "%d分%d秒",
