@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-03 22:32:47
+-- @Last Modified time: 2015-12-10 00:07:19
 
 -- 早期代码 需要重写
 
@@ -1424,7 +1424,7 @@ function _GKP.OnOpenDoodad(dwID)
 		-- items
 		for i = 0, nLootItemCount - 1 do
 			-- item Roll Distribute  Bidding
-			local item, _ , bDist = d.GetLootItem(i,me)
+			local item, _ , bDist = d.GetLootItem(i, me)
 			if item and item.dwID then
 				if bDist or JH.bDebugClient then
 					if not refresh then

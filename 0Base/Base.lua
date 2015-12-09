@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-08 16:22:05
+-- @Last Modified time: 2015-12-10 04:21:54
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -526,13 +526,14 @@ function JH.UnRegisterEvent(szEvent)
 end
 -- 注册用户定义数据，支持全局变量数组遍历
 -- (void) JH.RegisterCustomData(string szVarPath[, number nVersion])
-function JH.RegisterCustomData(szVarPath, nVersion)
+function JH.RegisterCustomData(szVarPath, nVersion, szDomain)
+	szDomain = szDomain or "Role"
 	if _G and type(_G[szVarPath]) == "table" then
 		for k, _ in pairs(_G[szVarPath]) do
-			RegisterCustomData(szVarPath .. "." .. k, nVersion)
+			RegisterCustomData(szDomain .. "/" .. szVarPath .. "." .. k, nVersion)
 		end
 	else
-		RegisterCustomData(szVarPath, nVersion)
+		RegisterCustomData(szDomain .. "/" .. szVarPath, nVersion)
 	end
 end
 -- 开发函数 修改全局变量

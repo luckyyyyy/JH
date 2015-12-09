@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-06 23:43:14
+-- @Last Modified time: 2015-12-10 04:43:33
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -15,9 +15,12 @@ SkillCD = {
 		[551]  = true,
 		[2235] = true,
 		[2234] = true,
-	}
+	},
+	tCustom = {
+		[17] = 10, -- 打坐测试
+	},
 }
-JH.RegisterCustomData("SkillCD")
+JH.RegisterCustomData("SkillCD", 2)
 
 local SkillCD = SkillCD
 local ipairs, pairs = ipairs, pairs
@@ -31,38 +34,38 @@ local SC = {
 	tCD = {},
 	tIgnore = {},
 }
-local S = {
-	["tSkill"] = { -- 这个表代表的是技能对应的CD时间
-		[371] = 300, -- 震山河
-		[551] = 660, -- 心鼓弦
-		[131] = 150, -- 碧水滔天
-		[252] = 25, -- 大狮子吼
-		[2235] = 90, -- 千蝶吐瑞
-		[3985] = 300, -- 朝圣言
-		[2234] = 120, -- 仙王蛊鼎
-		[411] = 90, -- 掠如火
-		[3971] = 45, -- 极乐引
-		[2663] = 120, -- 听风吹雪
-		[2220] = 1500, -- 凤凰谷
-		[259] = 300, -- 轮回决
-		[1645] = 120, -- 风来吴山
-		[2957] = 18, -- 圣手
-		[13072] = 90, -- 盾护
-		[555] = 40, -- 风秀
-		[569] = 15, -- 王母
-		[132] = 36, -- 春泥
-		[258] = 45, -- 舍身
-		[568] = 120, -- 梵音
-		[17] = 10, -- 打坐测试
-		[6800] = 180, -- 收盾
-		[14084] = 180, -- 长歌ZF
-		[14075] = 80, -- 长歌 伤害平摊
-		[15132] = 40, -- 五毒草
-		[15115] = 180, -- 号令三军
-		[14963] = 105, -- 奶花免死
-		[14081] = 180, -- 孤影化双
-	}
+
+local aSkillList = {
+	[371] = 300, -- 震山河
+	[551] = 660, -- 心鼓弦
+	[131] = 150, -- 碧水滔天
+	[252] = 25, -- 大狮子吼
+	[2235] = 90, -- 千蝶吐瑞
+	[3985] = 300, -- 朝圣言
+	[2234] = 120, -- 仙王蛊鼎
+	[411] = 90, -- 掠如火
+	[3971] = 45, -- 极乐引
+	[2663] = 120, -- 听风吹雪
+	[2220] = 1500, -- 凤凰谷
+	[259] = 300, -- 轮回决
+	[1645] = 120, -- 风来吴山
+	[2957] = 18, -- 圣手
+	[13072] = 90, -- 盾护
+	[555] = 40, -- 风秀
+	[569] = 15, -- 王母
+	[132] = 36, -- 春泥
+	[258] = 45, -- 舍身
+	[568] = 120, -- 梵音
+	[6800] = 180, -- 收盾
+	[14084] = 180, -- 长歌ZF
+	[14075] = 80, -- 长歌 伤害平摊
+	[15132] = 40, -- 五毒草
+	[15115] = 180, -- 号令三军
+	[14963] = 105, -- 奶花免死
+	[14081] = 180, -- 孤影化双
 }
+
+-- setmetatable(aSkillList, { __index = SkillCD.tCustom })
 
 function SkillCD.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
@@ -122,7 +125,7 @@ function SkillCD.OnFrameBreathe()
 	-- 排序
 	for k, v in pairs(SC.tCD) do
 		for kk, vv in ipairs(v) do
-			local nSec = S.tSkill[vv.dwSkillID]
+			local nSec = aSkillList[vv.dwSkillID] or 0
 			local pre = min(1, JH.GetEndTime(vv.nEnd) / nSec)
 			if pre > 0 then
 				vv.pre = pre
@@ -142,13 +145,13 @@ function SkillCD.OnFrameBreathe()
 		for k, v in ipairs(data) do
 			if not SC.tIgnore[v.dwSkillID] then
 				local item = handle:AppendItemFromIni(SC.szIniFile, "Handle_Lister", i)
-				-- local nSec = S.tSkill[v.dwSkillID]
+				-- local nSec = aSkillList[v.dwSkillID]
 				local fP = min(1, JH.GetEndTime(v.nEnd) / v.nTotal)
 				local szSec = floor(JH.GetEndTime(v.nEnd))
 				if fP < 0.15 then
 					item:Lookup("Image_LPlayer"):SetFrame(215)
 				end
-				local txt = szSec .. _L["s"]
+				local txt = szSec .. g_tStrings.STR_TIME_SECOND
 				if szSec > 60 then
 					txt = _L("%dm%ds", szSec / 60, szSec % 60)
 				end
@@ -210,9 +213,11 @@ function SC.OpenPanel()
 end
 
 function SC.ClosePanel()
-	Wnd.CloseWindow(SC.frame)
-	SC.frame = nil
-	SC.tCD = {}
+	if SC.frame then
+		Wnd.CloseWindow(SC.frame)
+		SC.frame = nil
+		SC.tCD = {}
+	end
 end
 
 function SC.IsPanelOpened()
@@ -232,7 +237,7 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 		return
 	end
 
-	local nSec = S.tSkill[dwSkillID]
+	local nSec = aSkillList[dwSkillID]
 	if not nSec then
 		return
 	end
@@ -270,33 +275,29 @@ end
 
 -- 生成监控列表
 function SC.UpdateMonitorCache()
-	local tab = KG_Table.Load("Settings/skill/MainKungfuInfo.tab", {
-		{ f = "i", t = "KungfuID"    },
-		{ f = "i", t = "KungfuIndex" },
-		{ f = "i", t = "ForceID"     },
-		{ f = "i", t = "TalentGroup" },
-	})
 	local tKungfuMain = { [0] = {} }
-	for i = 1, tab:GetRowCount() do
-		local data = tab:GetRow(i)
-		local dwKungfuID = data.KungfuID
+	for k, v in pairs(JH_KUNGFU_LIST) do
+		local dwKungfuID = v[1]
 		local hSkill = GetSkill(dwKungfuID, 1)
 		tKungfuMain[hSkill.dwBelongSchool] = tKungfuMain[hSkill.dwBelongSchool] or {}
 		tinsert(tKungfuMain[hSkill.dwBelongSchool], dwKungfuID)
 		tinsert(tKungfuMain[0], dwKungfuID)
 	end
-	tab = nil
 	local kungfu = {}
 	for k, v in pairs(SkillCD.tMonitor) do
-		local hSkill = GetSkill(k, 1)
-		if hSkill.dwMountRequestDetail ~= 0 then
-			kungfu[hSkill.dwMountRequestDetail] = kungfu[hSkill.dwMountRequestDetail] or {}
-			tinsert(kungfu[hSkill.dwMountRequestDetail], k)
-		else
-			for kk, vv in ipairs(tKungfuMain[hSkill.dwMountRequestType] or {}) do
-				kungfu[vv] = kungfu[vv] or {}
-				tinsert(kungfu[vv], k)
+		if aSkillList[k] then
+			local hSkill = GetSkill(k, 1)
+			if hSkill.dwMountRequestDetail ~= 0 then
+				kungfu[hSkill.dwMountRequestDetail] = kungfu[hSkill.dwMountRequestDetail] or {}
+				tinsert(kungfu[hSkill.dwMountRequestDetail], k)
+			else
+				for kk, vv in ipairs(tKungfuMain[hSkill.dwMountRequestType] or {}) do
+					kungfu[vv] = kungfu[vv] or {}
+					tinsert(kungfu[vv], k)
+				end
 			end
+		else
+			SkillCD.tMonitor[k] = nil
 		end
 	end
 	SC.tCache = kungfu
@@ -307,7 +308,7 @@ function SC.UpdateCount()
 	if not me then return end
 	local tMonitor, member, tKungfu, tCount = SC.tCache, {}, {}, {}
 	for k, v in pairs(SkillCD.tMonitor) do
-		if S.tSkill[k] then
+		if aSkillList[k] then
 			tCount[k] = {}
 			tCount[k].nCount = 0
 			tCount[k].tList = {}
@@ -477,47 +478,62 @@ function SC.UpdateCount()
 	SC.frame:Lookup("Wnd_Count"):Lookup("", "Image_CBg"):SetSize(240, h + 5)
 end
 
+function SC.AddSkill()
+	GUI.CreateFrame("SkillCD_Add", { w = 380, h = 250, title = _L["Add"], close = true, focus = true })
+	local ui = GUI(Station.Lookup("Normal/SkillCD_Add"))
+	ui:Append("Text", { txt = _L["Skill ID:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
+	ui:Append("WndEdit", "id", { x = 115, y = 83 }):Type(1)
+	ui:Append("Text", { txt = _L["Cool Down:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
+	ui:Append("WndEdit", "cd", { txt = szMap, x = 115, y = 113 }):Type(1)
+	ui:Append("WndButton3", { txt = g_tStrings.STR_HOTKEY_SURE, x = 115, y = 185 }):Click(function()
+		local id, cd  = tonumber(ui:Fetch("id"):Text()), tonumber(ui:Fetch("cd"):Text())
+		if id and cd then
+			if SkillCD.tCustom[id] then
+				return JH.Alert(_L["same data Exist"])
+			else
+				SkillCD.tCustom[id]  = cd
+				aSkillList[id]       = cd
+				JH.OpenPanel(_L["SkillCD"])
+				ui:Remove()
+			end
+		end
+	end)
+end
+
+function SC.CheckOpen()
+	if SkillCD.bEnable then
+		if SkillCD.bInDungeon and JH.IsInDungeon(true) or not SkillCD.bInDungeon then
+			SC.OpenPanel()
+		else
+			SC.ClosePanel()
+		end
+	else
+		SC.ClosePanel()
+	end
+end
+
 local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
+	ui:Append("WndButton3", { x = 350, y = 10, txt = _L["Add"] }):Click(SC.AddSkill)
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SkillCD"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = SkillCD.bEnable, txt = _L["Enable SkillCD"] }):Click(function(bChecked)
 		SkillCD.bEnable = bChecked
 		ui:Fetch("bInDungeon"):Enable(bChecked)
-		if bChecked then
-			if SkillCD.bInDungeon then
-				if JH.IsInDungeon(true) then
-					SC.OpenPanel()
-				end
-			else
-				SC.OpenPanel()
-			end
-		else
-			SC.ClosePanel()
-		end
-		JH.OpenPanel(_L["SkillCD"])
+		SC.CheckOpen()
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = SkillCD.bInDungeon })
-	:Enable(SkillCD.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
+	nX, nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = SkillCD.bInDungeon, enable = SkillCD.bEnable })
+	:Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
 		SkillCD.bInDungeon = bChecked
-		if bChecked then
-			if JH.IsInDungeon(true) then
-				SC.OpenPanel()
-			else
-				SC.ClosePanel()
-			end
-		else
-			SC.OpenPanel()
-		end
-		JH.OpenPanel(_L["SkillCD"])
+		SC.CheckOpen()
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Countdown"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = not SkillCD.bMini, txt = _L["Show Countdown"] }):Click(function(bChecked)
 		SC.SwitchPanel(not bChecked)
 		ui:Fetch("nMaxCountdown"):Enable(bChecked)
 	end):Pos_()
-	nX, nY = ui:Append("WndComboBox", "nMaxCountdown", { x = nX + 10, y = nY + 10, txt = g_tStrings.STR_SHOW_HATRE_COUNTS })
-	:Enable(not SkillCD.bMini):Menu(function()
+	nX, nY = ui:Append("WndComboBox", "nMaxCountdown", { x = nX + 10, y = nY + 10, txt = g_tStrings.STR_SHOW_HATRE_COUNTS, enable = not SkillCD.bMini })
+	:Menu(function()
 		local t = {}
 		for k, v in ipairs({3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50}) do
 			table.insert(t, {
@@ -533,8 +549,8 @@ function PS.OnPanelActive(frame)
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
 	local i = 0
-	for k, v in pairs(S.tSkill) do
-		ui:Append("Box", { x = (i % 9) * 56, y = nY + floor(i / 9 ) * 55 + 15 }):BoxInfo(UI_OBJECT_SKILL, k, 1)
+	for k, v in pairs(aSkillList) do
+		ui:Append("Box", { x = (i % 13) * 40, y = nY + floor(i / 13 ) * 40 + 15, w = 36, h = 36 }):BoxInfo(UI_OBJECT_SKILL, k, 1)
 		:Enable(SkillCD.tMonitor[k] or false):Click(function(bCheck)
 			if SkillCD.tMonitor[k] then
 				SkillCD.tMonitor[k] = nil
@@ -542,40 +558,48 @@ function PS.OnPanelActive(frame)
 				SkillCD.tMonitor[k] = true
 			end
 			this:EnableObject(SkillCD.tMonitor[k] or false)
+			SC.UpdateMonitorCache()
 			if SC.IsPanelOpened() then
-				SC.UpdateMonitorCache()
 				SC.UpdateCount()
 			end
-		end)
+		end).self.OnItemRButtonClick = function()
+			local menu = {}
+			table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL .. " " .. JH.GetSkillName(k, 1), rgb = { 255, 0, 0 }, fnAction = function()
+				if SkillCD.tCustom[k] then
+					SkillCD.tCustom[k]  = nil
+					SkillCD.tMonitor[k] = nil
+					aSkillList[k]       = nil
+					JH.OpenPanel(_L["SkillCD"])
+					SC.UpdateMonitorCache()
+					if SC.IsPanelOpened() then
+						SC.UpdateCount()
+					end
+				else
+					JH.Alert(_L["Can not delete default data"])
+				end
+			end })
+			PopupMenu(menu)
+		end
 		i = i + 1
 	end
 end
 GUI.RegisterPanel(_L["SkillCD"], 889, _L["Dungeon"], PS)
-
-JH.RegisterEvent("LOADING_END", function()
-	if not SkillCD.bEnable then return end
-	if SkillCD.bInDungeon then
-		if JH.IsInDungeon(true) then
-			SC.OpenPanel()
-		else
-			SC.ClosePanel()
-		end
-	else
-		SC.OpenPanel()
+JH.RegisterEvent("LOADING_END", SC.CheckOpen)
+JH.RegisterEvent("LOGIN_GAME", function()
+	for k, v in pairs(SkillCD.tCustom) do
+		aSkillList[k] = v
 	end
 end)
-
 JH.AddonMenu(function()
 	return {
-		szOption = _L["SkillCD"], bCheck = true, bChecked = type(SC.frame) ~= "nil", fnAction = function()
+		szOption = _L["SkillCD"], bCheck = true, bChecked = SC.IsPanelOpened(), fnAction = function()
 			SkillCD.bInDungeon = false
-			if  type(SC.frame) == "nil" then
-				SkillCD.bEnable = true
-				SC.OpenPanel()
-			else
+			if SC.IsPanelOpened() then
 				SkillCD.bEnable = false
-				SC.ClosePanel()
+			else
+				SkillCD.bEnable = true
 			end
+			SC.CheckOpen()
 		end
 	}
 end)
