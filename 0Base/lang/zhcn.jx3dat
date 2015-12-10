@@ -729,6 +729,8 @@ data = {
 	["BOOK_143"] = "问世间情为何物之三",
 	-- CombatText --
 	["CombatText"] = "战斗文字",
+	["Disable Immunity"] = "屏蔽免疫",
+	["Critical Color"] = "单独会心颜色",
 	["CombatText Config loaded"] = "战斗文字配置加载完成。",
 	["CombatText Config failed"] = "战斗文字配置加载失败。",
 	["Load CombatText Config"] = "重新载入配置",
