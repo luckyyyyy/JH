@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 19:45:31
+-- @Last Modified time: 2015-12-10 21:33:47
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1096,7 +1096,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 						D.Talk(txt, tInfo.szName)
 					end
 					if DBM.bPushScreenHead and cfg.bScreenHead then
-						FireUIEvent("JH_SCREENHEAD", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
+						FireUIEvent("JH_SA_CREATE", "TIME", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
 					end
 					if JH.bDebugClient and cfg.bSelect then
 						SetTarget(TARGET.PLAYER, tInfo.dwID)
@@ -1106,7 +1106,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 						D.Talk(txt, true)
 					end
 					if DBM.bPushScreenHead and cfg.bScreenHead then
-						FireUIEvent("JH_SCREENHEAD", dwNpcID or me.dwID, { txt = txt })
+						FireUIEvent("JH_SA_CREATE", "TIME", dwNpcID or me.dwID, { txt = txt })
 					end
 				end
 
