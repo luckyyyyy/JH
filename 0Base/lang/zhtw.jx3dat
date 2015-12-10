@@ -729,6 +729,8 @@ data = {
 	["BOOK_143"] = "問世間情為何物之三",
 	-- CombatText --
 	["CombatText"] = "戰鬥文字",
+	["Disable Immunity"] = "屏蔽免疫",
+	["Critical Color"] = "單獨會心顏色",
 	["CombatText Config loaded"] = "戰鬥文字配置加載完成。",
 	["CombatText Config failed"] = "戰鬥文字配置加載失敗。",
 	["Load CombatText Config"] = "重新載入配置",

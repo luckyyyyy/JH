@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-10 03:07:26
+-- @Last Modified time: 2015-12-10 17:46:56
 
 local _L = JH.LoadLangPack
 
@@ -96,6 +96,8 @@ JH_CombatText = {
 	nFadeIn   = 4,
 	nFadeOut  = 8,
 	nFont     = 19,
+	bImmunity = false,
+	tCritical = false,
 	col = { -- 颜色呗
 		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
 		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
@@ -144,7 +146,9 @@ function JH_CombatText.OnEvent(szEvent)
 	elseif szEvent == "SKILL_BUFF" then
 		CombatText.OnSkillBuff(arg0, arg1, arg2, arg3)
 	elseif szEvent == "BUFF_IMMUNITY" then
-		CombatText.OnBuffImmunity(arg0)
+		if not JH_CombatText.bImmunity then
+			CombatText.OnBuffImmunity(arg0)
+		end
 	elseif szEvent == "SKILL_MISS" then
 		if arg0 == UI_GetClientPlayerID() then
 			CombatText.OnSkillMiss(arg1)
@@ -331,6 +335,9 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 				nSort = nSort + 1
 				v.nSort = v.nSort + nSort - v.nSort
 			end
+		end
+		if bCriticalStrike and JH_CombatText.tCritical then
+			col = JH_CombatText.tCritical
 		end
 	end
 	CombatText.tShadows[shadow] = {
@@ -598,6 +605,27 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME, checked = JH_CombatText.bShowName }):Click(function(bCheck)
 		JH_CombatText.bShowName = bCheck
 	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Disable Immunity"], checked = JH_CombatText.bImmunity }):Click(function(bCheck)
+		JH_CombatText.bImmunity = bCheck
+	end):Pos_()
+	local nY2 = nY
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Critical Color"], checked = JH_CombatText.tCritical and true or false }):Click(function(bCheck)
+		if bCheck then
+			JH_CombatText.tCritical = { 255, 255, 255 }
+		else
+			JH_CombatText.tCritical = false
+		end
+		JH.OpenPanel(_L["CombatText"])
+	end):Pos_()
+	if JH_CombatText.tCritical then
+		ui:Append("Shadow", { x = nX + 5, y = nY2 + 2, color = JH_CombatText.tCritical, w = 20, h = 20 }):Click(function()
+			local ui = this
+			GUI.OpenColorTablePanel(function(r, g, b)
+				JH_CombatText.tCritical = { r, g, b }
+				ui:SetColorRGB(r, g, b)
+			end)
+		end)
+	end
 	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_QUESTTRACE_CHANGE_ALPHA }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L[" alpha"] }):Range(1, 255, 254):Value(JH_CombatText.nMaxAlpha):Change(function(nVal)
 		JH_CombatText.nMaxAlpha = nVal
