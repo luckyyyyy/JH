@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-09 22:23:31
+-- @Last Modified time: 2015-12-11 22:08:50
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -307,7 +307,7 @@ end
 
 function W.CallDoanloadData(data, szPath, szFileName)
 	local function fnAction(szFile)
-		DBM_UI.OpenImportPanel(szFile, data.author, function()
+		DBM_UI.OpenImportPanel(szFile, data.title .. " - " .. data.author, function()
 			DBM_RemoteRequest.tData = data
 			local me = GetClientPlayer()
 			if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_RemoteRequest", "Load", data.title) end
