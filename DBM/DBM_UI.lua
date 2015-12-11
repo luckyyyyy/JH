@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 21:23:18
+-- @Last Modified time: 2015-12-11 22:07:48
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -596,15 +596,7 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 end
 
 function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
-	local function FileExist(szFile)
-		if szFile and (IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile) or IsFileExist(JH.GetAddonInfo().szRootPath .. "DBM/data/" .. szFile .. ".jx3dat")) then
-			return { 0, 255, 0 }
-		else
-			return { 255, 255, 0 }
-		end
-	end
-
-	GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = szTitle or _L["Import Data"], close = true })
+	GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Import Data"], close = true })
 	local ui, nX, nY = GUI(Station.Lookup("Normal/DBM_DatatPanel")), 0, 0
 	nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
@@ -613,9 +605,12 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 	end
 	nY = 100
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Name"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit", "FilePtah", { x = 30, y = nY + 10, w = 500, h = 25, txt = szDefault, color = FileExist(szDefault), enable = not szDefault }):Change(function(szText)
-		this:SetFontColor(unpack(FileExist(szText)))
+	nX = ui:Append("WndEdit", "FilePtah", { x = 30, y = nY + 10, w = 450, h = 25, txt = szTitle, enable = false }):Pos_()
+	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY + 10, txt = _L["browse"], enable = not szDefault }):Click(function()
+		local szFile = GetOpenFileName()
+		ui:Fetch("FilePtah"):Text(szFile)
 	end):Pos_()
+
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Import mode"], font = 27 }):Pos_()
 	local nType = 1
 	nX = ui:Append("WndRadioBox", { x = 30, y = nY + 10, txt = _L["Cover"], group = "type", checked = true }):Click(function()
@@ -626,24 +621,25 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 	end):Pos_()
 	ui:Append("WndButton3", { x = 205, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
 		local config = {
-			szFileName = ui:Fetch("FilePtah"):Text(),
-			nMode = nType,
-			tList = {}
+			bFullPath  = not szDefault,
+			szFileName = szDefault or ui:Fetch("FilePtah"):Text(),
+			nMode      = nType,
+			tList      = {}
 		}
 		for k, v in ipairs(DBMUI_TYPE) do
 			if ui:Fetch(v):Check() then
 				config.tList[v] = true
 			end
 		end
-		local bStatus, path = DBM_API.LoadConfigureFile(config)
+		local bStatus, szFullPath = DBM_API.LoadConfigureFile(config)
 		if bStatus then
-			JH.Alert(_L("Import success %s", szTitle or path))
+			JH.Alert(_L("Import success %s", szTitle or szFullPath))
 			ui:Remove()
 			if fnAction then
 				fnAction()
 			end
 		else
-			JH.Alert(_L("Import failed %s", szTitle or path))
+			JH.Alert(_L("Import failed %s", szTitle or szFullPath))
 		end
 	end)
 end
