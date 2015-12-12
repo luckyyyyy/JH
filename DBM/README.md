@@ -1,6 +1,6 @@
 # 《剑网3》DBM插件
 
-文档最后更新时间：2015年10月17日23:54:58
+文档最后更新时间：2015年12月12日20:53:54
 
 ## 参考资料
 
@@ -43,6 +43,7 @@
 * 减益效果：可以监控`DeBuff`的获得和消失等情况。
 * 技能：可以监控`技能`的释放等情况。
 * NPC：可以监控`NPC`的战斗、血量变化、内力变化、出现与消失等诸多情况。
+* 交互物件：可以监控交互物件的出现与消失等情况。
 * 圈圈：可以给对应的`NPC`或者`DOODAD（交互类物品）`绘制面向圈，可以监控NPC的目标变化。
 * 喊话：可以监控对应的`NPC喊话内容`以及`系统提示框`的提示内容。
 
@@ -60,7 +61,7 @@
 
 * 右键数据可以修改数据的分类，如果按住`Ctrl`点击，即可以复制这个数据到其他分类，来实现单独区分或共用的目的。
 * 数据可以按住左键拖拽移动，如果左边树列表中不存在某些地图，可以尝试先右键手动输入地图名称。
-* 地图分类中的数据优先级大于通用分类。
+* 当存在相同数据时，地图分类中的数据优先级大于通用分类。
 
 ----
 
@@ -86,6 +87,7 @@ data = {
     ["DEBUFF"]  = {},
     ["CASTING"] = {},
     ["NPC"]     = {},
+    ["DOODAD"]  = {},
     ["TALK"]    = {},
     ["CIRCLE"]  = {},
 }
@@ -146,7 +148,7 @@ data = {
 - [x] 全屏泛光报警
 - [x] 推送团队面板
 - [x] 特大文字报警
-- [ ] 头顶报警
+- [x] 头顶报警
 - [ ] 重要效果列表
 
 ---
@@ -194,7 +196,7 @@ data = {
 
 * 如果是NPC   若npc是当前npc 即给予`白云`标记 若场上同时存在多个相同npc，则根据顺序依次给予`白云、红鼓、棒槌`标记。
 * 如果是BUFF  若buff是当前buff 即给予`白云`标记 若场上同时在存在多个玩家拥有相同buff，则根据顺序依次给予`白云、红鼓、棒槌`标记。
-* 如果是技能 无条件给标记
+* 如果是技能  无条件给标记
 
 ---
 
@@ -308,24 +310,9 @@ Farme   Left    Top Width   High    File
 
 ----
 
-#### JSON数据整理
+#### JSON数据
 
-由于游戏限制，JSON默认导出的数据会进行转义和增加部分无意义的字符，可以使用以下方法去除。
-
-```php
-// 最简单的PHP处理方法
-<?php
-$content = file_get_contents('data.jx3dat');
-$content = trim(substr($content, strpos($content, 'data') + 4));
-$content = trim(substr($content, strpos($content, '=') + 1));
-
-$content = stripslashes(trim($content, '"'));
-$content = iconv('gbk', 'utf-8//IGNORE', $content);
-var_dump(json_decode($content, true));
-?>
-```
-
----
+JSON数据仅提供外部编辑数据的能力，如果您会制作小程序，可以尝试来辨别这些导出的数据，然后转为LUA TABLE字符串。
 
 #### 插件数据结构与枚举
 
@@ -357,27 +344,31 @@ data = {
 
 -- 5和10暂时是废弃的，喊话监控使用的是14.
 DBM_TYPE = {
-    OTHER        = 0,
-    BUFF_GET     = 1,
-    BUFF_LOSE    = 2,
-    NPC_ENTER    = 3,
-    NPC_LEAVE    = 4,
-    NPC_TALK     = 5,
-    NPC_LIFE     = 6,
-    NPC_FIGHT    = 7,
-    SKILL_BEGIN  = 8,
-    SKILL_END    = 9,
-    SYS_TALK     = 10,
-    NPC_ALLLEAVE = 11,
-    NPC_DEATH    = 12,
-    NPC_ALLDEATH = 13,
-    TALK_MONITOR = 14,
-    COMMON       = 15,
+    OTHER           = 0,
+    BUFF_GET        = 1,
+    BUFF_LOSE       = 2,
+    NPC_ENTER       = 3,
+    NPC_LEAVE       = 4,
+    NPC_TALK        = 5,
+    NPC_LIFE        = 6,
+    NPC_FIGHT       = 7,
+    SKILL_BEGIN     = 8,
+    SKILL_END       = 9,
+    SYS_TALK        = 10,
+    NPC_ALLLEAVE    = 11,
+    NPC_DEATH       = 12,
+    NPC_ALLDEATH    = 13,
+    TALK_MONITOR    = 14,
+    COMMON          = 15,
+    NPC_MANA        = 16,
+    DOODAD_ENTER    = 17,
+    DOODAD_LEAVE    = 18,
+    DOODAD_ALLLEAVE = 19,
 }
--- 监控类型不填则为All
-DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3 }
-```
 
+-- 监控类型null则为All
+DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3, TARGET = 4 }
+```
 
 ----
 
