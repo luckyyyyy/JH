@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-05 19:47:54
+-- @Last Modified time: 2015-12-11 23:52:08
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -958,6 +958,7 @@ Target_AppendAddonMenu({ function(dwID, dwType)
 				nMouseOverFrame = 87,
 				fnClickIcon = function()
 					C.RemoveData(data.dwMapID, data.nIndex, not IsCtrlKeyDown())
+					GetPopupMenu():Hide()
 				end,
 				fnAction = function()
 					C.OpenDataPanel(data)
