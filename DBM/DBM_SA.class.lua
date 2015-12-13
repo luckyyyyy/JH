@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-07 16:31:43
+-- @Last Modified time: 2015-12-13 08:18:49
 
 local pairs, ipairs, select = pairs, ipairs, select
 local UI_SCALED = 1
@@ -245,7 +245,7 @@ function ScreenArrow.OnBreatheFight()
 				else
 					ScreenArrow.tCache["Life"][v] = nil
 				end
-				if fManaPer < DBM_SA.fManaPer and p.dwForceID < 7 then
+				if fManaPer < DBM_SA.fManaPer and (p.dwForceID < 7 or p.dwForceID == 22) then
 					if not ScreenArrow.tCache["Mana"][v] then
 						ScreenArrow.tCache["Mana"][v] = true
 						CreateScreenArrow("Mana", v)

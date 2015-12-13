@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-29 21:52:18
+-- @Last Modified time: 2015-12-13 03:35:50
 local _L = JH.LoadLangPack
 
 TargetFace = {
@@ -513,7 +513,7 @@ function PS.OnPanelActive(frame)
 		_TargetFace.bReRender = true
 	end):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = 240, y = nY + 5, txt = _L[" feet"] })
-	:Range(1, 15, 14):Value(TargetFace.nConnWidth):Change(function(nVal)
+	:Range(1, 8, 7):Value(TargetFace.nConnWidth):Change(function(nVal)
 		TargetFace.nConnWidth = nVal
 		_TargetFace.bReRender = true
 	end):Pos_()
