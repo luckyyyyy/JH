@@ -1,13 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-14 14:45:54
+-- @Last Modified time: 2015-12-14 19:56:10
 
 local _L = JH.LoadLangPack
 
 local UI_GetClientPlayerID = UI_GetClientPlayerID
 local pairs, unpack = pairs, unpack
 local floor, ceil = math.floor, math.ceil
+local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 local COMBAT_TEXT_TOTAL          = 32 -- 如果修改这里 请注意其他也要跟着改
@@ -327,6 +328,14 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	if p and p.szName ~= "" then
 		szCasterName = p.szName
 	end
+	if not IsPlayer(dwCasterID) then
+		if p and p.dwEmployer and p.dwEmployer ~= 0 then -- NPC要算归属圈
+			local employer = GetPlayer(p.dwEmployer)
+			if employer then
+				szCasterName = employer.szName
+			end
+		end
+	end
 	if not szText then -- 还未被定义的
 		szText = szReplaceText
 		szText = szText:gsub("(%s?)$crit(%s?)", (bCriticalStrike and "%1".. g_tStrings.STR_CS_NAME .. "%2" or ""))
@@ -640,20 +649,21 @@ function PS.OnPanelActive(frame)
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Text Style"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Skill Style"], color = { 255, 255, 200 } }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 12, w = 250, h = 25, txt = JH_CombatText.szSkill }):Change(function(szText)
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 12, w = 250, h = 25, txt = JH_CombatText.szSkill }):Change(function(szText)
 		JH_CombatText.szSkill = szText
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Damage Style"], color = { 255, 255, 200 } }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szDamage }):Change(function(szText)
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szDamage }):Change(function(szText)
 		JH_CombatText.szDamage = szText
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Therapy Style"], color = { 255, 255, 200 } }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szTherapy }):Change(function(szText)
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szTherapy }):Change(function(szText)
 		JH_CombatText.szTherapy = szText
 	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY, txt = _L["CombatText Tips"] }):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY, txt = _L["CombatText Tips"], color = { 196, 196, 196 } }):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["Color edit"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 0, y = nY + 10, txt = _L["Critical Color"], checked = JH_CombatText.tCritical and true or false }):Click(function(bCheck)
+	local nY2 = nY
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Critical Color"], checked = JH_CombatText.tCritical and true or false }):Click(function(bCheck)
 		if bCheck then
 			JH_CombatText.tCritical = { 255, 255, 255 }
 		else
@@ -662,7 +672,7 @@ function PS.OnPanelActive(frame)
 		JH.OpenPanel(_L["CombatText"])
 	end):Pos_()
 	if JH_CombatText.tCritical then
-		ui:Append("Shadow", { x = nX + 5, y = nY + 10 + 6, color = JH_CombatText.tCritical, w = 15, h = 15 }):Click(function()
+		ui:Append("Shadow", { x = nX + 5, y = nY2 + 10 + 6, color = JH_CombatText.tCritical, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
 				JH_CombatText.tCritical = { r, g, b }
@@ -671,11 +681,10 @@ function PS.OnPanelActive(frame)
 		end)
 	end
 
-	nY = 330
 	local i = 0
 	for k, v in pairs(JH_CombatText.col) do
-		ui:Append("Text", { x = (i % 8) * 65, y = nY + 30 * floor(i / 8), txt = _L["CombatText Color " .. k] })
-		ui:Append("Shadow", { x = (i % 8) * 65 + 35, y = nY + 30 * floor(i / 8) + 8, color = v, w = 15, h = 15 }):Click(function()
+		ui:Append("Text", { x = (i % 8) * 65 + 10, y = nY + 30 * floor(i / 8), txt = _L["CombatText Color " .. k] })
+		ui:Append("Shadow", { x = (i % 8) * 65 + 45, y = nY + 30 * floor(i / 8) + 8, color = v, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
 				JH_CombatText.col[k] = { r, g, b }
