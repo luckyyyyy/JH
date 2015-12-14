@@ -25,6 +25,9 @@ local SKILL_RESULT_TYPE = {
 }
 -- 从这里开始可以修改了
 data = {
+	COMBAT_TEXT_IGNORE = { -- 忽略掉 不显示的技能ID 可以在DBM近期技能记录找ID 平砍也是个技能
+		-- [技能ID] = true,
+	},
 	COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
 		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = true,

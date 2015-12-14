@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-14 14:07:13
+-- @Last Modified time: 2015-12-14 14:45:54
 
 local _L = JH.LoadLangPack
 
@@ -22,6 +22,10 @@ local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = true,
 	[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
 	["EXP"]                                  = true,
+}
+
+local COMBAT_TEXT_IGNORE = {
+	-- [15] = true,
 }
 
 local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
@@ -260,6 +264,10 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	end
 
 	local dwID = UI_GetClientPlayerID()
+	if COMBAT_TEXT_IGNORE[dwSkillID] and dwCasterID == dwID then
+		return
+	end
+
 	if nType == SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
 		local _    = dwCasterID
 		dwCasterID = dwTargetID
@@ -546,9 +554,10 @@ function CombatText.LoadConfig()
 	if bExist then
 		local data = LoadLUAData(path)
 		if data then
-			COMBAT_TEXT_CRITICAL       = data.COMBAT_TEXT_CRITICAL or COMBAT_TEXT_CRITICAL
-			COMBAT_TEXT_SCALE          = data.COMBAT_TEXT_SCALE or COMBAT_TEXT_SCALE
-			COMBAT_TEXT_POINT          = data.COMBAT_TEXT_POINT or COMBAT_TEXT_POINT
+			COMBAT_TEXT_CRITICAL = data.COMBAT_TEXT_CRITICAL or COMBAT_TEXT_CRITICAL
+			COMBAT_TEXT_SCALE    = data.COMBAT_TEXT_SCALE or COMBAT_TEXT_SCALE
+			COMBAT_TEXT_POINT    = data.COMBAT_TEXT_POINT or COMBAT_TEXT_POINT
+			COMBAT_TEXT_IGNORE   = data.COMBAT_TEXT_IGNORE or COMBAT_TEXT_IGNORE
 			JH.Sysmsg(_L["CombatText Config loaded"])
 		else
 			JH.Sysmsg(_L["CombatText Config failed"])
@@ -662,7 +671,7 @@ function PS.OnPanelActive(frame)
 		end)
 	end
 
-	nY = 340
+	nY = 330
 	local i = 0
 	for k, v in pairs(JH_CombatText.col) do
 		ui:Append("Text", { x = (i % 8) * 65, y = nY + 30 * floor(i / 8), txt = _L["CombatText Color " .. k] })
