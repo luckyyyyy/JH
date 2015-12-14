@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-10 18:06:04
+-- @Last Modified time: 2015-12-14 14:07:13
 
 local _L = JH.LoadLangPack
 
@@ -89,7 +89,6 @@ setmetatable(CombatText.tShadows, { __mode = "k" })
 JH_CombatText = {
 	bEnable   = false;
 	bRender   = true,
-	bShowName = false,
 	nMaxAlpha = 240,
 	nTime     = 40,
 	nMaxCount = 80,
@@ -98,6 +97,13 @@ JH_CombatText = {
 	nFont     = 19,
 	bImmunity = false,
 	tCritical = false,
+	-- $name 名字
+	-- $sn   技能名
+	-- $crit 会心
+	-- $val  数值
+	szSkill   = "$sn" .. g_tStrings.STR_COLON .. "$crit $val",
+	szTherapy = "$sn" .. g_tStrings.STR_COLON .. "$crit +$val",
+	szDamage  = "$sn" .. g_tStrings.STR_COLON .. "$crit -$val",
 	col = { -- 颜色呗
 		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
 		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
@@ -277,19 +283,11 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	-- 会心 剑破虚空：20000
 	-- 翔舞：会心 + 2000
 	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
-	local szText
+	local szText, szReplaceText
 	if nType == SKILL_RESULT_TYPE.THERAPY then
-		if bCriticalStrike then
-			szText = (szName or "") .. g_tStrings.STR_COLON  .. g_tStrings.STR_CS_NAME .. " +" .. nValue
-		else
-			szText = (szName or "") .. g_tStrings.STR_COLON .. "+" .. nValue
-		end
+		szReplaceText = JH_CombatText.szTherapy
 	else
-		if bCriticalStrike then
-			szText = (szName or "") .. g_tStrings.STR_COLON .. g_tStrings.STR_CS_NAME .. " " .. nValue
-		else
-			szText = (szName or "") .. g_tStrings.STR_COLON .. nValue
-		end
+		szReplaceText = JH_CombatText.szSkill
 	end
 	local szPoint = "TOP"
 	local col     = JH_CombatText.col[nType]
@@ -314,18 +312,19 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		if nType ~= SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
 			col = JH_CombatText.col["DAMAGE"]
 		end
-		if bCriticalStrike then
-			szText = (szName or "") .. g_tStrings.STR_COLON .. g_tStrings.STR_CS_NAME ..  " -" .. nValue
-		else
-			szText = (szName or "") .. g_tStrings.STR_COLON .. "-" .. nValue
-		end
+		szReplaceText = JH_CombatText.szDamage
 	end
-
-	if JH_CombatText.bShowName then
-		local p = IsPlayer(dwCasterID) and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
-		if p and p.szName ~= "" then
-			szText = p.szName .. g_tStrings.STR_CONNECT .. szText
-		end
+	local szCasterName
+	local p = IsPlayer(dwCasterID) and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
+	if p and p.szName ~= "" then
+		szCasterName = p.szName
+	end
+	if not szText then -- 还未被定义的
+		szText = szReplaceText
+		szText = szText:gsub("(%s?)$crit(%s?)", (bCriticalStrike and "%1".. g_tStrings.STR_CS_NAME .. "%2" or ""))
+		szText = szText:gsub("$name", szCasterName or "")
+		szText = szText:gsub("$sn", szName or "")
+		szText = szText:gsub("$val", nValue or "")
 	end
 	-- 对某些 一次性出现多次伤害的技能 做排序
 	local nSort = 0
@@ -594,7 +593,7 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["CombatText"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable CombatText"], checked = JH_CombatText.bEnable }):Click(function(bCheck)
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Enable CombatText"], color = { 255, 128, 0 } , checked = JH_CombatText.bEnable }):Click(function(bCheck)
 		JH_CombatText.bEnable = bCheck
 		CombatText.CheckEnable()
 	end):Pos_()
@@ -602,14 +601,50 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.bRender = bCheck
 		CombatText.CheckEnable()
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME, checked = JH_CombatText.bShowName }):Click(function(bCheck)
-		JH_CombatText.bShowName = bCheck
-	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Disable Immunity"], checked = JH_CombatText.bImmunity }):Click(function(bCheck)
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Disable Immunity"], checked = JH_CombatText.bImmunity }):Click(function(bCheck)
 		JH_CombatText.bImmunity = bCheck
 	end):Pos_()
-	local nY2 = nY
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Critical Color"], checked = JH_CombatText.tCritical and true or false }):Click(function(bCheck)
+	-- nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_QUESTTRACE_CHANGE_ALPHA }):Pos_()
+
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_QUESTTRACE_CHANGE_ALPHA, color = { 255, 255, 200 } }):Pos_()
+	nX = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = "" }):Range(1, 255, 254):Value(JH_CombatText.nMaxAlpha):Change(function(nVal)
+		JH_CombatText.nMaxAlpha = nVal
+	end):Pos_()
+	nX = ui:Append("Text", { x = 240, y = nY - 1, txt = _L["Hold time"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["ms"] }):Range(500, 3000, 2500):Value(JH_CombatText.nTime * COMBAT_TEXT_TOTAL):Change(function(nVal)
+		JH_CombatText.nTime = nVal / COMBAT_TEXT_TOTAL
+	end):Pos_()
+
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["FadeIn time"], color = { 255, 255, 200 } }):Pos_()
+	nX = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeIn):Change(function(nVal)
+		JH_CombatText.nFadeIn = nVal
+	end):Pos_()
+	nX = ui:Append("Text", { x = 240, y = nY - 1, txt = _L["FadeOut time"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeOut):Change(function(nVal)
+		JH_CombatText.nFadeOut = nVal
+	end):Pos_()
+
+	nX, nY = ui:Append("WndButton3", { x = 10, y = nY + 10, txt = _L["Font edit"] }):Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			JH_CombatText.nFont = nFont
+		end)
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Text Style"], font = 27 }):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Skill Style"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 12, w = 250, h = 25, txt = JH_CombatText.szSkill }):Change(function(szText)
+		JH_CombatText.szSkill = szText
+	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Damage Style"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szDamage }):Change(function(szText)
+		JH_CombatText.szDamage = szText
+	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Therapy Style"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szTherapy }):Change(function(szText)
+		JH_CombatText.szTherapy = szText
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = nY, txt = _L["CombatText Tips"] }):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["Color edit"], font = 27 }):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 0, y = nY + 10, txt = _L["Critical Color"], checked = JH_CombatText.tCritical and true or false }):Click(function(bCheck)
 		if bCheck then
 			JH_CombatText.tCritical = { 255, 255, 255 }
 		else
@@ -618,7 +653,7 @@ function PS.OnPanelActive(frame)
 		JH.OpenPanel(_L["CombatText"])
 	end):Pos_()
 	if JH_CombatText.tCritical then
-		ui:Append("Shadow", { x = nX + 5, y = nY2 + 2, color = JH_CombatText.tCritical, w = 20, h = 20 }):Click(function()
+		ui:Append("Shadow", { x = nX + 5, y = nY + 10 + 6, color = JH_CombatText.tCritical, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
 				JH_CombatText.tCritical = { r, g, b }
@@ -626,33 +661,12 @@ function PS.OnPanelActive(frame)
 			end)
 		end)
 	end
-	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_QUESTTRACE_CHANGE_ALPHA }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L[" alpha"] }):Range(1, 255, 254):Value(JH_CombatText.nMaxAlpha):Change(function(nVal)
-		JH_CombatText.nMaxAlpha = nVal
-	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["Hold time"] }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["ms"] }):Range(500, 3000, 2500):Value(JH_CombatText.nTime * COMBAT_TEXT_TOTAL):Change(function(nVal)
-		JH_CombatText.nTime = nVal / COMBAT_TEXT_TOTAL
-	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["FadeIn time"] }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeIn):Change(function(nVal)
-		JH_CombatText.nFadeIn = nVal
-	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["FadeOut time"] }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeOut):Change(function(nVal)
-		JH_CombatText.nFadeOut = nVal
-	end):Pos_()
-	nX, nY = ui:Append("WndButton3", { x = 10, y = nY + 10, txt = _L["Font edit"] }):Click(function()
-		GUI.OpenFontTablePanel(function(nFont)
-			JH_CombatText.nFont = nFont
-		end)
-	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Color edit"], font = 27 }):Pos_()
-	nY = nY + 10
+
+	nY = 340
 	local i = 0
 	for k, v in pairs(JH_CombatText.col) do
-		ui:Append("Text", { x = (i % 4) * 80, y = nY + 30 * floor(i / 4), txt = _L["CombatText Color " .. k] })
-		ui:Append("Shadow", { x = (i % 4) * 80 + 40, y = nY + 30 * floor(i / 4), color = v, w = 25, h = 25 }):Click(function()
+		ui:Append("Text", { x = (i % 8) * 65, y = nY + 30 * floor(i / 8), txt = _L["CombatText Color " .. k] })
+		ui:Append("Shadow", { x = (i % 8) * 65 + 35, y = nY + 30 * floor(i / 8) + 8, color = v, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
 				JH_CombatText.col[k] = { r, g, b }
@@ -661,6 +675,7 @@ function PS.OnPanelActive(frame)
 		end)
 		i = i + 1
 	end
+
 	if IsFileExist(JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat") then
 		ui:Append("WndButton3", { x = 350, y = 0, txt = _L["Load CombatText Config"] }):Click(CombatText.CheckEnable)
 	end
