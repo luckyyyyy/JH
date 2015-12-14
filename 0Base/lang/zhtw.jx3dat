@@ -752,5 +752,9 @@ data = {
 	["CombatText Color 4"] = "毒性",
 	["CombatText Color 5"] = "反彈",
 	["CombatText Color 6"] = "治療",
-
+	["Text Style"] = "戰鬥文字樣式設置",
+	["Skill Style"] = "技能文字樣式",
+	["Damage Style"] = "受傷文字樣式",
+	["Therapy Style"] = "治療文字樣式",
+	["CombatText Tips"] = "小提示：$name釋放者名字，$sn技能名，$crit會心，$val數值。"
 }
