@@ -20,6 +20,7 @@ local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = true,
 	[SKILL_RESULT_TYPE.POISON_DAMAGE]        = true,
 	[SKILL_RESULT_TYPE.THERAPY]              = true,
+	--[SKILL_RESULT_TYPE.EFFECTIVE_THERAPY]= true,	--然并卵 无strike信息  即使会心也可能是过量治疗	
 	[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = true,
 	[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
 	["EXP"]                                  = true,
@@ -102,6 +103,8 @@ JH_CombatText = {
 	nFont     = 19,
 	bImmunity = false,
 	tCritical = false,
+	tCriticalB = false,
+	tCriticalH = false,		
 	-- $name 名字
 	-- $sn   技能名
 	-- $crit 会心
@@ -109,9 +112,13 @@ JH_CombatText = {
 	szSkill   = "$sn" .. g_tStrings.STR_COLON .. "$crit $val",
 	szTherapy = "$sn" .. g_tStrings.STR_COLON .. "$crit +$val",
 	szDamage  = "$sn" .. g_tStrings.STR_COLON .. "$crit -$val",
+	bCasterNotI  = false,
+	bSnShorten2 =false,
+	bTherEffOnly =false,	
 	col = { -- 颜色呗
 		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
 		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
+		[SKILL_RESULT_TYPE.EFFECTIVE_THERAPY]    = { 0,   255, 0   }, -- 有效治疗		
 		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- 外公
 		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- 阳
 		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- 混元
@@ -165,7 +172,7 @@ function JH_CombatText.OnEvent(szEvent)
 			CombatText.OnSkillMiss(arg1)
 		end
 	elseif szEvent == "UI_SCALED" then
-		COMBAT_TEXT_UI_SCALE = Station.GetUIScale()
+		COMBAT_TEXT_UI_SCALE = Station.GetUIScale() --字体会与UI_SCALE一致，可能需注释掉？
 	elseif szEvent == "SKILL_DODGE" then
 		if arg0 == UI_GetClientPlayerID() then
 			CombatText.OnSkillDodge(arg1)
@@ -239,7 +246,7 @@ function CombatText.OnFrameRender()
 			end
 			-- if CombatText.tCache[v.dwTargetID] then -- 这样还不行 有死亡的问题
 				local r, g, b = unpack(v.col)
-				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale)
+				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE  
 			-- end
 			v.nFrame = nFrame
 		else
@@ -255,7 +262,9 @@ JH_CombatText.OnFrameRender  = CombatText.OnFrameRender
 function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, nValue, dwSkillID, dwSkillLevel, nEffectType)
 	-- 过滤 有效治疗 有效伤害 西区内力 化解治疗
 	if nType == SKILL_RESULT_TYPE.EFFECTIVE_DAMAGE
-	or nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY
+--	or nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY
+	or (nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY and not JH_CombatText.bTherEffOnly)
+	or (nType == SKILL_RESULT_TYPE.THERAPY and JH_CombatText.bTherEffOnly)
 	or nType == SKILL_RESULT_TYPE.TRANSFER_MANA
 	or nType == SKILL_RESULT_TYPE.ABSORB_THERAPY
 	or nType == SKILL_RESULT_TYPE.TRANSFER_LIFE
@@ -293,7 +302,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	-- 翔舞：会心 + 2000
 	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
 	local szText, szReplaceText
-	if nType == SKILL_RESULT_TYPE.THERAPY then
+	if nType == SKILL_RESULT_TYPE.THERAPY  or nType== SKILL_RESULT_TYPE.EFFECTIVE_THERAPY then
 		szReplaceText = JH_CombatText.szTherapy
 	else
 		szReplaceText = JH_CombatText.szSkill
@@ -307,9 +316,12 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 			col = { 255, 255, 0 }
 		end
 	else
-		if nType == SKILL_RESULT_TYPE.THERAPY then
+		if nType == SKILL_RESULT_TYPE.THERAPY  or nType== SKILL_RESULT_TYPE.EFFECTIVE_THERAPY then
 			if dwTargetID == dwID then
 				szPoint = "BOTTOM_RIGHT"
+			end
+			if bCriticalStrike and JH_CombatText.tCriticalH then	
+				col = JH_CombatText.tCriticalH
 			end
 		else
 			if dwTargetID == dwID then
@@ -320,6 +332,9 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	if szPoint == "BOTTOM_LEFT" then -- 左下角肯定是伤害
 		if nType ~= SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
 			col = JH_CombatText.col["DAMAGE"]
+			if bCriticalStrike and JH_CombatText.tCriticalB then	
+				col = JH_CombatText.tCriticalB
+			end
 		end
 		szReplaceText = JH_CombatText.szDamage
 	end
@@ -339,7 +354,9 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	if not szText then -- 还未被定义的
 		szText = szReplaceText
 		szText = szText:gsub("(%s?)$crit(%s?)", (bCriticalStrike and "%1".. g_tStrings.STR_CS_NAME .. "%2" or ""))
-		szText = szText:gsub("$name", szCasterName or "")
+		if JH_CombatText.bCasterNotI and szCasterName==GetClientPlayer().szName then szCasterName="" end
+		szText = szText:gsub("$name", szCasterName or "") 
+		if JH_CombatText.bSnShorten2 then szName=string.sub(szName,1,4) end
 		szText = szText:gsub("$sn", szName or "")
 		szText = szText:gsub("$val", nValue or "")
 	end
@@ -352,7 +369,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 				v.nSort = math.min(3 / COMBAT_TEXT_UI_SCALE, v.nSort + math.max(nSort - v.nSort, 0))
 			end
 		end
-		if bCriticalStrike and JH_CombatText.tCritical then
+		if bCriticalStrike and nType ~= SKILL_RESULT_TYPE.THERAPY and nType~=SKILL_RESULT_TYPE.EFFECTIVE_THERAPY and JH_CombatText.tCritical then 
 			col = JH_CombatText.tCritical
 		end
 	end
@@ -642,56 +659,104 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.nFadeOut = nVal
 	end):Pos_()
 
-	nX, nY = ui:Append("WndButton3", { x = 10, y = nY + 10, txt = _L["Font edit"] }):Click(function()
-		GUI.OpenFontTablePanel(function(nFont)
-			JH_CombatText.nFont = nFont
-		end)
-	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Text Style"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Skill Style"], color = { 255, 255, 200 } }):Pos_()
+	nY2=nY
 	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 12, w = 250, h = 25, txt = JH_CombatText.szSkill }):Change(function(szText)
 		JH_CombatText.szSkill = szText
 	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Damage Style"], color = { 255, 255, 200 } }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szDamage }):Change(function(szText)
-		JH_CombatText.szDamage = szText
-	end):Pos_()
-	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Therapy Style"], color = { 255, 255, 200 } }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szTherapy }):Change(function(szText)
-		JH_CombatText.szTherapy = szText
-	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY, txt = _L["CombatText Tips"], color = { 196, 196, 196 } }):Pos_()
-	nX, nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["Color edit"], font = 27 }):Pos_()
-	local nY2 = nY
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Critical Color"], checked = JH_CombatText.tCritical and true or false }):Click(function(bCheck)
-		if bCheck then
-			JH_CombatText.tCritical = { 255, 255, 255 }
-		else
-			JH_CombatText.tCritical = false
-		end
-		JH.OpenPanel(_L["CombatText"])
-	end):Pos_()
 	if JH_CombatText.tCritical then
+		nX=ui:Append("Text", { x = nX+15, y = nY2+ 10, txt = _L["critical beat"]}):Pos_() --会心伤害 	
 		ui:Append("Shadow", { x = nX + 5, y = nY2 + 10 + 6, color = JH_CombatText.tCritical, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
 				JH_CombatText.tCritical = { r, g, b }
 				ui:SetColorRGB(r, g, b)
 			end)
-		end)
+		end)		
 	end
+	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Damage Style"], color = { 255, 255, 200 } }):Pos_()
+	nY2=nY
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szDamage }):Change(function(szText)
+		JH_CombatText.szDamage = szText
+	end):Pos_()
+	if JH_CombatText.tCritical then
+		nX=ui:Append("Text", { x = nX+15, y = nY2+ 2, txt = _L["critical beaten"]}):Pos_() --会心承伤 
+		nX=ui:Append("Shadow", { x = nX + 5, y = nY2 + 2 + 6, color = JH_CombatText.tCriticalB, w = 15, h = 15 }):Click(function()
+			local ui = this
+			GUI.OpenColorTablePanel(function(r, g, b)
+				JH_CombatText.tCriticalB = { r, g, b }
+				ui:SetColorRGB(r, g, b)
+			end)
+		end):Pos_()
+	end
+	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Therapy Style"], color = { 255, 255, 200 } }):Pos_()
+	nY2=nY
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szTherapy }):Change(function(szText)
+		JH_CombatText.szTherapy = szText
+	end):Pos_()
+	if JH_CombatText.tCritical then	
+		nX=ui:Append("Text", { x = nX+15, y = nY2+ 2, txt = _L["critical heaten"]}):Pos_() --会心承疗 
+		nX=ui:Append("Shadow", { x = nX + 5, y = nY2 + 2 + 6, color = JH_CombatText.tCriticalH, w = 15, h = 15 }):Click(function()
+			local ui = this
+			GUI.OpenColorTablePanel(function(r, g, b)
+				JH_CombatText.tCriticalH = { r, g, b }
+				ui:SetColorRGB(r, g, b)
+			end)
+		end):Pos_()	
+	end
+	nX, nY = ui:Append("Text", { x = 10, y = nY, txt = _L["CombatText Tips"], color = { 196, 196, 196 } }):Pos_()
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt =  _L["$name not me"],  checked = JH_CombatText.bCasterNotI }):Click(function(bCheck)
+		JH_CombatText.bCasterNotI = bCheck
+	end):Pos_() 	--name为自己时不显示
+	nX,nY = ui:Append("WndCheckBox", { x = nX+10, y = nY + 10, txt =  _L["$sn shorten(2)"],  checked = JH_CombatText.bSnShorten2 }):Click(function(bCheck)
+		JH_CombatText.bSnShorten2 = bCheck
+	end):Pos_()	--sn显示为技能缩写（前2字
+	local nY2 = nY
+	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY , txt =  _L["therapy effective only"],  checked = JH_CombatText.bTherEffOnly }):Click(function(bCheck)
+		JH_CombatText.bTherEffOnly = bCheck
+		JH.OpenPanel(_L["CombatText"])
+	end):Pos_()	--只显示有效治疗
+	if JH_CombatText.bTherEffOnly then
+		ui:Append("Shadow", { x = nX + 5, y = nY2 + 6, color = JH_CombatText.col[SKILL_RESULT_TYPE.EFFECTIVE_THERAPY] , w = 15, h = 15 }):Click(function()
+				local ui = this
+				GUI.OpenColorTablePanel(function(r, g, b)
+					JH_CombatText.col[SKILL_RESULT_TYPE.EFFECTIVE_THERAPY] = { r, g, b }
+					ui:SetColorRGB(r, g, b)
+				end)
+			end)
+	end	
+	ui:Append("WndButton3", { x = 350, y = nY+5, txt = _L["Font edit"] }):Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			JH_CombatText.nFont = nFont
+		end)
+	end)	
+	nX, nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["Color edit"], font = 27 }):Pos_()
+	local nY2 = nY
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Critical Color"], checked = JH_CombatText.tCritical and true or false }):Click(function(bCheck)
+		if bCheck then
+			JH_CombatText.tCritical = { 255, 255, 255 }
+			JH_CombatText.tCriticalH = { 150, 255, 0 }
+			JH_CombatText.tCriticalB = { 255, 100, 0 }
+		else
+			JH_CombatText.tCritical = false
+		end
+		JH.OpenPanel(_L["CombatText"])
+	end):Pos_()
 
 	local i = 0
 	for k, v in pairs(JH_CombatText.col) do
-		ui:Append("Text", { x = (i % 8) * 65 + 10, y = nY + 30 * floor(i / 8), txt = _L["CombatText Color " .. k] })
-		ui:Append("Shadow", { x = (i % 8) * 65 + 45, y = nY + 30 * floor(i / 8) + 8, color = v, w = 15, h = 15 }):Click(function()
-			local ui = this
-			GUI.OpenColorTablePanel(function(r, g, b)
-				JH_CombatText.col[k] = { r, g, b }
-				ui:SetColorRGB(r, g, b)
+		if k ~= SKILL_RESULT_TYPE.EFFECTIVE_THERAPY then
+			ui:Append("Text", { x = (i % 8) * 65 + 10, y = nY + 30 * floor(i / 8), txt = _L["CombatText Color " .. k] })
+			ui:Append("Shadow", { x = (i % 8) * 65 + 45, y = nY + 30 * floor(i / 8) + 8, color = v, w = 15, h = 15 }):Click(function()
+				local ui = this
+				GUI.OpenColorTablePanel(function(r, g, b)
+					JH_CombatText.col[k] = { r, g, b }
+					ui:SetColorRGB(r, g, b)
+				end)
 			end)
-		end)
-		i = i + 1
+			i = i + 1
+		end
 	end
 
 	if IsFileExist(JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat") then
