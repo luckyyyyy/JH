@@ -760,4 +760,10 @@ data = {
 	["Damage Style"] = "受伤文字样式",
 	["Therapy Style"] = "治疗文字样式",
 	["CombatText Tips"] = "小提示：$name释放者名字，$sn技能名，$crit会心，$val数值。",
+	["$name not me"] = "$name为自己时不显示",
+	["$sn shorten(2)"] = "$sn技能名简写（前两字）",
+	["therapy effective only"] = "仅显示有效治疗",
+	["critical beat"] = "技能会心",
+	["critical beaten"] = "受伤会心",
+	["critical heaten"] = "治疗会心",		
 }
