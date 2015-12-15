@@ -229,7 +229,7 @@ data = {
 	["Format content"] = "格式化内容",
 	["Export success %s"] = "导出成功：%s",
 	["Import success %s"] = "导入成功：%s",
-	["Import failed %s"] = "导入失败，请检查文件是否存在或文件格式是否正确\n%s",
+	["Import failed %s"] = "导入失败，%s",
 	["Import mode"] = "导入模式",
 	["Cover"] = "覆盖（推荐）",
 	["Merge"] = "合并",
@@ -253,6 +253,9 @@ data = {
 	["Use common data"] = "使用通用数据（即当前角色和其他角色共用同一个数据）",
 	["life has left"] = "的血量剩余",
 	["mana has reached"] = "的内力达到",
+	["the file does not exist"] = "文件不存在，",
+	["can not read data file."] = "文件格式错误或无法读取。",
+	["please select interface path."] = "请选择interface目录下的文件。",
 	-- ST.class.lua --
 	["Countdown format Error"] = "倒计时格式错误",
 	["[%s] left over %d."] = "【%s】 剩余 %d 秒。",
@@ -756,5 +759,5 @@ data = {
 	["Skill Style"] = "技能文字样式",
 	["Damage Style"] = "受伤文字样式",
 	["Therapy Style"] = "治疗文字样式",
-	["CombatText Tips"] = "小提示：$name释放者名字，$sn技能名，$crit会心，$val数值。"
+	["CombatText Tips"] = "小提示：$name释放者名字，$sn技能名，$crit会心，$val数值。",
 }

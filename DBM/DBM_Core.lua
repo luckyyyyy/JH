@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-11 21:58:36
+-- @Last Modified time: 2015-12-15 11:41:57
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1493,11 +1493,14 @@ end
 function D.LoadConfigureFile(config)
 	local root, path = GetRootPath(), "\\".. JH.GetAddonInfo().szRootPath .. "DBM\\data\\" .. config.szFileName
 	local szFullPath = config.bFullPath and config.szFileName or path
-	-- local szFilePath = config.bFullPath and config.szFileName:gsub(root, "") or path
+	local szFilePath = config.bFullPath and config.szFileName:gsub(root, "") or path
 	szFullPath = szFullPath:gsub("\\", "/")
-	local data = LoadLUAData(szFullPath)
+	if not IsFileExist(szFullPath) then
+		return false, "the file does not exist"
+	end
+	local data = LoadLUAData(szFilePath)
 	if not data then
-		return false, szFullPath
+		return false, "can not read data file."
 	else
 		if config.nMode == 1 then
 			if config.tList["CIRCLE"] then
@@ -1729,3 +1732,4 @@ JH.RegisterEvent("LOGIN_GAME", D.Init)
 JH.RegisterEvent("PLAYER_ENTER_GAME", D.LoadUserData)
 JH.RegisterExit(D.SaveData)
 JH.RegisterBgMsg("DBM_SHARE", D.OnShare)
+
