@@ -25,10 +25,18 @@ local SKILL_RESULT_TYPE = {
 }
 -- 从这里开始可以修改了
 data = {
-	COMBAT_TEXT_IGNORE = { -- 忽略掉 不显示的技能ID 可以在DBM近期技能记录找ID 平砍也是个技能
-		-- [技能ID] = true,
+	-- 忽略不显示的技能 ID可以在DBM近期技能记录找 平砍也是个技能
+	COMBAT_TEXT_IGNORE = {
+		-- [12]   = true, -- XX平砍
+		-- [4326] = true, -- 明教平砍
+		-- 其他自己找了 都注解了 需要无视自己去掉 但是小心仙侣老3害人
 	},
-	COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
+
+	-- 用于屏蔽事件，比如不需要BUFF可以删除 SKILL_BUFF
+	COMBAT_TEXT_EVENT  = { "COMMON_HEALTH_TEXT", "SKILL_EFFECT_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY" },
+
+	-- 需要会心和放大的类型
+	COMBAT_TEXT_CRITICAL = {
 		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
 		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = true,
 		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = true,
@@ -39,7 +47,9 @@ data = {
 		[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
 		["EXP"]                                  = true,
 	},
-	COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
+
+	 -- 各种伤害的缩放帧数 一共32个关键帧
+	COMBAT_TEXT_SCALE = {
 		CRITICAL = { -- 会心
 			1, 2, 3, 5, 5, 3, 2, 2,
 			2, 2, 2, 2, 2, 2, 2, 2,
@@ -53,7 +63,9 @@ data = {
 			1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
 		},
 	},
-	COMBAT_TEXT_POINT = { -- 伤害位置移动
+
+	 -- 伤害位置移动 当然可以负数
+	COMBAT_TEXT_POINT = {
 		TOP = { -- 伤害 往上的 分四组 普通 慢 慢 块~~
 			6,   12,  18,  24,  30,  36,  42,  48,
 			53,  58,  63,  68,  73,  78,  83,  88,
