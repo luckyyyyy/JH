@@ -2,13 +2,13 @@
 # @Author: Webster
 # @Date:   2015-07-18 14:20:46
 # @Last Modified by:   Webster
-# @Last Modified time: 2015-07-18 14:26:49
+# @Last Modified time: 2015-12-15 13:32:37
 # 方便在OSX下打包
 
 VERSION=$(grep "local _VERSION_" 0Base/Base.lua | awk '{print $4}')
 DATE=$(date +%Y%m%d%H%M)
 
-FILE=releases/${DATE}_${VERSION}.7z
+FILE=releases/JH_${DATE}_${VERSION}.7z
 echo zippping...
 7z a -t7z $FILE -x@7zipignore.txt
 echo 'File(s) compressing acomplete!'

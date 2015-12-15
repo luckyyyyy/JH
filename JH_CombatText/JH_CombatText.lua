@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-14 19:56:10
+-- @Last Modified time: 2015-12-16 00:54:26
 
 local _L = JH.LoadLangPack
 
@@ -349,7 +349,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		for k, v in pairs(CombatText.tShadows) do
 			if v.dwTargetID == dwTargetID and v.nFrame <= v.nSort * 5 + 5 and v.szPoint == "TOP" then
 				nSort = nSort + 1
-				v.nSort = v.nSort + nSort - v.nSort
+				v.nSort = math.min(3 / COMBAT_TEXT_UI_SCALE, v.nSort + math.max(nSort - v.nSort, 0))
 			end
 		end
 		if bCriticalStrike and JH_CombatText.tCritical then
