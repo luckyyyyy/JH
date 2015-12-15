@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-10 00:07:19
+-- @Last Modified time: 2015-12-14 20:15:33
 
 -- 早期代码 需要重写
 
@@ -981,6 +981,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					JH.Topmsg(_L["Sychoronization Complete"])
 					local tData, err = JH.JsonDecode(str)
 					if err then
+						JH.Debug(err)
 						return _GKP.Sysmsg(_L["Abnormal with Data Sharing, Please contact and make feed back with the writer."])
 					end
 					JH.Confirm(_L("Data Sharing Finished, you have one last chance to confirm wheather cover the current data or not? \n data of team bidding: %s\n transation data: %s", #tData.GKP_Record, #tData.GKP_Account), function()
