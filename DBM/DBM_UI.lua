@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-11 22:07:48
+-- @Last Modified time: 2015-12-15 11:45:37
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -608,9 +608,13 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 	nX = ui:Append("WndEdit", "FilePtah", { x = 30, y = nY + 10, w = 450, h = 25, txt = szTitle, enable = false }):Pos_()
 	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY + 10, txt = _L["browse"], enable = not szDefault }):Click(function()
 		local szFile = GetOpenFileName()
-		ui:Fetch("FilePtah"):Text(szFile)
+		if szFile:find(GetRootPath() .. "\\interface") then
+			ui:Fetch("FilePtah"):Text(szFile)
+		else
+			ui:Fetch("FilePtah"):Text("")
+			JH.Alert(_L["please select interface path."])
+		end
 	end):Pos_()
-
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Import mode"], font = 27 }):Pos_()
 	local nType = 1
 	nX = ui:Append("WndRadioBox", { x = 30, y = nY + 10, txt = _L["Cover"], group = "type", checked = true }):Click(function()
@@ -631,15 +635,15 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 				config.tList[v] = true
 			end
 		end
-		local bStatus, szFullPath = DBM_API.LoadConfigureFile(config)
+		local bStatus, szMsg = DBM_API.LoadConfigureFile(config)
 		if bStatus then
-			JH.Alert(_L("Import success %s", szTitle or szFullPath))
+			JH.Alert(_L("Import success %s", szTitle or szMsg))
 			ui:Remove()
 			if fnAction then
 				fnAction()
 			end
 		else
-			JH.Alert(_L("Import failed %s", szTitle or szFullPath))
+			JH.Alert(_L("Import failed %s", szTitle or _L[szMsg]))
 		end
 	end)
 end
