@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-15 11:41:57
+-- @Last Modified time: 2015-12-15 15:01:14
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1476,13 +1476,14 @@ function D.LoadUserData()
 		local szLang = select(3, GetVersion())
 		local config = {
 			nMode = 1,
-			tList = { -- 初始化读取的数据 以后会增加 doodad
+			tList = {
 				BUFF    = true,
 				DEBUFF  = true,
 				CASTING = true,
 				NPC     = true,
 				TALK    = true,
-				CIRCLE  = true
+				CIRCLE  = true,
+				DOODAD  = true,
 			},
 			szFileName = szLang ..  "_default.jx3dat",
 		}
