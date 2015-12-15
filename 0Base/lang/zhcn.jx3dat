@@ -733,7 +733,7 @@ data = {
 	-- CombatText --
 	["CombatText"] = "战斗文字",
 	["Disable Immunity"] = "屏蔽免疫",
-	["Critical Color"] = "单独会心颜色",
+	["Critical Color"] = "区分会心颜色",
 	["CombatText Config loaded"] = "战斗文字配置加载完成。",
 	["CombatText Config failed"] = "战斗文字配置加载失败。",
 	["Load CombatText Config"] = "重新载入配置",
@@ -761,9 +761,9 @@ data = {
 	["Therapy Style"] = "治疗文字样式",
 	["CombatText Tips"] = "小提示：$name释放者名字，$sn技能名，$crit会心，$val数值。",
 	["$name not me"] = "$name为自己时不显示",
-	["$sn shorten(2)"] = "$sn技能名简写（前两字）",
+	["$sn shorten(2)"] = "简写技能名",
 	["therapy effective only"] = "仅显示有效治疗",
 	["critical beat"] = "技能会心",
 	["critical beaten"] = "受伤会心",
-	["critical heaten"] = "治疗会心",		
+	["critical heaten"] = "治疗会心",
 }
