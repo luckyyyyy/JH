@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-15 11:59:54
+-- @Last Modified time: 2015-12-16 10:21:12
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -157,7 +157,7 @@ end
 -- 设置面板开关、初始化
 -------------------------------------
 function JH.OpenPanel(szTitle)
-	_JH.OpenPanel(szTitle ~= nil)
+	_JH.OpenPanel()
 	if szTitle then
 		local nClass, nItem = 0, 0
 		for k, v in ipairs(_JH.tItem) do
@@ -181,12 +181,19 @@ function JH.OpenPanel(szTitle)
 end
 
 -- open
-function _JH.OpenPanel(bDisable)
-	local frame = Station.Lookup("Normal/JH") or Wnd.OpenWindow(_JH.szIniFile, "JH")
-	frame:Show()
-	frame:BringToTop()
-	if not bDisable then
+function _JH.OpenPanel()
+	local frame = Station.Lookup("Normal/JH")
+	if frame then
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+		frame:Show()
+		frame:BringToTop()
+		local win = GUI(_JH.frame:Lookup("Wnd_Detail"))
+		if win.___data then
+			local i, data = unpack(win.___data)
+			_JH.UpdateDetail(i, data)
+		end
+	else
+		frame = Wnd.OpenWindow(_JH.szIniFile, "JH")
 	end
 	return frame
 end
@@ -196,6 +203,10 @@ function _JH.ClosePanel(bDisable)
 	local frame = Station.Lookup("Normal/JH")
 	if frame then
 		frame:Hide()
+		local win = GUI(frame:Lookup("Wnd_Detail"))
+		if win.fnDestroy then
+			win.fnDestroy(win)
+		end
 		if not bDisable then
 			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		end
@@ -261,6 +272,7 @@ function _JH.UpdateDetail(i, data)
 		_JH.hTotal:Lookup("Text_Author"):SetText(szInfo)
 		if data.fn.OnPanelActive then
 			data.fn.OnPanelActive(win:Raw())
+			win.___data = { i, data }
 			win.handle:FormatAllItemPos()
 		end
 		win.fnDestroy = data.fn.OnPanelDeactive
@@ -1467,7 +1479,7 @@ function JH.GetShadowHandle(szName)
 end
 JH.GetPlayerAddonMenu = _JH.GetPlayerAddonMenu
 JH.RegisterEvent("PLAYER_ENTER_GAME", function()
-	_JH.OpenPanel(true):Hide()
+	_JH.OpenPanel():Hide()
 	-- _JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
 	-- 注册快捷键
 	Hotkey.AddBinding("JH_Total", _L["JH Plugin"], _JH.szTitle, _JH.TogglePanel , nil)
