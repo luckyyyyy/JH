@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-16 09:13:12
+-- @Last Modified time: 2015-12-16 11:21:21
 
 local _L = JH.LoadLangPack
 
@@ -117,7 +117,6 @@ JH_CombatText = {
 	col = { -- 颜色呗
 		["DAMAGE"]                               = { 255, 0,   0   }, -- 自己受到的伤害
 		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- 治疗
-		[SKILL_RESULT_TYPE.EFFECTIVE_THERAPY]    = { 0,   255, 0   }, -- 有效治疗
 		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- 外公
 		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- 阳
 		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- 混元
