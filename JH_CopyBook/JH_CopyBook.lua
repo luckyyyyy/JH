@@ -1,11 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-06 18:28:49
+-- @Last Modified time: 2015-12-16 10:54:56
 
 local _L = JH.LoadLangPack
-local GetClientPlayer = GetClientPlayer
-
+local pairs, ipairs = pairs, ipairs
+local GetClientPlayer, BigBagPanel_nCount = GetClientPlayer, BigBagPanel_nCount
+local BookID2GlobelRecipeID = BookID2GlobelRecipeID
 JH_CopyBook = {
 	szBookName = _L["BOOK_143"],
 	nCopyNum   = 1,
@@ -14,7 +15,10 @@ JH_CopyBook = {
 JH.RegisterCustomData("JH_CopyBook")
 
 local Book = {
-	tCache  = {},
+	tCache  = {
+		BOOK = {},
+		ITEM = {},
+	},
 	bEnable = false,
 	nBook   = 1,
 }
@@ -25,65 +29,77 @@ function Book.GetBook(szName)
 	local nCount = g_tTable.BookSegment:GetRowCount() --获取表格总行
 	local nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt = 0, 0, 0, 0, 0, 0
 	local tItems, tBooks, tTool = {}, {}, {}
-	if not Book.tCache[szName] then
+	if not Book.tCache.BOOK[szName] then
+		local dwBookID, dwBookNumber
 		for i = 1, nCount do
 			local item = g_tTable.BookSegment:GetRow(i)
 			if item.szBookName == szName then
-				Book.tCache[szName] = { item.dwBookID, item.dwBookNumber }
+				dwBookID, dwBookNumber = item.dwBookID, item.dwBookNumber
+
 				break
 			end
 		end
-	end
-	local dwBookID, dwBookNumber = unpack(Book.tCache[szName] or {})
-	if dwBookID then
-		for i = 1, dwBookNumber do
-			local tRecipe = GetRecipe(12, dwBookID, i)
-			if not JH_CopyBook.tIgnore[i] then
-				nThew           = nThew + tRecipe.nThew
-				nMaxLevel       = math.max(nMaxLevel, tRecipe.dwRequireProfessionLevel) -- 阅读等级
-				nMaxPlayerLevel = math.max(nMaxPlayerLevel, tRecipe.nRequirePlayerLevel) -- 角色等级
-				if nMaxLevelEx < tRecipe.dwRequireProfessionLevelExt then
-					nMaxLevelEx = tRecipe.dwRequireProfessionLevelExt
-					if dwProfessionIDExt == 0 then -- 不知道为毛会放在里面。。。
-						dwProfessionIDExt = tRecipe.dwProfessionIDExt
+		if dwBookID then
+			for i = 1, dwBookNumber do
+				local tRecipe = GetRecipe(12, dwBookID, i)
+				if not JH_CopyBook.tIgnore[i] then
+					nThew           = nThew + tRecipe.nThew
+					nMaxLevel       = math.max(nMaxLevel, tRecipe.dwRequireProfessionLevel) -- 阅读等级
+					nMaxPlayerLevel = math.max(nMaxPlayerLevel, tRecipe.nRequirePlayerLevel) -- 角色等级
+					if nMaxLevelEx < tRecipe.dwRequireProfessionLevelExt then
+						nMaxLevelEx = tRecipe.dwRequireProfessionLevelExt
+						if dwProfessionIDExt == 0 then -- 不知道为毛会放在里面。。。
+							dwProfessionIDExt = tRecipe.dwProfessionIDExt
+						end
+					end
+					for nIndex = 1, 4, 1 do
+						local dwTabType = tRecipe["dwRequireItemType"  .. nIndex]
+						local dwIndex   = tRecipe["dwRequireItemIndex" .. nIndex]
+						local nCount    = tRecipe["dwRequireItemCount" .. nIndex]
+						if nCount > 0 then
+							local item = GetItemInfo(dwTabType, dwIndex)
+							tItems[item.szName] = tItems[item.szName] or { dwTabType = dwTabType, dwIndex = dwIndex, nCount = 0 }
+							tItems[item.szName].nCount = tItems[item.szName].nCount + nCount
+						end
+					end
+					if tRecipe.dwToolItemType ~= 0 and tRecipe.dwToolItemIndex ~= 0 then
+						local item   = GetItemInfo(tRecipe.dwToolItemType, tRecipe.dwToolItemIndex)
+						local nCount = me.GetItemAmount(tRecipe.dwToolItemType, tRecipe.dwToolItemIndex)
+						tTool[item.szName] = nCount
 					end
 				end
-				for nIndex = 1, 4, 1 do
-					local dwTabType = tRecipe["dwRequireItemType"  .. nIndex]
-					local dwIndex   = tRecipe["dwRequireItemIndex" .. nIndex]
-					local nCount    = tRecipe["dwRequireItemCount" .. nIndex]
-					if nCount > 0 then
-						local item = GetItemInfo(dwTabType, dwIndex)
-						tItems[item.szName] = tItems[item.szName] or { dwTabType = dwTabType, dwIndex = dwIndex, nCount = 0 }
-						tItems[item.szName].nCount = tItems[item.szName].nCount + nCount
-					end
-				end
-				if tRecipe.dwToolItemType ~= 0 and tRecipe.dwToolItemIndex ~= 0 then
-					local item   = GetItemInfo(tRecipe.dwToolItemType, tRecipe.dwToolItemIndex)
-					local nCount = me.GetItemAmount(tRecipe.dwToolItemType, tRecipe.dwToolItemIndex)
-					tTool[item.szName] = nCount
-				end
+				table.insert(tBooks, {
+					dwTabType = tRecipe.dwCreateItemType,
+					dwIndex   = tRecipe.dwCreateItemIndex
+				})
 			end
-			table.insert(tBooks, {
-				dwTabType = tRecipe.dwCreateItemType,
-				dwIndex   = tRecipe.dwCreateItemIndex
-			})
+			local tTable = g_tTable.BookEx:Search(dwBookID)
+			if tTable then
+				nExamPrint = tTable.dwPresentExamPrint
+			end
 		end
-		local tTable = g_tTable.BookEx:Search(dwBookID)
-		if tTable then
-			nExamPrint = tTable.dwPresentExamPrint
-		end
+		Book.tCache.BOOK[szName] = { dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool }
 	end
-	return dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool
+	return unpack(Book.tCache.BOOK[szName] or {})
 end
 
 function Book.GetBookCount(dwRecipeID)
+	if IsEmpty(Book.tCache.ITEM) then
+		local me = GetClientPlayer()
+		for dwBox = 1, BigBagPanel_nCount do
+			Book.tCache.ITEM[dwBox] = Book.tCache.ITEM[dwBox] or {}
+			for dwX = 0, me.GetBoxSize(dwBox) - 1 do
+				local item = me.GetItem(dwBox, dwX)
+				if item and item.nGenre == ITEM_GENRE.BOOK then
+					Book.tCache.ITEM[dwBox][dwX] = item.nStackNum
+				end
+			end
+		end
+	end
 	local nCount = 0
-	local me = GetClientPlayer(), {}
-	for dwBox = 1, BigBagPanel_nCount do
-		for dwX = 0, me.GetBoxSize(dwBox) - 1 do
-			local item = me.GetItem(dwBox, dwX)
-			if item and item.nGenre == ITEM_GENRE.BOOK and item.nStackNum == dwRecipeID then
+	for k, v in pairs(Book.tCache.ITEM) do
+		for kk, vv in pairs(v) do
+			if vv == dwRecipeID then
 				nCount = nCount + 1
 			end
 		end
@@ -195,6 +211,7 @@ function Book.UpdateInfo(szName)
 				if not IsCtrlKeyDown() then
 					this:EnableObject(this:IsObjectEnable())
 					JH_CopyBook.tIgnore[k] = this:IsObjectEnable() or nil
+					Book.tCache.BOOK[JH_CopyBook.szBookName] = nil
 					Book.UpdateInfo()
 				end
 			end):Pos_()
@@ -332,21 +349,34 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Copy Count"] }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", "Count", { x = nX + 5, y = nY + 5, txt = "" }):Range(1, 1, 1):Pos_()
 	nX, nY = ui:Append("Handle", "Books", { x = 0, y = nY, h = 40, w = 500 }):Pos_()
-	nX, nY = ui:Append("Handle", "Require", { x = 0, y = nY + 5, h = 200, w = 500})
+	nX, nY = ui:Append("Handle", "Require", { x = 0, y = nY + 5, h = 200, w = 500 })
 	Book.UpdateInfo()
-	JH.RegisterEvent("BAG_ITEM_UPDATE.CokyBook", function() Book.UpdateInfo() end)
-	JH.RegisterEvent("PROFESSION_LEVEL_UP.CokyBook", function() Book.UpdateInfo() end)
-	JH.RegisterEvent("SYS_MSG.CokyBook", function()
-		if arg0 == "UI_OME_CRAFT_RESPOND" then
+	JH.RegisterInit("CokyBook",
+		{ "BAG_ITEM_UPDATE", function()
+			local me = GetClientPlayer()
+			local item = me.GetItem(arg0, arg1)
+			Book.tCache.ITEM[arg0] = Book.tCache.ITEM[arg0] or {}
+			if item and item.nGenre == ITEM_GENRE.BOOK then
+				Book.tCache.ITEM[arg0][arg1] = item.nStackNum
+			else
+				Book.tCache.ITEM[arg0][arg1] = nil
+			end
 			Book.UpdateInfo()
-		end
-	end)
+		end },
+		{ "PROFESSION_LEVEL_UP", function() Book.UpdateInfo() end },
+		{ "SYS_MSG", function()
+			if arg0 == "UI_OME_CRAFT_RESPOND" then
+				Book.UpdateInfo()
+			end
+		end }
+	)
 end
 
 function PS.OnPanelDeactive()
-	JH.UnRegisterEvent("BAG_ITEM_UPDATE.CokyBook")
-	JH.UnRegisterEvent("PROFESSION_LEVEL_UP.CokyBook")
-	JH.UnRegisterEvent("SYS_MSG.CokyBook")
+	JH.UnRegisterInit("CokyBook")
+	Book.tCache.ITEM = {}
+	Book.ui          = nil
+	Book.tBookList   = nil
 end
 
 GUI.RegisterPanel(_L["Copy Book"], 415, g_tStrings.CHANNEL_CHANNEL, PS)
