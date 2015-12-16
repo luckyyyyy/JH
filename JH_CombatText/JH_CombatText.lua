@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-16 02:26:47
+-- @Last Modified time: 2015-12-16 09:13:12
 
 local _L = JH.LoadLangPack
 
@@ -11,6 +11,7 @@ local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
+local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
 local COMBAT_TEXT_TOTAL          = 32 -- 如果修改这里 请注意其他也要跟着改
 local COMBAT_TEXT_UI_SCALE       = 1  -- 需要对文字做调整哦
 local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
@@ -93,7 +94,7 @@ local CombatText = {
 setmetatable(CombatText.tFree, { __mode = "v" })
 setmetatable(CombatText.tShadows, { __mode = "k" })
 JH_CombatText = {
-	bEnable      = false;
+	bEnable      = true;
 	bRender      = true,
 	nMaxAlpha    = 240,
 	nTime        = 40,
@@ -448,7 +449,7 @@ function CombatText.OnSkillMiss(dwTargetID)
 		for k, v in pairs(CombatText.tShadows) do
 			if v.dwTargetID == dwTargetID and v.nFrame <= v.nSort * 5 + 5 and v.szPoint == "TOP" then
 				nSort = nSort + 1
-				v.nSort = v.nSort + nSort - v.nSort
+				v.nSort = min(3 / COMBAT_TEXT_UI_SCALE, v.nSort + max(nSort - v.nSort, 0))
 			end
 		end
 	end
@@ -566,10 +567,9 @@ function CombatText.GetFreeShadow()
 end
 
 function CombatText.LoadConfig()
-	local path = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
-	local bExist = IsFileExist(path)
+	local bExist = IsFileExist(COMBAT_TEXT_CONFIG)
 	if bExist then
-		local data = LoadLUAData(path)
+		local data = LoadLUAData(COMBAT_TEXT_CONFIG)
 		if data then
 			COMBAT_TEXT_CRITICAL = data.COMBAT_TEXT_CRITICAL or COMBAT_TEXT_CRITICAL
 			COMBAT_TEXT_SCALE    = data.COMBAT_TEXT_SCALE    or COMBAT_TEXT_SCALE
@@ -659,11 +659,11 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Text Style"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Skill Style"], color = { 255, 255, 200 } }):Pos_()
 	local nY2 = nY
-	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 12, w = 250, h = 25, txt = JH_CombatText.szSkill }):Change(function(szText)
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 12, w = 250, h = 25, txt = JH_CombatText.szSkill, limit = 30 }):Change(function(szText)
 		JH_CombatText.szSkill = szText
 	end):Pos_()
 	if JH_CombatText.tCritical then
-		nX = ui:Append("Text", { x = nX+15, y = nY2+ 10, txt = _L["critical beat"]}):Pos_() --会心伤害
+		nX = ui:Append("Text", { x = nX + 15, y = nY2 + 10, txt = _L["critical beat"]}):Pos_() --会心伤害
 		ui:Append("Shadow", { x = nX + 5, y = nY2 + 10 + 6, color = JH_CombatText.tCriticalC, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
@@ -674,11 +674,11 @@ function PS.OnPanelActive(frame)
 	end
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Damage Style"], color = { 255, 255, 200 } }):Pos_()
 	nY2 = nY
-	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szDamage }):Change(function(szText)
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szDamage, limit = 30 }):Change(function(szText)
 		JH_CombatText.szDamage = szText
 	end):Pos_()
 	if JH_CombatText.tCritical then
-		nX = ui:Append("Text", { x = nX+15, y = nY2+ 2, txt = _L["critical beaten"]}):Pos_() --会心承伤
+		nX = ui:Append("Text", { x = nX+15, y = nY2 + 2, txt = _L["critical beaten"]}):Pos_() --会心承伤
 		nX = ui:Append("Shadow", { x = nX + 5, y = nY2 + 2 + 6, color = JH_CombatText.tCriticalB, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
@@ -689,7 +689,7 @@ function PS.OnPanelActive(frame)
 	end
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Therapy Style"], color = { 255, 255, 200 } }):Pos_()
 	nY2 = nY
-	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szTherapy }):Change(function(szText)
+	nX, nY = ui:Append("WndEdit", { x = nX + 10, y = nY + 2, w = 250, h = 25, txt = JH_CombatText.szTherapy, limit = 30 }):Change(function(szText)
 		JH_CombatText.szTherapy = szText
 	end):Pos_()
 	if JH_CombatText.tCritical then
@@ -703,13 +703,13 @@ function PS.OnPanelActive(frame)
 		end):Pos_()
 	end
 	nX, nY = ui:Append("Text", { x = 10, y = nY, txt = _L["CombatText Tips"], color = { 196, 196, 196 } }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt =  _L["$name not me"], checked = JH_CombatText.bCasterNotI }):Click(function(bCheck)
+	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["$name not me"], checked = JH_CombatText.bCasterNotI }):Click(function(bCheck)
 		JH_CombatText.bCasterNotI = bCheck
 	end):Pos_() -- name为自己时不显示
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt =  _L["$sn shorten(2)"], checked = JH_CombatText.bSnShorten2 }):Click(function(bCheck)
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["$sn shorten(2)"], checked = JH_CombatText.bSnShorten2 }):Click(function(bCheck)
 		JH_CombatText.bSnShorten2 = bCheck
 	end):Pos_()	--sn 显示为技能缩写（前2字
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt =  _L["therapy effective only"], checked = JH_CombatText.bTherEffOnly }):Click(function(bCheck)
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["therapy effective only"], checked = JH_CombatText.bTherEffOnly }):Click(function(bCheck)
 		JH_CombatText.bTherEffOnly = bCheck
 	end):Pos_()	-- 这个是不需要单独着色的，跟着治疗的颜色一起的
 	ui:Append("WndButton3", { x = 350, y = nY + 10, txt = _L["Font edit"] }):Click(function()
@@ -738,7 +738,7 @@ function PS.OnPanelActive(frame)
 		end
 	end
 
-	if IsFileExist(JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat") then
+	if IsFileExist(COMBAT_TEXT_CONFIG) then
 		ui:Append("WndButton3", { x = 350, y = 0, txt = _L["Load CombatText Config"] }):Click(CombatText.CheckEnable)
 	end
 end
