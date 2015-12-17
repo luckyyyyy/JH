@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-17 20:19:26
+-- @Last Modified time: 2015-12-18 00:35:29
 
 local _L = JH.LoadLangPack
 
@@ -9,6 +9,7 @@ local UI_GetClientPlayerID, GetUserRoleName = UI_GetClientPlayerID, GetUserRoleN
 local pairs, unpack = pairs, unpack
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
+local GetSkill = GetSkill
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
@@ -305,6 +306,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
+
 	local nTime = GetTime()
 	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
 	local szText, szReplaceText
@@ -334,6 +336,18 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 	end
 	if szPoint == "BOTTOM_LEFT" then -- 左下角肯定是伤害
+		 -- 苍云反弹技能修正颜色
+		if p and p.dwID ~= dwID and  p.dwForceID == 21 and nEffectType ~= SKILL_EFFECT_TYPE.BUFF then
+			local hSkill = GetSkill(dwSkillID, dwSkillLevel)
+			if hSkill
+				and hSkill.dwMountRequestDetail ~= 10389
+				and hSkill.dwMountRequestDetail ~= 10390
+				and hSkill.dwMountRequestDetail ~= 0
+			then
+				nType = SKILL_RESULT_TYPE.REFLECTIED_DAMAGE
+				col = JH_CombatText.col[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]
+			end
+		end
 		if nType ~= SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
 			col = JH_CombatText.col["DAMAGE"]
 			if bCriticalStrike and JH_CombatText.tCritical then
