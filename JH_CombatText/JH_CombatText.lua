@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-16 11:21:21
+-- @Last Modified time: 2015-12-17 13:14:40
 
 local _L = JH.LoadLangPack
 
@@ -282,16 +282,24 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	if COMBAT_TEXT_IGNORE[dwSkillID] and dwCasterID == dwID then
 		return
 	end
-	if dwCasterID ~= dwID and dwTargetID ~= dwID then -- 和我没什么卵关系
-		return
-	end
 	local shadow = CombatText.GetFreeShadow()
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
 	-- 把两种归类为一种 方便处理
 	nType = nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY and SKILL_RESULT_TYPE.THERAPY or nType
-
+	local bIsPlayer = GetPlayer(dwCasterID)
+	local p = bIsPlayer and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
+	local employer, dwEmployerID
+	if not bIsPlayer and p then
+		dwEmployerID = p.dwEmployer
+		if dwEmployerID ~= 0 then -- NPC要算归属圈
+			employer = GetPlayer(dwEmployerID)
+		end
+	end
+	if dwCasterID ~= dwID and dwTargetID ~= dwID and dwEmployerID ~= dwID then -- 和我没什么卵关系
+		return
+	end
 	local nTime = GetTime()
 	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
 	local szText, szReplaceText
@@ -329,17 +337,13 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 		szReplaceText = JH_CombatText.szDamage
 	end
+
 	local szCasterName = ""
-	local p = IsPlayer(dwCasterID) and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
-	if p and p.szName ~= "" then
-		szCasterName = p.szName
-	end
-	if not IsPlayer(dwCasterID) then
-		if p and p.dwEmployer and p.dwEmployer ~= 0 then -- NPC要算归属圈
-			local employer = GetPlayer(p.dwEmployer)
-			if employer then
-				szCasterName = employer.szName
-			end
+	if p then
+		if employer then
+			szCasterName = employer.szName
+		else
+			szCasterName = p.szName
 		end
 	end
 
