@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-18 00:35:29
+-- @Last Modified time: 2015-12-18 01:13:38
 
 local _L = JH.LoadLangPack
 
@@ -339,11 +339,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		 -- 苍云反弹技能修正颜色
 		if p and p.dwID ~= dwID and  p.dwForceID == 21 and nEffectType ~= SKILL_EFFECT_TYPE.BUFF then
 			local hSkill = GetSkill(dwSkillID, dwSkillLevel)
-			if hSkill
-				and hSkill.dwMountRequestDetail ~= 10389
-				and hSkill.dwMountRequestDetail ~= 10390
-				and hSkill.dwMountRequestDetail ~= 0
-			then
+			if hSkill and hSkill.dwBelongSchool ~= 18 and hSkill.dwBelongSchool ~= 0 then
 				nType = SKILL_RESULT_TYPE.REFLECTIED_DAMAGE
 				col = JH_CombatText.col[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]
 			end
