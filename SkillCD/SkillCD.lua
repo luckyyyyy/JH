@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-10 04:43:33
+-- @Last Modified time: 2015-12-17 12:09:50
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -17,7 +17,7 @@ SkillCD = {
 		[2234] = true,
 	},
 	tCustom = {
-		[17] = 10, -- ´ò×ø²âÊÔ
+		[17] = 10, -- æ‰“åæµ‹è¯•
 	},
 }
 JH.RegisterCustomData("SkillCD", 2)
@@ -36,33 +36,33 @@ local SC = {
 }
 
 local aSkillList = {
-	[371] = 300, -- ÕğÉ½ºÓ
-	[551] = 660, -- ĞÄ¹ÄÏÒ
-	[131] = 150, -- ±ÌË®ÌÏÌì
-	[252] = 25, -- ´óÊ¨×Óºğ
-	[2235] = 90, -- Ç§µûÍÂÈğ
-	[3985] = 300, -- ³¯Ê¥ÑÔ
-	[2234] = 120, -- ÏÉÍõ¹Æ¶¦
-	[411] = 90, -- ÂÓÈç»ğ
-	[3971] = 45, -- ¼«ÀÖÒı
-	[2663] = 120, -- Ìı·ç´µÑ©
-	[2220] = 1500, -- ·ï»Ë¹È
-	[259] = 300, -- ÂÖ»Ø¾ö
-	[1645] = 120, -- ·çÀ´ÎâÉ½
-	[2957] = 18, -- Ê¥ÊÖ
-	[13072] = 90, -- ¶Ü»¤
-	[555] = 40, -- ·çĞã
-	[569] = 15, -- ÍõÄ¸
-	[132] = 36, -- ´ºÄà
-	[258] = 45, -- ÉáÉí
-	[568] = 120, -- èóÒô
-	[6800] = 180, -- ÊÕ¶Ü
-	[14084] = 180, -- ³¤¸èZF
-	[14075] = 80, -- ³¤¸è ÉËº¦Æ½Ì¯
-	[15132] = 40, -- Îå¶¾²İ
-	[15115] = 180, -- ºÅÁîÈı¾ü
-	[14963] = 105, -- ÄÌ»¨ÃâËÀ
-	[14081] = 180, -- ¹ÂÓ°»¯Ë«
+	[371] = 300, -- éœ‡å±±æ²³
+	[551] = 660, -- å¿ƒé¼“å¼¦
+	[131] = 150, -- ç¢§æ°´æ»”å¤©
+	[252] = 25, -- å¤§ç‹®å­å¼
+	[2235] = 90, -- åƒè¶åç‘
+	[3985] = 300, -- æœåœ£è¨€
+	[2234] = 120, -- ä»™ç‹è›Šé¼
+	[411] = 90, -- æ å¦‚ç«
+	[3971] = 45, -- æä¹å¼•
+	[2663] = 120, -- å¬é£å¹é›ª
+	[2220] = 1500, -- å‡¤å‡°è°·
+	[259] = 300, -- è½®å›å†³
+	[1645] = 120, -- é£æ¥å´å±±
+	[2957] = 18, -- åœ£æ‰‹
+	[13072] = 90, -- ç›¾æŠ¤
+	[555] = 40, -- é£ç§€
+	[569] = 15, -- ç‹æ¯
+	[132] = 36, -- æ˜¥æ³¥
+	[258] = 45, -- èˆèº«
+	[568] = 120, -- æ¢µéŸ³
+	[6800] = 180, -- æ”¶ç›¾
+	[14084] = 180, -- é•¿æ­ŒZF
+	[14075] = 80, -- é•¿æ­Œ ä¼¤å®³å¹³æ‘Š
+	[15132] = 40, -- äº”æ¯’è‰
+	[15115] = 180, -- å·ä»¤ä¸‰å†›
+	[14963] = 105, -- å¥¶èŠ±å…æ­»
+	[14081] = 180, -- å­¤å½±åŒ–åŒ
 }
 
 -- setmetatable(aSkillList, { __index = SkillCD.tCustom })
@@ -122,7 +122,7 @@ end
 
 function SkillCD.OnFrameBreathe()
 	local data = {}
-	-- ÅÅĞò
+	-- æ’åº
 	for k, v in pairs(SC.tCD) do
 		for kk, vv in ipairs(v) do
 			local nSec = aSkillList[vv.dwSkillID] or 0
@@ -136,9 +136,9 @@ function SkillCD.OnFrameBreathe()
 			end
 		end
 	end
-	-- ¸üĞÂµ¹¼ÆÊ±Ìõ
+	-- æ›´æ–°å€’è®¡æ—¶æ¡
 	if SkillCD.bMini then return end
-	if GetLogicFrameCount() % 4 == 0 then -- ÆäÊµÒ²Ö»ÊÇ·ÀÖ¹µ¹¼ÆÊ±Ì«¶àÕ¼ÓÃĞÔÄÜ ...
+	if GetLogicFrameCount() % 4 == 0 then -- å…¶å®ä¹Ÿåªæ˜¯é˜²æ­¢å€’è®¡æ—¶å¤ªå¤šå ç”¨æ€§èƒ½ ...
 		local handle = SC.handle
 		handle:Clear()
 		tsort(data, function(a, b) return a.nEnd < b.nEnd end)
@@ -273,7 +273,7 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	SC.UpdateCount()
 end
 
--- Éú³É¼à¿ØÁĞ±í
+-- ç”Ÿæˆç›‘æ§åˆ—è¡¨
 function SC.UpdateMonitorCache()
 	local tKungfuMain = { [0] = {} }
 	for k, v in pairs(JH_KUNGFU_LIST) do
@@ -288,8 +288,15 @@ function SC.UpdateMonitorCache()
 		if aSkillList[k] then
 			local hSkill = GetSkill(k, 1)
 			if hSkill.dwMountRequestDetail ~= 0 then
-				kungfu[hSkill.dwMountRequestDetail] = kungfu[hSkill.dwMountRequestDetail] or {}
-				tinsert(kungfu[hSkill.dwMountRequestDetail], k)
+				if hSkill.dwMountRequestDetail == 10144 or hSkill.dwMountRequestDetail == 10145 then -- cj fix
+					kungfu[10144] = kungfu[10144] or {}
+					kungfu[10145] = kungfu[10145] or {}
+					tinsert(kungfu[10144], k)
+					tinsert(kungfu[10145], k)
+				else
+					kungfu[hSkill.dwMountRequestDetail] = kungfu[hSkill.dwMountRequestDetail] or {}
+					tinsert(kungfu[hSkill.dwMountRequestDetail], k)
+				end
 			else
 				for kk, vv in ipairs(tKungfuMain[hSkill.dwMountRequestType] or {}) do
 					kungfu[vv] = kungfu[vv] or {}
@@ -319,7 +326,7 @@ function SC.UpdateCount()
 	else
 		tinsert(member, me.dwID)
 	end
-	-- »ñÈ¡ id -> ĞÄ·¨ ¶ÔÓ¦±í
+	-- è·å– id -> å¿ƒæ³• å¯¹åº”è¡¨
 	for k, v in ipairs(member) do
 		tKungfu[v] = {}
 		if JH.IsParty(v) then
@@ -340,10 +347,10 @@ function SC.UpdateCount()
 		end
 	end
 	for k ,v in pairs(tKungfu) do
-		if tMonitor[v.dwMountKungfuID] then -- Èç¹ûĞÄ·¨ÔÚ¼à¿ØÄÚ
+		if tMonitor[v.dwMountKungfuID] then -- å¦‚æœå¿ƒæ³•åœ¨ç›‘æ§å†…
 			for kk, vv in ipairs(tMonitor[v.dwMountKungfuID]) do
 				local nEnd
-				if SC.tCD[k] then -- Èç¹ûÓĞ¼ÇÂ¼
+				if SC.tCD[k] then -- å¦‚æœæœ‰è®°å½•
 					for _, vvv in ipairs(SC.tCD[k]) do
 						if vvv.dwSkillID == vv then
 							nEnd = vvv.nEnd
@@ -452,7 +459,7 @@ function SC.UpdateCount()
 				HideTip()
 			end
 		end
-		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN) -- ÆäÊµÊÇ¼¼ÄÜ ²»¹ıÓÃ²»µ½
+		box:SetObject(UI_OBJECT_NOT_NEED_KNOWN) -- å…¶å®æ˜¯æŠ€èƒ½ ä¸è¿‡ç”¨ä¸åˆ°
 		box:SetObjectIcon(dwIconID)
 		local hCount = item:Lookup("Text_Count")
 		hCount:SetText(v.nCount)
@@ -603,5 +610,4 @@ JH.AddonMenu(function()
 		end
 	}
 end)
-
 
