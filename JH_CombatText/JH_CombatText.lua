@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-17 13:14:40
+-- @Last Modified time: 2015-12-17 13:19:25
 
 local _L = JH.LoadLangPack
 
@@ -282,10 +282,6 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	if COMBAT_TEXT_IGNORE[dwSkillID] and dwCasterID == dwID then
 		return
 	end
-	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- 没有空闲的shadow
-		return
-	end
 	-- 把两种归类为一种 方便处理
 	nType = nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY and SKILL_RESULT_TYPE.THERAPY or nType
 	local bIsPlayer = GetPlayer(dwCasterID)
@@ -298,6 +294,10 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 	end
 	if dwCasterID ~= dwID and dwTargetID ~= dwID and dwEmployerID ~= dwID then -- 和我没什么卵关系
+		return
+	end
+	local shadow = CombatText.GetFreeShadow()
+	if not shadow then -- 没有空闲的shadow
 		return
 	end
 	local nTime = GetTime()
