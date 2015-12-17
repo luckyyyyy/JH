@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-17 13:19:25
+-- @Last Modified time: 2015-12-17 20:19:26
 
 local _L = JH.LoadLangPack
 
@@ -284,6 +284,11 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	end
 	-- 把两种归类为一种 方便处理
 	nType = nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY and SKILL_RESULT_TYPE.THERAPY or nType
+
+	if nType == SKILL_RESULT_TYPE.THERAPY and nValue == 0 then
+		return
+	end
+
 	local bIsPlayer = GetPlayer(dwCasterID)
 	local p = bIsPlayer and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
 	local employer, dwEmployerID
