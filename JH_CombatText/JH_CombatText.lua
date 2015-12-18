@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-18 01:13:38
+-- @Last Modified time: 2015-12-18 18:58:17
 
 local _L = JH.LoadLangPack
 
@@ -88,7 +88,6 @@ local COMBAT_TEXT_POINT = {
 }
 
 local CombatText = {
-	tCache   = {},
 	tFree    = {}, -- 所有空闲的shadow 合集
 	tShadows = {}  -- 所有伤害UI的合集 shadow -> data
 }
@@ -134,10 +133,6 @@ function JH_CombatText.OnFrameCreate()
 	for k, v in ipairs(COMBAT_TEXT_EVENT) do
 		this:RegisterEvent(v)
 	end
-	-- this:RegisterEvent("PLAYER_ENTER_SCENE")
-	-- this:RegisterEvent("PLAYER_LEAVE_SCENE")
-	-- this:RegisterEvent("NPC_ENTER_SCENE")
-	-- this:RegisterEvent("NPC_LEAVE_SCENE")
 	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("FIGHT_HINT")
 	this:RegisterEvent("UI_SCALED")
@@ -184,10 +179,6 @@ function JH_CombatText.OnEvent(szEvent)
 				CombatText.OnStealLife(arg1, arg2, arg7, value)
 			end
 		end
-	elseif szEvent == "NPC_ENTER_SCENE" or szEvent == "PLAYER_ENTER_SCENE" then
-		CombatText.tCache[arg0] = true
-	elseif szEvent == "NPC_LEAVE_SCENE" or szEvent == "PLAYER_LEAVE_SCENE" then
-		CombatText.tCache[arg0] = nil
 	end
 end
 
@@ -239,10 +230,16 @@ function CombatText.OnFrameRender()
 					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
 				end
 			end
-			-- if CombatText.tCache[v.dwTargetID] then -- 这样还不行 有死亡的问题
-				local r, g, b = unpack(v.col)
+			local r, g, b = unpack(v.col)
+			if v.object and v.object.nX or not v.object or not v.tPoint[1] then
 				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
-			-- end
+				if v.object and v.object.nX then
+					v.tPoint = { v.object.nX, v.object.nY, v.object.nZ }
+				end
+			else
+				local x, y, z = unpack(v.tPoint)
+				k:AppendTriangleFan3DPoint(x, y, z, r, g, b, nAlpha, { 0, 1.65 * 64, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
+			end
 			v.nFrame = nFrame
 		else
 			k.free = true
@@ -388,6 +385,11 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 			col = JH_CombatText.tCriticalC
 		end
 	end
+	local object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
+	local tPoint = {}
+	if object then
+		tPoint = { object.nX, object.nY, object.nZ }
+	end
 	CombatText.tShadows[shadow] = {
 		szPoint         = szPoint,
 		nSort           = 0,
@@ -398,6 +400,8 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		nFrame          = 0,
 		bCriticalStrike = bCriticalStrike,
 		col             = col,
+		object          = object,
+		tPoint          = tPoint,
 	}
 end
 
@@ -417,6 +421,11 @@ function CombatText.OnStealLife(dwCaster, dwTarget, bCriticalStrike, nValue)
 	else
 		szPoint = "TOP"
 	end
+	local object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
+	local tPoint = {}
+	if object then
+		tPoint = { object.nX, object.nY, object.nZ }
+	end
 	CombatText.tShadows[shadow] = {
 		szPoint    = szPoint,
 		nSort      = 0,
@@ -426,6 +435,8 @@ function CombatText.OnStealLife(dwCaster, dwTarget, bCriticalStrike, nValue)
 		nTime      = nTime,
 		nFrame     = 0,
 		col        = JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY],
+		object     = object,
+		tPoint     = tPoint,
 	}
 end
 
