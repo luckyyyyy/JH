@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-16 10:54:56
+-- @Last Modified time: 2015-12-19 00:02:15
 
 local _L = JH.LoadLangPack
 local pairs, ipairs = pairs, ipairs
@@ -351,7 +351,7 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("Handle", "Books", { x = 0, y = nY, h = 40, w = 500 }):Pos_()
 	nX, nY = ui:Append("Handle", "Require", { x = 0, y = nY + 5, h = 200, w = 500 })
 	Book.UpdateInfo()
-	JH.RegisterInit("CokyBook",
+	JH.RegisterInit("CopyBook",
 		{ "BAG_ITEM_UPDATE", function()
 			local me = GetClientPlayer()
 			local item = me.GetItem(arg0, arg1)
@@ -373,7 +373,7 @@ function PS.OnPanelActive(frame)
 end
 
 function PS.OnPanelDeactive()
-	JH.UnRegisterInit("CokyBook")
+	JH.UnRegisterInit("CopyBook")
 	Book.tCache.ITEM = {}
 	Book.ui          = nil
 	Book.tBookList   = nil
