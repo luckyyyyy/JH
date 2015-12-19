@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-18 18:58:17
+-- @Last Modified time: 2015-12-19 11:20:05
 
 local _L = JH.LoadLangPack
 
@@ -251,6 +251,30 @@ end
 JH_CombatText.OnFrameBreathe = CombatText.OnFrameRender
 JH_CombatText.OnFrameRender  = CombatText.OnFrameRender
 
+function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
+	local object, tPoint
+	if dwTargetID ~= UI_GetClientPlayerID() then
+		object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) and GetNpc(dwTargetID)
+		if object and object.nX then
+			tPoint = { object.nX, object.nY, object.nZ }
+		end
+	end
+	local nTime = GetTime()
+	CombatText.tShadows[shadow] = {
+		szPoint         = szPoint,
+		nSort           = 0,
+		dwTargetID      = dwTargetID,
+		szText          = szText,
+		nType           = nType,
+		nTime           = nTime,
+		nFrame          = 0,
+		bCriticalStrike = bCriticalStrike,
+		col             = col,
+		object          = object,
+		tPoint          = tPoint,
+	}
+end
+
 function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, nValue, dwSkillID, dwSkillLevel, nEffectType)
 	-- 过滤 有效治疗 有效伤害 西区内力 化解治疗
 	if nType == SKILL_RESULT_TYPE.EFFECTIVE_DAMAGE
@@ -304,7 +328,6 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 
-	local nTime = GetTime()
 	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
 	local szText, szReplaceText
 	if nType == SKILL_RESULT_TYPE.THERAPY then
@@ -385,24 +408,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 			col = JH_CombatText.tCriticalC
 		end
 	end
-	local object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
-	local tPoint = {}
-	if object then
-		tPoint = { object.nX, object.nY, object.nZ }
-	end
-	CombatText.tShadows[shadow] = {
-		szPoint         = szPoint,
-		nSort           = 0,
-		dwTargetID      = dwTargetID,
-		szText          = szText,
-		nType           = nType,
-		nTime           = nTime,
-		nFrame          = 0,
-		bCriticalStrike = bCriticalStrike,
-		col             = col,
-		object          = object,
-		tPoint          = tPoint,
-	}
+	CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 end
 
 -- 吸血
@@ -415,29 +421,12 @@ function CombatText.OnStealLife(dwCaster, dwTarget, bCriticalStrike, nValue)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local nTime = GetTime()
 	if dwCaster == dwID then
 		szPoint = "BOTTOM_RIGHT"
 	else
 		szPoint = "TOP"
 	end
-	local object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
-	local tPoint = {}
-	if object then
-		tPoint = { object.nX, object.nY, object.nZ }
-	end
-	CombatText.tShadows[shadow] = {
-		szPoint    = szPoint,
-		nSort      = 0,
-		dwTargetID = dwCaster,
-		szText     = "+" .. nValue,
-		nType      = SKILL_RESULT_TYPE.STEAL_LIFE,
-		nTime      = nTime,
-		nFrame     = 0,
-		col        = JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY],
-		object     = object,
-		tPoint     = tPoint,
-	}
+	CombatText.CreateText(shadow, dwCaster, "+" .. nValue, szPoint, SKILL_RESULT_TYPE.STEAL_LIFE, false, JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY])
 end
 
 function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
@@ -453,17 +442,7 @@ function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 		return
 	end
 	local col = bCanCancel and { 255, 255, 0 } or { 255, 0, 0}
-	local nTime = GetTime()
-	CombatText.tShadows[shadow] = {
-		szPoint    = "RIGHT",
-		nSort      = 0,
-		dwTargetID = dwCharacterID,
-		szText     = szBuffName,
-		nType      = "SKILL_BUFF",
-		nTime      = nTime,
-		nFrame     = 0,
-		col        = col,
-	}
+	CombatText.CreateText(shadow, dwCharacterID, szBuffName, "RIGHT", "SKILL_BUFF", false, col)
 end
 
 function CombatText.OnSkillMiss(dwTargetID)
@@ -471,7 +450,6 @@ function CombatText.OnSkillMiss(dwTargetID)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local nTime = GetTime()
 	local szPoint = dwTargetID == UI_GetClientPlayerID() and "LEFT" or "TOP"
 	local nSort = 0
 	if szPoint == "TOP" then
@@ -482,16 +460,7 @@ function CombatText.OnSkillMiss(dwTargetID)
 			end
 		end
 	end
-	CombatText.tShadows[shadow] = {
-		szPoint    = szPoint,
-		dwTargetID = dwTargetID,
-		nSort      = nSort,
-		szText     = g_tStrings.STR_MSG_MISS,
-		nType      = "SKILL_MISS",
-		nTime      = nTime,
-		nFrame     = 0,
-		col        = JH_CombatText.col["SKILL_MISS"],
-	}
+	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_MISS, szPoint, "SKILL_MISS", false, JH_CombatText.col["SKILL_MISS"])
 end
 
 function CombatText.OnBuffImmunity(dwTargetID)
@@ -499,17 +468,7 @@ function CombatText.OnBuffImmunity(dwTargetID)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local nTime = GetTime()
-	CombatText.tShadows[shadow] = {
-		szPoint    = "LEFT",
-		nSort      = 0,
-		dwTargetID = dwTargetID,
-		szText     = g_tStrings.STR_MSG_IMMUNITY,
-		nType      = "BUFF_IMMUNITY",
-		nTime      = nTime,
-		nFrame     = 0,
-		col        = JH_CombatText.col["BUFF_IMMUNITY"],
-	}
+	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_IMMUNITY, "LEFT", "BUFF_IMMUNITY", false, JH_CombatText.col["BUFF_IMMUNITY"])
 end
 -- FireUIEvent("COMMON_HEALTH_TEXT", GetClientPlayer().dwID, -8888)
 function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
@@ -521,7 +480,6 @@ function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local nTime = GetTime()
 	local szPoint = "BOTTOM_LEFT"
 	if nDeltaLife > 0 then
 		if dwCharacterID ~= dwID then
@@ -530,16 +488,7 @@ function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
 			szPoint = "BOTTOM_RIGHT"
 		end
 	end
-	CombatText.tShadows[shadow] = {
-		szPoint    = szPoint,
-		nSort      = 0,
-		dwTargetID = dwCharacterID,
-		szText     = nDeltaLife > 0 and "+" .. nDeltaLife or nDeltaLife,
-		nType      = "COMMON_HEALTH",
-		nTime      = nTime,
-		nFrame     = 0,
-		col        = nDeltaLife > 0 and JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY] or JH_CombatText.col["DAMAGE"],
-	}
+	CombatText.CreateText(shadow, dwCharacterID, nDeltaLife > 0 and "+" .. nDeltaLife or nDeltaLife, szPoint, "COMMON_HEALTH", false, nDeltaLife > 0 and JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY] or JH_CombatText.col["DAMAGE"])
 end
 
 function CombatText.OnSkillDodge(dwTargetID)
@@ -547,17 +496,7 @@ function CombatText.OnSkillDodge(dwTargetID)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local nTime = GetTime()
-	CombatText.tShadows[shadow] = {
-		szPoint    = "LEFT",
-		nSort      = 0,
-		dwTargetID = dwTargetID,
-		szText     = g_tStrings.STR_MSG_DODGE,
-		nType      = "SKILL_DODGE",
-		nTime      = nTime,
-		nFrame     = 0,
-		col        = { 255, 0, 0 },
-	}
+	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_DODGE, "LEFT", "SKILL_DODGE", false, { 255, 0, 0 })
 end
 
 function CombatText.OnExpLog(dwCharacterID, nExp)
@@ -565,17 +504,7 @@ function CombatText.OnExpLog(dwCharacterID, nExp)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local nTime = GetTime()
-	CombatText.tShadows[shadow] = {
-		nSort           = 0,
-		bCriticalStrike = true,
-		dwTargetID      = dwCharacterID,
-		szText          = g_tStrings.STR_COMBATMSG_EXP .. nExp,
-		nType           = "EXP",
-		nTime           = nTime,
-		nFrame          = 0,
-		col             = { 255, 0, 255 },
-	}
+	CombatText.CreateText(shadow, dwCharacterID, g_tStrings.STR_COMBATMSG_EXP .. nExp, nil, "EXP", true, { 255, 0, 255 })
 end
 
 function CombatText.GetFreeShadow()
