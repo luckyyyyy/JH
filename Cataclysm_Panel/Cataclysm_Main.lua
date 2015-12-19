@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-10 16:55:55
+-- @Last Modified time: 2015-12-19 17:26:45
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -44,6 +44,7 @@ local CTM_CONFIG = {
 	bShowBuffTime        = false,
 	bShowBuffNum         = false,
 	bShowGropuNumber     = true,
+	bShowEffect          = false, -- 五毒醉舞提示 万花距离提示 晚点做
 	tBuffList = { -- 结构的话 就这样吧不过颜色不让设置
 		-- ["调息"] = { bSelf = true, col = 255, 255, 255}
 	},
@@ -320,7 +321,7 @@ function Cataclysm_Main.OnFrameCreate()
 	-- arg0 回应状态 arg1 dwID arg2 同意=1 反对=0
 	this:RegisterEvent("TEAM_VOTE_RESPOND")
 	-- this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
-	--
+	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("JH_KUNGFU_SWITCH")
 	this:RegisterEvent("JH_RAID_REC_BUFF")
 	this:RegisterEvent("GKP_RECORD_TOTAL")
@@ -356,6 +357,12 @@ end
 function Cataclysm_Main.OnEvent(szEvent)
 	if szEvent == "RENDER_FRAME_UPDATE" then
 		Grid_CTM:CallDrawHPMP(true)
+	elseif szEvent == "SYS_MSG" then
+		if Cataclysm_Main.bShowEffect then
+			if arg0 == "UI_OME_SKILL_EFFECT_LOG" and arg5 == 6252 and arg1 == UI_GetClientPlayerID() and arg9[SKILL_RESULT_TYPE.THERAPY] then
+				Grid_CTM:CallEffect(arg2, 500)
+			end
+		end
 	elseif szEvent == "PARTY_SYNC_MEMBER_DATA" then
 		Grid_CTM:CallRefreshImages(arg1, true, true, nil, true)
 		Grid_CTM:CallDrawHPMP(arg1, true)
@@ -660,6 +667,13 @@ function PS.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
+	local me = GetClientPlayer()
+	if me.dwForceID == 6 then
+		nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["ZuiWu Effect"], color = { JH.GetForceColor(6) }, checked = Cataclysm_Main.bShowEffect })
+		:Click(function(bCheck)
+			Cataclysm_Main.bShowEffect = bCheck
+		end):Pos_()
+	end
 	-- 血量显示
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.STR_RAID_LIFE_SHOW .. _L["& Icon"], font = 27 }):Pos_()
 	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_LEFT, group = "lifemode", checked = Cataclysm_Main.nHPShownMode2 == 2 })
@@ -750,25 +764,25 @@ function PS.OnPanelActive(frame)
 
 	-- 其他
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.OTHER, font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TARGET_ASSIST, checked = Cataclysm_Main.bTempTargetEnable })
+	nX  = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TARGET_ASSIST, checked = Cataclysm_Main.bTempTargetEnable })
 	:Click(function(bCheck)
 		Cataclysm_Main.bTempTargetEnable = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Don't show Tip in fight"], checked = Cataclysm_Main.bTempTargetFightTip })
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["Don't show Tip in fight"], checked = Cataclysm_Main.bTempTargetFightTip })
 	:Click(function(bCheck)
 		Cataclysm_Main.bTempTargetFightTip = bCheck
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Faster Refresh HP(Greater performance loss)"], checked = Cataclysm_Main.bFasterHP, enable = false })
-	:Click(function(bCheck)
-		Cataclysm_Main.bFasterHP = bCheck
-		if GetFrame() then
-			if bCheck then
-				GetFrame():RegisterEvent("RENDER_FRAME_UPDATE")
-			else
-				GetFrame():UnRegisterEvent("RENDER_FRAME_UPDATE")
-			end
-		end
-	end):Pos_()
+	-- nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Faster Refresh HP(Greater performance loss)"], checked = Cataclysm_Main.bFasterHP, enable = false })
+	-- :Click(function(bCheck)
+	-- 	Cataclysm_Main.bFasterHP = bCheck
+	-- 	if GetFrame() then
+	-- 		if bCheck then
+	-- 			GetFrame():RegisterEvent("RENDER_FRAME_UPDATE")
+	-- 		else
+	-- 			GetFrame():UnRegisterEvent("RENDER_FRAME_UPDATE")
+	-- 		end
+	-- 	end
+	-- end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["configure"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 8, txt = _L["Configuration name"] }):Pos_()
 	ui:Append("WndEdit", { x = nX + 5, y = nY + 10, txt = Cataclysm_KEY }):Change(function(txt)
@@ -805,13 +819,25 @@ function PS2.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true ,true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "namecolor", checked = Cataclysm_Main.nColoredName == 0 })
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "namecolor", checked = Cataclysm_Main.nColoredName == 0 })
 	:Click(function()
 		Cataclysm_Main.nColoredName = 0
 		if GetFrame() then
 			Grid_CTM:CallRefreshImages(true, false, false, nil, true)
 			Grid_CTM:CallDrawHPMP(true ,true)
 		end
+	end):Pos_()
+
+	-- 字体修改
+	nX, nY = ui:Append("WndButton2", { x = 400, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.FONT })
+	:Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			Cataclysm_Main.nFont = nFont
+			if GetFrame() then
+				Grid_CTM:CallRefreshImages(true, false, false, nil, true)
+				Grid_CTM:CallDrawHPMP(true, true)
+			end
+		end)
 	end):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Show AllGrid"], checked = Cataclysm_Main.bShowAllGrid })
 	:Click(function(bCheck)
@@ -828,13 +854,23 @@ function PS2.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["ManaBar Gradient"], checked = Cataclysm_Main.bManaGradient })
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY, txt = _L["ManaBar Gradient"], checked = Cataclysm_Main.bManaGradient })
 	:Click(function(bCheck)
 		Cataclysm_Main.bManaGradient = bCheck
 		if GetFrame() then
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
+	nX, nY = ui:Append("WndButton2", { x = 400, y = nY, txt = g_tStrings.STR_RAID_LIFE_SHOW .. g_tStrings.FONT })
+	:Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			Cataclysm_Main.nLifeFont = nFont
+			if GetFrame() then
+				Grid_CTM:CallDrawHPMP(true, true)
+			end
+		end)
+	end):Pos_()
+
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = g_tStrings.STR_RAID_DISTANCE, checked = Cataclysm_Main.bEnableDistance })
 	:Click(function(bCheck)
 		Cataclysm_Main.bEnableDistance = bCheck
@@ -842,16 +878,6 @@ function PS2.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-
-	nX = ui:Append("Text", { x = 10, y = nY, txt = g_tStrings.STR_ALPHA }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2 })
-	:Range(1, 100, 99):Value(Cataclysm_Main.nAlpha / 255 * 100):Change(function(nVal)
-		Cataclysm_Main.nAlpha = nVal / 100 * 255
-		if GetFrame() then
-			FireUIEvent("CTM_SET_ALPHA")
-		end
-	end):Pos_()
-
 
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.BACK_COLOR, font = 27 }):Pos_()
 	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_COLOR_NAME_NONE, group = "BACK_COLOR", checked = Cataclysm_Main.nBGClolrMode == 0 })
@@ -987,26 +1013,6 @@ function PS3.OnPanelActive(frame)
 			Grid_CTM:Scale(nNewX, nNewY)
 		end
 	end):Pos_()
-	-- 字体修改
-	nX = ui:Append("WndButton2", { x = 10, y = nY, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.FONT })
-	:Click(function()
-		GUI.OpenFontTablePanel(function(nFont)
-			Cataclysm_Main.nFont = nFont
-			if GetFrame() then
-				Grid_CTM:CallRefreshImages(true, false, false, nil, true)
-				Grid_CTM:CallDrawHPMP(true, true)
-			end
-		end)
-	end):Pos_()
-	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY, txt = g_tStrings.STR_RAID_LIFE_SHOW .. g_tStrings.FONT })
-	:Click(function()
-		GUI.OpenFontTablePanel(function(nFont)
-			Cataclysm_Main.nLifeFont = nFont
-			if GetFrame() then
-				Grid_CTM:CallDrawHPMP(true, true)
-			end
-		end)
-	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.OTHER, font = 27 }):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Show Group Number"], checked = Cataclysm_Main.bShowGropuNumber })
 	:Click(function(bCheck)
@@ -1016,7 +1022,14 @@ function PS3.OnPanelActive(frame)
 			Grid_CTM:ReloadParty()
 		end
 	end):Pos_()
-
+	nX = ui:Append("Text", { x = 10, y = nY, txt = g_tStrings.STR_ALPHA }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 2 })
+	:Range(1, 100, 99):Value(Cataclysm_Main.nAlpha / 255 * 100):Change(function(nVal)
+		Cataclysm_Main.nAlpha = nVal / 100 * 255
+		if GetFrame() then
+			FireUIEvent("CTM_SET_ALPHA")
+		end
+	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Arrangement"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["One lines: 5/0"], group = "Arrangement", checked = Cataclysm_Main.nAutoLinkMode == 5 })
 	:Click(function()

@@ -766,4 +766,5 @@ data = {
 	["critical beat"] = "技能会心",
 	["critical beaten"] = "受伤会心",
 	["critical heaten"] = "治疗会心",
+	["ZuiWu Effect"] = "自己的醉舞提示正在接受治疗的目标",
 }

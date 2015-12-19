@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-19 11:20:05
+-- @Last Modified time: 2015-12-19 11:43:32
 
 local _L = JH.LoadLangPack
 
@@ -9,7 +9,7 @@ local UI_GetClientPlayerID, GetUserRoleName = UI_GetClientPlayerID, GetUserRoleN
 local pairs, unpack = pairs, unpack
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
-local GetSkill = GetSkill
+local GetSkill, GetTime = GetSkill, GetTime
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
@@ -259,14 +259,13 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 			tPoint = { object.nX, object.nY, object.nZ }
 		end
 	end
-	local nTime = GetTime()
 	CombatText.tShadows[shadow] = {
 		szPoint         = szPoint,
 		nSort           = 0,
 		dwTargetID      = dwTargetID,
 		szText          = szText,
 		nType           = nType,
-		nTime           = nTime,
+		nTime           = GetTime(),
 		nFrame          = 0,
 		bCriticalStrike = bCriticalStrike,
 		col             = col,

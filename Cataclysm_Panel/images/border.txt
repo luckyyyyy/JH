@@ -1,0 +1,6 @@
+Farme	Left	Top	Width	High	File
+0	0	0	550	200	C:\Users\Webster\Desktop\±ß¿ò\blue.tga
+1	0	202	550	200	C:\Users\Webster\Desktop\±ß¿ò\Orange.tga
+2	0	404	550	200	C:\Users\Webster\Desktop\±ß¿ò\pink.tga
+3	0	606	550	200	C:\Users\Webster\Desktop\±ß¿ò\red.tga
+4	0	808	550	200	C:\Users\Webster\Desktop\±ß¿ò\Yellow.tga
