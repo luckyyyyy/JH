@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-10-23 12:04:15
+-- @Last Modified time: 2015-12-19 17:36:59
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -1016,6 +1016,7 @@ function CTM:RefreshDistance()
 					end
 					if CFG.bShowDistance then
 						v:Lookup("Handle_Common/Text_Distance"):SetText(string.format("%.1f", nDistance))
+						v:Lookup("Handle_Common/Text_Distance"):SetFontColor(255, math.max(0, 255 - nDistance * 8), math.max(0, 255 - nDistance * 8))
 					else
 						v:Lookup("Handle_Common/Text_Distance"):SetText("")
 					end
@@ -1124,7 +1125,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		end
 		if not nPercentage or nPercentage < 0 or nPercentage > 1 then nPercentage = 1 end
 		local r, g, b = unpack(CFG.tManaColor)
-		self:DrawShadow(Msha, 121 * nPercentage, 8, r, g, b, nAlpha, CFG.bManaGradient)
+		self:DrawShadow(Msha, 119 * nPercentage, 9, r, g, b, nAlpha, CFG.bManaGradient)
 		Msha:Show()
 	else
 		Msha:Hide()
@@ -1132,7 +1133,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	-- 缓存
 	if not CFG.bFasterHP or bRefresh or (CFG.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
 		-- 颜色计算
-		local nNewW = 121 * nLifePercentage
+		local nNewW = 119 * nLifePercentage
 		local r, g, b = unpack(CFG.tOtherCol[2]) -- 不在线就灰色了
 		if info.bIsOnLine then
 			if CFG.nBGClolrMode == 1 then
@@ -1153,14 +1154,14 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		else
 			nAlpha = 255
 		end
-		self:DrawShadow(Lsha, nNewW, 31, r, g, b, nAlpha, CFG.bLifeGradient)
+		self:DrawShadow(Lsha, nNewW, 32, r, g, b, nAlpha, CFG.bLifeGradient)
 		Lsha:Show()
 		if CFG.bHPHitAlert then
 			local lifeFade = h:Lookup("Handle_Common/Shadow_Life_Fade")
 			if CTM_LIFE_CACHE[dwID] and CTM_LIFE_CACHE[dwID] > nLifePercentage then
 				local alpha = lifeFade:GetAlpha()
 				if alpha == 0 then
-					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 121 * CFG.fScaleX, 31 * CFG.fScaleY)
+					lifeFade:SetSize(CTM_LIFE_CACHE[dwID] * 119 * CFG.fScaleX, 31 * CFG.fScaleY)
 				end
 				if CFG.nBGClolrMode ~= 1 then
 					if (Lsha.nDistance and Lsha.nDistance > 20) or not Lsha.nDistance then
@@ -1332,6 +1333,17 @@ function CTM:ChangeReadyConfirm(dwID, status)
 		else
 			h:Lookup("Image_NotReady"):Show()
 		end
+	end
+end
+
+function CTM:CallEffect(dwTargetID, nDelay)
+	if CTM_CACHE[dwTargetID] and CTM_CACHE[dwTargetID]:IsValid() then
+		CTM_CACHE[dwTargetID]:Lookup("Image_Effect"):Show()
+		JH.DelayCall(nDelay, function()
+			if CTM_CACHE[dwTargetID] and CTM_CACHE[dwTargetID]:IsValid() then
+				CTM_CACHE[dwTargetID]:Lookup("Image_Effect"):Hide()
+			end
+		end)
 	end
 end
 
