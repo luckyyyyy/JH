@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-16 10:21:12
+-- @Last Modified time: 2015-12-20 14:17:56
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2161,6 +2161,17 @@ function _GUI.Frm2:Setting(fnAction)
 	return self
 end
 
+function _GUI.Frm2:BackGround( ... )
+	local shadow = self.self:Lookup("", "Image_Bg")
+	if ... then
+		shadow:SetColorRGB( ... )
+		return self
+	else
+		return shadow:GetColorRGB()
+	end
+
+end
+
 -------------------------------------
 -- Window Component
 -------------------------------------
@@ -3502,21 +3513,63 @@ end
 
 -- 字体选择器
 function GUI.OpenFontTablePanel(fnAction)
-	local wnd = GUI.CreateFrame("JH_FontTable", { w = 1000, h = 630, title = g_tStrings.FONT, nStyle = 2 , close = true })
-	for i = 0, 236 do
-		wnd:Append("Text", { x = (i % 15) * 65 + 10, y = floor(i / 15) * 35 + 15, alpha = 200, txt = g_tStrings.FONT .. i, font = i })
-		:Click(function()
-			if fnAction then fnAction(i) end
-			wnd:Remove()
-		end)
-		:Hover(function(bHover)
-			if bHover then
-				this:SetAlpha(255)
-			else
-				this:SetAlpha(200)
+	local ui = GUI.CreateFrame("JH_FontTable", { w = 470, h = 370, title = g_tStrings.FONT, nStyle = 2 , close = true }):BackGround(64, 64, 64)
+	ui:Setting(function()
+		GetUserInput(_L["Input Font ID"], function(szText)
+			if tonumber(szText) and tonumber(szText) >= 0 and tonumber(szText) <= 236 then
+				if fnAction then fnAction(tonumber(szText)) end
+				ui:Remove()
 			end
 		end)
+	end)
+	local tFontList = LoadLUAData(JH.GetAddonInfo().szRootPath .. "0Base/font/FontList.jx3dat")
+	local tFont = {
+		["0"] = g_tStrings.FONT_HEITI,
+		["7"] = g_tStrings.FONT_JIANZHI,
+		["8"] = g_tStrings.FONT_XINGKAI,
+	}
+	local handle = ui:Append("Handle", { x = 0, y = 40, w = 100, h = 300 })
+	local function LoadFontList(szFont)
+		local i = 0
+		local txt = tFont[szFont]
+		handle:Clear()
+		table.sort(tFontList[szFont], function(a, b)
+			if a.Size ~= b.Size then
+				return a.Size < b.Size
+			else
+				return a.FontID < b.FontID
+			end
+		end)
+		for k , v in ipairs(tFontList[szFont]) do
+			handle:Append("Text", { x = (i % 7) * 68 + 10, y = floor(i / 7) * 35 + 15, color = { 255, 128, 0 } , txt = txt, font = v.FontID } )
+			:Click(function()
+				if fnAction then fnAction(v.FontID) end
+				ui:Remove()
+			end):Hover(function(bHover)
+				if bHover then
+					this:SetFontColor(255, 255, 0)
+					if IsCtrlKeyDown() then
+						local x, y = this:GetAbsPos()
+						local w, h = this:GetSize()
+						OutputTip(GetFormatText(var2str(v, "    "), 41, 255, 255, 255), 300, { x, y, w, h })
+					end
+				else
+					HideTip()
+					this:SetFontColor(255, 128, 0)
+				end
+			end)
+			i = i + 1
+		end
 	end
+
+	local i = 0
+	for k, v in pairs(tFont) do
+		ui:Append("WndButton3", { x = i * 160, y = 10, txt = v }):Click(function()
+			LoadFontList(k)
+		end)
+		i = i + 1
+	end
+	LoadFontList("0")
 end
 
 -- 调色板
