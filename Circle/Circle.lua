@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-11 23:52:08
+-- @Last Modified time: 2015-12-21 07:38:26
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -214,18 +214,18 @@ function C.AddData(dwMapID, data)
 	return C.tData[dwMapID][#C.tData[dwMapID]]
 end
 
-function C.MoveOrder(dwMapID, nIndex, bUp)
+function C.Exchange(dwMapID, nIndex1, nIndex2)
+	if nIndex1 == nIndex2 then
+		return
+	end
 	if C.tData[dwMapID] then
-		if bUp then
-			if nIndex ~= 1 then
-				C.tData[dwMapID][nIndex], C.tData[dwMapID][nIndex - 1] = C.tData[dwMapID][nIndex - 1], C.tData[dwMapID][nIndex]
-			end
-		else
-			if nIndex ~= #C.tData[dwMapID] then
-				C.tData[dwMapID][nIndex], C.tData[dwMapID][nIndex + 1] = C.tData[dwMapID][nIndex + 1], C.tData[dwMapID][nIndex]
-			end
+		local data1 = C.tData[dwMapID][nIndex1]
+		local data2 = C.tData[dwMapID][nIndex2]
+		if data1 and data2 then
+			C.tData[dwMapID][nIndex1] = data2
+			C.tData[dwMapID][nIndex2] = data1
+			FireUIEvent("CIRCLE_RELOAD")
 		end
-		FireUIEvent("CIRCLE_RELOAD")
 	end
 end
 
@@ -980,7 +980,7 @@ local ui = {
 	LoadCircleMergeData = C.LoadCircleMergeData,
 	GetData             = C.GetData,
 	OpenDataPanel       = C.OpenDataPanel,
-	MoveOrder           = C.MoveOrder,
+	Exchange            = C.Exchange,
 	RemoveData          = C.RemoveData,
 	MoveData            = C.MoveData,
 	CheckRepeatData     = C.CheckRepeatData,
