@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-20 14:17:56
+-- @Last Modified time: 2015-12-21 07:38:38
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2142,8 +2142,8 @@ function _GUI.Frm2:Size(nW, nH)
 	frm:SetSize(nW, nH)
 	frm:SetDragArea(0, 0, nW, 30)
 	hnd:SetSize(nW, nH)
-	hnd:Lookup("Image_Bg"):SetSize(nW, nH)
-	hnd:Lookup("Image_Title"):SetW(nW)
+	hnd:Lookup("Shadow_Bg"):SetSize(nW, nH)
+	hnd:Lookup("Shadow_Title"):SetW(nW)
 	hnd:Lookup("Text_Title"):SetW(nW - 90)
 	hnd:FormatAllItemPos()
 	frm:Lookup("Btn_Close"):SetRelPos(nW - 28, 5)
@@ -2162,7 +2162,7 @@ function _GUI.Frm2:Setting(fnAction)
 end
 
 function _GUI.Frm2:BackGround( ... )
-	local shadow = self.self:Lookup("", "Image_Bg")
+	local shadow = self.self:Lookup("", "Shadow_Bg")
 	if ... then
 		shadow:SetColorRGB( ... )
 		return self
@@ -2892,6 +2892,11 @@ function _GUI.Item:Size(nW, nH)
 	return self
 end
 
+function _GUI.Item:AutoSize()
+	self.self:AutoSize()
+	return self
+end
+
 -- (self) Instance:Zoom(boolean bEnable)	-- 是否启用点击后放大
 -- NOTICE：only for BoxButton
 function _GUI.Item:Zoom(bEnable)
@@ -3541,7 +3546,7 @@ function GUI.OpenFontTablePanel(fnAction)
 			end
 		end)
 		for k , v in ipairs(tFontList[szFont]) do
-			handle:Append("Text", { x = (i % 7) * 68 + 10, y = floor(i / 7) * 35 + 15, color = { 255, 128, 0 } , txt = txt, font = v.FontID } )
+			handle:Append("Text", { x = (i % 7) * 68 + 10, y = floor(i / 7) * 35 + 15, color = { 255, 128, 0 } , txt = txt, font = v.FontID } ):AutoSize()
 			:Click(function()
 				if fnAction then fnAction(v.FontID) end
 				ui:Remove()
@@ -3561,10 +3566,9 @@ function GUI.OpenFontTablePanel(fnAction)
 			i = i + 1
 		end
 	end
-
 	local i = 0
 	for k, v in pairs(tFont) do
-		ui:Append("WndButton3", { x = i * 160, y = 10, txt = v }):Click(function()
+		ui:Append("WndRadioBox", { x = i * 80 + 125, y = 10, txt = v , group = "font", checked = k == "0" }):Click(function()
 			LoadFontList(k)
 		end)
 		i = i + 1
