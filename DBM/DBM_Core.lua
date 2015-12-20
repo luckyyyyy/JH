@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-16 10:49:30
+-- @Last Modified time: 2015-12-21 07:38:21
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -165,7 +165,6 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "ON_WARNING_MESSAGE" then
 		D.OnCallMessage(arg1)
-
 	elseif szEvent == "DOODAD_ENTER_SCENE" or szEvent == "DBM_DOODAD_ENTER_SCENE" then
 		local doodad = GetDoodad(arg0)
 		if doodad then
@@ -1587,22 +1586,6 @@ function D.RemoveData(szType, dwMapID, nIndex)
 	end
 end
 
-function D.MoveOrder(szType, dwMapID, nIndex, bUp)
-	if D.FILE[szType][dwMapID] then
-		if bUp then
-			if nIndex ~= 1 then
-				D.FILE[szType][dwMapID][nIndex], D.FILE[szType][dwMapID][nIndex - 1] = D.FILE[szType][dwMapID][nIndex - 1], D.FILE[szType][dwMapID][nIndex]
-			end
-		else
-			if nIndex ~= #D.FILE[szType][dwMapID] then
-				D.FILE[szType][dwMapID][nIndex], D.FILE[szType][dwMapID][nIndex + 1] = D.FILE[szType][dwMapID][nIndex + 1], D.FILE[szType][dwMapID][nIndex]
-			end
-		end
-		FireUIEvent("DBM_CREATE_CACHE")
-		FireUIEvent("DBMUI_DATA_RELOAD")
-	end
-end
-
 function D.CheckRepeatData(szType, dwMapID, dwID, nLevel)
 	if D.FILE[szType][dwMapID] then
 		if dwMapID ~= -9 then
@@ -1640,6 +1623,24 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 		end
 		FireUIEvent("DBM_CREATE_CACHE")
 		FireUIEvent("DBMUI_DATA_RELOAD")
+	end
+end
+-- 交换 其实没用 满足强迫症
+function D.Exchange(szType, dwMapID, nIndex1, nIndex2)
+	if nIndex1 == nIndex2 then
+		return
+	end
+	if D.FILE[szType][dwMapID] then
+		local data1 = D.FILE[szType][dwMapID][nIndex1]
+		local data2 = D.FILE[szType][dwMapID][nIndex2]
+		if data1 and data2 then
+			-- local data = table.remove(D.FILE[szType][dwMapID], nIndex1)
+			-- table.insert(D.FILE[szType][dwMapID], nIndex2 + 1, data)
+			D.FILE[szType][dwMapID][nIndex1] = data2
+			D.FILE[szType][dwMapID][nIndex2] = data1
+			FireUIEvent("DBM_CREATE_CACHE")
+			FireUIEvent("DBMUI_DATA_RELOAD")
+		end
 	end
 end
 
@@ -1725,7 +1726,7 @@ local ui = {
 	AddData           = D.AddData,
 	SaveConfigureFile = D.SaveConfigureFile,
 	LoadConfigureFile = D.LoadConfigureFile,
-	MoveOrder         = D.MoveOrder,
+	Exchange          = D.Exchange,
 }
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 

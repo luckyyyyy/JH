@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-19 09:27:25
+-- @Last Modified time: 2015-12-21 07:34:32
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -16,12 +16,12 @@ local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "CIRCL
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local DBMUI_SEARCH
+local DBMUI_DRAG          = false
 local DBMUI_GLOBAL_SEARCH = false
 local DBMUI_SEARCH_CACHE  = {}
-local DBMUI_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-local DBMUI = {
-	tAnchor = {}
-}
+local DBMUI_PANEL_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
+local DBMUI_ANCHOR        = {}
+local DBMUI = {}
 
 local DBMUI_DOODAD_ICON = {
 	[DOODAD_KIND.INVALID]      = 1434, -- 无效
@@ -44,24 +44,26 @@ setmetatable(DBMUI_DOODAD_ICON, { __index = function(me, key)
 	JH.Debug("UnKown Kind" .. key)
 	return 369
 end })
+
 local function OpenRaidDragPanel(data)
 	local hFrame = Wnd.OpenWindow("RaidDragPanel")
 	local nX, nY = Cursor.GetPos()
 	hFrame:SetAbsPos(nX, nY)
 	hFrame:StartMoving()
 	hFrame.data = data
-	local hMember = hFrame:Lookup("", "")
+	local handle = hFrame:Lookup("", "")
 	local szName = DBMUI.GetBoxInfo(DBMUI_SELECT_TYPE, data)
-	local hTextName = hMember:Lookup("Text_Name")
+	local hTextName = handle:Lookup("Text_Name")
 	hTextName:SetText(szName or data.key)
-	hMember:Lookup("Image_Force"):Hide()
-	local hImageLife = hMember:Lookup("Image_Health")
-	local hImageMana = hMember:Lookup("Image_Mana")
+	handle:Lookup("Image_Force"):Hide()
+	local hImageLife = handle:Lookup("Image_Health")
+	local hImageMana = handle:Lookup("Image_Mana")
 	hImageLife:Hide()
 	hImageMana:Hide()
-	hMember:Show()
+	handle:Show()
 	hFrame:Scale(1.5, 1.5)
 	hFrame:BringToTop()
+	DBMUI_DRAG = true
 end
 
 local function CloseRaidDragPanel()
@@ -101,6 +103,7 @@ function DBM_UI.OnFrameCreate()
 
 	DBMUI_SEARCH = nil -- 重置搜索
 	DBMUI_GLOBAL_SEARCH = false
+	DBMUI_DRAG = false
 
 	this.hPageSet = this:Lookup("PageSet_Main")
 	local ui = GUI(this)
@@ -183,7 +186,7 @@ function DBM_UI.OnEvent(szEvent)
 end
 
 function DBM_UI.OnFrameDragEnd()
-	DBMUI.tAnchor = GetFrameAnchor(this)
+	DBMUI_ANCHOR = GetFrameAnchor(this)
 end
 
 function DBM_UI.OnActivePage()
@@ -324,6 +327,9 @@ function DBM_UI.OnItemLButtonClick()
 		DBMUI_SELECT_MAP = this.dwMapID
 		FireUIEvent("DBMUI_DATA_RELOAD")
 	elseif szName == "Handle_L" or szName == "Handle_TALK_L" then
+		if DBMUI_DRAG then
+			return
+		end
 		if DBMUI_SELECT_TYPE == "CIRCLE" then
 			Circle.OpenDataPanel(this.dat)
 		else
@@ -345,7 +351,7 @@ function DBM_UI.OnItemRButtonClick()
 				if DBMUI_SELECT_TYPE == "CIRCLE" then
 					Circle.RemoveData(dwMapID, nil, true)
 				else
-					DBMUI.RemoveData(dwMapID, nil, JH.IsMapExist(dwMapID), true)
+					DBMUI.RemoveData(dwMapID, nil, JH.IsMapExist(dwMapID))
 				end
 			end })
 			PopupMenu(menu)
@@ -381,24 +387,6 @@ function DBM_UI.OnItemRButtonClick()
 				DBMUI.MoveData(t.dwMapID, t.nIndex, dwMapID, IsCtrlKeyDown())
 			end
 		end)
-		if DBMUI_SELECT_MAP ~= _L["All Data"] then
-			table.insert(menu, { bDevide = true })
-			table.insert(menu, { szOption = _L["Move up"], bDisable = this:GetParent():Lookup(0) == this, fnAction = function()
-				if DBMUI_SELECT_TYPE == "CIRCLE" then
-					Circle.MoveOrder(DBMUI_SELECT_MAP, t.nIndex, false)
-				else
-					DBMUI.MoveOrder(DBMUI_SELECT_MAP, t.nIndex, false)
-				end
-
-			end })
-			table.insert(menu, { szOption = _L["Move down"], bDisable = t.nIndex == 1, fnAction = function()
-				if DBMUI_SELECT_TYPE == "CIRCLE" then
-					Circle.MoveOrder(DBMUI_SELECT_MAP, t.nIndex, true)
-				else
-					DBMUI.MoveOrder(DBMUI_SELECT_MAP, t.nIndex, true)
-				end
-			end })
-		end
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = _L["Share Data"], bDisable = not JH.IsInParty(), fnAction = function()
 			if JH.IsLeader() or JH.bDebugClient then
@@ -413,7 +401,7 @@ function DBM_UI.OnItemRButtonClick()
 			if DBMUI_SELECT_TYPE == "CIRCLE" then
 				Circle.RemoveData(t.dwMapID, t.nIndex, true)
 			else
-				DBMUI.RemoveData(t.dwMapID, t.nIndex, name, true)
+				DBMUI.RemoveData(t.dwMapID, t.nIndex, name)
 			end
 		end })
 		PopupMenu(menu)
@@ -464,13 +452,17 @@ function DBM_UI.OnItemMouseLeave()
 			this:Lookup(0):Hide()
 		end
 	elseif szName == "Handle_L" or szName == "Handle_R" then
-		this:Lookup("Image"):SetFrame(7)
-		local box = this:Lookup("Box")
-		if box and box:IsValid() then
-			box:SetObjectMouseOver(false)
+		if this:Lookup("Image") and this:Lookup("Image"):IsValid() then
+			this:Lookup("Image"):SetFrame(7)
+			local box = this:Lookup("Box")
+			if box and box:IsValid() then
+				box:SetObjectMouseOver(false)
+			end
 		end
 	elseif szName == "Handle_TALK_L" or szName == "Handle_TALK_R" then
-		this:Lookup("Image_Light"):Hide()
+		if this:Lookup("Image_Light") and this:Lookup("Image_Light"):IsValid() then
+			this:Lookup("Image_Light"):Hide()
+		end
 	end
 	HideTip()
 end
@@ -543,9 +535,20 @@ function DBM_UI.OnItemLButtonDragEnd()
 			end
 		end
 	elseif szName == "Handle_L" or szName == "Handle_TALK_L" then
-		CloseRaidDragPanel()
-		DBMUI.UpdateTree(this:GetRoot())
+		local data = CloseRaidDragPanel()
+		if DBMUI_SELECT_MAP ~= _L["All Data"] then
+			if DBMUI_SELECT_TYPE == "CIRCLE" then
+				Circle.Exchange(DBMUI_SELECT_MAP, data.nIndex, this.dat.nIndex)
+			else
+				DBMUI.Exchange(DBMUI_SELECT_MAP, data.nIndex, this.dat.nIndex)
+			end
+		else
+			DBMUI.UpdateTree(this:GetRoot())
+		end
 	end
+	JH.DelayCall(50, function()
+		 DBMUI_DRAG = false
+	end)
 end
 
 function DBMUI.OutputTip(szType, data, rect)
@@ -698,20 +701,19 @@ function DBMUI.GetMenu()
 	return menu
 end
 
--- 移动数据
-function DBMUI.MoveOrder( ... )
-	DBM_API.MoveOrder(DBMUI_SELECT_TYPE, ... )
-end
-
 function DBMUI.MoveData( ... )
 	DBM_API.MoveData(DBMUI_SELECT_TYPE, ... )
 end
 
-function DBMUI.RemoveData(dwMapID, nIndex, szMsg, bConfirm)
+function DBMUI.Exchange( ... )
+	DBM_API.Exchange(DBMUI_SELECT_TYPE, ...)
+end
+
+function DBMUI.RemoveData(dwMapID, nIndex, szMsg)
 	local function fnAction()
 		DBM_API.RemoveData(DBMUI_SELECT_TYPE, dwMapID, nIndex)
 	end
-	if bConfirm and not nIndex then
+	if not nIndex then
 		JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, szMsg), fnAction)
 	else
 		fnAction()
@@ -1769,7 +1771,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		DBMUI.OpenSettingPanel(data, szType)
 	end):Pos_()
 	ui:Append("WndButton2", { x = 335, y = nY + 10, txt = g_tStrings.STR_FRIEND_DEL, color = { 255, 0, 0 } }):Click(function()
-		DBMUI.RemoveData(data.dwMapID, data.nIndex, szName or _L["This data"], true)
+		DBMUI.RemoveData(data.dwMapID, data.nIndex, szName or _L["This data"])
 	end)
 	nX, nY = ui:Append("WndButton2", { x = 640, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
 		OpenInternetExplorer("http://www.j3ui.com/DBM/")
@@ -1780,7 +1782,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 end
 
 function DBMUI.UpdateAnchor(frame)
-	local a = DBMUI.tAnchor
+	local a = DBMUI_ANCHOR
 	if not IsEmpty(a) then
 		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 	else
