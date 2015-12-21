@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-19 11:43:32
+-- @Last Modified time: 2015-12-21 13:09:40
 
 local _L = JH.LoadLangPack
 
@@ -231,6 +231,7 @@ function CombatText.OnFrameRender()
 				end
 			end
 			local r, g, b = unpack(v.col)
+			-- Output(v)
 			if v.object and v.object.nX or not v.object or not v.tPoint[1] then
 				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
 				if v.object and v.object.nX then
@@ -254,7 +255,7 @@ JH_CombatText.OnFrameRender  = CombatText.OnFrameRender
 function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 	local object, tPoint
 	if dwTargetID ~= UI_GetClientPlayerID() then
-		object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) and GetNpc(dwTargetID)
+		object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
 		if object and object.nX then
 			tPoint = { object.nX, object.nY, object.nZ }
 		end
