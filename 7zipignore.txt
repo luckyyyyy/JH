@@ -22,3 +22,4 @@ DBM/data/DBM*
 0Base/About.ini
 update_lang.php
 JH_BookTip.lua
+test.jx3dat
