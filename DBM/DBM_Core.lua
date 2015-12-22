@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-22 08:31:46
+-- @Last Modified time: 2015-12-23 07:51:48
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -512,15 +512,15 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				tTemp[#tTemp + 1] = tWeak[key]
 				FireUIEvent("DBMUI_TEMP_UPDATE", szType, t)
 			end
-		end
-		-- 记录时间
-		CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
-		if #CACHE.INTERVAL[szType][key] > 0 then
-			if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
+			-- 记录时间
+			CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
+			if #CACHE.INTERVAL[szType][key] > 0 then
+				if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
+					CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
+				end
+			else
 				CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
 			end
-		else
-			CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
 		end
 	end
 	if data then
@@ -641,14 +641,11 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			FireUIEvent("JH_KUNGFU_SWITCH", dwCaster)
 		end
 	end
-	CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
-	CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
-	CACHE.SKILL_LIST[dwCaster][key] = nTime
-	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
 	local me = GetClientPlayer()
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
-	if not tWeak[key] then
-		if Table_IsSkillShow(dwCastID, dwLevel) or JH.bDebugClient then
+	if Table_IsSkillShow(dwCastID, dwLevel) or JH.bDebugClient then
+		local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
+		if not tWeak[key] then
 			local t = {
 				dwMapID      = me.GetMapID(),
 				dwID         = dwCastID,
@@ -661,6 +658,9 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			tTemp[#tTemp + 1] = tWeak[key]
 			FireUIEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
 		end
+		CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
+		CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
+		CACHE.SKILL_LIST[dwCaster][key] = nTime
 	end
 	-- 监控数据
 	if data then
