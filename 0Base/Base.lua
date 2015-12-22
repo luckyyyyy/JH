@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-22 08:31:17
+-- @Last Modified time: 2015-12-22 12:18:58
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -869,7 +869,6 @@ function JH.GetAllMap()
 end
 
 -- 判断一个地图是不是副本
--- (bool) JH.IsDungeonMap(szMapName, bType)
 -- (bool) JH.IsDungeonMap(dwMapID, bType)
 function JH.IsDungeon(dwMapID, bType)
 	if bType then
@@ -3518,7 +3517,7 @@ end
 
 -- 字体选择器
 function GUI.OpenFontTablePanel(fnAction)
-	local ui = GUI.CreateFrame("JH_FontTable", { w = 470, h = 370, title = g_tStrings.FONT, nStyle = 2 , close = true }):BackGround(64, 64, 64)
+	local ui = GUI.CreateFrame("JH_FontTable", { w = 470, h = 370, title = g_tStrings.FONT, nStyle = 2 , close = true, focus = true }):BackGround(64, 64, 64)
 	ui:Setting(function()
 		GetUserInput(_L["Input Font ID"], function(szText)
 			if tonumber(szText) and tonumber(szText) >= 0 and tonumber(szText) <= 236 then
@@ -3576,7 +3575,7 @@ function GUI.OpenFontTablePanel(fnAction)
 	LoadFontList("0")
 end
 
--- 调色板
+-- 调色板 https://en.wikipedia.org/wiki/HSL_and_HSV
 local COLOR_HUE = 0
 function GUI.OpenColorTablePanel(fnAction)
 	local fX, fY = Cursor.GetPos(true)
@@ -3607,7 +3606,7 @@ function GUI.OpenColorTablePanel(fnAction)
 		return floor(r * 255), floor(g * 255), floor(b * 255)
 	end
 
-	local wnd = GUI.CreateFrame("JH_ColorTable", { w = 346, h = 430, title = _L["Color Picker"], nStyle = 2 , close = true }):Pos(fX + 15, fY + 15)
+	local wnd = GUI.CreateFrame("JH_ColorTable", { w = 346, h = 430, title = _L["Color Picker"], nStyle = 2 , close = true, focus = true }):Pos(fX + 15, fY + 15)
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			wnd:Fetch("Select"):Color(r, g, b)
@@ -3621,31 +3620,44 @@ function GUI.OpenColorTablePanel(fnAction)
 		if fnAction then fnAction( ... ) end
 		if not IsCtrlKeyDown() then wnd:Remove() end
 	end
-	local function SetColor()
-		for v = 100, 0, -3 do
+	wnd.self.OnItemMouseEnter = function()
+		local r, g, b = this:GetColorRGB()
+		fnHover(true, r, g, b)
+		wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(true)
+	end
+	wnd.self.OnItemMouseLeave = function()
+		local r, g, b = this:GetColorRGB()
+		fnHover(false, r, g, b)
+		wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(false)
+	end
+	wnd.self.OnItemLButtonClick = function()
+		fnClick(this:GetColorRGB())
+	end
+	local handle = wnd:Append("Handle", { w = 300, h = 300, x = 0, y = 0 }):Type(0):Raw()
+	local function SetColor(bInit)
+		for v = 100, 0, -2 do
 			tUI[v] = tUI[v] or {}
-			for s = 0, 100, 3 do
+			for s = 0, 100, 2 do
 				local x = 20 + s * 3
 				local y = 80 + (100 - v) * 3
 				local r, g, b = hsv2rgb(COLOR_HUE, s, v)
-				if tUI[v][s] then
-					tUI[v][s]:Color(r, g, b)
+				if not bInit then
+					tUI[v][s]:SetColorRGB(r, g, b)
 				else
-					tUI[v][s] = wnd:Append("Shadow", { w = 9, h = 9, x = x, y = y, color = { r, g, b } })
-					:Hover(function(bHover)
-						wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(bHover)
-						local r, g, b = this:GetColorRGB()
-						fnHover(bHover, r, g, b)
-					end)
-					:Click(function()
-						fnClick(this:GetColorRGB())
-					end)
+					handle:AppendItemFromString("<shadow> w=6 h=6 EventID=272 </shadow>")
+					local sha = handle:Lookup(handle:GetItemCount() - 1)
+					sha:SetRelPos(x, y)
+					sha:SetColorRGB(r, g, b)
+					tUI[v][s] = sha
 				end
 			end
 		end
+		if bInit then
+			handle:FormatAllItemPos()
+		end
 	end
-	SetColor()
-	wnd:Append("Image", "Select_Image", { w = 9, h = 9, x = 0, y = 0 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
+	SetColor(true)
+	wnd:Append("Image", "Select_Image", { w = 6, h = 6, x = 0, y = 0 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
 	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 10, color = { 255, 255, 255 } })
 	wnd:Append("Text", "Select_Text", { x = 50, y = 10, txt = g_tStrings.STR_NONE })
 	wnd:Append("WndTrackBar", { x = 20, y = 35, h = 25, w = 270, txt = " H" }):Range(0, 360, 360):Value(COLOR_HUE):Change(function(nVal)
@@ -3657,13 +3669,17 @@ function GUI.OpenColorTablePanel(fnAction)
 	end
 end
 
-local ICON_PAGE = 20
+local ICON_PAGE
 -- icon选择器
 function GUI.OpenIconPanel(fnAction)
-	local nMaxIocn, boxs, txts = 7811, {}, {}
-	local ui = GUI.CreateFrame("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], nStyle = 2 , close = true })
-	local function GetPage(nPage)
-		local nStart = nPage * 144 - 1
+	local nMaxIocn, boxs, txts = 7930, {}, {}
+	local ui = GUI.CreateFrame("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], nStyle = 2 , close = true, focus = true })
+	local function GetPage(nPage, bInit)
+		if nPage == ICON_PAGE and not bInit then
+			return
+		end
+		ICON_PAGE = nPage
+		local nStart = (nPage - 1) * 144
 		for i = 1, 144 do
 			local x = ((i - 1) % 18) * 50 + 10
 			local y = floor((i - 1) / 18) * 70 + 10
@@ -3673,8 +3689,13 @@ function GUI.OpenIconPanel(fnAction)
 					boxs[i]:Toggle(false)
 					txts[i]:Toggle(false)
 				else
-					boxs[i]:Icon(nIocn):Toggle(true)
+					boxs[i]:Icon(-1)
 					txts[i]:Text(nIocn):Toggle(true)
+					JH.DelayCall(50, function()
+						if mceil(nIocn / 144) == ICON_PAGE and boxs[i] then
+							boxs[i]:Icon(nIocn):Toggle(true)
+						end
+					end)
 				end
 			else
 				boxs[i] = ui:Append("Box", { w = 48, h = 48, x = x, y = y, icon = nStart + i}):Hover(function(bHover)
@@ -3699,9 +3720,8 @@ function GUI.OpenIconPanel(fnAction)
 			ui:Remove()
 		end
 	end)
-	ui:Append("WndTrackBar", { x = 10, y = 580, h = 25, w = 500, txt = " Page" }):Range(1, math.floor(nMaxIocn / 144), math.floor(nMaxIocn / 144) - 1):Value(ICON_PAGE):Change(function(nVal)
-		ICON_PAGE = nVal
-		GetPage(ICON_PAGE)
+	ui:Append("WndTrackBar", { x = 10, y = 580, h = 25, w = 500, txt = " Page" }):Range(1, math.ceil(nMaxIocn / 144), math.ceil(nMaxIocn / 144) - 1):Value(ICON_PAGE or 21):Change(function(nVal)
+		GetPage(nVal)
 	end)
-	GetPage(ICON_PAGE)
+	GetPage(ICON_PAGE or 21, true)
 end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-22 08:31:51
+-- @Last Modified time: 2015-12-22 10:37:22
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -311,7 +311,7 @@ function DBMUI.UpdateTree()
 	Format(hTreeT, hTreeC, -1)
 	-- 其他
 	for k, v in pairs(data) do
-		if not JH.IsDungeon(k, true) and (tonumber(k) and k > 0) then
+		if (k > 0 and not JH.IsDungeon(k, true)) and (tonumber(k) and k > 0) then
 			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
 			Format(hTreeT, hTreeC, k)
 		end
@@ -841,25 +841,6 @@ function DBMUI.CheckSearch(szType, data)
 	end
 end
 
--- 更新监控数据
-function DBMUI.UpdateLList()
-	local szType = DBMUI_SELECT_TYPE
-	local tab = DBM_API.GetTable(szType)
-	if tab then
-		local dat, dat2 = tab[DBMUI_SELECT_MAP] or {}, {}
-		if DBMUI_SEARCH then
-			for k, v in ipairs(dat) do
-				if DBMUI.CheckSearch(szType, v) then
-					table.insert(dat2, v)
-				end
-			end
-		else
-			dat2 = dat
-		end
-		DBMUI.DrawTableL(szType, dat2)
-	end
-end
-
 function DBMUI.GetBoxInfo(szType, data)
 	local szName, nIcon
 	if szType == "CASTING" then
@@ -985,6 +966,25 @@ function DBMUI.GetMapName(dwMapID)
 	return JH.IsMapExist(dwMapID)
 end
 
+-- 更新监控数据
+function DBMUI.UpdateLList()
+	local szType = DBMUI_SELECT_TYPE
+	local tab = DBM_API.GetTable(szType)
+	if tab then
+		local dat, dat2 = tab[DBMUI_SELECT_MAP] or {}, {}
+		if DBMUI_SEARCH then
+			for k, v in ipairs(dat) do
+				if DBMUI.CheckSearch(szType, v) then
+					table.insert(dat2, v)
+				end
+			end
+		else
+			dat2 = dat
+		end
+		DBMUI.DrawTableL(szType, dat2)
+	end
+end
+
 function DBMUI.DrawTableL(szType, data)
 	local frame = DBMUI.GetFrame()
 	local page = frame.hPageSet:GetActivePage()
@@ -1047,7 +1047,6 @@ function DBMUI.DrawTableR(szType, data, bInsert)
 			handle:InsertItemFromIni(0, false, szIniFile, szSectionName, "Handle_R")
 			local h = handle:Lookup(0)
 			h.dat = data
-			h:RegisterEvent(524288) -- 这里有BUG
 		end
 	end
 	handle:FormatAllItemPos()
