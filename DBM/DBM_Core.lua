@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-21 07:38:21
+-- @Last Modified time: 2015-12-22 08:31:46
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1432,7 +1432,7 @@ function D.GetData(szType, dwID, nLevel)
 	if cache then
 		local tab = D.DATA[szType]
 		if nLevel then
-			if cache[nLevel] then -- 如果可以直接命中 O(∩_∩)O
+			if cache[nLevel] then
 				local data = tab[cache[nLevel]]
 				if data and data.dwID == dwID and (not data.bCheckLevel or data.nLevel == nLevel) then
 					-- D.Log("HIT TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
@@ -1441,10 +1441,10 @@ function D.GetData(szType, dwID, nLevel)
 					-- D.Log("RELOOKUP TYPE:" .. szType .. " ID:" .. dwID .. " LEVEL:" .. nLevel)
 					return GetData(tab, szType, dwID, nLevel)
 				end
-			else -- 不能直接命中的情况下 遍历下面的level /(ㄒoㄒ)/~~
+			else
 				for k, v in pairs(cache) do
 					local data = tab[cache[k]]
-					if data and data.dwID == dwID and (not data.bCheckLevel or data.nLevel == nLevel) then -- 能直接命中是最好了 ;-)
+					if data and data.dwID == dwID and (not data.bCheckLevel or data.nLevel == nLevel) then
 						return data
 					end
 				end
@@ -1595,7 +1595,7 @@ function D.CheckRepeatData(szType, dwMapID, dwID, nLevel)
 						return k, v
 					end
 				else
-					if dwID == v.dwID and nLevel == v.nLevel then
+					if dwID == v.dwID and (not v.bCheckLevel or nLevel == v.nLevel) then
 						return k, v
 					end
 				end

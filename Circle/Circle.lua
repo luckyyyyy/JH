@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-21 07:38:26
+-- @Last Modified time: 2015-12-22 08:32:01
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
