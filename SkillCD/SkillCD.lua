@@ -96,22 +96,27 @@ function SkillCD.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		SC.UpdateAnchor(this)
 	elseif szEvent == "SYS_MSG" then
-		if arg0 == "UI_OME_SKILL_HIT_LOG" and arg3 == SKILL_EFFECT_TYPE.SKILL then
+--[[		if arg0 == "UI_OME_SKILL_HIT_LOG" and arg3 == SKILL_EFFECT_TYPE.SKILL then	--技能命中目标日志
 			SC.OnSkillCast(arg1, arg4, arg5, arg0)
-		elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" and arg4 == SKILL_EFFECT_TYPE.SKILL then
+		elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" and arg4 == SKILL_EFFECT_TYPE.SKILL then	--技能最终产生的效果（生命值的变化）
 			SC.OnSkillCast(arg1, arg5, arg6, arg0)
-		elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG" or arg0 == "UI_OME_SKILL_SHIELD_LOG"
-				or arg0 == "UI_OME_SKILL_MISS_LOG" or arg0 == "UI_OME_SKILL_DODGE_LOG")
+		elseif (arg0 == "UI_OME_SKILL_BLOCK_LOG" or arg0 == "UI_OME_SKILL_SHIELD_LOG"	--格挡日志 --技能被屏蔽日志
+				or arg0 == "UI_OME_SKILL_MISS_LOG" or arg0 == "UI_OME_SKILL_DODGE_LOG")	--技能未命中目标日志 --技能被闪避日志
 			and arg3 == SKILL_EFFECT_TYPE.SKILL
 		then
 			SC.OnSkillCast(arg1, arg4, arg5, arg0)
+		end ]]
+		if arg0 == "UI_OME_SKILL_EFFECT_LOG" and arg4 == SKILL_EFFECT_TYPE.SKILL then	--技能最终产生的效果（生命值的变化）
+			SC.OnSkillEffect(arg1, arg5, arg6)			--用这个来做修正("UI_OME_SKILL_EFFECT_LOG"晚于"DO_SKILL_CAST")
 		end
 	-- elseif szEvent == "BUFF_UPDATE" then
 	-- 	if S.tBuffEx[arg4] and not arg1 then
 	-- 		SC.OnSkillCast(arg9, S.tBuffEx[arg4], arg8, "BUFF_UPDATE")
 	-- 	end
 	elseif szEvent == "DO_SKILL_CAST" then
-		SC.OnSkillCast(arg0, arg1, arg2, "DO_SKILL_CAST")
+--		SC.OnSkillCast(arg0, arg1, arg2, "DO_SKILL_CAST")
+	JH.Debug("comm")
+		SC.OnSkillCast(arg0, arg1, arg2)			--Event简化为"DO_SKILL_CAST"一种。不再分类
 	elseif szEvent == "LOADING_END" then
 		SC.tCD = {}
 		SC.UpdateCount()
@@ -126,7 +131,7 @@ function SkillCD.OnFrameBreathe()
 	for k, v in pairs(SC.tCD) do
 		for kk, vv in ipairs(v) do
 			local nSec = aSkillList[vv.dwSkillID] or 0
-			local pre = min(1, JH.GetEndTime(vv.nEnd) / nSec)
+			local pre = min(1, JH.GetEndTime(vv.nEnd) / nSec)	--若修正后，nEnd是准确的结束时间，GetEndTime还剩几s 其正负决定是否UpdateCount,与nSec无关
 			if pre > 0 then
 				vv.pre = pre
 				tinsert(data, vv)
@@ -141,12 +146,12 @@ function SkillCD.OnFrameBreathe()
 	if GetLogicFrameCount() % 4 == 0 then -- 其实也只是防止倒计时太多占用性能 ...
 		local handle = SC.handle
 		handle:Clear()
-		tsort(data, function(a, b) return a.nEnd < b.nEnd end)
+		tsort(data, function(a, b) return a.nEnd < b.nEnd end)	--根据nEnd排序
 		for k, v in ipairs(data) do
 			if not SC.tIgnore[v.dwSkillID] then
 				local item = handle:AppendItemFromIni(SC.szIniFile, "Handle_Lister", i)
 				-- local nSec = aSkillList[v.dwSkillID]
-				local fP = min(1, JH.GetEndTime(v.nEnd) / v.nTotal)
+				local fP = min(1, JH.GetEndTime(v.nEnd) / v.nTotal)	--若修正后,nTotal是精确的总CD
 				local szSec = floor(JH.GetEndTime(v.nEnd))
 				if fP < 0.15 then
 					item:Lookup("Image_LPlayer"):SetFrame(215)
@@ -224,16 +229,26 @@ function SC.IsPanelOpened()
 	return SC.frame and SC.frame:IsVisible()
 end
 
-function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
+function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel) --, szEvent)  --Event简化为"DO_SKILL_CAST"一种。不再分类
+	--JH.Sysmsg(szEvent..skn)	--UI_OME_SKILL_HIT_LOG命中        队友无HIT_LOG数据 ...
+	--实测 未组队时发的是hit log，组队时effect log (含阵法）	
 	if not SkillCD.bEnable then
 		return SC.ClosePanel()
 	end
-
+	
 	if not IsPlayer(dwCaster) then
 		return
 	end
+	local p = GetPlayer(dwCaster)
+	if not p then 
+		return
+	end
+	if not JH.IsParty(dwCaster) then 
+		return 
+	end
+	JH.Debug("common")	--检测所有队友的施法信息，包括没装插件的
 
-	if not SkillCD.tMonitor[dwSkillID] then
+	if not SkillCD.tMonitor[dwSkillID] then	--监视列表
 		return
 	end
 
@@ -242,9 +257,11 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 		return
 	end
 	-- get name
-	local p = GetPlayer(dwCaster)
-	if not p then return end
 	local szName, dwIconID = JH.GetSkillName(dwSkillID, dwLevel)
+
+	if dwSkillID == 568 and p.GetKungfuMount().dwSkillID == 10080 then	--忽略奶秀的繁音
+		return 
+	end
 
 	if not SC.tCD[dwCaster] then
 		SC.tCD[dwCaster] = {}
@@ -271,7 +288,89 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 		tinsert(SC.tCD[dwCaster], data)
 	end
 	SC.UpdateCount()
+	--Output(SC.tCD)
 end
+
+function SC.OnSkillEffect(dwCaster, dwSkillID, dwLevel) --用这个来做修正("UI_OME_SKILL_EFFECT_LOG"晚于"DO_SKILL_CAST")
+	local me = GetClientPlayer()
+	if dwCaster == me.dwID and me.IsInParty() then	--只有在队伍里才发送 ， 只发送自己的
+		if dwSkillID == 568 and	UI_GetPlayerMountKungfuID() == 10080 then --忽略奶秀的繁音(是否要需要增加自定义？
+			return
+		end
+		local bCD,LastFr,TotalFr=me.GetSkillCDProgress(dwSkillID,dwLevel)--如果执行成功，返回3个值：是否有CD(true或false)，剩余CD时间和总CD时间。Cd时间的单位是帧。如果技能有多个cd计时器，那么会返回结束时间最晚的cd信息。
+		local TCD, LCD=TotalFr/16, LastFr/16
+		local sk=GetSkill(dwSkillID,dwLevel).szSkillName
+		if bCD and TCD>3 then 			--用CD>3s过滤掉大量GCD或开阵，影子障碍检测等不关心的技能。。
+			JH.Debug("BgTalk: "..me.dwID.." "..dwSkillID..sk..LCD)
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_SkillEffect_NOTIFY", me.dwID, dwSkillID, LCD) --通过后台播报给队友正确的CD
+		end
+	end
+end
+
+function SC.OnBgTalk(nChannel, dwID, szName, data, bIsSelf)
+	if not SkillCD.bEnable then	--我不听我不听我不听
+		return SC.ClosePanel()
+	end
+--	if not bIsSelf then    --自己也修正，和其他dwCaster统一处理了
+	local nSec = data[3]	--local nSec = aSkillList[dwSkillID]
+	local dwCaster  = data[1]
+	local dwSkillID = data[2]
+
+	JH.Debug("BgHear: "..dwCaster..GetSkill(dwSkillID,1).szSkillName..nSec)	--队友没装/装了没开/选了不在副本不开等等。。就不会发过来。
+	--是否需要把SC.OnSkillEffect放到JH/Base，毕竟打本装JH的多，不保证开【团队CD监控】。但不确定是否会在打本时增加太大负担
+	
+	if not SkillCD.tMonitor[dwSkillID] then --我不要听
+		return
+	end
+	
+	--if not nSec then return end 
+	
+	if not IsPlayer(dwCaster) then
+		return
+	end 
+
+	-- get name
+	local p = GetPlayer(dwCaster)
+	if not p then  					--or not JH.IsParty(dwCaster)  其实好像只会听到队友的talk ？RAIDchannel过来的。。
+		return
+	end
+
+	local szName, dwIconID = JH.GetSkillName(dwSkillID, dwLevel)
+
+	if not SC.tCD[dwCaster] then
+		SC.tCD[dwCaster] = {}
+--[[ 	else 
+		for k,v in pairs(SC.tCD[dwCaster]) do
+			if v.dwSkillID == 2235 and v.nTotal ~= aSkillList[v.dwSkillID] then			--已修正的千蝶，朝圣言等		--或者直接BGTalk 剩余时间。。（原来nSec是传过来的TotalCD
+				JH.Debug("once") return
+			end
+		end ]]
+	end
+	local nEnd = GetLogicFrameCount() + nSec * 16
+	local find = false
+	local data = {
+		nEnd      = nEnd,
+		nTotal    = nSec,
+		dwSkillID = dwSkillID,
+		dwLevel   = dwLevel,
+		dwIconID  = dwIconID,
+		szName    = szName,
+		szPlayer  = p.szName
+	}
+	for k, v in ipairs(SC.tCD[dwCaster]) do
+		if v.dwSkillID == dwSkillID then
+			SC.tCD[dwCaster][k] = data
+			find = true
+			break
+		end
+	end
+	if not find then
+		tinsert(SC.tCD[dwCaster], data)
+	end
+	SC.UpdateCount()
+	--Output(SC.tCD)
+end
+JH.RegisterBgMsg("JH_SkillEffect_NOTIFY", SC.OnBgTalk)
 
 -- 生成监控列表
 function SC.UpdateMonitorCache()
@@ -300,7 +399,9 @@ function SC.UpdateMonitorCache()
 			else
 				for kk, vv in ipairs(tKungfuMain[hSkill.dwMountRequestType] or {}) do
 					kungfu[vv] = kungfu[vv] or {}
-					tinsert(kungfu[vv], k)
+					if not (k==568 and vv == 10080) then 	--奶秀繁音 不算团队爆发，忽略。。要不要可选?
+						tinsert(kungfu[vv], k)
+					end
 				end
 			end
 		else
