@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-24 01:25:58
+-- @Last Modified time: 2015-12-25 09:49:00
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -636,7 +636,7 @@ function C.OnBreathe()
 			C.tCache[TARGET.DOODAD][k].Line = {}
 		end
 		if data.bDrawName then
-			tinsert(C.tDrawText, { KGDoodad.dwID, data.key, { 255, 128, 0 }, TARGET.DOODAD })
+			tinsert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
 		end
 	end
 	if C.shName then
