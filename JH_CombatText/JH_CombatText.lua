@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-21 13:09:40
+-- @Last Modified time: 2015-12-25 13:52:06
 
 local _L = JH.LoadLangPack
 
@@ -13,8 +13,9 @@ local GetSkill, GetTime = GetSkill, GetTime
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
-local COMBAT_TEXT_TOTAL          = 32 -- 如果修改这里 请注意其他也要跟着改
-local COMBAT_TEXT_UI_SCALE       = 1  -- 需要对文字做调整哦
+local COMBAT_TEXT_TOTAL          = 32  -- 如果修改这里 请注意其他也要跟着改
+local COMBAT_TEXT_UI_SCALE       = 1   -- 需要对文字做调整哦
+local COMBAT_TEXT_MAX_COUNT      = 100 -- 最多同屏显示100个 再多部分机器吃不消了
 local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
 	[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = true,
@@ -89,7 +90,8 @@ local COMBAT_TEXT_POINT = {
 
 local CombatText = {
 	tFree    = {}, -- 所有空闲的shadow 合集
-	tShadows = {}  -- 所有伤害UI的合集 shadow -> data
+	tShadows = {}, -- 所有伤害UI的合集 shadow -> data
+	tDeath   = {},
 }
 setmetatable(CombatText.tFree, { __mode = "v" })
 setmetatable(CombatText.tShadows, { __mode = "k" })
@@ -98,7 +100,7 @@ JH_CombatText = {
 	bRender      = true,
 	nMaxAlpha    = 240,
 	nTime        = 40,
-	nMaxCount    = 80,
+	-- nMaxCount    = 80,
 	nFadeIn      = 4,
 	nFadeOut     = 8,
 	nFont        = 19,
@@ -136,8 +138,11 @@ function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("FIGHT_HINT")
 	this:RegisterEvent("UI_SCALED")
+	this:RegisterEvent("LOADING_END")
 	CombatText.handle = this:Lookup("", "")
 end
+
+-- for i=1,50 do FireEvent("SKILL_EFFECT_TEXT",52515,1073741861,true,1,1111,111,1)end
 
 function JH_CombatText.OnEvent(szEvent)
 	if szEvent == "FIGHT_HINT" then -- 进出战斗文字
@@ -178,7 +183,13 @@ function JH_CombatText.OnEvent(szEvent)
 			if value and value > 0 then
 				CombatText.OnStealLife(arg1, arg2, arg7, value)
 			end
+		elseif arg0 == "UI_OME_DEATH_NOTIFY" then -- 目前这有个缺点 如果站在一个工作室刷怪点2-3小时内存会占用不好处理 但是这事儿我估计就工作室自己干得出来
+			if not IsPlayer(arg1) then
+				CombatText.tDeath[arg1] = true
+			end
 		end
+	elseif szEvent == "LOADING_END" then
+		CombatText.tDeath = {}
 	end
 end
 
@@ -231,8 +242,7 @@ function CombatText.OnFrameRender()
 				end
 			end
 			local r, g, b = unpack(v.col)
-			-- Output(v)
-			if v.object and v.object.nX or not v.object or not v.tPoint[1] then
+			if not CombatText.tDeath[v.dwTargetID] or not v.object or not v.tPoint[1] then
 				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
 				if v.object and v.object.nX then
 					v.tPoint = { v.object.nX, v.object.nY, v.object.nZ }
@@ -243,6 +253,19 @@ function CombatText.OnFrameRender()
 			end
 			v.nFrame = nFrame
 		else
+			if CombatText.tDeath[v.dwTargetID] then -- 寻找是否还有存在的文字
+				local bFind = false
+				for kk, vv in pairs(CombatText.tShadows) do
+					if kk ~= k and vv.dwTargetID == v.dwTargetID then
+						bFind = true
+						break
+					end
+				end
+				-- print(bFind)
+				if not bFind then
+					CombatText.tDeath[v.dwTargetID] = nil
+				end
+			end
 			k.free = true
 			CombatText.tShadows[k] = nil
 		end
@@ -254,9 +277,13 @@ JH_CombatText.OnFrameRender  = CombatText.OnFrameRender
 
 function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 	local object, tPoint
+	local bIsPlayer = IsPlayer(dwTargetID)
 	if dwTargetID ~= UI_GetClientPlayerID() then
-		object = IsPlayer(dwTargetID) and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
+		object = bIsPlayer and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
 		if object and object.nX then
+			if CombatText.tDeath[dwTargetID] then
+				CombatText.tDeath[dwTargetID] = nil
+			end
 			tPoint = { object.nX, object.nY, object.nZ }
 		end
 	end
@@ -266,6 +293,7 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 		dwTargetID      = dwTargetID,
 		szText          = szText,
 		nType           = nType,
+		bIsPlayer       = bIsPlayer,
 		nTime           = GetTime(),
 		nFrame          = 0,
 		bCriticalStrike = bCriticalStrike,
@@ -515,7 +543,7 @@ function CombatText.GetFreeShadow()
 			return v
 		end
 	end
-	if #CombatText.tFree < JH_CombatText.nMaxCount then
+	if #CombatText.tFree < COMBAT_TEXT_MAX_COUNT then
 		local sha = handle:AppendItemFromIni(COMBAT_TEXT_INIFILE, "Shadow_Content")
 		sha:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 		sha:ClearTriangleFanPoint()
