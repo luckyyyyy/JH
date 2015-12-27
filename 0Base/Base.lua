@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-24 11:33:28
+-- @Last Modified time: 2015-12-27 15:50:39
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -2210,11 +2210,11 @@ function _GUI.Wnd:ctor(pFrame, szType, szName)
 			scroll.nVal = scroll.nMin
 			self.txt:SetText(scroll.nVal .. scroll.szText)
 			scroll.OnScrollBarPosChanged = function()
-				if (this.nMax - this.nMin) < this:GetStepCount() then
+				-- if (this.nMax - this.nMin) < this:GetStepCount() then
 					this.nVal = this.nMin + (this:GetScrollPos() / this:GetStepCount()) * (this.nMax - this.nMin)
-				else
-					this.nVal = this.nMin + mceil((this:GetScrollPos() / this:GetStepCount()) * (this.nMax - this.nMin))
-				end
+				-- else
+				-- 	this.nVal = this.nMin + mceil((this:GetScrollPos() / this:GetStepCount()) * (this.nMax - this.nMin))
+				-- end
 				if this.OnScrollBarPosChanged_ then
 					this.OnScrollBarPosChanged_(this.nVal)
 				end

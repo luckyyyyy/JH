@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-19 00:02:15
+-- @Last Modified time: 2015-12-27 17:58:47
 
 local _L = JH.LoadLangPack
 local pairs, ipairs = pairs, ipairs
@@ -25,17 +25,16 @@ local Book = {
 
 -- 返回值 书本ID，书本数量，需要体力, 获得监本
 function Book.GetBook(szName)
-	local me = GetClientPlayer()
-	local nCount = g_tTable.BookSegment:GetRowCount() --获取表格总行
-	local nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt = 0, 0, 0, 0, 0, 0
-	local tItems, tBooks, tTool = {}, {}, {}
 	if not Book.tCache.BOOK[szName] then
+		local me = GetClientPlayer()
+		local nCount = g_tTable.BookSegment:GetRowCount() --获取表格总行
+		local nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt = 0, 0, 0, 0, 0, 0
+		local tItems, tBooks, tTool = {}, {}, {}
 		local dwBookID, dwBookNumber
 		for i = 1, nCount do
 			local item = g_tTable.BookSegment:GetRow(i)
 			if item.szBookName == szName then
 				dwBookID, dwBookNumber = item.dwBookID, item.dwBookNumber
-
 				break
 			end
 		end
@@ -84,18 +83,6 @@ function Book.GetBook(szName)
 end
 
 function Book.GetBookCount(dwRecipeID)
-	if IsEmpty(Book.tCache.ITEM) then
-		local me = GetClientPlayer()
-		for dwBox = 1, BigBagPanel_nCount do
-			Book.tCache.ITEM[dwBox] = Book.tCache.ITEM[dwBox] or {}
-			for dwX = 0, me.GetBoxSize(dwBox) - 1 do
-				local item = me.GetItem(dwBox, dwX)
-				if item and item.nGenre == ITEM_GENRE.BOOK then
-					Book.tCache.ITEM[dwBox][dwX] = item.nStackNum
-				end
-			end
-		end
-	end
 	local nCount = 0
 	for k, v in pairs(Book.tCache.ITEM) do
 		for kk, vv in pairs(v) do
@@ -105,6 +92,18 @@ function Book.GetBookCount(dwRecipeID)
 		end
 	end
 	return nCount
+end
+
+function Book.UpdateRange(szName)
+	local ui = Book.ui
+	if not ui then return end
+	local me = GetClientPlayer()
+	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool = Book.GetBook(szName and szName or JH_CopyBook.szBookName)
+	local nMax = math.max(math.floor(me.nCurrentThew / math.max(nThew, 1)), 1)
+	ui:Fetch("Count"):Change(nil):Enable(nThew ~= 0):Range(0, nMax, math.max(nMax, 0)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
+		JH_CopyBook.nCopyNum = nNum
+		Book.UpdateInfo()
+	end)
 end
 
 function Book.UpdateInfo(szName)
@@ -121,15 +120,10 @@ function Book.UpdateInfo(szName)
 		if JH_CopyBook.nCopyNum > nMax and not Book.bEnable then
 			JH_CopyBook.nCopyNum = nMax
 		end
-		ui:Fetch("Count"):Enable(bCanCopy):Change(nil):Range(0, nMax, math.max(nMax, 0)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
-			JH_CopyBook.nCopyNum = nNum
-			Book.UpdateInfo()
-		end)
+		ui:Fetch("Count"):Enable(true)
 		local handle = ui:Fetch("Require"):Clear()
 		local nX, nY = 10, 0
-		if IsEmpty(JH_CopyBook.tIgnore) then
-			nX, nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint), color = { 255, 128, 0 } }):Pos_()
-		end
+		nX, nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint), color = { 255, 128, 0 } }):Pos_()
 		-- 计算体力
 		local nNumThew = JH_CopyBook.nCopyNum * nThew
 		local bStatus  = nNumThew <= me.nCurrentThew and true or false
@@ -137,7 +131,7 @@ function Book.UpdateInfo(szName)
 		nX = handle:Append("Text", { x = 10, y = nY + 5, txt = _L["Need Thew:"]}):Pos_()
 		handle:Append("Image", { x = nX + 5, y = nY + 15, w = 200, h = 11 }):File(szUitex, 123)
 		handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(nNumThew / math.max(1, me.nCurrentThew))
-		nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = nNumThew .. "/" .. me.nCurrentThew, color = bStatus and green or red }):Pos_()
+		nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = me.nCurrentThew .. "/" .. nNumThew, color = bStatus and green or red }):Pos_()
 		-- 阅读等级需求
 		local nPlayerLevel = me.GetProfessionLevel(8)
 		local bStatus      = nPlayerLevel >= nMaxLevel
@@ -183,14 +177,14 @@ function Book.UpdateInfo(szName)
 			local nCount  = me.GetItemAmount(v.dwTabType, v.dwIndex)
 			local bStatus = nCount >= v.nCount * JH_CopyBook.nCopyNum and true or false
 			bCanCopy = bCanCopy and bStatus
-			nX = handle:Append("Box", "iteminfolink", { x = (i % 9) * 58, y = nY + math.floor(i / 9 ) * 55 + 15, w = 48, h = 48})
+			nX = handle:Append("Box", { x = (i % 9) * 58, y = nY + math.floor(i / 9 ) * 55 + 15, w = 48, h = 48})
 			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex)
 			:OverText(ITEM_POSITION.RIGHT_BOTTOM, nCount .. "/" .. v.nCount * JH_CopyBook.nCopyNum, 0, bStatus and 15 or 159)
 			:Pos_()
 			i = i + 1
 		end
 		-- 书本
-		local hBooks = ui:Fetch("Books"):Toggle(true):Clear()
+		local hBooks = ui:Fetch("Books"):Clear()
 		nX = 5
 		local tBS, tCheck = me.GetBookSegmentList(dwBookID), {}
 		for k, v in ipairs(tBS) do
@@ -204,19 +198,20 @@ function Book.UpdateInfo(szName)
 			local nCount  = Book.GetBookCount(dwRecipeID)
 			nX = hBooks:Append("Box", { x = nX + 10, y = 5, w = 32, h = 32 }):ToGray(not tCheck[k])
 			:Enable(not JH_CopyBook.tIgnore[k] and true or false)
-			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, dwBookID, k)
+			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, dwRecipeID)
 			:OverText(ITEM_POSITION.RIGHT_BOTTOM, nCount)
-			:Staring(Book.nBook == k and Book.bLock)
+			:Staring(Book.nBook == k and Book.bEnable)
 			:Click(function()
 				if not IsCtrlKeyDown() then
 					this:EnableObject(this:IsObjectEnable())
 					JH_CopyBook.tIgnore[k] = this:IsObjectEnable() or nil
 					Book.tCache.BOOK[JH_CopyBook.szBookName] = nil
 					Book.UpdateInfo()
+					Book.UpdateRange()
 				end
 			end):Pos_()
 		end
-		ui:Fetch("Copy"):Enable(bCanCopy and JH_CopyBook.nCopyNum > 0)
+		ui:Fetch("Copy"):Enable(bCanCopy and JH_CopyBook.nCopyNum > 0 and not Book.bEnable)
 		if szName then
 			JH_CopyBook.szBookName = szName
 		end
@@ -228,9 +223,11 @@ function Book.UpdateInfo(szName)
 	else
 		ui:Fetch("Count"):Enable(false)
 		ui:Fetch("Copy"):Enable(false)
-		ui:Fetch("Books"):Toggle(false)
-		local handle = ui:Fetch("Require"):Clear()
-		handle:Append("Text", { x = 0, y = 0, txt = _L["No Books"], color = { 0, 255, 0 } })
+		ui:Fetch("Require"):Clear()
+		local handle = ui:Fetch("Books"):Clear()
+		if szName ~= "" then
+			handle:Append("Text", { x = 10, y = 0, txt = _L["No Books"], color = { 255, 0, 0 } })
+		end
 	end
 end
 
@@ -264,18 +261,13 @@ function Book.Copy()
 		Book.bLock   = false
 		Book.bEnable = false
 		JH.UnBreatheCall("CokyBook")
-		JH.UnRegisterEvent("DO_RECIPE_PREPARE_PROGRESS.CopyBook")
-		JH.UnRegisterEvent("OT_ACTION_PROGRESS_BREAK.CopyBook")
+		JH.UnRegisterEvent("DO_RECIPE_PREPARE_PROGRESS.COPYBOOK")
+		JH.UnRegisterEvent("OT_ACTION_PROGRESS_BREAK.COPYBOOK")
 		JH.Sysmsg(_L("Stop Copy Book %s", Book.szBookName))
 		Book.UpdateInfo()
+		Book.UpdateRange()
 	end
-	JH.RegisterEvent("OT_ACTION_PROGRESS_BREAK.CopyBook", function()
-		if arg0 == GetClientPlayer().dwID then
-			JH.Debug("COPYBOOK # OT_ACTION_PROGRESS_BREAK #" .. arg0)
-			return Stop()
-		end
-	end)
-	JH.RegisterEvent("DO_RECIPE_PREPARE_PROGRESS.CopyBook", function()
+	JH.RegisterEvent("DO_RECIPE_PREPARE_PROGRESS.COPYBOOK", function()
 		Book.nTotalFrame = GetLogicFrameCount() + arg0
 		Book.UpdateInfo()
 	end)
@@ -316,6 +308,7 @@ function Book.Copy()
 						return Stop()
 					end
 					Book.UpdateInfo()
+					Book.UpdateRange()
 				end
 			until not JH_CopyBook.tIgnore[Book.nBook]
 			Book.bLock = false
@@ -343,15 +336,31 @@ function PS.OnPanelActive(frame)
 			setmetatable(Book.tBookList, { __index = tName })
 		end
 		return Book.tBookList
-	end, Book.UpdateInfo):Pos_()
+	end, function(szText)
+		Book.UpdateInfo(szText)
+		Book.UpdateRange(szText)
+	end):Pos_()
 	nX = ui:Append("WndButton2", "Copy", { x = nX + 5, y = nY + 12, txt = _L["Start Copy"] }):Click(Book.CheckCopy):Pos_()
 	nX, nY = ui:Append("WndButton2", "go_on", { x = nX + 5, y = nY + 12, txt = _L["go on"] }):Toggle(false):Click(Book.Copy):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Copy Count"] }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", "Count", { x = nX + 5, y = nY + 5, txt = "" }):Range(1, 1, 1):Pos_()
+	nX, nY = ui:Append("WndTrackBar", "Count", { x = nX + 5, y = nY + 5, txt = "" }):Range(0, 1000, 1000):Value(JH_CopyBook.nCopyNum):Pos_()
 	nX, nY = ui:Append("Handle", "Books", { x = 0, y = nY, h = 40, w = 500 }):Pos_()
 	nX, nY = ui:Append("Handle", "Require", { x = 0, y = nY + 5, h = 200, w = 500 })
+	-- item cache
+	Book.tCache.ITEM = {}
+	local me = GetClientPlayer()
+	for dwBox = 1, BigBagPanel_nCount do
+		Book.tCache.ITEM[dwBox] = Book.tCache.ITEM[dwBox] or {}
+		for dwX = 0, me.GetBoxSize(dwBox) - 1 do
+			local item = me.GetItem(dwBox, dwX)
+			if item and item.nGenre == ITEM_GENRE.BOOK then
+				Book.tCache.ITEM[dwBox][dwX] = item.nStackNum
+			end
+		end
+	end
 	Book.UpdateInfo()
-	JH.RegisterInit("CopyBook",
+	Book.UpdateRange()
+	JH.RegisterInit("COPYBOOK",
 		{ "BAG_ITEM_UPDATE", function()
 			local me = GetClientPlayer()
 			local item = me.GetItem(arg0, arg1)
@@ -373,7 +382,7 @@ function PS.OnPanelActive(frame)
 end
 
 function PS.OnPanelDeactive()
-	JH.UnRegisterInit("CopyBook")
+	JH.UnRegisterInit("COPYBOOK")
 	Book.tCache.ITEM = {}
 	Book.ui          = nil
 	Book.tBookList   = nil
