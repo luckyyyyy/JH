@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-28 13:32:45
+-- @Last Modified time: 2015-12-28 15:58:21
 
 local _L = JH.LoadLangPack
 
@@ -23,15 +23,14 @@ local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = true,
 	[SKILL_RESULT_TYPE.POISON_DAMAGE]        = true,
 	[SKILL_RESULT_TYPE.THERAPY]              = true,
-	--[SKILL_RESULT_TYPE.EFFECTIVE_THERAPY]= true,	--然并卵 无strike信息  即使会心也可能是过量治疗
 	[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = true,
 	[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
 	["EXP"]                                  = true,
 }
 
-local COMBAT_TEXT_IGNORE = {
-	-- [15] = true,
-}
+local COMBAT_TEXT_IGNORE = {}
+local COMBAT_TEXT_IGNORE_TYPE = {}
+
 local COMBAT_TEXT_EVENT  = { "COMMON_HEALTH_TEXT", "SKILL_EFFECT_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY" }
 local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
 	[SKILL_RESULT_TYPE.SHIELD_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
@@ -57,10 +56,10 @@ local COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 
 local COMBAT_TEXT_POINT = {
 	TOP = { -- 伤害 往上的 分四组 普通 慢 慢 块~~
-		6,   12,  18,  24,  30,  36,  42,  48,
-		53,  58,  63,  68,  73,  78,  83,  88,
-		93,  98,  103, 108, 113, 118, 123, 128,
-		136, 142, 150, 158, 166, 172, 180, 188,
+		0,   6,   12,  18,  24,  30,  36,  42,
+		45,  48,  51,  54,  57,  60,  63,  66,
+		69,  72,  75,  78,  81,  84,  87,  90,
+		100, 110, 120, 130, 140, 150, 160, 170,
 	},
 	RIGHT = { -- 从左往右的
 		8,   16,  24,  32,  40,  48,  56,  64,
@@ -100,7 +99,6 @@ JH_CombatText = {
 	bRender      = true,
 	nMaxAlpha    = 240,
 	nTime        = 40,
-	-- nMaxCount    = 80,
 	nFadeIn      = 4,
 	nFadeOut     = 8,
 	nFont        = 19,
@@ -140,6 +138,14 @@ function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("LOADING_END")
 	CombatText.handle = this:Lookup("", "")
+	-- uninit
+	local CombatTextWnd = Station.Lookup("Lowest/CombatTextWnd")
+	local events = { "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }
+	if CombatTextWnd then
+		for k, v in ipairs(events) do
+			CombatTextWnd:UnRegisterEvent(v)
+		end
+	end
 end
 
 -- for i=1,50 do FireEvent("SKILL_EFFECT_TEXT",52515,1073741861,true,1,1111,111,1)end
@@ -178,11 +184,6 @@ function JH_CombatText.OnEvent(szEvent)
 			if arg2 > 0 then
 				CombatText.OnExpLog(arg1, arg2)
 			end
-		-- elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then
-		-- 	local value = arg9[SKILL_RESULT_TYPE.STEAL_LIFE]
-		-- 	if value and value > 0 then
-		-- 		CombatText.OnStealLife(arg1, arg2, arg7, value)
-		-- 	end
 		elseif arg0 == "UI_OME_DEATH_NOTIFY" then -- 目前这有个缺点 如果站在一个工作室刷怪点2-3小时内存会占用不好处理 但是这事儿我估计就工作室自己干得出来
 			if not IsPlayer(arg1) then
 				CombatText.tDeath[arg1] = true
@@ -431,24 +432,6 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 end
 
--- 吸血
--- function CombatText.OnStealLife(dwCaster, dwTarget, bCriticalStrike, nValue)
--- 	local dwID = UI_GetClientPlayerID()
--- 	if dwCaster ~= dwID and dwTarget ~= dwID then
--- 		return
--- 	end
--- 	local shadow = CombatText.GetFreeShadow()
--- 	if not shadow then -- 没有空闲的shadow
--- 		return
--- 	end
--- 	if dwCaster == dwID then
--- 		szPoint = "BOTTOM_RIGHT"
--- 	else
--- 		szPoint = "TOP"
--- 	end
--- 	CombatText.CreateText(shadow, dwCaster, "+" .. nValue, szPoint, SKILL_RESULT_TYPE.STEAL_LIFE, false, JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY])
--- end
-
 function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if not Table_BuffIsVisible(dwID, nLevel) then
 		return
@@ -564,18 +547,12 @@ end
 function CombatText.CheckEnable()
 	local CombatTextWnd = Station.Lookup("Lowest/CombatTextWnd")
 	local ui = Station.Lookup("Lowest/JH_CombatText")
-	local events = { "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }
 	if JH_CombatText.bRender then
 		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 	else
 		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText.ini"
 	end
 	if JH_CombatText.bEnable then
-		if CombatTextWnd then
-			for k, v in ipairs(events) do
-				CombatTextWnd:UnRegisterEvent(v)
-			end
-		end
 		CombatText.LoadConfig()
 		Wnd.CloseWindow(ui)
 		CombatText.tFree    = {}
@@ -583,13 +560,9 @@ function CombatText.CheckEnable()
 		Wnd.OpenWindow(COMBAT_TEXT_INIFILE, "JH_CombatText")
 	else
 		if CombatTextWnd then
-			for k, v in ipairs(events) do
-				CombatTextWnd:UnRegisterEvent(v)
-			end
-			for k, v in ipairs(events) do
-				CombatTextWnd:RegisterEvent(v)
-			end
+			Wnd.CloseWindow(CombatTextWnd)
 		end
+		Wnd.OpenWindow("CombatTextWnd")
 		if ui then
 			Wnd.CloseWindow(ui)
 			CombatText.tFree    = {}
@@ -621,7 +594,7 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.nMaxAlpha = nVal
 	end):Pos_()
 	nX = ui:Append("Text", { x = 240, y = nY - 1, txt = _L["Hold time"], color = { 255, 255, 200 } }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["ms"] }):Range(500, 3000, 2500):Value(JH_CombatText.nTime * COMBAT_TEXT_TOTAL):Change(function(nVal)
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["ms"] }):Range(700, 2500, 1800):Value(JH_CombatText.nTime * COMBAT_TEXT_TOTAL):Change(function(nVal)
 		JH_CombatText.nTime = nVal / COMBAT_TEXT_TOTAL
 	end):Pos_()
 
