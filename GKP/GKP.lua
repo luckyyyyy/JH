@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-14 20:15:33
+-- @Last Modified time: 2015-12-28 13:37:54
 
 -- 早期代码 需要重写
 
@@ -1199,6 +1199,7 @@ function _GKP.ClearData(bConfirm)
 		_GKP.GKP_Account = {}
 		_GKP.DrawRecord()
 		_GKP.DrawAccount()
+		_GKP.UpdateStat()
 		_GKP.nNowMoney = GetClientPlayer().GetMoney().nGold
 		_GKP.tDistributeRecords = {}
 		JH.Alert(_L["Recods are wiped"])
