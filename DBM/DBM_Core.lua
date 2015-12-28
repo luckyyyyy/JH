@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-28 17:12:40
+-- @Last Modified time: 2015-12-28 17:35:24
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1498,8 +1498,6 @@ function D.LoadConfigureFile(config)
 		local s, exp = szFullPath:lower():gsub(".*interface", "")
 		if exp > 0 then
 			szFilePath = "interface" .. s
-		else
-			szFilePath = path
 		end
 	end
 	if not IsFileExist(szFilePath) then
@@ -1520,25 +1518,37 @@ function D.LoadConfigureFile(config)
 			for k, v in pairs(config.tList) do
 				D.FILE[k] = data[k] or {}
 			end
-		elseif config.nMode == 2 then -- 原文件优先
+		elseif config.nMode == 2 or config.nMode == 3 then
 			if config.tList["CIRCLE"] then
 				if type(Circle) ~= "nil" then
 					local dat = { Circle = data["CIRCLE"] }
-					Circle.LoadCircleMergeData(dat)
+					Circle.LoadCircleMergeData(dat, config.nMode == 3 and true or false)
 				end
 				config.tList["CIRCLE"] = nil
 			end
-			for szType, _ in pairs(config.tList) do
-				if data[szType] then
-					for k, v in pairs(data[szType]) do
-						for kk, vv in ipairs(v) do
-							if not D.CheckRepeatData(szType, k, vv.dwID or vv.szContent, vv.nLevel or vv.szTarget) then
-								D.FILE[szType][k] = D.FILE[szType][k] or {}
-								table.insert(D.FILE[szType][k], vv)
+			local fnMergeData = function(tab_data)
+				for szType, _ in pairs(config.tList) do
+					if tab_data[szType] then
+						for k, v in pairs(tab_data[szType]) do
+							for kk, vv in ipairs(v) do
+								if not D.CheckRepeatData(szType, k, vv.dwID or vv.szContent, vv.nLevel or vv.szTarget) then
+									D.FILE[szType][k] = D.FILE[szType][k] or {}
+									table.insert(D.FILE[szType][k], vv)
+								end
 							end
 						end
 					end
 				end
+			end
+			if config.nMode == 2 then -- 源文件优先
+				fnMergeData(data)
+			elseif config.nMode == 3 then -- 新文件优先
+				-- 其实就是交换下顺序
+				local tab_data = clone(D.FILE)
+				for k, v in pairs(config.tList) do
+					D.FILE[k] = data[k] or {}
+				end
+				fnMergeData(tab_data)
 			end
 		end
 		FireUIEvent("DBM_CREATE_CACHE")
