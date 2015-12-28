@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-28 15:58:21
+-- @Last Modified time: 2015-12-28 18:28:46
 
 local _L = JH.LoadLangPack
 
@@ -327,6 +327,10 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 	-- 把治疗归类为一种 方便处理
+	local bStealLife
+	if nType == SKILL_RESULT_TYPE.STEAL_LIFE then
+		bStealLife = true
+	end
 	nType = tTherapyType[nType] and SKILL_RESULT_TYPE.THERAPY or nType
 	if nType == SKILL_RESULT_TYPE.THERAPY and nValue == 0 then
 		return
@@ -350,6 +354,9 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	end
 
 	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
+	if bStealLife then
+		szName = g_tStrings.SKILL_STEAL_LIFE
+	end
 	local szText, szReplaceText
 	if nType == SKILL_RESULT_TYPE.THERAPY then
 		szReplaceText = JH_CombatText.szTherapy

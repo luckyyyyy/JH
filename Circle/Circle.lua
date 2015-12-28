@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-25 09:49:00
+-- @Last Modified time: 2015-12-28 17:44:50
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -102,25 +102,34 @@ function C.LoadCircleData(tData, bMsg)
 	FireUIEvent("CIRCLE_RELOAD")
 end
 
-function C.LoadCircleMergeData(tData)
+function C.LoadCircleMergeData(tData, bPriority)
 	local data = {}
 	for k, v in pairs(tData.Circle) do
 		if JH.IsMapExist(k) then
 			data[tonumber(k)] = v
 		end
 	end
-	for k, v in pairs(data) do
-		if C.tData[k] then
-			if JH.IsMapExist(k) then
-				for kk, vv in ipairs(v) do
-					if not C.CheckRepeatData(k, vv.key, vv.dwType) then
-						table.insert(C.tData[k], vv)
+	local fnMergeData = function(tab_data)
+		for k, v in pairs(tab_data) do
+			if C.tData[k] then
+				if JH.IsMapExist(k) then
+					for kk, vv in ipairs(v) do
+						if not C.CheckRepeatData(k, vv.key, vv.dwType) then
+							table.insert(C.tData[k], vv)
+						end
 					end
 				end
+			else
+				C.tData[k] = v
 			end
-		else
-			C.tData[k] = v
 		end
+	end
+	if bPriority then
+		local tab_data = clone(C.tData)
+		C.tData = data
+		fnMergeData(tab_data)
+	else
+		fnMergeData(data)
 	end
 	FireUIEvent("CIRCLE_RELOAD")
 end
