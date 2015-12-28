@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-23 07:51:48
+-- @Last Modified time: 2015-12-28 17:12:40
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1491,11 +1491,18 @@ function D.LoadUserData()
 end
 
 function D.LoadConfigureFile(config)
-	local root, path = GetRootPath(), "\\".. JH.GetAddonInfo().szRootPath .. "DBM\\data\\" .. config.szFileName
+	local path = JH.GetAddonInfo().szRootPath .. "DBM\\data\\" .. config.szFileName
 	local szFullPath = config.bFullPath and config.szFileName or path
-	local szFilePath = config.bFullPath and config.szFileName:gsub(root, "") or path
-	szFullPath = szFullPath:gsub("\\", "/")
-	if not IsFileExist(szFullPath) then
+	local szFilePath = path
+	if config.bFullPath then
+		local s, exp = szFullPath:lower():gsub(".*interface", "")
+		if exp > 0 then
+			szFilePath = "interface" .. s
+		else
+			szFilePath = path
+		end
+	end
+	if not IsFileExist(szFilePath) then
 		return false, "the file does not exist"
 	end
 	local data = LoadLUAData(szFilePath)
@@ -1536,7 +1543,7 @@ function D.LoadConfigureFile(config)
 		end
 		FireUIEvent("DBM_CREATE_CACHE")
 		FireUIEvent("DBMUI_DATA_RELOAD")
-		return true, szFullPath
+		return true, szFullPath:gsub("\\", "/")
 	end
 end
 
