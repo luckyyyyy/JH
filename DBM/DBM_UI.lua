@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-23 07:51:51
+-- @Last Modified time: 2015-12-28 17:03:49
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -730,13 +730,15 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 	end
 	nY = 100
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Name"], font = 27 }):Pos_()
-	nX = ui:Append("WndEdit", "FilePtah", { x = 30, y = nY + 10, w = 450, h = 25, txt = szTitle, enable = false }):Pos_()
+	nX = ui:Append("WndEdit", "FilePtah", { x = 30, y = nY + 10, w = 450, h = 25, txt = szTitle, enable = not szDefault }):Pos_()
 	nX, nY = ui:Append("WndButton2", { x = nX + 5, y = nY + 10, txt = _L["browse"], enable = not szDefault }):Click(function()
 		local szFile = GetOpenFileName(_L['please select data file.'], "DBM data File(*.jx3dat)\0*.jx3dat\0All Files(*.*)\0*.*\0")
-		if not szFile:lower():find(string.lower(GetRootPath() .. "\\interface")) then
+		if szFile ~= "" and not szFile:lower():find("interface") then
 			JH.Alert(_L["please select interface path."])
+			ui:Fetch("FilePtah"):Text("")
+		else
+			ui:Fetch("FilePtah"):Text(szFile)
 		end
-		ui:Fetch("FilePtah"):Text(szFile)
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Import mode"], font = 27 }):Pos_()
 	local nType = 1
