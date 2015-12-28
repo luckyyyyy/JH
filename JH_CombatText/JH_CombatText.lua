@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-26 10:39:10
+-- @Last Modified time: 2015-12-28 13:32:45
 
 local _L = JH.LoadLangPack
 
@@ -178,11 +178,11 @@ function JH_CombatText.OnEvent(szEvent)
 			if arg2 > 0 then
 				CombatText.OnExpLog(arg1, arg2)
 			end
-		elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then
-			local value = arg9[SKILL_RESULT_TYPE.STEAL_LIFE]
-			if value and value > 0 then
-				CombatText.OnStealLife(arg1, arg2, arg7, value)
-			end
+		-- elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then
+		-- 	local value = arg9[SKILL_RESULT_TYPE.STEAL_LIFE]
+		-- 	if value and value > 0 then
+		-- 		CombatText.OnStealLife(arg1, arg2, arg7, value)
+		-- 	end
 		elseif arg0 == "UI_OME_DEATH_NOTIFY" then -- 目前这有个缺点 如果站在一个工作室刷怪点2-3小时内存会占用不好处理 但是这事儿我估计就工作室自己干得出来
 			if not IsPlayer(arg1) then
 				CombatText.tDeath[arg1] = true
@@ -303,6 +303,12 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 	}
 end
 
+local tTherapyType = {
+	[SKILL_RESULT_TYPE.STEAL_LIFE]        = true,
+	[SKILL_RESULT_TYPE.EFFECTIVE_THERAPY] = true,
+	[SKILL_RESULT_TYPE.THERAPY]           = true,
+}
+
 function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, nValue, dwSkillID, dwSkillLevel, nEffectType)
 	-- 过滤 有效治疗 有效伤害 西区内力 化解治疗
 	if nType == SKILL_RESULT_TYPE.EFFECTIVE_DAMAGE
@@ -312,29 +318,15 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	or nType == SKILL_RESULT_TYPE.TRANSFER_MANA
 	or nType == SKILL_RESULT_TYPE.ABSORB_THERAPY
 	or nType == SKILL_RESULT_TYPE.TRANSFER_LIFE
-	or nType == SKILL_RESULT_TYPE.STEAL_LIFE
 	then
 		return
 	end
 	local dwID = UI_GetClientPlayerID()
-	if nType == SKILL_RESULT_TYPE.REFLECTIED_DAMAGE then
-		local _    = dwCasterID
-		dwCasterID = dwTargetID
-		dwTargetID = _
-	-- elseif nType == SKILL_RESULT_TYPE.STEAL_LIFE then -- 太奇葩了 WTF！
-		-- if --[[(IsPlayer(dwCasterID) and not IsPlayer(dwTargetID)) or ]]nEffectType == SKILL_EFFECT_TYPE.BUFF then
-		-- if dwTargetID ~= dwID and nEffectType ~= SKILL_EFFECT_TYPE.BUFF or nEffectType == SKILL_EFFECT_TYPE.BUFF then
-		-- 	local _    = dwCasterID
-		-- 	dwCasterID = dwTargetID
-		-- 	dwTargetID = _
-		-- end
-	end
 	if COMBAT_TEXT_IGNORE[dwSkillID] and dwCasterID == dwID then
 		return
 	end
-	-- 把两种归类为一种 方便处理
-	nType = nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY and SKILL_RESULT_TYPE.THERAPY or nType
-
+	-- 把治疗归类为一种 方便处理
+	nType = tTherapyType[nType] and SKILL_RESULT_TYPE.THERAPY or nType
 	if nType == SKILL_RESULT_TYPE.THERAPY and nValue == 0 then
 		return
 	end
@@ -440,22 +432,22 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 end
 
 -- 吸血
-function CombatText.OnStealLife(dwCaster, dwTarget, bCriticalStrike, nValue)
-	local dwID = UI_GetClientPlayerID()
-	if dwCaster ~= dwID and dwTarget ~= dwID then
-		return
-	end
-	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- 没有空闲的shadow
-		return
-	end
-	if dwCaster == dwID then
-		szPoint = "BOTTOM_RIGHT"
-	else
-		szPoint = "TOP"
-	end
-	CombatText.CreateText(shadow, dwCaster, "+" .. nValue, szPoint, SKILL_RESULT_TYPE.STEAL_LIFE, false, JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY])
-end
+-- function CombatText.OnStealLife(dwCaster, dwTarget, bCriticalStrike, nValue)
+-- 	local dwID = UI_GetClientPlayerID()
+-- 	if dwCaster ~= dwID and dwTarget ~= dwID then
+-- 		return
+-- 	end
+-- 	local shadow = CombatText.GetFreeShadow()
+-- 	if not shadow then -- 没有空闲的shadow
+-- 		return
+-- 	end
+-- 	if dwCaster == dwID then
+-- 		szPoint = "BOTTOM_RIGHT"
+-- 	else
+-- 		szPoint = "TOP"
+-- 	end
+-- 	CombatText.CreateText(shadow, dwCaster, "+" .. nValue, szPoint, SKILL_RESULT_TYPE.STEAL_LIFE, false, JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY])
+-- end
 
 function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if not Table_BuffIsVisible(dwID, nLevel) then
