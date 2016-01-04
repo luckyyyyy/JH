@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-29 13:31:42
+-- @Last Modified time: 2016-01-04 20:23:41
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -721,9 +721,8 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 end
 
 function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
-	GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Import Data"], close = true })
-	local ui, nX, nY = GUI(Station.Lookup("Normal/DBM_DatatPanel")), 0, 0
-	nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
+	local ui = GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Import Data"], close = true })
+	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
 	for k, v in ipairs(DBMUI_TYPE) do
 		nX = ui:Append("WndCheckBox", v, { x = nX + 5, y = nY + 5, checked = true, txt = _L[v] }):Pos_()
@@ -777,8 +776,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 end
 
 function DBMUI.OpenExportPanel()
-	GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Export Data"], close = true })
-	local ui = GUI(Station.Lookup("Normal/DBM_DatatPanel"))
+	local ui = GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Export Data"], close = true })
 	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
 	for k, v in ipairs(DBMUI_TYPE) do
@@ -1103,14 +1101,11 @@ function DBMUI.OpenAddPanel(szType, data)
 		if szType ~= "TALK" then
 			szName, nIcon = DBMUI.GetDataName(szType, data)
 		end
-		GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, focus = true, close = true })
-		local frame = Station.Lookup("Normal/DBM_NewData")
-		local nX, nY, ui = 0, 0, GUI(frame)
-		frame:RegisterEvent("DBMUI_SWITCH_PAGE")
-		frame:RegisterEvent("DBMUI_TEMP_RELOAD")
-		frame.OnEvent = function(szEvent)
+		local ui = GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, focus = true, close = true })
+		local nX, nY = 0, 0
+		ui:Event("DBMUI_SWITCH_PAGE", "DBMUI_TEMP_RELOAD"):OnEvent(function(szEvent)
 			ui:Remove()
-		end
+		end)
 		if szType ~= "NPC" then
 			nX, nY = ui:Append("Box", "Box_Icon", { w = 48, h = 48, x = 166, y = 40, icon = nIcon }):Pos_()
 		else
@@ -1175,14 +1170,14 @@ end
 -- 数据调试面板
 function DBMUI.OpenJosnPanel(data, fnAction)
 	local json = JsonEncode(data, true)
-	local wnd = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = "DBM DEBUG", close = true })
-	wnd:Append("WndEdit", "WndEdit", { w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999, txt = json })
-	wnd:Append("WndButton3",{ x = 10, y = 370,txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
+	local ui = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = "DBM DEBUG", close = true })
+	ui:Append("WndEdit", "WndEdit", { w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999, txt = json })
+	ui:Append("WndButton3",{ x = 10, y = 370,txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
 		JH.Confirm(_L["Confirm?"], function()
-			local json = wnd:Fetch("WndEdit"):Text()
+			local json = ui:Fetch("WndEdit"):Text()
 			local dat = JH.JsonToTable(json)
 			if fnAction and dat then
-				wnd:Remove()
+				ui:Remove()
 				return fnAction(dat)
 			end
 		end)
@@ -1324,19 +1319,15 @@ function DBMUI.OpenSettingPanel(data, szType)
 	if szType ~= "TALK" then
 		szName, nIcon = DBMUI.GetDataName(szType, data)
 	end
-	local wnd = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true, focus = true })
+	local ui = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true, focus = true })
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")
-	local ui = GUI(frame)
-	frame:RegisterEvent("DBMUI_DATA_RELOAD")
-	frame:RegisterEvent("DBMUI_SWITCH_PAGE")
-	frame.OnEvent = function(szEvent)
+	ui:Event("DBMUI_DATA_RELOAD", "DBMUI_SWITCH_PAGE"):OnEvent(function(szEvent)
 		ui:Remove()
-	end
+	end)
 	frame.OnFrameDragEnd = function()
 		DBMUI_PANEL_ANCHOR = GetFrameAnchor(frame, "LEFTTOP")
 	end
 	local nX, nY, _ = 0, 0, 0
-
 	local function ClickBox()
 		local menu, box = {}, this
 		if szType ~= "TALK" then
@@ -1344,10 +1335,10 @@ function DBMUI.OpenSettingPanel(data, szType)
 				GetUserInput(_L["Edit Name"], function(szText)
 					if JH.Trim(szText) == "" then
 						data.szName = nil
-						wnd:Title(szName)
+						ui:Title(szName)
 					else
 						data.szName = szText
-						wnd:Title(szText)
+						ui:Title(szText)
 					end
 				end, nil, nil, nil, data.szName or szName)
 			end})
@@ -1848,9 +1839,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 	nX, nY = ui:Append("WndButton2", { x = 640, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
 		OpenInternetExplorer("http://www.j3ui.com/DBM/")
 	end):Pos_()
-	local w, h = wnd:Size()
+	local w, h = ui:Size()
 	local a = DBMUI_PANEL_ANCHOR
-	wnd:Size(w, nY + 25):Point(a.s, 0, 0, a.r, a.x, a.y)
+	ui:Size(w, nY + 25):Point(a.s, 0, 0, a.r, a.x, a.y)
 end
 
 function DBMUI.UpdateAnchor(frame)

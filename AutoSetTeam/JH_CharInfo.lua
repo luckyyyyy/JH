@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 18:52:13
+-- @Last Modified time: 2016-01-04 19:54:19
 local _L = JH.LoadLangPack
 
 local JH_CharInfo = {}
@@ -33,9 +33,8 @@ function JH_CharInfo.GetInfo()
 end
 
 function JH_CharInfo.CreateFrame(dwID, szName, dwForceID)
-	local GUIframe = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = szName .. g_tStrings.STR_EQUIP_ATTR, close = true })
-	local frame    = Station.Lookup("Normal/JH_CharInfo" .. dwID)
-	local ui = GUI(frame) -- 历史原因 先不管
+	local ui = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = szName .. g_tStrings.STR_EQUIP_ATTR, close = true })
+	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	local nX, nY = ui:Append("Image", { x = 20, y = 50, w = 30, h = 30 }):File(GetForceImage(dwForceID)):Pos_()
 	ui:Append("Text", "Name", { x = nX + 5, y = 52, txt = szName })
 	ui:Append("WndButton2", "LOOKUP", { x = 70, y = 360, txt = g_tStrings.STR_LOOKUP }):Click(function()
@@ -43,7 +42,6 @@ function JH_CharInfo.CreateFrame(dwID, szName, dwForceID)
 	end)
 	local info  = ui:Append("Text", "info", { x = 20, y = 72, txt = _L["Asking..."], w = 200, h = 70, font = 27, multi = true })
 	frame.ui    = ui
-	frame.frame = GUIframe
 	frame.data  = {}
 	frame.info  = info
 end
@@ -79,7 +77,6 @@ function JH_CharInfo.CreateComplete(dwID)
 		if data and type(data) == "table" then
 			frame.info:Toggle(false)
 			local ui = frame.ui
-			local GUIframe = frame.frame
 			local self_data = JH_CharInfo.GetInfo()
 			local function GetSelfValue(label, value)
 				for i = 2, #self_data do
@@ -95,7 +92,7 @@ function JH_CharInfo.CreateComplete(dwID)
 				return { 255, 255, 255 }
 			end
 			-- 避免大小不够
-			GUIframe:Size(240, 60 + 65 + (#data - 1) * 25)
+			ui:Size(240, 60 + 65 + (#data - 1) * 25)
 			ui:Fetch("LOOKUP"):Pos(70, 60 + #data * 25)
 			for i = 2, #data do
 				local v = data[i]

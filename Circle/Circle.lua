@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-03 17:28:12
+-- @Last Modified time: 2016-01-04 20:24:13
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -665,9 +665,7 @@ end
 
 function C.OpenAddPanel(szName, dwType, szMap, dwSelMapID)
 	dwType = dwType or TARGET.NPC
-	GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = _L["Add Face"], close = true, focus = true })
-	-- update ui = wnd
-	local ui = GUI(Station.Lookup("Normal/DBM_NewData"))
+	local ui = GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = _L["Add Face"], close = true, focus = true })
 	ui:Append("Text", "Name", { txt = szName or _L["Please enter key"], font = 48, w = 380, h = 30, x = 0, y = 45, align = 1 })
 	ui:Append("Text", { txt = _L["Key:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
 	ui:Append("WndEdit", "Key", { txt = szName, x = 115, y = 83, enable = szName == nil })
@@ -728,15 +726,11 @@ end
 function C.OpenDataPanel(data)
 	local title = data.szNote and string.format("%s(%s)", data.key, data.szNote) or data.key
 	local a = CIRCLE_PANEL_ANCHOR
-	GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 390, title = title, close = true, focus = true }):Point(a.s, 0, 0, a.r, a.x, a.y)
-	-- update ui = wnd
-	local frame = Station.Lookup("Normal/DBM_SettingPanel")
-	local ui = GUI(frame)
-	frame:RegisterEvent("CIRCLE_RELOAD")
-	frame:RegisterEvent("DBMUI_SWITCH_PAGE")
-	frame.OnEvent = function(szEvent)
+	local ui = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 390, title = title, close = true, focus = true }):Point(a.s, 0, 0, a.r, a.x, a.y)
+	ui:Event("CIRCLE_RELOAD", "DBMUI_SWITCH_PAGE"):OnEvent(function(szEvent)
 		ui:Remove()
-	end
+	end)
+	local frame = Station.Lookup("Normal/DBM_SettingPanel")
 	frame.OnFrameDragEnd = function()
 		CIRCLE_PANEL_ANCHOR = GetFrameAnchor(frame, "LEFTTOP")
 	end

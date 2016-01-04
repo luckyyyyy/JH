@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 18:52:35
+-- @Last Modified time: 2016-01-04 20:01:06
 
 -- 早期代码 需要重写
 
@@ -993,7 +993,6 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					end)
 				end
 			end
-
 			if (data[1] == "del" or data[1] == "edit" or data[1] == "add") and GKP.bAutoSync then
 				local tab = data[2]
 				tab.bSync = true
@@ -1018,8 +1017,8 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					return
 				end
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
-				ui:Append("Text", { w = 725, h = 30, txt = _L[data[3]], align = 1, font = 236, color = { 255, 255, 0 } })
-				ui:Append("WndButton2", "ScreenShot", { x = 590, y = 0, txt = _L["Print Ticket"], font = 41 }):Toggle(false):Click(function()
+				ui:Append("Text", { x = 0, y = 50, w = 760, h = 30, txt = _L[data[3]], align = 1, font = 236, color = { 255, 255, 0 } })
+				ui:Append("WndButton2", "ScreenShot", { x = 590, y = 50, txt = _L["Print Ticket"], font = 41 }):Toggle(false):Click(function()
 					local scale         = Station.GetUIScale()
 					local left, top     = ui:Pos()
 					local right, bottom = ui:Pos_()
@@ -1034,8 +1033,8 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						end)
 					end)
 				end)
-				ui:Append("Text", { w = 120, h = 30, x = 10, y = 35, txt = _L("Operator:%s", szName), font = 41 })
-				ui:Append("Text", { w = 200, h = 30, x = 520, align = 2, y = 35, txt = _L("Print Time:%s", _GKP.GetTimeString(GetCurrentTime())), font = 41, align = 2 })
+				ui:Append("Text", { w = 120, h = 30, x = 40, y = 85, txt = _L("Operator:%s", szName), font = 41 })
+				ui:Append("Text", { w = 720, h = 30, x = 0, align = 2, y = 85, txt = _L("Print Time:%s", _GKP.GetTimeString(GetCurrentTime())), font = 41 })
 				ui.self.self = ui
 			end
 			if data[2] == "Info" then
@@ -1052,7 +1051,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 				if frm then
 					if not frm.n then frm.n = 0 end
 					local n = frm.n
-					local ui = GUI(frm)
+					local ui = frm.self
 					if n % 2 == 0 then
 						ui:Append("Image", { w = 760, h = 30, x = 0, y = 120 + 30 * n }):File("ui/Image/button/ShopButton.UITex", 75)
 					end
@@ -1110,7 +1109,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 				local frm = Station.Lookup("Normal/" .. szFrameName)
 				if frm then
 					if data[4] then
-						local ui = GUI(frm)
+						local ui = frm.self
 						local n = frm.n or 0
 						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 5 }):Type(3):Raw()
 						handle:AppendItemFromString(GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(tonumber(data[4])))
@@ -1854,12 +1853,12 @@ function _GKP.Record(tab, item, bEnter)
 		local wnd = GUI(_GKP.GetRecordWindow())
 		wnd:Fetch("Btn_Close"):Click()
 	end
-	GUI.CreateFrame("GKP_Record", { h = 380, w = 400, title = _L["GKP Golden Team Record"], close = true, focus = true })
-	local ui, nAuto = GUI(_GKP.GetRecordWindow()), 0
+	local ui = GUI.CreateFrame("GKP_Record", { h = 380, w = 400, title = _L["GKP Golden Team Record"], close = true, focus = true })
+	local nAuto = 0
 	local dwForceID
 	local hBox = ui:Append("Box", "Box", { x = 175, y = 80, h = 48, w = 48 })
 	local hCheckBox = ui:Append("WndCheckBox", "WndCheckBox", { x = 20, y = 300, font = 65, txt = _L["Equiptment Boss"] })
-	local hButton = ui:Append("WndButton3", "Success", { x = 115, y = 300, txt = g_tStrings.STR_HOTKEY_SURE })
+	local hButton = ui:Append("WndButton3", "Success", { x = 130, y = 300, txt = g_tStrings.STR_HOTKEY_SURE })
 	ui:RegisterClose(function()
 		if this.userdata then
 			ui:Fetch("Money"):Text(0)
