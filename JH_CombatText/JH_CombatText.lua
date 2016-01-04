@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-28 18:28:46
+-- @Last Modified time: 2015-12-30 13:41:17
 
 local _L = JH.LoadLangPack
 
@@ -426,6 +426,25 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	-- 对某些 一次性出现多次伤害的技能 做排序
 	local nSort = 0
 	if szPoint == "TOP" then
+		-- 两种模式各有优劣 目前还是取性能优先
+		-- local tab = {}
+		-- for k, v in pairs(CombatText.tShadows) do
+		-- 	if v.dwTargetID == dwTargetID and v.szPoint == "TOP" then
+		-- 		local nCount = #tab+1
+		-- 		tab[nCount] = v
+		-- 		tab[nCount].shadow = k
+		-- 	end
+		-- end
+		-- table.sort(tab, function(a, b)
+		-- 	return a.nSort < b.nSort
+		-- end)
+		-- for k, v in ipairs(tab) do
+		-- 	if v.nFrame <= v.nSort * 5 + 5 then
+		-- 		nSort = nSort + 1
+		-- 		CombatText.tShadows[v.shadow].nSort = min(3 / COMBAT_TEXT_UI_SCALE, v.nSort + max(nSort - v.nSort, 0))
+		-- 	end
+		-- end
+
 		for k, v in pairs(CombatText.tShadows) do
 			if v.dwTargetID == dwTargetID and v.nFrame <= v.nSort * 5 + 5 and v.szPoint == "TOP" then
 				nSort = nSort + 1

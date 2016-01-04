@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-28 17:44:50
+-- @Last Modified time: 2016-01-03 17:28:12
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -104,7 +104,7 @@ end
 
 function C.LoadCircleMergeData(tData, bPriority)
 	local data = {}
-	for k, v in pairs(tData.Circle) do
+	for k, v in pairs(tData.Circle or {}) do
 		if JH.IsMapExist(k) then
 			data[tonumber(k)] = v
 		end

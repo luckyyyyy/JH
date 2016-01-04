@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-28 17:36:50
+-- @Last Modified time: 2015-12-29 13:31:42
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -748,7 +748,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Merge Priority new file"], group = "type" }):Click(function()
 		nType = 3
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Merge Priority source file"], group = "type" }):Click(function()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Merge Priority old file"], group = "type" }):Click(function()
 		nType = 2
 	end):Pos_()
 	ui:Append("WndButton3", { x = 205, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
