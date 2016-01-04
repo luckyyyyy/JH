@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 18:17:22
+-- @Last Modified time: 2016-01-04 18:52:13
 local _L = JH.LoadLangPack
 
 local JH_CharInfo = {}
@@ -33,16 +33,17 @@ function JH_CharInfo.GetInfo()
 end
 
 function JH_CharInfo.CreateFrame(dwID, szName, dwForceID)
-	GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = szName .. g_tStrings.STR_EQUIP_ATTR, close = true })
-	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
+	local GUIframe = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = szName .. g_tStrings.STR_EQUIP_ATTR, close = true })
+	local frame    = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	local ui = GUI(frame) -- 历史原因 先不管
 	local nX, nY = ui:Append("Image", { x = 20, y = 50, w = 30, h = 30 }):File(GetForceImage(dwForceID)):Pos_()
 	ui:Append("Text", "Name", { x = nX + 5, y = 52, txt = szName })
-	ui:Append("WndButton2", { x = 70, y = 360, txt = g_tStrings.STR_LOOKUP }):Click(function()
+	ui:Append("WndButton2", "LOOKUP", { x = 70, y = 360, txt = g_tStrings.STR_LOOKUP }):Click(function()
 		ViewInviteToPlayer(dwID)
 	end)
 	local info  = ui:Append("Text", "info", { x = 20, y = 72, txt = _L["Asking..."], w = 200, h = 70, font = 27, multi = true })
 	frame.ui    = ui
+	frame.frame = GUIframe
 	frame.data  = {}
 	frame.info  = info
 end
@@ -78,6 +79,7 @@ function JH_CharInfo.CreateComplete(dwID)
 		if data and type(data) == "table" then
 			frame.info:Toggle(false)
 			local ui = frame.ui
+			local GUIframe = frame.frame
 			local self_data = JH_CharInfo.GetInfo()
 			local function GetSelfValue(label, value)
 				for i = 2, #self_data do
@@ -92,6 +94,9 @@ function JH_CharInfo.CreateComplete(dwID)
 				end
 				return { 255, 255, 255 }
 			end
+			-- 避免大小不够
+			GUIframe:Size(240, 60 + 65 + (#data - 1) * 25)
+			ui:Fetch("LOOKUP"):Pos(70, 60 + #data * 25)
 			for i = 2, #data do
 				local v = data[i]
 				ui:Append("Text", { x = 20, y = (i - 1) * 25 + 60, w = 200, h = 25, align = 0, txt = v.label })
@@ -99,7 +104,7 @@ function JH_CharInfo.CreateComplete(dwID)
 					if bHover then
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
-						OutputTip(v.szTip, 500, { x, y, w, h })
+						OutputTip(v.szTip, 550, { x, y, w, h })
 					else
 						HideTip()
 					end
@@ -108,6 +113,8 @@ function JH_CharInfo.CreateComplete(dwID)
 			local name = ui:Fetch("Name")
 			name:Text(name:Text() .. " (" .. data[1] .. ")")
 			frame.data = nil
+		else
+			frame.info:Text("Json Decode Error")
 		end
 	end
 end
@@ -117,7 +124,7 @@ JH.RegisterBgMsg("CHAR_INFO", function(nChannel, dwID, szName, data, bIsSelf)
 		if data[1] == "ASK"  then
 			local fnAction = function()
 				local str = JH.JsonEncode(JH_CharInfo.GetInfo())
-				local nMax = 600
+				local nMax = 500
 				local nTotle = math.ceil(#str / nMax)
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "START", dwID)
 				for i = 1, nTotle do
