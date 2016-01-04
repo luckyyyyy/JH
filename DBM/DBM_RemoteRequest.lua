@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-11 22:08:50
+-- @Last Modified time: 2015-12-29 22:54:24
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -125,6 +125,7 @@ function W.CallLogin(uid, pw, fnAction)
 		if err then
 			JH.Sysmsg2(_L["request failed"])
 		else
+			JH.Debug("#DBM# LOGIN " .. result['uid'])
 			if tonumber(result['uid']) > 0 then
 				DBM_RemoteRequest.bLogin = true
 				W.ClosePanel()
