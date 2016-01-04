@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-20 14:19:57
+-- @Last Modified time: 2016-01-04 18:14:45
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -369,6 +369,13 @@ function CTM_Party_Base.OnItemRButtonClick()
 		table.insert(menu, { szOption = g_tStrings.STR_LOOKUP, bDisable = not info.bIsOnLine, fnAction = function()
 			ViewInviteToPlayer(dwID)
 		end })
+		if ViewCharInfoToPlayer then
+			table.insert(menu, {
+				szOption = g_tStrings.STR_LOOK .. g_tStrings.STR_EQUIP_ATTR, fnAction = function()
+					ViewCharInfoToPlayer(dwID)
+				end
+			})
+		end
 	else
 		table.insert(menu, { bDevide = true })
 		InsertPlayerMenu(menu, dwID)

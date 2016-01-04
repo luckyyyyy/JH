@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 17:54:44
+-- @Last Modified time: 2016-01-04 18:17:22
 local _L = JH.LoadLangPack
 
 local JH_CharInfo = {}
@@ -94,8 +94,8 @@ function JH_CharInfo.CreateComplete(dwID)
 			end
 			for i = 2, #data do
 				local v = data[i]
-				ui:Append("Text", { x = 20, y = (i - 1) * 25 + 70, w = 200, h = 25, align = 0, txt = v.label })
-				ui:Append("Text", { x = 20, y = (i - 1) * 25 + 70, w = 200, h = 25, align = 2, txt = v.value, color = GetSelfValue(v.label, v.value) }):Hover(function(bHover)
+				ui:Append("Text", { x = 20, y = (i - 1) * 25 + 60, w = 200, h = 25, align = 0, txt = v.label })
+				ui:Append("Text", { x = 20, y = (i - 1) * 25 + 60, w = 200, h = 25, align = 2, txt = v.value, color = GetSelfValue(v.label, v.value) }):Hover(function(bHover)
 					if bHover then
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
@@ -144,23 +144,30 @@ JH.RegisterBgMsg("CHAR_INFO", function(nChannel, dwID, szName, data, bIsSelf)
 	end
 end)
 
+-- public API
+function ViewCharInfoToPlayer(dwID)
+	if JH.IsParty(dwID) then
+		local team = GetClientTeam()
+		local info = team.GetMemberInfo(dwID)
+		if info then
+			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "ASK", dwID, JH.bDebugClient and "DEBUG")
+			JH_CharInfo.CreateFrame(dwID, info.szName, info.dwForceID)
+		end
+	else
+		JH.Alert(_L["Party limit"])
+	end
+end
+
 Target_AppendAddonMenu({ function(dwID, dwType)
 	if dwType == TARGET.PLAYER and dwID ~= UI_GetClientPlayerID() then
 		return {{
 			szOption = g_tStrings.STR_LOOK .. g_tStrings.STR_EQUIP_ATTR,
 			fnAction = function()
-				if JH.IsParty(dwID) then
-					local p = GetPlayer(dwID)
-					if p then
-						JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "ASK", dwID, JH.bDebugClient and "DEBUG")
-						JH_CharInfo.CreateFrame(dwID, p.szName, p.dwForceID)
-					end
-				else
-					JH.Alert(_L["Party limit"])
-				end
+				ViewCharInfoToPlayer(dwID)
 			end
 		}}
 	else
 		return {}
 	end
 end })
+
