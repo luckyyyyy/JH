@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 16:35:41
+-- @Last Modified time: 2016-01-04 20:20:59
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1834,6 +1834,26 @@ function _GUI.Base:Point( ... )
 	end
 	return self
 end
+
+function _GUI.Base:RegisterClose(fnAction, bNotButton, bNotKeyDown)
+	if self.type == "WndFrame" or self.type == "WndWindow" then
+		if not bNotKeyDown then
+			self.self.OnFrameKeyDown = function()
+				if GetKeyName(Station.GetMessageKey()) == "Esc" then
+					fnAction()
+					return 1
+				end
+			end
+		end
+		if not bNotButton then
+			self.self:Lookup("Btn_Close").OnLButtonClick = fnAction
+		end
+	end
+	return self
+end
+
+
+
 -- (number, number) Instance:Pos()					-- 取得位置坐标
 -- (self) Instance:Pos(number nX, number nY)	-- 设置位置坐标
 function _GUI.Base:Pos(nX, nY)
@@ -1962,9 +1982,38 @@ function _GUI.Base:Alpha(nAlpha)
 	return self
 end
 
+function _GUI.Base:Event( ... )
+	local t = { ... }
+	for i = 1, select("#", ...) do
+		if self.type == "WndFrame" then
+			self.self:UnRegisterEvent(t[i])
+		end
+		self.self:RegisterEvent(t[i])
+	end
+	return self
+end
+
 ------------------------------------------------
 
 _GUI.Frame = class(_GUI.Base)
+
+function _GUI.Frame:OnEvent(fnAction)
+	if not self.event then
+		self.event = { fnAction }
+		self.self.OnEvent = function(szEvent)
+			for k, v in ipairs(self.event) do
+				v(szEvent)
+			end
+		end
+	end
+	for k, v in ipairs(self.event) do
+		if v ~= fnAction then
+			tinsert(self.event, fnAction)
+			break
+		end
+	end
+	return self
+end
 
 -- (string) Instance:Title()					-- 取得窗体标题
 -- (self) Instance:Title(string szTitle)	-- 设置窗体标题
@@ -2077,8 +2126,8 @@ function _GUI.Frm:Size(nW, nH)
 
 	hnd:FormatAllItemPos()
 	frm:Lookup("Btn_Close"):SetRelPos(nW - 35, 15)
-	self.wnd:SetSize(nW - 90, nH - 90)
-	self.wnd:Lookup("", ""):SetSize(nW - 90, nH - 90)
+	self.wnd:SetSize(nW, nH)
+	self.wnd:Lookup("", ""):SetSize(nW, nH)
 	-- reset position
 	local an = GetFrameAnchor(frm)
 	frm:SetPoint(an.s, 0, 0, an.r, an.x, an.y)
@@ -2691,22 +2740,6 @@ function _GUI.Wnd:Menu(menu)
 			_menu.y = nY + nH
 			PopupMenu(_menu)
 		end)
-	end
-	return self
-end
-
-function _GUI.Wnd:RegisterClose(fnAction, bNotButton, bNotKeyDown)
-	local wnd = self.self
-	if not bNotKeyDown then
-		wnd.OnFrameKeyDown = function()
-			if GetKeyName(Station.GetMessageKey()) == "Esc" then
-				fnAction()
-				return 1
-			end
-		end
-	end
-	if not bNotButton then
-		wnd:Lookup("Btn_Close").OnLButtonClick = fnAction
 	end
 	return self
 end
