@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-28 13:37:54
+-- @Last Modified time: 2016-01-04 18:52:35
 
 -- 早期代码 需要重写
 
@@ -950,7 +950,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					GKP_Account = GKP("GKP_Account"),
 				}
 				local str = JH.JsonEncode(tab)
-				local nMax = 600
+				local nMax = 500
 				local nTotle = math.ceil(#str / nMax)
 				-- 密聊频道限制了字数 发起来太慢了
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "GKP", "GKP_Sync_Start", dwID, nTotle)
