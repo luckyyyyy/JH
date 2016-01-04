@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 20:23:41
+-- @Last Modified time: 2016-01-04 20:33:38
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1171,8 +1171,8 @@ end
 function DBMUI.OpenJosnPanel(data, fnAction)
 	local json = JsonEncode(data, true)
 	local ui = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = "DBM DEBUG", close = true })
-	ui:Append("WndEdit", "WndEdit", { w = 660, h = 350, x = 0, y = 0, color = { 255, 255, 0 }, multi = true, limit = 999999, txt = json })
-	ui:Append("WndButton3",{ x = 10, y = 370,txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
+	ui:Append("WndEdit", "WndEdit", { w = 660, h = 350, x = 30, y = 60, color = { 255, 255, 0 }, multi = true, limit = 999999, txt = json })
+	ui:Append("WndButton3",{ x = 30, y = 440,txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
 		JH.Confirm(_L["Confirm?"], function()
 			local json = ui:Fetch("WndEdit"):Text()
 			local dat = JH.JsonToTable(json)
