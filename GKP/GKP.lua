@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 20:01:06
+-- @Last Modified time: 2016-01-06 22:46:43
 
 -- 早期代码 需要重写
 
@@ -1860,7 +1860,7 @@ function _GKP.Record(tab, item, bEnter)
 	local hCheckBox = ui:Append("WndCheckBox", "WndCheckBox", { x = 20, y = 300, font = 65, txt = _L["Equiptment Boss"] })
 	local hButton = ui:Append("WndButton3", "Success", { x = 130, y = 300, txt = g_tStrings.STR_HOTKEY_SURE })
 	ui:RegisterClose(function()
-		if this.userdata then
+		if ui:Raw().userdata then
 			ui:Fetch("Money"):Text(0)
 			return hButton:Click()
 		end
@@ -1952,7 +1952,7 @@ function _GKP.Record(tab, item, bEnter)
 		-- elseif GKP.bAutoBX and tab.szName == JH.GetItemName(73214) and tab.nStackNum and tab.nStackNum >= 1 then
 		-- 	nAuto = tab.nStackNum
 		end
-		ui:Fetch("btn_Close"):Raw().userdata = true
+		ui:Raw().userdata = true
 	else
 		hPlayer:Text(g_tStrings.PLAYER_NOT_EMPTY):Color(255, 255, 255)
 		hSource:Text(_L["Add Manually"]):Enable(false)
