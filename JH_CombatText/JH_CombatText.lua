@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-06 18:16:33
+-- @Last Modified time: 2016-01-06 19:12:50
 
 -- 战斗浮动文字设计思路
 --[[
@@ -22,7 +22,7 @@ local _L = JH.LoadLangPack
 
 local UI_GetClientPlayerID, GetUserRoleName = UI_GetClientPlayerID, GetUserRoleName
 local pairs, unpack = pairs, unpack
-local tinsert, tremove = table.insert, table.remove
+local tinsert, tremove, tsort = table.insert, table.remove, table.sort
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
 local GetSkill, GetTime = GetSkill, GetTime
@@ -347,6 +347,14 @@ end
 JH_CombatText.OnFrameBreathe = CombatText.OnFrameRender
 JH_CombatText.OnFrameRender  = CombatText.OnFrameRender
 
+local function TrajectorySort(a, b)
+	if a.nCount == b.nCount then
+		return a.nSort < b.nSort
+	else
+		return a.nCount < b.nCount
+	end
+end
+
 -- 最大程度上使用见缝插针效果
 function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	local tSort = {}
@@ -368,13 +376,7 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 			end
 		end
 	end
-	table.sort(tSort, function(a, b)
-		if a.nCount == b.nCount then
-			return a.nSort < b.nSort
-		else
-			return a.nCount < b.nCount
-		end
-	end)
+	tsort(tSort, TrajectorySort)
 	local nSort = tSort[1].nSort - 1
 	local nCount = 0
 	for k, v in pairs(tSort) do
@@ -427,26 +429,31 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 		dat.nTime = GetTime()
 		COMBAT_TEXT_SHADOW[shadow] = dat
 	else
-		tinsert(COMBAT_TEXT_QUEUE[szPoint], { shadow = shadow, dat = dat })
+		COMBAT_TEXT_QUEUE[szPoint][dwTargetID] = COMBAT_TEXT_QUEUE[szPoint][dwTargetID] or {}
+		tinsert(COMBAT_TEXT_QUEUE[szPoint][dwTargetID], { shadow = shadow, dat = dat })
 	end
 end
 -- for i=1,2 do FireUIEvent("SKILL_EFFECT_TEXT",UI_GetClientPlayerID(),1073741863,false,5,1111,111,1) end
 function CombatText.ExecQueue()
 	for k, v in pairs(COMBAT_TEXT_QUEUE) do
-		if #v > 0 then
-			local dat = tremove(v, 1)
-			if dat.dat.szPoint == "TOP" then
-				local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
-				-- print(nSort)
-				if nSort >= COMBAT_TEXT_TRAJECTORY then
-					dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
-					dat.dat.nSort = 0
-				else
-					dat.dat.nSort = nSort
+		for kk, vv in pairs(v) do
+			if #vv > 0 then
+				local dat = tremove(vv, 1)
+				if dat.dat.szPoint == "TOP" then
+					local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
+					-- print(nSort)
+					if nSort >= COMBAT_TEXT_TRAJECTORY then
+						dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
+						dat.dat.nSort = 0
+					else
+						dat.dat.nSort = nSort
+					end
 				end
+				dat.dat.nTime = GetTime()
+				COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
+			else
+				COMBAT_TEXT_QUEUE[k][kk] = nil
 			end
-			dat.dat.nTime = GetTime()
-			COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
 		end
 	end
 end
@@ -844,4 +851,4 @@ function PS.OnPanelActive(frame)
 end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
 
-JH.RegisterEvent("LOGIN_GAME", CombatText.CheckEnable)
+JH.RegisterEvent("FIRST_LOADING_END", CombatText.CheckEnable)
