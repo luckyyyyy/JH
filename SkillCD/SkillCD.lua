@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-17 12:09:50
+-- @Last Modified time: 2016-01-04 20:40:47
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -486,8 +486,7 @@ function SC.UpdateCount()
 end
 
 function SC.AddSkill()
-	GUI.CreateFrame("SkillCD_Add", { w = 380, h = 250, title = _L["Add"], close = true, focus = true })
-	local ui = GUI(Station.Lookup("Normal/SkillCD_Add"))
+	local ui = GUI.CreateFrame("SkillCD_Add", { w = 380, h = 250, title = _L["Add"], close = true, focus = true })
 	ui:Append("Text", { txt = _L["Skill ID:"], font = 27, w = 105, h = 30, x = 0, y = 80, align = 2 })
 	ui:Append("WndEdit", "id", { x = 115, y = 83 }):Type(1)
 	ui:Append("Text", { txt = _L["Cool Down:"], font = 27, w = 105, h = 30, x = 0, y = 110, align = 2 })
