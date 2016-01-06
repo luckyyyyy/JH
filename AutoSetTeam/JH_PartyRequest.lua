@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 12:57:33
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 17:33:26
+-- @Last Modified time: 2016-01-04 23:16:52
 
 local _L = JH.LoadLangPack
 local PR = {}
@@ -271,11 +271,7 @@ JH.RegisterBgMsg("RL", function(nChannel, dwID, szName, data, bIsSelf)
 			JH.Confirm(_L("[%s] want to see your info, OK?", szName), function()
 				local me = GetClientPlayer()
 				local nGongZhan = JH.GetBuff(3219) and 1 or 0
-				if JH.bDebugClient then
-					JH.BgTalk(szName, "RL", "Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Author")
-				else
-					JH.BgTalk(szName, "RL", "Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, "Player")
-				end
+				JH.BgTalk(szName, "RL", "Feedback", me.dwID, UI_GetPlayerMountKungfuID(), nGongZhan, JH.bDebugClient and "Author" or "Player")
 			end)
 		elseif data[1] == "Feedback" then
 			PR.Feedback(szName, data)

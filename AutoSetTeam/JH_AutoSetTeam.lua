@@ -1,12 +1,8 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 15:13:42
+-- @Last Modified time: 2016-01-04 21:50:29
 local _L = JH.LoadLangPack
-JH_AutoSetTeam = {
-	bAppendMark     = true,
-}
-JH.RegisterCustomData("JH_AutoSetTeam")
 
 local AutoSetTeam = {
 	bKeepMark = true,

@@ -1,12 +1,28 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-30 13:41:17
+-- @Last Modified time: 2016-01-06 18:16:33
+
+-- 战斗浮动文字设计思路
+--[[
+	停留时间：使用（总帧数 * 每帧时间）来决定总停留时间，
+	alpha：   使用帧数来决定fadein和fadeout。
+	排序：    顶部使用简易见缝插针，分配空闲轨迹，最大程度上保证性能和浮动数值清晰。
+	坐标轨迹：使用关键帧形式，一共32关键帧，部分类型有延长帧。
+	出现：    对出现做1帧的延迟处理，即1帧出现5次伤害则分5帧依次出现。
+	-------------------------------------------------------------------------------
+	初始坐标类型：分为 顶部 左 右 左下 右下 中心
+	顶部：Y轴轨迹数 以 floor(3.5 / UI缩放) 决定，其初始Y轴高度不同。
+		  不会心的伤害在轨迹全部被占用后会随机分摊到屏幕顶部左右两边。
+		  会心伤害在轨迹全部被占用时会被随机roll点分配。
+	其他类型：使用轨迹合并16-32帧，后来的文本会顶走前面的文本，从而跳过这部分停留的帧数。
+]]
 
 local _L = JH.LoadLangPack
 
 local UI_GetClientPlayerID, GetUserRoleName = UI_GetClientPlayerID, GetUserRoleName
 local pairs, unpack = pairs, unpack
+local tinsert, tremove = table.insert, table.remove
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
 local GetSkill, GetTime = GetSkill, GetTime
@@ -14,7 +30,8 @@ local GetSkill, GetTime = GetSkill, GetTime
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
 local COMBAT_TEXT_TOTAL          = 32  -- 如果修改这里 请注意其他也要跟着改
-local COMBAT_TEXT_UI_SCALE       = 1   -- 需要对文字做调整哦
+local COMBAT_TEXT_UI_SCALE       = 1
+local COMBAT_TEXT_TRAJECTORY     = 4   -- 顶部Y轴轨迹数量 根据缩放大小变化 0.8就是5条了 屏幕小更多
 local COMBAT_TEXT_MAX_COUNT      = 100 -- 最多同屏显示100个 再多部分机器吃不消了
 local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
@@ -41,7 +58,7 @@ local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
 
 local COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 	CRITICAL = { -- 会心
-		1, 2, 3, 5, 5, 3, 2, 2,
+		1, 2, 3, 5, 3, 3, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
@@ -64,36 +81,52 @@ local COMBAT_TEXT_POINT = {
 	RIGHT = { -- 从左往右的
 		8,   16,  24,  32,  40,  48,  56,  64,
 		72,  80,  88,  96,  104, 112, 120, 128,
-		136, 142, 142, 142, 142, 142, 142, 142,
-		142, 142, 142, 142, 142, 142, 142, 142,
+		136, 136, 136, 136, 136, 136, 136, 136,
+		136, 136, 136, 136, 136, 136, 136, 136,
+		139, 142, 145, 148, 151, 154, 157, 160,
+		163, 166, 169, 172, 175, 178, 181, 184,
 	},
 	LEFT = { -- 从右到左
 		8,   16,  24,  32,  40,  48,  56,  64,
 		72,  80,  88,  96,  104, 112, 120, 128,
-		136, 142, 142, 142, 142, 142, 142, 142,
-		142, 142, 142, 142, 142, 142, 142, 142,
+		136, 136, 136, 136, 136, 136, 136, 136,
+		136, 136, 136, 136, 136, 136, 136, 136,
+		139, 142, 145, 148, 151, 154, 157, 160,
+		163, 166, 169, 172, 175, 178, 181, 184,
 	},
 	BOTTOM_LEFT = { -- 左下角
-		6,   12,  18,  24,  30,  36,  42,  48,
-		54,  60,  66,  72,  78,  84,  90,  96,
-		100, 100, 100, 100, 100, 100, 100, 100,
-		100, 100, 100, 100, 100, 100, 100, 100,
+		5,   10,  15,  20,  25,  30,  35,  40,
+		45,  50,  55,  60,  65,  70,  75,  80,
+		80,  80,  80,  80,  80,  80,  80,  80,
+		80,  80,  80,  80,  80,  80,  80,  80,
+		82,  84,  86,  88,  90,  92,  94,  96,
+		98,  100, 102, 104, 106, 108, 110, 112,
 	},
 	BOTTOM_RIGHT = {
-		6,   12,  18,  24,  30,  36,  42,  48,
-		54,  60,  66,  72,  78,  84,  90,  96,
-		100, 100, 100, 100, 100, 100, 100, 100,
-		100, 100, 100, 100, 100, 100, 100, 100,
+		5,   10,  15,  20,  25,  30,  35,  40,
+		45,  50,  55,  60,  65,  70,  75,  80,
+		80,  80,  80,  80,  80,  80,  80,  80,
+		80,  80,  80,  80,  80,  80,  80,  80,
+		82,  84,  86,  88,  90,  92,  94,  96,
+		98,  100, 102, 104, 106, 108, 110, 112,
 	},
 }
+local COMBAT_TEXT_FREE   = {}
+local COMBAT_TEXT_SHADOW = {}
+local COMBAT_TEXT_QUEUE  = {
+	TOP          = {},
+	LEFT         = {},
+	RIGHT        = {},
+	BOTTOM_LEFT  = {},
+	BOTTOM_RIGHT = {},
+}
+
+setmetatable(COMBAT_TEXT_QUEUE, { __index = function(me) return me["TOP"] end, __newindex = function(me) return me["TOP"] end })
 
 local CombatText = {
-	tFree    = {}, -- 所有空闲的shadow 合集
-	tShadows = {}, -- 所有伤害UI的合集 shadow -> data
 	tDeath   = {},
 }
-setmetatable(CombatText.tFree, { __mode = "v" })
-setmetatable(CombatText.tShadows, { __mode = "k" })
+
 JH_CombatText = {
 	bEnable      = true;
 	bRender      = true,
@@ -139,17 +172,22 @@ function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
 	CombatText.handle = this:Lookup("", "")
 	-- uninit
-	local CombatTextWnd = Station.Lookup("Lowest/CombatTextWnd")
+	local frame = Station.Lookup("Lowest/CombatText") or Station.Lookup("Lowest/CombatTextWnd")
 	local events = { "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }
-	if CombatTextWnd then
+	if frame then
 		for k, v in ipairs(events) do
-			CombatTextWnd:UnRegisterEvent(v)
+			frame:UnRegisterEvent(v)
 		end
 	end
+	JH.BreatheCall("COMBAT_TEXT", CombatText.ExecQueue, 50)
+	COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
 end
 
--- for i=1,50 do FireEvent("SKILL_EFFECT_TEXT",52515,1073741861,true,1,1111,111,1)end
-
+-- for i=1,5 do FireUIEvent("SKILL_EFFECT_TEXT",UI_GetClientPlayerID(),1073741860,true,5,1111,111,1)end
+-- for i=1,5 do FireUIEvent("SKILL_EFFECT_TEXT",UI_GetClientPlayerID(),1073741860,false,5,1111,111,1)end
+-- for i=1, 5 do FireEvent("SKILL_BUFF", UI_GetClientPlayerID(), true, 103, 1) end
+-- FireUIEvent("SKILL_MISS", UI_GetClientPlayerID(), UI_GetClientPlayerID())
+-- FireUIEvent("SYS_MSG", "UI_OME_EXP_LOG", UI_GetClientPlayerID(), UI_GetClientPlayerID())
 function JH_CombatText.OnEvent(szEvent)
 	if szEvent == "FIGHT_HINT" then -- 进出战斗文字
 		if arg0 then
@@ -174,7 +212,8 @@ function JH_CombatText.OnEvent(szEvent)
 			CombatText.OnSkillMiss(arg1)
 		end
 	elseif szEvent == "UI_SCALED" then
-		COMBAT_TEXT_UI_SCALE = Station.GetUIScale() --字体会与UI_SCALE一致，可能需注释掉？
+		COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
+		COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
 	elseif szEvent == "SKILL_DODGE" then
 		if arg0 == UI_GetClientPlayerID() then
 			CombatText.OnSkillDodge(arg1)
@@ -196,13 +235,14 @@ end
 
 function CombatText.OnFrameRender()
 	local nTime = GetTime()
-	for k, v in pairs(CombatText.tShadows) do
+	for k, v in pairs(COMBAT_TEXT_SHADOW) do
 		local nFrame = (nTime - v.nTime) / JH_CombatText.nTime + 1 -- 每一帧是多少毫秒 这里越小 动画越快
 		local nBefore = floor(nFrame)
 		local nAfter  = ceil(nFrame)
 		local fDiff   = nFrame - nBefore
+		local nTotal  = COMBAT_TEXT_POINT[v.szPoint] and #COMBAT_TEXT_POINT[v.szPoint] or COMBAT_TEXT_TOTAL
 		k:ClearTriangleFanPoint()
-		if nBefore < COMBAT_TEXT_TOTAL then
+		if nBefore < nTotal then
 			local nTop   = 0
 			local nLeft  = 0
 			local nAlpha = JH_CombatText.nMaxAlpha
@@ -210,38 +250,51 @@ function CombatText.OnFrameRender()
 			local bTop   = true
 			if nFrame < JH_CombatText.nFadeIn then
 				nAlpha = JH_CombatText.nMaxAlpha * nFrame / JH_CombatText.nFadeIn
-			elseif nFrame > COMBAT_TEXT_TOTAL - JH_CombatText.nFadeOut then
-				nAlpha = JH_CombatText.nMaxAlpha * (COMBAT_TEXT_TOTAL - nFrame) / JH_CombatText.nFadeOut
+			elseif nFrame > nTotal - JH_CombatText.nFadeOut then
+				nAlpha = JH_CombatText.nMaxAlpha * (nTotal - nFrame) / JH_CombatText.nFadeOut
 			end
-			if v.szPoint == "TOP" then
+			if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
 				nTop = -70 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
+				if v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
+					if v.szPoint == "TOP_LEFT" then
+						nLeft = -200
+					elseif v.szPoint == "TOP_RIGHT" then
+						nLeft = 200
+					end
+					nTop = nTop -50
+				end
 			elseif v.szPoint == "LEFT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
-				nLeft = -100 - (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
+				nLeft = -60 - (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
 			elseif v.szPoint == "RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
-				nLeft = 100 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
+				nLeft = 60 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
 			elseif v.szPoint == "BOTTOM_LEFT" or v.szPoint == "BOTTOM_RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
 				if v.szPoint == "BOTTOM_LEFT" then
-					nLeft = -100 - (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
+					nLeft = -130 - (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
 				else
-					nLeft = 100 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
+					nLeft = 130 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
 				end
 				nTop = 50 + tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff
 				fScale = 1.5
 			end
 			if COMBAT_TEXT_CRITICAL[v.nType] then
 				local tScale  = v.bCriticalStrike and COMBAT_TEXT_SCALE.CRITICAL or COMBAT_TEXT_SCALE.NORMAL
-				fScale  = tScale[nBefore]
-				if tScale[nBefore] > tScale[nAfter] then
-					fScale = fScale - ((tScale[nBefore] - tScale[nAfter]) * fDiff)
-				elseif tScale[nBefore] < tScale[nAfter] then
-					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
+				if tScale[nBefore] and tScale[nAfter] then
+					fScale  = tScale[nBefore]
+					if tScale[nBefore] > tScale[nAfter] then
+						fScale = fScale - ((tScale[nBefore] - tScale[nAfter]) * fDiff)
+					elseif tScale[nBefore] < tScale[nAfter] then
+						fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
+					end
+				else
+					fScale = v.fScale
 				end
 			end
+			v.fScale = fScale
 			local r, g, b = unpack(v.col)
 			if not CombatText.tDeath[v.dwTargetID] or not v.object or not v.tPoint[1] then
 				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
@@ -252,11 +305,29 @@ function CombatText.OnFrameRender()
 				local x, y, z = unpack(v.tPoint)
 				k:AppendTriangleFan3DPoint(x, y, z, r, g, b, nAlpha, { 0, 1.65 * 64, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
 			end
-			v.nFrame = nFrame
+			-- 合并伤害 后顶前
+			if not v.bJump and v.szPoint ~= "TOP" and nFrame >= 16 and nFrame <= 32 then
+				for kk, vv in pairs(COMBAT_TEXT_SHADOW) do
+					if k ~= kk
+						and vv.nFrame <= 32
+						and v.szPoint == vv.szPoint
+						and not vv.bJump
+						and v.nTime > vv.nTime
+					then
+						vv.bJump = true
+					end
+				end
+			end
+
+			if v.bJump and v.szPoint ~= "TOP" and nFrame >= 16 and nFrame <= 32 then
+				v.nTime = v.nTime - (32 - nFrame) * JH_CombatText.nTime
+			else
+				v.nFrame = nFrame
+			end
 		else
 			if CombatText.tDeath[v.dwTargetID] then -- 寻找是否还有存在的文字
 				local bFind = false
-				for kk, vv in pairs(CombatText.tShadows) do
+				for kk, vv in pairs(COMBAT_TEXT_SHADOW) do
 					if kk ~= k and vv.dwTargetID == v.dwTargetID then
 						bFind = true
 						break
@@ -268,13 +339,60 @@ function CombatText.OnFrameRender()
 				end
 			end
 			k.free = true
-			CombatText.tShadows[k] = nil
+			COMBAT_TEXT_SHADOW[k] = nil
 		end
 	end
 end
 
 JH_CombatText.OnFrameBreathe = CombatText.OnFrameRender
 JH_CombatText.OnFrameRender  = CombatText.OnFrameRender
+
+-- 最大程度上使用见缝插针效果
+function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
+	local tSort = {}
+	local fRange = 1 / COMBAT_TEXT_TRAJECTORY
+	for i = 1, COMBAT_TEXT_TRAJECTORY do
+		tSort[i] = { nSort = i, nCount = 0, fRange = i * fRange }
+	end
+	for k, v in pairs(COMBAT_TEXT_SHADOW) do
+		if v.dwTargetID == dwTargetID
+			and v.szPoint == "TOP"
+			and v.nFrame < 10
+		then
+			local fSort = (COMBAT_TEXT_POINT.TOP[floor(v.nFrame) + 1] + v.nSort * fRange * COMBAT_TEXT_POINT.TOP[32]) / COMBAT_TEXT_POINT.TOP[32]
+			for i = 1, COMBAT_TEXT_TRAJECTORY do
+				if fSort < tSort[i].fRange then
+					tSort[i].nCount = tSort[i].nCount + 1
+					break
+				end
+			end
+		end
+	end
+	table.sort(tSort, function(a, b)
+		if a.nCount == b.nCount then
+			return a.nSort < b.nSort
+		else
+			return a.nCount < b.nCount
+		end
+	end)
+	local nSort = tSort[1].nSort - 1
+	local nCount = 0
+	for k, v in pairs(tSort) do
+		nCount = nCount + v.nCount
+	end
+	-- JH.Debug("#TRAJECTORY# -> " .. tSort[1].nSort)
+	-- for k, v in ipairs(tSort) do
+	-- 	JH.Debug("#TRAJECTORY# " .. v.nSort .. " #COUNT# " .. v.nCount)
+	-- end
+	if tSort[1].nCount == 1 then -- 决定了是否去两边 会心伤害不走 随机 roll
+		if bCriticalStrike then
+			return Random(COMBAT_TEXT_TRAJECTORY + 1) - 1
+		else
+			return COMBAT_TEXT_TRAJECTORY + 1
+		end
+	end
+	return min(nSort, min(3 / COMBAT_TEXT_UI_SCALE))
+end
 
 function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 	local object, tPoint
@@ -288,20 +406,49 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 			tPoint = { object.nX, object.nY, object.nZ }
 		end
 	end
-	CombatText.tShadows[shadow] = {
+	local dat = {
 		szPoint         = szPoint,
 		nSort           = 0,
 		dwTargetID      = dwTargetID,
 		szText          = szText,
 		nType           = nType,
 		bIsPlayer       = bIsPlayer,
-		nTime           = GetTime(),
 		nFrame          = 0,
 		bCriticalStrike = bCriticalStrike,
 		col             = col,
 		object          = object,
 		tPoint          = tPoint,
 	}
+	-- dat.bCriticalStrike = false
+	if dat.bCriticalStrike then
+		if szPoint == "TOP" then
+			dat.nSort = CombatText.GetTrajectory(dat.dwTargetID, true)
+		end
+		dat.nTime = GetTime()
+		COMBAT_TEXT_SHADOW[shadow] = dat
+	else
+		tinsert(COMBAT_TEXT_QUEUE[szPoint], { shadow = shadow, dat = dat })
+	end
+end
+-- for i=1,2 do FireUIEvent("SKILL_EFFECT_TEXT",UI_GetClientPlayerID(),1073741863,false,5,1111,111,1) end
+function CombatText.ExecQueue()
+	for k, v in pairs(COMBAT_TEXT_QUEUE) do
+		if #v > 0 then
+			local dat = tremove(v, 1)
+			if dat.dat.szPoint == "TOP" then
+				local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
+				-- print(nSort)
+				if nSort >= COMBAT_TEXT_TRAJECTORY then
+					dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
+					dat.dat.nSort = 0
+				else
+					dat.dat.nSort = nSort
+				end
+			end
+			dat.dat.nTime = GetTime()
+			COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
+		end
+	end
 end
 
 local tTherapyType = {
@@ -423,34 +570,8 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		szText = szText:gsub("$sn", szName)
 		szText = szText:gsub("$val", nValue or "")
 	end
-	-- 对某些 一次性出现多次伤害的技能 做排序
-	local nSort = 0
-	if szPoint == "TOP" then
-		-- 两种模式各有优劣 目前还是取性能优先
-		-- local tab = {}
-		-- for k, v in pairs(CombatText.tShadows) do
-		-- 	if v.dwTargetID == dwTargetID and v.szPoint == "TOP" then
-		-- 		local nCount = #tab+1
-		-- 		tab[nCount] = v
-		-- 		tab[nCount].shadow = k
-		-- 	end
-		-- end
-		-- table.sort(tab, function(a, b)
-		-- 	return a.nSort < b.nSort
-		-- end)
-		-- for k, v in ipairs(tab) do
-		-- 	if v.nFrame <= v.nSort * 5 + 5 then
-		-- 		nSort = nSort + 1
-		-- 		CombatText.tShadows[v.shadow].nSort = min(3 / COMBAT_TEXT_UI_SCALE, v.nSort + max(nSort - v.nSort, 0))
-		-- 	end
-		-- end
 
-		for k, v in pairs(CombatText.tShadows) do
-			if v.dwTargetID == dwTargetID and v.nFrame <= v.nSort * 5 + 5 and v.szPoint == "TOP" then
-				nSort = nSort + 1
-				v.nSort = min(3 / COMBAT_TEXT_UI_SCALE, v.nSort + max(nSort - v.nSort, 0))
-			end
-		end
+	if szPoint == "TOP" then
 		if bCriticalStrike and nType ~= SKILL_RESULT_TYPE.THERAPY and JH_CombatText.tCritical then
 			col = JH_CombatText.tCriticalC
 		end
@@ -480,15 +601,6 @@ function CombatText.OnSkillMiss(dwTargetID)
 		return
 	end
 	local szPoint = dwTargetID == UI_GetClientPlayerID() and "LEFT" or "TOP"
-	local nSort = 0
-	if szPoint == "TOP" then
-		for k, v in pairs(CombatText.tShadows) do
-			if v.dwTargetID == dwTargetID and v.nFrame <= v.nSort * 5 + 5 and v.szPoint == "TOP" then
-				nSort = nSort + 1
-				v.nSort = min(3 / COMBAT_TEXT_UI_SCALE, v.nSort + max(nSort - v.nSort, 0))
-			end
-		end
-	end
 	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_MISS, szPoint, "SKILL_MISS", false, JH_CombatText.col["SKILL_MISS"])
 end
 
@@ -533,22 +645,22 @@ function CombatText.OnExpLog(dwCharacterID, nExp)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	CombatText.CreateText(shadow, dwCharacterID, g_tStrings.STR_COMBATMSG_EXP .. nExp, nil, "EXP", true, { 255, 0, 255 })
+	CombatText.CreateText(shadow, dwCharacterID, g_tStrings.STR_COMBATMSG_EXP .. nExp, "CENTER", "EXP", true, { 255, 0, 255 })
 end
 
 function CombatText.GetFreeShadow()
 	local handle = CombatText.handle
-	for k, v in ipairs(CombatText.tFree) do
+	for k, v in ipairs(COMBAT_TEXT_FREE) do
 		if v.free then
 			v.free = false
 			return v
 		end
 	end
-	if #CombatText.tFree < COMBAT_TEXT_MAX_COUNT then
+	if #COMBAT_TEXT_FREE < COMBAT_TEXT_MAX_COUNT then
 		local sha = handle:AppendItemFromIni(COMBAT_TEXT_INIFILE, "Shadow_Content")
 		sha:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 		sha:ClearTriangleFanPoint()
-		table.insert(CombatText.tFree, sha)
+		tinsert(COMBAT_TEXT_FREE, sha)
 		return sha
 	end
 end
@@ -571,7 +683,7 @@ function CombatText.LoadConfig()
 end
 
 function CombatText.CheckEnable()
-	local CombatTextWnd = Station.Lookup("Lowest/CombatTextWnd")
+	local frame = Station.Lookup("Lowest/CombatText") or Station.Lookup("Lowest/CombatTextWnd")
 	local ui = Station.Lookup("Lowest/JH_CombatText")
 	if JH_CombatText.bRender then
 		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
@@ -580,22 +692,33 @@ function CombatText.CheckEnable()
 	end
 	if JH_CombatText.bEnable then
 		CombatText.LoadConfig()
-		Wnd.CloseWindow(ui)
-		CombatText.tFree    = {}
-		CombatText.tShadows = {}
-		Wnd.OpenWindow(COMBAT_TEXT_INIFILE, "JH_CombatText")
-	else
-		if CombatTextWnd then
-			Wnd.CloseWindow(CombatTextWnd)
-		end
-		Wnd.OpenWindow("CombatTextWnd")
 		if ui then
 			Wnd.CloseWindow(ui)
-			CombatText.tFree    = {}
-			CombatText.tShadows = {}
+		end
+		COMBAT_TEXT_FREE   = {}
+		COMBAT_TEXT_SHADOW = {}
+		Wnd.OpenWindow(COMBAT_TEXT_INIFILE, "JH_CombatText")
+	else
+		local events = { "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }
+		if frame then
+			for k, v in ipairs(events) do
+				frame:UnRegisterEvent(v)
+				frame:RegisterEvent(v)
+			end
+		end
+		if ui then
+			Wnd.CloseWindow(ui)
+			JH.UnBreatheCall("COMBAT_TEXT")
+			COMBAT_TEXT_FREE   = {}
+			COMBAT_TEXT_SHADOW = {}
 			collectgarbage("collect")
 		end
 	end
+	setmetatable(COMBAT_TEXT_POINT, { __index = function(me, key)
+		if key == "TOP_LEFT" or key == "TOP_RIGHT" then
+			return me["TOP"]
+		end
+	end })
 	setmetatable(JH_CombatText.col, { __index = function() return { 255, 255, 255 } end })
 end
 
