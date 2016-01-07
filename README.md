@@ -37,7 +37,7 @@ local ADDON_PATH  = "interface/JH/"
 请新增相应版本的语言文件到 ```JH/0Base/lang/```路径，根据内容翻译即可。
 
 ### info.ini
-对于inifo.ini，请做单独的翻译，需要针对不同服对文件编码进行修改。
+对于info.ini，请做单独的翻译，需要针对不同服对文件编码进行修改。
 对于较老的游戏版本，可能需要修改路径，请补全```interface/{ sid }```。
 
 ### 图片文件

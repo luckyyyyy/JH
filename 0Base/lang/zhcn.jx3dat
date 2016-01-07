@@ -51,7 +51,7 @@ data = {
 	["Enable KG3DEngineDX11 better effect"] = "启用 KG3DEngineDX11 可获得更清晰的效果",
 	["TargetFace"] = "目标辅助",
 	-- SkillCD.lua --
-	["SkillCD"] = "技能CD监控",
+	["SkillCD"] = "技能监控",
 	["Skill ID:"] = "技能ID:",
 	["Cool Down:"] = "CD时间:",
 	["Can not delete default data"] = "这不是你添加的，不能删除默认的技能。",

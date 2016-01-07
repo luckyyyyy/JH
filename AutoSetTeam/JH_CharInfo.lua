@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 19:54:19
+-- @Last Modified time: 2016-01-07 12:57:48
 local _L = JH.LoadLangPack
 
 local JH_CharInfo = {}
@@ -33,7 +33,7 @@ function JH_CharInfo.GetInfo()
 end
 
 function JH_CharInfo.CreateFrame(dwID, szName, dwForceID)
-	local ui = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = szName .. g_tStrings.STR_EQUIP_ATTR, close = true })
+	local ui = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = g_tStrings.STR_EQUIP_ATTR, close = true })
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	local nX, nY = ui:Append("Image", { x = 20, y = 50, w = 30, h = 30 }):File(GetForceImage(dwForceID)):Pos_()
 	ui:Append("Text", "Name", { x = nX + 5, y = 52, txt = szName })
@@ -153,6 +153,7 @@ function ViewCharInfoToPlayer(dwID)
 	if JH.IsParty(dwID) then
 		local team = GetClientTeam()
 		local info = team.GetMemberInfo(dwID)
+		local p = GetPlayer(dwID)
 		if info then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "ASK", dwID, JH.bDebugClient and "DEBUG")
 			JH_CharInfo.CreateFrame(dwID, info.szName, info.dwForceID)
