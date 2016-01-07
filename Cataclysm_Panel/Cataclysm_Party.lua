@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 18:14:45
+-- @Last Modified time: 2016-01-06 23:35:05
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -38,6 +38,7 @@ local CTM_TTARGET
 local CTM_CACHE              = setmetatable({}, { __mode = "v" })
 local CTM_LIFE_CACHE         = {}
 local CTM_BUFF_CACHE         = {}
+local CTM_BORDER_FRAME       = Random(4)
 -- Package func
 local HIDE_FORCE = {
 	[7]  = true,
@@ -522,6 +523,7 @@ function CTM:RefreshTarget(dwOldID, nOldType, dwNewID, nNewType)
 		if CTM_CACHE[dwNewID] and CTM_CACHE[dwNewID]:IsValid() then
 			if CTM_CACHE[dwNewID]:Lookup("Image_Selected") and CTM_CACHE[dwNewID]:Lookup("Image_Selected"):IsValid() then
 				CTM_CACHE[dwNewID]:Lookup("Image_Selected"):Show()
+				CTM_CACHE[dwNewID]:Lookup("Image_Selected"):SetFrame(CTM_BORDER_FRAME)
 			end
 		end
 	end
