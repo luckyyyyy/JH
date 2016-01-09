@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-06 23:31:26
+-- @Last Modified time: 2016-01-09 22:12:48
 
 -- 早期代码 需要重写
 
@@ -276,9 +276,9 @@ function _GKP.Init()
 	local me = GetClientPlayer()
 	_GKP.OpenPanel(true):Hide()
 	_GKP.nNowMoney = me.GetMoney().nGold
-	JH.DelayCall(125, function() -- Init延后 避免和进入副本冲突
+	JH.DelayCall(function() -- Init延后 避免和进入副本冲突
 		_GKP.LoadData("GKP/" .. me.szName .. "/" .. FormatTime("%Y-%m-%d", GetCurrentTime()))
-	end)
+	end, 125)
 end
 JH.RegisterEvent("FIRST_LOADING_END", _GKP.Init)
 -- OnMsgArrive
@@ -379,7 +379,7 @@ function _GKP.SetChatWindow(item, ui)
 		me = Wnd.OpenWindow(PATH_ROOT .. "ui/GKP_Chat.ini","GKP_Chat")
 		GUI(me):Point():RegisterClose(_GKP.CloseChatWindow):Append("WndButton2",{x = 380, y = 38,txt = _L["Stop Bidding"]}):Click(function()
 			JH.Talk(_L["--- Stop Bidding ---"])
-			JH.DelayCall(1000,function() UnRegisterMsgMonitor(_GKP.OnMsgArrive) end)
+			JH.DelayCall(function() UnRegisterMsgMonitor(_GKP.OnMsgArrive) end, 1000)
 		end)
 	end
 	local box = me:Lookup("", "Box")
@@ -1025,9 +1025,9 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 					local btn           = this
 					local path          = GetRootPath() .. string.format("\\ScreenShot\\GKP_Ticket_%s.png", FormatTime("%Y-%m-%d_%H.%M.%S", GetCurrentTime()))
 					btn:Hide()
-					JH.DelayCall(50, function()
+					JH.DelayCall(function()
 						ScreenShot(path, 100, scale * left, scale * top, scale * right, scale * bottom)
-						JH.DelayCall(50, function()
+						JH.DelayCall(function()
 							JH.Alert(_L("Shot screen succeed, file saved as %s .", path))
 							btn:Show()
 						end)
@@ -1470,7 +1470,7 @@ end
 function _GKP.CheckDialog()
 	if Station.Lookup("Normal/GKP_Loot") and Station.Lookup("Normal/GKP_Loot"):IsVisible() then
 		if type(GetDoodad(_GKP.dwOpenID)) == "userdata" then
-			JH.DelayCall(200, _GKP.CheckDialog)
+			JH.DelayCall(_GKP.CheckDialog, 200)
 		else
 			_GKP.CloseLootWindow()
 		end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2014-11-20 23:34:41
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-04-04 15:06:30
+-- @Last Modified time: 2016-01-09 22:09:52
 local _L = JH.LoadLangPack
 
 local JH_AutoTeam = {
@@ -205,7 +205,7 @@ PS.OnPanelActive = function(frame)
 					for k, v in pairs(JH_AutoTeam.tAutoChannel) do
 						if v == true then
 							i = i + 1
-							JH.DelayCall(i*300,function()
+							JH.DelayCall(function()
 								local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
 								edit:ClearText()
 								for _, vv in ipairs(szText) do
@@ -217,7 +217,7 @@ PS.OnPanelActive = function(frame)
 								end
 								JH.SwitchChat(k)
 								-- JH.Talk(k, szText, true, false, true)
-							end)
+							end, i * 300)
 						end
 					end
 				end

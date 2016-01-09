@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 21:46:38
+-- @Last Modified time: 2016-01-09 22:15:43
 
 local _L = JH.LoadLangPack
 local pairs, ipairs = pairs, ipairs
@@ -102,7 +102,7 @@ function Book.UpdateRange(szName)
 	local nMax = math.max(math.floor(me.nCurrentThew / math.max(nThew, 1)), 1)
 	ui:Fetch("Count"):Change(nil):Enable(nThew ~= 0):Range(0, nMax, math.max(nMax, 0)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
 		JH_CopyBook.nCopyNum = nNum
-		Book.UpdateInfo()
+		JH.DelayCall(Book.UpdateInfo)
 	end)
 end
 
@@ -310,7 +310,7 @@ function Book.Copy()
 			end
 		end },
 		{ "DO_RECIPE_PREPARE_PROGRESS", function() -- 更新读条时 更新
-			Book.UpdateInfo()
+			JH.DelayCall(Book.UpdateInfo)
 		end },
 		{ "SYS_MSG", function() -- 抄录完成 继续抄录
 			if arg0 == "UI_OME_CRAFT_RESPOND" and arg2 == 12 then
@@ -380,12 +380,12 @@ function PS.OnPanelActive(frame)
 			else
 				Book.tCache.ITEM[arg0][arg1] = nil
 			end
-			Book.UpdateInfo()
+			JH.DelayCall(Book.UpdateInfo)
 		end },
-		{ "PROFESSION_LEVEL_UP", function() Book.UpdateInfo() end },
+		{ "PROFESSION_LEVEL_UP", function() JH.DelayCall(Book.UpdateInfo) end },
 		{ "SYS_MSG", function()
 			if arg0 == "UI_OME_CRAFT_RESPOND" then
-				Book.UpdateInfo()
+				JH.DelayCall(Book.UpdateInfo)
 			end
 		end }
 	)

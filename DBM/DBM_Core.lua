@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-06 18:05:19
+-- @Last Modified time: 2016-01-09 22:11:19
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1708,10 +1708,10 @@ function D.ConfirmShare()
 				Circle.AddData(t.dwMapID, data)
 			end
 			table.remove(DBM_SHARE_QUEUE, 1)
-			JH.DelayCall(100, D.ConfirmShare)
+			JH.DelayCall(D.ConfirmShare, 100)
 		end, function()
 			table.remove(DBM_SHARE_QUEUE, 1)
-			JH.DelayCall(100, D.ConfirmShare)
+			JH.DelayCall(D.ConfirmShare, 100)
 		end)
 	end
 end

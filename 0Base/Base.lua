@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-07 17:14:30
+-- @Last Modified time: 2016-01-09 22:48:29
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -1289,9 +1289,16 @@ function JH.RemoteRequest(szUrl, fnAction)
 	tinsert(_JH.tRequest, { szUrl = szUrl, fnAction = fnAction })
 end
 
-function JH.DelayCall(nDelay, fnAction)
-	local nTime = nDelay + GetTime()
-	tinsert(_JH.tDelayCall, { nTime = nTime, fnAction = fnAction })
+function JH.DelayCall(fnAction, nDelay)
+	if not nDelay then
+		if #_JH.tDelayCall > 0 then
+			if _JH.tDelayCall[#_JH.tDelayCall].fnAction == fnAction then
+				return JH.Debug("Ignore DelayCall " .. tostring(fnAction))
+			end
+		end
+		nDelay = 0
+	end
+	tinsert(_JH.tDelayCall, { nTime = nDelay + GetTime(), fnAction = fnAction })
 end
 
 function JH.Split(szFull, szSep)
@@ -3724,7 +3731,7 @@ function GUI.OpenIconPanel(fnAction)
 				else
 					boxs[i]:Icon(-1)
 					txts[i]:Text(nIocn):Toggle(true)
-					JH.DelayCall(50, function()
+					JH.DelayCall(function()
 						if mceil(nIocn / 144) == ICON_PAGE and boxs[i] then
 							boxs[i]:Icon(nIocn):Toggle(true)
 						end

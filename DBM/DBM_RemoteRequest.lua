@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-29 22:54:24
+-- @Last Modified time: 2016-01-09 22:12:02
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -99,7 +99,7 @@ function W.Login()
 			JH.Alert(_L["Please enter numbers"])
 		else
 			uid = tonumber(szNum)
-			JH.DelayCall(50, function()
+			JH.DelayCall(function()
 				GetUserInput(_L["Enter password"], function(szText)
 					W.CallLogin(uid, szText)
 				end)
