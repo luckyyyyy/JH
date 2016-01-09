@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-06 19:12:50
+-- @Last Modified time: 2016-01-09 23:43:25
 
 -- 战斗浮动文字设计思路
 --[[
@@ -393,7 +393,7 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 			return COMBAT_TEXT_TRAJECTORY + 1
 		end
 	end
-	return min(nSort, min(3 / COMBAT_TEXT_UI_SCALE))
+	return nSort
 end
 
 function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
