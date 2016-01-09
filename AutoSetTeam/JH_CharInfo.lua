@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-07 12:57:48
+-- @Last Modified time: 2016-01-07 19:14:41
 local _L = JH.LoadLangPack
 
 local JH_CharInfo = {}
@@ -153,7 +153,6 @@ function ViewCharInfoToPlayer(dwID)
 	if JH.IsParty(dwID) then
 		local team = GetClientTeam()
 		local info = team.GetMemberInfo(dwID)
-		local p = GetPlayer(dwID)
 		if info then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "ASK", dwID, JH.bDebugClient and "DEBUG")
 			JH_CharInfo.CreateFrame(dwID, info.szName, info.dwForceID)

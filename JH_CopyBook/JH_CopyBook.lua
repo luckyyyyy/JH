@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-27 17:58:47
+-- @Last Modified time: 2016-01-09 21:18:42
 
 local _L = JH.LoadLangPack
 local pairs, ipairs = pairs, ipairs
@@ -23,11 +23,11 @@ local Book = {
 	nBook   = 1,
 }
 
--- ·µ»ØÖµ Êé±¾ID£¬Êé±¾ÊıÁ¿£¬ĞèÒªÌåÁ¦, »ñµÃ¼à±¾
+-- è¿”å›å€¼ ä¹¦æœ¬IDï¼Œä¹¦æœ¬æ•°é‡ï¼Œéœ€è¦ä½“åŠ›, è·å¾—ç›‘æœ¬
 function Book.GetBook(szName)
 	if not Book.tCache.BOOK[szName] then
 		local me = GetClientPlayer()
-		local nCount = g_tTable.BookSegment:GetRowCount() --»ñÈ¡±í¸ñ×ÜĞĞ
+		local nCount = g_tTable.BookSegment:GetRowCount() --è·å–è¡¨æ ¼æ€»è¡Œ
 		local nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt = 0, 0, 0, 0, 0, 0
 		local tItems, tBooks, tTool = {}, {}, {}
 		local dwBookID, dwBookNumber
@@ -43,11 +43,11 @@ function Book.GetBook(szName)
 				local tRecipe = GetRecipe(12, dwBookID, i)
 				if not JH_CopyBook.tIgnore[i] then
 					nThew           = nThew + tRecipe.nThew
-					nMaxLevel       = math.max(nMaxLevel, tRecipe.dwRequireProfessionLevel) -- ÔÄ¶ÁµÈ¼¶
-					nMaxPlayerLevel = math.max(nMaxPlayerLevel, tRecipe.nRequirePlayerLevel) -- ½ÇÉ«µÈ¼¶
+					nMaxLevel       = math.max(nMaxLevel, tRecipe.dwRequireProfessionLevel) -- é˜…è¯»ç­‰çº§
+					nMaxPlayerLevel = math.max(nMaxPlayerLevel, tRecipe.nRequirePlayerLevel) -- è§’è‰²ç­‰çº§
 					if nMaxLevelEx < tRecipe.dwRequireProfessionLevelExt then
 						nMaxLevelEx = tRecipe.dwRequireProfessionLevelExt
-						if dwProfessionIDExt == 0 then -- ²»ÖªµÀÎªÃ«»á·ÅÔÚÀïÃæ¡£¡£¡£
+						if dwProfessionIDExt == 0 then -- ä¸çŸ¥é“ä¸ºæ¯›ä¼šæ”¾åœ¨é‡Œé¢ã€‚ã€‚ã€‚
 							dwProfessionIDExt = tRecipe.dwProfessionIDExt
 						end
 					end
@@ -124,7 +124,7 @@ function Book.UpdateInfo(szName)
 		local handle = ui:Fetch("Require"):Clear()
 		local nX, nY = 10, 0
 		nX, nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint), color = { 255, 128, 0 } }):Pos_()
-		-- ¼ÆËãÌåÁ¦
+		-- è®¡ç®—ä½“åŠ›
 		local nNumThew = JH_CopyBook.nCopyNum * nThew
 		local bStatus  = nNumThew <= me.nCurrentThew and true or false
 		bCanCopy = bCanCopy and bStatus
@@ -132,7 +132,7 @@ function Book.UpdateInfo(szName)
 		handle:Append("Image", { x = nX + 5, y = nY + 15, w = 200, h = 11 }):File(szUitex, 123)
 		handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(nNumThew / math.max(1, me.nCurrentThew))
 		nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = me.nCurrentThew .. "/" .. nNumThew, color = bStatus and green or red }):Pos_()
-		-- ÔÄ¶ÁµÈ¼¶ĞèÇó
+		-- é˜…è¯»ç­‰çº§éœ€æ±‚
 		local nPlayerLevel = me.GetProfessionLevel(8)
 		local bStatus      = nPlayerLevel >= nMaxLevel
 		bCanCopy = bCanCopy and bStatus
@@ -140,7 +140,7 @@ function Book.UpdateInfo(szName)
 		handle:Append("Image", { x = nX + 5, y = nY + 15, w = 200, h = 11 }):File(szUitex, 123)
 		handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(math.max(1, nPlayerLevel) / nMaxLevel)
 		nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = nPlayerLevel .. "/" .. nMaxLevel, color = bStatus and green or red }):Pos_()
-		-- XXµÈ¼¶ĞèÇó
+		-- XXç­‰çº§éœ€æ±‚
 		if dwProfessionIDExt ~= 0 then
 			local ProfessionExt = GetProfession(dwProfessionIDExt)
 			if ProfessionExt then
@@ -153,7 +153,7 @@ function Book.UpdateInfo(szName)
 				nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = nExtLevel .. "/" .. nMaxLevelEx, color = bStatus and green or red }):Pos_()
 			end
 		end
-		-- ĞèÒª½ÇÉ«µÈ¼¶
+		-- éœ€è¦è§’è‰²ç­‰çº§
 		if nMaxPlayerLevel ~= 0 then
 			local bStatus = me.nLevel >= nMaxPlayerLevel
 			bCanCopy = bCanCopy and bStatus
@@ -162,7 +162,7 @@ function Book.UpdateInfo(szName)
 			handle:Append("Image", { x = nX + 7, y = nY + 18, w = 194, h = 5 }):File(szUitex, bStatus and 127 or 125):Percentage(math.max(1, me.nLevel) / nMaxPlayerLevel)
 			nX, nY = handle:Append("Text", { x = nX + 5, y = nY + 5, w = 200, h = 30, align = 1, font = 15, txt = me.nLevel .. "/" .. nMaxPlayerLevel, color = bStatus and green or red }):Pos_()
 		end
-		-- ĞèÇóµÀ¾ß
+		-- éœ€æ±‚é“å…·
 		if not IsEmpty(tTool) then
 			nX = handle:Append("Text", { x = 10, y = nY + 5, txt = g_tStrings.CRAFT_NEED_TOOL, color = green }):Pos_()
 			for k, v in pairs(tTool) do
@@ -171,7 +171,7 @@ function Book.UpdateInfo(szName)
 			end
 			nY = nY + 15
 		end
-		-- ĞèÇóµÄµÀ¾ß
+		-- éœ€æ±‚çš„é“å…·
 		local i = 0
 		for k, v in pairs(tItems) do
 			local nCount  = me.GetItemAmount(v.dwTabType, v.dwIndex)
@@ -183,7 +183,7 @@ function Book.UpdateInfo(szName)
 			:Pos_()
 			i = i + 1
 		end
-		-- Êé±¾
+		-- ä¹¦æœ¬
 		local hBooks = ui:Fetch("Books"):Clear()
 		nX = 5
 		local tBS, tCheck = me.GetBookSegmentList(dwBookID), {}
@@ -257,63 +257,68 @@ function Book.Copy()
 	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks = Book.GetBook(JH_CopyBook.szBookName)
 	assert(dwBookID)
 	JH.Sysmsg(_L("Start Copy Book %s", Book.szBookName))
-	local function Stop()
-		Book.bLock   = false
+	local function StopProfessionSkill()
 		Book.bEnable = false
-		JH.UnBreatheCall("CokyBook")
-		JH.UnRegisterEvent("DO_RECIPE_PREPARE_PROGRESS.COPYBOOK")
-		JH.UnRegisterEvent("OT_ACTION_PROGRESS_BREAK.COPYBOOK")
+		JH.UnRegisterInit("COPYBOOK_START")
 		JH.Sysmsg(_L("Stop Copy Book %s", Book.szBookName))
 		Book.UpdateInfo()
 		Book.UpdateRange()
 	end
-	JH.RegisterEvent("DO_RECIPE_PREPARE_PROGRESS.COPYBOOK", function()
-		Book.nTotalFrame = GetLogicFrameCount() + arg0
-		Book.UpdateInfo()
-	end)
-	JH.BreatheCall("CokyBook", function()
-		local me = GetClientPlayer()
-		if not me then
-			return
-		end
-		local nBook = Book.nBook
-		if me.nMoveState ~= MOVE_STATE.ON_STAND then -- ²»ÊÇÕ¾Á¢×´Ì¬Ö±½Ó´ò¶Ï
-			JH.Debug("COPYBOOK # MOVE_STATE #" .. me.nMoveState)
-			return Stop()
-		end
-		if not Book.bLock then
+	local function GetNextBook(bNext)
+		if not bNext then
 			if JH_CopyBook.tIgnore[Book.nBook] then
-				Book.bLock       = true
-				Book.nTotalFrame = 0
-			else
-				local nState = me.CastProfessionSkill(12, dwBookID, nBook)
-				if nState ~= 1 then
-					JH.Debug("COPYBOOK # CAST_ERROR #" .. nState)
-					return Stop()
-				end
-				Book.bLock = true
-				Book.nTotalFrame = GetLogicFrameCount() + 16 -- ×îĞ¡Ê±¼ä²î
+				bNext = true
 			end
-		elseif GetLogicFrameCount() > Book.nTotalFrame then
+		end
+		if bNext then
 			repeat
 				Book.nBook = Book.nBook + 1
-				if Book.nBook > dwBookNumber then -- Ò»Ì×Êé³­ÍêÁË
+				if Book.nBook > dwBookNumber then -- ä¸€å¥—ä¹¦æŠ„å®Œäº†
 					Book.nBook = 1
-					if me.nCurrentThew < nThew then -- ÌåÁ¦²»¹»Ò»Ì×Êé
-						Stop()
+					if me.nCurrentThew < nThew then -- ä½“åŠ›ä¸å¤Ÿä¸€å¥—ä¹¦
+						StopProfessionSkill()
 						return JH.Sysmsg(_L["Not Enough Thew"])
 					end
 					JH_CopyBook.nCopyNum = JH_CopyBook.nCopyNum - 1
 					if JH_CopyBook.nCopyNum == 0 then
-						return Stop()
+						return StopProfessionSkill()
 					end
 					Book.UpdateInfo()
 					Book.UpdateRange()
 				end
 			until not JH_CopyBook.tIgnore[Book.nBook]
-			Book.bLock = false
 		end
-	end)
+		return Book.nBook
+	end
+	local function CastProfessionSkill(bNext)
+		local me = GetClientPlayer()
+		if not me then
+			return StopProfessionSkill()
+		end
+		local nState = me.CastProfessionSkill(12, dwBookID, GetNextBook(bNext))
+		if nState ~= 1 then
+			JH.Debug("COPYBOOK # CAST_ERROR #" .. nState)
+			return StopProfessionSkill()
+		end
+	end
+	JH.RegisterInit("COPYBOOK_START",
+		{ "OT_ACTION_PROGRESS_BREAK", function() -- æ‰“æ–­è¯»æ¡æ—¶
+			if arg0 == UI_GetClientPlayerID() then
+				StopProfessionSkill()
+			end
+		end },
+		{ "DO_RECIPE_PREPARE_PROGRESS", function() -- æ›´æ–°è¯»æ¡æ—¶ æ›´æ–°
+			Book.UpdateInfo()
+		end },
+		{ "SYS_MSG", function() -- æŠ„å½•å®Œæˆ ç»§ç»­æŠ„å½•
+			if arg0 == "UI_OME_CRAFT_RESPOND" then
+				if arg1 == 1 and arg2 == 12 then
+					 CastProfessionSkill(true)
+				end
+			end
+		end }
+	)
+	CastProfessionSkill()
 end
 
 local PS = {}
