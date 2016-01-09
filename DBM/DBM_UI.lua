@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 20:33:38
+-- @Last Modified time: 2016-01-09 23:26:20
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -631,9 +631,9 @@ function DBM_UI.OnItemLButtonDragEnd()
 			DBMUI.OpenAddPanel(DBMUI_SELECT_TYPE, data)
 		end
 	end
-	JH.DelayCall(50, function() -- 由于 click在 dragend 之后
+	JH.DelayCall(function() -- 由于 click在 dragend 之后
 		 DBMUI_DRAG = false
-	end)
+	end, 50)
 end
 
 -- 优化核心函数 根据滚动条加载内容

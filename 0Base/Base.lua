@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:48:29
+-- @Last Modified time: 2016-01-09 23:05:57
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort

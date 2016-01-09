@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:12:48
+-- @Last Modified time: 2016-01-09 23:06:37
 
 -- 早期代码 需要重写
 
@@ -1031,7 +1031,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 							JH.Alert(_L("Shot screen succeed, file saved as %s .", path))
 							btn:Show()
 						end)
-					end)
+					end, 50)
 				end)
 				ui:Append("Text", { w = 120, h = 30, x = 40, y = 85, txt = _L("Operator:%s", szName), font = 41 })
 				ui:Append("Text", { w = 720, h = 30, x = 0, align = 2, y = 85, txt = _L("Print Time:%s", _GKP.GetTimeString(GetCurrentTime())), font = 41 })
