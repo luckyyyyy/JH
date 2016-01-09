@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 21:18:42
+-- @Last Modified time: 2016-01-09 21:46:38
 
 local _L = JH.LoadLangPack
 local pairs, ipairs = pairs, ipairs
@@ -251,9 +251,11 @@ function Book.CheckCopy()
 end
 
 function Book.Copy()
-	local me = GetClientPlayer()
-	Book.bEnable     = true
-	Book.szBookName  = JH_CopyBook.szBookName
+	if Book.bEnable then
+		return JH.Sysmsg(g_tStrings.STR_ERROR_IN_OTACTION)
+	end
+	Book.bEnable    = true
+	Book.szBookName = JH_CopyBook.szBookName
 	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks = Book.GetBook(JH_CopyBook.szBookName)
 	assert(dwBookID)
 	JH.Sysmsg(_L("Start Copy Book %s", Book.szBookName))
@@ -265,6 +267,7 @@ function Book.Copy()
 		Book.UpdateRange()
 	end
 	local function GetNextBook(bNext)
+		local me = GetClientPlayer()
 		if not bNext then
 			if JH_CopyBook.tIgnore[Book.nBook] then
 				bNext = true
@@ -283,7 +286,6 @@ function Book.Copy()
 					if JH_CopyBook.nCopyNum == 0 then
 						return StopProfessionSkill()
 					end
-					Book.UpdateInfo()
 					Book.UpdateRange()
 				end
 			until not JH_CopyBook.tIgnore[Book.nBook]
@@ -311,14 +313,17 @@ function Book.Copy()
 			Book.UpdateInfo()
 		end },
 		{ "SYS_MSG", function() -- 抄录完成 继续抄录
-			if arg0 == "UI_OME_CRAFT_RESPOND" then
-				if arg1 == 1 and arg2 == 12 then
-					 CastProfessionSkill(true)
+			if arg0 == "UI_OME_CRAFT_RESPOND" and arg2 == 12 then
+				if arg1 == 1 then
+					CastProfessionSkill(true)
+				else
+					StopProfessionSkill()
 				end
 			end
 		end }
 	)
 	CastProfessionSkill()
+	Book.UpdateInfo()
 end
 
 local PS = {}
