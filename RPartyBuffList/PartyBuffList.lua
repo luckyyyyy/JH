@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 08:46:11
+-- @Last Modified time: 2016-01-08 16:17:22
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
@@ -213,7 +213,6 @@ function PBL.GetPlayer(dwID)
 			szName = me.szName,
 			nMaxLife = me.nMaxLife,
 			nCurrentLife = me.nCurrentLife,
-			dwForce = me.dwForce,
 		}
 	else
 		p = GetPlayer(dwID)
