@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-22 14:45:55
+-- @Last Modified time: 2016-01-09 22:14:13
 local _L = JH.LoadLangPack
 
 TS = {
@@ -232,7 +232,7 @@ function _TS.OnBreathe()
 			local me = GetClientPlayer()
 			if not me.bFightState then return end
 			_TS.dwDropTargetPlayerID = -1
-			JH.DelayCall(1000, function()
+			JH.DelayCall(function()
 				if not me.IsInParty() then return end
 				if p and p.dwDropTargetPlayerID and p.dwDropTargetPlayerID ~= 0 then
 					if IsParty(me.dwID, p.dwDropTargetPlayerID) or me.dwID == p.dwDropTargetPlayerID then
@@ -243,7 +243,7 @@ function _TS.OnBreathe()
 						JH.Sysmsg2(_L("Well done! %s in %d group first to attack %s!!", nGroup, szMember, name), g_tStrings.HATRED_COLLECT, { 150, 250, 230 })
 					end
 				end
-			end)
+			end, 1000)
 		end
 	else
 		_TS.frame:Hide()

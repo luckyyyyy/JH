@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-01 11:55:58
+-- @Last Modified time: 2016-01-09 22:13:49
 local _L = JH.LoadLangPack
 JH_Love = {
 	bQuiet = false,				-- 免打扰（拒绝其它人的查看请求）
@@ -353,11 +353,11 @@ _JH_Love.RemoveLover = function()
 			return JH.Alert(_L("Love can not run a red-light, [%d] seconds left", 3600 - nTime))
 		end
 		JH.Confirm(_L("Are you sure to cut love with [%s]?", _JH_Love.szName), function()
-			JH.DelayCall(50, function() JH.Confirm(_L["Past five hundred times looking back only in exchange for a chance encounter this life, you really decided?"], function()
-				JH.DelayCall(50, function() JH.Confirm(_L["You do not really want to cut off love it, really sure?"], function()
+			JH.DelayCall(function() JH.Confirm(_L["Past five hundred times looking back only in exchange for a chance encounter this life, you really decided?"], function()
+				JH.DelayCall(function() JH.Confirm(_L["You do not really want to cut off love it, really sure?"], function()
 					_JH_Love.SetLover(nil)
-				end) end)
-			end) end)
+				end) end, 50)
+			end) end, 50)
 		end)
 	end
 end
@@ -405,7 +405,7 @@ end
 _JH_Love.SetSign = function(szSign)
 	szSign = JH.Trim(szSign)
 	_JH_Love.szSign = szSign
-	JH.DelayCall(3000, function()
+	JH.DelayCall(function()
 		if szSign == _JH_Love.szSign then
 			local szPart1, szPart2 = "", ""
 			if string.len(szSign) > 22 then
@@ -428,7 +428,7 @@ _JH_Love.SetSign = function(szSign)
 			end
 			_JH_Love.SetFellowDataByKey("S2", szPart2)
 		end
-	end)
+	end, 3000)
 end
 
 -- 更新情缘面板信息
@@ -738,13 +738,13 @@ _JH_Love.OnBgTalk = function(nChannel, dwID, szName, data, bIsSelf)
 					local nNum = _JH_Love.GetBagItemNum(dwBox, dwX)
 					SetTarget(TARGET.PLAYER, aInfo.id)
 					OnUseItem(dwBox, dwX)
-					JH.DelayCall(500, function()
+					JH.DelayCall(function()
 						if _JH_Love.GetBagItemNum(dwBox, dwX) ~= nNum then
 							_JH_Love.SaveLover(aInfo, 1)
 							JH.BgTalk(aInfo.name, "HM_LOVE", "LOVE_ANS", "CONF")
 							JH.Sysmsg(_L("Congratulations, success to attach love with [%s]!", aInfo.name))
 						end
-					end)
+					end, 500)
 				end
 			elseif data[2] == "CONF" then
 				local aInfo = _JH_Love.GetFellowDataByID(dwID)

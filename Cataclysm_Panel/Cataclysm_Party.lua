@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-06 23:35:05
+-- @Last Modified time: 2016-01-09 22:10:52
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -268,14 +268,14 @@ end
 
 -- DragEnd bug fix
 function CTM_Party_Base.OnItemLButtonUp()
-	JH.DelayCall(50, function()
+	JH.DelayCall(function()
 		if CTM_DRAG then
 			CTM_DRAG, CTM_DRAG_ID = false, nil
 			CTM:CloseParty()
 			CTM:ReloadParty()
 			CloseRaidDragPanel()
 		end
-	end)
+	end, 50)
 end
 
 function CTM_Party_Base.OnItemLButtonDragEnd()
@@ -1296,7 +1296,7 @@ function CTM:Send_RaidReadyConfirm(bDisable)
 		end
 		if not bDisable then
 			Send_RaidReadyConfirm()
-			JH.DelayCall(5000, function()
+			JH.DelayCall(function()
 				for k, v in pairs(CTM_CACHE) do
 					if v:IsValid() then
 						if v:Lookup("Image_ReadyCover"):IsVisible() or v:Lookup("Image_NotReady"):IsVisible() then
@@ -1307,7 +1307,7 @@ function CTM:Send_RaidReadyConfirm(bDisable)
 						end
 					end
 				end
-			end)
+			end, 5000)
 		end
 	end
 end
@@ -1348,11 +1348,11 @@ end
 function CTM:CallEffect(dwTargetID, nDelay)
 	if CTM_CACHE[dwTargetID] and CTM_CACHE[dwTargetID]:IsValid() then
 		CTM_CACHE[dwTargetID]:Lookup("Image_Effect"):Show()
-		JH.DelayCall(nDelay, function()
+		JH.DelayCall(function()
 			if CTM_CACHE[dwTargetID] and CTM_CACHE[dwTargetID]:IsValid() then
 				CTM_CACHE[dwTargetID]:Lookup("Image_Effect"):Hide()
 			end
-		end)
+		end, nDelay)
 	end
 end
 
