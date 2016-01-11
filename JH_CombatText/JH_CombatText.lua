@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 23:43:25
+-- @Last Modified time: 2016-01-11 17:19:17
 
 -- 战斗浮动文字设计思路
 --[[
@@ -170,6 +170,7 @@ function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("FIGHT_HINT")
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("LOADING_END")
+	this:RegisterEvent("NPC_ENTER_SCENE")
 	CombatText.handle = this:Lookup("", "")
 	-- uninit
 	local frame = Station.Lookup("Lowest/CombatText") or Station.Lookup("Lowest/CombatTextWnd")
@@ -218,12 +219,14 @@ function JH_CombatText.OnEvent(szEvent)
 		if arg0 == UI_GetClientPlayerID() then
 			CombatText.OnSkillDodge(arg1)
 		end
+	elseif szEvent == "NPC_ENTER_SCENE" then
+		CombatText.tDeath[arg0] = nil
 	elseif szEvent == "SYS_MSG" then
 		if arg0 == "UI_OME_EXP_LOG" then
 			if arg2 > 0 then
 				CombatText.OnExpLog(arg1, arg2)
 			end
-		elseif arg0 == "UI_OME_DEATH_NOTIFY" then -- 目前这有个缺点 如果站在一个工作室刷怪点2-3小时内存会占用不好处理 但是这事儿我估计就工作室自己干得出来
+		elseif arg0 == "UI_OME_DEATH_NOTIFY" then
 			if not IsPlayer(arg1) then
 				CombatText.tDeath[arg1] = true
 			end
@@ -367,7 +370,7 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 			and v.szPoint == "TOP"
 			and v.nFrame < 10
 		then
-			local fSort = (COMBAT_TEXT_POINT.TOP[floor(v.nFrame) + 1] + v.nSort * fRange * COMBAT_TEXT_POINT.TOP[32]) / COMBAT_TEXT_POINT.TOP[32]
+			local fSort = (COMBAT_TEXT_POINT.TOP[floor(v.nFrame) + 1] + v.nSort * fRange * COMBAT_TEXT_POINT.TOP[COMBAT_TEXT_TOTAL]) / COMBAT_TEXT_POINT.TOP[COMBAT_TEXT_TOTAL]
 			for i = 1, COMBAT_TEXT_TRAJECTORY do
 				if fSort < tSort[i].fRange then
 					tSort[i].nCount = tSort[i].nCount + 1
@@ -378,10 +381,10 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	end
 	tsort(tSort, TrajectorySort)
 	local nSort = tSort[1].nSort - 1
-	local nCount = 0
-	for k, v in pairs(tSort) do
-		nCount = nCount + v.nCount
-	end
+	-- local nCount = 0
+	-- for k, v in pairs(tSort) do
+	-- 	nCount = nCount + v.nCount
+	-- end
 	-- JH.Debug("#TRAJECTORY# -> " .. tSort[1].nSort)
 	-- for k, v in ipairs(tSort) do
 	-- 	JH.Debug("#TRAJECTORY# " .. v.nSort .. " #COUNT# " .. v.nCount)
@@ -402,9 +405,6 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 	if dwTargetID ~= UI_GetClientPlayerID() then
 		object = bIsPlayer and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
 		if object and object.nX then
-			if CombatText.tDeath[dwTargetID] then
-				CombatText.tDeath[dwTargetID] = nil
-			end
 			tPoint = { object.nX, object.nY, object.nZ }
 		end
 	end
@@ -414,7 +414,7 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 		dwTargetID      = dwTargetID,
 		szText          = szText,
 		nType           = nType,
-		bIsPlayer       = bIsPlayer,
+		-- bIsPlayer       = bIsPlayer,
 		nFrame          = 0,
 		bCriticalStrike = bCriticalStrike,
 		col             = col,
