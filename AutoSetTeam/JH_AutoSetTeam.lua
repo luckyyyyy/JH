@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 21:50:29
+-- @Last Modified time: 2016-01-11 20:01:12
 local _L = JH.LoadLangPack
 
 local AutoSetTeam = {
@@ -266,9 +266,13 @@ function PS.OnPanelActive(frame)
 		JH_WorldMark.bEnable = bChecked
 		JH.RegisterInit("WORLD_MARK", JH_WorldMark.GetEvent())
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = JH_TeamNotice.bEnable, txt = _L["Team Message"] }):Click(function(bChecked)
+	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = JH_TeamNotice.bEnable, txt = _L["Team Message"] }):Click(function(bChecked)
 		JH_TeamNotice.bEnable = bChecked
 		JH.RegisterInit("TEAM_NOTICE", JH_TeamNotice.GetEvent())
+	end):Pos_()
+
+	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = JH_CharInfo.bEnable, txt = _L["Allow view charinfo"] }):Click(function(bChecked)
+		JH_CharInfo.bEnable = bChecked
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Party Request"], font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = JH_PartyRequest.bEnable, txt = _L["Party Request"] }):Click(function(bChecked)

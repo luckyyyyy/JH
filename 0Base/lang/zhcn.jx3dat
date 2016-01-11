@@ -639,6 +639,7 @@ data = {
 	["If it is always loading, the target may not install plugin or refuse."] = "如果一直提示加载中，可能是对方没有安装插件或者拒绝了您的请求",
 	["[%s] want to see your info, OK?"] = "团长 [%s] 想知晓您的装备、心法，是否告知？",
 	["[%s] want to see your char info, OK?"] = "[%s] 想知晓您的当前属性是否告知？",
+	["Allow view charinfo"] = "允许其他人查看属性",
 	["Edit team info?"] = "是否填写团队小告示（团员进组可看到）",
 	["Team Message"] = "团队小告示",
 	["Asking..., If no response in longtime, team leader not enable plug-in."] = "请求已发出，如果没有响应可能是团长没有开启小告示",
