@@ -1,13 +1,18 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-07 19:14:41
+-- @Last Modified time: 2016-01-11 19:59:12
 local _L = JH.LoadLangPack
 
-local JH_CharInfo = {}
+JH_CharInfo = {
+	bEnable = true,
+}
+JH.RegisterCustomData("JH_CharInfo")
+
+local CharInfo = {}
 
 -- 获取的是一个表 data[1] 一定是装备分
-function JH_CharInfo.GetInfo()
+function CharInfo.GetInfo()
 	local data = { GetClientPlayer().GetTotalEquipScore() }
 	local frame = Station.Lookup("Normal/CharInfo")
 	local function fnGetInfo()
@@ -32,7 +37,7 @@ function JH_CharInfo.GetInfo()
 	return data
 end
 
-function JH_CharInfo.CreateFrame(dwID, szName, dwForceID)
+function CharInfo.CreateFrame(dwID, szName, dwForceID)
 	local ui = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = g_tStrings.STR_EQUIP_ATTR, close = true })
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	local nX, nY = ui:Append("Image", { x = 20, y = 50, w = 30, h = 30 }):File(GetForceImage(dwForceID)):Pos_()
@@ -46,7 +51,7 @@ function JH_CharInfo.CreateFrame(dwID, szName, dwForceID)
 	frame.info  = info
 end
 
-function JH_CharInfo.ClearFrame(dwID)
+function CharInfo.ClearFrame(dwID)
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	if frame then
 		frame.data = {}
@@ -54,7 +59,7 @@ function JH_CharInfo.ClearFrame(dwID)
 	end
 end
 
-function JH_CharInfo.RefuseFrame(dwID)
+function CharInfo.RefuseFrame(dwID)
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	if frame then
 		frame.data = {}
@@ -62,7 +67,7 @@ function JH_CharInfo.RefuseFrame(dwID)
 	end
 end
 
-function JH_CharInfo.CreateContent(dwID, szContent)
+function CharInfo.CreateContent(dwID, szContent)
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	if frame and frame.data then
 		table.insert(frame.data, szContent)
@@ -70,14 +75,14 @@ function JH_CharInfo.CreateContent(dwID, szContent)
 	end
 end
 
-function JH_CharInfo.CreateComplete(dwID)
+function CharInfo.CreateComplete(dwID)
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	if frame then
 		local data = JH.JsonDecode(table.concat(frame.data))
 		if data and type(data) == "table" then
 			frame.info:Toggle(false)
 			local ui = frame.ui
-			local self_data = JH_CharInfo.GetInfo()
+			local self_data = CharInfo.GetInfo()
 			local function GetSelfValue(label, value)
 				for i = 2, #self_data do
 					local v = self_data[i]
@@ -119,8 +124,8 @@ end
 JH.RegisterBgMsg("CHAR_INFO", function(nChannel, dwID, szName, data, bIsSelf)
 	if not bIsSelf and data[2] == UI_GetClientPlayerID() then
 		if data[1] == "ASK"  then
-			local fnAction = function()
-				local str = JH.JsonEncode(JH_CharInfo.GetInfo())
+			if JH_CharInfo.bEnable or data[3] == "DEBUG" then
+				local str = JH.JsonEncode(CharInfo.GetInfo())
 				local nMax = 500
 				local nTotle = math.ceil(#str / nMax)
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "START", dwID)
@@ -128,22 +133,17 @@ JH.RegisterBgMsg("CHAR_INFO", function(nChannel, dwID, szName, data, bIsSelf)
 					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "CONTENT", dwID, string.sub(str, (i-1) * nMax + 1, i * nMax))
 				end
 				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "STOP", dwID)
-			end
-			if data[3] == "DEBUG" then
-				fnAction()
 			else
-				JH.Confirm(_L("[%s] want to see your char info, OK?", szName), fnAction, function()
-					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "REFUSE", dwID)
-				end)
+				JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "REFUSE", dwID)
 			end
 		elseif data[1] == "REFUSE" then
-			JH_CharInfo.RefuseFrame(dwID)
+			CharInfo.RefuseFrame(dwID)
 		elseif data[1] == "START" then
-			JH_CharInfo.ClearFrame(dwID)
+			CharInfo.ClearFrame(dwID)
 		elseif data[1] == "CONTENT" then
-			JH_CharInfo.CreateContent(dwID, data[3])
+			CharInfo.CreateContent(dwID, data[3])
 		elseif data[1] == "STOP" then
-			JH_CharInfo.CreateComplete(dwID)
+			CharInfo.CreateComplete(dwID)
 		end
 	end
 end)
@@ -155,7 +155,7 @@ function ViewCharInfoToPlayer(dwID)
 		local info = team.GetMemberInfo(dwID)
 		if info then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "ASK", dwID, JH.bDebugClient and "DEBUG")
-			JH_CharInfo.CreateFrame(dwID, info.szName, info.dwForceID)
+			CharInfo.CreateFrame(dwID, info.szName, info.dwForceID)
 		end
 	else
 		JH.Alert(_L["Party limit"])

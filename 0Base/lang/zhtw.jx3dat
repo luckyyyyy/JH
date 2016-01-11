@@ -51,7 +51,7 @@ data = {
 	["Enable KG3DEngineDX11 better effect"] = "啟用 KG3DEngineDX11 可獲得更清晰的效果",
 	["TargetFace"] = "目標輔助",
 	-- SkillCD.lua --
-	["SkillCD"] = "技能CD監控",
+	["SkillCD"] = "技能監控",
 	["Skill ID:"] = "技能ID:",
 	["Cool Down:"] = "CD時間:",
 	["Can not delete default data"] = "這不是妳添加的，不能刪除默認的技能。",
@@ -639,6 +639,7 @@ data = {
 	["If it is always loading, the target may not install plugin or refuse."] = "如果壹直提示加載中，可能是對方沒有安裝插件或者拒絕了您的請求",
 	["[%s] want to see your info, OK?"] = "團長 [%s] 想知曉您的裝備、心法，是否告知？",
 	["[%s] want to see your char info, OK?"] = "[%s] 想知曉您的當前屬性是否告知？",
+	["Allow view charinfo"] = "允許其他人查看屬性",
 	["Edit team info?"] = "是否填寫團隊小告示（團員進組可看到）",
 	["Team Message"] = "團隊小告示",
 	["Asking..., If no response in longtime, team leader not enable plug-in."] = "請求已發出，如果沒有響應可能是團長沒有開啟小告示",
