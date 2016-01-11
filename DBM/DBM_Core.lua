@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:11:19
+-- @Last Modified time: 2016-01-11 15:09:08
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1115,7 +1115,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 				end
 				-- 特大文字
 				if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-					FireUIEvent("JH_LARGETEXT", txt, data.col or { 255, 128, 0 })
+					FireUIEvent("JH_LARGETEXT", txt, v.col or { 255, 128, 0 })
 				end
 				if DBM.bPushFullScreen and cfg.bFullScreen then
 					if (tInfo and tInfo.dwID == me.dwID) or not tInfo then
