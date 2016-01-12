@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:13:49
+-- @Last Modified time: 2016-01-12 03:10:20
 local _L = JH.LoadLangPack
 JH_Love = {
 	bQuiet = false,				-- 免打扰（拒绝其它人的查看请求）
@@ -122,7 +122,7 @@ _JH_Love.GetAvatarFile = function(dwAvatar, nRoleType)
 		end
 	end
 	-- force avatar
-	local tForce = { "shaolin", "wanhua", "tiance", "chunyang", "qixiu", "wudu", "tangmen", "cangjian", "gaibang", "mingjiao" }
+	local tForce = { "shaolin", "wanhua", "tiance", "chunyang", "qixiu", "wudu", "tangmen", "cangjian", "gaibang", "mingjiao", "cangyun", "changge" }
 	local szForce = tForce[0 - dwAvatar] or "jianghu"
 	return "ui\\Image\\PlayerAvatar\\" .. szForce .. ".tga", -2, false
 end
@@ -484,7 +484,7 @@ _JH_Love.UpdatePage = function()
 	end
 	-- lover info
 	local inf = h:Lookup("Text_LoverInfo")
-	if t[5] and t[6] then
+	if t[5] and t[6] and t[6] > 0 then
 		local szText = _JH_Love.GetLoverType(tonumber(t[5]) or 0) .. "   " .. _JH_Love.GetLoverTime(tonumber(t[6]) or 0)
 		inf:SetText(szText)
 	else

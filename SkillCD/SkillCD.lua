@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 20:40:47
+-- @Last Modified time: 2016-01-12 15:35:36
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -36,36 +36,34 @@ local SC = {
 }
 
 local aSkillList = {
-	[371] = 300, -- 震山河
-	[551] = 660, -- 心鼓弦
-	[131] = 150, -- 碧水滔天
-	[252] = 25, -- 大狮子吼
-	[2235] = 90, -- 千蝶吐瑞
-	[3985] = 300, -- 朝圣言
-	[2234] = 120, -- 仙王蛊鼎
-	[411] = 90, -- 掠如火
-	[3971] = 45, -- 极乐引
-	[2663] = 120, -- 听风吹雪
-	[2220] = 1500, -- 凤凰谷
-	[259] = 300, -- 轮回决
-	[1645] = 120, -- 风来吴山
-	[2957] = 18, -- 圣手
-	[13072] = 90, -- 盾护
-	[555] = 40, -- 风秀
-	[569] = 15, -- 王母
-	[132] = 36, -- 春泥
-	[258] = 45, -- 舍身
-	[568] = 120, -- 梵音
-	[6800] = 180, -- 收盾
-	[14084] = 180, -- 长歌ZF
-	[14075] = 80, -- 长歌 伤害平摊
-	[15132] = 40, -- 五毒草
-	[15115] = 180, -- 号令三军
-	[14963] = 105, -- 奶花免死
-	[14081] = 180, -- 孤影化双
+	[371]   = 300,  -- 震山河
+	[551]   = 660,  -- 心鼓弦
+	[131]   = 150,  -- 碧水滔天
+	[252]   = 25,   -- 大狮子吼
+	[2235]  = 90,   -- 千蝶吐瑞
+	[3985]  = 300,  -- 朝圣言
+	[2234]  = 120,  -- 仙王蛊鼎
+	[411]   = 90,   -- 掠如火
+	[3971]  = 45,   -- 极乐引
+	[2663]  = 120,  -- 听风吹雪
+	[2220]  = 1500, -- 凤凰谷
+	[259]   = 300,  -- 轮回决
+	[1645]  = 120,  -- 风来吴山
+	[2957]  = 18,   -- 圣手
+	[13072] = 90,   -- 盾护
+	[555]   = 40,   -- 风秀
+	[569]   = 15,   -- 王母
+	[132]   = 36,   -- 春泥
+	[258]   = 45,   -- 舍身
+	[568]   = 120,  -- 梵音
+	[6800]  = 180,  -- 收盾
+	[14084] = 180,  -- 长歌ZF
+	[14075] = 80,   -- 长歌 伤害平摊
+	[15132] = 40,   -- 五毒草
+	[15115] = 180,  -- 号令三军
+	[14963] = 105,  -- 奶花免死
+	[14081] = 180,  -- 孤影化双
 }
-
--- setmetatable(aSkillList, { __index = SkillCD.tCustom })
 
 function SkillCD.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
@@ -106,10 +104,6 @@ function SkillCD.OnEvent(szEvent)
 		then
 			SC.OnSkillCast(arg1, arg4, arg5, arg0)
 		end
-	-- elseif szEvent == "BUFF_UPDATE" then
-	-- 	if S.tBuffEx[arg4] and not arg1 then
-	-- 		SC.OnSkillCast(arg9, S.tBuffEx[arg4], arg8, "BUFF_UPDATE")
-	-- 	end
 	elseif szEvent == "DO_SKILL_CAST" then
 		SC.OnSkillCast(arg0, arg1, arg2, "DO_SKILL_CAST")
 	elseif szEvent == "LOADING_END" then
@@ -145,16 +139,11 @@ function SkillCD.OnFrameBreathe()
 		for k, v in ipairs(data) do
 			if not SC.tIgnore[v.dwSkillID] then
 				local item = handle:AppendItemFromIni(SC.szIniFile, "Handle_Lister", i)
-				-- local nSec = aSkillList[v.dwSkillID]
 				local fP = min(1, JH.GetEndTime(v.nEnd) / v.nTotal)
-				local szSec = floor(JH.GetEndTime(v.nEnd))
 				if fP < 0.15 then
-					item:Lookup("Image_LPlayer"):SetFrame(215)
+					item:Lookup("Image_LPlayer"):SetFrame(206)
 				end
-				local txt = szSec .. g_tStrings.STR_TIME_SECOND
-				if szSec > 60 then
-					txt = _L("%dm%ds", szSec / 60, szSec % 60)
-				end
+				local txt = JH.FormatTimeString(floor(JH.GetEndTime(v.nEnd)), 2)
 				item:Lookup("Image_LPlayer"):SetPercentage(fP)
 				item:Lookup("Text_LLife"):SetText(txt)
 				item:Lookup("Text_Player"):SetText(v.szPlayer .. "_" .. v.szName)
@@ -225,10 +214,6 @@ function SC.IsPanelOpened()
 end
 
 function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
-	if not SkillCD.bEnable then
-		return SC.ClosePanel()
-	end
-
 	if not IsPlayer(dwCaster) then
 		return
 	end
@@ -239,6 +224,10 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 
 	local nSec = aSkillList[dwSkillID]
 	if not nSec then
+		return
+	end
+
+	if not JH.IsParty(dwCaster) or dwCaster ~= UI_GetClientPlayerID() then
 		return
 	end
 	-- get name
@@ -402,12 +391,7 @@ function SC.UpdateCount()
 						if v.nSec == 0 then
 							tinsert(xml, GetFormatText("\t" .. _L["ready"], 24, 0, 255, 0))
 						else
-							local szSec = floor(JH.GetEndTime(v.nSec))
-							local txt = szSec .. _L["s"]
-							if szSec > 60 then
-								txt = _L("%dm%ds", szSec / 60, szSec % 60)
-							end
-							tinsert(xml, GetFormatText("\t" .. txt, 24, 255, 0, 0))
+							tinsert(xml, GetFormatText("\t" .. JH.FormatTimeString(floor(JH.GetEndTime(v.nSec)), 2), 24, 255, 0, 0))
 						end
 					end
 					OutputTip(tconcat(xml), 300, { x, y, w, h })
@@ -441,12 +425,7 @@ function SC.UpdateCount()
 						if v.nSec == 0 then
 							tinsert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. _L["ready"] })
 						else
-							local szSec = floor(JH.GetEndTime(v.nSec))
-							local txt = szSec .. _L["s"]
-							if szSec > 60 then
-								txt = _L("%dm%ds", szSec / 60, szSec % 60)
-							end
-							tinsert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE ..txt })
+							tinsert(tSay, { type = "text", text = g_tStrings.STR_ONE_CHINESE_SPACE .. JH.FormatTimeString(floor(JH.GetEndTime(v.nSec)), 2) })
 						end
 						JH.Talk(tSay)
 					end
@@ -481,8 +460,8 @@ function SC.UpdateCount()
 	handle:Sort()
 	handle:FormatAllItemPos()
 	local w, h = handle:GetAllItemSize()
-	SC.frame:Lookup("Wnd_Count"):SetSize(240, h + 5)
-	SC.frame:Lookup("Wnd_Count"):Lookup("", "Image_CBg"):SetSize(240, h + 5)
+	SC.frame:Lookup("Wnd_Count"):SetH(h + 5)
+	SC.frame:Lookup("Wnd_Count"):Lookup("", "Image_CBg"):SetH(h + 5)
 end
 
 function SC.AddSkill()
@@ -541,7 +520,7 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("WndComboBox", "nMaxCountdown", { x = nX + 10, y = nY + 10, txt = g_tStrings.STR_SHOW_HATRE_COUNTS, enable = not SkillCD.bMini })
 	:Menu(function()
 		local t = {}
-		for k, v in ipairs({3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 50}) do
+		for k, v in ipairs({3, 4, 5, 6, 7, 8, 9, 10, 15, 20}) do
 			table.insert(t, {
 				szOption = v,
 				bMCheck = true,

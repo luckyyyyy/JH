@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 23:05:57
+-- @Last Modified time: 2016-01-12 15:52:59
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -775,16 +775,6 @@ function JH.IsParty(dwID)
 	return GetClientPlayer().IsPlayerInMyParty(dwID)
 end
 
-function JH.WhisperToTeamMember(msg)
-	if JH.IsInParty() then
-		local team = GetClientTeam()
-		for _,v in ipairs(team.GetTeamMemberList()) do
-			local szName = team.GetClientTeamMemberName(v)
-			JH.Talk(szName, msg)
-		end
-	end
-end
-
 function JH.GetAllPlayer(nLimit)
 	local aPlayer = {}
 	for k, _ in pairs(_JH.aPlayer) do
@@ -1216,12 +1206,16 @@ function JH.FormatTimeString(nSec, nStyle, bDefault)
 			return floor(nSec) .. "\""
 		end
 	else
+		local h, m, s = "h", "m", "s"
+		if nStyle == 2 then
+			h, m, s = g_tStrings.STR_TIME_HOUR, g_tStrings.STR_TIME_MINUTE, g_tStrings.STR_TIME_SECOND
+		end
 		if nSec > 3600 then
-			return floor(nSec / 3600) .. "h" .. floor(nSec / 60) % 60  .. "m" .. floor(nSec % 60) .. "s"
+			return floor(nSec / 3600) .. h .. floor(nSec / 60) % 60  .. m .. floor(nSec % 60) .. s
 		elseif nSec > 60 then
-			return floor(nSec / 60) .. "m" .. floor(nSec % 60) .. "s"
+			return floor(nSec / 60) .. m .. floor(nSec % 60) .. s
 		else
-			return floor(nSec) .. "s"
+			return floor(nSec) .. s
 		end
 	end
 end
@@ -1618,7 +1612,7 @@ function JH.OutputDoodadTip(dwTemplateID, Rect)
 	end
 	local t = {}
 	--------------Ãû×Ö-------------------------
-	local szName = doodad.szName
+	local szName = doodad.szName ~= "" and doodad.szName or dwTemplateID
 	if doodad.nKind == DOODAD_KIND.CORPSE then
 		szName = szName .. g_tStrings.STR_DOODAD_CORPSE
 	end
@@ -3646,34 +3640,52 @@ function GUI.OpenColorTablePanel(fnAction)
 		return floor(r * 255), floor(g * 255), floor(b * 255)
 	end
 
-	local wnd = GUI.CreateFrame("JH_ColorTable", { w = 346, h = 430, title = _L["Color Picker"], nStyle = 2 , close = true, focus = true }):Pos(fX + 15, fY + 15)
+	local ui = GUI.CreateFrame("JH_ColorTable", { w = 346, h = 430, title = _L["Color Picker"], nStyle = 2 , close = true, focus = true }):Pos(fX + 15, fY + 15)
+
+	local GetRGBValue = function()
+		local r, g, b = tonumber(ui:Fetch("R"):Text()), tonumber(ui:Fetch("G"):Text(g)), tonumber(ui:Fetch("B"):Text(b))
+		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
+			return r, g, b
+		end
+		return 255, 255, 255
+	end
+
+	local fnChang = function()
+		local r, g, b = GetRGBValue()
+		ui:Fetch("Select"):Color(r, g, b)
+		ui:Fetch("SURE"):Toggle(true)
+	end
+
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
-			wnd:Fetch("Select"):Color(r, g, b)
-			wnd:Fetch("Select_Text"):Text(sformat("r=%d, g=%d, b=%d", r, g, b))
+			ui:Fetch("Select"):Color(r, g, b)
+			ui:Fetch("R"):Text(r, true)
+			ui:Fetch("G"):Text(g, true)
+			ui:Fetch("B"):Text(b, true)
 		else
-			wnd:Fetch("Select"):Color(255, 255, 255)
-			wnd:Fetch("Select_Text"):Text(g_tStrings.STR_NONE)
+			ui:Fetch("Select"):Color(255, 255, 255)
+			if ui:Fetch("R") then ui:Fetch("R"):Text("", true) end
+			if ui:Fetch("G") then ui:Fetch("G"):Text("", true) end
+			if ui:Fetch("B") then ui:Fetch("B"):Text("", true) end
 		end
 	end
-	local fnClick = function( ... )
-		if fnAction then fnAction( ... ) end
-		if not IsCtrlKeyDown() then wnd:Remove() end
+	local fnClick = function()
+		if fnAction then fnAction(GetRGBValue()) end
+		if not IsCtrlKeyDown() then ui:Remove() end
 	end
-	wnd.self.OnItemMouseEnter = function()
+	ui.self.OnItemMouseEnter = function()
 		local r, g, b = this:GetColorRGB()
 		fnHover(true, r, g, b)
-		wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(true)
+		ui:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(true)
+		ui:Fetch("SURE"):Toggle(false)
 	end
-	wnd.self.OnItemMouseLeave = function()
+	ui.self.OnItemMouseLeave = function()
 		local r, g, b = this:GetColorRGB()
 		fnHover(false, r, g, b)
-		wnd:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(false)
+		ui:Fetch("Select_Image"):Pos(this:GetRelPos()):Toggle(false)
 	end
-	wnd.self.OnItemLButtonClick = function()
-		fnClick(this:GetColorRGB())
-	end
-	local handle = wnd:Append("Handle", { w = 300, h = 300, x = 0, y = 0 }):Type(0):Raw()
+	ui.self.OnItemLButtonClick = fnClick
+	local handle = ui:Append("Handle", { w = 300, h = 300, x = 0, y = 0 }):Type(0):Raw()
 	local function SetColor(bInit)
 		for v = 100, 0, -2 do
 			tUI[v] = tUI[v] or {}
@@ -3697,15 +3709,23 @@ function GUI.OpenColorTablePanel(fnAction)
 		end
 	end
 	SetColor(true)
-	wnd:Append("Image", "Select_Image", { w = 6, h = 6, x = 0, y = 0 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
-	wnd:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 10, color = { 255, 255, 255 } })
-	wnd:Append("Text", "Select_Text", { x = 50, y = 10, txt = g_tStrings.STR_NONE })
-	wnd:Append("WndTrackBar", { x = 20, y = 35, h = 25, w = 270, txt = " H" }):Range(0, 360, 360):Value(COLOR_HUE):Change(function(nVal)
+	local x, y = ui:Append("Text", { x = 50, y = 8, txt = "R" }):Pos_()
+	x, y = ui:Append("WndEdit", "R", { x = x + 5, y = 10, w = 30, h = 25, limit = 3 }):Change(fnChang):Type(0):Pos_()
+
+	x, y = ui:Append("Text", { x = x + 5, y = 8, txt = "G" }):Pos_()
+	x, y = ui:Append("WndEdit", "G", { x = x + 5, y = 10, w = 30, h = 25, limit = 3 }):Change(fnChang):Type(0):Pos_()
+
+	x, y = ui:Append("Text", { x = x + 5, y = 8, txt = "B" }):Pos_()
+	x, y = ui:Append("WndEdit", "B", { x = x + 5, y = 10, w = 30, h = 25, limit = 3 }):Change(fnChang):Type(0):Pos_()
+	ui:Append("WndButton2", "SURE", { x = x + 5, y = 10, txt = g_tStrings.STR_PLAYER_SURE }):Click(fnClick):Toggle(false)
+	ui:Append("Image", "Select_Image", { w = 6, h = 6, x = 0, y = 0 }):File("ui/Image/Common/Box.Uitex", 9):Toggle(false)
+	ui:Append("Shadow", "Select", { w = 25, h = 25, x = 20, y = 10, color = { 255, 255, 255 } })
+	ui:Append("WndTrackBar", { x = 20, y = 35, h = 25, w = 270, txt = " H" }):Range(0, 360, 360):Value(COLOR_HUE):Change(function(nVal)
 		COLOR_HUE = nVal
 		SetColor()
 	end)
 	for i = 0, 360, 8 do
-		wnd:Append("Shadow", { x = 20 + (0.74 * i), y = 60, h = 10, w = 6, color = { hsv2rgb(i, 100, 100) } })
+		ui:Append("Shadow", { x = 20 + (0.74 * i), y = 60, h = 10, w = 6, color = { hsv2rgb(i, 100, 100) } })
 	end
 end
 
