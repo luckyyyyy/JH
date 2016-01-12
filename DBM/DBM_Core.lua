@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-11 15:09:08
+-- @Last Modified time: 2016-01-12 17:07:42
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -27,7 +27,7 @@ local DBM_MARK_FREE   = true -- 标记空闲
 local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
 ----
-local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD","TALK" }
+local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "TALK" }
 
 local function GetDataPath()
 	if DBM.bCommon then

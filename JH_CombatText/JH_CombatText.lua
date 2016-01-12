@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-12 14:55:33
+-- @Last Modified time: 2016-01-12 17:27:27
 
 -- 战斗浮动文字设计思路
 --[[
@@ -170,10 +170,11 @@ function JH_CombatText.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("NPC_ENTER_SCENE")
+	this:RegisterEvent("ON_EXP_LOG")
 	CombatText.handle = this:Lookup("", "")
 	-- uninit
-	local frame = Station.Lookup("Lowest/CombatText") or Station.Lookup("Lowest/CombatTextWnd")
-	local events = { "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }
+	local frame = Station.Lookup("Lowest/CombatText")
+	local events = { "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "ON_EXP_LOG", "FIGHT_HINT" }
 	if frame then
 		for k, v in ipairs(events) do
 			frame:UnRegisterEvent(v)
@@ -221,12 +222,10 @@ function JH_CombatText.OnEvent(szEvent)
 		end
 	elseif szEvent == "NPC_ENTER_SCENE" then
 		CombatText.tDeath[arg0] = nil
+	elseif szEvent == "ON_EXP_LOG" then
+		CombatText.OnExpLog(arg0, arg1)
 	elseif szEvent == "SYS_MSG" then
-		if arg0 == "UI_OME_EXP_LOG" then
-			if arg2 > 0 then
-				CombatText.OnExpLog(arg1, arg2)
-			end
-		elseif arg0 == "UI_OME_DEATH_NOTIFY" then
+		if arg0 == "UI_OME_DEATH_NOTIFY" then
 			if not IsPlayer(arg1) then
 				CombatText.tDeath[arg1] = true
 			end
@@ -690,7 +689,7 @@ function CombatText.LoadConfig()
 end
 
 function CombatText.CheckEnable()
-	local frame = Station.Lookup("Lowest/CombatText") or Station.Lookup("Lowest/CombatTextWnd")
+	local frame = Station.Lookup("Lowest/CombatText")
 	local ui = Station.Lookup("Lowest/JH_CombatText")
 	if JH_CombatText.bRender then
 		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
