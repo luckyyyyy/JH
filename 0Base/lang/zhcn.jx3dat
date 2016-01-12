@@ -690,8 +690,8 @@ data = {
 	["recycle bin"] = "回收站",
 	["Open JH Panel"] = "打开菊花设置面板",
 	["JH, JX3 Plug-in Collection"] = "《剑网3》菊花插件集",
-	["Color Picker"] = "颜色选择器（按住Ctrl点击相当于应用）",
-	["Icon Picker"] = "图标选择器",
+	["Color Picker"] = "颜色选择",
+	["Icon Picker"] = "图标选择",
 	["Input Font ID"] = "输入字体ID",
 	-- FontList.lua --
 	["Font"] = "字体大全",

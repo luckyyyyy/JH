@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-11 17:19:17
+-- @Last Modified time: 2016-01-12 14:55:33
 
 -- 战斗浮动文字设计思路
 --[[
@@ -46,7 +46,6 @@ local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 }
 
 local COMBAT_TEXT_IGNORE = {}
-local COMBAT_TEXT_IGNORE_TYPE = {}
 
 local COMBAT_TEXT_EVENT  = { "COMMON_HEALTH_TEXT", "SKILL_EFFECT_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY" }
 local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
@@ -181,6 +180,7 @@ function JH_CombatText.OnFrameCreate()
 		end
 	end
 	JH.BreatheCall("COMBAT_TEXT", CombatText.ExecQueue, 50)
+	COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
 	COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
 end
 
@@ -205,7 +205,7 @@ function JH_CombatText.OnEvent(szEvent)
 	elseif szEvent == "SKILL_BUFF" then
 		CombatText.OnSkillBuff(arg0, arg1, arg2, arg3)
 	elseif szEvent == "BUFF_IMMUNITY" then
-		if not JH_CombatText.bImmunity then
+		if not JH_CombatText.bImmunity and arg1 == UI_GetClientPlayerID() then
 			CombatText.OnBuffImmunity(arg0)
 		end
 	elseif szEvent == "SKILL_MISS" then
@@ -258,7 +258,7 @@ function CombatText.OnFrameRender()
 			end
 			if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
-				nTop = -70 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
+				nTop = -60 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
 				if v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 					if v.szPoint == "TOP_LEFT" then
 						nLeft = -200

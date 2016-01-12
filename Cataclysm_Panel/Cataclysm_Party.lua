@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:10:52
+-- @Last Modified time: 2016-01-11 20:14:25
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -372,7 +372,7 @@ function CTM_Party_Base.OnItemRButtonClick()
 		end })
 		if ViewCharInfoToPlayer then
 			table.insert(menu, {
-				szOption = g_tStrings.STR_LOOK .. g_tStrings.STR_EQUIP_ATTR, fnAction = function()
+				szOption = g_tStrings.STR_LOOK .. g_tStrings.STR_EQUIP_ATTR, bDisable = not info.bIsOnLine, fnAction = function()
 					ViewCharInfoToPlayer(dwID)
 				end
 			})
