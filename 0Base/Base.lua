@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-13 08:47:31
+-- @Last Modified time: 2016-01-14 00:29:42
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -19,7 +19,7 @@ local ROOT_PATH   = "interface/JH/0Base/"
 local DATA_PATH   = "interface/JH/@DATA/"
 local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
 local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1020300
+local _VERSION_   = 0x1020400
 
 ---------------------------------------------------------------------
 -- ∂‡”Ô—‘¥¶¿Ì
@@ -73,7 +73,7 @@ do
 end
 
 local _JH = {
-	szBuildDate  = "20160107",
+	szBuildDate  = "20160114",
 	szTitle      = _L["JH, JX3 Plug-in Collection"],
 	tHotkey      = {},
 	tAnchor      = {},
@@ -2558,7 +2558,6 @@ function _GUI.Wnd:Autocomplete(fnTable, fnCallBack, fnRecovery, nMaxOption)
 			for k, v in ipairs(tTab) do
 				local txt = type(v) ~= "table" and tostring(v) or v.bRichText and v.option or v.szOption
 				if txt and txt:find(szText) and (txt ~= szText or type(v) == "table" and v.self) then
-
 					table.insert(tList, v)
 				elseif type(v) == "table" and v.bDevide then
 					table.insert(tList, v)
@@ -2594,10 +2593,11 @@ function _GUI.Wnd:Autocomplete(fnTable, fnCallBack, fnRecovery, nMaxOption)
 						end
 					end
 					if fnRecovery then
-						t.szLayer  = "ICON_RIGHT"
-						t.nFrame   = 86
-						t.szIcon   = "ui/Image/UICommon/Feedanimials.uitex"
-						t.fnClickIcon = function()
+						t.szLayer         = "ICON_RIGHTMOST"
+						t.nFrame          = 86
+						t.nMouseOverFrame = 87
+						t.szIcon          = "ui/Image/UICommon/Feedanimials.uitex"
+						t.fnClickIcon     = function()
 							JH.Confirm(FormatString(g_tStrings.MSG_DELETE_NAME, t.szOption), function()
 								local _this = this
 								this = wnd

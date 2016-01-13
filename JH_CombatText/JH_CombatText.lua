@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-13 19:12:06
+-- @Last Modified time: 2016-01-14 00:28:39
 
 -- 战斗浮动文字设计思路
 --[[
@@ -306,6 +306,9 @@ function CombatText.OnFrameRender()
 					fScale = fScale - ((tScale[nBefore] - tScale[nAfter]) * fDiff)
 				elseif tScale[nBefore] < tScale[nAfter] then
 					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
+				end
+				if v.nType == SKILL_RESULT_TYPE.THERAPY and v.bCriticalStrike then
+					fScale = fScale * 0.8
 				end
 			end
 			-- draw
