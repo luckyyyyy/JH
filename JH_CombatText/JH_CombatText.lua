@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-13 08:48:11
+-- @Last Modified time: 2016-01-13 19:12:06
 
 -- 战斗浮动文字设计思路
 --[[
@@ -61,8 +61,12 @@ local COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
 	},
 	NORMAL = { -- 普通伤害
+		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
 		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
 		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
 		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
@@ -110,21 +114,12 @@ local COMBAT_TEXT_POINT = {
 		98,  100, 102, 104, 106, 108, 110, 112,
 	},
 }
+local COMBAT_TEXT_LEAVE  = {}
 local COMBAT_TEXT_FREE   = {}
 local COMBAT_TEXT_SHADOW = {}
-local COMBAT_TEXT_QUEUE  = {
-	TOP          = {},
-	LEFT         = {},
-	RIGHT        = {},
-	BOTTOM_LEFT  = {},
-	BOTTOM_RIGHT = {},
-}
+local COMBAT_TEXT_QUEUE  = {}
 
-setmetatable(COMBAT_TEXT_QUEUE, { __index = function(me) return me["TOP"] end, __newindex = function(me) return me["TOP"] end })
-
-local CombatText = {
-	tDeath   = {},
-}
+local CombatText = {}
 
 JH_CombatText = {
 	bEnable      = true;
@@ -180,6 +175,7 @@ function JH_CombatText.OnFrameCreate()
 			frame:UnRegisterEvent(v)
 		end
 	end
+	CombatText.FreeQueue()
 	JH.BreatheCall("COMBAT_TEXT", CombatText.ExecQueue, 50)
 	COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
 	COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
@@ -221,18 +217,33 @@ function JH_CombatText.OnEvent(szEvent)
 			CombatText.OnSkillDodge(arg1)
 		end
 	elseif szEvent == "NPC_ENTER_SCENE" then
-		CombatText.tDeath[arg0] = nil
+		COMBAT_TEXT_LEAVE[arg0] = nil
 	elseif szEvent == "ON_EXP_LOG" then
 		CombatText.OnExpLog(arg0, arg1)
 	elseif szEvent == "SYS_MSG" then
 		if arg0 == "UI_OME_DEATH_NOTIFY" then
 			if not IsPlayer(arg1) then
-				CombatText.tDeath[arg1] = true
+				COMBAT_TEXT_LEAVE[arg1] = true
 			end
 		end
 	elseif szEvent == "LOADING_END" then
-		CombatText.tDeath = {}
+		CombatText.FreeQueue()
 	end
+end
+
+function CombatText.FreeQueue()
+	COMBAT_TEXT_LEAVE  = {}
+	COMBAT_TEXT_FREE   = {}
+	COMBAT_TEXT_SHADOW = {}
+	CombatText.handle:Clear()
+	COMBAT_TEXT_QUEUE = {
+		TOP          = {},
+		LEFT         = {},
+		RIGHT        = {},
+		BOTTOM_LEFT  = {},
+		BOTTOM_RIGHT = {},
+	}
+	setmetatable(COMBAT_TEXT_QUEUE, { __index = function(me) return me["TOP"] end, __newindex = function(me) return me["TOP"] end })
 end
 
 function CombatText.OnFrameRender()
@@ -250,11 +261,13 @@ function CombatText.OnFrameRender()
 			local nAlpha = JH_CombatText.nMaxAlpha
 			local fScale = 1
 			local bTop   = true
+			-- 透明度
 			if nFrame < JH_CombatText.nFadeIn then
 				nAlpha = JH_CombatText.nMaxAlpha * nFrame / JH_CombatText.nFadeIn
 			elseif nFrame > nTotal - JH_CombatText.nFadeOut then
 				nAlpha = JH_CombatText.nMaxAlpha * (nTotal - nFrame) / JH_CombatText.nFadeOut
 			end
+			-- 坐标
 			if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
 				nTop = -60 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
@@ -269,9 +282,11 @@ function CombatText.OnFrameRender()
 			elseif v.szPoint == "LEFT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				nLeft = -60 - (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
+				nAlpha = nAlpha * 0.85
 			elseif v.szPoint == "RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				nLeft = 60 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
+				nAlpha = nAlpha * 0.85
 			elseif v.szPoint == "BOTTOM_LEFT" or v.szPoint == "BOTTOM_RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
@@ -283,28 +298,25 @@ function CombatText.OnFrameRender()
 				nTop = 50 + tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff
 				fScale = 1.5
 			end
+			-- 缩放
 			if COMBAT_TEXT_CRITICAL[v.nType] then
 				local tScale  = v.bCriticalStrike and COMBAT_TEXT_SCALE.CRITICAL or COMBAT_TEXT_SCALE.NORMAL
-				if tScale[nBefore] and tScale[nAfter] then
-					fScale  = tScale[nBefore]
-					if tScale[nBefore] > tScale[nAfter] then
-						fScale = fScale - ((tScale[nBefore] - tScale[nAfter]) * fDiff)
-					elseif tScale[nBefore] < tScale[nAfter] then
-						fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
-					end
-				else
-					fScale = v.fScale
+				fScale  = tScale[nBefore]
+				if tScale[nBefore] > tScale[nAfter] then
+					fScale = fScale - ((tScale[nBefore] - tScale[nAfter]) * fDiff)
+				elseif tScale[nBefore] < tScale[nAfter] then
+					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
 				end
 			end
-			v.fScale = fScale
+			-- draw
 			local r, g, b = unpack(v.col)
-			if not CombatText.tDeath[v.dwTargetID] or not v.object or not v.tPoint[1] then
+			if not COMBAT_TEXT_LEAVE[v.dwTargetID] or not v.object or not v.tPoint[1] then
 				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
 				if v.object and v.object.nX then
 					v.tPoint = { v.object.nX, v.object.nY, v.object.nZ }
-				else -- DEBUG  JX3Client   [Script index] pointer invalid. call stack: 暂无完美解决方案
-					if not CombatText.tDeath[v.dwTargetID] then
-						CombatText.tDeath[v.dwTargetID] = true
+				else -- DEBUG  JX3Client   [Script index] pointer invalid. call stack: 暂无完美解决方案 都会造成内存泄露
+					if not COMBAT_TEXT_LEAVE[v.dwTargetID] then
+						COMBAT_TEXT_LEAVE[v.dwTargetID] = true
 					end
 				end
 			else
@@ -324,14 +336,13 @@ function CombatText.OnFrameRender()
 					end
 				end
 			end
-
 			if v.bJump and v.szPoint ~= "TOP" and nFrame >= 16 and nFrame <= 32 then
 				v.nTime = v.nTime - (32 - nFrame) * JH_CombatText.nTime
 			else
 				v.nFrame = nFrame
 			end
 		else
-			if CombatText.tDeath[v.dwTargetID] then -- 寻找是否还有存在的文字
+			if COMBAT_TEXT_LEAVE[v.dwTargetID] then -- 寻找是否还有存在的文字
 				local bFind = false
 				for kk, vv in pairs(COMBAT_TEXT_SHADOW) do
 					if kk ~= k and vv.dwTargetID == v.dwTargetID then
@@ -341,7 +352,7 @@ function CombatText.OnFrameRender()
 				end
 				-- print(bFind)
 				if not bFind then
-					CombatText.tDeath[v.dwTargetID] = nil
+					COMBAT_TEXT_LEAVE[v.dwTargetID] = nil
 				end
 			end
 			k.free = true
@@ -384,14 +395,6 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	end
 	tsort(tSort, TrajectorySort)
 	local nSort = tSort[1].nSort - 1
-	-- local nCount = 0
-	-- for k, v in pairs(tSort) do
-	-- 	nCount = nCount + v.nCount
-	-- end
-	-- JH.Debug("#TRAJECTORY# -> " .. tSort[1].nSort)
-	-- for k, v in ipairs(tSort) do
-	-- 	JH.Debug("#TRAJECTORY# " .. v.nSort .. " #COUNT# " .. v.nCount)
-	-- end
 	if tSort[1].nCount == 1 then -- 决定了是否去两边 会心伤害不走 随机 roll
 		if bCriticalStrike then
 			return Random(COMBAT_TEXT_TRAJECTORY + 1) - 1
@@ -417,14 +420,12 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 		dwTargetID      = dwTargetID,
 		szText          = szText,
 		nType           = nType,
-		-- bIsPlayer       = bIsPlayer,
 		nFrame          = 0,
 		bCriticalStrike = bCriticalStrike,
 		col             = col,
 		object          = object,
 		tPoint          = tPoint,
 	}
-	-- dat.bCriticalStrike = false
 	if dat.bCriticalStrike then
 		if szPoint == "TOP" then
 			dat.nSort = CombatText.GetTrajectory(dat.dwTargetID, true)
@@ -436,24 +437,37 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 		tinsert(COMBAT_TEXT_QUEUE[szPoint][dwTargetID], { shadow = shadow, dat = dat })
 	end
 end
--- for i=1,2 do FireUIEvent("SKILL_EFFECT_TEXT",UI_GetClientPlayerID(),1073741863,false,5,1111,111,1) end
+
+function CombatText.PushText(tab, nCount)
+	for i = 1, nCount do
+		if #tab > 0 then
+			local dat = tremove(tab, 1)
+			if dat.dat.szPoint == "TOP" then
+				local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
+				-- print(nSort)
+				if nSort >= COMBAT_TEXT_TRAJECTORY then
+					dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
+					dat.dat.nSort = 0
+				else
+					dat.dat.nSort = nSort
+				end
+			end
+			dat.dat.nTime = GetTime()
+			COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
+		end
+	end
+end
+
 function CombatText.ExecQueue()
 	for k, v in pairs(COMBAT_TEXT_QUEUE) do
 		for kk, vv in pairs(v) do
+			-- if k == "LEFT" or k == "RIGHT" then
+			-- 	CombatText.PushText(vv, 2)
+			-- else
+				-- CombatText.PushText(vv, 1)
+			-- end
 			if #vv > 0 then
-				local dat = tremove(vv, 1)
-				if dat.dat.szPoint == "TOP" then
-					local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
-					-- print(nSort)
-					if nSort >= COMBAT_TEXT_TRAJECTORY then
-						dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
-						dat.dat.nSort = 0
-					else
-						dat.dat.nSort = nSort
-					end
-				end
-				dat.dat.nTime = GetTime()
-				COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
+				CombatText.PushText(vv, 1)
 			else
 				COMBAT_TEXT_QUEUE[k][kk] = nil
 			end
@@ -597,6 +611,12 @@ function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if szBuffName == "" then
 		return
 	end
+	if COMBAT_TEXT_QUEUE.RIGHT and COMBAT_TEXT_QUEUE.RIGHT[dwCharacterID] then
+		if data and data.dat and data.dat.szText == szBuffName then
+			 Output(szBuffName)
+			return
+		end
+	end
 	local shadow = CombatText.GetFreeShadow()
 	if not shadow then -- 没有空闲的shadow
 		return
@@ -673,6 +693,7 @@ function CombatText.GetFreeShadow()
 		tinsert(COMBAT_TEXT_FREE, sha)
 		return sha
 	end
+	Log("[JH] CombatText Get Free Item Failed!!!")
 end
 
 function CombatText.LoadConfig()
@@ -705,8 +726,6 @@ function CombatText.CheckEnable()
 		if ui then
 			Wnd.CloseWindow(ui)
 		end
-		COMBAT_TEXT_FREE   = {}
-		COMBAT_TEXT_SHADOW = {}
 		Wnd.OpenWindow(COMBAT_TEXT_INIFILE, "JH_CombatText")
 	else
 		local events = { "SKILL_EFFECT_TEXT", "COMMON_HEALTH_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY", "SYS_MSG", "FIGHT_HINT" }
@@ -717,10 +736,9 @@ function CombatText.CheckEnable()
 			end
 		end
 		if ui then
+			CombatText.FreeQueue()
 			Wnd.CloseWindow(ui)
 			JH.UnBreatheCall("COMBAT_TEXT")
-			COMBAT_TEXT_FREE   = {}
-			COMBAT_TEXT_SHADOW = {}
 			collectgarbage("collect")
 		end
 	end
@@ -730,6 +748,11 @@ function CombatText.CheckEnable()
 		end
 	end })
 	setmetatable(JH_CombatText.col, { __index = function() return { 255, 255, 255 } end })
+	local mt = { __index = function(me)
+		return me[#me]
+	end }
+	setmetatable(COMBAT_TEXT_SCALE.CRITICAL, mt)
+	setmetatable(COMBAT_TEXT_SCALE.NORMAL,   mt)
 end
 
 local PS = {}
@@ -815,13 +838,13 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("Text", { x = 10, y = nY, txt = _L["CombatText Tips"], color = { 196, 196, 196 } }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["$name not me"], checked = JH_CombatText.bCasterNotI }):Click(function(bCheck)
 		JH_CombatText.bCasterNotI = bCheck
-	end):Pos_() -- name为自己时不显示
+	end):Pos_()
 	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["$sn shorten(2)"], checked = JH_CombatText.bSnShorten2 }):Click(function(bCheck)
 		JH_CombatText.bSnShorten2 = bCheck
-	end):Pos_()	--sn 显示为技能缩写（前2字
+	end):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, txt = _L["therapy effective only"], checked = JH_CombatText.bTherEffOnly }):Click(function(bCheck)
 		JH_CombatText.bTherEffOnly = bCheck
-	end):Pos_()	-- 这个是不需要单独着色的，跟着治疗的颜色一起的
+	end):Pos_()
 	ui:Append("WndButton3", { x = 350, y = nY + 10, txt = _L["Font edit"] }):Click(function()
 		GUI.OpenFontTablePanel(function(nFont)
 			JH_CombatText.nFont = nFont
