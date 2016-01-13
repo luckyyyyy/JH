@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-12 15:35:36
+-- @Last Modified time: 2016-01-13 08:48:26
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -226,8 +226,7 @@ function SC.OnSkillCast(dwCaster, dwSkillID, dwLevel, szEvent)
 	if not nSec then
 		return
 	end
-
-	if not JH.IsParty(dwCaster) or dwCaster ~= UI_GetClientPlayerID() then
+	if not JH.IsParty(dwCaster) and dwCaster ~= UI_GetClientPlayerID() then
 		return
 	end
 	-- get name

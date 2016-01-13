@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-12 15:52:59
+-- @Last Modified time: 2016-01-13 08:47:31
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -3641,15 +3641,16 @@ function GUI.OpenColorTablePanel(fnAction)
 	end
 
 	local ui = GUI.CreateFrame("JH_ColorTable", { w = 346, h = 430, title = _L["Color Picker"], nStyle = 2 , close = true, focus = true }):Pos(fX + 15, fY + 15)
-
 	local GetRGBValue = function()
-		local r, g, b = tonumber(ui:Fetch("R"):Text()), tonumber(ui:Fetch("G"):Text(g)), tonumber(ui:Fetch("B"):Text(b))
-		if r and g and b and r <= 255 and g <= 255 and b <= 255 then
-			return r, g, b
+		for k, v in pairs({ "R", "G", "B" }) do
+			local val = tonumber(ui:Fetch(v):Text())
+			if val and val > 255 then
+				ui:Fetch(v):Text(0, true)
+			end
 		end
-		return 255, 255, 255
+		local r, g, b = tonumber(ui:Fetch("R"):Text()), tonumber(ui:Fetch("G"):Text(g)), tonumber(ui:Fetch("B"):Text(b))
+		return r or 0, g or 0, b or 0
 	end
-
 	local fnChang = function()
 		local r, g, b = GetRGBValue()
 		ui:Fetch("Select"):Color(r, g, b)
@@ -3659,14 +3660,14 @@ function GUI.OpenColorTablePanel(fnAction)
 	local fnHover = function(bHover, r, g, b)
 		if bHover then
 			ui:Fetch("Select"):Color(r, g, b)
-			ui:Fetch("R"):Text(r, true)
-			ui:Fetch("G"):Text(g, true)
-			ui:Fetch("B"):Text(b, true)
+			for k, v in pairs({ R = r, G = g, B = b }) do
+				ui:Fetch(k):Text(v, true)
+			end
 		else
 			ui:Fetch("Select"):Color(255, 255, 255)
-			if ui:Fetch("R") then ui:Fetch("R"):Text("", true) end
-			if ui:Fetch("G") then ui:Fetch("G"):Text("", true) end
-			if ui:Fetch("B") then ui:Fetch("B"):Text("", true) end
+			for k, v in pairs({ "R", "G", "B" }) do
+				if ui:Fetch(v) then ui:Fetch(v):Text("", true) end
+			end
 		end
 	end
 	local fnClick = function()
@@ -3724,8 +3725,8 @@ function GUI.OpenColorTablePanel(fnAction)
 		COLOR_HUE = nVal
 		SetColor()
 	end)
-	for i = 0, 360, 8 do
-		ui:Append("Shadow", { x = 20 + (0.74 * i), y = 60, h = 10, w = 6, color = { hsv2rgb(i, 100, 100) } })
+	for i = 0, 360, 2 do
+		ui:Append("Shadow", { x = 20 + (0.74 * i), y = 60, h = 10, w = 2, color = { hsv2rgb(i, 100, 100) } })
 	end
 end
 

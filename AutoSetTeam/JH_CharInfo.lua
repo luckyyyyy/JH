@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-11 19:59:12
+-- @Last Modified time: 2016-01-13 08:47:56
 local _L = JH.LoadLangPack
 
 JH_CharInfo = {
@@ -37,11 +37,11 @@ function CharInfo.GetInfo()
 	return data
 end
 
-function CharInfo.CreateFrame(dwID, szName, dwForceID)
+function CharInfo.CreateFrame(dwID, szName, info)
 	local ui = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = g_tStrings.STR_EQUIP_ATTR, close = true })
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
-	local nX, nY = ui:Append("Image", { x = 20, y = 50, w = 30, h = 30 }):File(GetForceImage(dwForceID)):Pos_()
-	ui:Append("Text", "Name", { x = nX + 5, y = 52, txt = szName })
+	local nX, nY = ui:Append("Image", { x = 20, y = 50, w = 30, h = 30, icon = select(2, JH.GetSkillName(info.dwMountKungfuID, 1)) }):Pos_()
+	ui:Append("Text", { x = nX + 5, y = 52, txt = wstring.sub(szName, 1, 6), color = { JH.GetForceColor(info.dwForceID) } }) -- UI超了
 	ui:Append("WndButton2", "LOOKUP", { x = 70, y = 360, txt = g_tStrings.STR_LOOKUP }):Click(function()
 		ViewInviteToPlayer(dwID)
 	end)
@@ -112,8 +112,6 @@ function CharInfo.CreateComplete(dwID)
 					end
 				end)
 			end
-			local name = ui:Fetch("Name")
-			name:Text(name:Text() .. " (" .. data[1] .. ")")
 			frame.data = nil
 		else
 			frame.info:Text("Json Decode Error")
@@ -155,7 +153,7 @@ function ViewCharInfoToPlayer(dwID)
 		local info = team.GetMemberInfo(dwID)
 		if info then
 			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "CHAR_INFO", "ASK", dwID, JH.bDebugClient and "DEBUG")
-			CharInfo.CreateFrame(dwID, info.szName, info.dwForceID)
+			CharInfo.CreateFrame(dwID, info.szName, info)
 		end
 	else
 		JH.Alert(_L["Party limit"])
