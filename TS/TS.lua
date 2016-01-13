@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:14:13
+-- @Last Modified time: 2016-01-13 08:48:39
 local _L = JH.LoadLangPack
 
 TS = {
@@ -442,7 +442,6 @@ function PS.OnPanelActive(frame)
 		else
 			_TS.ClosePanel()
 		end
-		-- JH.OpenPanel(g_tStrings.HATRED_COLLECT)
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = TS.bInDungeon })
 	:Enable(TS.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
@@ -523,9 +522,6 @@ function PS.OnPanelActive(frame)
 			_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
 		end
 	end):Pos_()
-
-	nX, nY = ui:Append("Text", { txt = _L["Tips"], x = 0, y = nY, font = 27 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 20, multi = true, txt = _L["Style folder:"] .. JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat" }):Pos_()
 end
 
 GUI.RegisterPanel(g_tStrings.HATRED_COLLECT, 632, g_tStrings.CHANNEL_CHANNEL, PS)

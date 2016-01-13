@@ -1,7 +1,7 @@
 -- 请注意 这个文件用于控制风格的图片和文字
 data = {
 	{
-		-- FromUITex szImage, nFrame 
+		-- FromUITex szImage, nFrame
 		-- [1] = > 0.01
 		-- [2] = > 0.50
 		-- [3] = > 0.80
@@ -55,4 +55,13 @@ data = {
 		{ "ui/Image/UICommon/Feedanimials.UITex", 18 },
 		{ 168, 15 }
 	},
+	{
+		{ "interface/JH/DBM/image/ST_UI.UITex", 6 },
+		{ "interface/JH/DBM/image/ST_UI.UITex", 4 },
+		{ "interface/JH/DBM/image/ST_UI.UITex", 0 },
+		{ "interface/JH/DBM/image/ST_UI.UITex", 2 },
+		{ "interface/JH/DBM/image/ST_UI.UITex", 5 },
+		{ 168, 15 }
+	},
+
 }

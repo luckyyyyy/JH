@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-11 20:01:12
+-- @Last Modified time: 2016-01-13 08:47:49
 local _L = JH.LoadLangPack
 
 local AutoSetTeam = {

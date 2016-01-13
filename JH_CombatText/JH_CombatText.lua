@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-12 17:27:27
+-- @Last Modified time: 2016-01-13 08:48:11
 
 -- 战斗浮动文字设计思路
 --[[
@@ -302,6 +302,10 @@ function CombatText.OnFrameRender()
 				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
 				if v.object and v.object.nX then
 					v.tPoint = { v.object.nX, v.object.nY, v.object.nZ }
+				else -- DEBUG  JX3Client   [Script index] pointer invalid. call stack: 暂无完美解决方案
+					if not CombatText.tDeath[v.dwTargetID] then
+						CombatText.tDeath[v.dwTargetID] = true
+					end
 				end
 			else
 				local x, y, z = unpack(v.tPoint)
@@ -367,7 +371,7 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	for k, v in pairs(COMBAT_TEXT_SHADOW) do
 		if v.dwTargetID == dwTargetID
 			and v.szPoint == "TOP"
-			and v.nFrame < 10
+			and v.nFrame < 15
 		then
 			local fSort = (COMBAT_TEXT_POINT.TOP[floor(v.nFrame) + 1] + v.nSort * fRange * COMBAT_TEXT_POINT.TOP[COMBAT_TEXT_TOTAL]) / COMBAT_TEXT_POINT.TOP[COMBAT_TEXT_TOTAL]
 			for i = 1, COMBAT_TEXT_TRAJECTORY do
