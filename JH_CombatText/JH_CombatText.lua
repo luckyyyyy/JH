@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-14 00:28:39
+-- @Last Modified time: 2016-01-14 17:42:41
 
 -- 战斗浮动文字设计思路
 --[[
@@ -614,12 +614,11 @@ function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if szBuffName == "" then
 		return
 	end
-	if COMBAT_TEXT_QUEUE.RIGHT and COMBAT_TEXT_QUEUE.RIGHT[dwCharacterID] then
-		if data and data.dat and data.dat.szText == szBuffName then
-			 Output(szBuffName)
-			return
-		end
-	end
+	-- if COMBAT_TEXT_QUEUE.RIGHT and COMBAT_TEXT_QUEUE.RIGHT[dwCharacterID] then
+	-- 	if data and data.dat and data.dat.szText == szBuffName then
+	-- 		return
+	-- 	end
+	-- end
 	local shadow = CombatText.GetFreeShadow()
 	if not shadow then -- 没有空闲的shadow
 		return
