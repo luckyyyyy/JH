@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-14 17:42:41
+-- @Last Modified time: 2016-01-15 16:46:04
 
 -- 战斗浮动文字设计思路
 --[[
@@ -29,7 +29,7 @@ local GetSkill, GetTime = GetSkill, GetTime
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
-local COMBAT_TEXT_TOTAL          = 32  -- 如果修改这里 请注意其他也要跟着改
+local COMBAT_TEXT_TOTAL          = 32
 local COMBAT_TEXT_UI_SCALE       = 1
 local COMBAT_TEXT_TRAJECTORY     = 4   -- 顶部Y轴轨迹数量 根据缩放大小变化 0.8就是5条了 屏幕小更多
 local COMBAT_TEXT_MAX_COUNT      = 100 -- 最多同屏显示100个 再多部分机器吃不消了
@@ -57,7 +57,7 @@ local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
 
 local COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 	CRITICAL = { -- 会心
-		1, 2, 3, 5, 3, 3, 2, 2,
+		1, 2, 3, 4.5, 3, 3, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
@@ -248,6 +248,7 @@ end
 
 function CombatText.OnFrameRender()
 	local nTime = GetTime()
+	local dwID = UI_GetClientPlayerID()
 	for k, v in pairs(COMBAT_TEXT_SHADOW) do
 		local nFrame = (nTime - v.nTime) / JH_CombatText.nTime + 1 -- 每一帧是多少毫秒 这里越小 动画越快
 		local nBefore = floor(nFrame)
@@ -307,8 +308,13 @@ function CombatText.OnFrameRender()
 				elseif tScale[nBefore] < tScale[nAfter] then
 					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
 				end
-				if v.nType == SKILL_RESULT_TYPE.THERAPY and v.bCriticalStrike then
-					fScale = fScale * 0.8
+				if v.nType == SKILL_RESULT_TYPE.THERAPY then
+					if v.bCriticalStrike then
+						fScale = max(fScale * 0.7, COMBAT_TEXT_SCALE.NORMAL[#COMBAT_TEXT_SCALE.NORMAL] + 0.1)
+					end
+					if v.dwTargetID == dwID then
+						fScale = fScale * 0.95
+					end
 				end
 			end
 			-- draw
@@ -448,7 +454,7 @@ function CombatText.PushText(tab, nCount)
 			if dat.dat.szPoint == "TOP" then
 				local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
 				-- print(nSort)
-				if nSort >= COMBAT_TEXT_TRAJECTORY then
+				if nSort > COMBAT_TEXT_TRAJECTORY then
 					dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
 					dat.dat.nSort = 0
 				else
@@ -681,7 +687,6 @@ function CombatText.OnExpLog(dwCharacterID, nExp)
 end
 
 function CombatText.GetFreeShadow()
-	local handle = CombatText.handle
 	for k, v in ipairs(COMBAT_TEXT_FREE) do
 		if v.free then
 			v.free = false
@@ -689,6 +694,7 @@ function CombatText.GetFreeShadow()
 		end
 	end
 	if #COMBAT_TEXT_FREE < COMBAT_TEXT_MAX_COUNT then
+		local handle = CombatText.handle
 		local sha = handle:AppendItemFromIni(COMBAT_TEXT_INIFILE, "Shadow_Content")
 		sha:SetTriangleFan(GEOMETRY_TYPE.TEXT)
 		sha:ClearTriangleFanPoint()
