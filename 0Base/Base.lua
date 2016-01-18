@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-14 00:29:42
+-- @Last Modified time: 2016-01-18 13:04:36
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -3733,7 +3733,7 @@ end
 local ICON_PAGE
 -- iconÑ¡ÔñÆ÷
 function GUI.OpenIconPanel(fnAction)
-	local nMaxIocn, boxs, txts = 7930, {}, {}
+	local nMaxIocn, boxs, txts = 8074, {}, {}
 	local ui = GUI.CreateFrame("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], nStyle = 2 , close = true, focus = true })
 	local function GetPage(nPage, bInit)
 		if nPage == ICON_PAGE and not bInit then

@@ -1,9 +1,13 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-13 08:18:49
+-- @Last Modified time: 2016-01-18 18:05:30
 
 local pairs, ipairs, select = pairs, ipairs, select
+local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
+local PostThreadCall = PostThreadCall
+local tinsert = table.insert
+
 local UI_SCALED = 1
 DBM_SA = {
 	bAlert    = false,
@@ -80,7 +84,7 @@ function ScreenArrow.OnSort()
 		PostThreadCall(function(v, xScreen, yScreen)
 			v.nIndex = yScreen or 0
 		end, v, "Scene_GetCharacterTopScreenPos", v.dwID)
-	    table.insert(t, { handle = v, index = v.nIndex or 0 })
+	    tinsert(t, { handle = v, index = v.nIndex or 0 })
 	end
 	table.sort(t, function(a, b) return a.index < b.index end)
 	for i = #t, 1, -1 do
@@ -290,7 +294,7 @@ function SA:ctor(szClass, dwID, tArgs)
 		v:SetD3DPT(D3DPT.TRIANGLEFAN)
 	end
 	CACHE[dwType][dwID] = CACHE[dwType][dwID] or {}
-	table.insert(CACHE[dwType][dwID], self)
+	tinsert(CACHE[dwType][dwID], self)
 	return self
 end
 
@@ -302,10 +306,17 @@ function SA:DrawText( ... )
 	local i = 1
 	for k, v in ipairs({ ... }) do
 		if v ~= "" then
-			local top = nTop + i * -18 * UI_SCALED
+			local top = nTop + i * -23 * UI_SCALED
 			if self.dwType == TARGET.DOODAD then
 				self.Text:AppendDoodadID(self.dwID, r, g, b, 240, { 0, 0, 0, 0, top }, DBM_SA.nFont, v, 1, 1)
 			else
+				--  职业门派颜色区分 自用 不适合公开太乱
+				if JH.bDebugClient and self.dwType == TARGET.PLAYER and k ~= 1 then
+					local p = select(2, ScreenArrow.GetObject(self.szClass, self.dwID))
+					if p then
+						r, g, b = JH.GetForceColor(p.dwForceID)
+					end
+				end
 				self.Text:AppendCharacterID(self.dwID, true, r, g, b, 240, { 0, 0, 0, 0, top }, DBM_SA.nFont, v, 1, 1)
 			end
 			i = i + 1

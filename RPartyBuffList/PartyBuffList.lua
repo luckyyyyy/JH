@@ -1,11 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-08 16:17:22
+-- @Last Modified time: 2016-01-18 18:05:41
+
+-- 这个需要重写 构思已有
 local _L = JH.LoadLangPack
 PartyBuffList = {
 	bHoverSelect = false,
-	tList = {},
 	tAnchor = {},
 }
 JH.RegisterCustomData("PartyBuffList")
@@ -23,7 +24,6 @@ function PartyBuffList.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("ON_ENTER_CUSTOM_UI_MODE")
 	this:RegisterEvent("ON_LEAVE_CUSTOM_UI_MODE")
-	this:RegisterEvent("BUFF_UPDATE")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("JH_PARTYBUFFLIST")
 	PBL.hItem = this:CreateItemData(PBL_INI_FILE, "Handle_Item")
@@ -37,21 +37,12 @@ function PartyBuffList.OnFrameCreate()
 		PBL.handle:Clear()
 		PBL.SwitchPanel(0)
 	end)
-	ui:Fetch("Btn_Style"):Click(function()
-		JH.OpenPanel(_L["PartyBuffList"])
-	end)
 	PBL.UpdateAnchor(this)
 end
 
 function PartyBuffList.OnEvent(event)
 	if event == "UI_SCALED" then
 		PBL.UpdateAnchor(this)
-	elseif event == "BUFF_UPDATE" then
-		if arg1 then return end
-		local szName = JH.GetBuffName(arg4, arg8)
-		if PartyBuffList.tList[szName] and Table_BuffIsVisible(arg4, arg8) then
-			PBL.OnTableInsert(arg0, arg4, arg8)
-		end
 	elseif event == "TARGET_CHANGE" then
 		PBL.SwitchSelect()
 	elseif event == "JH_PARTYBUFFLIST" then
@@ -115,6 +106,17 @@ function PartyBuffList.OnFrameBreathe()
 	end
 end
 
+function PartyBuffList.OnLButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Style" then
+		local menu = {
+			{ szOption = _L["Mouse Enter select"], bCheck = true, bChecked = PartyBuffList.bHoverSelect, fnAction = function()
+				PartyBuffList.bHoverSelect = not PartyBuffList.bHoverSelect
+			end }
+		}
+		PopupMenu(menu)
+	end
+end
 
 function PartyBuffList.OnItemLButtonDown()
 	if this:GetName() == "Handle_Item" then
@@ -192,16 +194,6 @@ function PBL.ClosePanel()
 	PBL.frame = nil
 end
 
-function PBL.GetListText()
-	local tName = {}
-	for k, _ in pairs(PartyBuffList.tList) do
-		if type(k) == "string" then
-			table.insert(tName, k)
-		end
-	end
-	return table.concat(tName, "\n")
-end
-
 function PBL.GetPlayer(dwID)
 	local me = GetClientPlayer()
 	local team = GetClientTeam()
@@ -271,25 +263,4 @@ function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
 	CACHE_LIST[key] = h
 end
 
-local PS = {}
-function PS.OnPanelActive(frame)
-	local ui, nX, nY = GUI(frame), 10, 0
-	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["PartyBuffList"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = PartyBuffList.bHoverSelect, txt = _L["Mouse Enter select"] }):Click(function(bChecked)
-		PartyBuffList.bHoverSelect = bChecked
-	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Manually add (One per line)"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = 10, y = nY + 10, w = 450, h = 100, limit = 4096, multi = true, txt = PBL.GetListText() }):Change(function(szText)
-		local t = {}
-		for _, v in ipairs(JH.Split(szText, "\n")) do
-			v = JH.Trim(v)
-			if v ~= "" then
-				t[v] = true
-			end
-		end
-		PartyBuffList.tList = t
-	end):Pos_()
-end
-
-GUI.RegisterPanel(_L["PartyBuffList"], 1451, _L["Dungeon"], PS)
 JH.RegisterEvent("LOGIN_GAME", PBL.OpenPanel)

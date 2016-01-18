@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-12 17:07:42
+-- @Last Modified time: 2016-01-18 18:02:30
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -28,6 +28,31 @@ local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
 ----
 local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "TALK" }
+
+local DBM_EVENTS = {
+	"NPC_ENTER_SCENE",
+	"NPC_LEAVE_SCENE",
+	"DBM_NPC_FIGHT",
+	"DBM_NPC_ENTER_SCENE",
+	"DBM_NPC_ALLLEAVE_SCENE",
+	"DBM_NPC_LIFE_CHANGE",
+	"DBM_NPC_MANA_CHANGE",
+
+	"DOODAD_ENTER_SCENE",
+	"DOODAD_LEAVE_SCENE",
+	"DBM_DOODAD_ENTER_SCENE",
+	"DBM_DOODAD_ALLLEAVE_SCENE",
+
+	"BUFF_UPDATE",
+	"SYS_MSG",
+	"DO_SKILL_CAST",
+
+	"PLAYER_SAY",
+	"ON_WARNING_MESSAGE",
+
+	"DBM_SET_MARK",
+	"PARTY_SET_MARK",
+}
 
 local function GetDataPath()
 	if DBM.bCommon then
@@ -82,30 +107,12 @@ JH.RegisterCustomData("DBM")
 local DBM = DBM
 
 function DBM.OnFrameCreate()
-	this:RegisterEvent("NPC_ENTER_SCENE")
-	this:RegisterEvent("NPC_LEAVE_SCENE")
-	this:RegisterEvent("DBM_NPC_FIGHT")
-	this:RegisterEvent("DBM_NPC_ENTER_SCENE")
-	this:RegisterEvent("DBM_NPC_ALLLEAVE_SCENE")
-	this:RegisterEvent("DBM_NPC_LIFE_CHANGE")
-	this:RegisterEvent("DBM_NPC_MANA_CHANGE")
-
-	this:RegisterEvent("DOODAD_ENTER_SCENE")
-	this:RegisterEvent("DOODAD_LEAVE_SCENE")
-	this:RegisterEvent("DBM_DOODAD_ENTER_SCENE")
-	this:RegisterEvent("DBM_DOODAD_ALLLEAVE_SCENE")
-
-	this:RegisterEvent("BUFF_UPDATE")
-	this:RegisterEvent("SYS_MSG")
-	this:RegisterEvent("DO_SKILL_CAST")
-	this:RegisterEvent("LOADING_END")
-	this:RegisterEvent("PLAYER_SAY")
-	this:RegisterEvent("ON_WARNING_MESSAGE")
+	for k, v in ipairs(DBM_EVENTS) do
+		this:RegisterEvent(v)
+	end
 	this:RegisterEvent("DBM_LOADING_END")
 	this:RegisterEvent("DBM_CREATE_CACHE")
-
-	this:RegisterEvent("DBM_SET_MARK")
-	this:RegisterEvent("PARTY_SET_MARK")
+	this:RegisterEvent("LOADING_END")
 end
 
 function DBM.OnFrameBreathe()
@@ -1328,14 +1335,23 @@ function D.GetFrame()
 end
 
 function D.Open()
-	if not D.GetFrame() then
+	local frame = D.GetFrame()
+	if frame then
+		for k, v in ipairs(DBM_EVENTS) do
+			frame:UnRegisterEvent(v)
+			frame:RegisterEvent(v)
+		end
+	else
 		Wnd.OpenWindow(DBM_INIFILE, "DBM")
 	end
 end
 
 function D.Close()
-	if D.GetFrame() then
-		Wnd.CloseWindow(D.GetFrame()) -- kill all event
+	local frame = D.GetFrame()
+	if frame then
+		for k, v in ipairs(DBM_EVENTS) do
+			frame:UnRegisterEvent(v)  -- kill all event
+		end
 		FireUIEvent("JH_ST_CLEAR")
 		CACHE.NPC_LIST = {}
 		CACHE.SKILL_LIST = {}

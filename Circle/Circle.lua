@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 20:24:13
+-- @Last Modified time: 2016-01-18 18:12:53
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -908,7 +908,6 @@ function C.Init()
 		{ "DOODAD_ENTER_SCENE", C.OnDoodadEnter },
 		{ "DOODAD_LEAVE_SCENE", C.OnDoodadLeave },
 		{ "LOADING_END", C.CreateData },
-		{ "CIRCLE_RELOAD", C.CreateData },
 		{ "CIRCLE_RESERT_DRAW", function()
 			CIRCLE_RESERT_DRAW = true
 		end }
@@ -934,9 +933,6 @@ function C.Enable(bEnable)
 end
 
 JH.RegisterExit(C.SaveFile)
-JH.RegisterEvent("PLAYER_ENTER_GAME", function()
-	C.LoadFile()
-end)
 
 JH.RegisterEvent("CIRCLE_DEBUG", function()
 	if JH.bDebugClient then
@@ -944,7 +940,12 @@ JH.RegisterEvent("CIRCLE_DEBUG", function()
 		FireUIEvent("CIRCLE_RELOAD")
 	end
 end)
-JH.RegisterEvent("LOGIN_GAME", C.Enable)
+
+JH.RegisterEvent("LOGIN_GAME", function()
+	C.LoadFile()
+	C.Enable()
+	JH.RegisterEvent("CIRCLE_RELOAD", C.CreateData)
+end)
 
 -- 注册头像右键菜单
 Target_AppendAddonMenu({ function(dwID, dwType)
