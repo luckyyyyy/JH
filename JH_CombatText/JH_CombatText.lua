@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-18 18:44:04
+-- @Last Modified time: 2016-01-18 23:46:01
 
 -- 战斗浮动文字设计思路
 --[[
@@ -19,13 +19,14 @@
 ]]
 
 local _L = JH.LoadLangPack
-
+local Table_GetBuffName, Table_GetSkillName, Table_BuffIsVisible = Table_GetBuffName, Table_GetSkillName, Table_BuffIsVisible
 local UI_GetClientPlayerID, GetUserRoleName = UI_GetClientPlayerID, GetUserRoleName
-local pairs, unpack = pairs, unpack
+local pairs, ipairs, unpack = pairs, ipairs, unpack
 local tinsert, tremove, tsort = table.insert, table.remove, table.sort
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
 local GetSkill, GetTime = GetSkill, GetTime
+local SKILL_RESULT_TYPE = SKILL_RESULT_TYPE
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
 local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
@@ -46,7 +47,6 @@ local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 }
 
 local COMBAT_TEXT_IGNORE = {}
-
 local COMBAT_TEXT_EVENT  = { "COMMON_HEALTH_TEXT", "SKILL_EFFECT_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY" }
 local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
 	[SKILL_RESULT_TYPE.SHIELD_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
@@ -54,7 +54,12 @@ local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
 	[SKILL_RESULT_TYPE.PARRY_DAMAGE]   = g_tStrings.STR_MSG_COUNTERACT,
 	[SKILL_RESULT_TYPE.INSIGHT_DAMAGE] = g_tStrings.STR_MSG_INSIGHT,
 }
-
+local COMBAT_TEXT_COLOR = { --不需要修改的内定颜色
+	YELLOW = { 255, 255, 0   },
+	RED    = { 255, 0,   0   },
+	PURPLE = { 255, 0,   255 },
+	WHITE  = { 255, 255, 255 }
+}
 local COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 	CRITICAL = { -- 会心
 		1, 2, 3, 4.5, 3, 3, 2, 2,
@@ -118,7 +123,10 @@ local COMBAT_TEXT_LEAVE  = {}
 local COMBAT_TEXT_FREE   = {}
 local COMBAT_TEXT_SHADOW = {}
 local COMBAT_TEXT_QUEUE  = {}
-
+local COMBAT_TEXT_CACHE  = { -- buff的名字cache
+	BUFF   = {},
+	DEBUFF = {},
+}
 local CombatText = {}
 
 JH_CombatText = {
@@ -235,6 +243,10 @@ function CombatText.FreeQueue()
 	COMBAT_TEXT_LEAVE  = {}
 	COMBAT_TEXT_FREE   = {}
 	COMBAT_TEXT_SHADOW = {}
+	COMBAT_TEXT_CACHE  = {
+		BUFF   = {},
+		DEBUFF = {},
+	}
 	CombatText.handle:Clear()
 	COMBAT_TEXT_QUEUE = {
 		TOP          = {},
@@ -247,10 +259,15 @@ function CombatText.FreeQueue()
 end
 
 function CombatText.OnFrameRender()
-	local nTime = GetTime()
-	local dwID = UI_GetClientPlayerID()
+	local nTime     = GetTime()
+	local dwID      = UI_GetClientPlayerID()
+	local nFadeIn   = JH_CombatText.nFadeIn
+	local nFadeOut  = JH_CombatText.nFadeOut
+	local nMaxAlpha = JH_CombatText.nMaxAlpha
+	local nFont     = JH_CombatText.nFont
+	local nDelay    = JH_CombatText.nTime
 	for k, v in pairs(COMBAT_TEXT_SHADOW) do
-		local nFrame = (nTime - v.nTime) / JH_CombatText.nTime + 1 -- 每一帧是多少毫秒 这里越小 动画越快
+		local nFrame = (nTime - v.nTime) / nDelay + 1 -- 每一帧是多少毫秒 这里越小 动画越快
 		local nBefore = floor(nFrame)
 		local nAfter  = ceil(nFrame)
 		local fDiff   = nFrame - nBefore
@@ -259,14 +276,14 @@ function CombatText.OnFrameRender()
 		if nBefore < nTotal then
 			local nTop   = 0
 			local nLeft  = 0
-			local nAlpha = JH_CombatText.nMaxAlpha
+			local nAlpha = nMaxAlpha
 			local fScale = 1
 			local bTop   = true
-			-- 透明度
-			if nFrame < JH_CombatText.nFadeIn then
-				nAlpha = JH_CombatText.nMaxAlpha * nFrame / JH_CombatText.nFadeIn
-			elseif nFrame > nTotal - JH_CombatText.nFadeOut then
-				nAlpha = JH_CombatText.nMaxAlpha * (nTotal - nFrame) / JH_CombatText.nFadeOut
+			-- alpha
+			if nFrame < nFadeIn then
+				nAlpha = nMaxAlpha * nFrame / nFadeIn
+			elseif nFrame > nTotal - nFadeOut then
+				nAlpha = nMaxAlpha * (nTotal - nFrame) / nFadeOut
 			end
 			-- 坐标
 			if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
@@ -288,6 +305,7 @@ function CombatText.OnFrameRender()
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				nLeft = 60 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
 				nAlpha = nAlpha * 0.85
+
 			elseif v.szPoint == "BOTTOM_LEFT" or v.szPoint == "BOTTOM_RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
@@ -320,7 +338,7 @@ function CombatText.OnFrameRender()
 			-- draw
 			local r, g, b = unpack(v.col)
 			if not COMBAT_TEXT_LEAVE[v.dwTargetID] or not v.object or not v.tPoint[1] then
-				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
+				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, nFont, v.szText, 1, fScale)
 				if v.object and v.object.nX then
 					v.tPoint = { v.object.nX, v.object.nY, v.object.nZ }
 				else -- DEBUG  JX3Client   [Script index] pointer invalid. call stack: 暂无完美解决方案 都会造成内存泄露
@@ -330,7 +348,7 @@ function CombatText.OnFrameRender()
 				end
 			else
 				local x, y, z = unpack(v.tPoint)
-				k:AppendTriangleFan3DPoint(x, y, z, r, g, b, nAlpha, { 0, 1.65 * 64, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, JH_CombatText.nFont, v.szText, 1, fScale) --fSacle*COMBAT_TEXT_UI_SCALE
+				k:AppendTriangleFan3DPoint(x, y, z, r, g, b, nAlpha, { 0, 1.65 * 64, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, nFont, v.szText, 1, fScale)
 			end
 			-- 合并伤害 后顶前
 			if not v.bJump and v.szPoint ~= "TOP" and nFrame >= 16 and nFrame <= 32 then
@@ -346,11 +364,17 @@ function CombatText.OnFrameRender()
 				end
 			end
 			if v.bJump and v.szPoint ~= "TOP" and nFrame >= 16 and nFrame <= 32 then
-				v.nTime = v.nTime - (32 - nFrame) * JH_CombatText.nTime
+				v.nTime = v.nTime - (32 - nFrame) * nDelay
 			else
 				v.nFrame = nFrame
 			end
 		else
+			if v.szPoint == "RIGHT" and v.dwTargetID == dwID then
+				local tCache = v.col == COMBAT_TEXT_COLOR.RED and COMBAT_TEXT_CACHE.DEBUFF or COMBAT_TEXT_CACHE.BUFF
+				if tCache[v.szText] then
+					tCache[v.szText] = nil
+				end
+			end
 			k.free = true
 			COMBAT_TEXT_SHADOW[k] = nil
 		end
@@ -494,16 +518,12 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 	-- 把治疗归类为一种 方便处理
-	local bStealLife
-	if nType == SKILL_RESULT_TYPE.STEAL_LIFE then
-		bStealLife = true
-	end
 	nType = tTherapyType[nType] and SKILL_RESULT_TYPE.THERAPY or nType
 	if nType == SKILL_RESULT_TYPE.THERAPY and nValue == 0 then
 		return
 	end
 
-	local bIsPlayer = GetPlayer(dwCasterID)
+	local bIsPlayer = IsPlayer(dwCasterID)
 	local p = bIsPlayer and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
 	local employer, dwEmployerID
 	if not bIsPlayer and p then
@@ -520,23 +540,27 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 
-	local szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
-	if bStealLife then
+	local szName, szText, szReplaceText
+	-- skill name
+	if nType ~= SKILL_RESULT_TYPE.STEAL_LIFE then
+		szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
+	else -- 吸血技能偷取避免重复获取 浪费性能
 		szName = g_tStrings.SKILL_STEAL_LIFE
 	end
-	local szText, szReplaceText
+	-- replace
 	if nType == SKILL_RESULT_TYPE.THERAPY then
 		szReplaceText = JH_CombatText.szTherapy
 	else
 		szReplaceText = JH_CombatText.szSkill
 	end
+	-- point color
 	local szPoint = "TOP"
 	local col     = JH_CombatText.col[nType]
 	if COMBAT_TEXT_STRING[nType] then
 		szText = COMBAT_TEXT_STRING[nType]
 		if dwTargetID == dwID then
 			szPoint = "LEFT"
-			col = { 255, 255, 0 }
+			col = COMBAT_TEXT_COLOR.YELLOW
 		end
 	elseif nType == SKILL_RESULT_TYPE.THERAPY then
 		if dwTargetID == dwID then
@@ -567,34 +591,30 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		end
 		szReplaceText = JH_CombatText.szDamage
 	end
-
-	local szCasterName = ""
-	if p then
-		if employer then
-			szCasterName = employer.szName
-		else
-			szCasterName = p.szName
-		end
+	if szPoint == "TOP" and bCriticalStrike and nType ~= SKILL_RESULT_TYPE.THERAPY and JH_CombatText.tCritical then
+		col = JH_CombatText.tCriticalC
 	end
-
+	-- draw text
 	if not szText then -- 还未被定义的
-		szText = szReplaceText
-		szText = szText:gsub("(%s?)$crit(%s?)", (bCriticalStrike and "%1".. g_tStrings.STR_CS_NAME .. "%2" or ""))
+		local szCasterName = ""
+		if p then
+			if employer then
+				szCasterName = employer.szName
+			else
+				szCasterName = p.szName
+			end
+		end
 		if JH_CombatText.bCasterNotI and szCasterName == GetUserRoleName() then
 			szCasterName = ""
 		end
-		szText = szText:gsub("$name", szCasterName)
 		if JH_CombatText.bSnShorten2 then
 			szName = wstring.sub(szName, 1, 2) -- wstring是兼容台服的 台服utf-8
 		end
+		szText = szReplaceText
+		szText = szText:gsub("(%s?)$crit(%s?)", (bCriticalStrike and "%1".. g_tStrings.STR_CS_NAME .. "%2" or ""))
+		szText = szText:gsub("$name", szCasterName)
 		szText = szText:gsub("$sn", szName)
 		szText = szText:gsub("$val", nValue or "")
-	end
-
-	if szPoint == "TOP" then
-		if bCriticalStrike and nType ~= SKILL_RESULT_TYPE.THERAPY and JH_CombatText.tCritical then
-			col = JH_CombatText.tCriticalC
-		end
 	end
 	CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 end
@@ -607,16 +627,16 @@ function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 	if szBuffName == "" then
 		return
 	end
-	-- if COMBAT_TEXT_QUEUE.RIGHT and COMBAT_TEXT_QUEUE.RIGHT[dwCharacterID] then
-	-- 	if data and data.dat and data.dat.szText == szBuffName then
-	-- 		return
-	-- 	end
-	-- end
+	local tCache = bCanCancel and COMBAT_TEXT_CACHE.BUFF or COMBAT_TEXT_CACHE.DEBUFF
+	if tCache[szBuffName] then
+		return
+	end
 	local shadow = CombatText.GetFreeShadow()
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local col = bCanCancel and { 255, 255, 0 } or { 255, 0, 0}
+	tCache[szBuffName] = true
+	local col = bCanCancel and COMBAT_TEXT_COLOR.YELLOW or COMBAT_TEXT_COLOR.RED
 	CombatText.CreateText(shadow, dwCharacterID, szBuffName, "RIGHT", "SKILL_BUFF", false, col)
 end
 
@@ -626,7 +646,7 @@ function CombatText.OnSkillMiss(dwTargetID)
 		return
 	end
 	local szPoint = dwTargetID == UI_GetClientPlayerID() and "LEFT" or "TOP"
-	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_MISS, szPoint, "SKILL_MISS", false, JH_CombatText.col["SKILL_MISS"])
+	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_MISS, szPoint, "SKILL_MISS", false, COMBAT_TEXT_COLOR.WHITE)
 end
 
 function CombatText.OnBuffImmunity(dwTargetID)
@@ -634,7 +654,7 @@ function CombatText.OnBuffImmunity(dwTargetID)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_IMMUNITY, "LEFT", "BUFF_IMMUNITY", false, JH_CombatText.col["BUFF_IMMUNITY"])
+	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_IMMUNITY, "LEFT", "BUFF_IMMUNITY", false, COMBAT_TEXT_COLOR.WHITE)
 end
 -- FireUIEvent("COMMON_HEALTH_TEXT", GetClientPlayer().dwID, -8888)
 function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
@@ -654,7 +674,9 @@ function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
 			szPoint = "BOTTOM_RIGHT"
 		end
 	end
-	CombatText.CreateText(shadow, dwCharacterID, nDeltaLife > 0 and "+" .. nDeltaLife or nDeltaLife, szPoint, "COMMON_HEALTH", false, nDeltaLife > 0 and JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY] or JH_CombatText.col["DAMAGE"])
+	local szText = nDeltaLife > 0 and "+" .. nDeltaLife or nDeltaLife
+	local col    = nDeltaLife > 0 and JH_CombatText.col[SKILL_RESULT_TYPE.THERAPY] or JH_CombatText.col["DAMAGE"]
+	CombatText.CreateText(shadow, dwCharacterID, szText, szPoint, "COMMON_HEALTH", false, col)
 end
 
 function CombatText.OnSkillDodge(dwTargetID)
@@ -662,7 +684,7 @@ function CombatText.OnSkillDodge(dwTargetID)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_DODGE, "LEFT", "SKILL_DODGE", false, { 255, 0, 0 })
+	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_DODGE, "LEFT", "SKILL_DODGE", false, COMBAT_TEXT_COLOR.RED)
 end
 
 function CombatText.OnExpLog(dwCharacterID, nExp)
@@ -670,7 +692,7 @@ function CombatText.OnExpLog(dwCharacterID, nExp)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	CombatText.CreateText(shadow, dwCharacterID, g_tStrings.STR_COMBATMSG_EXP .. nExp, "CENTER", "EXP", true, { 255, 0, 255 })
+	CombatText.CreateText(shadow, dwCharacterID, g_tStrings.STR_COMBATMSG_EXP .. nExp, "CENTER", "EXP", true, COMBAT_TEXT_COLOR.PURPLE)
 end
 
 function CombatText.GetFreeShadow()
@@ -742,7 +764,7 @@ function CombatText.CheckEnable()
 			return me["TOP"]
 		end
 	end })
-	setmetatable(JH_CombatText.col, { __index = function() return { 255, 255, 255 } end })
+	setmetatable(JH_CombatText.col, { __index = function() return COMBAT_TEXT_COLOR.WHITE end })
 	local mt = { __index = function(me)
 		return me[#me]
 	end }
