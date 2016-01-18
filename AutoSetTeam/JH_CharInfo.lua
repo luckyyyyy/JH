@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-13 08:47:56
+-- @Last Modified time: 2016-01-18 20:21:04
 local _L = JH.LoadLangPack
 
 JH_CharInfo = {
@@ -27,12 +27,12 @@ function CharInfo.GetInfo()
 			})
 		end
 	end
-	if not frame then
+	if frame and frame:IsVisible() then
+		fnGetInfo()
+	else
 		Wnd.OpenWindow("CharInfo")
 		fnGetInfo()
 		Wnd.CloseWindow("CharInfo")
-	else
-		fnGetInfo()
 	end
 	return data
 end
