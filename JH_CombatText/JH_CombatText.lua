@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-15 16:46:04
+-- @Last Modified time: 2016-01-18 18:44:04
 
 -- 战斗浮动文字设计思路
 --[[
@@ -351,19 +351,6 @@ function CombatText.OnFrameRender()
 				v.nFrame = nFrame
 			end
 		else
-			if COMBAT_TEXT_LEAVE[v.dwTargetID] then -- 寻找是否还有存在的文字
-				local bFind = false
-				for kk, vv in pairs(COMBAT_TEXT_SHADOW) do
-					if kk ~= k and vv.dwTargetID == v.dwTargetID then
-						bFind = true
-						break
-					end
-				end
-				-- print(bFind)
-				if not bFind then
-					COMBAT_TEXT_LEAVE[v.dwTargetID] = nil
-				end
-			end
 			k.free = true
 			COMBAT_TEXT_SHADOW[k] = nil
 		end
@@ -886,3 +873,14 @@ end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("FIRST_LOADING_END", CombatText.CheckEnable)
+
+JH.BreatheCall("COMBAT_TEXT_CACHE", function()
+	local count = 0
+	for k, v in pairs(COMBAT_TEXT_LEAVE) do
+		count = count + 1
+	end
+	if count > 10000 then
+		COMBAT_TEXT_LEAVE = {}
+		Log("[JH] CombatText cache beyond 10000 !!!")
+	end
+end, 1000 * 60 * 5)
