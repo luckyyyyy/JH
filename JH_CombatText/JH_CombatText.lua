@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-18 23:46:01
+-- @Last Modified time: 2016-01-19 15:52:17
 
 -- 战斗浮动文字设计思路
 --[[
@@ -518,6 +518,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 	-- 把治疗归类为一种 方便处理
+	local bStealLife = nType == SKILL_RESULT_TYPE.STEAL_LIFE and true
 	nType = tTherapyType[nType] and SKILL_RESULT_TYPE.THERAPY or nType
 	if nType == SKILL_RESULT_TYPE.THERAPY and nValue == 0 then
 		return
@@ -542,7 +543,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 
 	local szName, szText, szReplaceText
 	-- skill name
-	if nType ~= SKILL_RESULT_TYPE.STEAL_LIFE then
+	if not bStealLife then
 		szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
 	else -- 吸血技能偷取避免重复获取 浪费性能
 		szName = g_tStrings.SKILL_STEAL_LIFE
