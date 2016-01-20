@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 07:35:09
+-- @Last Modified time: 2016-01-20 19:07:32
 
 -- 早期代码 需要重写
 
@@ -466,36 +466,33 @@ function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("Text", { x = 0, y = 0, txt = _L["Preference Setting"], font = 27 })
 	ui:Append("WndButton3", { x = 350, y = 0, txt = _L["Open Panel"] }):Click(_GKP.OpenPanel)
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = 28, txt = _L["Clause with 0 Gold as Record"], checked = GKP.bDisplayEmptyRecords })
+
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = 28, txt = _L["Popup Record for Distributor"], checked = GKP.bOn })
+	:Click(function(bChecked)
+		GKP.bOn = bChecked
+	end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Clause with 0 Gold as Record"], checked = GKP.bDisplayEmptyRecords })
 	:Click(function(bChecked)
 		GKP.bDisplayEmptyRecords = bChecked
 		_GKP.DrawRecord()
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, color = { 255, 128, 0 } , txt = _L["Show Gold Brick"], checked = GKP.bShowGoldBrick })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, color = { 255, 128, 0 } , txt = _L["Show Gold Brick"], checked = GKP.bShowGoldBrick })
 	:Click(function(bChecked)
 		GKP.bShowGoldBrick = bChecked
 		_GKP.DrawRecord()
 		_GKP.DrawAccount()
 		_GKP.UpdateStat()
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Remind Wipe Data When Enter Dungeon"], checked = GKP.bAlertMessage })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Remind Wipe Data When Enter Dungeon"], checked = GKP.bAlertMessage })
 	:Click(function(bChecked)
 		GKP.bAlertMessage = bChecked
 	end):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Automatic Reception with Record From Distributor"], checked = GKP.bAutoSync })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY, txt = _L["Automatic Reception with Record From Distributor"], checked = GKP.bAutoSync })
 	:Click(function(bChecked)
 		GKP.bAutoSync = bChecked
 	end):Pos_()
-	nX = ui:Append("WndComboBox", { x = 10, y = nY, w = 130, h = 30, txt = _L["Popup with Record Options"] })
-	:Menu(function()
-		return {
-			{ szOption = _L["Popup Record for Distributor"],bCheck = true,bChecked = GKP.bOn,fnAction = function()
-				GKP.bOn = not GKP.bOn
-			end},
-		}
-	end):Pos_()
-	nX = ui:Append("WndComboBox", { x = nX + 10, y = nY, w = 130, h = 30, txt = _L["Edit Allowance Protocols"] }):Menu(_GKP.GetSubsidiesMenu):Pos_()
-	nX, nY = ui:Append("WndComboBox", { x = nX + 10, y = nY, w = 130, h = 30, txt = _L["Edit Auction Protocols"] }):Menu(_GKP.GetSchemeMenu):Pos_()
+	nX, nY = ui:Append("WndComboBox", { x = 10, y = nY, txt = _L["Edit Allowance Protocols"] }):Menu(_GKP.GetSubsidiesMenu):Pos_()
+	nX, nY = ui:Append("WndComboBox", { x = 10, y = nY, txt = _L["Edit Auction Protocols"] }):Menu(_GKP.GetSchemeMenu):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Money Record"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.bMoneySystem, txt = _L["Track Money Trend in the System"] })
 	:Click(function(bChecked)

@@ -1,13 +1,19 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 09:40:41
+-- @Last Modified time: 2016-01-20 19:41:04
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local GKP_LOOT_INIFILE = JH.GetAddonInfo().szRootPath .. "GKP/ui/GKP_Loot.ini"
 local GKP_LOOT_BOSS -- 散件老板
 
+local GKP_LOOT_HUANGBABA = {
+	[JH.GetItemName(72592)]  = true,
+	[JH.GetItemName(68363)]  = true,
+	[JH.GetItemName(66190)]  = true,
+	[JH.GetItemName(153897)] = true,
+}
 local GKP_LOOT_AUTO_LIST = {}
 local GKP_LOOT_AUTO      = { -- 记录分配上次的物品
 	-- 材料
@@ -514,8 +520,8 @@ function Loot.DrawLootList(dwID)
 		handle:SetHandleStyle(0)
 	end
 	if bSpecial then
-		frame:Lookup("", "Image_Bg"):FromUITex("ui/Image/OperationActivity/RedEnvelope1.uitex", 9)
-		frame:Lookup("", "Image_Title"):FromUITex("ui/Image/OperationActivity/RedEnvelope2.uitex", 2)
+		frame:Lookup("", "Image_Bg"):FromUITex("ui/Image/OperationActivity/RedEnvelope2.uitex", 14)
+		frame:Lookup("", "Image_Title"):FromUITex("ui/Image/OperationActivity/RedEnvelope2.uitex", 14)
 		frame:Lookup("", "Text_Title"):SetAlpha(255)
 		frame:Lookup("", "SFX"):Show()
 		handle:SetRelPos(5, 30)
@@ -572,13 +578,10 @@ function Loot.GetDoodad(dwID)
 			local item, bNeedRoll, bDist = d.GetLootItem(i, me)
 			if item and item.nQuality > 0 then
 				local szItemName = GetItemNameByItem(item)
-				if szItemName == JH.GetItemName(72592)
-					or szItemName == JH.GetItemName(68363)
-					or szItemName == JH.GetItemName(66190)
-					or szItemName == JH.GetItemName(153897)
-				then
+				if not bSpecial and GKP_LOOT_HUANGBABA[szItemName] then
 					bSpecial = true
 				end
+				-- bSpecial = true -- debug
 				table.insert(data, { item = item, bNeedRoll = bNeedRoll, bDist = bDist })
 			end
 		end
@@ -590,7 +593,7 @@ end
 JH.RegisterEvent("OPEN_DOODAD", function()
 	if arg1 == UI_GetClientPlayerID() then
 		local team = GetClientTeam()
-		if team and team.nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then
+		if not team or team and team.nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then
 			return
 		end
 		local doodad = GetDoodad(arg0)
@@ -635,7 +638,8 @@ end)
 
 JH.RegisterEvent("GKP_LOOT_BOSS", function()
 	if not arg0 then
-		GKP_LOOT_BOSS = nil
+		GKP_LOOT_BOSS      = nil
+		GKP_LOOT_AUTO_LIST = {}
 	else
 		local team = GetClientTeam()
 		if team then
