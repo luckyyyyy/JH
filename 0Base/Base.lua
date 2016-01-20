@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-18 13:04:36
+-- @Last Modified time: 2016-01-20 09:34:06
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -938,17 +938,7 @@ function JH.IsInParty()
 	return me and me.IsInParty()
 end
 
-local function KeyToNumber(data, tab)
-	for k, v in pairs(tab) do
-		local key = tonumber(k) or k
-		data[key] = {}
-		if type(v) == "table" then
-			KeyToNumber(data[key], v)
-		else
-			data[key] = v
-		end
-	end
-end
+
 
 function JH.JsonToTable(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
@@ -960,7 +950,18 @@ function JH.JsonToTable(szJson)
 		return false, "data is invalid"
 	end
 	local data = {}
-	KeyToNumber(data, result)
+	local function Key2Num(data, tab)
+		for k, v in pairs(tab) do
+			local key = tonumber(k) or k
+			data[key] = {}
+			if type(v) == "table" then
+				Key2Num(data[key], v)
+			else
+				data[key] = v
+			end
+		end
+	end
+	Key2Num(data, result)
 	return data, nil
 end
 

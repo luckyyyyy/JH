@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 23:26:20
+-- @Last Modified time: 2016-01-19 19:58:57
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -375,6 +375,38 @@ function DBMUI.UpdateTree()
 	frame.hTreeH:FormatAllItemPos()
 end
 
+function DBM_UI.OnItemLButtonDown()
+	local szName = this:GetName()
+	if IsCtrlKeyDown() then
+		if szName == "Handle_R" or szName == "Handle_L" then
+			local data = {}
+			local szName
+			if this:Lookup("Text") then
+				if DBMUI_SELECT_TYPE == "CASTING" then
+					szName = "[" .. Table_GetSkillName(this.dat.dwID, this.dat.nLevel) .. "]"
+					data = {
+						type = "skill",
+						skill_id = this.dat.dwID,
+						skill_level = this.dat.nLevel,
+						text = szName
+					}
+				else
+					szName = this:Lookup("Text"):GetText()
+					data   = { type = "text", text = szName }
+				end
+			elseif this:Lookup("Text_Name") and this:Lookup("Text_Content") then
+				szName = this:Lookup("Text_Name"):GetText() .. g_tStrings.STR_COLON .. this:Lookup("Text_Content"):GetText()
+				data   = { type = "text", text = szName }
+			end
+			if szName then
+				local edit = Station.Lookup("Lowest2/EditBox/Edit_Input")
+				edit:InsertObj(szName, data)
+				Station.SetFocusWindow(edit)
+			end
+		end
+	end
+end
+
 function DBM_UI.OnItemLButtonClick()
 	local szName = this:GetName()
 	if szName == "TreeLeaf_Node" then
@@ -408,7 +440,7 @@ function DBM_UI.OnItemLButtonClick()
 		DBMUI.UpdateLList()
 		DBMUI.UpdateBG()
 	elseif szName == "Handle_L" then
-		if DBMUI_DRAG then
+		if DBMUI_DRAG or IsCtrlKeyDown() then
 			return
 		end
 		if DBMUI_SELECT_TYPE == "CIRCLE" then
@@ -1169,13 +1201,21 @@ function DBMUI.OpenAddPanel(szType, data)
 end
 -- 数据调试面板
 function DBMUI.OpenJosnPanel(data, fnAction)
-	local json = JsonEncode(data, true)
-	local ui = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = "DBM DEBUG", close = true })
-	ui:Append("WndEdit", "WndEdit", { w = 660, h = 350, x = 30, y = 60, color = { 255, 255, 0 }, multi = true, limit = 999999, txt = json })
+	local ui = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = "DBM DEBUG Panel", close = true }):Event("DBMUI_DATA_RELOAD", "DBMUI_SWITCH_PAGE"):OnEvent(function(szEvent)
+		ui:Remove()
+	end)
+	ui:Append("WndEdit", "CODE", { w = 660, h = 350, x = 30, y = 60, color = { 255, 255, 0 }, multi = true, limit = 999999, txt = JsonEncode(data, true), color = { 255, 255, 0 } }):Change(function()
+		local code = ui:Fetch("CODE")
+		local dat  = JH.JsonDecode(code:Text())
+		if dat then
+			code:Color(255, 255, 0)
+			else
+			code:Color(255, 0, 0)
+		end
+	end)
 	ui:Append("WndButton3",{ x = 30, y = 440,txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
 		JH.Confirm(_L["Confirm?"], function()
-			local json = ui:Fetch("WndEdit"):Text()
-			local dat = JH.JsonToTable(json)
+			local dat = JH.JsonToTable(ui:Fetch("CODE"):Text())
 			if fnAction and dat then
 				ui:Remove()
 				return fnAction(dat)
@@ -1328,7 +1368,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		DBMUI_PANEL_ANCHOR = GetFrameAnchor(frame, "LEFTTOP")
 	end
 	local nX, nY, _ = 0, 0, 0
-	local function ClickBox()
+	local function fnClickBox()
 		local menu, box = {}, this
 		if szType ~= "TALK" then
 			table.insert(menu, { szOption = _L["Edit Name"], fnAction = function()
@@ -1373,10 +1413,13 @@ function DBMUI.OpenSettingPanel(data, szType)
 		table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = _L["raw data, Please be careful"], color = { 255, 255, 0 }, fnAction = function()
 			DBMUI.OpenJosnPanel(data, function(dat)
-				for k, v in pairs(dat) do
-					data[k] = v
+				local file = DBM_API.GetTable(DBMUI_SELECT_TYPE)
+				if file and file[DBMUI_SELECT_MAP] and file[data.dwMapID][data.nIndex] then
+					file[data.dwMapID][data.nIndex] = dat
 				end
-				DBMUI.OpenSettingPanel(data, szType)
+				FireUIEvent("DBM_CREATE_CACHE")
+				FireUIEvent("DBMUI_DATA_RELOAD")
+				DBMUI.OpenSettingPanel(file[data.dwMapID][data.nIndex], szType)
 			end)
 		end })
 		PopupMenu(menu)
@@ -1397,7 +1440,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		else
 			HideTip()
 		end
-	end):Click(ClickBox)
+	end):Click(fnClickBox)
 	if szType == "BUFF" or szType == "DEBUFF" then
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Scrutiny Type"] }):Menu(function()

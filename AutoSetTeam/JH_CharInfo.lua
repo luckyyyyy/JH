@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 15:18:23
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-18 20:21:04
+-- @Last Modified time: 2016-01-20 09:34:24
 local _L = JH.LoadLangPack
 
 JH_CharInfo = {
@@ -15,24 +15,21 @@ local CharInfo = {}
 function CharInfo.GetInfo()
 	local data = { GetClientPlayer().GetTotalEquipScore() }
 	local frame = Station.Lookup("Normal/CharInfo")
-	local function fnGetInfo()
-		local hCharInfo = Station.Lookup("Normal/CharInfo")
-		local handle = hCharInfo:Lookup("WndScroll_Property", "")
-		for i = 0, handle:GetVisibleItemCount() -1 do
-			local h = handle:Lookup(i)
-			table.insert(data, {
-				szTip = h.szTip,
-				label = h:Lookup(0):GetText(),
-				value = h:Lookup(1):GetText(),
-			})
+	if not frame or not frame:IsVisible() then
+		if frame then
+			Wnd.CloseWindow("CharInfo") -- 强制kill
 		end
+		Wnd.OpenWindow("CharInfo"):Hide()
 	end
-	if frame and frame:IsVisible() then
-		fnGetInfo()
-	else
-		Wnd.OpenWindow("CharInfo")
-		fnGetInfo()
-		Wnd.CloseWindow("CharInfo")
+	local hCharInfo = Station.Lookup("Normal/CharInfo")
+	local handle = hCharInfo:Lookup("WndScroll_Property", "")
+	for i = 0, handle:GetVisibleItemCount() -1 do
+		local h = handle:Lookup(i)
+		table.insert(data, {
+			szTip = h.szTip,
+			label = h:Lookup(0):GetText(),
+			value = h:Lookup(1):GetText(),
+		})
 	end
 	return data
 end
