@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 09:33:02
+-- @Last Modified time: 2016-01-20 09:40:41
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -331,7 +331,7 @@ function Loot.GetaPartyMember(doodad)
 	end
 	setmetatable(aPartyMember, { __call = function(me, dwID)
 		for k, v in ipairs(me) do
-			if v.dwID == dwID then
+			if v.dwID == dwID or v.szName == dwID then
 				return v
 			end
 		end

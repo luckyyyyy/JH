@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 06:22:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 09:31:08
+-- @Last Modified time: 2016-01-20 09:42:17
 local _L   = JH.LoadLangPack
 local Chat = {}
 GKP_Chat   = {}
@@ -65,7 +65,7 @@ function GKP.DistributionItem()
 	local aPartyMember = GKP_Loot.GetaPartyMember(doodad)
 	local member = aPartyMember(szName)
 	if member then
-		GKP_Loot.GetMessageBox(member.dwID, data.dwDoodadID, data.dwID, data)
+		GKP_Loot.GetMessageBox(member.dwID, data.dwDoodadID, data.data.dwID, data.data)
 	else
 		return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 	end
