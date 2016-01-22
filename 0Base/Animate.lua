@@ -1,10 +1,10 @@
 -- @Author: Webster
 -- @Date:   2016-01-21 22:01:02
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 09:45:14
+-- @Last Modified time: 2016-01-22 20:35:11
 
 -- JX3UI Simple Animate Library
-ANI_QUEUE = {
+local ANI_QUEUE = {
 	FADEIN  = setmetatable({}, { __mode = "kv" }),
 	FADEOUT = setmetatable({}, { __mode = "kv" }),
 	SCALE   = setmetatable({}, { __mode = "kv" }),

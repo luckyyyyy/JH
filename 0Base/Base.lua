@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 10:09:27
+-- @Last Modified time: 2016-01-22 19:51:58
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -282,8 +282,8 @@ function _JH.UpdateDetail(i, data)
 		end
 		win.fnDestroy = data.fn.OnPanelDeactive
 	end
-	-- local x, y = win:Raw():GetRelPos()
-	-- JH.Animate(win:Raw(), 200):Pos({ x + 20, x, y, y }):FadeIn()
+	local x, y = win:Raw():GetRelPos()
+	JH.Animate(win:Raw(), 200):Pos({ x + 20, x, y, y }):FadeIn()
 end
 
 -- create menu item

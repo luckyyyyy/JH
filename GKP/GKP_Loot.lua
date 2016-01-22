@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 19:27:35
+-- @Last Modified time: 2016-01-22 21:54:44
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -587,6 +587,7 @@ function Loot.OpenFrame(dwID)
 	PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 	JH.Animate(frame, 200):Scale(0.6):FadeIn(function()
 		frame.ani = nil
+		Loot.DrawLootList(dwID)
 	end)
 end
 -- 手动关闭 不适用自定关闭
@@ -670,7 +671,9 @@ JH.RegisterEvent("SYNC_LOOT_LIST", function()
 			end
 		end
 		if Loot.GetFrame(arg0) then
-			Loot.DrawLootList(arg0)
+			if frame and not frame.ani then
+				Loot.DrawLootList(arg0)
+			end
 		end
 	end
 end)
