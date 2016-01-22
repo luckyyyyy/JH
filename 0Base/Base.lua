@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 09:34:06
+-- @Last Modified time: 2016-01-22 10:09:27
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -182,16 +182,16 @@ end
 
 -- open
 function _JH.OpenPanel()
-	local frame = Station.Lookup("Normal/JH")
+	local frame = _JH.GetFrame()
 	if frame then
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
-		frame:Show()
 		frame:BringToTop()
 		local win = GUI(_JH.frame:Lookup("Wnd_Detail"))
 		if win.___data then
 			local i, data = unpack(win.___data)
 			_JH.UpdateDetail(i, data)
 		end
+		JH.Animate(frame, 200):Scale(0.8):FadeIn()
 	else
 		frame = Wnd.OpenWindow(_JH.szIniFile, "JH")
 	end
@@ -200,9 +200,8 @@ end
 
 -- close
 function _JH.ClosePanel(bDisable)
-	local frame = Station.Lookup("Normal/JH")
+	local frame = _JH.GetFrame()
 	if frame then
-		frame:Hide()
 		local win = GUI(frame:Lookup("Wnd_Detail"))
 		if win.fnDestroy then
 			win.fnDestroy(win)
@@ -210,22 +209,28 @@ function _JH.ClosePanel(bDisable)
 		if not bDisable then
 			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		end
+		JH.Animate(frame, 200):Scale(0.8, true):FadeOut()
 	end
 end
 
 -- toggle
 function _JH.TogglePanel()
-	if _JH.frame and _JH.frame:IsVisible() then
+	if _JH.IsOpened() then
 		_JH.ClosePanel()
 	else
 		_JH.OpenPanel()
 	end
 end
 
-function _JH.IsPanelOpened()
-	return _JH.frame and _JH.frame:IsVisible()
+function _JH.GetFrame()
+	return _JH.frame
 end
 
+function _JH.IsOpened()
+	return _JH.GetFrame() and _JH.frame:IsVisible()
+end
+JH.GetFrame    = _JH.GetFrame
+JH.IsOpened    = _JH.IsOpened
 JH.ClosePanel  = _JH.ClosePanel
 JH.TogglePanel = _JH.TogglePanel
 
@@ -277,6 +282,8 @@ function _JH.UpdateDetail(i, data)
 		end
 		win.fnDestroy = data.fn.OnPanelDeactive
 	end
+	-- local x, y = win:Raw():GetRelPos()
+	-- JH.Animate(win:Raw(), 200):Pos({ x + 20, x, y, y }):FadeIn()
 end
 
 -- create menu item
@@ -1491,7 +1498,7 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	Player_AppendAddonMenu({ _JH.GetPlayerAddonMenu })
 	-- ◊¢≤·”“…œΩ«≤Àµ•
 	TraceButton_AppendAddonMenu({ _JH.GetAddonMenu })
-	JH.RegisterGlobalEsc("JH", _JH.IsPanelOpened, _JH.ClosePanel)
+	JH.RegisterGlobalEsc("JH", _JH.IsOpened, _JH.ClosePanel)
 end)
 
 JH.RegisterEvent("LOADING_END", function()

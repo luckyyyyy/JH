@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 18:12:11
+-- @Last Modified time: 2016-01-21 19:31:13
 
 local _L = JH.LoadLangPack
 
@@ -820,7 +820,7 @@ function RT.GetEquipCache(p)
 	}
 	-- 装备 Output(GetClientPlayer().GetItem(0,0).GetMagicAttrib())
 	for _, equip in ipairs(RT_EQUIP_TOTAL) do
-		if #aInfo.tEquip >= 3 then break end
+		-- if #aInfo.tEquip >= 3 then break end
 		-- 藏剑只看重剑
 		if p.dwForceID == 8 and EQUIPMENT_INVENTORY[equip] == EQUIPMENT_INVENTORY.MELEE_WEAPON then
 			equip = "BIG_SWORD"

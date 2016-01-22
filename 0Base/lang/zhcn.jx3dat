@@ -366,6 +366,7 @@ data = {
 	["Recreation"] = "娱乐",
 	["View love info"] = "查看情缘信息",
 	-- GKP.lua --
+	["GKP does not support bidding, please re open loot list."] = "该物品需要拍卖分配，GKP不支持拍团模式，请关闭拾取窗口重新打开系统拾取列表。",
 	["Show Gold Brick"] = "显示单位为金砖",
 	["salary"] = "工资发放",
 	["Treasure Chests"] = "宝箱",

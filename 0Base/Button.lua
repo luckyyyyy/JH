@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-09-16 18:12:29
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-07 13:14:17
+-- @Last Modified time: 2016-01-22 10:13:27
 
 JH.RegisterEvent("FIRST_LOADING_END", function()
 	local isEnable = IsFileExist(JH.GetAddonInfo().szDataPath .. "EnableButton")

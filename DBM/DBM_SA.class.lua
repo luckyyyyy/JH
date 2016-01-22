@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-18 18:05:30
+-- @Last Modified time: 2016-01-22 08:45:08
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
@@ -14,7 +14,7 @@ DBM_SA = {
 	bOnlySelf = true,
 	fLifePer  = 0.3,
 	fManaPer  = 0.1,
-	nFont     = 40,
+	nFont     = 203,
 }
 JH.RegisterCustomData("DBM_SA")
 
@@ -25,7 +25,8 @@ local CACHE = {
 	[TARGET.PLAYER] = {},
 	[TARGET.NPC]    = {},
 }
-local SA = class()
+local SA = {}
+SA.__index = SA
 local SA_COLOR = {
 	FONT = {
 		["BUFF"]    = { 255, 128, 0   },
@@ -68,7 +69,7 @@ local SA_POINT = {
 -- FireUIEvent("JH_SA_CREATE", "TIME", GetClientPlayer().dwID, { col = { 255, 255, 255 }, txt = "test" })
 local function CreateScreenArrow(szClass, dwID, tArgs)
 	tArgs = tArgs or {}
-	SA.new(szClass, dwID, tArgs)
+	SA:ctor(szClass, dwID, tArgs)
 end
 
 local ScreenArrow = {
@@ -263,45 +264,47 @@ function ScreenArrow.OnBreatheFight()
 end
 
 function SA:ctor(szClass, dwID, tArgs)
+	local oo = {}
+	setmetatable(oo, self)
 	local dwType, object = ScreenArrow.GetObject(szClass, dwID)
 	local ui      = HANDLE:New()
-	self.szName   = tArgs.szName
-	self.txt      = tArgs.txt
-	self.col      = tArgs.col or SA_COLOR.ARROW[szClass]
-	self.dwBuffID = tArgs.dwID
-	self.szClass  = szClass
+	oo.szName   = tArgs.szName
+	oo.txt      = tArgs.txt
+	oo.col      = tArgs.col or SA_COLOR.ARROW[szClass]
+	oo.dwBuffID = tArgs.dwID
+	oo.szClass  = szClass
 
-	self.Arrow    = ui:Lookup(0)
-	self.Text     = ui:Lookup(1)
-	self.BGB      = ui:Lookup(2)
-	self.BGI      = ui:Lookup(3)
-	self.Life     = ui:Lookup(4)
-	self.Mana     = ui:Lookup(5)
+	oo.Arrow    = ui:Lookup(0)
+	oo.Text     = ui:Lookup(1)
+	oo.BGB      = ui:Lookup(2)
+	oo.BGI      = ui:Lookup(3)
+	oo.Life     = ui:Lookup(4)
+	oo.Mana     = ui:Lookup(5)
 
-	self.ui       = ui
-	self.ui.dwID  = dwID
-	self.init     = false
-	self.bUp      = false
-	self.nTop     = 10
-	self.dwID     = dwID
-	self.dwType   = dwType
+	oo.ui       = ui
+	oo.ui.dwID  = dwID
+	oo.init     = false
+	oo.bUp      = false
+	oo.nTop     = 10
+	oo.dwID     = dwID
+	oo.dwType   = dwType
 	if szClass == "TIME" then
-		self.nNow = GetTime()
+		oo.nNow = GetTime()
 	end
-	self.Text:SetTriangleFan(GEOMETRY_TYPE.TEXT)
-	for k, v in pairs({ self.BGB, self.BGI, self.Life, self.Mana, self.Arrow }) do
+	oo.Text:SetTriangleFan(GEOMETRY_TYPE.TEXT)
+	for k, v in pairs({ oo.BGB, oo.BGI, oo.Life, oo.Mana, oo.Arrow }) do
 		v:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 		v:SetD3DPT(D3DPT.TRIANGLEFAN)
 	end
 	CACHE[dwType][dwID] = CACHE[dwType][dwID] or {}
-	tinsert(CACHE[dwType][dwID], self)
-	return self
+	tinsert(CACHE[dwType][dwID], oo)
+	return oo
 end
 
 -- 从下至上 依次绘制
 function SA:DrawText( ... )
 	self.Text:ClearTriangleFanPoint()
-	local nTop = -65
+	local nTop = -62
 	local r, g, b = unpack(SA_COLOR.FONT[self.szClass])
 	local i = 1
 	for k, v in ipairs({ ... }) do

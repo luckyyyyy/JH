@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-11-23 05:12:47
+-- @Last Modified time: 2016-01-22 07:48:39
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS   = {},

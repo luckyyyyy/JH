@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 19:41:04
+-- @Last Modified time: 2016-01-22 19:27:35
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -52,9 +52,9 @@ function GKP_Loot_Base.OnFrameCreate()
 	this:RegisterEvent("DOODAD_LEAVE_SCENE")
 	this:RegisterEvent("GKP_LOOT_RELOAD")
 	this:RegisterEvent("GKP_LOOT_BOSS")
+	this.dwDoodadID = arg0
 	local a = GKP_LOOT_ANCHOR
 	this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
-	this.dwDoodadID = arg0
 end
 
 function GKP_Loot_Base.OnEvent(szEvent)
@@ -89,8 +89,7 @@ end
 function GKP_Loot_Base.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Close" then
-		Wnd.CloseWindow(this:GetRoot())
-		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+		Loot.CloseFrame(this:GetRoot().dwDoodadID)
 	elseif szName == "Btn_Style" then
 		GKP_Loot.bVertical = not GKP_Loot.bVertical
 		FireUIEvent("GKP_LOOT_RELOAD")
@@ -105,7 +104,16 @@ function GKP_Loot_Base.OnLButtonClick()
 		local fnAction = function()
 			local tEquipment = {}
 			for k, v in ipairs(data) do
-				if v.item.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown() then -- 按住Ctrl的情况下 无视分类 否则只给装备
+				if (v.item.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown())
+					and v.item.nSub ~= EQUIPMENT_SUB.WAIST_EXTEND
+					and v.item.nSub ~= EQUIPMENT_SUB.BACK_EXTEND
+					and v.item.nSub ~= EQUIPMENT_SUB.HORSE
+					and v.item.nSub ~= EQUIPMENT_SUB.PACKAGE
+					and v.item.nSub ~= EQUIPMENT_SUB.FACE_EXTEND
+					and v.item.nSub ~= EQUIPMENT_SUB.L_SHOULDER_EXTEND
+					and v.item.nSub ~= EQUIPMENT_SUB.R_SHOULDER_EXTEND
+					and v.item.nSub ~= EQUIPMENT_SUB.BACK_CLOAK_EXTEND
+				then -- 按住Ctrl的情况下 无视分类 否则只给装备
 					table.insert(tEquipment, v.item)
 				end
 			end
@@ -251,6 +259,12 @@ function GKP_Loot_Base.OnItemLButtonClick()
 			LootItem(frame.dwDoodadID, data.dwID)
 			if data.bNeedRoll then
 				JH.Topmsg(g_tStrings.ERROR_LOOT_ROLL)
+			end
+			if data.bBidding then
+				if team.nLootMode ~= PARTY_LOOT_MODE.BIDDING then
+					return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_BID_LOOT)
+				end
+				JH.Sysmsg(_L["GKP does not support bidding, please re open loot list."])
 			end
 		end
 	end
@@ -489,10 +503,10 @@ function Loot.DrawLootList(dwID)
 	local nCount = #data
 	JH.Debug(string.format("Doodad %d, items %d.", dwID, nCount))
 	if not frame or not szName or nCount == 0 then
-		if frame and #data == 0 then
+		if frame then
 			return Wnd.CloseWindow(frame)
 		end
-		return -- JH.Debug("Doodad does not exist!")
+		return JH.Debug("Doodad does not exist!")
 	end
 	-- 修改UI大小
 	local handle = frame:Lookup("", "Handle_Box")
@@ -551,6 +565,7 @@ function Loot.DrawLootList(dwID)
 			szName    = szName,
 			bNeedRoll = v.bNeedRoll,
 			bDist     = v.bDist,
+			bBidding  = v.bBidding,
 			item      = v.item,
 		}
 		if GKP_LOOT_AUTO_LIST[item.nUiId] then
@@ -564,6 +579,29 @@ end
 function Loot.GetFrame(dwID)
 	return Station.Lookup("Normal/GKP_Loot_" .. dwID)
 end
+
+function Loot.OpenFrame(dwID)
+	local frame = Wnd.OpenWindow(GKP_LOOT_INIFILE, "GKP_Loot_" .. dwID)
+	frame.ani = true
+	Loot.DrawLootList(dwID)
+	PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+	JH.Animate(frame, 200):Scale(0.6):FadeIn(function()
+		frame.ani = nil
+	end)
+end
+-- 手动关闭 不适用自定关闭
+function Loot.CloseFrame(dwID)
+	local frame = Loot.GetFrame(dwID)
+	if frame then
+		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+		JH.Animate(frame, 200):Scale(0.6, true):FadeOut(function()
+			if frame and not frame.ani then
+				Wnd.CloseWindow(frame)
+			end
+		end)
+	end
+end
+
 -- 检查物品
 function Loot.GetDoodad(dwID)
 	local me   = GetClientPlayer()
@@ -575,14 +613,14 @@ function Loot.GetDoodad(dwID)
 		szName = d.szName
 		local nLootItemCount = d.GetItemListCount()
 		for i = 0, nLootItemCount - 1 do
-			local item, bNeedRoll, bDist = d.GetLootItem(i, me)
+			local item, bNeedRoll, bDist, bBidding = d.GetLootItem(i, me)
 			if item and item.nQuality > 0 then
 				local szItemName = GetItemNameByItem(item)
 				if not bSpecial and GKP_LOOT_HUANGBABA[szItemName] then
 					bSpecial = true
 				end
 				-- bSpecial = true -- debug
-				table.insert(data, { item = item, bNeedRoll = bNeedRoll, bDist = bDist })
+				table.insert(data, { item = item, bNeedRoll = bNeedRoll, bDist = bDist, bBidding = bBidding })
 			end
 		end
 	end
@@ -610,11 +648,13 @@ JH.RegisterEvent("OPEN_DOODAD", function()
 			end
 			return
 		elseif not frame then
-			Wnd.OpenWindow(GKP_LOOT_INIFILE, "GKP_Loot_" .. arg0)
-			PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+			Loot.OpenFrame(arg0)
+		else
+			if not frame.ani then
+				Loot.DrawLootList(arg0)
+			end
 		end
 		JH.Debug("Doodad Open " .. arg0)
-		Loot.DrawLootList(arg0)
 		Wnd.CloseWindow("LootList")
 	end
 end)
@@ -626,8 +666,7 @@ JH.RegisterEvent("SYNC_LOOT_LIST", function()
 		if not frame then
 			local szName, data = Loot.GetDoodad(arg0)
 			if #data > 0 then
-				Wnd.OpenWindow(GKP_LOOT_INIFILE, "GKP_Loot_" .. arg0)
-				PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+				Loot.OpenFrame(arg0)
 			end
 		end
 		if Loot.GetFrame(arg0) then

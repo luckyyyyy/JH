@@ -1,16 +1,18 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-08 12:56:24
+-- @Last Modified time: 2016-01-22 08:54:43
 -- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
-local ST = class()
+local ST = {}
+ST.__index = ST
 -- ini path
 local ST_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/ST_UI.ini"
 -- cache
 local type, tonumber, ipairs, pairs, assert = type, tonumber, ipairs, pairs, assert
 local tinsert, tsort = table.insert, table.sort
+local setmetatable = setmetatable
 local JH_Split, JH_Trim, JH_FormatTimeString = JH.Split, JH.Trim, JH.FormatTimeString
 local floor = math.floor
 local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
@@ -77,7 +79,7 @@ local function CreateCountdown(nType, szKey, tParam)
 	end
 	local ui = ST_CACHE[nType][szKey]
 	ST_TIME_CACHE[nType][szKey] = nTime
-	ST.new(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
+	ST:ctor(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
 end
 
 ST_UI = {
@@ -217,48 +219,41 @@ function ST:ctor(nType, szKey, tParam)
 	local ui = ST_CACHE[nType][szKey]
 	local nTime = GetTime()
 	local key = nType .. "#" .. szKey
-	if tParam then
-		tParam.szName = tParam.szName or key
-		if ui and ui:IsValid() then
-			self.ui           = ui
-			self.ui.nCreate   = nTime
-			self.ui.nLeft     = nTime
-			self.ui.countdown = tParam.nTime
-			self.ui.nRefresh  = tParam.nRefresh or 1
-			self.ui.bTalk     = tParam.bTalk
-			self.ui.nFrame    = tParam.nFrame
-		else -- 没有ui的情况下 创建
-			self.ui                = _ST_UI.handle:AppendItemFromData(_ST_UI.hItem)
-			-- 参数
-			self.ui.nCreate        = nTime
-			self.ui.nLeft          = nTime
-			self.ui.countdown      = tParam.nTime
-			self.ui.nRefresh       = tParam.nRefresh or 1
-			self.ui.bTalk          = tParam.bTalk
-			self.ui.nFrame         = tParam.nFrame
-			-- 杂项
-			self.ui.nAlpha         = 30
-			-- ui
-			self.ui.time           = self.ui:Lookup("TimeLeft")
-			self.ui.txt            = self.ui:Lookup("SkillName")
-			self.ui.img            = self.ui:Lookup("Image")
-			self.ui.sha            = self.ui:Lookup("shadow")
-			self.ui.sfx            = self.ui:Lookup("SFX")
-			self.ui.obj            = self
-			ST_CACHE[nType][szKey] = self.ui
-			self.ui:Show()
-			_ST_UI.handle:FormatAllItemPos()
-		end
-		return self
-	else
-		if ui and ui:IsValid() then
-			self.ui = ui
-			return self
-		else
-			-- Log("[JH_DEBUG] ST == nil! nType: " .. nType .. " szKey:" .. szKey)
-			return nil
-		end
+	tParam.szName = tParam.szName or key
+	local oo
+	if ui and ui:IsValid() then
+		oo = ui.obj
+		oo.ui.nCreate   = nTime
+		oo.ui.nLeft     = nTime
+		oo.ui.countdown = tParam.nTime
+		oo.ui.nRefresh  = tParam.nRefresh or 1
+		oo.ui.bTalk     = tParam.bTalk
+		oo.ui.nFrame    = tParam.nFrame
+	else -- 没有ui的情况下 创建
+		oo = {}
+		setmetatable(oo, self)
+		oo.ui                = _ST_UI.handle:AppendItemFromData(_ST_UI.hItem)
+		-- 参数
+		oo.ui.nCreate        = nTime
+		oo.ui.nLeft          = nTime
+		oo.ui.countdown      = tParam.nTime
+		oo.ui.nRefresh       = tParam.nRefresh or 1
+		oo.ui.bTalk          = tParam.bTalk
+		oo.ui.nFrame         = tParam.nFrame
+		-- 杂项
+		oo.ui.nAlpha         = 30
+		-- ui
+		oo.ui.time           = oo.ui:Lookup("TimeLeft")
+		oo.ui.txt            = oo.ui:Lookup("SkillName")
+		oo.ui.img            = oo.ui:Lookup("Image")
+		oo.ui.sha            = oo.ui:Lookup("shadow")
+		oo.ui.sfx            = oo.ui:Lookup("SFX")
+		oo.ui.obj            = oo
+		ST_CACHE[nType][szKey] = oo.ui
+		oo.ui:Show()
+		_ST_UI.handle:FormatAllItemPos()
 	end
+	return oo
 end
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
 function ST:SetInfo(tTime, nIcon)
