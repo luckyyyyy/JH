@@ -661,10 +661,11 @@ data = {
 	["Refuse request"] = "对方拒绝了您的请求！",
 	["Party limit"] = "必须和对方组队",
 	-- About.lua --
+	["Home"] = "首页",
 	["Checking command sent, please see talk channel"] = "检查指令已发送，请查看聊天框。",
 	["I have installed JH plug-in v"] = "我安装了菊花插件集 v",
 	["About"] = "关于本插件",
-	["ABOUT_TIPS"] = "这是玩家菊花开发的《剑网三》 PVE 辅助插件，部分功能因前作者停止更新，都由我重构收录到《菊花插件集》内继续维护更新。\n\n感谢HM贡献大量源码。",
+	["ABOUT_TIPS"] = "这是玩家菊花开发的《剑网三》 PVE 辅助插件，部分功能因前作者停止更新，都由我重构收录到《菊花插件集》内继续维护更新，插件纯凭兴趣爱好制作，所有插件均可单独打开或关闭，不定期随机更新。\n\n感谢HM贡献大量源码。",
 	["WeiBo"] = "作者微博",
 	["%s are welcome to use JH plug-in"] = "欢迎%s使用菊花插件集",
 	["Free & open source, Utility, Focus on PVE!"] = "开源免费、实用、专注于 PVE！",

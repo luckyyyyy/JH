@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-19 15:52:17
+-- @Last Modified time: 2016-01-23 19:23:16
 
 -- 战斗浮动文字设计思路
 --[[
@@ -45,7 +45,7 @@ local COMBAT_TEXT_CRITICAL = { -- 需要会心跳帧的伤害类型
 	[SKILL_RESULT_TYPE.STEAL_LIFE]           = true,
 	["EXP"]                                  = true,
 }
-
+local COMBAT_TEXT_IGNORE_TYPE = {}
 local COMBAT_TEXT_IGNORE = {}
 local COMBAT_TEXT_EVENT  = { "COMMON_HEALTH_TEXT", "SKILL_EFFECT_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY" }
 local COMBAT_TEXT_STRING = { -- 需要变成特定字符串的伤害类型
@@ -291,9 +291,9 @@ function CombatText.OnFrameRender()
 				nTop = -60 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
 				if v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 					if v.szPoint == "TOP_LEFT" then
-						nLeft = -200
+						nLeft = -250
 					elseif v.szPoint == "TOP_RIGHT" then
-						nLeft = 200
+						nLeft = 250
 					end
 					nTop = nTop -50
 				end
@@ -304,7 +304,7 @@ function CombatText.OnFrameRender()
 			elseif v.szPoint == "RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				nLeft = 60 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
-				nAlpha = nAlpha * 0.85
+				nAlpha = nAlpha * 0.9
 
 			elseif v.szPoint == "BOTTOM_LEFT" or v.szPoint == "BOTTOM_RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
@@ -326,13 +326,15 @@ function CombatText.OnFrameRender()
 				elseif tScale[nBefore] < tScale[nAfter] then
 					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
 				end
-				if v.nType == SKILL_RESULT_TYPE.THERAPY then
+				if v.nType == SKILL_RESULT_TYPE.THERAPY then -- 治疗缩小
 					if v.bCriticalStrike then
 						fScale = max(fScale * 0.7, COMBAT_TEXT_SCALE.NORMAL[#COMBAT_TEXT_SCALE.NORMAL] + 0.1)
 					end
 					if v.dwTargetID == dwID then
 						fScale = fScale * 0.95
 					end
+				elseif v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then -- 左右缩小
+					fScale = fScale * 0.85
 				end
 			end
 			-- draw
@@ -392,7 +394,7 @@ local function TrajectorySort(a, b)
 	end
 end
 
--- 最大程度上使用见缝插针效果
+-- 最大程度上使用见缝插针效果 缺少缓存 待补充
 function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	local tSort = {}
 	local fRange = 1 / COMBAT_TEXT_TRAJECTORY
@@ -458,36 +460,24 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 	end
 end
 
-function CombatText.PushText(tab, nCount)
-	for i = 1, nCount do
-		if #tab > 0 then
-			local dat = tremove(tab, 1)
-			if dat.dat.szPoint == "TOP" then
-				local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
-				-- print(nSort)
-				if nSort > COMBAT_TEXT_TRAJECTORY then
-					dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
-					dat.dat.nSort = 0
-				else
-					dat.dat.nSort = nSort
-				end
-			end
-			dat.dat.nTime = GetTime()
-			COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
-		end
-	end
-end
 
 function CombatText.ExecQueue()
 	for k, v in pairs(COMBAT_TEXT_QUEUE) do
 		for kk, vv in pairs(v) do
-			-- if k == "LEFT" or k == "RIGHT" then
-			-- 	CombatText.PushText(vv, 2)
-			-- else
-				-- CombatText.PushText(vv, 1)
-			-- end
 			if #vv > 0 then
-				CombatText.PushText(vv, 1)
+				local dat = tremove(vv, 1)
+				if dat.dat.szPoint == "TOP" then
+					local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
+					-- print(nSort)
+					if nSort > COMBAT_TEXT_TRAJECTORY then
+						dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
+						dat.dat.nSort = 0
+					else
+						dat.dat.nSort = nSort
+					end
+				end
+				dat.dat.nTime = GetTime()
+				COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
 			else
 				COMBAT_TEXT_QUEUE[k][kk] = nil
 			end
@@ -514,7 +504,9 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		return
 	end
 	local dwID = UI_GetClientPlayerID()
-	if COMBAT_TEXT_IGNORE[dwSkillID] and dwCasterID == dwID then
+	if (dwCasterID == dwID and (COMBAT_TEXT_IGNORE[dwSkillID] or COMBAT_TEXT_IGNORE_TYPE[nType]))
+		or nType == SKILL_RESULT_TYPE.STEAL_LIFE and COMBAT_TEXT_IGNORE_TYPE[nType]
+	then
 		return
 	end
 	-- 把治疗归类为一种 方便处理
@@ -523,7 +515,6 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	if nType == SKILL_RESULT_TYPE.THERAPY and nValue == 0 then
 		return
 	end
-
 	local bIsPlayer = IsPlayer(dwCasterID)
 	local p = bIsPlayer and GetPlayer(dwCasterID) or GetNpc(dwCasterID)
 	local employer, dwEmployerID
@@ -719,11 +710,12 @@ function CombatText.LoadConfig()
 	if bExist then
 		local data = LoadLUAData(COMBAT_TEXT_CONFIG)
 		if data then
-			COMBAT_TEXT_CRITICAL = data.COMBAT_TEXT_CRITICAL or COMBAT_TEXT_CRITICAL
-			COMBAT_TEXT_SCALE    = data.COMBAT_TEXT_SCALE    or COMBAT_TEXT_SCALE
-			COMBAT_TEXT_POINT    = data.COMBAT_TEXT_POINT    or COMBAT_TEXT_POINT
-			COMBAT_TEXT_IGNORE   = data.COMBAT_TEXT_IGNORE   or COMBAT_TEXT_IGNORE
-			COMBAT_TEXT_EVENT    = data.COMBAT_TEXT_EVENT    or COMBAT_TEXT_EVENT
+			COMBAT_TEXT_CRITICAL    = data.COMBAT_TEXT_CRITICAL    or COMBAT_TEXT_CRITICAL
+			COMBAT_TEXT_SCALE       = data.COMBAT_TEXT_SCALE       or COMBAT_TEXT_SCALE
+			COMBAT_TEXT_POINT       = data.COMBAT_TEXT_POINT       or COMBAT_TEXT_POINT
+			COMBAT_TEXT_EVENT       = data.COMBAT_TEXT_EVENT       or COMBAT_TEXT_EVENT
+			COMBAT_TEXT_IGNORE_TYPE = data.COMBAT_TEXT_IGNORE_TYPE or {}
+			COMBAT_TEXT_IGNORE      = data.COMBAT_TEXT_IGNORE      or {}
 			JH.Sysmsg(_L["CombatText Config loaded"])
 		else
 			JH.Sysmsg(_L["CombatText Config failed"])

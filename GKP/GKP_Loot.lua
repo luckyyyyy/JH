@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 21:54:44
+-- @Last Modified time: 2016-01-23 17:48:42
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -91,82 +91,21 @@ function GKP_Loot_Base.OnLButtonClick()
 	if szName == "Btn_Close" then
 		Loot.CloseFrame(this:GetRoot().dwDoodadID)
 	elseif szName == "Btn_Style" then
-		GKP_Loot.bVertical = not GKP_Loot.bVertical
-		FireUIEvent("GKP_LOOT_RELOAD")
+		local ui = this:GetRoot()
+		JH.Animate(ui):FadeOut(200, function()
+			GKP_Loot.bVertical = not GKP_Loot.bVertical
+			FireUIEvent("GKP_LOOT_RELOAD")
+			JH.Animate(ui):FadeIn(200)
+		end)
 	elseif szName == "Btn_Boss" then
-		local me         = GetClientPlayer()
-		local frame      = this:GetRoot()
-		local dwDoodadID = frame.dwDoodadID
-		if not Loot.AuthCheck(dwDoodadID) then
-			return
-		end
-		local szName, data = Loot.GetDoodad(dwDoodadID)
-		local fnAction = function()
-			local tEquipment = {}
-			for k, v in ipairs(data) do
-				if (v.item.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown())
-					and v.item.nSub ~= EQUIPMENT_SUB.WAIST_EXTEND
-					and v.item.nSub ~= EQUIPMENT_SUB.BACK_EXTEND
-					and v.item.nSub ~= EQUIPMENT_SUB.HORSE
-					and v.item.nSub ~= EQUIPMENT_SUB.PACKAGE
-					and v.item.nSub ~= EQUIPMENT_SUB.FACE_EXTEND
-					and v.item.nSub ~= EQUIPMENT_SUB.L_SHOULDER_EXTEND
-					and v.item.nSub ~= EQUIPMENT_SUB.R_SHOULDER_EXTEND
-					and v.item.nSub ~= EQUIPMENT_SUB.BACK_CLOAK_EXTEND
-				then -- 按住Ctrl的情况下 无视分类 否则只给装备
-					table.insert(tEquipment, v.item)
-				end
-			end
-			if #tEquipment == 0 then
-				return JH.Alert(_L["No Equiptment left for Equiptment Boss"])
-			end
-			local aPartyMember = Loot.GetaPartyMember(GetDoodad(dwDoodadID))
-			local p = aPartyMember(GKP_LOOT_BOSS)
-			if p and p.bOnlineFlag then  -- 这个人存在团队的情况下
-				local szXml = GetFormatText(_L["Are you sure you want the following item\n"], 162, 255, 255, 255)
-				local r, g, b = JH.GetForceColor(p.dwForceID)
-				for k, v in ipairs(tEquipment) do
-					local r, g, b = GetItemFontColorByQuality(v.nQuality)
-					szXml = szXml .. GetFormatText("[".. GetItemNameByItem(v) .."]\n", 166, r, g, b)
-				end
-				szXml = szXml .. GetFormatText(_L["All distrubute to"], 162, 255, 255, 255)
-				szXml = szXml .. GetFormatText("[".. p.szName .."]", 162, r, g, b)
-				local msg = {
-					szMessage = szXml,
-					szName = "GKP_Distribute",
-					szAlignment = "CENTER",
-					bRichText = true,
-					{
-						szOption = g_tStrings.STR_HOTKEY_SURE,
-						fnAutoClose = function()
-							return not frame or false
-						end,
-						fnAction = function()
-							for k, v in ipairs(tEquipment) do
-								JH.DelayCall(function()
-									Loot.DistributeItem(GKP_LOOT_BOSS, dwDoodadID, v.dwID, {}, true)
-								end)
-							end
-						end
-					},
-					{
-						szOption = g_tStrings.STR_HOTKEY_CANCEL
-					},
-				}
-				MessageBox(msg)
-			else
-				return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
-			end
-		end
-		if GKP_LOOT_BOSS then
-			fnAction()
-		else
-			local menu = GKP.GetTeamMemberMenu(function(v)
-				GKP_LOOT_BOSS = v.dwID
-				fnAction()
-			end, false, true)
-			PopupMenu(menu)
-		end
+		Loot.GetBossAction(this:GetRoot().dwDoodadID, type(GKP_LOOT_BOSS) == "nil")
+	end
+end
+
+function GKP_Loot_Base.OnRButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Boss" then
+		 Loot.GetBossAction(this:GetRoot().dwDoodadID, true)
 	end
 end
 
@@ -315,6 +254,74 @@ function GKP_Loot_Base.OnItemRButtonClick()
 			end
 		end
 		PopupMenu(menu)
+	end
+end
+
+function Loot.GetBossAction(dwDoodadID, bMenu)
+	if not Loot.AuthCheck(dwDoodadID) then
+		return
+	end
+	local szName, data = Loot.GetDoodad(dwDoodadID)
+	local fnAction = function()
+		local tEquipment = {}
+		for k, v in ipairs(data) do
+			if (v.item.nGenre == ITEM_GENRE.EQUIPMENT or IsCtrlKeyDown())
+				and v.item.nSub ~= EQUIPMENT_SUB.WAIST_EXTEND
+				and v.item.nSub ~= EQUIPMENT_SUB.BACK_EXTEND
+				and v.item.nSub ~= EQUIPMENT_SUB.HORSE
+				and v.item.nSub ~= EQUIPMENT_SUB.PACKAGE
+				and v.item.nSub ~= EQUIPMENT_SUB.FACE_EXTEND
+				and v.item.nSub ~= EQUIPMENT_SUB.L_SHOULDER_EXTEND
+				and v.item.nSub ~= EQUIPMENT_SUB.R_SHOULDER_EXTEND
+				and v.item.nSub ~= EQUIPMENT_SUB.BACK_CLOAK_EXTEND
+			then -- 按住Ctrl的情况下 无视分类 否则只给装备
+				table.insert(tEquipment, v.item)
+			end
+		end
+		if #tEquipment == 0 then
+			return JH.Alert(_L["No Equiptment left for Equiptment Boss"])
+		end
+		local aPartyMember = Loot.GetaPartyMember(GetDoodad(dwDoodadID))
+		local p = aPartyMember(GKP_LOOT_BOSS)
+		if p and p.bOnlineFlag then  -- 这个人存在团队的情况下
+			local szXml = GetFormatText(_L["Are you sure you want the following item\n"], 162, 255, 255, 255)
+			local r, g, b = JH.GetForceColor(p.dwForceID)
+			for k, v in ipairs(tEquipment) do
+				local r, g, b = GetItemFontColorByQuality(v.nQuality)
+				szXml = szXml .. GetFormatText("[".. GetItemNameByItem(v) .."]\n", 166, r, g, b)
+			end
+			szXml = szXml .. GetFormatText(_L["All distrubute to"], 162, 255, 255, 255)
+			szXml = szXml .. GetFormatText("[".. p.szName .."]", 162, r, g, b)
+			local msg = {
+				szMessage = szXml,
+				szName = "GKP_Distribute",
+				szAlignment = "CENTER",
+				bRichText = true,
+				{
+					szOption = g_tStrings.STR_HOTKEY_SURE,
+					fnAction = function()
+						for k, v in ipairs(tEquipment) do
+							Loot.DistributeItem(GKP_LOOT_BOSS, dwDoodadID, v.dwID, {}, true)
+						end
+					end
+				},
+				{
+					szOption = g_tStrings.STR_HOTKEY_CANCEL
+				},
+			}
+			MessageBox(msg)
+		else
+			return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
+		end
+	end
+	if bMenu then
+		local menu = GKP.GetTeamMemberMenu(function(v)
+			GKP_LOOT_BOSS = v.dwID
+			fnAction()
+		end, false, true)
+		PopupMenu(menu)
+	else
+		fnAction()
 	end
 end
 

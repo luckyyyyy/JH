@@ -29,11 +29,14 @@ local SKILL_RESULT_TYPE = {
 data = {
 	-- 忽略不显示的技能 ID可以在DBM近期技能记录找 平砍也是个技能
 	COMBAT_TEXT_IGNORE = {
-		-- [12]   = true, -- XX平砍
+		-- [16]   = true, -- XX平砍
 		-- [4326] = true, -- 明教平砍
 		-- 其他自己找了 都注解了 需要无视自己去掉 但是小心仙侣老3害人
 	},
-
+	-- 忽略自身施展的部分类型 明教可以忽略外功伤害 也可以忽略吸血
+	COMBAT_TEXT_IGNORE_TYPE = {
+		-- [SKILL_RESULT_TYPE.STEAL_LIFE] = true,
+	},
 	-- 用于屏蔽事件，比如不需要BUFF可以删除 SKILL_BUFF
 	COMBAT_TEXT_EVENT  = { "COMMON_HEALTH_TEXT", "SKILL_EFFECT_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY" },
 

@@ -1,9 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:15:43
+-- @Last Modified time: 2016-01-23 16:34:56
 
 local _L = JH.LoadLangPack
+local CRAFT_RESULT_CODE_SUCCESS = 1
 local pairs, ipairs = pairs, ipairs
 local GetClientPlayer, BigBagPanel_nCount = GetClientPlayer, BigBagPanel_nCount
 local BookID2GlobelRecipeID = BookID2GlobelRecipeID
@@ -256,7 +257,7 @@ function Book.Copy()
 	end
 	Book.bEnable    = true
 	Book.szBookName = JH_CopyBook.szBookName
-	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks = Book.GetBook(JH_CopyBook.szBookName)
+	local dwBookID, dwBookNumber = Book.GetBook(Book.szBookName)
 	assert(dwBookID)
 	JH.Sysmsg(_L("Start Copy Book %s", Book.szBookName))
 	local function StopProfessionSkill()
@@ -267,7 +268,6 @@ function Book.Copy()
 		Book.UpdateRange()
 	end
 	local function GetNextBook(bNext)
-		local me = GetClientPlayer()
 		if not bNext then
 			if JH_CopyBook.tIgnore[Book.nBook] then
 				bNext = true
@@ -278,11 +278,8 @@ function Book.Copy()
 				Book.nBook = Book.nBook + 1
 				if Book.nBook > dwBookNumber then -- 一套书抄完了
 					Book.nBook = 1
-					if me.nCurrentThew < nThew then -- 体力不够一套书
-						StopProfessionSkill()
-						return JH.Sysmsg(_L["Not Enough Thew"])
-					end
 					JH_CopyBook.nCopyNum = JH_CopyBook.nCopyNum - 1
+					JH.Debug("COPYBOOK # Count " .. JH_CopyBook.nCopyNum)
 					if JH_CopyBook.nCopyNum == 0 then
 						return StopProfessionSkill()
 					end
@@ -297,10 +294,14 @@ function Book.Copy()
 		if not me then
 			return StopProfessionSkill()
 		end
-		local nState = me.CastProfessionSkill(12, dwBookID, GetNextBook(bNext))
-		if nState ~= 1 then
-			JH.Debug("COPYBOOK # CAST_ERROR #" .. nState)
-			return StopProfessionSkill()
+		local nBook = GetNextBook(bNext)
+		if nBook then
+			JH.Debug("COPYBOOK # Book:" .. dwBookID .. " Index:" .. nBook)
+			local nState = me.CastProfessionSkill(12, dwBookID, nBook)
+			if nState ~= 1 then
+				JH.Debug("COPYBOOK # CAST_ERROR #" .. nState)
+				return StopProfessionSkill()
+			end
 		end
 	end
 	JH.RegisterInit("COPYBOOK_START",
@@ -314,7 +315,7 @@ function Book.Copy()
 		end },
 		{ "SYS_MSG", function() -- 抄录完成 继续抄录
 			if arg0 == "UI_OME_CRAFT_RESPOND" and arg2 == 12 then
-				if arg1 == 1 then
+				if arg1 == CRAFT_RESULT_CODE_SUCCESS then
 					CastProfessionSkill(true)
 				else
 					StopProfessionSkill()

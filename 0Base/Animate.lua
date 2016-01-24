@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-21 22:01:02
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 20:35:11
+-- @Last Modified time: 2016-01-24 03:56:02
 
 -- JX3UI Simple Animate Library
 local ANI_QUEUE = {
@@ -77,6 +77,9 @@ function Animate:FadeOut(nTime, bShow, fnAction)
 		end
 	else
 		nTime = nTime or self.nTime
+		if type(bShow) == "function" then
+			fnAction, bShow = bShow, false
+		end
 	end
 	self.ui:SetAlpha(255)
 	self.ui:Show()
@@ -85,8 +88,8 @@ function Animate:FadeOut(nTime, bShow, fnAction)
 		local nNow = GetTime()
 		if self.ui and self.ui:IsValid() then
 			local nLeft = nNow - nCreat
-			if nLeft < self.nTime then
-				local nAlpha = 255 - nLeft / self.nTime * 255
+			if nLeft < nTime then
+				local nAlpha = 255 - nLeft / nTime * 255
 				return self.ui:SetAlpha(nAlpha)
 			end
 			if bShow then
@@ -121,6 +124,9 @@ function Animate:Scale(fScale, nTime, bNormal, fnAction)
 		end
 	else
 		nTime = nTime or self.nTime
+		if type(bNormal) == "function" then
+			fnAction, bNormal = bNormal, false
+		end
 	end
 	local bPoint = self.type == "WndFrame"
 	local a = bPoint and GetFrameAnchor(self.ui)
@@ -132,7 +138,7 @@ function Animate:Scale(fScale, nTime, bNormal, fnAction)
 		self.ui:Scale(fScale, fScale)
 	end
 	local bLarge = fScale < fForm
-	local fStep = (bLarge and fForm - fScale or fScale - fForm) / self.nTime
+	local fStep = (bLarge and fForm - fScale or fScale - fForm) / nTime
 	local nCreat = GetTime()
 	local fScaleNow = fScale
 	local function Scale()
@@ -194,8 +200,8 @@ function Animate:Pos(tPos, nTime, fnAction)
 		local nNow  = GetTime()
 		if self.ui and self.ui:IsValid() then
 			local nLeft = nNow - nCreat
-			if nLeft < self.nTime then
-				local nX, nY = nLeft / self.nTime * nX, nLeft / self.nTime * nY
+			if nLeft < nTime then
+				local nX, nY = nLeft / nTime * nX, nLeft / nTime * nY
 				self.ui:SetRelPos(nSX + nX, nSY + nY)
 				if hParent then hParent:FormatAllItemPos() end
 				return

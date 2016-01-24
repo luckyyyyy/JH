@@ -1,28 +1,19 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 07:48:39
+-- @Last Modified time: 2016-01-24 07:29:08
 local _L = JH.LoadLangPack
 local _JH_About = {
 	PS   = {},
 	INFO = {},
 }
--- author
-function _JH_About.PS.GetAuthorInfo()
-	return _L["JH @ Double Dream Town"]
-end
 
 function _JH_About.CheckInstall()
 	local me = GetClientPlayer()
 	local me, team = GetClientPlayer(), GetClientTeam()
 	if me.IsInParty() and JH.IsLeader() or JH.bDebugClient then
-		if IsCtrlKeyDown() and JH.bDebugClient then
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "Author")
-			JH.Sysmsg2(_L["Checking command sent, please see talk channel"])
-		else
-			JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "JH_CHECK")
-			JH.Sysmsg(_L["Checking command sent, please see talk channel"])
-		end
+		JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "JH_ABOUT", "Author")
+		JH.Sysmsg2(_L["Checking command sent, please see talk channel"])
 	else
 		JH.Sysmsg(_L["You are not team leader or not in team"])
 	end
@@ -73,10 +64,7 @@ function _JH_About.GetMemory()
 end
 
 JH.RegisterBgMsg("JH_ABOUT", function(nChannel, dwID, szName, data, bIsSelf)
-	if data[1] == "JH_CHECK" then
-		-- check plugin
-		JH.Talk(PLAYER_TALK_CHANNEL.RAID, _L["I have installed JH plug-in v"] .. JH.GetVersion())
-	elseif data[1] == "Author" then -- 版本检查 自用 可以绘制详细表格
+	if data[1] == "Author" then -- 版本检查 自用 可以绘制详细表格
 		local me, szTong = GetClientPlayer(), ""
 		if me.dwTongID > 0 then
 			szTong = GetTongClient().ApplyGetTongName(me.dwTongID)
@@ -104,45 +92,55 @@ end)
 
 function _JH_About.PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 27 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 10, w = 500 , h = 80, multi = true, txt = _L["ABOUT_TIPS"] }):Pos_()
+	-- nX, nY = ui:Append("Image",{ x = 125, y = 0, w = 500, h = 140}):File("interface/JH/0Base/background.tga"):Pos_()
+	nX, nY = ui:Append("Text", "Animate1", { x = 10, y = nY + 5, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 27 }):Toggle(false):Pos_()
+	nX, nY = ui:Append("Text", "Animate2", { x = 20, y = nY + 10, w = 720 , h = 70, multi = true, txt = _L["ABOUT_TIPS"] }):Toggle(false):Pos_()
 	nY = nY + 70
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Version"], font = 27 }):Pos_()
+	nX, nY = ui:Append("Text", "Animate3", { x = 10, y = nY - 15, txt = _L["Version"], font = 27 }):Toggle(false):Pos_()
 	local info = JH.GetAddonInfo()
 	local txt = info.szName .. " v" ..  info.szVersion .. " (Build: " .. info.szBuildDate .. ")"
-	nX, nY = ui:Append("Text", { x = 0, y = nY + 10, txt = txt }):Pos_()
-
-	nX, nY = ui:Append("Text", { x = 0, y = nY + 20, txt = _L["Other"], font = 27 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, txt = _L["WeiBo"] .. " http://weibo.com/techvicky", w = 250, h = 28 }):Click(function()
+	nX, nY = ui:Append("Text", "Animate4", { x = 20, y = nY + 5, txt = txt }):Toggle(false):Pos_()
+	nX, nY = ui:Append("Text", "Animate5", { x = 10, y = nY + 5, txt = _L["Other"], font = 27 }):Toggle(false):Pos_()
+	nX, nY = ui:Append("Text", "Animate6", { x = 20, y = nY + 5, txt = _L["WeiBo"] .. " http://weibo.com/techvicky", w = 250, h = 28 }):Click(function()
 		OpenInternetExplorer("http://weibo.com/techvicky")
-	end, { 255, 255, 255 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 5, txt = _L["official website"] .. " http://www.j3ui.com", w = 250, h = 28 }):Click(function()
+	end, { 255, 255, 255 }):Toggle(false):Pos_()
+	nX, nY = ui:Append("Text", "Animate7", { x = 20, y = nY + 5, txt = _L["official website"] .. " http://www.j3ui.com", w = 250, h = 28 }):Click(function()
 		OpenInternetExplorer("http://www.j3ui.com")
-	end, { 255, 255, 255 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 5, txt = _L["GitHub"] .. " https://github.com/Webster-jx3/JH", w = 250, h = 28 }):Click(function()
+	end, { 255, 255, 255 }):Toggle(false):Pos_()
+	nX, nY = ui:Append("Text", "Animate8", { x = 20, y = nY + 5, txt = _L["GitHub"] .. " https://github.com/Webster-jx3/JH", w = 250, h = 28 }):Click(function()
 		OpenInternetExplorer("https://github.com/Webster-jx3/JH")
-	end, { 255, 255, 255 }):Pos_()
-	nX = ui:Append("WndButton2", { x = 10, y = nY + 12, txt = _L["Check Install"] }):Click(_JH_About.CheckInstall):Pos_()
-	ui:Append("WndCheckBox", "DEBUG", { x = 380, y = 340, checked = JH.bDebug, txt = "Enable Debug" }):Click(function(bChecked)
-		if not JH.bDebug then
-			JH.Confirm(_L["Warning: plugin will ignore the authority when the debugging mode is on, showing action can not be operate when cross the authorit, but none of this coud be accept by the server,do not select if you are not the developer, avoid making misunderstanding, please do not try it when set up a team, this may creat problem like messing up the record."],function()
-				JH.bDebug = not JH.bDebug
-			end, function()
-				ui:Fetch("DEBUG"):Check(JH.bDebug)
+	end, { 255, 255, 255 }):Toggle(false):Pos_()
+	if JH.bDebugClient then
+		nX = ui:Append("WndButton4", { x = 130, y = 400, txt = _L["Check Install"] }):Click(_JH_About.CheckInstall):Pos_()
+		ui:Append("Text", "Memory", { x = 10, y = 400, alpha = 150, txt = _JH_About.GetMemory() }):Click(function()
+			collectgarbage("collect")
+			ui:Fetch("Memory"):Text(_JH_About.GetMemory())
+		end)
+	end
+	ui:Append("Text", { x = 10, y = 400, w = 730, h = 25, txt = JH.GetAddonInfo().szAuthor, align = 2, alpha = 120 })
+
+	-- animate test
+	local x, y = ui:Fetch("Animate1"):Pos()
+	JH.Animate(ui:Fetch("Animate1").self):FadeIn():Pos({ x - 20, x, y, y }, function()
+		JH.Animate(ui:Fetch("Animate2").self):FadeIn(function()
+			local x, y = ui:Fetch("Animate3"):Pos()
+			JH.Animate(ui:Fetch("Animate3").self):FadeIn():Pos({ x - 20, x, y, y }, function()
+				JH.Animate(ui:Fetch("Animate4").self):FadeIn(function()
+					local x, y = ui:Fetch("Animate5"):Pos()
+					JH.Animate(ui:Fetch("Animate5").self):FadeIn():Pos({ x - 20, x, y, y }, function()
+						JH.Animate(ui:Fetch("Animate6").self):FadeIn()
+						JH.Animate(ui:Fetch("Animate7").self):FadeIn()
+						JH.Animate(ui:Fetch("Animate8").self):FadeIn()
+					end)
+				end)
 			end)
-		else
-			JH.bDebug = not JH.bDebug
-		end
-	end)
-	ui:Append("Text", "Memory", { x = 0, y = 340, alpha = 30, txt = _JH_About.GetMemory() }):Click(function()
-		collectgarbage("collect")
-		ui:Fetch("Memory"):Text(_JH_About.GetMemory())
+		end)
 	end)
 end
 
 function _JH_About.PS.OnTaboxCheck(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX, nY = ui:Append("Image",{ x = 10, y = 0, w = 500, h = 195}):File("interface/JH/0Base/background.tga"):Pos_()
+
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { 255, 255, 0 }, txt = _L("%s are welcome to use JH plug-in", GetUserRoleName()), font = 230 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY, color = { 255, 255, 0 }, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 233 }):Pos_()
 	local time = TimeToDate(GetCurrentTime())
@@ -155,18 +153,10 @@ function _JH_About.PS.OnTaboxCheck(frame)
 	ui:Append("Text", { x = 10, y = nY + 15, color = { GetItemFontColorByQuality(col[time.weekday]) }, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 })
 end
 
-GUI.RegisterPanel(_L["About"], { "ui/Image/UICommon/PlugIn.uitex", 5 }, _L["Recreation"], _JH_About.PS)
-
-JH.RegisterEvent("CALL_LUA_ERROR", function()
-	if JH.bDebug then
-		OutputMessage("MSG_SYS", arg0)
-	end
-end)
-
 -- public
 local _About = {
+	PS            = _JH_About.PS,
 	OnTaboxCheck  = _JH_About.PS.OnTaboxCheck,
 	OnPanelActive = _JH_About.PS.OnPanelActive,
-	GetAuthorInfo = _JH_About.PS.GetAuthorInfo,
 }
 JH_About = setmetatable({}, { __metatable = true, __index = _About, __newindex = function() end } )

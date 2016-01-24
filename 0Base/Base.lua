@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 19:51:58
+-- @Last Modified time: 2016-01-24 07:46:52
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -15,11 +15,10 @@ local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
 local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam, UI_GetClientPlayerID = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam, UI_GetClientPlayerID
 local setmetatable = setmetatable
 
-local ROOT_PATH   = "interface/JH/0Base/"
-local DATA_PATH   = "interface/JH/@DATA/"
-local SHADOW_PATH = "interface/JH/0Base/item/shadow.ini"
-local ADDON_PATH  = "interface/JH/"
-local _VERSION_   = 0x1020400
+local ROOT_PATH   = "Interface/JH/0Base/"
+local DATA_PATH   = "Interface/JH/@DATA/"
+local SHADOW_PATH = "Interface/JH/0Base/item/shadow.ini"
+local ADDON_PATH  = "Interface/JH/"
 
 ---------------------------------------------------------------------
 -- 多语言处理
@@ -48,44 +47,51 @@ local function GetLang()
 end
 local _L = GetLang()
 
+local _VERSION_   = 0x1020400
+local _BUILD_     = "20160114"
+local _DEBUG_     = IsFileExist(DATA_PATH .. "EnableDebug")
+local _LOGLV_     = 2
+
+local JH_PANEL_INIFILE     = ROOT_PATH .. "ui/JH.ini"
+local JH_PANEL_CLASS       = { g_tStrings.CHANNEL_CHANNEL, _L["Dungeon"], _L["Panel"], _L["Recreation"] }
+local JH_PANEL_ADDON       = {}
+local JH_PANEL_SELECT
+local JH_PANEL_ANCHOR      = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
+
 ---------------------------------------------------------------------
 -- 插件开始
 ---------------------------------------------------------------------
 JH = {
-	bDebug       = false, -- debug
 	bDebugClient = false, -- 测试客户端版本
 	nChannel     = PLAYER_TALK_CHANNEL.RAID, -- JH.Talk默认频道
 	LoadLangPack = _L,
 }
-RegisterCustomData("JH.bDebug")
-RegisterCustomData("JH.nChannel") -- 方便debug切到TONG
 
 do
-	local exp = { GetVersion() }
-	if exp then
-		if exp[4] == "exp" or exp[4] == "bvt" then -- 体服和内网 默认开启了DEBUG
-			JH.bDebug = true
-			OutputMessage("MSG_SYS", " [-- JH --] test client, enable debug mode!\n")
+	if GetVersion and OutputMessage then
+		local exp = { GetVersion() }
+		if (exp and exp[4] == "exp" or exp[4] == "bvt") or type(EnableDebugEnv) ~= nil then -- 调试用
+			_DEBUG_ = true
+			OutputMessage("MSG_SYS", " [-- JH --] debug client, enable debug !!\n")
 			OutputMessage("MSG_SYS", " [-- JH --] client version " .. exp[2] .. "\n")
 			OutputMessage("MSG_SYS", " [-- JH --] client tag " .. exp[4] .. "\n")
+			if EnableDebugEnv then
+				OutputMessage("MSG_SYS", " [-- JH --] Debug LUA Env !! \n")
+			end
 		end
 	end
 end
 
 local _JH = {
-	szBuildDate  = "20160114",
 	szTitle      = _L["JH, JX3 Plug-in Collection"],
 	tHotkey      = {},
-	tAnchor      = {},
 	tDelayCall   = {},
 	tRequest     = {},
 	tGlobalValue = {},
-	tConflict    = {},
 	tEvent       = {},
 	tBgMsgHandle = {},
 	tModule      = {},
 	szShort      = _L["JH"],
-	nDebug       = 2,
 	tBuffCache   = {},
 	tSkillCache  = {},
 	tMapCache    = {},
@@ -96,14 +102,462 @@ local _JH = {
 	aNpc         = {},
 	aDoodad      = {},
 	tBreatheCall = {},
-	tItem        = { {}, {}, {} },
 	tOption      = { szOption = _L["JH Plugin"] },
 	tOption2     = { szOption = _L["JH Plugin"] },
-	tClass       = { _L["General"], _L["Other"] },
-	szIniFile    = ROOT_PATH .. "JH.ini",
 }
 
+-- (string, number) JH.GetVersion() -- 获取插件版本号
+function _JH.GetVersion()
+	local v = _VERSION_
+	local szVersion = sformat("%d.%d.%d", v/0x1000000,
+		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
+	if  v%0x100 ~= 0 then
+		szVersion = szVersion .. "b" .. tostring(v%0x100)
+	end
+	return szVersion, v
+end
+
 local JH = JH
+-- 插件界面 在不打开时 永远不初始化
+function JH.OnFrameCreate()
+	this.bInit = true
+	this:RegisterEvent("UI_SCALED")
+	this:RegisterEvent("CALL_LUA_ERROR")
+end
+
+function JH.OnEvent(szEvent)
+	if szEvent == "CALL_LUA_ERROR" and _DEBUG_ then
+		OutputMessage("MSG_SYS", arg0)
+	elseif szEvent == "UI_SCALED" then
+		local a = JH_PANEL_ANCHOR
+		this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
+	end
+end
+
+function JH.OnFrameDragEnd()
+	JH_PANEL_ANCHOR = GetFrameAnchor(this)
+end
+
+function JH.OnFrameBreathe()
+	-- run breathe calls
+	local nFrame = GetLogicFrameCount()
+	for k, v in pairs(_JH.tBreatheCall) do
+		if nFrame >= v.nNext then
+			v.nNext = nFrame + v.nFrame
+			local res, err = pcall(v.fnAction)
+			if not res then
+				JH.Debug("BreatheCall#" .. k .." ERROR: " .. err)
+			end
+		end
+	end
+	local nTime = GetTime()
+	for k = #_JH.tDelayCall, 1, -1 do
+		local v = _JH.tDelayCall[k]
+		if v.nTime <= nTime then
+			local res, err = pcall(v.fnAction)
+			if not res then
+				JH.Debug("DelayCall#" .. k .." ERROR: " .. err)
+			end
+			tremove(_JH.tDelayCall, k)
+		end
+	end
+	-- run remote request (3s)
+	if not _JH.nRequestExpire or _JH.nRequestExpire < nTime then
+		if _JH.nRequestExpire then
+			local r = tremove(_JH.tRequest, 1)
+			if r then
+				pcall(r.fnAction)
+			end
+			_JH.nRequestExpire = nil
+		end
+		if #_JH.tRequest > 0 then
+			local page = Station.Lookup("Normal/JH/Page_1")
+			if page then
+				page:Navigate(_JH.tRequest[1].szUrl)
+			end
+			_JH.nRequestExpire = GetTime() + 3000
+		end
+	end
+end
+
+function JH.OnDocumentComplete()
+	local r = tremove(_JH.tRequest, 1)
+	if r then
+		_JH.nRequestExpire = nil
+		pcall(r.fnAction, this:GetLocationName(), this:GetDocument())
+	end
+end
+
+function JH.OnCheckBoxCheck()
+	local szName = this:GetName()
+	if szName == "WndCheck_Home" or szName == "WndCheck_About" then
+		local frame = _JH.GetFrame()
+		for i = 0, frame.hTab:GetAllContentCount() -1 do
+			local hCheck = frame.hTab:LookupContent(i)
+			if hCheck ~= this then
+				hCheck:Check(false)
+			else
+				hCheck:Check(true)
+			end
+		end
+		if szName == "WndCheck_Home" then
+			_JH.BackHome()
+		elseif szName == "WndCheck_About" then
+			_JH.UpdatePage(JH_About.PS)
+		end
+	end
+end
+
+function _JH.UpdatePage(fn)
+	_JH.CloseAddonPanel()
+	JH_PANEL_SELECT = nil
+	local frame = _JH.GetFrame()
+	if not frame.hPage:IsVisible() then
+		frame.hPage:Show()
+		frame.hPage:SetMousePenetrable(false)
+	end
+	for k, v in ipairs({ frame.hContent, frame.hHome }) do
+		if v:IsVisible() then
+			v:SetMousePenetrable(true)
+			v:Hide()
+		end
+	end
+	frame.hPage:Clear()
+	frame.hPage:Lookup("", ""):Clear()
+	return fn.OnPanelActive(frame.hPage)
+end
+
+function _JH.BackHome()
+	_JH.CloseAddonPanel()
+	JH_PANEL_SELECT = nil
+	local frame = _JH.GetFrame()
+	if not frame.hHome:IsVisible() then
+		JH.Animate(frame.hHome):FadeIn(300, function()
+			frame.hHome:SetMousePenetrable(false)
+		end)
+	end
+	frame.hPage:Hide()
+	frame.hPage:SetMousePenetrable(true)
+	if frame.hContent:IsVisible() then
+		frame.hContent:SetMousePenetrable(true)
+		JH.Animate(frame.hContent):FadeOut(300)
+	end
+	PlaySound(SOUND.UI_SOUND, g_sound.TakeUpSkill)
+end
+
+function JH.OnLButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Close" then
+		_JH.ClosePanel()
+	end
+end
+
+function _JH.GetAddonExist(dwClass, nIndex)
+	if JH_PANEL_ADDON[dwClass] and JH_PANEL_ADDON[dwClass][nIndex] then
+		return JH_PANEL_ADDON[dwClass][nIndex]
+	end
+end
+
+function _JH.CreateAddonFrame(tAddon)
+	local frame = _JH.GetFrame()
+	for i = 0, frame.hTab:GetAllContentCount() -1 do
+		local hCheck = frame.hTab:LookupContent(i)
+		hCheck:Check(false)
+	end
+	frame.hContainer:Clear()
+	frame.hContainer:Lookup("", ""):Clear()
+	return tAddon.fn.OnPanelActive(frame.hContainer)
+end
+
+function _JH.CloseAddonPanel()
+	if JH_PANEL_SELECT and JH_PANEL_SELECT.fn and JH_PANEL_SELECT.fn.OnPanelDeactive then
+		JH_PANEL_SELECT.fn.OnPanelDeactive()
+	end
+end
+
+function _JH.OpenAddonPanel(dwClass, nIndex)
+	if type(dwClass) == "string" then
+		for k, v in ipairs(JH_PANEL_ADDON) do
+			for kk, vv in ipairs(v) do
+				if vv.szTitle == dwClass then
+					dwClass, nIndex = k, kk
+					break
+				end
+			end
+		end
+	end
+	local tAddon = _JH.GetAddonExist(dwClass, nIndex)
+	if tAddon then
+		local frame = _JH.GetFrame()
+		for k, v in ipairs({ frame.hHome, frame.hPage }) do
+			if v:IsVisible() then
+				v:SetMousePenetrable(true)
+				JH.Animate(v):FadeOut(300)
+			end
+		end
+		if not frame.hContent:IsVisible() then
+			JH.Animate(frame.hContent):FadeIn(300, function()
+				frame.hContent:SetMousePenetrable(false)
+			end)
+		end
+		_JH.CloseAddonPanel()
+		if JH_PANEL_SELECT ~= tAddon then
+			JH_PANEL_SELECT      = tAddon
+			for i = 0, frame.hTree:GetItemCount() -1 do
+				local ui = frame.hTree:Lookup(i)
+				if ui then
+					if ui:GetName() == "TreeLeaf_Node" then
+						if ui.dwClass == dwClass then
+							ui:Expand()
+						else
+							ui:Collapse()
+						end
+					elseif ui:GetName() == "TreeLeaf_Addon" then
+						if ui.nIndex == nIndex and ui.dwClass == dwClass then
+							ui:Lookup("Text_Addon_Tree"):SetFontColor(255, 128, 0)
+							ui:Lookup("Image_Addon_Tree"):SetFrame(27)
+						else
+							ui:Lookup("Text_Addon_Tree"):SetFontColor(255, 255, 255)
+							ui:Lookup("Image_Addon_Tree"):SetFrame(29)
+						end
+					end
+				end
+			end
+			local x, y = frame.hContainer:GetRelPos()
+			JH.Animate(frame.hContainer, 200):Pos({ x + 30, x, y, y }):FadeIn()
+			PlaySound(SOUND.UI_SOUND, g_sound.Button)
+			frame.hTree:FormatAllItemPos()
+		end
+		_JH.CreateAddonFrame(tAddon)
+	end
+end
+
+function JH.OnItemLButtonClick()
+	local szName = this:GetName()
+	if szName == "Handle_Addon" or szName == "TreeLeaf_Addon" then
+		if _JH.GetAddonExist(this.dwClass, this.nIndex) then
+			_JH.OpenAddonPanel(this.dwClass, this.nIndex)
+		end
+	elseif szName == "TreeLeaf_Node" then
+		local hTree = this:GetParent()
+		for i = 0, hTree:GetItemCount() -1 do
+			local ui = hTree:Lookup(i)
+			if ui ~= this and ui and ui:GetName() == "TreeLeaf_Node" then
+				ui:Collapse()
+			end
+		end
+		if this:IsExpand() then
+			this:Collapse()
+		else
+			this:Expand()
+		end
+		return hTree:FormatAllItemPos()
+	end
+end
+
+function JH.OnItemMouseEnter()
+	local szName = this:GetName()
+	if szName == "Handle_Addon" then
+		return this:Lookup("Image_Addon"):SetFrame(28)
+	elseif szName == "TreeLeaf_Addon" then
+		return this:Lookup("Image_Addon_Tree"):SetFrame(28)
+	elseif szName == "TreeLeaf_Node" then
+		return this:Lookup("Image_Hover"):SetFrame(67)
+	end
+end
+
+function JH.OnItemMouseLeave()
+	local szName = this:GetName()
+	if szName == "Handle_Addon" then
+		return this:Lookup("Image_Addon"):SetFrame(29)
+	elseif szName == "TreeLeaf_Addon" then
+		local szTitle = this:Lookup("Text_Addon_Tree"):GetText()
+		if JH_PANEL_SELECT and szTitle ~= JH_PANEL_SELECT.szTitle then
+			return this:Lookup("Image_Addon_Tree"):SetFrame(29)
+		else
+			return this:Lookup("Image_Addon_Tree"):SetFrame(27)
+		end
+	elseif szName == "TreeLeaf_Node" then
+		return this:Lookup("Image_Hover"):SetFrame(66)
+	end
+end
+
+function _JH.UpdateAddon()
+	local frame = _JH.GetFrame()
+	frame.hClass:Clear()
+	frame.hTree:Clear()
+	for k, v in ipairs(JH_PANEL_ADDON) do
+		-- home
+		local hClass = frame.hClass:AppendItemFromIni(JH_PANEL_INIFILE, "Handle_Class")
+		local hAddon = hClass:Lookup("Handle_Addon_List")
+		hClass:Lookup("Text_Class"):SetText(JH_PANEL_CLASS[k])
+		hAddon:Clear()
+		-- Tree
+		local hNode = frame.hTree:AppendItemFromIni(JH_PANEL_INIFILE, "TreeLeaf_Node")
+		hNode:Lookup("Text_Tag"):SetText(JH_PANEL_CLASS[k])
+		for kk, vv in ipairs(v) do
+			local item  = hAddon:AppendItemFromIni(JH_PANEL_INIFILE, "Handle_Addon")
+			local addon = frame.hTree:AppendItemFromIni(JH_PANEL_INIFILE, "TreeLeaf_Addon")
+			item:Lookup("Text_Addon"):SetText(vv.szTitle)
+			addon:Lookup("Text_Addon_Tree"):SetText(vv.szTitle)
+			if type(vv.dwIcon) == "number" then
+				item:Lookup("Box_Addon"):SetObjectIcon(vv.dwIcon)
+				addon:Lookup("Box_Addon_Tree"):SetObjectIcon(vv.dwIcon)
+			else
+				item:Lookup("Box_Addon"):ClearObjectIcon()
+				addon:Lookup("Box_Addon_Tree"):ClearObjectIcon()
+				local szImage, nFrame = unpack(vv.dwIcon)
+				item:Lookup("Box_Addon"):SetExtentImage(szImage, nFrame)
+				addon:Lookup("Box_Addon_Tree"):SetExtentImage(szImage, nFrame)
+			end
+			item.nIndex   = kk
+			item.dwClass  = k
+			addon.nIndex  = kk
+			addon.dwClass = k
+		end
+		hNode.dwClass = k
+		hAddon:FormatAllItemPos()
+		hAddon:SetSizeByAllItemSize()
+		hNode:Collapse()
+		hClass:FormatAllItemPos()
+		hClass:SetSizeByAllItemSize()
+	end
+	frame.hClass:FormatAllItemPos()
+	frame.hTree:FormatAllItemPos()
+end
+
+function _JH.UpdateTabBox()
+	local frame = _JH.GetFrame()
+	frame.hTab:Clear()
+	for k, v in ipairs({ "Home", "About" }) do
+		local hCheck = frame.hTab:AppendContentFromIni(JH_PANEL_INIFILE, "Wnd_TabBox", "WndCheck_" .. v)
+		local txt = hCheck:Lookup("", "Text_TabBox")
+		txt:SetText(_L[v])
+		local w = txt:GetTextExtent()
+		txt:SetW(w + 30)
+		hCheck:SetW(w + 30)
+	end
+	local _ = JH.OnCheckBoxCheck
+	JH.OnCheckBoxCheck = nil
+	frame.hTab:LookupContent(0):Check(true)
+	JH.OnCheckBoxCheck = _
+	frame.hTab:FormatAllContentPos()
+end
+
+function _JH.GetFrame()
+	return Station.Lookup("Normal/JH")
+end
+
+function _JH.IsOpened()
+	local frame = _JH.GetFrame()
+	return frame and frame:IsVisible()
+end
+
+function _JH.InitPanel()
+	local frame = _JH.GetFrame()
+	if frame.bInit then
+		frame.bInit = nil
+		frame.hTab       = frame:Lookup("WndContainer_Tab")
+		frame.hHome      = frame:Lookup("WndScroll_Home")
+		frame.hPage      = frame:Lookup("WndContainer_Page")
+		frame.hClass     = frame.hHome:Lookup("", "")
+		frame.hContent   = frame:Lookup("Wnd_Content")
+		frame.hTree      = frame.hContent:Lookup("WndScroll_TreeLeaf"):Lookup("", "")
+		frame.hContainer = frame.hContent:Lookup("WndContainer_Main")
+		local a = JH_PANEL_ANCHOR
+		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
+		_JH.UpdateAddon()
+		_JH.UpdateTabBox()
+		local szTitle = _JH.szTitle .. " v" ..  _JH.GetVersion() .. " (" .. _BUILD_ .. ")"
+		frame:Lookup("", "Text_Title"):SetText(szTitle)
+		JH.RegisterGlobalEsc("JH", _JH.IsOpened, _JH.ClosePanel)
+	end
+end
+
+-- open
+function _JH.OpenPanel(szTitle)
+	local frame = _JH.GetFrame()
+	if frame then
+		if not frame.ani then
+			local function fnAction()
+				if szTitle then
+					_JH.OpenAddonPanel(szTitle)
+				elseif JH_PANEL_SELECT then
+					_JH.OpenAddonPanel(JH_PANEL_SELECT.szTitle)
+				end
+			end
+			if frame.bInit then -- 对不起 ios开发做多了... 不加个welcome不舒服
+				_JH.InitPanel()
+				JH.Animate(frame:Lookup("", "Text_Loading")):FadeOut(800, function()
+					if not szTitle then
+						JH.Animate(frame.hHome, 300):FadeIn()
+					end
+					fnAction()
+				end)
+			else
+				fnAction()
+			end
+			if not _JH.IsOpened() then
+				JH.Animate(frame, 200):Scale(0.8):FadeIn(function()
+					frame.ani = nil
+				end)
+				frame.ani = true
+				PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
+				frame:BringToTop()
+				if Cursor.IsVisible() then
+					Station.SetFocusWindow(frame)
+				end
+			end
+		end
+	else
+		frame = Wnd.OpenWindow(JH_PANEL_INIFILE, "JH")
+		frame:Hide()
+	end
+	return frame
+end
+
+-- close
+function _JH.ClosePanel(bDisable)
+	local frame = _JH.GetFrame()
+	if frame and not frame.ani then
+		if not bDisable then
+			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
+		end
+		_JH.CloseAddonPanel()
+		JH.Animate(frame, 200):Scale(0.8, true):FadeOut()
+	end
+end
+
+-- toggle
+function _JH.TogglePanel()
+	if _JH.IsOpened() then
+		_JH.ClosePanel()
+	else
+		_JH.OpenPanel()
+	end
+end
+
+JH.OpenPanel   = _JH.OpenPanel
+JH.GetFrame    = _JH.GetFrame
+JH.IsOpened    = _JH.IsOpened
+JH.ClosePanel  = _JH.ClosePanel
+JH.TogglePanel = _JH.TogglePanel
+
+-------------------------------------
+-- EventHandler
+-------------------------------------
+function _JH.EventHandler(szEvent)
+	local tEvent = _JH.tEvent[szEvent]
+	if tEvent then
+		for k, v in pairs(tEvent) do
+			local res, err = pcall(v, szEvent)
+			if not res then
+				JH.Debug("EVENT#" .. szEvent .. "." .. k .." ERROR: " .. err)
+			end
+		end
+	end
+end
+
 -- parse emotion in talking message
 function _JH.ParseFaceIcon(t)
 	if not _JH.tFaceIcon then
@@ -153,296 +607,6 @@ function _JH.ParseFaceIcon(t)
 	return t2
 end
 
--------------------------------------
--- 设置面板开关、初始化
--------------------------------------
-function JH.OpenPanel(szTitle)
-	_JH.OpenPanel()
-	if szTitle then
-		local nClass, nItem = 0, 0
-		for k, v in ipairs(_JH.tItem) do
-			if _JH.tClass[k] == szTitle then
-				nClass = k
-				break
-			end
-			for kk, vv in ipairs(v) do
-				if vv.szTitle == szTitle then
-					nClass, nItem = k, kk
-				end
-			end
-		end
-		if nClass ~= 0 then
-			GUI.Fetch(_JH.frame, "TabBox_" .. nClass):Check(true)
-			if nItem ~= 0 then
-				GUI.Fetch(_JH.hList, "Button_" .. nItem):Click()
-			end
-		end
-	end
-end
-
--- open
-function _JH.OpenPanel()
-	local frame = _JH.GetFrame()
-	if frame then
-		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
-		frame:BringToTop()
-		local win = GUI(_JH.frame:Lookup("Wnd_Detail"))
-		if win.___data then
-			local i, data = unpack(win.___data)
-			_JH.UpdateDetail(i, data)
-		end
-		JH.Animate(frame, 200):Scale(0.8):FadeIn()
-	else
-		frame = Wnd.OpenWindow(_JH.szIniFile, "JH")
-	end
-	return frame
-end
-
--- close
-function _JH.ClosePanel(bDisable)
-	local frame = _JH.GetFrame()
-	if frame then
-		local win = GUI(frame:Lookup("Wnd_Detail"))
-		if win.fnDestroy then
-			win.fnDestroy(win)
-		end
-		if not bDisable then
-			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
-		end
-		JH.Animate(frame, 200):Scale(0.8, true):FadeOut()
-	end
-end
-
--- toggle
-function _JH.TogglePanel()
-	if _JH.IsOpened() then
-		_JH.ClosePanel()
-	else
-		_JH.OpenPanel()
-	end
-end
-
-function _JH.GetFrame()
-	return _JH.frame
-end
-
-function _JH.IsOpened()
-	return _JH.GetFrame() and _JH.frame:IsVisible()
-end
-JH.GetFrame    = _JH.GetFrame
-JH.IsOpened    = _JH.IsOpened
-JH.ClosePanel  = _JH.ClosePanel
-JH.TogglePanel = _JH.TogglePanel
-
--- register conflict checker
-function _JH.RegisterConflictCheck(fnAction)
-	_JH.tConflict = _JH.tConflict or {}
-	tinsert(_JH.tConflict, fnAction)
-end
-
--------------------------------------
--- 更新设置面板界面
--------------------------------------
-
--- updae detail content
-function _JH.UpdateDetail(i, data)
-	local win = GUI.Fetch(_JH.frame, "Wnd_Detail")
-	if win then win:Remove() end
-	if not data then
-		data = {}
-		if JH_About then
-			if not i then	-- default
-				data.fn = {
-					OnPanelActive = JH_About.OnPanelActive,
-					GetAuthorInfo = JH_About.GetAuthorInfo,
-				}
-			elseif JH_About.OnTaboxCheck then	-- switch
-				data.fn = {
-					OnPanelActive = function(frame)
-						JH_About.OnTaboxCheck(frame, i, _JH.tClass[i])
-						-- PlaySound(SOUND.UI_SOUND, g_sound.Mail)
-					end,
-					GetAuthorInfo = JH_About.GetAuthorInfo
-				}
-			end
-		end
-	end
-	win = GUI.Append(_JH.frame, "WndActionWindow", "Wnd_Detail")
-	win:Size(_JH.hContent:GetSize()):Pos(_JH.hContent:GetRelPos())
-	if type(data.fn) == "table" then
-		local szInfo = ""
-		if data.fn.GetAuthorInfo then
-			szInfo = "-- by " .. data.fn.GetAuthorInfo() .. " --"
-		end
-		_JH.hTotal:Lookup("Text_Author"):SetText(szInfo)
-		if data.fn.OnPanelActive then
-			data.fn.OnPanelActive(win:Raw())
-			win.___data = { i, data }
-			win.handle:FormatAllItemPos()
-		end
-		win.fnDestroy = data.fn.OnPanelDeactive
-	end
-	local x, y = win:Raw():GetRelPos()
-	JH.Animate(win:Raw(), 200):Pos({ x + 20, x, y, y }):FadeIn()
-end
-
--- create menu item
-function _JH.NewListItem(i, data, dwClass)
-	local handle = _JH.hList
-	local item = GUI.Append(handle, "BoxButton", "Button_" .. i)
-	item:Icon(data.dwIcon):Text(data.szTitle):Click(function()
-		_JH.UpdateDetail(dwClass, data)
-	end, true, true)
-	return item
-end
-
--- update menu list
-function _JH.UpdateListInfo(nIndex)
-	local nX, nY = 0, 2 -- 预留2
-	_JH.hList:Clear()
-	_JH.UpdateDetail(nIndex)
-	for k, v in ipairs(_JH.tItem[nIndex]) do
-		local item = _JH.NewListItem(k, v, nIndex)
-		item:Pos(nX, nY)
-		nY = nY + 55
-	end
-end
-
--- update tab list
-function _JH.UpdateTabBox(frame)
-	local nX, nY, first = 25, 52, nil
-	for k, v in ipairs(_JH.tClass) do
-		if table.getn(_JH.tItem[k]) > 0 then
-			local tab = frame:Lookup("TabBox_" .. k)
-			if not tab then
-				tab = GUI.Append(frame, "WndTabBox", "TabBox_" .. k, { group = "Nav" })
-			else
-				tab = GUI.Fetch(tab)
-			end
-			tab:Text(v):Pos(nX, nY):Click(function(bChecked)
-				if bChecked then
-					_JH.UpdateListInfo(k)
-				end
-			end):Check(false)
-			if not first then
-				first = tab
-			end
-			local nW, _ = tab:Size()
-			nX = nX + mceil(nW) + 10
-		end
-	end
-	if first then
-		first:Check(true)
-	end
-end
-
-function _JH.EventHandler(szEvent)
-	local tEvent = _JH.tEvent[szEvent]
-	if tEvent then
-		for k, v in pairs(tEvent) do
-			local res, err = pcall(v, szEvent)
-			if not res then
-				JH.Debug("EVENT#" .. szEvent .. "." .. k .." ERROR: " .. err)
-			end
-		end
-	end
-end
-
-function _JH.UpdateAnchor(frame)
-	local a = _JH.tAnchor
-	if not IsEmpty(a) then
-		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
-	else
-		frame:SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
-	end
-end
-
-function JH.OnFrameCreate()
-	-- var
-	_JH.frame    = this
-	_JH.hTotal   = this:Lookup("Wnd_Content", "")
-	_JH.hList    = this:Lookup("Wnd_Content/WndScroll_List", "")
-	_JH.hContent = _JH.hTotal:Lookup("Handle_Content")
-	_JH.hBox     = _JH.hTotal:Lookup("Box_1")
-	-- title
-	local szTitle = _JH.szTitle .. " v" ..  JH.GetVersion() .. " (" .. _JH.szBuildDate .. ")"
-	local ui = GUI(this)
-	-- Text_Title
-	ui:Title(szTitle):Point()
-	ui:Append("WndButton4", { x = 670, y = 52, txt = g_tStrings.BUG_SUBMIT }):Click(function()
-		OpenInternetExplorer("http://www.diaochapai.com/survey1592748")
-	end)
-	this:RegisterEvent("UI_SCALED")
-	-- update list/detail
-	_JH.UpdateTabBox(this)
-end
-
-function JH.OnEvent(szEvent)
-	if szEvent == "UI_SCALED" then
-		_JH.UpdateAnchor(this)
-	end
-end
-
-function JH.OnFrameDragEnd()
-	_JH.tAnchor = GetFrameAnchor(this)
-end
-
-function JH.OnFrameBreathe()
-	-- run breathe calls
-	local nFrame = GetLogicFrameCount()
-	for k, v in pairs(_JH.tBreatheCall) do
-		if nFrame >= v.nNext then
-			v.nNext = nFrame + v.nFrame
-			local res, err = pcall(v.fnAction)
-			if not res then
-				JH.Debug("BreatheCall#" .. k .." ERROR: " .. err)
-			end
-		end
-	end
-	local nTime = GetTime()
-	for k = #_JH.tDelayCall, 1, -1 do
-		local v = _JH.tDelayCall[k]
-		if v.nTime <= nTime then
-			local res, err = pcall(v.fnAction)
-			if not res then
-				JH.Debug("DelayCall#" .. k .." ERROR: " .. err)
-			end
-			tremove(_JH.tDelayCall, k)
-		end
-	end
-	-- run remote request (10s)
-	if not _JH.nRequestExpire or _JH.nRequestExpire < nTime then
-		if _JH.nRequestExpire then
-			local r = tremove(_JH.tRequest, 1)
-			if r then
-				pcall(r.fnAction)
-			end
-			_JH.nRequestExpire = nil
-		end
-		if #_JH.tRequest > 0 then
-			local page = Station.Lookup("Normal/JH/Page_1")
-			if page then
-				page:Navigate(_JH.tRequest[1].szUrl)
-			end
-			_JH.nRequestExpire = GetTime() + 15000
-		end
-	end
-end
-
-function JH.OnDocumentComplete()
-	local r = tremove(_JH.tRequest, 1)
-	if r then
-		_JH.nRequestExpire = nil
-		pcall(r.fnAction, this:GetLocationName(), this:GetDocument())
-	end
-end
--- button click
-function JH.OnLButtonClick()
-	local szName = this:GetName()
-	if szName == "Btn_Close" then
-		_JH.ClosePanel()
-	end
-end
 --------------------------------------- * 常用函数 * ---------------------------------------
 
 -- (void) JH.SetHotKey()               -- 打开快捷键设置面板
@@ -450,26 +614,17 @@ end
 function JH.SetHotKey(szGroup)
 	HotkeyPanel_Open(szGroup or _JH.szTitle)
 end
--- (string, number) JH.GetVersion() -- 获取插件版本号
-function JH.GetVersion()
-	local v = _VERSION_
-	local szVersion = sformat("%d.%d.%d", v/0x1000000,
-		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
-	if  v%0x100 ~= 0 then
-		szVersion = szVersion .. "b" .. tostring(v%0x100)
-	end
-	return szVersion, v
-end
+
 -- (table) JH.GetAddonInfo() -- 获取插件基础信息
 function JH.GetAddonInfo()
 	return {
 		szName      = _JH.szTitle,
-		szVersion   = JH.GetVersion(),
+		szVersion   = _JH.GetVersion(),
 		szRootPath  = ADDON_PATH,
-		szAuthor    = _L['JH @ Double Dream Town'],
+		szAuthor    = _L["JH @ Double Dream Town"],
 		szShadowIni = SHADOW_PATH,
 		szDataPath  = DATA_PATH,
-		szBuildDate = _JH.szBuildDate,
+		szBuildDate = _BUILD_,
 	}
 end
 
@@ -556,7 +711,7 @@ function JH.RegisterCustomData(szVarPath, nVersion, szDomain)
 	end
 end
 -- 开发函数 修改全局变量
-function JH.SetGlobalValue(szVarPath, Val)
+function _JH.SetGlobalValue(szVarPath, Val)
 	local t = JH.Split(szVarPath, ".")
 	local tab = _G
 	for k, v in ipairs(t) do
@@ -757,27 +912,6 @@ function JH.BgHear(szKey, bIgnore)
 	end
 end
 
-function JH.CanUseSkill(dwSkillID, dwLevel)
-	local me, box = GetClientPlayer(), _JH.hBox
-	if me and box then
-		if not dwLevel then
-			if dwSkillID ~= 9007 then
-				dwLevel = me.GetSkillLevel(dwSkillID)
-			else
-				dwLevel = 1
-			end
-		end
-		if dwLevel > 0 then
-			box:EnableObject(false)
-			box:SetObjectCoolDown(1)
-			box:SetObject(UI_OBJECT_SKILL, dwSkillID, dwLevel)
-			UpdataSkillCDProgress(me, box)
-			return box:IsObjectEnable() and not box:IsObjectCoolDown()
-		end
-	end
-	return false
-end
-
 function JH.IsParty(dwID)
 	return GetClientPlayer().IsPlayerInMyParty(dwID)
 end
@@ -946,7 +1080,6 @@ function JH.IsInParty()
 end
 
 
-
 function JH.JsonToTable(szJson)
 	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
 	if err then
@@ -998,7 +1131,7 @@ end
 
 function JH.Debug(szMsg, szHead, nLevel)
 	nLevel = nLevel or 1
-	if JH.bDebug and _JH.nDebug >= nLevel then
+	if _DEBUG_ and _LOGLV_ >= nLevel then
 		if nLevel == 3 then szMsg = "### " .. szMsg
 		elseif nLevel == 2 then szMsg = "=== " .. szMsg
 		else szMsg = "-- " .. szMsg end
@@ -1295,7 +1428,7 @@ function JH.DelayCall(fnAction, nDelay)
 	if not nDelay then
 		if #_JH.tDelayCall > 0 then
 			if _JH.tDelayCall[#_JH.tDelayCall].fnAction == fnAction then
-				return JH.Debug("Ignore DelayCall " .. tostring(fnAction))
+				return JH.Debug3("Ignore DelayCall " .. tostring(fnAction))
 			end
 		end
 		nDelay = 0
@@ -1397,20 +1530,20 @@ end
 
 function _JH.GetMainMenu()
 	return {
-		szOption = _L["JH Plugin"],
-		fnAction = _JH.TogglePanel,
-		bCheck = true,
-		bChecked = _JH.frame:IsVisible(),
-		szIcon = 'ui/Image/UICommon/CommonPanel2.UITex',
-		nFrame = 105, nMouseOverFrame = 106,
-		szLayer = "ICON_RIGHT",
+		szOption    = _L["JH Plugin"],
+		fnAction    = _JH.TogglePanel,
+		bCheck      = true,
+		bChecked    = _JH.IsOpened(),
+		szIcon      = 'ui/Image/UICommon/CommonPanel2.UITex',
+		nFrame      = 105, nMouseOverFrame = 106,
+		szLayer     = "ICON_RIGHT",
 		fnClickIcon = _JH.TogglePanel
 	}
 end
 
 function _JH.GetPlayerAddonMenu()
 	local menu = _JH.GetMainMenu()
-	tinsert(menu, { szOption = _L["JH Plugin"] .. " v" .. JH.GetVersion(), bDisable = true })
+	tinsert(menu, { szOption = _L["JH Plugin"] .. " v" .. _JH.GetVersion(), bDisable = true })
 	tinsert(menu, { bDevide = true })
 	tinsert(menu, { szOption = _L["Open JH Panel"], fnAction = _JH.TogglePanel })
 	tinsert(menu, { bDevide = true })
@@ -1421,26 +1554,26 @@ function _JH.GetPlayerAddonMenu()
 			tinsert(menu, v)
 		end
 	end
-	if JH.bDebugClient then
+	if _DEBUG_Client then
 		tinsert(menu, { bDevide = true })
 		tinsert(menu, { szOption = "ReloadUIAddon", fnAction = function()
 			ReloadUIAddon()
 		end })
 		tinsert(menu, { bDevide = true })
-		tinsert(menu, { szOption = "Enable Debug mode", bCheck = true, bChecked = JH.bDebug, fnAction = function()
-			JH.bDebug = not JH.bDebug
+		tinsert(menu, { szOption = "Enable Debug mode", bCheck = true, bChecked = _DEBUG_, fnAction = function()
+			_DEBUG_ = not _DEBUG_
 		end })
 	end
-	if JH.bDebug then
+	if _DEBUG_ then
 		tinsert(menu, { bDevide = true })
-		tinsert(menu, { szOption = "Debug Level 1", bMCheck = true, bChecked = _JH.nDebug == 1, fnAction = function()
-			_JH.nDebug = 1
+		tinsert(menu, { szOption = "Debug Level 1", bMCheck = true, bChecked = _LOGLV_ == 1, fnAction = function()
+			_LOGLV_ = 1
 		end })
-		tinsert(menu, { szOption = "Debug Level 2", bMCheck = true, bChecked = _JH.nDebug == 2, fnAction = function()
-			_JH.nDebug = 2
+		tinsert(menu, { szOption = "Debug Level 2", bMCheck = true, bChecked = _LOGLV_ == 2, fnAction = function()
+			_LOGLV_ = 2
 		end })
-		tinsert(menu, { szOption = "Debug Level 3", bMCheck = true, bChecked = _JH.nDebug == 3, fnAction = function()
-			_JH.nDebug = 3
+		tinsert(menu, { szOption = "Debug Level 3", bMCheck = true, bChecked = _LOGLV_ == 3, fnAction = function()
+			_LOGLV_ = 3
 		end })
 		tinsert(menu, { bDevide = true })
 		tinsert(menu, { szOption = "Talk Debug Channel",
@@ -1457,7 +1590,7 @@ end
 
 function _JH.GetAddonMenu()
 	local menu = _JH.GetMainMenu()
-	tinsert(menu,{ szOption = _L["JH Plugin"] .. " v" .. JH.GetVersion(), bDisable = true })
+	tinsert(menu,{ szOption = _L["JH Plugin"] .. " v" .. _JH.GetVersion(), bDisable = true })
 	tinsert(menu,{ bDevide = true })
 	for _, v in ipairs(_JH.tOption2) do
 		if type(v) == "function" then
@@ -1487,8 +1620,8 @@ function JH.GetShadowHandle(szName)
 end
 JH.GetPlayerAddonMenu = _JH.GetPlayerAddonMenu
 JH.RegisterEvent("PLAYER_ENTER_GAME", function()
-	_JH.OpenPanel():Hide()
-	-- _JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
+	_JH.OpenPanel()
+	_JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
 	-- 注册快捷键
 	Hotkey.AddBinding("JH_Total", _L["JH Plugin"], _JH.szTitle, _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do
@@ -1498,7 +1631,7 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	Player_AppendAddonMenu({ _JH.GetPlayerAddonMenu })
 	-- 注册右上角菜单
 	TraceButton_AppendAddonMenu({ _JH.GetAddonMenu })
-	JH.RegisterGlobalEsc("JH", _JH.IsOpened, _JH.ClosePanel)
+	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetUserRoleName()) .. "! v" .. _JH.GetVersion())
 end)
 
 JH.RegisterEvent("LOADING_END", function()
@@ -1506,14 +1639,13 @@ JH.RegisterEvent("LOADING_END", function()
 	for k, v in pairs(_JH.tBreatheCall) do
 		v.nNext = GetLogicFrameCount()
 	end
+	-- debug mode
 	for k, v in pairs(_JH.tGlobalValue) do
-		JH.SetGlobalValue(k, v)
+		_JH.SetGlobalValue(k, v)
 		_JH.tGlobalValue[k] = nil
 	end
 end)
-JH.RegisterEvent("FIRST_LOADING_END", function()
-	JH.Sysmsg(_L("%s are welcome to use JH plug-in", GetClientPlayer().szName) .. "! v" .. JH.GetVersion() )
-end)
+
 -- szKey, nChannel, dwID, szName, aTable
 JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 	if _JH.tBgMsgHandle[arg0] then
@@ -3522,39 +3654,29 @@ function GUI.Fetch(hParent, szName)
 end
 
 function GUI.RegisterPanel(szTitle, dwIcon, szClass, fn)
-	-- find class
-	local dwClass = nil
-	if not szClass then
-		dwClass = 1
-	else
-		for k, v in ipairs(_JH.tClass) do
-			if v == szClass then
-				dwClass = k
-			end
-		end
-		if not dwClass then
-			tinsert(_JH.tClass, szClass)
-			dwClass = table.getn(_JH.tClass)
-			_JH.tItem[dwClass] = {}
-		end
-	end
-	-- check to update
-	for _, v in ipairs(_JH.tItem[dwClass]) do
-		if v.szTitle == szTitle then
-			v.dwIcon, v.fn, dwClass = dwIcon, fn, nil
+	local dwClass
+	for k, v in ipairs(JH_PANEL_CLASS) do
+		if szClass == v then
+			dwClass = k
 			break
 		end
 	end
-	-- create new one
-	if dwClass then
-		tinsert(_JH.tItem[dwClass], { szTitle = szTitle, dwIcon = dwIcon, fn = fn })
+	if not dwClass then
+		table.insert(JH_PANEL_CLASS, szClass)
+		dwClass = #JH_PANEL_CLASS
 	end
-	if _JH.frame then
-		_JH.UpdateTabBox(_JH.frame)
+	JH_PANEL_ADDON[dwClass] = JH_PANEL_ADDON[dwClass] or {}
+	for k, v in ipairs(JH_PANEL_ADDON[dwClass]) do
+		if v.szTitle == szTitle then
+			return -- exist
+		end
 	end
-	if fn and fn.OnConflictCheck then
-		_JH.RegisterConflictCheck(fn.OnConflictCheck)
-	end
+	table.insert(JH_PANEL_ADDON[dwClass], {
+		dwIcon  = dwIcon,
+		szTitle = szTitle,
+		fn      = fn,
+		dwClass = dwClass,
+	})
 end
 
 -- 字体选择器

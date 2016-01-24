@@ -366,6 +366,7 @@ data = {
 	["Recreation"] = "娛樂",
 	["View love info"] = "查看情緣信息",
 	-- GKP.lua --
+	["GKP does not support bidding, please re open loot list."] = "該物品需要拍賣分配，GKP不支持拍團模式，請關閉拾取窗口重新打開系統拾取列表。",
 	["Show Gold Brick"] = "顯示單位為金磚",
 	["salary"] = "工資發放",
 	["Treasure Chests"] = "寶箱",
@@ -660,10 +661,11 @@ data = {
 	["Refuse request"] = "對方拒絕了您的請求！",
 	["Party limit"] = "必須和對方組隊",
 	-- About.lua --
+	["Home"] = "首頁",
 	["Checking command sent, please see talk channel"] = "檢查指令已發送，請查看聊天框。",
 	["I have installed JH plug-in v"] = "我安裝了菊花插件集 v",
 	["About"] = "關於本插件",
-	["ABOUT_TIPS"] = "這是玩家菊花開發的《劍網三》 PVE 輔助插件，部分功能因前作者停止更新，都由我重構收錄到《菊花插件集》內繼續維護更新。\n\n感謝HM貢獻大量源碼。",
+	["ABOUT_TIPS"] = "這是玩家菊花開發的《劍網三》 PVE 輔助插件，部分功能因前作者停止更新，都由我重構收錄到《菊花插件集》內繼續維護更新，插件純憑興趣愛好制作，所有插件均可單獨打開或關閉，不定期隨機更新。\n\n感謝HM貢獻大量源碼。",
 	["WeiBo"] = "作者微博",
 	["%s are welcome to use JH plug-in"] = "歡迎%s使用菊花插件集",
 	["Free & open source, Utility, Focus on PVE!"] = "開源免費、實用、專註於 PVE！",
