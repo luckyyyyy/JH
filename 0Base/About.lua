@@ -1,10 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-24 07:29:08
+-- @Last Modified time: 2016-01-25 07:12:24
 local _L = JH.LoadLangPack
 local _JH_About = {
-	PS   = {},
 	INFO = {},
 }
 
@@ -59,10 +58,6 @@ function _JH_About.ShowInfo(dwID, dat)
 	h:Show()
 end
 
-function _JH_About.GetMemory()
-	return string.format("Memory:%.1fMB", collectgarbage("count") / 1024)
-end
-
 JH.RegisterBgMsg("JH_ABOUT", function(nChannel, dwID, szName, data, bIsSelf)
 	if data[1] == "Author" then -- 版本检查 自用 可以绘制详细表格
 		local me, szTong = GetClientPlayer(), ""
@@ -90,9 +85,17 @@ JH.RegisterBgMsg("JH_ABOUT", function(nChannel, dwID, szName, data, bIsSelf)
 	end
 end)
 
-function _JH_About.PS.OnPanelActive(frame)
+local Panel = {
+	About    = {},
+	Fadeback = {},
+}
+function Panel.GetMemory()
+	return string.format("Memory:%.1fMB", collectgarbage("count") / 1024)
+end
+
+function Panel.About.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	-- nX, nY = ui:Append("Image",{ x = 125, y = 0, w = 500, h = 140}):File("interface/JH/0Base/background.tga"):Pos_()
+	nX, nY = ui:Append("Image", "Animate0", { x = 5, y = 0, w = 730, h = 150}):File("interface/JH/0Base/background.tga"):Pos_()
 	nX, nY = ui:Append("Text", "Animate1", { x = 10, y = nY + 5, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 27 }):Toggle(false):Pos_()
 	nX, nY = ui:Append("Text", "Animate2", { x = 20, y = nY + 10, w = 720 , h = 70, multi = true, txt = _L["ABOUT_TIPS"] }):Toggle(false):Pos_()
 	nY = nY + 70
@@ -112,51 +115,34 @@ function _JH_About.PS.OnPanelActive(frame)
 	end, { 255, 255, 255 }):Toggle(false):Pos_()
 	if JH.bDebugClient then
 		nX = ui:Append("WndButton4", { x = 130, y = 400, txt = _L["Check Install"] }):Click(_JH_About.CheckInstall):Pos_()
-		ui:Append("Text", "Memory", { x = 10, y = 400, alpha = 150, txt = _JH_About.GetMemory() }):Click(function()
+		ui:Append("Text", "Memory", { x = 10, y = 400, alpha = 150, txt = Panel.GetMemory() }):Click(function()
 			collectgarbage("collect")
-			ui:Fetch("Memory"):Text(_JH_About.GetMemory())
+			ui:Fetch("Memory"):Text(Panel.GetMemory())
 		end)
 	end
 	ui:Append("Text", { x = 10, y = 400, w = 730, h = 25, txt = JH.GetAddonInfo().szAuthor, align = 2, alpha = 120 })
 
 	-- animate test
-	local x, y = ui:Fetch("Animate1"):Pos()
-	JH.Animate(ui:Fetch("Animate1").self):FadeIn():Pos({ x - 20, x, y, y }, function()
-		JH.Animate(ui:Fetch("Animate2").self):FadeIn(function()
-			local x, y = ui:Fetch("Animate3"):Pos()
-			JH.Animate(ui:Fetch("Animate3").self):FadeIn():Pos({ x - 20, x, y, y }, function()
-				JH.Animate(ui:Fetch("Animate4").self):FadeIn(function()
-					local x, y = ui:Fetch("Animate5"):Pos()
-					JH.Animate(ui:Fetch("Animate5").self):FadeIn():Pos({ x - 20, x, y, y }, function()
-						JH.Animate(ui:Fetch("Animate6").self):FadeIn()
-						JH.Animate(ui:Fetch("Animate7").self):FadeIn()
-						JH.Animate(ui:Fetch("Animate8").self):FadeIn()
-					end)
-				end)
-			end)
+	JH.Animate(ui:Fetch("Animate0").self):FadeIn():Pos({ -20, 0 })
+	JH.Animate(ui:Fetch("Animate1").self):FadeIn():Pos({ -20, 0 })
+	JH.Animate(ui:Fetch("Animate2").self):FadeIn():Pos({ -20, 0 }, function()
+		JH.Animate(ui:Fetch("Animate3").self):FadeIn():Pos({ -20, 0 })
+		JH.Animate(ui:Fetch("Animate4").self):FadeIn():Pos({ -20, 0 }, function()
+			JH.Animate(ui:Fetch("Animate5").self):FadeIn():Pos({ -20, 0 })
+			JH.Animate(ui:Fetch("Animate6").self):FadeIn():Pos({ -20, 0 })
+			JH.Animate(ui:Fetch("Animate7").self):FadeIn():Pos({ -20, 0})
+			JH.Animate(ui:Fetch("Animate8").self):FadeIn():Pos({ -20, 0 })
 		end)
 	end)
 end
 
-function _JH_About.PS.OnTaboxCheck(frame)
+function Panel.About.OnTaboxCheck(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 
 	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { 255, 255, 0 }, txt = _L("%s are welcome to use JH plug-in", GetUserRoleName()), font = 230 }):Pos_()
 	nX, nY = ui:Append("Text", { x = 10, y = nY, color = { 255, 255, 0 }, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 233 }):Pos_()
-	local time = TimeToDate(GetCurrentTime())
-	-- year, month, day, hour, minute, second, weekday
-	if time.weekday == 0 then
-		time.weekday = 7
-	end
-	local L = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
-	local col = { 1, 1, 0, 4, 5, 5, 4 }
-	ui:Append("Text", { x = 10, y = nY + 15, color = { GetItemFontColorByQuality(col[time.weekday]) }, txt = _L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]), font = 41 })
+
 end
 
 -- public
-local _About = {
-	PS            = _JH_About.PS,
-	OnTaboxCheck  = _JH_About.PS.OnTaboxCheck,
-	OnPanelActive = _JH_About.PS.OnPanelActive,
-}
-JH_About = setmetatable({}, { __metatable = true, __index = _About, __newindex = function() end } )
+JH_Panel = setmetatable({}, { __metatable = true, __index = Panel, __newindex = function() end } )

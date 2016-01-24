@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-21 22:01:02
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-24 03:56:02
+-- @Last Modified time: 2016-01-25 07:21:42
 
 -- JX3UI Simple Animate Library
 local ANI_QUEUE = {
@@ -13,7 +13,7 @@ local ANI_QUEUE = {
 local Animate   = {}
 Animate.__index = Animate
 -- constructor
-function Animate.ctor(ui, nTime)
+function Animate:ctor(ui, nTime)
 	assert(
 		type(ui) == "table"
 		and ui
@@ -22,7 +22,7 @@ function Animate.ctor(ui, nTime)
 		and ui:IsValid()
 	, "Animate:ctor error!")
 	local oo = {}
-	setmetatable(oo, Animate)
+	setmetatable(oo, self)
 	oo.type  = ui:GetType()
 	oo.name  = ui:GetName()
 	oo.ui    = ui
@@ -175,7 +175,7 @@ function Animate:Scale(fScale, nTime, bNormal, fnAction)
 	return self
 end
 
-function Animate:Pos(tPos, nTime, fnAction)
+function Animate:Pos(tPos, bMove, nTime, fnAction)
 	if ANI_QUEUE.POS[self.ui] then
 		return self
 	end
@@ -186,12 +186,28 @@ function Animate:Pos(tPos, nTime, fnAction)
 			return self
 		end
 	end
+
 	if type(nTime) == "function" then
-		fnAction, nTime = nTime, self.nTime
+		fnAction, nTime, bMove = nTime, self.nTime, false
+	elseif type(nTime) == "boolean" then
+		if type(bMove) == "function" then
+			fnAction, nTime, bMove = bMove, self.nTime, false
+		else
+			fnAction, bMove, nTime = bMove, nTime, self.nTime
+		end
 	else
 		nTime = nTime or self.nTime
+		if type(bMove) == "function" then
+			fnAction, bMove = bMove, false
+		end
 	end
-	local nSX, nEX, nSY, nEY = unpack(tPos)
+
+	local nEX, nEY = self.ui:GetRelPos()
+	local x, y = unpack(tPos)
+	local nSX, nSY = nEX + x, nEY + y
+	if bMove then
+		nSX, nSY, nEX, nEY = nEX, nEY, nSX, nSY
+	end
 	local nX, nY = nEX - nSX, nEY - nSY
 	self.ui:SetRelPos(nSX, nSY)
 	if hParent then hParent:FormatAllItemPos() end
@@ -220,4 +236,4 @@ function Animate:Pos(tPos, nTime, fnAction)
 	return self
 end
 
-JH.Animate = Animate.ctor
+JH.Animate = setmetatable({}, { __call = function(me, ...) return Animate:ctor( ... ) end, __newindex = function() end, __metatable = true })

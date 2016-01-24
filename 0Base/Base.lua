@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-24 07:46:52
+-- @Last Modified time: 2016-01-25 07:19:02
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -190,7 +190,10 @@ end
 
 function JH.OnCheckBoxCheck()
 	local szName = this:GetName()
-	if szName == "WndCheck_Home" or szName == "WndCheck_About" then
+	if szName == "WndCheck_Home"
+		or szName == "WndCheck_About"
+		or szName == "WndCheck_Fadeback"
+	then
 		local frame = _JH.GetFrame()
 		for i = 0, frame.hTab:GetAllContentCount() -1 do
 			local hCheck = frame.hTab:LookupContent(i)
@@ -203,7 +206,9 @@ function JH.OnCheckBoxCheck()
 		if szName == "WndCheck_Home" then
 			_JH.BackHome()
 		elseif szName == "WndCheck_About" then
-			_JH.UpdatePage(JH_About.PS)
+			_JH.UpdatePage(JH_Panel.About)
+		elseif szName == "WndCheck_Fadeback" then
+			_JH.UpdatePage(JH_Panel.Fadeback)
 		end
 	end
 end
@@ -324,7 +329,7 @@ function _JH.OpenAddonPanel(dwClass, nIndex)
 				end
 			end
 			local x, y = frame.hContainer:GetRelPos()
-			JH.Animate(frame.hContainer, 200):Pos({ x + 30, x, y, y }):FadeIn()
+			JH.Animate(frame.hContainer, 200):Pos({ 30, 0 }):FadeIn()
 			PlaySound(SOUND.UI_SOUND, g_sound.Button)
 			frame.hTree:FormatAllItemPos()
 		end
@@ -429,7 +434,7 @@ end
 function _JH.UpdateTabBox()
 	local frame = _JH.GetFrame()
 	frame.hTab:Clear()
-	for k, v in ipairs({ "Home", "About" }) do
+	for k, v in ipairs({ "Home", "About", "Fadeback" }) do
 		local hCheck = frame.hTab:AppendContentFromIni(JH_PANEL_INIFILE, "Wnd_TabBox", "WndCheck_" .. v)
 		local txt = hCheck:Lookup("", "Text_TabBox")
 		txt:SetText(_L[v])
@@ -453,27 +458,6 @@ function _JH.IsOpened()
 	return frame and frame:IsVisible()
 end
 
-function _JH.InitPanel()
-	local frame = _JH.GetFrame()
-	if frame.bInit then
-		frame.bInit = nil
-		frame.hTab       = frame:Lookup("WndContainer_Tab")
-		frame.hHome      = frame:Lookup("WndScroll_Home")
-		frame.hPage      = frame:Lookup("WndContainer_Page")
-		frame.hClass     = frame.hHome:Lookup("", "")
-		frame.hContent   = frame:Lookup("Wnd_Content")
-		frame.hTree      = frame.hContent:Lookup("WndScroll_TreeLeaf"):Lookup("", "")
-		frame.hContainer = frame.hContent:Lookup("WndContainer_Main")
-		local a = JH_PANEL_ANCHOR
-		frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
-		_JH.UpdateAddon()
-		_JH.UpdateTabBox()
-		local szTitle = _JH.szTitle .. " v" ..  _JH.GetVersion() .. " (" .. _BUILD_ .. ")"
-		frame:Lookup("", "Text_Title"):SetText(szTitle)
-		JH.RegisterGlobalEsc("JH", _JH.IsOpened, _JH.ClosePanel)
-	end
-end
-
 -- open
 function _JH.OpenPanel(szTitle)
 	local frame = _JH.GetFrame()
@@ -485,15 +469,51 @@ function _JH.OpenPanel(szTitle)
 				elseif JH_PANEL_SELECT then
 					_JH.OpenAddonPanel(JH_PANEL_SELECT.szTitle)
 				end
+				local date = frame:Lookup("", "Text_Date")
+				local time = TimeToDate(GetCurrentTime())
+				-- year, month, day, hour, minute, second, weekday
+				if time.weekday == 0 then
+					time.weekday = 7
+				end
+				local L = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
+				local col = { 1, 1, 0, 4, 5, 5, 4 }
+				date:SetText(_L("Today is %d-%d-%d (%s)", time.year, time.month, time.day, _L[L[time.weekday]]))
+				date:SetFontColor(GetItemFontColorByQuality(col[time.weekday]))
 			end
 			if frame.bInit then -- 对不起 ios开发做多了... 不加个welcome不舒服
-				_JH.InitPanel()
-				JH.Animate(frame:Lookup("", "Text_Loading")):FadeOut(800, function()
-					if not szTitle then
-						JH.Animate(frame.hHome, 300):FadeIn()
-					end
-					fnAction()
-				end)
+				local function Init()
+					frame.hTab       = frame:Lookup("WndContainer_Tab")
+					frame.hHome      = frame:Lookup("WndScroll_Home")
+					frame.hPage      = frame:Lookup("WndContainer_Page")
+					frame.hClass     = frame.hHome:Lookup("", "")
+					frame.hContent   = frame:Lookup("Wnd_Content")
+					frame.hTree      = frame.hContent:Lookup("WndScroll_TreeLeaf"):Lookup("", "")
+					frame.hContainer = frame.hContent:Lookup("WndContainer_Main")
+					local a = JH_PANEL_ANCHOR
+					frame:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
+					_JH.UpdateAddon()
+					_JH.UpdateTabBox()
+					local szTitle = _JH.szTitle .. " v" ..  _JH.GetVersion() .. " (" .. _BUILD_ .. ")"
+					frame:Lookup("", "Text_Title"):SetText(szTitle)
+					JH.RegisterGlobalEsc("JH", _JH.IsOpened, _JH.ClosePanel)
+					frame.bInit = nil
+					JH.Debug("Panel init success!")
+				end
+				local loading = frame:Lookup("", "Text_Loading")
+				loading:SetText(GetUserRoleName() .. "\nWelcome Back.\n\nInit Loading.")
+				if szTitle then
+					JH.Animate(loading):FadeOut(Random(500, 1500), function()
+						Init()
+						fnAction()
+					end)
+				else
+					JH.Animate(loading):FadeIn(1000, function()
+						JH.Animate(loading):FadeOut(1000, function()
+							Init()
+							JH.Animate(frame.hHome, 300):FadeIn(fnAction)
+						end)
+					end)
+				end
 			else
 				fnAction()
 			end

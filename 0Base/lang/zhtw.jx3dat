@@ -662,6 +662,7 @@ data = {
 	["Party limit"] = "必須和對方組隊",
 	-- About.lua --
 	["Home"] = "首頁",
+	["Fadeback"] = "建議與BUG反饋",
 	["Checking command sent, please see talk channel"] = "檢查指令已發送，請查看聊天框。",
 	["I have installed JH plug-in v"] = "我安裝了菊花插件集 v",
 	["About"] = "關於本插件",
@@ -681,7 +682,7 @@ data = {
 	["Friday"] = "星期五",
 	["Saturday"] = "星期六",
 	["Sunday"] = "星期天",
-	["Today is %d-%d-%d (%s)"] = "今天是 %d年%d月%d日 (%s)",
+	["Today is %d-%d-%d (%s)"] = "%d/%d/%d (%s)",
 	["Version"] = "當前版本",
 	-- Base.lua --
 	["recycle bin"] = "回收站",
