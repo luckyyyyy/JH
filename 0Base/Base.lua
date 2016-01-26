@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-25 07:19:02
+-- @Last Modified time: 2016-01-26 18:02:14
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -24,7 +24,7 @@ local ADDON_PATH  = "Interface/JH/"
 -- 多语言处理
 ---------------------------------------------------------------------
 local function GetLang()
-	local _, _, szLang = GetVersion()
+	local szLang = select(3, GetVersion())
 	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
 	local t1 = LoadLUAData(ROOT_PATH .. "lang/" .. szLang .. ".jx3dat") or {}
 	for k, v in pairs(t0) do
@@ -208,7 +208,7 @@ function JH.OnCheckBoxCheck()
 		elseif szName == "WndCheck_About" then
 			_JH.UpdatePage(JH_Panel.About)
 		elseif szName == "WndCheck_Fadeback" then
-			_JH.UpdatePage(JH_Panel.Fadeback)
+			-- _JH.UpdatePage(JH_Panel.Fadeback)
 		end
 	end
 end
@@ -254,6 +254,11 @@ function JH.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Close" then
 		_JH.ClosePanel()
+	elseif szName == "Btn_JH" then
+		local btn = this
+		JH.Animate(btn):Scale(2, true):FadeOut(function()
+			JH.Animate(btn):FadeIn()
+		end)
 	end
 end
 
@@ -359,6 +364,21 @@ function JH.OnItemLButtonClick()
 		return hTree:FormatAllItemPos()
 	end
 end
+function JH.OnMouseEnter()
+	local szName = this:GetName()
+	if szName == "Btn_JH" then -- 太恶俗了
+		local btn = this
+		local t1 = Random(15, 50)
+		local t2 = t1 / 2
+		JH.Animate(btn):Pos({ 0, -t1 }, 200, true, function()
+			JH.Animate(btn):Pos({ 0, t1 }, 200, true, function()
+				JH.Animate(btn):Pos({ 0, -t2 }, 200, true, function()
+					JH.Animate(btn):Pos({ 0, t2 }, 200, true)
+				end)
+			end)
+		end)
+	end
+end
 
 function JH.OnItemMouseEnter()
 	local szName = this:GetName()
@@ -434,7 +454,7 @@ end
 function _JH.UpdateTabBox()
 	local frame = _JH.GetFrame()
 	frame.hTab:Clear()
-	for k, v in ipairs({ "Home", "About", "Fadeback" }) do
+	for k, v in ipairs({ "Home", "About", --[["Fadeback"]] }) do
 		local hCheck = frame.hTab:AppendContentFromIni(JH_PANEL_INIFILE, "Wnd_TabBox", "WndCheck_" .. v)
 		local txt = hCheck:Lookup("", "Text_TabBox")
 		txt:SetText(_L[v])
@@ -500,17 +520,17 @@ function _JH.OpenPanel(szTitle)
 					JH.Debug("Panel init success!")
 				end
 				local loading = frame:Lookup("", "Text_Loading")
-				loading:SetText(GetUserRoleName() .. "\nWelcome Back.\n\nInit Loading.")
+				loading:SetText(GetUserRoleName() .. "\nWelcome Back.\n\nLoading.")
 				if szTitle then
-					JH.Animate(loading):FadeOut(Random(500, 1500), function()
+					JH.Animate(loading):FadeOut(Random(500, 1200), function()
 						Init()
 						fnAction()
 					end)
 				else
-					JH.Animate(loading):FadeIn(1000, function()
-						JH.Animate(loading):FadeOut(1000, function()
+					JH.Animate(loading):FadeIn(200, function()
+						JH.Animate(loading):FadeOut(1200, function()
 							Init()
-							JH.Animate(frame.hHome, 300):FadeIn(fnAction)
+							JH.Animate(frame.hHome):FadeIn(300, fnAction)
 						end)
 					end)
 				end

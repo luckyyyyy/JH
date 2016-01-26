@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-25 07:12:24
+-- @Last Modified time: 2016-01-26 18:06:41
 local _L = JH.LoadLangPack
 local _JH_About = {
 	INFO = {},
@@ -123,7 +123,7 @@ function Panel.About.OnPanelActive(frame)
 	ui:Append("Text", { x = 10, y = 400, w = 730, h = 25, txt = JH.GetAddonInfo().szAuthor, align = 2, alpha = 120 })
 
 	-- animate test
-	JH.Animate(ui:Fetch("Animate0").self):FadeIn():Pos({ -20, 0 })
+	JH.Animate(ui:Fetch("Animate0").self):FadeIn():Pos({ 0, -20 })
 	JH.Animate(ui:Fetch("Animate1").self):FadeIn():Pos({ -20, 0 })
 	JH.Animate(ui:Fetch("Animate2").self):FadeIn():Pos({ -20, 0 }, function()
 		JH.Animate(ui:Fetch("Animate3").self):FadeIn():Pos({ -20, 0 })
@@ -134,14 +134,6 @@ function Panel.About.OnPanelActive(frame)
 			JH.Animate(ui:Fetch("Animate8").self):FadeIn():Pos({ -20, 0 })
 		end)
 	end)
-end
-
-function Panel.About.OnTaboxCheck(frame)
-	local ui, nX, nY = GUI(frame), 10, 0
-
-	nX, nY = ui:Append("Text", { x = 10, y = nY + 15, color = { 255, 255, 0 }, txt = _L("%s are welcome to use JH plug-in", GetUserRoleName()), font = 230 }):Pos_()
-	nX, nY = ui:Append("Text", { x = 10, y = nY, color = { 255, 255, 0 }, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 233 }):Pos_()
-
 end
 
 -- public

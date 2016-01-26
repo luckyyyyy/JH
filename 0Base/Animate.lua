@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-21 22:01:02
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-25 07:21:42
+-- @Last Modified time: 2016-01-25 15:13:48
 
 -- JX3UI Simple Animate Library
 local ANI_QUEUE = {
@@ -52,10 +52,10 @@ function Animate:FadeIn(nTime, fnAction)
 			end
 			self.ui:SetAlpha(255)
 		end
+		ANI_QUEUE.FADEIN[self.ui] = nil
 		if fnAction then
 			local res, err = pcall(fnAction)
 		end
-		ANI_QUEUE.FADEIN[self.ui] = nil
 		return UnRegisterEvent("RENDER_FRAME_UPDATE", FadeIn)
 	end
 	ANI_QUEUE.FADEIN[self.ui] = FadeIn
@@ -71,9 +71,9 @@ function Animate:FadeOut(nTime, bShow, fnAction)
 		fnAction, nTime, bShow = nTime, self.nTime, false
 	elseif type(nTime) == "boolean" then
 		if type(bShow) == "function" then
-			fnAction, nTime, bShow = bShow, self.nTime, false
-		else
 			fnAction, bShow, nTime = bShow, nTime, self.nTime
+		else
+			fnAction, bShow, nTime = nil, nTime, self.nTime
 		end
 	else
 		nTime = nTime or self.nTime
@@ -99,10 +99,10 @@ function Animate:FadeOut(nTime, bShow, fnAction)
 				self.ui:SetAlpha(255)
 			end
 		end
+		ANI_QUEUE.FADEOUT[self.ui] = nil
 		if fnAction then
 			local res, err = pcall(fnAction)
 		end
-		ANI_QUEUE.FADEOUT[self.ui] = nil
 		return UnRegisterEvent("RENDER_FRAME_UPDATE", FadeOut)
 	end
 	ANI_QUEUE.FADEOUT[self.ui] = FadeOut
@@ -118,9 +118,9 @@ function Animate:Scale(fScale, nTime, bNormal, fnAction)
 		fnAction, nTime, bNormal = nTime, self.nTime, false
 	elseif type(nTime) == "boolean" then
 		if type(bNormal) == "function" then
-			fnAction, nTime, bNormal = bNormal, self.nTime, false
-		else
 			fnAction, bNormal, nTime = bNormal, nTime, self.nTime
+		else
+			fnAction, bNormal, nTime = nil, nTime, self.nTime
 		end
 	else
 		nTime = nTime or self.nTime
@@ -164,10 +164,10 @@ function Animate:Scale(fScale, nTime, bNormal, fnAction)
 				end
 			end
 		end
+		ANI_QUEUE.SCALE[self.ui] = nil
 		if fnAction then
 			local res, err = pcall(fnAction)
 		end
-		ANI_QUEUE.SCALE[self.ui] = nil
 		return UnRegisterEvent("RENDER_FRAME_UPDATE", Scale)
 	end
 	ANI_QUEUE.SCALE[self.ui] = Scale
@@ -175,7 +175,7 @@ function Animate:Scale(fScale, nTime, bNormal, fnAction)
 	return self
 end
 
-function Animate:Pos(tPos, bMove, nTime, fnAction)
+function Animate:Pos(tPos, nTime, bMove, fnAction)
 	if ANI_QUEUE.POS[self.ui] then
 		return self
 	end
@@ -191,9 +191,9 @@ function Animate:Pos(tPos, bMove, nTime, fnAction)
 		fnAction, nTime, bMove = nTime, self.nTime, false
 	elseif type(nTime) == "boolean" then
 		if type(bMove) == "function" then
-			fnAction, nTime, bMove = bMove, self.nTime, false
-		else
 			fnAction, bMove, nTime = bMove, nTime, self.nTime
+		else
+			fnAction, bMove, nTime = nil, nTime, self.nTime
 		end
 	else
 		nTime = nTime or self.nTime
@@ -225,10 +225,10 @@ function Animate:Pos(tPos, bMove, nTime, fnAction)
 			self.ui:SetRelPos(nEX, nEY)
 			if hParent then hParent:FormatAllItemPos() end
 		end
+		ANI_QUEUE.POS[self.ui] = nil
 		if fnAction then
 			local res, err = pcall(fnAction)
 		end
-		ANI_QUEUE.POS[self.ui] = nil
 		return UnRegisterEvent("RENDER_FRAME_UPDATE", Animate)
 	end
 	ANI_QUEUE.POS[self.ui] = Animate
