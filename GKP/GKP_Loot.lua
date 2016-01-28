@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-23 17:48:42
+-- @Last Modified time: 2016-01-26 21:24:23
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -580,7 +580,8 @@ function Loot.DrawLootList(dwID)
 		end
 	end
 	handle:FormatAllItemPos()
-	frame:Lookup("", "Text_Title"):SetText(g_tStrings.STR_LOOT_SHOW_LIST .. " - " .. szName)
+	-- frame:Lookup("", "Text_Title"):SetText(g_tStrings.STR_LOOT_SHOW_LIST .. " - " .. szName)
+	frame:Lookup("", "Text_Title"):SetText(szName)
 end
 
 function Loot.GetFrame(dwID)

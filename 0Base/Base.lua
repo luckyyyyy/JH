@@ -1,7 +1,12 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-26 18:02:14
+-- @Last Modified time: 2016-01-28 11:49:59
+
+---------------------------------------
+--          JH Plugin - Base         --
+-- https://github.com/Webster-jx3/JH --
+---------------------------------------
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
@@ -15,18 +20,41 @@ local floor, mmin, mmax, mceil = math.floor, math.min, math.max, math.ceil
 local GetClientPlayer, GetPlayer, GetNpc, GetClientTeam, UI_GetClientPlayerID = GetClientPlayer, GetPlayer, GetNpc, GetClientTeam, UI_GetClientPlayerID
 local setmetatable = setmetatable
 
-local ROOT_PATH   = "Interface/JH/0Base/"
-local DATA_PATH   = "Interface/JH/@DATA/"
-local SHADOW_PATH = "Interface/JH/0Base/item/shadow.ini"
-local ADDON_PATH  = "Interface/JH/"
-
+------------------
+--  Addon Path  --
+------------------
+local ADDON_BASE_PATH   = "Interface/JH/0Base/"
+local ADDON_DATA_PATH   = "Interface/JH/@DATA/"
+local ADDON_SHADOW_PATH = "Interface/JH/0Base/item/shadow.ini"
+local ADDON_ROOT_PATH   = "Interface/JH/"
+-------------------
+--  Local cache  --
+-------------------
+-- event
+local JH_EVENT        = {}
+local JH_BGMSG        = {}
+local JH_REQUEST      = {}
+-- call
+local JH_CALL_BREATHE = {}
+local JH_CALL_DELAY   = {}
+-- cache
+local JH_CACHE_BUFF   = {}
+local JH_CACHE_SKILL  = {}
+local JH_CACHE_MAP    = {}
+local JH_CACHE_ITEM   = {}
+-- list
+local JH_LIST_DUNGEON = {}
+local JH_LIST_MAP     = {}
+local JH_LIST_PLAYER  = {}
+local JH_LIST_NPC     = {}
+local JH_LIST_DOODAD  = {}
 ---------------------------------------------------------------------
 -- 多语言处理
 ---------------------------------------------------------------------
 local function GetLang()
 	local szLang = select(3, GetVersion())
-	local t0 = LoadLUAData(ROOT_PATH .. "lang/default.jx3dat") or {}
-	local t1 = LoadLUAData(ROOT_PATH .. "lang/" .. szLang .. ".jx3dat") or {}
+	local t0 = LoadLUAData(ADDON_BASE_PATH .. "lang/default.jx3dat") or {}
+	local t1 = LoadLUAData(ADDON_BASE_PATH .. "lang/" .. szLang .. ".jx3dat") or {}
 	for k, v in pairs(t0) do
 		if not t1[k] then
 			t1[k] = v
@@ -49,10 +77,10 @@ local _L = GetLang()
 
 local _VERSION_   = 0x1020400
 local _BUILD_     = "20160114"
-local _DEBUG_     = IsFileExist(DATA_PATH .. "EnableDebug")
+local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 
-local JH_PANEL_INIFILE     = ROOT_PATH .. "ui/JH.ini"
+local JH_PANEL_INIFILE     = ADDON_BASE_PATH .. "ui/JH.ini"
 local JH_PANEL_CLASS       = { g_tStrings.CHANNEL_CHANNEL, _L["Dungeon"], _L["Panel"], _L["Recreation"] }
 local JH_PANEL_ADDON       = {}
 local JH_PANEL_SELECT
@@ -85,23 +113,9 @@ end
 local _JH = {
 	szTitle      = _L["JH, JX3 Plug-in Collection"],
 	tHotkey      = {},
-	tDelayCall   = {},
-	tRequest     = {},
 	tGlobalValue = {},
-	tEvent       = {},
-	tBgMsgHandle = {},
 	tModule      = {},
 	szShort      = _L["JH"],
-	tBuffCache   = {},
-	tSkillCache  = {},
-	tMapCache    = {},
-	tItemCache   = {},
-	tDungeonList = {},
-	tMapList     = {},
-	aPlayer      = {},
-	aNpc         = {},
-	aDoodad      = {},
-	tBreatheCall = {},
 	tOption      = { szOption = _L["JH Plugin"] },
 	tOption2     = { szOption = _L["JH Plugin"] },
 }
@@ -141,7 +155,7 @@ end
 function JH.OnFrameBreathe()
 	-- run breathe calls
 	local nFrame = GetLogicFrameCount()
-	for k, v in pairs(_JH.tBreatheCall) do
+	for k, v in pairs(JH_CALL_BREATHE) do
 		if nFrame >= v.nNext then
 			v.nNext = nFrame + v.nFrame
 			local res, err = pcall(v.fnAction)
@@ -151,29 +165,29 @@ function JH.OnFrameBreathe()
 		end
 	end
 	local nTime = GetTime()
-	for k = #_JH.tDelayCall, 1, -1 do
-		local v = _JH.tDelayCall[k]
+	for k = #JH_CALL_DELAY, 1, -1 do
+		local v = JH_CALL_DELAY[k]
 		if v.nTime <= nTime then
 			local res, err = pcall(v.fnAction)
 			if not res then
 				JH.Debug("DelayCall#" .. k .." ERROR: " .. err)
 			end
-			tremove(_JH.tDelayCall, k)
+			tremove(JH_CALL_DELAY, k)
 		end
 	end
 	-- run remote request (3s)
 	if not _JH.nRequestExpire or _JH.nRequestExpire < nTime then
 		if _JH.nRequestExpire then
-			local r = tremove(_JH.tRequest, 1)
+			local r = tremove(JH_REQUEST, 1)
 			if r then
 				pcall(r.fnAction)
 			end
 			_JH.nRequestExpire = nil
 		end
-		if #_JH.tRequest > 0 then
+		if #JH_REQUEST > 0 then
 			local page = Station.Lookup("Normal/JH/Page_1")
 			if page then
-				page:Navigate(_JH.tRequest[1].szUrl)
+				page:Navigate(JH_REQUEST[1].szUrl)
 			end
 			_JH.nRequestExpire = GetTime() + 3000
 		end
@@ -181,7 +195,7 @@ function JH.OnFrameBreathe()
 end
 
 function JH.OnDocumentComplete()
-	local r = tremove(_JH.tRequest, 1)
+	local r = tremove(JH_REQUEST, 1)
 	if r then
 		_JH.nRequestExpire = nil
 		pcall(r.fnAction, this:GetLocationName(), this:GetDocument())
@@ -311,6 +325,7 @@ function _JH.OpenAddonPanel(dwClass, nIndex)
 			end)
 		end
 		_JH.CloseAddonPanel()
+		frame.hContainer:SetRelPos(220, 0) -- fix close pos
 		if JH_PANEL_SELECT ~= tAddon then
 			JH_PANEL_SELECT      = tAddon
 			for i = 0, frame.hTree:GetItemCount() -1 do
@@ -333,7 +348,6 @@ function _JH.OpenAddonPanel(dwClass, nIndex)
 					end
 				end
 			end
-			local x, y = frame.hContainer:GetRelPos()
 			JH.Animate(frame.hContainer, 200):Pos({ 30, 0 }):FadeIn()
 			PlaySound(SOUND.UI_SOUND, g_sound.Button)
 			frame.hTree:FormatAllItemPos()
@@ -364,6 +378,7 @@ function JH.OnItemLButtonClick()
 		return hTree:FormatAllItemPos()
 	end
 end
+
 function JH.OnMouseEnter()
 	local szName = this:GetName()
 	if szName == "Btn_JH" then -- 太恶俗了
@@ -520,7 +535,7 @@ function _JH.OpenPanel(szTitle)
 					JH.Debug("Panel init success!")
 				end
 				local loading = frame:Lookup("", "Text_Loading")
-				loading:SetText(GetUserRoleName() .. "\nWelcome Back.\n\nLoading.")
+				loading:SetText(GetUserRoleName() .. "\nWelcome Back.")
 				if szTitle then
 					JH.Animate(loading):FadeOut(Random(500, 1200), function()
 						Init()
@@ -587,7 +602,7 @@ JH.TogglePanel = _JH.TogglePanel
 -- EventHandler
 -------------------------------------
 function _JH.EventHandler(szEvent)
-	local tEvent = _JH.tEvent[szEvent]
+	local tEvent = JH_EVENT[szEvent]
 	if tEvent then
 		for k, v in pairs(tEvent) do
 			local res, err = pcall(v, szEvent)
@@ -660,10 +675,10 @@ function JH.GetAddonInfo()
 	return {
 		szName      = _JH.szTitle,
 		szVersion   = _JH.GetVersion(),
-		szRootPath  = ADDON_PATH,
+		szRootPath  = ADDON_ROOT_PATH,
 		szAuthor    = _L["JH @ Double Dream Town"],
-		szShadowIni = SHADOW_PATH,
-		szDataPath  = DATA_PATH,
+		szShadowIni = ADDON_SHADOW_PATH,
+		szDataPath  = ADDON_DATA_PATH,
 		szBuildDate = _BUILD_,
 	}
 end
@@ -714,11 +729,11 @@ function JH.RegisterEvent(szEvent, fnAction)
 		szKey = ssub(szEvent, nPos + 1)
 		szEvent = ssub(szEvent, 1, nPos - 1)
 	end
-	if not _JH.tEvent[szEvent] then
-		_JH.tEvent[szEvent] = {}
+	if not JH_EVENT[szEvent] then
+		JH_EVENT[szEvent] = {}
 		RegisterEvent(szEvent, function() _JH.EventHandler(szEvent) end)
 	end
-	local tEvent = _JH.tEvent[szEvent]
+	local tEvent = JH_EVENT[szEvent]
 	if fnAction then
 		if not szKey then
 			tinsert(tEvent, fnAction)
@@ -727,7 +742,7 @@ function JH.RegisterEvent(szEvent, fnAction)
 		end
 	else
 		if not szKey then
-			_JH.tEvent[szEvent] = {}
+			JH_EVENT[szEvent] = {}
 		else
 			tEvent[szKey] = nil
 		end
@@ -823,7 +838,7 @@ function JH.RegisterExit(fnAction)
 end
 
 function JH.RegisterBgMsg(szKey, fnAction)
-	_JH.tBgMsgHandle[szKey] = fnAction
+	JH_BGMSG[szKey] = fnAction
 end
 
 function JH.GetForceColor(dwForce)
@@ -958,10 +973,10 @@ end
 
 function JH.GetAllPlayer(nLimit)
 	local aPlayer = {}
-	for k, _ in pairs(_JH.aPlayer) do
+	for k, _ in pairs(JH_LIST_PLAYER) do
 		local p = GetPlayer(k)
 		if not p then
-			_JH.aPlayer[k] = nil
+			JH_LIST_PLAYER[k] = nil
 		elseif p.szName ~= "" then
 			tinsert(aPlayer, p)
 			if nLimit and #aPlayer == nLimit then
@@ -973,15 +988,15 @@ function JH.GetAllPlayer(nLimit)
 end
 
 function JH.GetAllPlayerID()
-	return _JH.aPlayer
+	return JH_LIST_PLAYER
 end
 
 function JH.GetAllNpc(nLimit)
 	local aNpc = {}
-	for k, _ in pairs(_JH.aNpc) do
+	for k, _ in pairs(JH_LIST_NPC) do
 		local p = GetNpc(k)
 		if not p then
-			_JH.aNpc[k] = nil
+			JH_LIST_NPC[k] = nil
 		else
 			tinsert(aNpc, p)
 			if nLimit and #aNpc == nLimit then
@@ -993,15 +1008,15 @@ function JH.GetAllNpc(nLimit)
 end
 
 function JH.GetAllNpcID()
-	return _JH.aNpc
+	return JH_LIST_NPC
 end
 
 function JH.GetAllDoodad(nLimit)
 	local aDoodad = {}
-	for k, _ in pairs(_JH.aDoodad) do
+	for k, _ in pairs(JH_LIST_DOODAD) do
 		local p = GetDoodad(k)
 		if not p then
-			_JH.aDoodad[k] = nil
+			JH_LIST_DOODAD[k] = nil
 		else
 			tinsert(aDoodad, p)
 			if nLimit and #aDoodad == nLimit then
@@ -1013,7 +1028,7 @@ function JH.GetAllDoodad(nLimit)
 end
 
 function JH.GetAllDoodadID()
-	return _JH.aDoodad
+	return JH_LIST_DOODAD
 end
 
 function JH.GetDistance(nX, nY, nZ)
@@ -1045,15 +1060,15 @@ function JH.IsDungeon(dwMapID, bType)
 	if bType then
 		return select(2, GetMapParams(dwMapID)) == MAP_TYPE.DUNGEON
 	else
-		if IsEmpty(_JH.tDungeonList) then
+		if IsEmpty(JH_LIST_DUNGEON) then
 			for k, v in ipairs(GetMapList()) do
 				local a = g_tTable.DungeonInfo:Search(v)
 				if a and a.dwClassID == 3 then
-					_JH.tDungeonList[a.dwMapID] = true
+					JH_LIST_DUNGEON[a.dwMapID] = true
 				end
 			end
 		end
-		return _JH.tDungeonList[dwMapID] or false
+		return JH_LIST_DUNGEON[dwMapID] or false
 	end
 end
 
@@ -1084,7 +1099,7 @@ function JH.IsInArena()
 end
 
 function JH.IsMapExist(param)
-	if not _JH.tMapList[-1] then
+	if not JH_LIST_MAP[-1] then
 		local tMapListByID   = {
 			[-1] = g_tStrings.CHANNEL_COMMON,
 			[-9] = _L["recycle bin"],
@@ -1100,7 +1115,7 @@ function JH.IsMapExist(param)
 				tMapListByName[szName] = v
 			end
 		end
-		setmetatable(_JH.tMapList, { __index = function(me, k)
+		setmetatable(JH_LIST_MAP, { __index = function(me, k)
 			if tonumber(k) then
 				if JH_MAP_NAME_FIX[k] then
 					k = JH_MAP_NAME_FIX[k]
@@ -1111,7 +1126,7 @@ function JH.IsMapExist(param)
 			end
 		end })
 	end
-	return _JH.tMapList[param]
+	return JH_LIST_MAP[param]
 end
 
 function JH.IsInParty()
@@ -1258,62 +1273,62 @@ function JH.GetBuffName(dwBuffID, dwLevel)
 	if dwLevel then
 		xKey = dwBuffID .. "_" .. dwLevel
 	end
-	if not _JH.tBuffCache[xKey] then
+	if not JH_CACHE_BUFF[xKey] then
 		local tLine = Table_GetBuff(dwBuffID, dwLevel or 1)
 		if tLine then
-			_JH.tBuffCache[xKey] = { tLine.szName, tLine.dwIconID }
+			JH_CACHE_BUFF[xKey] = { tLine.szName, tLine.dwIconID }
 		else
 			local szName = "BUFF#" .. dwBuffID
 			if dwLevel then
 				szName = szName .. ":" .. dwLevel
 			end
-			_JH.tBuffCache[xKey] = { szName, 1436 }
+			JH_CACHE_BUFF[xKey] = { szName, 1436 }
 		end
 	end
-	return unpack(_JH.tBuffCache[xKey])
+	return unpack(JH_CACHE_BUFF[xKey])
 end
 
 function JH.GetSkillName(dwSkillID, dwLevel)
-	if not _JH.tSkillCache[dwSkillID] then
+	if not JH_CACHE_SKILL[dwSkillID] then
 		local tLine = Table_GetSkill(dwSkillID, dwLevel)
 		if tLine and tLine.dwSkillID > 0 and tLine.bShow
 			and (StringFindW(tLine.szDesc, "_") == nil  or StringFindW(tLine.szDesc, "<") ~= nil)
 		then
-			_JH.tSkillCache[dwSkillID] = { tLine.szName, tLine.dwIconID }
+			JH_CACHE_SKILL[dwSkillID] = { tLine.szName, tLine.dwIconID }
 		else
 			local szName = "SKILL#" .. dwSkillID
 			if dwLevel then
 				szName = szName .. ":" .. dwLevel
 			end
-			_JH.tSkillCache[dwSkillID] = { szName, 1435 }
+			JH_CACHE_SKILL[dwSkillID] = { szName, 1435 }
 		end
 	end
-	return unpack(_JH.tSkillCache[dwSkillID])
+	return unpack(JH_CACHE_SKILL[dwSkillID])
 end
 
 function JH.GetItemName(nUiId)
-	if not _JH.tItemCache[nUiId] then
+	if not JH_CACHE_ITEM[nUiId] then
 		local szName = Table_GetItemName(nUiId)
 		local nIcon = Table_GetItemIconID(nUiId)
 		if szName ~= "" and nIocn ~= -1 then
-			_JH.tItemCache[nUiId] = { szName, nIcon }
+			JH_CACHE_ITEM[nUiId] = { szName, nIcon }
 		else
-			_JH.tItemCache[nUiId] = { "ITEM#" .. nUiId, 1435 }
+			JH_CACHE_ITEM[nUiId] = { "ITEM#" .. nUiId, 1435 }
 		end
 	end
-	return unpack(_JH.tItemCache[nUiId])
+	return unpack(JH_CACHE_ITEM[nUiId])
 end
 
 function JH.GetMapName(dwMapID)
-	if not _JH.tMapCache[dwMapID] then
+	if not JH_CACHE_MAP[dwMapID] then
 		local szName = Table_GetMapName(dwMapID)
 		if szName ~= "" then
-			_JH.tMapCache[dwMapID] = tostring(dwMapID)
+			JH_CACHE_MAP[dwMapID] = tostring(dwMapID)
 		else
-			_JH.tMapCache[dwMapID] = szName
+			JH_CACHE_MAP[dwMapID] = szName
 		end
 	end
-	return _JH.tMapCache[dwMapID]
+	return JH_CACHE_MAP[dwMapID]
 end
 
 -- 根据 dwType 类型和 dwID 设置目标
@@ -1437,14 +1452,14 @@ end
 
 function JH.SaveLUAData(szPath, ...)
 	local nTime = GetTime()
-	SaveLUAData(DATA_PATH .. szPath, ...)
-	JH.Debug3(_L["SaveLUAData # "] ..  DATA_PATH .. szPath .. " " .. GetTime() - nTime .. "ms")
+	SaveLUAData(ADDON_DATA_PATH .. szPath, ...)
+	JH.Debug3(_L["SaveLUAData # "] ..  ADDON_DATA_PATH .. szPath .. " " .. GetTime() - nTime .. "ms")
 end
 
 function JH.LoadLUAData(szPath)
 	local nTime = GetTime()
-	local data = LoadLUAData(DATA_PATH .. szPath)
-	JH.Debug3(_L["LoadLUAData # "] ..  DATA_PATH .. szPath .. " " .. GetTime() - nTime .. "ms")
+	local data = LoadLUAData(ADDON_DATA_PATH .. szPath)
+	JH.Debug3(_L["LoadLUAData # "] ..  ADDON_DATA_PATH .. szPath .. " " .. GetTime() - nTime .. "ms")
 	return data
 end
 
@@ -1461,19 +1476,19 @@ function JH.IsDistributer()
 end
 
 function JH.RemoteRequest(szUrl, fnAction)
-	tinsert(_JH.tRequest, { szUrl = szUrl, fnAction = fnAction })
+	tinsert(JH_REQUEST, { szUrl = szUrl, fnAction = fnAction })
 end
 
 function JH.DelayCall(fnAction, nDelay)
 	if not nDelay then
-		if #_JH.tDelayCall > 0 then
-			if _JH.tDelayCall[#_JH.tDelayCall].fnAction == fnAction then
+		if #JH_CALL_DELAY > 0 then
+			if JH_CALL_DELAY[#JH_CALL_DELAY].fnAction == fnAction then
 				return JH.Debug3("Ignore DelayCall " .. tostring(fnAction))
 			end
 		end
 		nDelay = 0
 	end
-	tinsert(_JH.tDelayCall, { nTime = nDelay + GetTime(), fnAction = fnAction })
+	tinsert(JH_CALL_DELAY, { nTime = nDelay + GetTime(), fnAction = fnAction })
 end
 
 function JH.Split(szFull, szSep)
@@ -1523,10 +1538,10 @@ function JH.BreatheCall(szKey, fnAction, nTime)
 		if nTime and nTime > 0 then
 			nFrame = mceil(nTime / 62.5)
 		end
-		_JH.tBreatheCall[key] = { fnAction = fnAction, nNext = GetLogicFrameCount() + 1, nFrame = nFrame }
+		JH_CALL_BREATHE[key] = { fnAction = fnAction, nNext = GetLogicFrameCount() + 1, nFrame = nFrame }
 		JH.Debug3("BreatheCall # " .. szKey .. " # " .. nFrame)
 	else
-		_JH.tBreatheCall[key] = nil
+		JH_CALL_BREATHE[key] = nil
 		JH.Debug3("UnBreatheCall # " .. szKey)
 	end
 end
@@ -1651,7 +1666,7 @@ function JH.AddonMenu(tMenu)
 end
 -- 管理全部shadow的容器 这样可以防止前后顺序覆盖
 function JH.GetShadowHandle(szName)
-	local sh = Station.Lookup("Lowest/JH_Shadows") or Wnd.OpenWindow(ROOT_PATH .. "item/JH_Shadows.ini", "JH_Shadows")
+	local sh = Station.Lookup("Lowest/JH_Shadows") or Wnd.OpenWindow(ADDON_BASE_PATH .. "item/JH_Shadows.ini", "JH_Shadows")
 	if not sh:Lookup("", szName) then
 		sh:Lookup("", ""):AppendItemFromString(sformat("<handle> name=\"%s\" </handle>", szName))
 	end
@@ -1676,7 +1691,7 @@ end)
 
 JH.RegisterEvent("LOADING_END", function()
 	-- reseting frame count (FIXED BUG FOR Cross Server)
-	for k, v in pairs(_JH.tBreatheCall) do
+	for k, v in pairs(JH_CALL_BREATHE) do
 		v.nNext = GetLogicFrameCount()
 	end
 	-- debug mode
@@ -1688,20 +1703,20 @@ end)
 
 -- szKey, nChannel, dwID, szName, aTable
 JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
-	if _JH.tBgMsgHandle[arg0] then
-		local res, err = pcall(_JH.tBgMsgHandle[arg0], arg1, arg2, arg3, arg4, arg2 == UI_GetClientPlayerID())
+	if JH_BGMSG[arg0] then
+		local res, err = pcall(JH_BGMSG[arg0], arg1, arg2, arg3, arg4, arg2 == UI_GetClientPlayerID())
 		if not res then
 			JH.Debug("BG_MSG#" .. arg0 .. "# ERROR:" .. err)
 		end
 	end
 end)
 
-JH.RegisterEvent("PLAYER_ENTER_SCENE", function() _JH.aPlayer[arg0] = true end)
-JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() _JH.aPlayer[arg0] = nil  end)
-JH.RegisterEvent("NPC_ENTER_SCENE",    function() _JH.aNpc[arg0]    = true end)
-JH.RegisterEvent("NPC_LEAVE_SCENE",    function() _JH.aNpc[arg0]    = nil  end)
-JH.RegisterEvent("DOODAD_ENTER_SCENE", function() _JH.aDoodad[arg0] = true end)
-JH.RegisterEvent("DOODAD_LEAVE_SCENE", function() _JH.aDoodad[arg0] = nil  end)
+JH.RegisterEvent("PLAYER_ENTER_SCENE", function() JH_LIST_PLAYER[arg0] = true end)
+JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() JH_LIST_PLAYER[arg0] = nil  end)
+JH.RegisterEvent("NPC_ENTER_SCENE",    function() JH_LIST_NPC[arg0]    = true end)
+JH.RegisterEvent("NPC_LEAVE_SCENE",    function() JH_LIST_NPC[arg0]    = nil  end)
+JH.RegisterEvent("DOODAD_ENTER_SCENE", function() JH_LIST_DOODAD[arg0] = true end)
+JH.RegisterEvent("DOODAD_LEAVE_SCENE", function() JH_LIST_DOODAD[arg0] = nil  end)
 -- 字符串类
 function JH.Trim(szText)
 	if not szText or szText == "" then
@@ -2242,9 +2257,9 @@ _GUI.Frm = class(_GUI.Frame)
 
 -- constructor
 function _GUI.Frm:ctor(szName, bEmpty)
-	local frm, szIniFile = nil, ROOT_PATH .. "ui/WndFrame.ini"
+	local frm, szIniFile = nil, ADDON_BASE_PATH .. "ui/WndFrame.ini"
 	if bEmpty then
-		szIniFile = ROOT_PATH .. "ui/WndFrameEmpty.ini"
+		szIniFile = ADDON_BASE_PATH .. "ui/WndFrameEmpty.ini"
 	end
 	if type(szName) == "string" then
 		frm = Station.Lookup("Normal/" .. szName)
@@ -2318,9 +2333,9 @@ end
 _GUI.Frm2 = class(_GUI.Frame)
 -- constructor
 function _GUI.Frm2:ctor(szName, bEmpty)
-	local frm, szIniFile = nil, ROOT_PATH .. "ui/WndFrame2.ini"
+	local frm, szIniFile = nil, ADDON_BASE_PATH .. "ui/WndFrame2.ini"
 	if bEmpty then
-		szIniFile = ROOT_PATH .. "ui/WndFrameEmpty.ini"
+		szIniFile = ADDON_BASE_PATH .. "ui/WndFrameEmpty.ini"
 	end
 	if type(szName) == "string" then
 		frm = Station.Lookup("Normal/" .. szName)
@@ -2414,7 +2429,7 @@ function _GUI.Wnd:ctor(pFrame, szType, szName)
 		wnd, szType = pFrame, pFrame:GetType()
 	else
 		-- append from ini file
-		local szFile = ROOT_PATH .. "ui/" .. szType .. ".ini"
+		local szFile = ADDON_BASE_PATH .. "ui/" .. szType .. ".ini"
 		local frame = Wnd.OpenWindow(szFile, "GUI_Virtual")
 		assert(frame, _L("Unable to open ini file [%s]", szFile))
 		wnd = frame:Lookup(szType)
@@ -3032,7 +3047,7 @@ function _GUI.Item:ctor(pHandle, szType, szName)
 			if hnd then hnd:SetName(szName) end
 		else
 			-- append from ini
-			hnd = pHandle:AppendItemFromIni(ROOT_PATH .. "ui/HandleItems.ini","Handle_" .. szType, szName)
+			hnd = pHandle:AppendItemFromIni(ADDON_BASE_PATH .. "ui/HandleItems.ini","Handle_" .. szType, szName)
 		end
 		assert(hnd, _L("Unable to append handle item [%s]", szType))
 	end
