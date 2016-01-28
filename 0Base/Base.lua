@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-28 11:49:59
+-- @Last Modified time: 2016-01-28 15:58:11
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -48,8 +48,23 @@ local JH_LIST_MAP     = {}
 local JH_LIST_PLAYER  = {}
 local JH_LIST_NPC     = {}
 local JH_LIST_DOODAD  = {}
+
+-------------------------------------
+-- EventHandler
+-------------------------------------
+local function EventHandler(szEvent)
+	local tEvent = JH_EVENT[szEvent]
+	if tEvent then
+		for k, v in pairs(tEvent) do
+			local res, err = pcall(v, szEvent)
+			if not res then
+				JH.Debug("EVENT#" .. szEvent .. "." .. k .." ERROR: " .. err)
+			end
+		end
+	end
+end
 ---------------------------------------------------------------------
--- 多语言处理
+-- LangPack
 ---------------------------------------------------------------------
 local function GetLang()
 	local szLang = select(3, GetVersion())
@@ -574,7 +589,7 @@ end
 -- close
 function _JH.ClosePanel(bDisable)
 	local frame = _JH.GetFrame()
-	if frame and not frame.ani then
+	if frame and not frame.ani and not frame.bInit then
 		if not bDisable then
 			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		end
@@ -597,21 +612,6 @@ JH.GetFrame    = _JH.GetFrame
 JH.IsOpened    = _JH.IsOpened
 JH.ClosePanel  = _JH.ClosePanel
 JH.TogglePanel = _JH.TogglePanel
-
--------------------------------------
--- EventHandler
--------------------------------------
-function _JH.EventHandler(szEvent)
-	local tEvent = JH_EVENT[szEvent]
-	if tEvent then
-		for k, v in pairs(tEvent) do
-			local res, err = pcall(v, szEvent)
-			if not res then
-				JH.Debug("EVENT#" .. szEvent .. "." .. k .." ERROR: " .. err)
-			end
-		end
-	end
-end
 
 -- parse emotion in talking message
 function _JH.ParseFaceIcon(t)
@@ -731,7 +731,7 @@ function JH.RegisterEvent(szEvent, fnAction)
 	end
 	if not JH_EVENT[szEvent] then
 		JH_EVENT[szEvent] = {}
-		RegisterEvent(szEvent, function() _JH.EventHandler(szEvent) end)
+		RegisterEvent(szEvent, EventHandler)
 	end
 	local tEvent = JH_EVENT[szEvent]
 	if fnAction then
@@ -1383,6 +1383,7 @@ function JH.GetBuff(dwID, nLevel, KObject)
 		end
 	end
 end
+
 function JH.CancelBuff( ... )
 	local tBuff = JH.GetBuff( ... )
 	if tBuff then
@@ -1642,6 +1643,7 @@ function _JH.GetPlayerAddonMenu()
 	end
 	return { menu }
 end
+JH.GetPlayerAddonMenu = _JH.GetPlayerAddonMenu
 
 function _JH.GetAddonMenu()
 	local menu = _JH.GetMainMenu()
@@ -1673,7 +1675,7 @@ function JH.GetShadowHandle(szName)
 	JH.Debug3("Create sh # " .. szName)
 	return sh:Lookup("", szName)
 end
-JH.GetPlayerAddonMenu = _JH.GetPlayerAddonMenu
+
 JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel()
 	_JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
@@ -1887,23 +1889,26 @@ end
 ---------------------------------------------------------------------
 -- 可重复利用的简易 Handle 元件缓存池
 ---------------------------------------------------------------------
-_JH.HandlePool = class()
-
+local HandlePool = {}
+HandlePool.__index = HandlePool
 -- construct
-function _JH.HandlePool:ctor(handle, xml)
-	self.handle, self.xml = handle, xml
+function HandlePool:ctor(handle, xml)
+	local oo = {}
+	setmetatable(oo, self)
+	oo.handle, oo.xml = handle, xml
 	handle.nFreeCount = 0
 	handle:Clear()
+	return oo
 end
 
 -- clear
-function _JH.HandlePool:Clear()
+function HandlePool:Clear()
 	self.handle:Clear()
 	self.handle.nFreeCount = 0
 end
 
 -- new item
-function _JH.HandlePool:New()
+function HandlePool:New()
 	local handle = self.handle
 	local nCount = handle:GetItemCount()
 	if handle.nFreeCount > 0 then
@@ -1925,14 +1930,14 @@ function _JH.HandlePool:New()
 end
 
 -- remove item
-function _JH.HandlePool:Remove(item)
+function HandlePool:Remove(item)
 	if item:IsValid() then
 		self.handle:RemoveItem(item)
 	end
 end
 
 -- free item
-function _JH.HandlePool:Free(item)
+function HandlePool:Free(item)
 	if item:IsValid() then
 		self.handle.nFreeCount = self.handle.nFreeCount + 1
 		item.bFree = true
@@ -1941,7 +1946,7 @@ function _JH.HandlePool:Free(item)
 	end
 end
 
-function _JH.HandlePool:GetAllItem(bShow)
+function HandlePool:GetAllItem(bShow)
 	local t = {}
 	for i = self.handle:GetItemCount() - 1, 0, -1 do
 		local item = self.handle:Lookup(i)
@@ -1953,7 +1958,7 @@ function _JH.HandlePool:GetAllItem(bShow)
 end
 -- public api, create pool
 -- (class) JH.HandlePool(userdata handle, string szXml)
-JH.HandlePool = _JH.HandlePool.new
+JH.HandlePool = setmetatable({}, { __call = function(me, ...) return HandlePool:ctor( ... ) end, __metatable = true, __newindex = function() end })
 
 ---------------------------------------------------------------------
 -- 本地的 UI 组件对象
@@ -2047,8 +2052,6 @@ function _GUI.Base:RegisterClose(fnAction, bNotButton, bNotKeyDown)
 	end
 	return self
 end
-
-
 
 -- (number, number) Instance:Pos()					-- 取得位置坐标
 -- (self) Instance:Pos(number nX, number nY)	-- 设置位置坐标
