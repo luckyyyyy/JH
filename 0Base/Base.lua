@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-28 15:58:11
+-- @Last Modified time: 2016-01-29 10:26:46
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -90,8 +90,8 @@ local function GetLang()
 end
 local _L = GetLang()
 
-local _VERSION_   = 0x1020400
-local _BUILD_     = "20160114"
+local _VERSION_   = 0x1030000
+local _BUILD_     = "20160129"
 local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 
@@ -552,13 +552,13 @@ function _JH.OpenPanel(szTitle)
 				local loading = frame:Lookup("", "Text_Loading")
 				loading:SetText(GetUserRoleName() .. "\nWelcome Back.")
 				if szTitle then
-					JH.Animate(loading):FadeOut(Random(500, 1200), function()
+					JH.Animate(loading):FadeOut(function()
 						Init()
 						fnAction()
 					end)
 				else
 					JH.Animate(loading):FadeIn(200, function()
-						JH.Animate(loading):FadeOut(1200, function()
+						JH.Animate(loading):FadeOut(function()
 							Init()
 							JH.Animate(frame.hHome):FadeIn(300, fnAction)
 						end)
@@ -777,28 +777,6 @@ function _JH.SetGlobalValue(szVarPath, Val)
 			tab[v] = Val
 		end
 		tab = tab[v]
-	end
-end
--- 开发函数 CallGlobalFun
-function JH.CallGlobalFun(funname, ...)
-	if not string.find(funname, ".") then
-		return _G[funname](...)
-	end
-	local t = JH.Split(funname, ".")
-	local len = #t
-	if len == 2 then
-		return _G[t[1]][t[2]](...)
-	end
-	local fun = _G
-	for k, v in ipairs(t) do
-		if fun[v] then
-			fun = fun[v]
-		else
-			return
-		end
-	end
-	if fun then
-		return fun(...)
 	end
 end
 -- 初始化一个模块
@@ -1610,7 +1588,7 @@ function _JH.GetPlayerAddonMenu()
 			tinsert(menu, v)
 		end
 	end
-	if _DEBUG_Client then
+	if JH.bDebugClient then
 		tinsert(menu, { bDevide = true })
 		tinsert(menu, { szOption = "ReloadUIAddon", fnAction = function()
 			ReloadUIAddon()
@@ -1675,6 +1653,35 @@ function JH.GetShadowHandle(szName)
 	JH.Debug3("Create sh # " .. szName)
 	return sh:Lookup("", szName)
 end
+
+-- 开发函数 CallGlobalFun
+local function CallGlobalFun(funname, ...)
+	if not string.find(funname, ".") then
+		return _G[funname](...)
+	end
+	local t = JH.Split(funname, ".")
+	local len = #t
+	if len == 2 then
+		return _G[t[1]][t[2]](...)
+	end
+	local fun = _G
+	for k, v in ipairs(t) do
+		if fun[v] then
+			fun = fun[v]
+		else
+			return
+		end
+	end
+	if fun then
+		return fun(...)
+	end
+end
+JH.RegisterEvent("JH_DEBUG", function()
+	if _DEBUG_ then
+		local param = { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 }
+		CallGlobalFun(arg0, unpack(param))
+	end
+end)
 
 JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel()

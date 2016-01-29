@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2014-11-20 23:34:41
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:09:52
+-- @Last Modified time: 2016-01-29 14:38:17
 local _L = JH.LoadLangPack
 
 local JH_AutoTeam = {
@@ -125,10 +125,14 @@ PS.OnPanelActive = function(frame)
 	:Text("开启/关闭自动组队"):Click(function(bChecked)
 		JH_AutoTeam.bEnable = bChecked
 		if bChecked then
-			JH_AutoSetTeam.bRequestList = false
-			JH.UnRegisterInit("RequestList")
+			JH_PartyRequest.bEnable = false
+			JH.Sysmsg("JH_PartyRequest.bEnable = false")
+			JH.UnRegisterInit("PARTY_REQUEST")
+		else
+			JH_PartyRequest.bEnable = true
+			JH.Sysmsg("JH_PartyRequest.bEnable = false")
+			JH.RegisterInit("PARTY_REQUEST", JH_PartyRequest.GetEvent())
 		end
-
 		for i = 1,3 do
 			ui:Fetch("Check_XyzSelf"..i):Enable(bChecked)
 		end
@@ -216,7 +220,7 @@ PS.OnPanelActive = function(frame)
 									end
 								end
 								JH.SwitchChat(k)
-								-- JH.Talk(k, szText, true, false, true)
+								JH.Talk(k, szText, true, false, true)
 							end, i * 300)
 						end
 					end
