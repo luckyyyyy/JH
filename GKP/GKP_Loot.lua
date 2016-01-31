@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-26 21:24:23
+-- @Last Modified time: 2016-01-31 23:45:11
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -640,7 +640,7 @@ end
 JH.RegisterEvent("OPEN_DOODAD", function()
 	if arg1 == UI_GetClientPlayerID() then
 		local team = GetClientTeam()
-		if not team or team and team.nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then
+		if not team or team and team.nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not (GKP.bDebug2 and JH.bDebugClient) then
 			return
 		end
 		local doodad = GetDoodad(arg0)
@@ -663,8 +663,12 @@ JH.RegisterEvent("OPEN_DOODAD", function()
 				Loot.DrawLootList(arg0)
 			end
 		end
-		JH.Debug("Doodad Open " .. arg0)
-		Wnd.CloseWindow("LootList")
+		JH.Debug("Open Doodad: " .. arg0)
+		local hLoot = Station.Lookup("Normal/LootList")
+		if hLoot then
+			hLoot:SetAbsPos(4096, 4096)
+		end
+		-- Wnd.CloseWindow("LootList")
 	end
 end)
 

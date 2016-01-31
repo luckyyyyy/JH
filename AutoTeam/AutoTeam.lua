@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2014-11-20 23:34:41
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-29 14:38:17
+-- @Last Modified time: 2016-01-30 16:13:02
 local _L = JH.LoadLangPack
 
 local JH_AutoTeam = {
@@ -130,7 +130,7 @@ PS.OnPanelActive = function(frame)
 			JH.UnRegisterInit("PARTY_REQUEST")
 		else
 			JH_PartyRequest.bEnable = true
-			JH.Sysmsg("JH_PartyRequest.bEnable = false")
+			JH.Sysmsg("JH_PartyRequest.bEnable = true")
 			JH.RegisterInit("PARTY_REQUEST", JH_PartyRequest.GetEvent())
 		end
 		for i = 1,3 do
