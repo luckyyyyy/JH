@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 10:59:55
+-- @Last Modified time: 2016-02-01 19:46:31
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1053,6 +1053,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 	end
 	if not data then
 		for k, v in ipairs(cache.OTHER) do
+			local content = v.szContent
 			if v.szContent:find("$me") then
 				tInfo = { dwID = me.dwID, szName = me.szName }
 				content = v.szContent:gsub("$me", me.szName) -- 转换me是自己名字
