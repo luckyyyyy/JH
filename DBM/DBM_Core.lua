@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-18 18:02:30
+-- @Last Modified time: 2016-02-01 10:59:55
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -253,27 +253,9 @@ local function CreateCache(szType, tab)
 	end
 	D.Log("Create " .. szType .. " data Succeed!")
 end
-
-local function CreateTalkData(dwMapID)
-	-- 单独重建TALK数据
-	local data = D.FILE.TALK
-	local talk = D.DATA.TALK
-	if data[dwMapID] then -- 本地图数据
-		for k, v in JH.bpairs(data[dwMapID]) do
-			talk[#talk + 1] = v
-		end
-	end
-	-- 不要改顺序 通用放后面
-	if data[-1] then -- 通用数据
-		for k, v in JH.bpairs(data[-1]) do
-			talk[#talk + 1] = v
-		end
-	end
-	D.Log("Create TALK data Succeed!")
-end
-
-function D.CreateMeTaTable()
-	-- 重建metatable 获取ALL数据的方法
+-- 核心函数 缓存创建 UI缓存创建
+function D.CreateData(szEvent)
+	-- 重建metatable 获取ALL数据的方法 主要用于UI 逻辑中毫无作用
 	for kType, vTable in pairs(D.FILE)  do
 		setmetatable(D.FILE[kType], { __index = function(me, index)
 			if index == _L["All Data"] then
@@ -302,10 +284,6 @@ function D.CreateMeTaTable()
 		end
 	end
 	D.Log("Create metatable Succeed!")
-end
-
-function D.CreateData(szEvent)
-	D.CreateMeTaTable()
 	local szLang = select(3, GetVersion())
 	local dwMapID = JH.GetMapID(true)
 	local nTime = GetTime()
@@ -316,24 +294,48 @@ function D.CreateData(szEvent)
 	for k, v in pairs(CACHE.MAP) do
 		CACHE.MAP[k] = {}
 	end
-	D.DATA.TALK = {}
 	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
 		D.Log("MAPID: " .. dwMapID ..  " Create data Failed:" .. GetTime() - nTime  .. "ms")
 		return
 	end
 	-- 重建MAP
-	for _, szType in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD" }) do
-		local data  = D.DATA[szType]
-		local cache = CACHE.MAP[szType]
-		if D.FILE[szType][dwMapID] then -- 本地图数据
-			CreateCache(szType, D.FILE[szType][dwMapID])
+	for _, v in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD" }) do
+		if D.FILE[v][dwMapID] then -- 本地图数据
+			CreateCache(v, D.FILE[v][dwMapID])
 		end
-		if D.FILE[szType][-1] then -- 通用数据
-			CreateCache(szType, D.FILE[szType][-1])
+		if D.FILE[v][-1] then -- 通用数据
+			CreateCache(v, D.FILE[v][-1])
 		end
 	end
-	CreateTalkData(dwMapID)
+	-- 单独重建TALK数据
+	local data  = D.FILE.TALK
+	local talk  = D.DATA.TALK
+	CACHE.MAP.TALK = {
+		HIT   = {},
+		OTHER = {},
+	}
+	local cache = CACHE.MAP.TALK
+	if data[-1] then -- 通用数据
+		for k, v in ipairs(data[-1]) do
+			talk[#talk + 1] = v
+		end
+	end
+	if data[dwMapID] then -- 本地图数据
+		for k, v in ipairs(data[dwMapID]) do
+			talk[#talk + 1] = v
+		end
+	end
+	for k, v in ipairs(talk) do
+		if v.szContent:find("$me") or v.szContent:find("$team") then
+			tinsert(cache.OTHER, v)
+		else
+			cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
+			-- Output(, v)
+			cache.HIT[v.szContent][v.szTarget or "sys"] = v
+		end
+	end
+	D.Log("Create TALK data Succeed!")
 
 	-- 清空缓存
 	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
@@ -1021,7 +1023,6 @@ function D.OnDoodadAllLeave(dwTemplateID)
 		D.CountdownEvent(data, DBM_TYPE.DOODAD_ALLLEAVE)
 	end
 end
-
 -- 系统和NPC喊话处理
 function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 	-- 近期记录
@@ -1039,110 +1040,118 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		tTemp[#tTemp + 1] = tWeak[key]
 		FireUIEvent("DBMUI_TEMP_UPDATE", "TALK", t)
 	end
-	for k, v in ipairs(D.DATA.TALK) do
-		local content = v.szContent
-		local bHit, tInfo
-		if v.szContent:find("$me") then
-			tInfo = { dwID = me.dwID, szName = me.szName }
-			content = v.szContent:gsub("$me", me.szName) -- 转换me是自己名字
+	local tInfo, data
+	local cache = CACHE.MAP.TALK
+	if cache.HIT[szContent] then
+		if cache.HIT[szContent][szNpcName] then
+			data = cache.HIT[szContent][szNpcName]
+		elseif cache.HIT[szContent]["%"] then
+			data = cache.HIT[szContent]["%"]
+		elseif not szNpcName and cache.HIT[szContent]["sys"] then
+			data = cache.HIT[szContent]["sys"]
 		end
-		if me.IsInParty() and content:find("$team") then
-			local team = GetClientTeam()
-			local c = content
-			for kk, vv in ipairs(team.GetTeamMemberList()) do
-				if szContent:match(c:gsub("$team", team.GetClientTeamMemberName(vv))) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
-					tInfo = { dwID = vv, szName = team.GetClientTeamMemberName(vv) }
-					bHit = true
+	end
+	if not data then
+		for k, v in ipairs(cache.OTHER) do
+			if v.szContent:find("$me") then
+				tInfo = { dwID = me.dwID, szName = me.szName }
+				content = v.szContent:gsub("$me", me.szName) -- 转换me是自己名字
+			end
+			if me.IsInParty() and content:find("$team") then
+				local team = GetClientTeam()
+				local c = content
+				for kk, vv in ipairs(team.GetTeamMemberList()) do
+					if szContent:match(c:gsub("$team", team.GetClientTeamMemberName(vv))) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+						tInfo = { dwID = vv, szName = team.GetClientTeamMemberName(vv) }
+						data = v
+						break
+					end
+				end
+			else
+				if szContent:match(content) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+					data = v
 					break
 				end
 			end
-		else
-			if szContent:match(content) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
-				bHit = true
+		end
+	end
+
+	if data then
+		if data.tCountdown then
+			for kk, vv in ipairs(data.tCountdown) do
+				if vv.nClass == DBM_TYPE.TALK_MONITOR then
+					local szKey = data.nIndex .. "." .. kk
+					local tParam = {
+						key      = vv.key,
+						nFrame   = vv.nFrame,
+						nTime    = vv.nTime,
+						nRefresh = vv.nRefresh,
+						szName   = vv.szName or data.szNote,
+						nIcon    = vv.nIcon or 340,
+						bTalk    = vv.bTeamChannel
+					}
+					D.FireCountdownEvent(vv.nClass, szKey, tParam)
+				end
 			end
 		end
-		if bHit then -- hit
-			-- 倒计时
-			if v.tCountdown then
-				for kk, vv in ipairs(v.tCountdown) do
-					if vv.nClass == DBM_TYPE.TALK_MONITOR then
-						local szKey = k .. "." .. kk
-						local tParam = {
-							key      = vv.key,
-							nFrame   = vv.nFrame,
-							nTime    = vv.nTime,
-							nRefresh = vv.nRefresh,
-							szName   = vv.szName or v.szNote,
-							nIcon    = vv.nIcon or 340,
-							bTalk    = vv.bTeamChannel
-						}
-						D.FireCountdownEvent(vv.nClass, szKey, tParam)
-					end
+		local cfg = data[DBM_TYPE.TALK_MONITOR]
+		if cfg then
+			local xml, txt = {}, data.szNote or szContent
+			if tInfo and not data.szNote then
+				tinsert(xml, DBM_LEFT_LINE)
+				tinsert(xml, GetFormatText(szNpcName or _L["JX3"], 44, 255, 255, 0))
+				tinsert(xml, DBM_RIGHT_LINE)
+				tinsert(xml, GetFormatText(_L["is calling"], 44, 255, 255, 255))
+				tinsert(xml, DBM_LEFT_LINE)
+				tinsert(xml, GetFormatText(tInfo.szName == me.szName and g_tStrings.STR_YOU or tInfo.szName, 44, 255, 255, 0))
+				tinsert(xml, DBM_RIGHT_LINE)
+				tinsert(xml, GetFormatText(_L["'s name."], 44, 255, 255, 255))
+				txt = GetPureText(tconcat(xml))
+			end
+			txt = txt:gsub("$me", me.szName)
+			if tInfo then
+				txt = txt:gsub("$team", tInfo.szName)
+				if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
+					D.Talk(txt, tInfo.szName)
+				end
+				if DBM.bPushScreenHead and cfg.bScreenHead then
+					FireUIEvent("JH_SA_CREATE", "TIME", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
+				end
+				if JH.bDebugClient and cfg.bSelect then
+					SetTarget(TARGET.PLAYER, tInfo.dwID)
+				end
+			else
+				if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
+					D.Talk(txt, true)
+				end
+				if DBM.bPushScreenHead and cfg.bScreenHead then
+					FireUIEvent("JH_SA_CREATE", "TIME", dwNpcID or me.dwID, { txt = txt })
 				end
 			end
-
-			local cfg = v[DBM_TYPE.TALK_MONITOR]
-			if cfg then
-				local xml, txt = {}, v.szNote or szContent
-				if tInfo and not v.szNote then
-					tinsert(xml, DBM_LEFT_LINE)
-					tinsert(xml, GetFormatText(szNpcName or _L["JX3"], 44, 255, 255, 0))
-					tinsert(xml, DBM_RIGHT_LINE)
-					tinsert(xml, GetFormatText(_L["is calling"], 44, 255, 255, 255))
-					tinsert(xml, DBM_LEFT_LINE)
-					tinsert(xml, GetFormatText(tInfo.szName == me.szName and g_tStrings.STR_YOU or tInfo.szName, 44, 255, 255, 0))
-					tinsert(xml, DBM_RIGHT_LINE)
-					tinsert(xml, GetFormatText(_L["'s name."], 44, 255, 255, 255))
-					txt = GetPureText(tconcat(xml))
+			-- 中央报警
+			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
+				FireUIEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)
+			end
+			-- 特大文字
+			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
+				FireUIEvent("JH_LARGETEXT", txt, data.col or { 255, 128, 0 })
+			end
+			if DBM.bPushFullScreen and cfg.bFullScreen then
+				if (tInfo and tInfo.dwID == me.dwID) or not tInfo then
+					FireUIEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = data.col or { 0, 255, 0 }, bFlash = true })
 				end
-				txt = txt:gsub("$me", me.szName)
-				if tInfo then
-					txt = txt:gsub("$team", tInfo.szName)
-					if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-						D.Talk(txt, tInfo.szName)
-					end
-					if DBM.bPushScreenHead and cfg.bScreenHead then
-						FireUIEvent("JH_SA_CREATE", "TIME", tInfo.dwID, { txt = _L("%s Call Name", szNpcName or g_tStrings.SYSTEM)})
-					end
-					if JH.bDebugClient and cfg.bSelect then
-						SetTarget(TARGET.PLAYER, tInfo.dwID)
-					end
+			end
+			if DBM.bPushTeamChannel and cfg.bTeamChannel then
+				if tInfo and not data.szNote then
+					local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. tInfo.szName .. _L["]"])
+					D.Talk(talk)
 				else
-					if DBM.bPushWhisperChannel and cfg.bWhisperChannel then
-						D.Talk(txt, true)
-					end
-					if DBM.bPushScreenHead and cfg.bScreenHead then
-						FireUIEvent("JH_SA_CREATE", "TIME", dwNpcID or me.dwID, { txt = txt })
-					end
-				end
-
-				-- 中央报警
-				if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
-					FireUIEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)
-				end
-				-- 特大文字
-				if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-					FireUIEvent("JH_LARGETEXT", txt, v.col or { 255, 128, 0 })
-				end
-				if DBM.bPushFullScreen and cfg.bFullScreen then
-					if (tInfo and tInfo.dwID == me.dwID) or not tInfo then
-						FireUIEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = v.col or { 0, 255, 0 }, bFlash = true })
-					end
-				end
-				if DBM.bPushTeamChannel and cfg.bTeamChannel then
-					if tInfo and not v.szNote then
-						local talk = txt:gsub(_L["["] .. g_tStrings.STR_YOU .. _L["]"], _L["["] .. tInfo.szName .. _L["]"])
-						D.Talk(talk)
-					else
-						D.Talk(txt)
-					end
+					D.Talk(txt)
 				end
 			end
-			break
 		end
 	end
 end
-
 -- NPC死亡事件 触发倒计时
 function D.OnDeath(dwCharacterID, szKiller)
 	local npc = GetNpc(dwCharacterID)

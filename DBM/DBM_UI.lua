@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-19 19:58:57
+-- @Last Modified time: 2016-02-01 10:31:39
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -42,7 +42,7 @@ local DBMUI_DOODAD_ICON = {
 	[DOODAD_KIND.NPCDROP]      = 381,
 }
 setmetatable(DBMUI_DOODAD_ICON, { __index = function(me, key)
-	JH.Debug("UnKown Kind" .. key)
+	JH.Debug("unknown Kind" .. key)
 	return 369
 end })
 
@@ -123,11 +123,13 @@ function DBM_UI.OnFrameCreate()
 			DBM_API.Enable(true, true)
 			this:Enable(false)
 			ui:Fetch("Off"):Enable(true)
+			DBM.bEnable = true
 		end)
 		ui:Append("WndButton", "Off", { txt = "Disable", x = 210, y = 10, enable = DBM.bEnable }):Click(function()
 			DBM_API.Enable(false)
 			this:Enable(false)
 			ui:Fetch("On"):Enable(true)
+			DBM.bEnable = false
 		end)
 	end
 	local hSearch = ui:Fetch("PageSet_Main"):Append("WndEdit", "WndEdit_Search", { x = 50, y = 38, txt = g_tStrings.SEARCH, w = 500, h = 25 })
@@ -1703,10 +1705,12 @@ function DBMUI.OpenSettingPanel(data, szType)
 			else
 				data.szTarget = szText
 			end
+			FireUIEvent("DBM_CREATE_CACHE")
 		end):Pos_()
 		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Content"], font = 27 }):Pos_()
 		_, nY = ui:Append("WndEdit", { x = nX + 5, y = nY + 8, txt = data.szContent, w = 650, h = 55, multi = true }):Change(function(txt)
 			data.szContent = JH.Trim(txt)
+			FireUIEvent("DBM_CREATE_CACHE")
 		end):Pos_()
 		nX, nY = ui:Append("Text", { x = nX, y = nY, txt = _L["Tips:$me behalf of self, $team behalf of team, Only allow a time"], alpha = 200 }):Pos_()
 		nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Trigger Talk"], font = 27 }):Pos_()

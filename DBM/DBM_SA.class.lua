@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 08:45:08
+-- @Last Modified time: 2016-02-01 10:57:05
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
@@ -66,7 +66,7 @@ local SA_POINT = {
 	{ 15, 25, 180 },
 }
 
--- FireUIEvent("JH_SA_CREATE", "TIME", GetClientPlayer().dwID, { col = { 255, 255, 255 }, txt = "test" })
+-- for i=1, 2 do FireUIEvent("JH_SA_CREATE", "TIME", GetClientPlayer().dwID, { col = { 255, 255, 255 }, txt = "test" })end
 local function CreateScreenArrow(szClass, dwID, tArgs)
 	tArgs = tArgs or {}
 	SA:ctor(szClass, dwID, tArgs)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 08:41:44
+-- @Last Modified time: 2016-02-01 10:28:25
 -- JX3_Client 全屏泛光类
 local FS = {}
 FS.__index = FS
@@ -101,11 +101,13 @@ function FS:ctor(szKey, tArgs)
 	local oo = {}
 	setmetatable(oo, self)
 	oo.key = szKey
-	if not ui then
+	if not ui or ui and not ui:IsValid() then
 		ui = FS_HANDLE:AppendItemFromData(FS_FRAME.hItem)
 	end
-	ui.sha1 = ui.sha1 or ui:AppendItemFromIni(SHADOW, "shadow")
-	if ui.sha1:IsValid() then
+	if ui.sha1 and ui.sha1:IsValid() then
+		ui.sha1 = ui.sha1
+	else
+		ui.sha1 = ui:AppendItemFromIni(SHADOW, "shadow")
 		ui.sha1:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 		ui.sha1:SetD3DPT(D3DPT.TRIANGLESTRIP)
 	end
