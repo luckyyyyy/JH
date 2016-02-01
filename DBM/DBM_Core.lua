@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 19:46:31
+-- @Last Modified time: 2016-02-01 21:21:05
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -55,11 +55,9 @@ local DBM_EVENTS = {
 }
 
 local function GetDataPath()
-	if DBM.bCommon then
-		return "DBM/Common/DBM.jx3dat"
-	else
-		return "DBM/" .. GetUserRoleName() .. "/DBM.jx3dat"
-	end
+	local szPath = DBM.bCommon and "DBM/Common/DBM.jx3dat" or "DBM/" .. GetUserRoleName() .. "/DBM.jx3dat"
+	Log("[DBM] get data path: " .. szPath)
+	return szPath
 end
 
 local CACHE = {
@@ -107,12 +105,11 @@ JH.RegisterCustomData("DBM")
 local DBM = DBM
 
 function DBM.OnFrameCreate()
-	for k, v in ipairs(DBM_EVENTS) do
-		this:RegisterEvent(v)
-	end
 	this:RegisterEvent("DBM_LOADING_END")
 	this:RegisterEvent("DBM_CREATE_CACHE")
 	this:RegisterEvent("LOADING_END")
+	D.Enable(DBM.bEnable)
+	D.Log("init success!")
 end
 
 function DBM.OnFrameBreathe()
@@ -251,7 +248,7 @@ local function CreateCache(szType, tab)
 			cache[v.dwID] = k
 		end
 	end
-	D.Log("Create " .. szType .. " data Succeed!")
+	D.Log("Create " .. szType .. " data succeed!")
 end
 -- 核心函数 缓存创建 UI缓存创建
 function D.CreateData(szEvent)
@@ -283,7 +280,7 @@ function D.CreateData(szEvent)
 			end
 		end
 	end
-	D.Log("Create metatable Succeed!")
+	D.Log("Create metatable succeed!")
 	local szLang = select(3, GetVersion())
 	local dwMapID = JH.GetMapID(true)
 	local nTime = GetTime()
@@ -335,7 +332,7 @@ function D.CreateData(szEvent)
 			cache.HIT[v.szContent][v.szTarget or "sys"] = v
 		end
 	end
-	D.Log("Create TALK data Succeed!")
+	D.Log("Create TALK data succeed!")
 
 	-- 清空缓存
 	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
@@ -365,7 +362,7 @@ function D.CreateData(szEvent)
 		D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
 	end
 	FireUIEvent("DBMUI_FREECACHE")
-	D.Log("MAPID: " .. dwMapID ..  " Create data Succeed:" .. GetTime() - nTime  .. "ms")
+	D.Log("MAPID: " .. dwMapID ..  " Create data succeed:" .. GetTime() - nTime  .. "ms")
 end
 
 function D.FreeCache(szType)
@@ -1043,12 +1040,10 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 	local tInfo, data
 	local cache = CACHE.MAP.TALK
 	if cache.HIT[szContent] then
-		if cache.HIT[szContent][szNpcName] then
-			data = cache.HIT[szContent][szNpcName]
+		if cache.HIT[szContent][szNpcName or "sys"] then
+			data = cache.HIT[szContent][szNpcName or "sys"]
 		elseif cache.HIT[szContent]["%"] then
 			data = cache.HIT[szContent]["%"]
-		elseif not szNpcName and cache.HIT[szContent]["sys"] then
-			data = cache.HIT[szContent]["sys"]
 		end
 	end
 	if not data then
@@ -1351,8 +1346,6 @@ function D.Open()
 			frame:UnRegisterEvent(v)
 			frame:RegisterEvent(v)
 		end
-	else
-		Wnd.OpenWindow(DBM_INIFILE, "DBM")
 	end
 end
 
@@ -1387,11 +1380,12 @@ function D.Enable(bEnable, bFireUIEvent)
 end
 
 function D.Init()
-	D.Enable(DBM.bEnable)
+	D.LoadUserData()
+	Wnd.OpenWindow(DBM_INIFILE, "DBM")
 end
 
 function D.SaveData()
-	JH.SaveLUAData(GetDataPath(), D.FILE)
+	JH.SaveLUAData(GetDataPath(), D.FILE, nil, false)
 end
 
 function D.GetDungeon()
@@ -1774,7 +1768,6 @@ local ui = {
 DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metatable = true })
 
 JH.RegisterEvent("LOGIN_GAME", D.Init)
-JH.RegisterEvent("PLAYER_ENTER_GAME", D.LoadUserData)
 JH.RegisterExit(D.SaveData)
 JH.RegisterBgMsg("DBM_SHARE", D.OnShare)
 
