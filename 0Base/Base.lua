@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-29 10:26:46
+-- @Last Modified time: 2016-02-01 11:18:28
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -113,7 +113,7 @@ JH = {
 do
 	if GetVersion and OutputMessage then
 		local exp = { GetVersion() }
-		if (exp and exp[4] == "exp" or exp[4] == "bvt") or type(EnableDebugEnv) ~= nil then -- 调试用
+		if (exp and exp[4] == "exp" or exp[4] == "bvt") or type(EnableDebugEnv) ~= "nil" then -- 调试用
 			_DEBUG_ = true
 			OutputMessage("MSG_SYS", " [-- JH --] debug client, enable debug !!\n")
 			OutputMessage("MSG_SYS", " [-- JH --] client version " .. exp[2] .. "\n")

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 10:28:25
+-- @Last Modified time: 2016-02-01 11:04:40
 -- JX3_Client 全屏泛光类
 local FS = {}
 FS.__index = FS
@@ -116,8 +116,10 @@ function FS:ctor(szKey, tArgs)
 	ui.nCreate = nTime
 	ui.col     = tArgs.col or { 255, 128, 0 }
 	if tArgs.tBindBuff then
-		ui.sha2 = ui.sha2 or ui:AppendItemFromIni(SHADOW, "shadow")
-		if ui.sha2:IsValid() then
+		if ui.sha2 and ui.sha2:IsValid() then
+			ui.sha2 = ui.sha2
+		else
+			ui.sha2 = ui:AppendItemFromIni(SHADOW, "shadow")
 			ui.sha2:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 			ui.sha2:SetD3DPT(D3DPT.TRIANGLESTRIP)
 		end
