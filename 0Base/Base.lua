@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 11:18:28
+-- @Last Modified time: 2016-02-02 09:59:45
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -10,7 +10,7 @@
 
 -- these global functions are accessed all the time by the event handler
 -- so caching them is worth the effort
-local ipairs, pairs, next, pcall = ipairs, pairs, next, pcall
+local ipairs, pairs, next, pcall, Log = ipairs, pairs, next, pcall, Log
 local tinsert, tremove, tconcat = table.insert, table.remove, table.concat
 local ssub, slen, schar, srep, sbyte, sformat, sgsub =
       string.sub, string.len, string.char, string.rep, string.byte, string.format, string.gsub
@@ -53,15 +53,15 @@ local JH_LIST_DOODAD  = {}
 -- EventHandler
 -------------------------------------
 local function EventHandler(szEvent)
-	local tEvent = JH_EVENT[szEvent]
-	if tEvent then
-		for k, v in pairs(tEvent) do
-			local res, err = pcall(v, szEvent)
-			if not res then
-				JH.Debug("EVENT#" .. szEvent .. "." .. k .." ERROR: " .. err)
-			end
+	-- local nTime = GetTime()
+	for k, v in pairs(JH_EVENT[szEvent]) do
+		local res, err = pcall(v, szEvent)
+		if not res then
+			JH.Debug("EVENT#" .. szEvent .. "." .. k .." ERROR: " .. err)
 		end
 	end
+	-- 如果有性能问题请启用
+	-- Log("[JH] EventHandler " .. szEvent .. " cost:" .. GetTime() - nTime .."ms")
 end
 ---------------------------------------------------------------------
 -- LangPack
@@ -113,7 +113,7 @@ JH = {
 do
 	if GetVersion and OutputMessage then
 		local exp = { GetVersion() }
-		if (exp and exp[4] == "exp" or exp[4] == "bvt") or type(EnableDebugEnv) ~= "nil" then -- 调试用
+		if (exp and exp[4] == "exp" or exp[4] == "bvt") or EnableDebugEnv then -- 调试用
 			_DEBUG_ = true
 			OutputMessage("MSG_SYS", " [-- JH --] debug client, enable debug !!\n")
 			OutputMessage("MSG_SYS", " [-- JH --] client version " .. exp[2] .. "\n")
@@ -745,6 +745,10 @@ function JH.RegisterEvent(szEvent, fnAction)
 			JH_EVENT[szEvent] = {}
 		else
 			tEvent[szKey] = nil
+		end
+		if next(tEvent) == nil then
+			JH_EVENT[szEvent] = nil
+			UnRegisterEvent(szEvent, EventHandler)
 		end
 	end
 end
@@ -1618,6 +1622,15 @@ function _JH.GetPlayerAddonMenu()
 				JH.nChannel = PLAYER_TALK_CHANNEL.TONG
 			end },
 		})
+		tinsert(menu, { bDevide = true })
+		tinsert(menu, { szOption = "EventHandler" })
+		local EventHandler = menu[#menu]
+		for k, v in pairs(JH_EVENT) do
+			tinsert(EventHandler, { szOption = k })
+			for kk, vv in pairs(v) do
+				tinsert(EventHandler[#EventHandler], { szOption = tostring(vv) .. (type(kk) ~= "number" and " (" .. kk .. ")" or "") })
+			end
+		end
 	end
 	return { menu }
 end
@@ -1654,38 +1667,9 @@ function JH.GetShadowHandle(szName)
 	return sh:Lookup("", szName)
 end
 
--- 开发函数 CallGlobalFun
-local function CallGlobalFun(funname, ...)
-	if not string.find(funname, ".") then
-		return _G[funname](...)
-	end
-	local t = JH.Split(funname, ".")
-	local len = #t
-	if len == 2 then
-		return _G[t[1]][t[2]](...)
-	end
-	local fun = _G
-	for k, v in ipairs(t) do
-		if fun[v] then
-			fun = fun[v]
-		else
-			return
-		end
-	end
-	if fun then
-		return fun(...)
-	end
-end
-JH.RegisterEvent("JH_DEBUG", function()
-	if _DEBUG_ then
-		local param = { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 }
-		CallGlobalFun(arg0, unpack(param))
-	end
-end)
-
 JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel()
-	_JH.tGlobalValue = JH.LoadLUAData("config/userdata.jx3dat") or {}
+	_JH.tGlobalValue = JH.LoadLUAData("dev/GlobalValue.jx3dat") or {}
 	-- 注册快捷键
 	Hotkey.AddBinding("JH_Total", _L["JH Plugin"], _JH.szTitle, _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do

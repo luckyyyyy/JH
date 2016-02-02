@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-31 23:45:11
+-- @Last Modified time: 2016-02-01 23:47:33
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -625,7 +625,7 @@ function Loot.GetDoodad(dwID)
 			local item, bNeedRoll, bDist, bBidding = d.GetLootItem(i, me)
 			if item and item.nQuality > 0 then
 				local szItemName = GetItemNameByItem(item)
-				if not bSpecial and GKP_LOOT_HUANGBABA[szItemName] then
+				if GKP_LOOT_HUANGBABA[szItemName] then
 					bSpecial = true
 				end
 				-- bSpecial = true -- debug

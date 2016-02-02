@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-23 19:23:16
+-- @Last Modified time: 2016-02-02 09:06:26
 
 -- 战斗浮动文字设计思路
 --[[
@@ -187,6 +187,16 @@ function JH_CombatText.OnFrameCreate()
 	JH.BreatheCall("COMBAT_TEXT", CombatText.ExecQueue, 50)
 	COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
 	COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
+	JH.BreatheCall("COMBAT_TEXT_CACHE", function()
+		local count = 0
+		for k, v in pairs(COMBAT_TEXT_LEAVE) do
+			count = count + 1
+		end
+		if count > 10000 then
+			COMBAT_TEXT_LEAVE = {}
+			Log("[JH] CombatText cache beyond 10000 !!!")
+		end
+	end, 1000 * 60 * 5)
 end
 
 -- for i=1,5 do FireUIEvent("SKILL_EFFECT_TEXT",UI_GetClientPlayerID(),1073741860,true,5,1111,111,1)end
@@ -749,6 +759,7 @@ function CombatText.CheckEnable()
 			CombatText.FreeQueue()
 			Wnd.CloseWindow(ui)
 			JH.UnBreatheCall("COMBAT_TEXT")
+			JH.UnBreatheCall("COMBAT_TEXT_CACHE")
 			collectgarbage("collect")
 		end
 	end
@@ -888,14 +899,3 @@ end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("FIRST_LOADING_END", CombatText.CheckEnable)
-
-JH.BreatheCall("COMBAT_TEXT_CACHE", function()
-	local count = 0
-	for k, v in pairs(COMBAT_TEXT_LEAVE) do
-		count = count + 1
-	end
-	if count > 10000 then
-		COMBAT_TEXT_LEAVE = {}
-		Log("[JH] CombatText cache beyond 10000 !!!")
-	end
-end, 1000 * 60 * 5)

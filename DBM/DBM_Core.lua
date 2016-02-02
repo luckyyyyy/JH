@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 21:21:05
+-- @Last Modified time: 2016-02-02 10:19:29
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -56,7 +56,7 @@ local DBM_EVENTS = {
 
 local function GetDataPath()
 	local szPath = DBM.bCommon and "DBM/Common/DBM.jx3dat" or "DBM/" .. GetUserRoleName() .. "/DBM.jx3dat"
-	Log("[DBM] get data path: " .. szPath)
+	Log("[DBM] data path: " .. szPath)
 	return szPath
 end
 
@@ -85,6 +85,10 @@ do
 		CACHE.MAP[v]      = {}
 		CACHE.INTERVAL[v] = {}
 		CACHE.TEMP[v]     = setmetatable({}, { __mode = "v" })
+		if v == "TALK" then -- init talk stru
+			CACHE.MAP.TALK.HIT   = {}
+			CACHE.MAP.TALK.OTHER = {}
+		end
 	end
 end
 
@@ -110,14 +114,7 @@ function DBM.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
 	D.Enable(DBM.bEnable)
 	D.Log("init success!")
-end
-
-function DBM.OnFrameBreathe()
-	D.CheckNpcState()
-	-- timer
-	-- 注意玩家机器受限 并不保证这个时间会一定被执行 用于不重要的内容
-	local nFrameCount = GetLogicFrameCount()
-	if nFrameCount % 160 == 0 then
+	JH.BreatheCall("DBM_CACHE_CLEAR", function()
 		for k, v in ipairs(DBM_TYPE_LIST) do
 			if #D.TEMP[v] > DBM_MAX_CACHE then
 				D.FreeCache(v)
@@ -128,6 +125,89 @@ function DBM.OnFrameBreathe()
 				if #vv > DBM_MAX_INTERVAL then
 					CACHE.INTERVAL[k][kk] = {}
 				end
+			end
+		end
+	end, 60 * 2 * 1000) -- 2min
+end
+
+function DBM.OnFrameBreathe()
+	local me = GetClientPlayer()
+	if not me then return end
+	local dwType, dwID = me.GetTarget()
+	for k, v in pairs(CACHE.NPC_LIST) do
+		local data = D.GetData("NPC", k)
+		if data then
+			local bTempTarget = false
+			for kk, vv in ipairs(data.tCountdown or {}) do
+				if vv.nClass == DBM_TYPE.NPC_MANA then
+					bTempTarget = true
+					break
+				end
+			end
+			local bFightFlag = false
+			local fLifePer = 1
+			local fManaPer = 1
+			TargetPanel_SetOpenState(true)
+			for kk, vv in ipairs(v.tList) do
+				local npc = GetNpc(vv)
+				if npc then
+					if bTempTarget then
+						JH.SetTarget(TARGET.NPC, vv)
+						JH.SetTarget(dwType, dwID)
+					end
+					local fLife = npc.nCurrentLife / npc.nMaxLife
+					local fMana = npc.nCurrentMana / npc.nMaxMana
+					if fLife < fLifePer then -- 取血量最少的NPC
+						fLifePer = fLife
+					end
+					if fMana < fManaPer then -- 取蓝量最少的NPC
+						fManaPer = fMana
+					end
+					-- 战斗标记检查
+					if npc.bFightState then
+						bFightFlag = true
+						break
+					end
+				end
+			end
+			TargetPanel_SetOpenState(false)
+			if bFightFlag ~= v.bFightState then
+				CACHE.NPC_LIST[k].bFightState = bFightFlag
+			else
+				bFightFlag = nil
+			end
+			fLifePer = floor(fLifePer * 100)
+			fManaPer = floor(fManaPer * 100)
+			if v.nLife > fLifePer then
+				local nCount, step = v.nLife - fLifePer, 1
+				if nCount > 50 then
+					step = 2
+				end
+				for i = 1, nCount, step do
+					FireUIEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
+				end
+			end
+			if bTempTarget then
+				if v.nMana < fManaPer then
+					local nCount, step = fManaPer - v.nMana, 1
+					if nCount > 50 then
+						step = 2
+					end
+					for i = 1, nCount, step do
+						FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana + i)
+					end
+				end
+			end
+			v.nLife = fLifePer
+			v.nMana = fManaPer
+			if bFightFlag then
+				local nTime = GetTime()
+				v.nSec = GetTime()
+				FireUIEvent("DBM_NPC_FIGHT", k, true, nTime)
+			elseif bFightFlag == false then
+				local nTime = GetTime() - (v.nSec or GetTime())
+				v.nSec = nil
+				FireUIEvent("DBM_NPC_FIGHT", k, false, nTime)
 			end
 		end
 	end
@@ -203,7 +283,7 @@ function DBM.OnEvent(szEvent)
 end
 
 function D.Log(szMsg)
-	Log("[DBM] " .. szMsg)
+	return Log("[DBM] " .. szMsg)
 end
 
 function D.Talk(szMsg, szTarget)
@@ -211,14 +291,14 @@ function D.Talk(szMsg, szTarget)
 	if not me then return end
 	if not szTarget then
 		if me.IsInParty() then
-			JH.Talk(PLAYER_TALK_CHANNEL.RAID, szMsg, "DBM." .. szMsg .. GetLogicFrameCount())
+			return JH.Talk(PLAYER_TALK_CHANNEL.RAID, szMsg, "DBM." .. szMsg .. GetLogicFrameCount())
 		end
 	elseif type(szTarget) == "string" then
 		local szText = szMsg:gsub(_L["["] .. szTarget .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
 		if szTarget == me.szName then
-			JH.OutputWhisper(szText, "DBM")
+			return JH.OutputWhisper(szText, "DBM")
 		else
-			JH.Talk(szTarget, szText, "DBM." .. szMsg .. GetLogicFrameCount())
+			return JH.Talk(szTarget, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 		end
 	elseif type(szTarget) == "boolean" then
 		if me.IsInParty() then
@@ -227,9 +307,9 @@ function D.Talk(szMsg, szTarget)
 				local szName = team.GetClientTeamMemberName(v)
 				local szText = szMsg:gsub(_L["["] .. szName .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
 				if szName == me.szName then
-					JH.OutputWhisper(szText, "DBM")
+					return JH.OutputWhisper(szText, "DBM")
 				else
-					JH.Talk(szName, szText, "DBM." .. szMsg .. GetLogicFrameCount())
+					return JH.Talk(szName, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 				end
 			end
 		end
@@ -328,7 +408,6 @@ function D.CreateData(szEvent)
 			tinsert(cache.OTHER, v)
 		else
 			cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
-			-- Output(, v)
 			cache.HIT[v.szContent][v.szTarget or "sys"] = v
 		end
 	end
@@ -493,7 +572,7 @@ function D.GetSrcName(dwID)
 	end
 end
 
--- local a=GetTime();for i=1, 10000 do FireUIEvent("BUFF_UPDATE",96980,false,1,true,i,1,1,1,1,0) end;Output(GetTime()-a)
+-- local a=GetTime();for i=1, 10000 do FireUIEvent("BUFF_UPDATE",UI_GetClientPlayerID(),false,1,true,i,1,1,1,1,0) end;Output(GetTime()-a)
 -- 事件操作
 function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, dwSkillSrcID)
 	local me = GetClientPlayer()
@@ -1248,89 +1327,6 @@ function D.OnNpcAllLeave(dwTemplateID)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data then
 		D.CountdownEvent(data, DBM_TYPE.NPC_ALLLEAVE)
-	end
-end
-
-function D.CheckNpcState()
-	local me = GetClientPlayer()
-	if not me then return end
-	local dwType, dwID = me.GetTarget()
-	for k, v in pairs(CACHE.NPC_LIST) do
-		local data = D.GetData("NPC", k)
-		if data then
-			local bTempTarget = false
-			for kk, vv in ipairs(data.tCountdown or {}) do
-				if vv.nClass == DBM_TYPE.NPC_MANA then
-					bTempTarget = true
-					break
-				end
-			end
-			local bFightFlag = false
-			local fLifePer = 1
-			local fManaPer = 1
-			TargetPanel_SetOpenState(true)
-			for kk, vv in ipairs(v.tList) do
-				local npc = GetNpc(vv)
-				if npc then
-					if bTempTarget then
-						JH.SetTarget(TARGET.NPC, vv)
-						JH.SetTarget(dwType, dwID)
-					end
-					local fLife = npc.nCurrentLife / npc.nMaxLife
-					local fMana = npc.nCurrentMana / npc.nMaxMana
-					if fLife < fLifePer then -- 取血量最少的NPC
-						fLifePer = fLife
-					end
-					if fMana < fManaPer then -- 取蓝量最少的NPC
-						fManaPer = fMana
-					end
-					-- 战斗标记检查
-					if npc.bFightState then
-						bFightFlag = true
-						break
-					end
-				end
-			end
-			TargetPanel_SetOpenState(false)
-			if bFightFlag ~= v.bFightState then
-				CACHE.NPC_LIST[k].bFightState = bFightFlag
-			else
-				bFightFlag = nil
-			end
-			fLifePer = floor(fLifePer * 100)
-			fManaPer = floor(fManaPer * 100)
-			if v.nLife > fLifePer then
-				local nCount, step = v.nLife - fLifePer, 1
-				if nCount > 50 then
-					step = 2
-				end
-				for i = 1, nCount, step do
-					FireUIEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
-				end
-			end
-			if bTempTarget then
-				if v.nMana < fManaPer then
-					local nCount, step = fManaPer - v.nMana, 1
-					if nCount > 50 then
-						step = 2
-					end
-					for i = 1, nCount, step do
-						FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana + i)
-					end
-				end
-			end
-			v.nLife = fLifePer
-			v.nMana = fManaPer
-			if bFightFlag then
-				local nTime = GetTime()
-				v.nSec = GetTime()
-				FireUIEvent("DBM_NPC_FIGHT", k, true, nTime)
-			elseif bFightFlag == false then
-				local nTime = GetTime() - (v.nSec or GetTime())
-				v.nSec = nil
-				FireUIEvent("DBM_NPC_FIGHT", k, false, nTime)
-			end
-		end
 	end
 end
 

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-26 18:06:41
+-- @Last Modified time: 2016-02-01 22:50:43
 local _L = JH.LoadLangPack
 local _JH_About = {
 	INFO = {},
@@ -71,7 +71,7 @@ JH.RegisterBgMsg("JH_ABOUT", function(nChannel, dwID, szName, data, bIsSelf)
 			me.GetMapID(),
 			szTong,
 			me.nRoleType,
-			JH.GetVersion(),
+			JH.GetAddonInfo().szVersion,
 			szServer,
 			JH.GetBuff(3219)
 		)
