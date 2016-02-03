@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-02 09:59:45
+-- @Last Modified time: 2016-02-03 08:28:47
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -316,7 +316,7 @@ end
 
 function _JH.OpenAddonPanel(dwClass, nIndex)
 	if type(dwClass) == "string" then
-		for k, v in ipairs(JH_PANEL_ADDON) do
+		for k, v in pairs(JH_PANEL_ADDON) do
 			for kk, vv in ipairs(v) do
 				if vv.szTitle == dwClass then
 					dwClass, nIndex = k, kk
@@ -441,7 +441,7 @@ function _JH.UpdateAddon()
 	local frame = _JH.GetFrame()
 	frame.hClass:Clear()
 	frame.hTree:Clear()
-	for k, v in ipairs(JH_PANEL_ADDON) do
+	for k, v in pairs(JH_PANEL_ADDON) do
 		-- home
 		local hClass = frame.hClass:AppendItemFromIni(JH_PANEL_INIFILE, "Handle_Class")
 		local hAddon = hClass:Lookup("Handle_Addon_List")
@@ -3720,7 +3720,7 @@ function GUI.RegisterPanel(szTitle, dwIcon, szClass, fn)
 			return -- exist
 		end
 	end
-	table.insert(JH_PANEL_ADDON[dwClass], {
+	tinsert(JH_PANEL_ADDON[dwClass], {
 		dwIcon  = dwIcon,
 		szTitle = szTitle,
 		fn      = fn,
