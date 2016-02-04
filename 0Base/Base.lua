@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-03 08:28:47
+-- @Last Modified time: 2016-02-03 16:17:18
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -131,8 +131,8 @@ local _JH = {
 	tGlobalValue = {},
 	tModule      = {},
 	szShort      = _L["JH"],
-	tOption      = { szOption = _L["JH Plugin"] },
-	tOption2     = { szOption = _L["JH Plugin"] },
+	tOption      = {},
+	tOption2     = {},
 }
 
 -- (string, number) JH.GetVersion() -- 获取插件版本号
@@ -342,7 +342,7 @@ function _JH.OpenAddonPanel(dwClass, nIndex)
 		_JH.CloseAddonPanel()
 		frame.hContainer:SetRelPos(220, 0) -- fix close pos
 		if JH_PANEL_SELECT ~= tAddon then
-			JH_PANEL_SELECT      = tAddon
+			JH_PANEL_SELECT = tAddon
 			for i = 0, frame.hTree:GetItemCount() -1 do
 				local ui = frame.hTree:Lookup(i)
 				if ui then

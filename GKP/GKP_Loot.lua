@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 23:47:33
+-- @Last Modified time: 2016-02-04 14:19:14
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -185,10 +185,11 @@ function GKP_Loot_Base.OnItemLButtonClick()
 			if not Loot.AuthCheck(dwDoodadID) then
 				return
 			end
-			if IsShiftKeyDown() and GKP_LOOT_AUTO_LIST[data.nUiId] then
-				return Loot.DistributeItem(GKP_LOOT_AUTO_LIST[data.nUiId], dwDoodadID, data.dwID, data, true)
+			if IsShiftKeyDown() and GKP_LOOT_AUTO_LIST[data.item.nUiId] then
+				return Loot.DistributeItem(GKP_LOOT_AUTO_LIST[data.item.nUiId], dwDoodadID, data.dwID, data, true)
+			else
+				return PopupMenu(Loot.GetDistributeMenu(dwDoodadID, data))
 			end
-			PopupMenu(Loot.GetDistributeMenu(dwDoodadID, data))
 		else -- 左键摸走
 			if doodad.CanDialog(me) then
 				OpenDoodad(me, doodad)
