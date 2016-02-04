@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-04 14:45:29
+-- @Last Modified time: 2016-02-04 15:01:49
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -199,6 +199,13 @@ function GKP_Loot_Base.OnItemLButtonClick()
 			else
 				return PopupMenu(Loot.GetDistributeMenu(dwDoodadID, data))
 			end
+		elseif data.bBidding then
+			if team.nLootMode ~= PARTY_LOOT_MODE.BIDDING then
+				return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_BID_LOOT)
+			end
+			JH.Sysmsg(_L["GKP does not support bidding, please re open loot list."])
+		elseif data.bNeedRoll then
+			JH.Topmsg(g_tStrings.ERROR_LOOT_ROLL)
 		else -- 左键摸走
 			if doodad.CanDialog(me) then
 				OpenDoodad(me, doodad)
@@ -206,15 +213,6 @@ function GKP_Loot_Base.OnItemLButtonClick()
 				JH.Topmsg(g_tStrings.TIP_TOO_FAR)
 			end
 			LootItem(frame.dwDoodadID, data.dwID)
-			if data.bNeedRoll then
-				JH.Topmsg(g_tStrings.ERROR_LOOT_ROLL)
-			end
-			if data.bBidding then
-				if team.nLootMode ~= PARTY_LOOT_MODE.BIDDING then
-					return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_BID_LOOT)
-				end
-				JH.Sysmsg(_L["GKP does not support bidding, please re open loot list."])
-			end
 		end
 	end
 end
@@ -652,7 +650,10 @@ end
 JH.RegisterEvent("OPEN_DOODAD", function()
 	if arg1 == UI_GetClientPlayerID() then
 		local team = GetClientTeam()
-		if not team or team and team.nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not (GKP.bDebug2 and JH.bDebugClient) then
+		if not team or team
+			and team.nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE
+			-- and not (GKP.bDebug2 and JH.bDebugClient)
+		then
 			return
 		end
 		local doodad = GetDoodad(arg0)
