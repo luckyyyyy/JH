@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-04 14:19:14
+-- @Last Modified time: 2016-02-04 14:45:29
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -92,11 +92,20 @@ function GKP_Loot_Base.OnLButtonClick()
 		Loot.CloseFrame(this:GetRoot().dwDoodadID)
 	elseif szName == "Btn_Style" then
 		local ui = this:GetRoot()
-		JH.Animate(ui):FadeOut(200, function()
-			GKP_Loot.bVertical = not GKP_Loot.bVertical
-			FireUIEvent("GKP_LOOT_RELOAD")
-			JH.Animate(ui):FadeIn(200)
-		end)
+		if IsCtrlKeyDown() then
+			local szName, data, bSpecial = Loot.GetDoodad(ui.dwDoodadID)
+			local t = {}
+			for k, v in ipairs(data) do
+				table.insert(t, GKP.GetFormatLink(v.item))
+			end
+			JH.Talk(t)
+		else
+			JH.Animate(ui):FadeOut(200, function()
+				GKP_Loot.bVertical = not GKP_Loot.bVertical
+				FireUIEvent("GKP_LOOT_RELOAD")
+				JH.Animate(ui):FadeIn(200)
+			end)
+		end
 	elseif szName == "Btn_Boss" then
 		Loot.GetBossAction(this:GetRoot().dwDoodadID, type(GKP_LOOT_BOSS) == "nil")
 	end
@@ -320,6 +329,8 @@ function Loot.GetBossAction(dwDoodadID, bMenu)
 			GKP_LOOT_BOSS = v.dwID
 			fnAction()
 		end, false, true)
+		table.insert(menu, 1, { bDevide = true })
+		table.insert(menu, 1, { szOption = _L["select equip boss"], bDisable = true })
 		PopupMenu(menu)
 	else
 		fnAction()
