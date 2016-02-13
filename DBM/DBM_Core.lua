@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 08:45:53
+-- @Last Modified time: 2016-02-13 08:52:23
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1226,7 +1226,6 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		end
 	end
 end
-DBM.OnCallMessage = D.OnCallMessage
 -- NPC死亡事件 触发倒计时
 function D.OnDeath(dwCharacterID, szKiller)
 	local npc = GetNpc(dwCharacterID)

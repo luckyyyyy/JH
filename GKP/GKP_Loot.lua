@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 08:44:42
+-- @Last Modified time: 2016-02-13 08:57:56
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -94,9 +94,10 @@ function GKP_Loot_Base.OnLButtonClick()
 	elseif szName == "Btn_Style" then
 		local ui = this:GetRoot()
 		local menu = {
-			{ szOption = _L["Set Force Color"], fnAction = function()
+			{ szOption = _L["Set Force Color"], bCheck = true, bChecked = GKP_Loot.bSetColor, fnAction = function()
 				GKP_Loot.bSetColor = not GKP_Loot.bSetColor
-			end }
+				FireUIEvent("GKP_LOOT_RELOAD")
+			end },
 			{ bDevide = true },
 			{ szOption = _L["Link All Item"], fnAction = function()
 				local szName, data, bSpecial = Loot.GetDoodad(ui.dwDoodadID)
