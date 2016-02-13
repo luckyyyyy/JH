@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-04 15:01:49
+-- @Last Modified time: 2016-02-13 08:44:42
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -14,8 +14,8 @@ local GKP_LOOT_HUANGBABA = {
 	[JH.GetItemName(66190)]  = true,
 	[JH.GetItemName(153897)] = true,
 }
-local GKP_LOOT_AUTO_LIST = {}
-local GKP_LOOT_AUTO      = { -- 记录分配上次的物品
+local GKP_LOOT_AUTO = {}
+local GKP_LOOT_AUTO_LIST = { -- 记录分配上次的物品
 	-- 材料
 	[153532] = true,
 	[153533] = true,
@@ -36,12 +36,13 @@ local GKP_LOOT_AUTO      = { -- 记录分配上次的物品
 	[74368]  = true,
 	[153896] = true,
 }
--- setmetatable(GKP_LOOT_AUTO, { __index = function() return true end })
+-- setmetatable(GKP_LOOT_AUTO_LIST, { __index = function() return true end })
 GKP_Loot_Base = class()
 GKP_Loot = {
 	bVertical = true,
+	bSetColor = true,
 }
-
+JH.RegisterCustomData("GKP_Loot")
 local Loot = {}
 
 function GKP_Loot_Base.OnFrameCreate()
@@ -92,20 +93,33 @@ function GKP_Loot_Base.OnLButtonClick()
 		Loot.CloseFrame(this:GetRoot().dwDoodadID)
 	elseif szName == "Btn_Style" then
 		local ui = this:GetRoot()
-		if IsCtrlKeyDown() then
-			local szName, data, bSpecial = Loot.GetDoodad(ui.dwDoodadID)
-			local t = {}
-			for k, v in ipairs(data) do
-				table.insert(t, GKP.GetFormatLink(v.item))
-			end
-			JH.Talk(t)
-		else
-			JH.Animate(ui):FadeOut(200, function()
-				GKP_Loot.bVertical = not GKP_Loot.bVertical
-				FireUIEvent("GKP_LOOT_RELOAD")
-				JH.Animate(ui):FadeIn(200)
-			end)
-		end
+		local menu = {
+			{ szOption = _L["Set Force Color"], fnAction = function()
+				GKP_Loot.bSetColor = not GKP_Loot.bSetColor
+			end }
+			{ bDevide = true },
+			{ szOption = _L["Link All Item"], fnAction = function()
+				local szName, data, bSpecial = Loot.GetDoodad(ui.dwDoodadID)
+				local t = {}
+				for k, v in ipairs(data) do
+					table.insert(t, GKP.GetFormatLink(v.item))
+				end
+				JH.Talk(t)
+			end },
+			{ bDevide = true },
+			{ szOption = _L["switch styles"], fnAction = function()
+				JH.Animate(ui):FadeOut(200, function()
+					GKP_Loot.bVertical = not GKP_Loot.bVertical
+					FireUIEvent("GKP_LOOT_RELOAD")
+					JH.Animate(ui):FadeIn(200)
+				end)
+			end },
+			{ bDevide = true },
+			{ szOption = _L["About"], fnAction = function()
+				JH.Alert(_L["GKP_TIPS"])
+			end }
+		}
+		PopupMenu(menu)
 	elseif szName == "Btn_Boss" then
 		Loot.GetBossAction(this:GetRoot().dwDoodadID, type(GKP_LOOT_BOSS) == "nil")
 	end
@@ -136,39 +150,54 @@ end
 
 function GKP_Loot_Base.OnItemMouseEnter()
 	local szName = this:GetName()
-	if szName == "Handle_Item" then
-		this:Lookup("Image_Copper"):Show()
-		this = this:Lookup("Box_Item")
-		this.OnItemMouseEnter()
-	elseif szName == "Box_Item" then
-		local hParent = this:GetParent()
-		if hParent then
-			local szParent = hParent:GetName()
-			if szParent == "Handle_Item" then
-				hParent:Lookup("Image_Copper"):Show()
+	if szName == "Handle_Item" or szName == "Box_Item" then
+		if szName == "Handle_Item" then
+			this:Lookup("Image_Copper"):Show()
+			this = this:Lookup("Box_Item")
+			this.OnItemMouseEnter()
+		elseif szName == "Box_Item" then
+			local hParent = this:GetParent()
+			if hParent then
+				local szParent = hParent:GetName()
+				if szParent == "Handle_Item" then
+					hParent:Lookup("Image_Copper"):Show()
+				end
 			end
 		end
+		-- local item = this.data.item
+		-- if itme and item.nGenre == ITEM_GENRE.EQUIPMENT then
+		-- 	if itme.nSub == EQUIPMENT_SUB.MELEE_WEAPON then
+		-- 		this:SetOverText(3, g_tStrings.WeapenDetail[item.nDetail])
+		-- 	else
+		-- 		this:SetOverText(3, g_tStrings.tEquipTypeNameTable[item.nSub])
+		-- 	end
+		-- end
 	end
 end
 
 function GKP_Loot_Base.OnItemMouseLeave()
 	local szName = this:GetName()
-	if szName == "Handle_Item" then
-		if this:Lookup("Image_Copper") and this:Lookup("Image_Copper"):IsValid() then
-			this:Lookup("Image_Copper"):Hide()
-			this = this:Lookup("Box_Item")
-			this.OnItemMouseLeave()
-		end
-	elseif szName == "Box_Item" then
-		local hParent = this:GetParent()
-		if hParent then
-			local szParent = hParent:GetName()
-			if szParent == "Handle_Item" then
-				if hParent:Lookup("Image_Copper") and hParent:Lookup("Image_Copper"):IsValid() then
-					hParent:Lookup("Image_Copper"):Hide()
+	if szName == "Handle_Item" or szName == "Box_Item" then
+		if szName == "Handle_Item" then
+			if this:Lookup("Image_Copper") and this:Lookup("Image_Copper"):IsValid() then
+				this:Lookup("Image_Copper"):Hide()
+				this = this:Lookup("Box_Item")
+				this.OnItemMouseLeave()
+			end
+		elseif szName == "Box_Item" then
+			local hParent = this:GetParent()
+			if hParent then
+				local szParent = hParent:GetName()
+				if szParent == "Handle_Item" then
+					if hParent:Lookup("Image_Copper") and hParent:Lookup("Image_Copper"):IsValid() then
+						hParent:Lookup("Image_Copper"):Hide()
+					end
 				end
 			end
 		end
+		-- if this and this:IsValid() and this.SetOverText then
+		-- 	this:SetOverText(3, "")
+		-- end
 	end
 end
 
@@ -194,8 +223,8 @@ function GKP_Loot_Base.OnItemLButtonClick()
 			if not Loot.AuthCheck(dwDoodadID) then
 				return
 			end
-			if IsShiftKeyDown() and GKP_LOOT_AUTO_LIST[data.item.nUiId] then
-				return Loot.DistributeItem(GKP_LOOT_AUTO_LIST[data.item.nUiId], dwDoodadID, data.dwID, data, true)
+			if IsShiftKeyDown() and GKP_LOOT_AUTO[data.item.nUiId] then
+				return Loot.DistributeItem(GKP_LOOT_AUTO[data.item.nUiId], dwDoodadID, data.dwID, data, true)
 			else
 				return PopupMenu(Loot.GetDistributeMenu(dwDoodadID, data))
 			end
@@ -434,8 +463,8 @@ function Loot.DistributeItem(dwID, dwDoodadID, dwItemID, info, bShift)
 			tab.nMoney = 0
 			GKP("GKP_Record", tab)
 		end
-		if GKP_LOOT_AUTO[item.nUiId] then
-			GKP_LOOT_AUTO_LIST[item.nUiId] = dwID
+		if GKP_LOOT_AUTO_LIST[item.nUiId] then
+			GKP_LOOT_AUTO[item.nUiId] = dwID
 		end
 		doodad.DistributeItem(dwItemID, dwID)
 	else
@@ -456,7 +485,6 @@ function Loot.GetMessageBox(dwID, dwDoodadID, dwItemID, data, bShift)
 			GetFormatText("[".. info.szName .. "]", 162, fr, fg, fb)
 		),
 		szName = "GKP_Distribute",
-		szAlignment = "CENTER",
 		bRichText = true,
 		{
 			szOption = g_tStrings.STR_HOTKEY_SURE,
@@ -501,8 +529,8 @@ function Loot.GetDistributeMenu(dwDoodadID, data)
 			end
 		}
 	end
-	if GKP_LOOT_AUTO_LIST[data.item.nUiId] then
-		local member = aPartyMember(GKP_LOOT_AUTO_LIST[data.item.nUiId])
+	if GKP_LOOT_AUTO[data.item.nUiId] then
+		local member = aPartyMember(GKP_LOOT_AUTO[data.item.nUiId])
 		if member then
 			table.insert(menu, fnGetMenu(member, data.szName))
 			table.insert(menu, { bDevide = true })
@@ -568,6 +596,14 @@ function Loot.DrawLootList(dwID)
 			local txt = h:Lookup("Text_Item")
 			txt:SetText(szName)
 			txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
+			if GKP_Loot.bSetColor and item.nGenre == ITEM_GENRE.MATERIAL then
+				for k, v in pairs(g_tStrings.tForceTitle) do
+					if szName:find(v) then
+						txt:SetFontColor(JH.GetForceColor(k))
+						break
+					end
+				end
+			end
 		else
 			handle:AppendItemFromString("<Box>name=\"Box_Item\" w=64 h=64 </Box>")
 			box = handle:Lookup(k - 1)
@@ -576,6 +612,9 @@ function Loot.DrawLootList(dwID)
 			box:SetRelPos(x * 70 + 5, y * 70 + 5)
 		end
 		UpdateBoxObject(box, UI_OBJECT_ITEM_ONLY_ID, item.dwID)
+		-- box:SetOverText(3, "")
+		-- box:SetOverTextFontScheme(3, 15)
+		-- box:SetOverTextPosition(3, ITEM_POSITION.LEFT_TOP)
 		box.data = {
 			dwID      = item.dwID,
 			nQuality  = item.nQuality,
@@ -585,7 +624,7 @@ function Loot.DrawLootList(dwID)
 			bBidding  = v.bBidding,
 			item      = v.item,
 		}
-		if GKP_LOOT_AUTO_LIST[item.nUiId] then
+		if GKP_LOOT_AUTO[item.nUiId] then
 			box:SetObjectStaring(true)
 		end
 	end
@@ -705,8 +744,8 @@ end)
 
 JH.RegisterEvent("GKP_LOOT_BOSS", function()
 	if not arg0 then
-		GKP_LOOT_BOSS      = nil
-		GKP_LOOT_AUTO_LIST = {}
+		GKP_LOOT_BOSS = nil
+		GKP_LOOT_AUTO = {}
 	else
 		local team = GetClientTeam()
 		if team then

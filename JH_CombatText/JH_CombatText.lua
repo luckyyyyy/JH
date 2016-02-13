@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-02 09:06:26
+-- @Last Modified time: 2016-02-06 21:49:24
 
 -- 战斗浮动文字设计思路
 --[[
@@ -20,7 +20,7 @@
 
 local _L = JH.LoadLangPack
 local Table_GetBuffName, Table_GetSkillName, Table_BuffIsVisible = Table_GetBuffName, Table_GetSkillName, Table_BuffIsVisible
-local UI_GetClientPlayerID, GetUserRoleName = UI_GetClientPlayerID, GetUserRoleName
+local GetUserRoleName = GetUserRoleName
 local pairs, ipairs, unpack = pairs, ipairs, unpack
 local tinsert, tremove, tsort = table.insert, table.remove, table.sort
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
@@ -28,8 +28,9 @@ local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
 local GetSkill, GetTime = GetSkill, GetTime
 local SKILL_RESULT_TYPE = SKILL_RESULT_TYPE
 
-local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
+local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/ui/JH_CombatText_Render.ini"
 local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatText/config.jx3dat"
+local COMBAT_TEXT_PLAYERID       = 0
 local COMBAT_TEXT_TOTAL          = 32
 local COMBAT_TEXT_UI_SCALE       = 1
 local COMBAT_TEXT_TRAJECTORY     = 4   -- 顶部Y轴轨迹数量 根据缩放大小变化 0.8就是5条了 屏幕小更多
@@ -130,7 +131,7 @@ local COMBAT_TEXT_CACHE  = { -- buff的名字cache
 local CombatText = {}
 
 JH_CombatText = {
-	bEnable      = true;
+	bEnable      = true,
 	bRender      = true,
 	nMaxAlpha    = 240,
 	nTime        = 40,
@@ -220,18 +221,18 @@ function JH_CombatText.OnEvent(szEvent)
 	elseif szEvent == "SKILL_BUFF" then
 		CombatText.OnSkillBuff(arg0, arg1, arg2, arg3)
 	elseif szEvent == "BUFF_IMMUNITY" then
-		if not JH_CombatText.bImmunity and arg1 == UI_GetClientPlayerID() then
+		if not JH_CombatText.bImmunity and arg1 == COMBAT_TEXT_PLAYERID then
 			CombatText.OnBuffImmunity(arg0)
 		end
 	elseif szEvent == "SKILL_MISS" then
-		if arg0 == UI_GetClientPlayerID() then
+		if arg0 == COMBAT_TEXT_PLAYERID then
 			CombatText.OnSkillMiss(arg1)
 		end
 	elseif szEvent == "UI_SCALED" then
 		COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
 		COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
 	elseif szEvent == "SKILL_DODGE" then
-		if arg0 == UI_GetClientPlayerID() then
+		if arg0 == COMBAT_TEXT_PLAYERID then
 			CombatText.OnSkillDodge(arg1)
 		end
 	elseif szEvent == "NPC_ENTER_SCENE" then
@@ -270,7 +271,6 @@ end
 
 function CombatText.OnFrameRender()
 	local nTime     = GetTime()
-	local dwID      = UI_GetClientPlayerID()
 	local nFadeIn   = JH_CombatText.nFadeIn
 	local nFadeOut  = JH_CombatText.nFadeOut
 	local nMaxAlpha = JH_CombatText.nMaxAlpha
@@ -340,7 +340,7 @@ function CombatText.OnFrameRender()
 					if v.bCriticalStrike then
 						fScale = max(fScale * 0.7, COMBAT_TEXT_SCALE.NORMAL[#COMBAT_TEXT_SCALE.NORMAL] + 0.1)
 					end
-					if v.dwTargetID == dwID then
+					if v.dwTargetID == COMBAT_TEXT_PLAYERID then
 						fScale = fScale * 0.95
 					end
 				elseif v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then -- 左右缩小
@@ -381,7 +381,7 @@ function CombatText.OnFrameRender()
 				v.nFrame = nFrame
 			end
 		else
-			if v.szPoint == "RIGHT" and v.dwTargetID == dwID then
+			if v.szPoint == "RIGHT" and v.dwTargetID == COMBAT_TEXT_PLAYERID then
 				local tCache = v.col == COMBAT_TEXT_COLOR.RED and COMBAT_TEXT_CACHE.DEBUFF or COMBAT_TEXT_CACHE.BUFF
 				if tCache[v.szText] then
 					tCache[v.szText] = nil
@@ -440,7 +440,7 @@ end
 function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 	local object, tPoint
 	local bIsPlayer = IsPlayer(dwTargetID)
-	if dwTargetID ~= UI_GetClientPlayerID() then
+	if dwTargetID ~= COMBAT_TEXT_PLAYERID then
 		object = bIsPlayer and GetPlayer(dwTargetID) or GetNpc(dwTargetID)
 		if object and object.nX then
 			tPoint = { object.nX, object.nY, object.nZ }
@@ -513,8 +513,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	then
 		return
 	end
-	local dwID = UI_GetClientPlayerID()
-	if (dwCasterID == dwID and (COMBAT_TEXT_IGNORE[dwSkillID] or COMBAT_TEXT_IGNORE_TYPE[nType]))
+	if (dwCasterID == COMBAT_TEXT_PLAYERID and (COMBAT_TEXT_IGNORE[dwSkillID] or COMBAT_TEXT_IGNORE_TYPE[nType]))
 		or nType == SKILL_RESULT_TYPE.STEAL_LIFE and COMBAT_TEXT_IGNORE_TYPE[nType]
 	then
 		return
@@ -534,7 +533,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 			employer = GetPlayer(dwEmployerID)
 		end
 	end
-	if dwCasterID ~= dwID and dwTargetID ~= dwID and dwEmployerID ~= dwID then -- 和我没什么卵关系
+	if dwCasterID ~= COMBAT_TEXT_PLAYERID and dwTargetID ~= COMBAT_TEXT_PLAYERID and dwEmployerID ~= COMBAT_TEXT_PLAYERID then -- 和我没什么卵关系
 		return
 	end
 	local shadow = CombatText.GetFreeShadow()
@@ -560,25 +559,25 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	local col     = JH_CombatText.col[nType]
 	if COMBAT_TEXT_STRING[nType] then
 		szText = COMBAT_TEXT_STRING[nType]
-		if dwTargetID == dwID then
+		if dwTargetID == COMBAT_TEXT_PLAYERID then
 			szPoint = "LEFT"
 			col = COMBAT_TEXT_COLOR.YELLOW
 		end
 	elseif nType == SKILL_RESULT_TYPE.THERAPY then
-		if dwTargetID == dwID then
+		if dwTargetID == COMBAT_TEXT_PLAYERID then
 			szPoint = "BOTTOM_RIGHT"
 		end
 		if bCriticalStrike and JH_CombatText.tCritical then
 			col = JH_CombatText.tCriticalH
 		end
 	else
-		if dwTargetID == dwID then
+		if dwTargetID == COMBAT_TEXT_PLAYERID then
 			szPoint = "BOTTOM_LEFT"
 		end
 	end
 	if szPoint == "BOTTOM_LEFT" then -- 左下角肯定是伤害
 		 -- 苍云反弹技能修正颜色
-		if p and p.dwID ~= dwID and  p.dwForceID == 21 and nEffectType ~= SKILL_EFFECT_TYPE.BUFF then
+		if p and p.dwID ~= COMBAT_TEXT_PLAYERID and  p.dwForceID == 21 and nEffectType ~= SKILL_EFFECT_TYPE.BUFF then
 			local hSkill = GetSkill(dwSkillID, dwSkillLevel)
 			if hSkill and hSkill.dwBelongSchool ~= 18 and hSkill.dwBelongSchool ~= 0 then
 				nType = SKILL_RESULT_TYPE.REFLECTIED_DAMAGE
@@ -647,7 +646,7 @@ function CombatText.OnSkillMiss(dwTargetID)
 	if not shadow then -- 没有空闲的shadow
 		return
 	end
-	local szPoint = dwTargetID == UI_GetClientPlayerID() and "LEFT" or "TOP"
+	local szPoint = dwTargetID == COMBAT_TEXT_PLAYERID and "LEFT" or "TOP"
 	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_MISS, szPoint, "SKILL_MISS", false, COMBAT_TEXT_COLOR.WHITE)
 end
 
@@ -660,8 +659,7 @@ function CombatText.OnBuffImmunity(dwTargetID)
 end
 -- FireUIEvent("COMMON_HEALTH_TEXT", GetClientPlayer().dwID, -8888)
 function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
-	local dwID = UI_GetClientPlayerID()
-	if nDeltaLife < 0 and dwCharacterID ~= dwID then
+	if nDeltaLife < 0 and dwCharacterID ~= COMBAT_TEXT_PLAYERID then
 		return
 	end
 	local shadow = CombatText.GetFreeShadow()
@@ -670,7 +668,7 @@ function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
 	end
 	local szPoint = "BOTTOM_LEFT"
 	if nDeltaLife > 0 then
-		if dwCharacterID ~= dwID then
+		if dwCharacterID ~= COMBAT_TEXT_PLAYERID then
 			szPoint = "TOP"
 		else
 			szPoint = "BOTTOM_RIGHT"
@@ -737,9 +735,9 @@ function CombatText.CheckEnable()
 	local frame = Station.Lookup("Lowest/CombatText")
 	local ui = Station.Lookup("Lowest/JH_CombatText")
 	if JH_CombatText.bRender then
-		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText_Render.ini"
+		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/ui/JH_CombatText_Render.ini"
 	else
-		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/JH_CombatText.ini"
+		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/ui/JH_CombatText.ini"
 	end
 	if JH_CombatText.bEnable then
 		CombatText.LoadConfig()
@@ -899,3 +897,18 @@ end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("FIRST_LOADING_END", CombatText.CheckEnable)
+JH.RegisterEvent("LOADING_END", function() -- 很重要的优化 不要删
+	local function GetPlayerID()
+		local me = GetClientPlayer()
+		if me then
+			COMBAT_TEXT_PLAYERID = me.dwID
+			JH.Debug("CombatText get player id " .. me.dwID)
+		end
+	end
+	if GetClientPlayer() then
+		GetPlayerID()
+	else
+		JH.Sysmsg2("CombatText get player id failed!!! try again")
+		JH.DelayCall(GetPlayerID, 5000)
+	end
+end)

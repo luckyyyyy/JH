@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 10:31:39
+-- @Last Modified time: 2016-02-13 08:45:44
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -106,7 +106,7 @@ function DBM_UI.OnFrameCreate()
 
 	this.hPageSet = this:Lookup("PageSet_Main")
 	local ui = GUI(this)
-	ui:Title(_L["JX3 DBM Plug-in"]):RegisterClose(DBMUI.ClosePanel)
+	ui:Title(_L["JX3 DBM Plug-in"])
 	for k, v in ipairs(DBMUI_TYPE) do
 		local txt = this.hPageSet:Lookup("CheckBox_" .. v, "Text_Page_" .. v)
 		txt:SetText(_L[v])
@@ -406,6 +406,13 @@ function DBM_UI.OnItemLButtonDown()
 				Station.SetFocusWindow(edit)
 			end
 		end
+	end
+end
+
+function DBM_UI.OnLButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Close" then
+		DBMUI.ClosePanel()
 	end
 end
 
@@ -1254,7 +1261,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 				bChecked = data.tKungFu and data.tKungFu["SKILL#" .. v[1]],
 				szIcon   = v[2],
 				nFrame   = v[3],
-				szLayer  = "ICON_LEFT",
+				szLayer  = "ICON_RIGHTMOST",
 				fnAction = function()
 					data.tKungFu = data.tKungFu or {}
 					if not data.tKungFu["SKILL#" .. v[1]] then

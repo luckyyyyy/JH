@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-02 10:19:29
+-- @Last Modified time: 2016-02-13 08:45:53
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -328,10 +328,13 @@ local function CreateCache(szType, tab)
 			cache[v.dwID] = k
 		end
 	end
-	D.Log("Create " .. szType .. " data succeed!")
+	D.Log("create " .. szType .. " data success!")
 end
 -- 核心函数 缓存创建 UI缓存创建
 function D.CreateData(szEvent)
+	local szLang  = select(3, GetVersion())
+	local dwMapID = JH.GetMapID(true)
+	local nTime   = GetTime()
 	-- 重建metatable 获取ALL数据的方法 主要用于UI 逻辑中毫无作用
 	for kType, vTable in pairs(D.FILE)  do
 		setmetatable(D.FILE[kType], { __index = function(me, index)
@@ -360,10 +363,7 @@ function D.CreateData(szEvent)
 			end
 		end
 	end
-	D.Log("Create metatable succeed!")
-	local szLang = select(3, GetVersion())
-	local dwMapID = JH.GetMapID(true)
-	local nTime = GetTime()
+	D.Log("create metatable success!")
 	-- 清空当前数据和MAP
 	for k, v in pairs(D.DATA) do
 		D.DATA[k] = {}
@@ -373,7 +373,7 @@ function D.CreateData(szEvent)
 	end
 	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
-		D.Log("MAPID: " .. dwMapID ..  " Create data Failed:" .. GetTime() - nTime  .. "ms")
+		D.Log("MAPID: " .. dwMapID ..  " create data Failed:" .. GetTime() - nTime  .. "ms")
 		return
 	end
 	-- 重建MAP
@@ -386,37 +386,33 @@ function D.CreateData(szEvent)
 		end
 	end
 	-- 单独重建TALK数据
-	local data  = D.FILE.TALK
-	local talk  = D.DATA.TALK
-	CACHE.MAP.TALK = {
-		HIT   = {},
-		OTHER = {},
-	}
-	local cache = CACHE.MAP.TALK
-	if data[-1] then -- 通用数据
-		for k, v in ipairs(data[-1]) do
-			talk[#talk + 1] = v
+	do
+		local data  = D.FILE.TALK
+		local talk  = D.DATA.TALK
+		CACHE.MAP.TALK = {
+			HIT   = {},
+			OTHER = {},
+		}
+		local cache = CACHE.MAP.TALK
+		if data[-1] then -- 通用数据
+			for k, v in ipairs(data[-1]) do
+				talk[#talk + 1] = v
+			end
 		end
-	end
-	if data[dwMapID] then -- 本地图数据
-		for k, v in ipairs(data[dwMapID]) do
-			talk[#talk + 1] = v
+		if data[dwMapID] then -- 本地图数据
+			for k, v in ipairs(data[dwMapID]) do
+				talk[#talk + 1] = v
+			end
 		end
-	end
-	for k, v in ipairs(talk) do
-		if v.szContent:find("$me") or v.szContent:find("$team") then
-			tinsert(cache.OTHER, v)
-		else
-			cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
-			cache.HIT[v.szContent][v.szTarget or "sys"] = v
+		for k, v in ipairs(talk) do
+			if v.szContent:find("$me") or v.szContent:find("$team") or v.bSearch then
+				tinsert(cache.OTHER, v)
+			else
+				cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
+				cache.HIT[v.szContent][v.szTarget or "sys"] = v
+			end
 		end
-	end
-	D.Log("Create TALK data succeed!")
-
-	-- 清空缓存
-	if szEvent == "LOADING_END" or szEvent == "DBM_LOADING_END" then
-		CACHE.NPC_LIST   = {}
-		CACHE.SKILL_LIST = {}
+		D.Log("create TALK data success!")
 	end
 	if DBM.bPushTeamPanel then
 		local tBuff = {}
@@ -436,12 +432,14 @@ function D.CreateData(szEvent)
 	end
 	-- gc
 	if szEvent ~= "DBM_CREATE_CACHE" then
+		CACHE.NPC_LIST   = {}
+		CACHE.SKILL_LIST = {}
 		D.Log("collectgarbage(\"count\") " .. collectgarbage("count"))
 		collectgarbage("collect")
 		D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
 	end
 	FireUIEvent("DBMUI_FREECACHE")
-	D.Log("MAPID: " .. dwMapID ..  " Create data succeed:" .. GetTime() - nTime  .. "ms")
+	D.Log("MAPID: " .. dwMapID ..  " create data success:" .. GetTime() - nTime  .. "ms")
 end
 
 function D.FreeCache(szType)
@@ -1129,7 +1127,6 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		for k, v in ipairs(cache.OTHER) do
 			local content = v.szContent
 			if v.szContent:find("$me") then
-				tInfo = { dwID = me.dwID, szName = me.szName }
 				content = v.szContent:gsub("$me", me.szName) -- 转换me是自己名字
 			end
 			if me.IsInParty() and content:find("$team") then
@@ -1150,7 +1147,6 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 			end
 		end
 	end
-
 	if data then
 		if data.tCountdown then
 			for kk, vv in ipairs(data.tCountdown) do
@@ -1171,6 +1167,9 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		end
 		local cfg = data[DBM_TYPE.TALK_MONITOR]
 		if cfg then
+			if data.szContent:find("$me") then
+				tInfo = { dwID = me.dwID, szName = me.szName }
+			end
 			local xml, txt = {}, data.szNote or szContent
 			if tInfo and not data.szNote then
 				tinsert(xml, DBM_LEFT_LINE)
@@ -1227,6 +1226,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		end
 	end
 end
+DBM.OnCallMessage = D.OnCallMessage
 -- NPC死亡事件 触发倒计时
 function D.OnDeath(dwCharacterID, szKiller)
 	local npc = GetNpc(dwCharacterID)
@@ -1504,6 +1504,7 @@ function D.LoadUserData()
 		}
 		D.LoadConfigureFile(config)
 	end
+	D.Log("load custom data success!")
 end
 
 function D.LoadConfigureFile(config)
@@ -1693,6 +1694,7 @@ function D.ClearTemp(szType)
 	D.TEMP[szType] = {}
 	FireUIEvent("DBMUI_TEMP_RELOAD")
 	collectgarbage("collect")
+	D.Log("clear " .. szType .. " cache success!")
 end
 
 function D.GetIntervalData(szType, key)

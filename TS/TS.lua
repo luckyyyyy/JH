@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-13 08:48:39
+-- @Last Modified time: 2016-02-13 08:41:16
 local _L = JH.LoadLangPack
 
 TS = {
@@ -25,7 +25,6 @@ local ipairs, pairs = ipairs, pairs
 local GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList = GetPlayer, GetNpc, IsPlayer, ApplyCharacterThreatRankList
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local UI_GetClientPlayerID, GetTime = UI_GetClientPlayerID, GetTime
-local MY_Recount_GetData
 local HATRED_COLLECT = g_tStrings.HATRED_COLLECT
 local GetBuff, GetBuffName, GetEndTime, GetObjName, GetForceColor =
 	  JH.GetBuff, JH.GetBuffName, JH.GetEndTime, JH.GetTemplateName, JH.GetForceColor
@@ -68,7 +67,6 @@ function _TS.ClosePanel()
 	if _TS.frame then
 		Wnd.CloseWindow(_TS.frame)
 		JH.UnBreatheCall("TS")
-		JH.UnBreatheCall("TS_DPS")
 		-- 释放变量
 		_TS.frame = nil
 		_TS.bg = nil
@@ -88,7 +86,6 @@ function TS.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("FIGHT_HINT")
-	this:RegisterEvent("MY_FIGHT_HINT")
 	this.hItemData = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar")
 
 	_TS.UpdateAnchor(this)
@@ -117,9 +114,6 @@ function TS.OnFrameCreate()
 		JH.OpenPanel(g_tStrings.HATRED_COLLECT)
 	end)
 	TS.OnEvent("TARGET_CHANGE")
-	if not MY_Recount_GetData and MY_Recount and MY_Recount.Data and MY_Recount.Data.Get then
-		MY_Recount_GetData = MY_Recount.Data.Get
-	end
 end
 
 function TS.OnEvent(szEvent)
@@ -146,7 +140,6 @@ function TS.OnEvent(szEvent)
 			_TS.dwTargetID = dwTargetID
 			_TS.frame.nCount = 0
 			JH.BreatheCall("TS", _TS.OnBreathe)
-			JH.BreatheCall("TS_DPS", _TS.OnDpsBreathe, 1000)
 			this:Show()
 		else
 			_TS.UnBreathe()
@@ -159,34 +152,12 @@ function TS.OnEvent(szEvent)
 		if not arg0 then
 			_TS.dwDropTargetPlayerID = GetTime()
 		end
-	elseif szEvent == "MY_FIGHT_HINT" then
-		if not arg0 then
-			_TS.frame:Lookup("", "Text_Title").szText = ""
-		end
 	end
 end
 
 function TS.OnFrameDragEnd()
 	this:CorrectPos()
 	TS.tAnchor = GetFrameAnchor(this)
-end
-
-function _TS.OnDpsBreathe()
-	-- DPS统计 需要茗伊插件
-	if MY_Recount_GetData then
-		local me = GetClientPlayer()
-		if not me then return end
-		if me.bFightState then
-			local dps = MY_Recount_GetData(0)
-			local nTotal = 0
-			local nTimeDuring = dps.nTimeDuring
-			for k, v in pairs(dps["Damage"]) do
-				nTotal = nTotal + v["nTotalEffect"]
-			end
-			local nDps = nTotal / math.max(nTimeDuring, 1)
-			_TS.frame:Lookup("", "Text_Title").szText = string.format(" - DPS:%dk", math.floor(nDps / 1000))
-		end
-	end
 end
 
 function _TS.OnBreathe()

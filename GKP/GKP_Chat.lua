@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 06:22:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 09:42:17
+-- @Last Modified time: 2016-02-13 08:45:32
 local _L   = JH.LoadLangPack
 local Chat = {}
 GKP_Chat   = {}
@@ -74,7 +74,7 @@ end
 function Chat.OpenFrame(item, menu, data)
 	local frame = Chat.GetFrame()
 	if not frame then
-		frame = Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "GKP/ui/GKP_Chat.ini","GKP_Chat")
+		frame = Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "GKP/ui/GKP_Chat.ini", "GKP_Chat")
 		GUI(frame):Point():RegisterClose(Chat.CloseFrame)
 		:Append("WndButton2", { x = 380, y = 38, txt = _L["Stop Bidding"] }):Click(function()
 			JH.Talk(_L["--- Stop Bidding ---"])
@@ -87,7 +87,7 @@ function Chat.OpenFrame(item, menu, data)
 	txt:SetFontColor(GetItemFontColorByQuality(item.nQuality))
 	local h = frame:Lookup("WndScroll_Chat"):Lookup("", "")
 	h:Clear()
-	UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, item.nBookID or item.bCanStack and item.nStackNum)
+	UpdataItemInfoBoxObject(box, item.nVersion, item.dwTabType, item.dwIndex, (item.nGenre == ITEM_GENRE.BOOK and item.nBookID) or (item.bCanStack and item.nStackNum) or nil)
 	RegisterMsgMonitor(Chat.OnMsgArrive, { "MSG_TEAM" })
 	box.OnItemLButtonClick = function()
 		if IsCtrlKeyDown() or IsAltKeyDown() then

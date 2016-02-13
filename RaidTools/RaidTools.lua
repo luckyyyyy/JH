@@ -1,14 +1,18 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-21 19:31:13
+-- @Last Modified time: 2016-02-13 08:41:44
 
 local _L = JH.LoadLangPack
 
 local pairs, ipairs = pairs, ipairs
 local GetClientTeam, GetClientPlayer = GetClientTeam, GetClientPlayer
 local tinsert = table.insert
-
+local setmetatable = setmetatable
+local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
+local UI_GetClientPlayerID = UI_GetClientPlayerID
+local SKILL_RESULT_TYPE = SKILL_RESULT_TYPE
+local JH_IsParty, JH_GetSkillName, JH_GetBuffName = JH.IsParty, JH.GetSkillName, JH.GetBuffName
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools1.ini"
 local RT_EQUIP_TOTAL = {
 	"MELEE_WEAPON", -- 轻剑 藏剑取 BIG_SWORD 重剑
@@ -133,7 +137,7 @@ function RaidTools.OnFrameCreate()
 		local info = team.GetMemberInfo(team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER))
 		title = _L("%s's Team", info.szName) .. " (" .. team.GetTeamSize() .. "/" .. team.nGroupNum * 5  .. ")"
 	end
-	local ui          = GUI(this):Title(title):RegisterClose(RT.ClosePanel)
+	this:Lookup("", "Text_Title"):SetText(title)
 	this.hPlayer      = this:CreateItemData(RT_INIFILE, "Handle_Item_Player")
 	this.hDeathPlayer = this:CreateItemData(RT_INIFILE, "Handle_Item_DeathPlayer")
 	this.hPageSet     = this:Lookup("PageSet_Main")
@@ -178,7 +182,7 @@ function RaidTools.OnFrameCreate()
 	for k, v in pairs(JH_KUNGFU_LIST) do
 		local h = this.hKungfuList:AppendItemFromData(this.hKungfu, v[1])
 		local img = h:Lookup("Image_Force")
-		img:FromIconID(select(2, JH.GetSkillName(v[1])))
+		img:FromIconID(select(2, JH_GetSkillName(v[1])))
 		h:Lookup("Text_Num"):SetText(0)
 		h.nFont = h:Lookup("Text_Num"):GetFontScheme()
 		h.OnItemMouseLeave = function()
@@ -216,23 +220,6 @@ function RaidTools.OnFrameCreate()
 	this.tDataCache  = {} -- 临时数据
 	-- 追加呼吸
 	this.hPageSet:ActivePage(RT_SELECT_PAGE)
-	-- 追加几个按钮
-	ui:Fetch("PageSet_Main/Page_Death"):Fetch("Btn_All"):Click(function()
-		RT_SELECT_DEATH = nil
-		RT.UpdatetDeathMsg()
-	end)
-	ui:Fetch("PageSet_Main/Page_Death"):Fetch("Btn_Clear"):Click(function()
-		JH.Confirm(_L["Clear Record"], function()
-			RT.tDeath = {}
-			RT.UpdatetDeathPage()
-		end)
-	end)
-	ui:Fetch("Btn_Style"):Click(function()
-		RaidTools.nStyle = RaidTools.nStyle == 1 and 2 or 1
-		RT.SetStyle()
-		RT.ClosePanel()
-		RT.OpenPanel()
-	end)
 	RT.UpdateAnchor(this)
 	-- lang
 	this.hPageSet:Lookup("CheckBox_Info"):Lookup("", "Text_Basic"):SetText(_L["Team Info"])
@@ -298,7 +285,7 @@ function RaidTools.OnEvent(szEvent)
 		local team = GetClientTeam()
 		local dwID = team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
 		local info = team.GetMemberInfo(dwID)
-		GUI(this):Title(_L("%s's Team", info.szName) .. " (" .. team.GetTeamSize() .. "/" .. team.nGroupNum * 5  .. ")")
+		this:Lookup("", "Text_Title"):SetText(_L("%s's Team", info.szName) .. " (" .. team.GetTeamSize() .. "/" .. team.nGroupNum * 5  .. ")")
 	end
 end
 
@@ -321,9 +308,31 @@ function RaidTools.OnActivePage()
 	RT_SELECT_PAGE = nPage
 end
 
+function RaidTools.OnLButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Close" then
+		RT.ClosePanel()
+	elseif szName == "Btn_All" then
+		RT_SELECT_DEATH = nil
+		RT.UpdatetDeathMsg()
+	elseif szName == "Btn_Clear" then
+		JH.Confirm(_L["Clear Record"], function()
+			RT.tDeath = {}
+			RT.UpdatetDeathPage()
+		end)
+	elseif szName == "Btn_Style" then
+		RaidTools.nStyle = RaidTools.nStyle == 1 and 2 or 1
+		RT.SetStyle()
+		RT.ClosePanel()
+		RT.OpenPanel()
+	end
+end
+
 function RaidTools.OnItemMouseEnter()
 	local szName = this:GetName()
-	if szName == "Handle_Score" then
+	if this:GetType() == "Box" then
+		this:SetObjectMouseOver(true)
+	elseif szName == "Handle_Score" then
 		local frame = RT.GetFrame()
 		local img = this:Lookup("Image_Score")
 		img:SetFrame(23)
@@ -344,7 +353,9 @@ end
 function RaidTools.OnItemMouseLeave()
 	local szName = this:GetName()
 	HideTip()
-	if szName == "Handle_Score" then
+	if this:GetType() == "Box" then
+		this:SetObjectMouseOver(false)
+	elseif szName == "Handle_Score" then
 		this:Lookup("Image_Score"):SetFrame(22)
 	elseif tonumber(szName:find("D(%d+)")) then
 		if this and this:Lookup("Image_Cover") and this:Lookup("Image_Cover"):IsValid() then
@@ -513,7 +524,7 @@ function RT.UpdateList()
 			h.dwID   = v.dwID
 			h.szName = v.szName
 			if v.dwMountKungfuID and v.dwMountKungfuID ~= 0 then
-				local nIcon = select(2, JH.GetSkillName(v.dwMountKungfuID, 1))
+				local nIcon = select(2, JH_GetSkillName(v.dwMountKungfuID, 1))
 				h:Lookup("Image_Icon"):FromIconID(nIcon)
 			else
 				h:Lookup("Image_Icon"):FromUITex(GetForceImage(v.dwForceID))
@@ -567,7 +578,7 @@ function RT.UpdateList()
 				local handle_food = h.hHandle_Food.self
 				for kk, vv in ipairs(v.tFood) do
 					local szName = vv.dwID .. "_" .. vv.nLevel
-					local nIcon = select(2, JH.GetBuffName(vv.dwID, vv.nLevel))
+					local nIcon = select(2, JH_GetBuffName(vv.dwID, vv.nLevel))
 					local box = handle_food:Lookup(szName)
 					if not box then
 						box = h.hHandle_Food.Pool:New()
@@ -575,13 +586,6 @@ function RT.UpdateList()
 					box:SetName(szName)
 					box:SetObject(UI_OBJECT_NOT_NEED_KNOWN, vv.dwID, vv.nLevel, vv.nEndFrame)
 					box:SetObjectIcon(nIcon)
-					box.OnItemMouseLeave = function()
-						this:SetObjectMouseOver(false)
-						HideTip()
-					end
-					box.OnItemMouseEnter = function()
-						this:SetObjectMouseOver(true)
-					end
 					box.OnItemRefreshTip = function()
 						local dwID, nLevel, nEndFrame = select(2, this:GetObject())
 						local nTime = (nEndFrame - GetLogicFrameCount()) / 16
@@ -615,17 +619,12 @@ function RT.UpdateList()
 					hBuff:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
 					hBuff:SetOverTextFontScheme(1, 197)
 					hBuff:SetOverText(1, #v.tBuff)
-					hBuff.OnItemMouseLeave = function()
-						this:SetObjectMouseOver(false)
-						HideTip()
-					end
 					hBuff.OnItemMouseEnter = function()
-						this:SetObjectMouseOver(true)
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
 						local xml = {}
 						for k, v in ipairs(v.tBuff) do
-							local nIcon = select(2, JH.GetBuffName(v.dwID, v.nLevel))
+							local nIcon = select(2, JH_GetBuffName(v.dwID, v.nLevel))
 							local nTime = (v.nEndFrame - GetLogicFrameCount()) / 16
 							local nAlpha = nTime < 600 and 80 or 255
 							tinsert(xml, "<image> path=\"fromiconid\" frame=" .. nIcon .." alpha=" .. nAlpha ..  " w=30 h=30 </image>")
@@ -634,18 +633,11 @@ function RT.UpdateList()
 					end
 				else
 					hBuff:SetOverText(1, "")
-					hBuff.OnItemMouseEnter = nil
-					hBuff.OnItemMouseLeave = nil
 					hBuff:EnableObject(false)
 				end
 				if v.bGrandpa then
 					hBox:EnableObject(true)
-					hBox.OnItemMouseLeave = function()
-						this:SetObjectMouseOver(false)
-						HideTip()
-					end
 					hBox.OnItemMouseEnter = function()
-						this:SetObjectMouseOver(true)
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
 						local kBuff = JH.GetBuff(RT_GONGZHAN_ID, v.p)
@@ -660,18 +652,46 @@ function RT.UpdateList()
 				local vv = v.tTemporaryEnchant[1]
 				local box = h:Lookup("Box_Enchant")
 				box:Show()
-				box.OnItemMouseLeave = function()
-					this:SetObjectMouseOver(false)
-					HideTip()
-				end
-				box.OnItemMouseEnter = function()
-					this:SetObjectMouseOver(true)
+				if vv.CommonEnchant then
+					box:SetObjectIcon(6216)
+				else
+					box:SetObjectIcon(7577)
 				end
 				box.OnItemRefreshTip = function()
-					local desc = Table_GetCommonEnchantDesc(vv.dwTemporaryEnchantID)
+					local x, y = this:GetAbsPos()
+					local w, h = this:GetSize()
+					local desc
+					if vv.CommonEnchant then
+						desc = Table_GetCommonEnchantDesc(vv.dwTemporaryEnchantID)
+					else
+						-- ... 官方搞的太麻烦了
+						local tEnchant = GetItemEnchantAttrib(vv.dwTemporaryEnchantID)
+						if tEnchant then
+							for kkk, vvv in pairs(tEnchant) do
+								if vvv.nID == 319 then -- ATTRIBUTE_TYPE.SKILL_EVENT_HANDLER
+									local skillEvent = g_tTable.SkillEvent:Search(vvv.nValue1)
+									if skillEvent then
+										desc = desc .. FormatString(skillEvent.szDesc, vvv.nValue1, vvv.nValue2)
+									else
+										desc = desc .. "<text>text=\"unknown skill event id:".. vvv.nValue1.."\"</text>"
+									end
+								elseif vvv.nID == 473 then -- ATTRIBUTE_TYPE.SET_EQUIPMENT_RECIPE
+									local tRecipeSkillAtrri = g_tTable.EquipmentRecipe:Search(vvv.nValue1, vvv.nValue2)
+									if tRecipeSkillAtrri then
+										desc = desc .. tRecipeSkillAtrri.szDesc
+									end
+								else
+									if Table_GetMagicAttributeInfo then
+										desc = desc .. FormatString(Table_GetMagicAttributeInfo(vvv.nID, true), vvv.nValue1, vvv.nValue2, 0, 0)
+									else
+										desc = GetFormatText("Enchant Attrib value " .. vvv.nValue1 .. " ", 113)
+									end
+								end
+
+							end
+						end
+					end
 					if desc then
-						local x, y = this:GetAbsPos()
-						local w, h = this:GetSize()
 						OutputTip(desc:gsub("font=%d+", "font=113") .. GetFormatText(FormatString(g_tStrings.STR_ITEM_TEMP_ECHANT_LEFT_TIME .."\n", GetTimeText(vv.nTemporaryEnchantLeftSeconds)), 102), 400, { x, y, w, h })
 					end
 				end
@@ -736,7 +756,7 @@ function RT.UpdateList()
 	for i = 0, frame.hList:GetItemCount() - 1, 1 do
 		local item = frame.hList:Lookup(i)
 		if item and item:IsValid() then
-			if not JH.IsParty(item.dwID) and item.dwID ~= me.dwID then
+			if not JH_IsParty(item.dwID) and item.dwID ~= me.dwID then
 				frame.hList:RemoveItem(item)
 				frame.hList:FormatAllItemPos()
 			end
@@ -761,7 +781,7 @@ function RT.UpdateList()
 		if tKungfu[v[1]] then
 			nCount = #tKungfu[v[1]]
 		end
-		local szName, nIcon = JH.GetSkillName(v[1])
+		local szName, nIcon = JH_GetSkillName(v[1])
 		img:FromIconID(nIcon)
 		h:Lookup("Text_Num"):SetText(nCount)
 		if not tKungfu[v[1]] then
@@ -855,16 +875,14 @@ function RT.GetEquipCache(p)
 			end
 			-- 大附魔 / 临时附魔 用于评分
 			if item.dwTemporaryEnchantID and item.dwTemporaryEnchantID ~= 0 then
+				local dat = {
+ 					dwTemporaryEnchantID         = item.dwTemporaryEnchantID,
+					nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
+				}
 				if Table_GetCommonEnchantDesc(item.dwTemporaryEnchantID) then
-					tinsert(aInfo.tTemporaryEnchant, {
-						dwTemporaryEnchantID         = item.dwTemporaryEnchantID,
-						nTemporaryEnchantLeftSeconds = item.GetTemporaryEnchantLeftSeconds()
-					})
-				else
-					tinsert(aInfo.tPermanentEnchant, {
-						dwPermanentEnchantID = item.dwTemporaryEnchantID,
-					})
+					dat.CommonEnchant = true
 				end
+				tinsert(aInfo.tTemporaryEnchant, dat)
 			end
 		end
 	end
@@ -1008,7 +1026,7 @@ function RT.UpdatetDeathPage()
 		local info = team.GetMemberInfo(dwID)
 		if info or dwID == me.dwID then
 			local h = frame.hDeatList:AppendItemFromData(frame.hDeathPlayer, "D" .. dwID)
-			local icon = select(2, JH.GetSkillName(info and info.dwMountKungfuID or UI_GetPlayerMountKungfuID()))
+			local icon = select(2, JH_GetSkillName(info and info.dwMountKungfuID or UI_GetPlayerMountKungfuID()))
 			local szName = info and info.szName or me.szName
 			h.szName = szName
 			h:Lookup("Image_DeathIcon"):FromIconID(icon)
@@ -1099,7 +1117,7 @@ function RT.UpdatetDeathMsg(dwID)
 	table.sort(data, function(a, b) return a.nCurrentTime > b.nCurrentTime end)
 	frame.hDeatMsg:Clear()
 	for k, v in ipairs(data) do
-		if JH.IsParty(v.dwID) or v.dwID == me.dwID then
+		if JH_IsParty(v.dwID) or v.dwID == me.dwID then
 			local info  = team.GetMemberInfo(v.dwID)
 			local key = v.dwID == me.dwID and "self" or v.dwID
 			local t = TimeToDate(v.nCurrentTime)
@@ -1121,22 +1139,37 @@ function RT.UpdatetDeathMsg(dwID)
 	frame.hDeatMsg:FormatAllItemPos()
 end
 
-function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCriticalStrike, nCount, tResult)
+function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLevel, bCriticalStrike, nCount, tResult)
+	local dwID = UI_GetClientPlayerID()
+	if not tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then -- 没有反弹的情况下
+		if not IsPlayer(dwTarget) or not JH_IsParty(dwTarget) and dwTarget ~= dwID then -- 目标不是队友也不是自己
+			return
+		end
+	else
+		if not IsPlayer(dwCaster) or not JH_IsParty(dwCaster) and dwCaster ~= dwID then -- 目标不是队友也不是自己
+			return
+		end
+	end
 	local KCaster = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
 	local KTarget = IsPlayer(dwTarget) and GetPlayer(dwTarget) or GetNpc(dwTarget)
-	if not (KCaster and KTarget) then
-		return
-	end
-	local szSkill = nEffectType == SKILL_EFFECT_TYPE.SKILL and JH.GetSkillName(dwID, dwLevel) or JH.GetBuffName(dwID, dwLevel)
-	local me = GetClientPlayer()
-	local team = GetClientTeam()
+
+	local szSkill = nEffectType == SKILL_EFFECT_TYPE.SKILL and JH_GetSkillName(dwSkillID, dwLevel) or JH_GetBuffName(dwSkillID, dwLevel)
 	-- 普通伤害
-	if IsPlayer(dwTarget) and (JH.IsParty(dwTarget) or dwTarget == me.dwID) then
+	if IsPlayer(dwTarget) then
 		-- 五类伤害
-		local szCaster = IsPlayer(dwCaster) and KCaster.szName or JH.GetTemplateName(KCaster)
+		local szCaster
+		if KCaster then
+			if IsPlayer(dwCaster) then
+				szCaster = KCaster.szName
+			else
+				szCaster = JH.GetTemplateName(KCaster)
+			end
+		else
+			szCaster = _L["OUTER GUEST"]
+		end
 		for k, v in ipairs({ "PHYSICS_DAMAGE", "SOLAR_MAGIC_DAMAGE", "NEUTRAL_MAGIC_DAMAGE", "LUNAR_MAGIC_DAMAGE", "POISON_DAMAGE" }) do
 			if tResult[SKILL_RESULT_TYPE[v]] and tResult[SKILL_RESULT_TYPE[v]] ~= 0 then
-				RT.tDamage[dwTarget == me.dwID and "self" or dwTarget] = {
+				RT.tDamage[dwTarget == dwID and "self" or dwTarget] = {
 					szCaster        = szCaster,
 					szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
 					tResult         = tResult,
@@ -1147,9 +1180,18 @@ function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwID, dwLevel, bCr
 		end
 	end
 	-- 有反弹伤害
-	if IsPlayer(dwCaster) and (JH.IsParty(dwCaster) or dwCaster == me.dwID) and tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then
-		local szTarget = IsPlayer(dwTarget) and KTarget.szName or JH.GetTemplateName(KTarget)
-		RT.tDamage[dwCaster == me.dwID and "self" or dwCaster] = {
+	if tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] and IsPlayer(dwCaster) then
+		local szTarget
+		if KTarget then
+			if IsPlayer(dwTarget) then
+				szTarget = KTarget.szName
+			else
+				szTarget = JH.GetTemplateName(KTarget)
+			end
+		else
+			szTarget = _L["OUTER GUEST"]
+		end
+		RT.tDamage[dwCaster == dwID and "self" or dwCaster] = {
 			szCaster        = szTarget,
 			szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
 			tResult         = tResult,
@@ -1168,28 +1210,29 @@ function RT.OnCommonHealthLog(dwCharacterID, nDeltaLife)
 	if not p then
 		return
 	end
-	local me = GetClientPlayer()
-	if JH.IsParty(dwCharacterID) or dwCharacterID == me.dwID then
-		RT.tDamage[dwCharacterID == me.dwID and "self" or dwCharacterID] = {
-			nCount   = nDeltaLife * -1,
+	local dwID = UI_GetClientPlayerID()
+	if JH_IsParty(dwCharacterID) or dwCharacterID == dwID then
+		RT.tDamage[dwCharacterID == dwID and "self" or dwCharacterID] = {
+			nCount = nDeltaLife * -1,
 		}
 	end
 end
 
 function RT.OnSkill(dwCaster, dwSkillID, dwLevel)
-	if dwSkillID ~= 608 or not IsPlayer(dwCaster) or not GetPlayer(dwCaster) then
+	local p = GetPlayer(dwCaster)
+	if not p then
 		return
 	end
-	local me = GetClientPlayer()
-	RT.tDamage[dwCaster == me.dwID and "self" or dwCaster] = {
-		szCaster = GetPlayer(dwCaster).szName,
-		szSkill  = JH.GetSkillName(dwSkillID, dwLevel),
+	local dwID = UI_GetClientPlayerID()
+	RT.tDamage[dwCaster == dwID and "self" or dwCaster] = {
+		szCaster = p.szName,
+		szSkill  = JH_GetSkillName(dwSkillID, dwLevel),
 	}
 end
 
 function RT.OnDeath(dwCharacterID, szKiller)
 	local me = GetClientPlayer()
-	if IsPlayer(dwCharacterID) and (JH.IsParty(dwCharacterID) or dwCharacterID == me.dwID) then
+	if IsPlayer(dwCharacterID) and (JH_IsParty(dwCharacterID) or dwCharacterID == me.dwID) then
 		dwCharacterID = dwCharacterID == me.dwID and "self" or dwCharacterID
 		RT.tDeath[dwCharacterID] = RT.tDeath[dwCharacterID] or {}
 		local nCurrentTime = GetCurrentTime()
@@ -1260,8 +1303,11 @@ JH.RegisterEvent("SYS_MSG", function()
 		RT.OnCommonHealthLog(arg1, arg2)
 	end
 end)
+
 JH.RegisterEvent("DO_SKILL_CAST", function()
-	RT.OnSkill(arg0, arg1, arg2)
+	if arg1 == 608 and IsPlayer(arg0) then -- 自觉经脉
+		RT.OnSkill(arg0, arg1, arg2)
+	end
 end)
 
 JH.RegisterEvent("LOGIN_GAME", RT.SetStyle)
