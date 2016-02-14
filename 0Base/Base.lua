@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-03 16:17:18
+-- @Last Modified time: 2016-02-14 20:33:16
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -302,6 +302,11 @@ function _JH.CreateAddonFrame(tAddon)
 	for i = 0, frame.hTab:GetAllContentCount() -1 do
 		local hCheck = frame.hTab:LookupContent(i)
 		hCheck:Check(false)
+	end
+	for k, v in pairs(frame.hContainer) do
+		if k ~= "___id" then
+			frame.hContainer[k] = nil
+		end
 	end
 	frame.hContainer:Clear()
 	frame.hContainer:Lookup("", ""):Clear()

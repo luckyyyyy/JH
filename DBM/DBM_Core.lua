@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-14 12:41:58
+-- @Last Modified time: 2016-02-14 13:16:32
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -726,7 +726,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	local key = dwCastID .. "_" .. dwLevel
 	local nTime = GetTime()
 	CACHE.SKILL_LIST[dwCaster] = CACHE.SKILL_LIST[dwCaster] or {}
-	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 100 then -- 0.1秒内 直接忽略
+	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 62.5 then -- 1/16
 		return
 	end
 	if dwCastID == 13165 then -- 内功切换
@@ -756,7 +756,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	end
 	-- 监控数据
 	if data then
-		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
+		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
 			return
 		end
 		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
