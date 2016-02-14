@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 08:41:44
+-- @Last Modified time: 2016-02-13 17:42:41
 
 local _L = JH.LoadLangPack
 
@@ -1229,7 +1229,9 @@ function RT.OnSkill(dwCaster, dwSkillID, dwLevel)
 		szSkill  = JH_GetSkillName(dwSkillID, dwLevel),
 	}
 end
-
+-- 这里的szKiller有个很大的坑
+-- 因为策划不喜欢写模板名称 导致NPC名字全是空的 摔死和淹死也是空
+-- 这就特别郁闷
 function RT.OnDeath(dwCharacterID, szKiller)
 	local me = GetClientPlayer()
 	if IsPlayer(dwCharacterID) and (JH_IsParty(dwCharacterID) or dwCharacterID == me.dwID) then

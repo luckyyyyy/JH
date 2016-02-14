@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 08:52:23
+-- @Last Modified time: 2016-02-14 12:41:58
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -15,10 +15,14 @@ local GetPureText, GetFormatText, GetHeadTextForceFontColor = GetPureText, GetFo
 local TargetPanel_SetOpenState = TargetPanel_SetOpenState
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
-local DBM_MAX_INTERVAL = 300
-local DBM_MAX_CACHE = 2000 -- 最大的cache数量 主要是UI的问题
-local DBM_DEL_CACHE = 1000 -- 每次清理的数量 然后会做一次gc
-local DBM_INIFILE  = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
+-- 核心优化变量
+local DBM_CORE_PLAYERID = 0
+local DBM_CORE_NAME     = 0
+
+local DBM_MAX_INTERVAL  = 300
+local DBM_MAX_CACHE     = 2000 -- 最大的cache数量 主要是UI的问题
+local DBM_DEL_CACHE     = 1000 -- 每次清理的数量 然后会做一次gc
+local DBM_INIFILE       = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 
 local DBM_SHARE_QUEUE = {}
 local DBM_MARK_QUEUE  = {}
@@ -332,9 +336,14 @@ local function CreateCache(szType, tab)
 end
 -- 核心函数 缓存创建 UI缓存创建
 function D.CreateData(szEvent)
+	local nTime   = GetTime()
 	local szLang  = select(3, GetVersion())
 	local dwMapID = JH.GetMapID(true)
-	local nTime   = GetTime()
+	local me = GetClientPlayer()
+	-- 用于更新 BUFF / CAST / NPC 缓存处理 不需要再获取本地对象
+	DBM_CORE_NAME     = me.szName
+	DBM_CORE_PLAYERID = me.dwID
+	D.Log("get player info cache success!")
 	-- 重建metatable 获取ALL数据的方法 主要用于UI 逻辑中毫无作用
 	for kType, vTable in pairs(D.FILE)  do
 		setmetatable(D.FILE[kType], { __index = function(me, index)
@@ -373,8 +382,7 @@ function D.CreateData(szEvent)
 	end
 	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
-		D.Log("MAPID: " .. dwMapID ..  " create data Failed:" .. GetTime() - nTime  .. "ms")
-		return
+		return D.Log("MAPID: " .. dwMapID ..  " create data Failed:" .. GetTime() - nTime  .. "ms")
 	end
 	-- 重建MAP
 	for _, v in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD" }) do
@@ -454,15 +462,18 @@ function D.FreeCache(szType)
 	D.Log(szType .. " cache clear!")
 end
 
-function D.CheckScrutinyType(nScrutinyType, dwID, me)
-	if nScrutinyType == DBM_SCRUTINY_TYPE.SELF and dwID ~= me.dwID then
+function D.CheckScrutinyType(nScrutinyType, dwID)
+	if nScrutinyType == DBM_SCRUTINY_TYPE.SELF and dwID ~= DBM_CORE_PLAYERID then
 		return false
-	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TEAM and (not JH.IsParty(dwID) and dwID ~= me.dwID) then
+	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TEAM and (not JH.IsParty(dwID) and dwID ~= DBM_CORE_PLAYERID) then
 		return false
-	elseif nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY and not IsEnemy(me.dwID, dwID) then
+	elseif nScrutinyType == DBM_SCRUTINY_TYPE.ENEMY and not IsEnemy(DBM_CORE_PLAYERID, dwID) then
 		return false
-	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TARGET and select(2, me.GetTarget()) ~= dwID then
-		return false
+	elseif nScrutinyType == DBM_SCRUTINY_TYPE.TARGET then
+		local obj, dwType = JH.GetTarget()
+		if obj and obj.dwID ~= dwID then
+			return false
+		end
 	end
 	return true
 end
@@ -573,7 +584,6 @@ end
 -- local a=GetTime();for i=1, 10000 do FireUIEvent("BUFF_UPDATE",UI_GetClientPlayerID(),false,1,true,i,1,1,1,1,0) end;Output(GetTime()-a)
 -- 事件操作
 function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, dwSkillSrcID)
-	local me = GetClientPlayer()
 	local szType = bCanCancel and "BUFF" or "DEBUFF"
 	local key = dwBuffID .. "_" .. nBuffLevel
 	local data = D.GetData(szType, dwBuffID, nBuffLevel)
@@ -584,7 +594,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 			local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
 			if not tWeak[key] then
 				local t = {
-					dwMapID      = me.GetMapID(),
+					dwMapID      = JH.GetMapID(),
 					dwID         = dwBuffID,
 					nLevel       = nBuffLevel,
 					bIsPlayer    = dwSkillSrcID ~= 0 and IsPlayer(dwSkillSrcID),
@@ -608,7 +618,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 	end
 	if data then
 		local cfg, nClass
-		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster, me) then -- 监控对象检查
+		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
 			return
 		end
 		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- 自身身法需求检查
@@ -634,7 +644,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 			local szSrcName = JH.GetTemplateName(KObject)
 			local xml = {}
 			tinsert(xml, DBM_LEFT_LINE)
-			tinsert(xml, GetFormatText(szSrcName == me.szName and g_tStrings.STR_YOU or szSrcName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(szSrcName == DBM_CORE_NAME and g_tStrings.STR_YOU or szSrcName, 44, 255, 255, 0))
 			tinsert(xml, DBM_RIGHT_LINE)
 			if nClass == DBM_TYPE.BUFF_GET then
 				tinsert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
@@ -651,8 +661,8 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
 			-- 特大文字
-			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm and (me.dwID == dwCaster or not IsPlayer(dwCaster)) then
-				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(dwCaster, me.dwID) })
+			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm and (DBM_CORE_PLAYERID == dwCaster or not IsPlayer(dwCaster)) then
+				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(dwCaster, DBM_CORE_PLAYERID) })
 			end
 
 			-- 获得处理
@@ -664,14 +674,14 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 					D.SetTeamMark(szType, cfg.tMark, dwCaster, dwBuffID, nBuffLevel)
 				end
 				-- 重要Buff列表
-				if DBM.bPushPartyBuffList and IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or me.dwID == dwCaster) then
+				if DBM.bPushPartyBuffList and IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or DBM_CORE_PLAYERID == dwCaster) then
 					FireUIEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel, data.nIcon)
 				end
 				-- 头顶报警
 				if DBM.bPushScreenHead and cfg.bScreenHead then
 					FireUIEvent("JH_SA_CREATE", szType, dwCaster, { dwID = data.dwID, col = data.col, txt = szName })
 				end
-				if me.dwID == dwCaster then
+				if DBM_CORE_PLAYERID == dwCaster then
 					if DBM.bPushBuffList and cfg.bBuffList then
 						local col = szType == "BUFF" and { 0, 255, 0 } or { 255, 0, 0 }
 						if data.col then
@@ -689,7 +699,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 					end
 				end
 				-- 添加到团队面板
-				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == me.dwID) then
+				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == DBM_CORE_PLAYERID) then
 					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, {
 						dwID      = data.dwID,
 						nStackNum = data.nCount,
@@ -724,13 +734,12 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			FireUIEvent("JH_KUNGFU_SWITCH", dwCaster)
 		end
 	end
-	local me = GetClientPlayer()
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
 	if Table_IsSkillShow(dwCastID, dwLevel) or JH.bDebugClient then
 		local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
 		if not tWeak[key] then
 			local t = {
-				dwMapID      = me.GetMapID(),
+				dwMapID      = JH.GetMapID(),
 				dwID         = dwCastID,
 				nLevel       = dwLevel,
 				bIsPlayer    = IsPlayer(dwCaster),
@@ -789,7 +798,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			if data.bMonTarget and szTargetName then
 				tinsert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
 				tinsert(xml, DBM_LEFT_LINE)
-				tinsert(xml, GetFormatText(szTargetName == me.szName and g_tStrings.STR_YOU or szTargetName, 44, 255, 255, 0))
+				tinsert(xml, GetFormatText(szTargetName == DBM_CORE_NAME and g_tStrings.STR_YOU or szTargetName, 44, 255, 255, 0))
 				tinsert(xml, DBM_RIGHT_LINE)
 			end
 			if data.szNote then
@@ -801,7 +810,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			end
 			-- 特大文字
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(dwCaster, me.dwID) })
+				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(dwCaster, DBM_CORE_PLAYERID) })
 			end
 			if JH.bDebugClient and cfg.bSelect then
 				SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
@@ -834,7 +843,6 @@ end
 
 -- NPC事件
 function D.OnNpcEvent(npc, bEnter)
-	local me = GetClientPlayer()
 	local data = D.GetData("NPC", npc.dwTemplateID)
 	local nTime = GetTime()
 	if bEnter then
@@ -849,10 +857,10 @@ function D.OnNpcEvent(npc, bEnter)
 		local tWeak, tTemp = CACHE.TEMP.NPC, D.TEMP.NPC
 		if not tWeak[npc.dwTemplateID] then
 			local t = {
-				dwMapID      = me.GetMapID(),
+				dwMapID      = JH.GetMapID(),
 				dwID         = npc.dwTemplateID,
 				nFrame       = select(2, GetNpcHeadImage(npc.dwID)),
-				col          = { GetHeadTextForceFontColor(npc.dwID, me.dwID) },
+				col          = { GetHeadTextForceFontColor(npc.dwID, DBM_CORE_PLAYERID) },
 				nCurrentTime = GetCurrentTime()
 			}
 			tWeak[npc.dwTemplateID] = t
@@ -945,7 +953,7 @@ function D.OnNpcEvent(npc, bEnter)
 			end
 			-- 特大文字
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
-				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(npc.dwID, me.dwID) })
+				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(npc.dwID, DBM_CORE_PLAYERID) })
 			end
 
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -969,7 +977,6 @@ end
 
 -- DOODAD事件
 function D.OnDoodadEvent(doodad, bEnter)
-	local me = GetClientPlayer()
 	local data = D.GetData("DOODAD", doodad.dwTemplateID)
 	local nTime = GetTime()
 	if bEnter then
@@ -982,10 +989,8 @@ function D.OnDoodadEvent(doodad, bEnter)
 			local tWeak, tTemp = CACHE.TEMP.DOODAD, D.TEMP.DOODAD
 			if not tWeak[doodad.dwTemplateID] then
 				local t = {
-					dwMapID      = me.GetMapID(),
+					dwMapID      = JH.GetMapID(),
 					dwID         = doodad.dwTemplateID,
-					nFrame       = 1, -- select(2, GetNpcHeadImage(npc.dwID)),
-					-- col          = { GetHeadTextForceFontColor(npc.dwID, me.dwID) },
 					nCurrentTime = GetCurrentTime()
 				}
 				tWeak[doodad.dwTemplateID] = t

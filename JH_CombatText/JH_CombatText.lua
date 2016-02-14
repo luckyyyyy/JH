@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-06 21:49:24
+-- @Last Modified time: 2016-02-14 12:18:49
 
 -- 战斗浮动文字设计思路
 --[[
@@ -897,18 +897,15 @@ end
 GUI.RegisterPanel(_L["CombatText"], 2041, g_tStrings.CHANNEL_CHANNEL, PS)
 
 JH.RegisterEvent("FIRST_LOADING_END", CombatText.CheckEnable)
-JH.RegisterEvent("LOADING_END", function() -- 很重要的优化 不要删
-	local function GetPlayerID()
-		local me = GetClientPlayer()
-		if me then
-			COMBAT_TEXT_PLAYERID = me.dwID
-			JH.Debug("CombatText get player id " .. me.dwID)
-		end
-	end
-	if GetClientPlayer() then
-		GetPlayerID()
+
+local function GetPlayerID()
+	local me = GetClientPlayer()
+	if me then
+		COMBAT_TEXT_PLAYERID = me.dwID
+		JH.Debug("CombatText get player id " .. me.dwID)
 	else
 		JH.Sysmsg2("CombatText get player id failed!!! try again")
-		JH.DelayCall(GetPlayerID, 5000)
+		JH.DelayCall(GetPlayerID, 1000)
 	end
-end)
+end
+JH.RegisterEvent("LOADING_END", GetPlayerID) -- 很重要的优化
