@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-14 20:33:16
+-- @Last Modified time: 2016-02-16 13:13:58
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -90,8 +90,8 @@ local function GetLang()
 end
 local _L = GetLang()
 
-local _VERSION_   = 0x1030000
-local _BUILD_     = "20160129"
+local _VERSION_   = 0x1030100
+local _BUILD_     = "20160216"
 local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 
@@ -1815,11 +1815,6 @@ function JH.OutputDoodadTip(dwTemplateID, Rect)
 	tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_TEMPLATE_ID, doodad.dwTemplateID), 101))
 	if IsCtrlKeyDown() then
 		tinsert(t, GetFormatText(FormatString(g_tStrings.TIP_REPRESENTID_ID, doodad.dwRepresentID), 102))
-	end
-	if doodad.nKind == DOODAD_KIND.GUIDE then
-		local x, y = Cursor.GetPos()
-		w, h = 40, 40
-		Rect = {x, y, w, h}
 	end
 	OutputTip(tconcat(t), 300, Rect)
 end
