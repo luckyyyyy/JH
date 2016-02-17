@@ -746,7 +746,8 @@ data = {
 	-- CombatText --
 	["CombatText"] = "战斗文字",
 	["Circle Style"] = "会心样式",
-	["strike"] = "强打击感",
+	["hit feel"] = "强打击感",
+	["low hit feel"] = "弱打击感",
 	["soft"] = "柔和",
 	["Scale only"] = "仅缩放",
 	["Disable Immunity"] = "屏蔽免疫",

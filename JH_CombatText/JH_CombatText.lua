@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-17 09:30:45
+-- @Last Modified time: 2016-02-17 20:54:44
 
 -- 战斗浮动文字设计思路
 --[[
@@ -71,7 +71,7 @@ local COMBAT_TEXT_STYLES = {
 		2, 2, 2, 2, 2, 2, 2, 2,
 	},
 	[1] = {
-		1, 2, 3, 4.5, 3, 3, 3, 2,
+		2, 4.5, 4, 3, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
@@ -79,6 +79,14 @@ local COMBAT_TEXT_STYLES = {
 		2, 2, 2, 2, 2, 2, 2, 2,
 	},
 	[2] = {
+		1, 2, 3, 4.5, 3, 3, 3, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+	},
+	[3] = {
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
@@ -836,20 +844,25 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.nFadeOut = nVal
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Circle Style"], font = 27 }):Pos_()
-	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["strike"], group = "style", checked = JH_CombatText.nStyle == 0 })
+	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["hit feel"], group = "style", checked = JH_CombatText.nStyle == 0 })
 	:Click(function()
 		JH_CombatText.nStyle = 0
 		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[0]
 	end):Pos_()
-	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["soft"], group = "style", checked = JH_CombatText.nStyle == 1 })
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["low hit feel"], group = "style", checked = JH_CombatText.nStyle == 1 })
 	:Click(function()
 		JH_CombatText.nStyle = 1
 		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[1]
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Scale only"], group = "style", checked = JH_CombatText.nStyle == 2 })
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["soft"], group = "style", checked = JH_CombatText.nStyle == 2 })
 	:Click(function()
 		JH_CombatText.nStyle = 2
 		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[2]
+	end):Pos_()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Scale only"], group = "style", checked = JH_CombatText.nStyle == 3 })
+	:Click(function()
+		JH_CombatText.nStyle = 3
+		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[3]
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Text Style"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Skill Style"], color = { 255, 255, 200 } }):Pos_()
