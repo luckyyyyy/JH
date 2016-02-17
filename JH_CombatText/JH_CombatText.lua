@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-14 12:18:49
+-- @Last Modified time: 2016-02-17 09:30:45
 
 -- 战斗浮动文字设计思路
 --[[
@@ -13,8 +13,7 @@
 	-------------------------------------------------------------------------------
 	初始坐标类型：分为 顶部 左 右 左下 右下 中心
 	顶部：Y轴轨迹数 以 floor(3.5 / UI缩放) 决定，其初始Y轴高度不同。
-		  不会心的伤害在轨迹全部被占用后会随机分摊到屏幕顶部左右两边。
-		  会心伤害在轨迹全部被占用时会被随机roll点分配。
+		  在轨迹全部被占用后会随机分摊到屏幕顶部左右两边。
 	其他类型：使用轨迹合并16-32帧，后来的文本会顶走前面的文本，从而跳过这部分停留的帧数。
 ]]
 
@@ -61,9 +60,37 @@ local COMBAT_TEXT_COLOR = { --不需要修改的内定颜色
 	PURPLE = { 255, 0,   255 },
 	WHITE  = { 255, 255, 255 }
 }
+
+local COMBAT_TEXT_STYLES = {
+	[0] = {
+		2, 4.5, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+	},
+	[1] = {
+		1, 2, 3, 4.5, 3, 3, 3, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+	},
+	[2] = {
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+		2, 2, 2, 2, 2, 2, 2, 2,
+	}
+}
+
 local COMBAT_TEXT_SCALE = { -- 各种伤害的缩放帧数 一共32帧
 	CRITICAL = { -- 会心
-		1, 2, 3, 4.5, 3, 3, 2, 2,
+		2, 4.5, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
@@ -133,6 +160,7 @@ local CombatText = {}
 JH_CombatText = {
 	bEnable      = true,
 	bRender      = true,
+	nStyle       = 0, -- default
 	nMaxAlpha    = 240,
 	nTime        = 40,
 	nFadeIn      = 4,
@@ -315,7 +343,6 @@ function CombatText.OnFrameRender()
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				nLeft = 60 + (tLeft[nBefore] + (tLeft[nAfter] - tLeft[nBefore]) * fDiff)
 				nAlpha = nAlpha * 0.9
-
 			elseif v.szPoint == "BOTTOM_LEFT" or v.szPoint == "BOTTOM_RIGHT" then
 				local tLeft = COMBAT_TEXT_POINT[v.szPoint]
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
@@ -428,11 +455,11 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	tsort(tSort, TrajectorySort)
 	local nSort = tSort[1].nSort - 1
 	if tSort[1].nCount == 1 then -- 决定了是否去两边 会心伤害不走 随机 roll
-		if bCriticalStrike then
-			return Random(COMBAT_TEXT_TRAJECTORY + 1) - 1
-		else
+		-- if bCriticalStrike then
+		-- 	return Random(COMBAT_TEXT_TRAJECTORY + 1) - 1
+		-- else
 			return COMBAT_TEXT_TRAJECTORY + 1
-		end
+		-- end
 	end
 	return nSort
 end
@@ -458,16 +485,16 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 		object          = object,
 		tPoint          = tPoint,
 	}
-	if dat.bCriticalStrike then
-		if szPoint == "TOP" then
-			dat.nSort = CombatText.GetTrajectory(dat.dwTargetID, true)
-		end
-		dat.nTime = GetTime()
-		COMBAT_TEXT_SHADOW[shadow] = dat
-	else
+	-- if dat.bCriticalStrike then
+	-- 	if szPoint == "TOP" then
+	-- 		dat.nSort = CombatText.GetTrajectory(dat.dwTargetID, true)
+	-- 	end
+	-- 	dat.nTime = GetTime()
+	-- 	COMBAT_TEXT_SHADOW[shadow] = dat
+	-- else
 		COMBAT_TEXT_QUEUE[szPoint][dwTargetID] = COMBAT_TEXT_QUEUE[szPoint][dwTargetID] or {}
 		tinsert(COMBAT_TEXT_QUEUE[szPoint][dwTargetID], { shadow = shadow, dat = dat })
-	end
+	-- end
 end
 
 
@@ -740,6 +767,7 @@ function CombatText.CheckEnable()
 		COMBAT_TEXT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_CombatText/ui/JH_CombatText.ini"
 	end
 	if JH_CombatText.bEnable then
+		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[JH_CombatText.nStyle] and COMBAT_TEXT_STYLES[JH_CombatText.nStyle] or COMBAT_TEXT_STYLES[0]
 		CombatText.LoadConfig()
 		if ui then
 			Wnd.CloseWindow(ui)
@@ -807,7 +835,22 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeOut):Change(function(nVal)
 		JH_CombatText.nFadeOut = nVal
 	end):Pos_()
-
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Circle Style"], font = 27 }):Pos_()
+	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["strike"], group = "style", checked = JH_CombatText.nStyle == 0 })
+	:Click(function()
+		JH_CombatText.nStyle = 0
+		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[0]
+	end):Pos_()
+	nX = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["soft"], group = "style", checked = JH_CombatText.nStyle == 1 })
+	:Click(function()
+		JH_CombatText.nStyle = 1
+		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[1]
+	end):Pos_()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Scale only"], group = "style", checked = JH_CombatText.nStyle == 2 })
+	:Click(function()
+		JH_CombatText.nStyle = 2
+		COMBAT_TEXT_SCALE.CRITICAL = COMBAT_TEXT_STYLES[2]
+	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Text Style"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10, txt = _L["Skill Style"], color = { 255, 255, 200 } }):Pos_()
 	local nY2 = nY

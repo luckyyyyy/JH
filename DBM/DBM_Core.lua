@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-16 13:06:28
+-- @Last Modified time: 2016-02-17 12:32:54
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -249,7 +249,12 @@ function DBM.OnEvent(szEvent)
 		end
 	elseif szEvent == "PLAYER_SAY" then
 		if not IsPlayer(arg1) then
-			D.OnCallMessage(GetPureText(arg0), arg1, arg3 == "" and "%" or arg3)
+			local szText = GetPureText(arg0)
+			if szText and szText ~= "" then
+				D.OnCallMessage(szText, arg1, arg3 == "" and "%" or arg3)
+			else
+				JH.Debug("GetPureText ERROR: " .. arg0)
+			end
 		end
 	elseif szEvent == "ON_WARNING_MESSAGE" then
 		D.OnCallMessage(arg1)
