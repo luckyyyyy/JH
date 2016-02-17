@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-17 20:54:44
+-- @Last Modified time: 2016-02-17 21:32:21
 
 -- 战斗浮动文字设计思路
 --[[
@@ -24,7 +24,7 @@ local pairs, ipairs, unpack = pairs, ipairs, unpack
 local tinsert, tremove, tsort = table.insert, table.remove, table.sort
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
-local GetSkill, GetTime = GetSkill, GetTime
+local GetSkill, GetTime, Random = GetSkill, GetTime, Random
 local SKILL_RESULT_TYPE = SKILL_RESULT_TYPE
 
 local COMBAT_TEXT_INIFILE        = JH.GetAddonInfo().szRootPath .. "JH_CombatText/ui/JH_CombatText_Render.ini"
@@ -168,7 +168,7 @@ local CombatText = {}
 JH_CombatText = {
 	bEnable      = true,
 	bRender      = true,
-	nStyle       = 0, -- default
+	nStyle       = 2, -- default
 	nMaxAlpha    = 240,
 	nTime        = 40,
 	nFadeIn      = 4,
@@ -472,6 +472,15 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	return nSort
 end
 
+function CombatText.RandomTrajectory(dat, nSort)
+	if nSort > COMBAT_TEXT_TRAJECTORY then
+		dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
+		dat.nSort = 0
+	else
+		dat.nSort = nSort
+	end
+end
+
 function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
 	local object, tPoint
 	local bIsPlayer = IsPlayer(dwTargetID)
@@ -493,16 +502,17 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 		object          = object,
 		tPoint          = tPoint,
 	}
-	-- if dat.bCriticalStrike then
-	-- 	if szPoint == "TOP" then
-	-- 		dat.nSort = CombatText.GetTrajectory(dat.dwTargetID, true)
-	-- 	end
-	-- 	dat.nTime = GetTime()
-	-- 	COMBAT_TEXT_SHADOW[shadow] = dat
-	-- else
+	if dat.bCriticalStrike then
+		if szPoint == "TOP" then
+			local nSort = CombatText.GetTrajectory(dat.dwTargetID, true)
+			CombatText.RandomTrajectory(dat, nSort)
+		end
+		dat.nTime = GetTime()
+		COMBAT_TEXT_SHADOW[shadow] = dat
+	else
 		COMBAT_TEXT_QUEUE[szPoint][dwTargetID] = COMBAT_TEXT_QUEUE[szPoint][dwTargetID] or {}
 		tinsert(COMBAT_TEXT_QUEUE[szPoint][dwTargetID], { shadow = shadow, dat = dat })
-	-- end
+	end
 end
 
 
@@ -513,13 +523,7 @@ function CombatText.ExecQueue()
 				local dat = tremove(vv, 1)
 				if dat.dat.szPoint == "TOP" then
 					local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
-					-- print(nSort)
-					if nSort > COMBAT_TEXT_TRAJECTORY then
-						dat.dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
-						dat.dat.nSort = 0
-					else
-						dat.dat.nSort = nSort
-					end
+					CombatText.RandomTrajectory(dat.dat, nSort)
 				end
 				dat.dat.nTime = GetTime()
 				COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
