@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-18 12:27:45
+-- @Last Modified time: 2016-02-22 15:14:21
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -142,12 +142,12 @@ function DBM.OnFrameBreathe()
 		local data = D.GetData("NPC", k)
 		if data then
 			local bTempTarget = false
-			for kk, vv in ipairs(data.tCountdown or {}) do
-				if vv.nClass == DBM_TYPE.NPC_MANA then
-					bTempTarget = true
-					break
-				end
-			end
+			-- for kk, vv in ipairs(data.tCountdown or {}) do
+			-- 	if vv.nClass == DBM_TYPE.NPC_MANA then
+			-- 		bTempTarget = true
+			-- 		break
+			-- 	end
+			-- end
 			local bFightFlag = false
 			local fLifePer = 1
 			local fManaPer = 1
@@ -164,9 +164,9 @@ function DBM.OnFrameBreathe()
 					if fLife < fLifePer then -- 取血量最少的NPC
 						fLifePer = fLife
 					end
-					if fMana < fManaPer then -- 取蓝量最少的NPC
-						fManaPer = fMana
-					end
+					-- if fMana < fManaPer then -- 取蓝量最少的NPC
+					-- 	fManaPer = fMana
+					-- end
 					-- 战斗标记检查
 					if npc.bFightState then
 						bFightFlag = true
@@ -181,7 +181,7 @@ function DBM.OnFrameBreathe()
 				bFightFlag = nil
 			end
 			fLifePer = floor(fLifePer * 100)
-			fManaPer = floor(fManaPer * 100)
+			-- fManaPer = floor(fManaPer * 100)
 			if v.nLife > fLifePer then
 				local nCount, step = v.nLife - fLifePer, 1
 				if nCount > 50 then
@@ -203,7 +203,7 @@ function DBM.OnFrameBreathe()
 				end
 			end
 			v.nLife = fLifePer
-			v.nMana = fManaPer
+			-- v.nMana = fManaPer
 			if bFightFlag then
 				local nTime = GetTime()
 				v.nSec = GetTime()

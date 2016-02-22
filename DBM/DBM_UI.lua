@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-18 11:42:58
+-- @Last Modified time: 2016-02-22 15:14:46
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1787,7 +1787,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 					end })
 				end
 			elseif szType == "NPC" then
-				for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE, DBM_TYPE.NPC_MANA }) do
+				for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE, --[[DBM_TYPE.NPC_MANA]] }) do
 					table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
 						SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
 						if vv == DBM_TYPE.NPC_LIFE or vv == DBM_TYPE.NPC_MANA then
