@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 08:45:44
+-- @Last Modified time: 2016-02-18 11:42:58
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1188,7 +1188,7 @@ function DBMUI.OpenAddPanel(szType, data)
 			if not dwMapID then
 				return JH.Alert(_L["The map does not exist"])
 			end
-			local tab = select(2, DBM_API.CheckRepeatData(szType, dwMapID, data.dwID or data.szContent, data.nLevel or data.szTarget))
+			local tab = select(2, DBM_API.CheckSameData(szType, dwMapID, data.dwID or data.szContent, data.nLevel or data.szTarget))
 			if tab then
 				return JH.Confirm(_L["Data exists, editor?"], function()
 					DBMUI.OpenSettingPanel(tab, szType)

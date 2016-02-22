@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 08:57:56
+-- @Last Modified time: 2016-02-22 14:45:59
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -312,6 +312,7 @@ function Loot.GetBossAction(dwDoodadID, bMenu)
 				and v.item.nSub ~= EQUIPMENT_SUB.L_SHOULDER_EXTEND
 				and v.item.nSub ~= EQUIPMENT_SUB.R_SHOULDER_EXTEND
 				and v.item.nSub ~= EQUIPMENT_SUB.BACK_CLOAK_EXTEND
+				and v.bDist
 			then -- 按住Ctrl的情况下 无视分类 否则只给装备
 				table.insert(tEquipment, v.item)
 			end

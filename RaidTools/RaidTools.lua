@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 17:42:41
+-- @Last Modified time: 2016-02-21 18:51:48
 
 local _L = JH.LoadLangPack
 
@@ -338,9 +338,10 @@ function RaidTools.OnItemMouseEnter()
 		img:SetFrame(23)
 		local nScore = this:Lookup("Text_TotalScore"):GetText()
 		local xml = {}
-		tinsert(xml, GetFormatText(g_tStrings.STR_SCORE .. g_tStrings.STR_COLON .. nScore .."\n", 157))
+		tinsert(xml, GetFormatText(g_tStrings.STR_SCORE .. g_tStrings.STR_COLON .. nScore .."\n", 65))
 		for k, v in pairs(frame.tScore) do
-			tinsert(xml, GetFormatText(RT_SCORE[k] .. g_tStrings.STR_COLON ..  v  .."\n", 106))
+			tinsert(xml, GetFormatText(RT_SCORE[k] .. g_tStrings.STR_COLON, 67))
+			tinsert(xml, GetFormatText(v .."\n", 44))
 		end
 		local x, y = img:GetAbsPos()
 		local w, h = img:GetSize()
@@ -412,6 +413,19 @@ function RaidTools.OnItemRButtonClick()
 				RT.ViewInviteToPlayer(dwID)
 			end
 		}
+		local t = {}
+		InsertTargetMenu(t, dwID)
+		for _, v in ipairs(t) do
+			if v.szOption == g_tStrings.LOOKUP_INFO then
+				for _, vv in ipairs(v) do
+					if vv.szOption == g_tStrings.LOOKUP_NEW_TANLENT then
+						table.insert(menu, vv)
+						break
+					end
+				end
+				break
+			end
+		end
 		if ViewCharInfoToPlayer then
 			menu[#menu + 1] = {
 				szOption = g_tStrings.STR_LOOK .. g_tStrings.STR_EQUIP_ATTR, fnAction = function()

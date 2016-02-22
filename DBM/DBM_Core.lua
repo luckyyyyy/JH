@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-17 12:32:54
+-- @Last Modified time: 2016-02-18 12:27:45
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1557,7 +1557,7 @@ function D.LoadConfigureFile(config)
 					if tab_data[szType] then
 						for k, v in pairs(tab_data[szType]) do
 							for kk, vv in ipairs(v) do
-								if not D.CheckRepeatData(szType, k, vv.dwID or vv.szContent, vv.nLevel or vv.szTarget) then
+								if not D.CheckSameData(szType, k, vv.dwID or vv.szContent, vv.nLevel or vv.szTarget) then
 									D.FILE[szType][k] = D.FILE[szType][k] or {}
 									table.insert(D.FILE[szType][k], vv)
 								end
@@ -1629,7 +1629,7 @@ function D.RemoveData(szType, dwMapID, nIndex)
 	end
 end
 
-function D.CheckRepeatData(szType, dwMapID, dwID, nLevel)
+function D.CheckSameData(szType, dwMapID, dwID, nLevel)
 	if D.FILE[szType][dwMapID] then
 		if dwMapID ~= -9 then
 			for k, v in ipairs(D.FILE[szType][dwMapID]) do
@@ -1653,7 +1653,7 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 	end
 	if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
 		local data = D.FILE[szType][dwMapID][nIndex]
-		if D.CheckRepeatData(szType, dwTargetMapID, data.dwID or data.szContent, data.nLevel or data.szTarget) then
+		if D.CheckSameData(szType, dwTargetMapID, data.dwID or data.szContent, data.nLevel or data.szTarget) then
 			return JH.Alert(_L["same data Exist"])
 		end
 		D.FILE[szType][dwTargetMapID] = D.FILE[szType][dwTargetMapID] or {}
@@ -1721,14 +1721,14 @@ function D.ConfirmShare()
 		JH.Confirm(_L("%s share a %s data to you, accept?", t.szName, _L[t.szType]), function()
 			if t.szType ~= "CIRCLE" then
 				local data = t.tData
-				local nIndex = D.CheckRepeatData(t.szType, t.dwMapID, data.dwID or data.szContent, data.nLevel or data.szTarget)
+				local nIndex = D.CheckSameData(t.szType, t.dwMapID, data.dwID or data.szContent, data.nLevel or data.szTarget)
 				if nIndex then
 					D.RemoveData(t.szType, t.dwMapID, nIndex)
 				end
 				D.AddData(t.szType, t.dwMapID, data)
 			else
 				local data = t.tData
-				local nIndex = Circle.CheckRepeatData(t.dwMapID, data.key, data.dwType)
+				local nIndex = Circle.CheckSameData(t.dwMapID, data.key, data.dwType)
 				if nIndex then
 					Circle.RemoveData(t.dwMapID, nIndex)
 				end
@@ -1765,7 +1765,7 @@ local ui = {
 	GetIntervalData   = D.GetIntervalData,
 	RemoveData        = D.RemoveData,
 	MoveData          = D.MoveData,
-	CheckRepeatData   = D.CheckRepeatData,
+	CheckSameData     = D.CheckSameData,
 	ClearTemp         = D.ClearTemp,
 	AddData           = D.AddData,
 	SaveConfigureFile = D.SaveConfigureFile,
@@ -1777,4 +1777,3 @@ DBM_API = setmetatable({}, { __index = ui, __newindex = function() end, __metata
 JH.RegisterEvent("LOGIN_GAME", D.Init)
 JH.RegisterExit(D.SaveData)
 JH.RegisterBgMsg("DBM_SHARE", D.OnShare)
-

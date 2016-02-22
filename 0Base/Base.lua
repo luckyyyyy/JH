@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-16 13:13:58
+-- @Last Modified time: 2016-02-20 23:42:36
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1846,9 +1846,9 @@ function JH.OutputBuffTip(dwID, nLevel, Rect, nTime)
 			tinsert(t, GetFormatText(g_tStrings.STR_BUFF_H_TIME_ZERO, 102))
 		else
 			local H, M, S = "", "", ""
-			local h = math.floor(nTime / 3600)
-			local m = math.floor(nTime / 60) % 60
-			local s = math.floor(nTime % 60)
+			local h = floor(nTime / 3600)
+			local m = floor(nTime / 60) % 60
+			local s = floor(nTime % 60)
 			if h > 0 then
 				H = h .. g_tStrings.STR_BUFF_H_TIME_H .. " "
 			end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-18 18:12:53
+-- @Last Modified time: 2016-02-18 11:44:31
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
 local type, unpack, pcall = type, unpack, pcall
@@ -114,7 +114,7 @@ function C.LoadCircleMergeData(tData, bPriority)
 			if C.tData[k] then
 				if JH.IsMapExist(k) then
 					for kk, vv in ipairs(v) do
-						if not C.CheckRepeatData(k, vv.key, vv.dwType) then
+						if not C.CheckSameData(k, vv.key, vv.dwType) then
 							table.insert(C.tData[k], vv)
 						end
 					end
@@ -238,7 +238,7 @@ function C.Exchange(dwMapID, nIndex1, nIndex2)
 	end
 end
 
-function C.CheckRepeatData(dwMapID, key, dwType)
+function C.CheckSameData(dwMapID, key, dwType)
 	if C.tData[dwMapID] then
 		if dwMapID ~= -9 then
 			for k, v in ipairs(C.tData[dwMapID]) do
@@ -256,7 +256,7 @@ function C.MoveData(dwMapID, nIndex, dwTargetMapID, bCopy)
 	end
 	if C.tData[dwMapID] and C.tData[dwMapID][nIndex] then
 		local data = C.tData[dwMapID][nIndex]
-		if C.CheckRepeatData(dwTargetMapID, data.key, data.dwType) then
+		if C.CheckSameData(dwTargetMapID, data.key, data.dwType) then
 			return JH.Alert(_L["same data Exist"])
 		end
 		C.tData[dwTargetMapID] = C.tData[dwTargetMapID] or {}
@@ -708,7 +708,7 @@ function C.OpenAddPanel(szName, dwType, szMap, dwSelMapID)
 				ui:Remove()
 			end
 			if C.tData[map] then
-				local tab = select(2, C.CheckRepeatData(map, key, dwType))
+				local tab = select(2, C.CheckSameData(map, key, dwType))
 				if tab then
 					return JH.Confirm(_L["Data exists, editor?"], function()
 						C.OpenDataPanel(tab)
@@ -987,7 +987,7 @@ local ui = {
 	Exchange            = C.Exchange,
 	RemoveData          = C.RemoveData,
 	MoveData            = C.MoveData,
-	CheckRepeatData     = C.CheckRepeatData,
+	CheckSameData       = C.CheckSameData,
 	AddData             = C.AddData,
 	OutputTip           = C.OutputTip,
 	Enable              = C.Enable
