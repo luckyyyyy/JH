@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-13 08:48:26
+-- @Last Modified time: 2016-02-23 22:43:35
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -63,6 +63,7 @@ local aSkillList = {
 	[15115] = 180,  -- 号令三军
 	[14963] = 105,  -- 奶花免死
 	[14081] = 180,  -- 孤影化双
+	[14073] = 80,   -- 笑傲光阴
 }
 
 function SkillCD.OnFrameCreate()

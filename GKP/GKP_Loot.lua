@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-22 14:45:59
+-- @Last Modified time: 2016-02-23 20:10:54
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -61,7 +61,8 @@ end
 function GKP_Loot_Base.OnEvent(szEvent)
 	if szEvent == "DOODAD_LEAVE_SCENE" then
 		if arg0 == this.dwDoodadID then
-			Wnd.CloseWindow(this)
+			Wnd.CloseWindow(this) -- 不加动画 是系统关闭而不是手动
+			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		end
 	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
 		if arg1 ~= PARTY_LOOT_MODE.DISTRIBUTE then
@@ -72,6 +73,7 @@ function GKP_Loot_Base.OnEvent(szEvent)
 			return
 		end
 		Wnd.CloseWindow(this)
+		PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 	elseif szEvent == "UI_SCALED" then
 		local a = this.anchor or GKP_LOOT_ANCHOR
 		this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)

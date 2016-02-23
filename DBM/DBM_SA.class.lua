@@ -1,13 +1,13 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-01 10:57:05
+-- @Last Modified time: 2016-02-22 22:59:34
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
 local PostThreadCall = PostThreadCall
 local tinsert = table.insert
-
+local mmax = math.max
 local UI_SCALED = 1
 DBM_SA = {
 	bAlert    = false,
@@ -103,8 +103,8 @@ function ScreenArrow.OnBreathe()
 			local object, tInfo = select(2, ScreenArrow.GetObject(dwType, dwID))
 			if object then
 				local obj = ScreenArrow.GetAction(dwType, dwID)
-				local fLifePer = obj.dwType == TARGET.DOODAD and 1 or tInfo.nCurrentLife / math.max(tInfo.nMaxLife, 1)
-				local fManaPer = obj.dwType == TARGET.DOODAD and 1 or tInfo.nCurrentMana / math.max(tInfo.nMaxMana, 1)
+				local fLifePer = obj.dwType == TARGET.DOODAD and 1 or tInfo.nCurrentLife / mmax(tInfo.nMaxLife, tInfo.nCurrentLife, 1)
+				local fManaPer = obj.dwType == TARGET.DOODAD and 1 or tInfo.nCurrentMana / mmax(tInfo.nMaxMana, tInfo.nCurrentMana, 1)
 				local szName
 				if dwType == TARGET.DOODAD then
 					szName = tInfo.szName
@@ -240,8 +240,8 @@ function ScreenArrow.OnBreatheFight()
 				ScreenArrow.tCache["Mana"][v] = nil
 				ScreenArrow.tCache["Life"][v] = nil
 			else
-				local fLifePer = info.nCurrentLife / math.max(info.nMaxLife, 1)
-				local fManaPer = info.nCurrentMana / math.max(info.nMaxMana, 1)
+				local fLifePer = info.nCurrentLife / mmax(info.nMaxLife, info.nCurrentLife, 1)
+				local fManaPer = info.nCurrentMana / mmax(info.nMaxMana, info.nCurrentMana, 1)
 				if fLifePer < DBM_SA.fLifePer then
 					if not ScreenArrow.tCache["Life"][v] then
 						ScreenArrow.tCache["Life"][v] = true
@@ -512,7 +512,7 @@ function ScreenArrow.Init()
 	JH.BreatheCall("ScreenArrow_Sort", ScreenArrow.OnSort, 500)
 end
 
-JH.RegisterInit("ScreenArrow",
+JH.RegisterInit("DBM_ARROW",
 	{ "Breathe", ScreenArrow.OnBreathe },
 	{ "FIGHT_HINT", ScreenArrow.RegisterFight },
 	{ "LOGIN_GAME", ScreenArrow.Init },

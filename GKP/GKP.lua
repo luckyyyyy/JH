@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-20 19:07:32
+-- @Last Modified time: 2016-02-23 22:32:32
 
 -- 早期代码 需要重写
 
@@ -951,7 +951,14 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 									break
 								end
 							end
-							ui:Append("Image", { x = 590, y = n * 30 - 30, w = 150, h = 150, alpha = 180 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/GKPSeal.uitex", nFrame)
+							local img = ui:Append("Image", { x = 590, y = n * 30 - 30, w = 150, h = 150, alpha = 180 }):File(JH.GetAddonInfo().szRootPath .. "GKP/img/GKPSeal.uitex", nFrame):Hover(function(bHover)
+								if bHover then
+									this:SetAlpha(30)
+								else
+									this:SetAlpha(180)
+								end
+							end):Raw()
+							JH.Animate(img, 200):Scale(4)
 						end
 						frm.done = true
 					elseif  szFrameName == "GKP_Debt" and not frm:IsVisible() then

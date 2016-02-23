@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-21 22:01:02
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-25 15:13:48
+-- @Last Modified time: 2016-02-23 22:31:43
 
 -- JX3UI Simple Animate Library
 local ANI_QUEUE = {
@@ -81,7 +81,11 @@ function Animate:FadeOut(nTime, bShow, fnAction)
 			fnAction, bShow = bShow, false
 		end
 	end
-	self.ui:SetAlpha(255)
+	local nSAlpha = self.ui:GetAlpha()
+	if nSAlpha == 0 then
+		nSAlpha = 255
+		self.ui:SetAlpha(255)
+	end
 	self.ui:Show()
 	local nCreat = GetTime()
 	local function FadeOut()
@@ -89,14 +93,14 @@ function Animate:FadeOut(nTime, bShow, fnAction)
 		if self.ui and self.ui:IsValid() then
 			local nLeft = nNow - nCreat
 			if nLeft < nTime then
-				local nAlpha = 255 - nLeft / nTime * 255
+				local nAlpha = nSAlpha - nLeft / nTime * nSAlpha
 				return self.ui:SetAlpha(nAlpha)
 			end
 			if bShow then
 				self.ui:SetAlpha(0)
 			else
 				self.ui:Hide()
-				self.ui:SetAlpha(255)
+				self.ui:SetAlpha(nSAlpha)
 			end
 		end
 		ANI_QUEUE.FADEOUT[self.ui] = nil
@@ -145,7 +149,7 @@ function Animate:Scale(fScale, nTime, bNormal, fnAction)
 		local nNow  = GetTime()
 		if self.ui and self.ui:IsValid() then
 			local nLeft = nNow - nCreat
-			if nLeft < self.nTime then
+			if nLeft < nTime then
 				local fCurrent = bLarge and fScale + nLeft * fStep or fScale - nLeft * fStep
 				local fScale = fCurrent / fScaleNow
 				fScaleNow = fCurrent
