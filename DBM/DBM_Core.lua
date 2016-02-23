@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-22 15:14:21
+-- @Last Modified time: 2016-02-23 23:08:09
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -300,14 +300,14 @@ function D.Talk(szMsg, szTarget)
 	if not me then return end
 	if not szTarget then
 		if me.IsInParty() then
-			return JH.Talk(PLAYER_TALK_CHANNEL.RAID, szMsg, "DBM." .. szMsg .. GetLogicFrameCount())
+			JH.Talk(PLAYER_TALK_CHANNEL.RAID, szMsg, "DBM." .. szMsg .. GetLogicFrameCount())
 		end
 	elseif type(szTarget) == "string" then
 		local szText = szMsg:gsub(_L["["] .. szTarget .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
 		if szTarget == me.szName then
-			return JH.OutputWhisper(szText, "DBM")
+			JH.OutputWhisper(szText, "DBM")
 		else
-			return JH.Talk(szTarget, szText, "DBM." .. szMsg .. GetLogicFrameCount())
+			JH.Talk(szTarget, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 		end
 	elseif type(szTarget) == "boolean" then
 		if me.IsInParty() then
@@ -316,9 +316,9 @@ function D.Talk(szMsg, szTarget)
 				local szName = team.GetClientTeamMemberName(v)
 				local szText = szMsg:gsub(_L["["] .. szName .. _L["]"], _L["["] .. g_tStrings.STR_YOU ..  _L["]"])
 				if szName == me.szName then
-					return JH.OutputWhisper(szText, "DBM")
+					JH.OutputWhisper(szText, "DBM")
 				else
-					return JH.Talk(szName, szText, "DBM." .. szMsg .. GetLogicFrameCount())
+					JH.Talk(szName, szText, "DBM." .. szMsg .. GetLogicFrameCount())
 				end
 			end
 		end
