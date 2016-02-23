@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-21 18:51:48
+-- @Last Modified time: 2016-02-24 00:21:43
 
 local _L = JH.LoadLangPack
 
@@ -231,8 +231,6 @@ function RaidTools.OnFrameCreate()
 	if RaidTools.nStyle == 1 then
 		this.hPageSet:Lookup("Page_Info"):Lookup("", "Handle_Progress/Text_Progress_Title"):SetText(_L["Team Members"])
 	end
-
-	-- member
 end
 
 function RaidTools.OnEvent(szEvent)
@@ -316,10 +314,7 @@ function RaidTools.OnLButtonClick()
 		RT_SELECT_DEATH = nil
 		RT.UpdatetDeathMsg()
 	elseif szName == "Btn_Clear" then
-		JH.Confirm(_L["Clear Record"], function()
-			RT.tDeath = {}
-			RT.UpdatetDeathPage()
-		end)
+		JH.Confirm(_L["Clear Record"], RaidTools.ClearDeathLog)
 	elseif szName == "Btn_Style" then
 		RaidTools.nStyle = RaidTools.nStyle == 1 and 2 or 1
 		RT.SetStyle()
@@ -1026,7 +1021,7 @@ function RT.UpdatetDeathPage()
 	local me    = GetClientPlayer()
 	frame.hDeatList:Clear()
 	local tList = {}
-	for k, v in pairs(RT.tDeath) do
+	for k, v in pairs(RaidTools.GetDeathLog()) do
 		tinsert(tList, {
 			dwID   = k,
 			nCount = #v
@@ -1061,8 +1056,9 @@ function RaidTools.OnShowDeathInfo()
 		dwID = "self"
 		i = tonumber(this:GetName():match("self_(%d+)"))
 	end
-	if  RT.tDeath[dwID] and  RT.tDeath[dwID][i] then
-		local data = RT.tDeath[dwID][i]
+	local tDeath = RaidTools.GetDeathLog()
+	if tDeath[dwID] and tDeath[dwID][i] then
+		local data = tDeath[dwID][i]
 		if data.tResult and data.szSkill then
 			local xml = {
 				GetFormatText("[" .. data.szSkill .. "]" .. (data.bCriticalStrike and g_tStrings.STR_SKILL_CRITICALSTRIKE or "") .. "\n" , 41, 255, 128, 0),
@@ -1105,8 +1101,9 @@ function RT.UpdatetDeathMsg(dwID)
 	local team  = GetClientTeam()
 	local data  = {}
 	local key = dwID == me.dwID and "self" or dwID
+	local tDeath = RaidTools.GetDeathLog()
 	if not dwID then
-		for k, v in pairs(RT.tDeath) do
+		for k, v in pairs(tDeath) do
 			for kk, vv in ipairs(v) do
 				if k == "self" then
 					vv.dwID = me.dwID
@@ -1118,7 +1115,7 @@ function RT.UpdatetDeathMsg(dwID)
 			end
 		end
 	else
-		for k, v in ipairs(RT.tDeath[key] or {}) do
+		for k, v in ipairs(tDeath[key] or {}) do
 			if key == "self" then
 				v.dwID = me.dwID
 			else
@@ -1144,6 +1141,9 @@ function RT.UpdatetDeathMsg(dwID)
 			if v.szSkill then
 				tinsert(xml, GetFormatText(g_tStrings.STR_PET_SKILL_LOG, 10, 255, 255, 255))
 				tinsert(xml, GetFormatText("[" .. v.szSkill .. "]", 10, 50, 150, 255, 256, "this.OnItemMouseEnter = RaidTools.OnShowDeathInfo; this.OnItemMouseLeave = function() HideTip() end", key .. "_" .. v.nIndex))
+			elseif v.nCount then
+				tinsert(xml, GetFormatText(g_tStrings.STR_PET_SKILL_LOG, 10, 255, 255, 255))
+				tinsert(xml, GetFormatText("[" .. g_tStrings.STR_UNKOWN_SKILL ..  " -" .. v.nCount .. "]", 10, 50, 150, 255, 256))
 			end
 			tinsert(xml, GetFormatText(g_tStrings.STR_KILL .. g_tStrings.STR_FULL_STOP, 10, 255, 255, 255))
 			tinsert(xml, GetFormatText("\n"))
@@ -1153,122 +1153,7 @@ function RT.UpdatetDeathMsg(dwID)
 	frame.hDeatMsg:FormatAllItemPos()
 end
 
-function RT.OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLevel, bCriticalStrike, nCount, tResult)
-	local dwID = UI_GetClientPlayerID()
-	if not tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then -- 没有反弹的情况下
-		if not IsPlayer(dwTarget) or not JH_IsParty(dwTarget) and dwTarget ~= dwID then -- 目标不是队友也不是自己
-			return
-		end
-	else
-		if not IsPlayer(dwCaster) or not JH_IsParty(dwCaster) and dwCaster ~= dwID then -- 目标不是队友也不是自己
-			return
-		end
-	end
-	local KCaster = IsPlayer(dwCaster) and GetPlayer(dwCaster) or GetNpc(dwCaster)
-	local KTarget = IsPlayer(dwTarget) and GetPlayer(dwTarget) or GetNpc(dwTarget)
-
-	local szSkill = nEffectType == SKILL_EFFECT_TYPE.SKILL and JH_GetSkillName(dwSkillID, dwLevel) or JH_GetBuffName(dwSkillID, dwLevel)
-	-- 普通伤害
-	if IsPlayer(dwTarget) then
-		-- 五类伤害
-		local szCaster
-		if KCaster then
-			if IsPlayer(dwCaster) then
-				szCaster = KCaster.szName
-			else
-				szCaster = JH.GetTemplateName(KCaster)
-			end
-		else
-			szCaster = _L["OUTER GUEST"]
-		end
-		for k, v in ipairs({ "PHYSICS_DAMAGE", "SOLAR_MAGIC_DAMAGE", "NEUTRAL_MAGIC_DAMAGE", "LUNAR_MAGIC_DAMAGE", "POISON_DAMAGE" }) do
-			if tResult[SKILL_RESULT_TYPE[v]] and tResult[SKILL_RESULT_TYPE[v]] ~= 0 then
-				RT.tDamage[dwTarget == dwID and "self" or dwTarget] = {
-					szCaster        = szCaster,
-					szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
-					tResult         = tResult,
-					bCriticalStrike = bCriticalStrike,
-				}
-				break
-			end
-		end
-	end
-	-- 有反弹伤害
-	if tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] and IsPlayer(dwCaster) then
-		local szTarget
-		if KTarget then
-			if IsPlayer(dwTarget) then
-				szTarget = KTarget.szName
-			else
-				szTarget = JH.GetTemplateName(KTarget)
-			end
-		else
-			szTarget = _L["OUTER GUEST"]
-		end
-		RT.tDamage[dwCaster == dwID and "self" or dwCaster] = {
-			szCaster        = szTarget,
-			szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
-			tResult         = tResult,
-			bCriticalStrike = bCriticalStrike,
-		}
-	end
-end
-
--- 意外摔伤 会触发这个日志
-function RT.OnCommonHealthLog(dwCharacterID, nDeltaLife)
-	-- 过滤非玩家和治疗日志
-	if not IsPlayer(dwCharacterID) or nDeltaLife > 0 then
-		return
-	end
-	local p = GetPlayer(dwCharacterID)
-	if not p then
-		return
-	end
-	local dwID = UI_GetClientPlayerID()
-	if JH_IsParty(dwCharacterID) or dwCharacterID == dwID then
-		RT.tDamage[dwCharacterID == dwID and "self" or dwCharacterID] = {
-			nCount = nDeltaLife * -1,
-		}
-	end
-end
-
-function RT.OnSkill(dwCaster, dwSkillID, dwLevel)
-	local p = GetPlayer(dwCaster)
-	if not p then
-		return
-	end
-	local dwID = UI_GetClientPlayerID()
-	RT.tDamage[dwCaster == dwID and "self" or dwCaster] = {
-		szCaster = p.szName,
-		szSkill  = JH_GetSkillName(dwSkillID, dwLevel),
-	}
-end
--- 这里的szKiller有个很大的坑
--- 因为策划不喜欢写模板名称 导致NPC名字全是空的 摔死和淹死也是空
--- 这就特别郁闷
-function RT.OnDeath(dwCharacterID, szKiller)
-	local me = GetClientPlayer()
-	if IsPlayer(dwCharacterID) and (JH_IsParty(dwCharacterID) or dwCharacterID == me.dwID) then
-		dwCharacterID = dwCharacterID == me.dwID and "self" or dwCharacterID
-		RT.tDeath[dwCharacterID] = RT.tDeath[dwCharacterID] or {}
-		local nCurrentTime = GetCurrentTime()
-		if RT.tDamage[dwCharacterID] then
-			RT.tDamage[dwCharacterID].nCurrentTime = nCurrentTime
-			tinsert(RT.tDeath[dwCharacterID], RT.tDamage[dwCharacterID])
-		else
-			tinsert(RT.tDeath[dwCharacterID], {
-				nCurrentTime = nCurrentTime,
-				szCaster     = szKiller ~= "" and szKiller or nil
-			})
-		end
-		-- Output(RT.tDamage[dwCharacterID])
-		RT.tDamage[dwCharacterID] = nil
-		FireUIEvent("JH_RAIDTOOLS_DEATH", dwCharacterID)
-	end
-end
-
 -- UI操作 惯例
-
 function RT.SetStyle()
 	RT_INIFILE = JH.GetAddonInfo().szRootPath .. "RaidTools/ui/RaidTools" .. RaidTools.nStyle .. ".ini"
 end
@@ -1305,27 +1190,6 @@ function RT.TogglePanel()
 	end
 end
 
--- 过地图清空
-JH.RegisterEvent("LOADING_END", function()
-	RT.tDamage = {}
-end)
-
-JH.RegisterEvent("SYS_MSG", function()
-	if arg0 == "UI_OME_DEATH_NOTIFY" then -- 死亡记录
-		RT.OnDeath(arg1, arg3)
-	elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then -- 技能记录
-		RT.OnSkillEffectLog(arg1, arg2, arg4, arg5, arg6, arg7, arg8, arg9)
-	elseif arg0 == "UI_OME_COMMON_HEALTH_LOG" then
-		RT.OnCommonHealthLog(arg1, arg2)
-	end
-end)
-
-JH.RegisterEvent("DO_SKILL_CAST", function()
-	if arg1 == 608 and IsPlayer(arg0) then -- 自觉经脉
-		RT.OnSkill(arg0, arg1, arg2)
-	end
-end)
-
 JH.RegisterEvent("LOGIN_GAME", RT.SetStyle)
 
 JH.PlayerAddonMenu({ szOption = _L["Open Raid Tools Panel"], fnAction = RT.TogglePanel })
@@ -1334,4 +1198,4 @@ JH.AddHotKey("JH_RaidTools", _L["Open Raid Tools Panel"], RT.TogglePanel)
 local ui = {
 	TogglePanel = RT.TogglePanel
 }
-setmetatable(RaidTools, { __index = ui, __newindex = function() end, __metatable = true })
+setmetatable(RaidTools, { __index = ui, __metatable = true })
