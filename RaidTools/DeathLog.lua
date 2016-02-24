@@ -1,17 +1,18 @@
 -- @Author: Webster
 -- @Date:   2016-02-24 00:09:06
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-24 00:23:32
+-- @Last Modified time: 2016-02-24 22:45:50
 
 local _L = JH.LoadLangPack
 
 local pairs, ipairs = pairs, ipairs
-local GetClientTeam, GetClientPlayer = GetClientTeam, GetClientPlayer
+local GetCurrentTime = GetCurrentTime
 local tinsert = table.insert
 local GetPlayer, GetNpc, IsPlayer = GetPlayer, GetNpc, IsPlayer
 local SKILL_RESULT_TYPE = SKILL_RESULT_TYPE
 local JH_IsParty, JH_GetSkillName, JH_GetBuffName = JH.IsParty, JH.GetSkillName, JH.GetBuffName
 
+local MAX_COUNT  = 5
 local PLAYER_ID  = 0
 local DAMAGE_LOG = {}
 local DEATH_LOG  = {}
@@ -30,9 +31,14 @@ local function OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLe
 	local KTarget = IsPlayer(dwTarget) and GetPlayer(dwTarget) or GetNpc(dwTarget)
 
 	local szSkill = nEffectType == SKILL_EFFECT_TYPE.SKILL and JH_GetSkillName(dwSkillID, dwLevel) or JH_GetBuffName(dwSkillID, dwLevel)
-	-- 普通伤害
-	if IsPlayer(dwTarget) then
 		-- 五类伤害
+	if IsPlayer(dwTarget)
+		and tResult[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]
+		or tResult[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]
+		or tResult[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE]
+		or tResult[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]
+		or tResult[SKILL_RESULT_TYPE.POISON_DAMAGE]
+	then
 		local szCaster
 		if KCaster then
 			if IsPlayer(dwCaster) then
@@ -43,17 +49,19 @@ local function OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLe
 		else
 			szCaster = _L["OUTER GUEST"]
 		end
-		for k, v in ipairs({ "PHYSICS_DAMAGE", "SOLAR_MAGIC_DAMAGE", "NEUTRAL_MAGIC_DAMAGE", "LUNAR_MAGIC_DAMAGE", "POISON_DAMAGE" }) do
-			if tResult[SKILL_RESULT_TYPE[v]] and tResult[SKILL_RESULT_TYPE[v]] ~= 0 then
-				DAMAGE_LOG[dwTarget == PLAYER_ID and "self" or dwTarget] = {
-					szCaster        = szCaster,
-					szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
-					tResult         = tResult,
-					bCriticalStrike = bCriticalStrike,
-				}
-				break
-			end
+		local key = dwTarget == PLAYER_ID and "self" or dwTarget
+		if not DAMAGE_LOG[key] then
+			DAMAGE_LOG[key] = {}
+		elseif DAMAGE_LOG[key][MAX_COUNT] then
+			DAMAGE_LOG[key][MAX_COUNT] = nil
 		end
+		tinsert(DAMAGE_LOG[key], 1, {
+			nCurrentTime    = GetCurrentTime(),
+			szKiller        = szCaster,
+			szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
+			tResult         = tResult,
+			bCriticalStrike = bCriticalStrike,
+		})
 	end
 	-- 有反弹伤害
 	if tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] and IsPlayer(dwCaster) then
@@ -67,19 +75,27 @@ local function OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLe
 		else
 			szTarget = _L["OUTER GUEST"]
 		end
-		DAMAGE_LOG[dwCaster == PLAYER_ID and "self" or dwCaster] = {
-			szCaster        = szTarget,
+
+		local key = dwCaster == PLAYER_ID and "self" or dwCaster
+		if not DAMAGE_LOG[key] then
+			DAMAGE_LOG[key] = {}
+		elseif DAMAGE_LOG[key][MAX_COUNT] then
+			DAMAGE_LOG[key][MAX_COUNT] = nil
+		end
+		tinsert(DAMAGE_LOG[key], 1, {
+			nCurrentTime    = GetCurrentTime(),
+			szKiller        = szTarget,
 			szSkill         = szSkill .. (nEffectType == SKILL_EFFECT_TYPE.BUFF and "(BUFF)" or ""),
 			tResult         = tResult,
 			bCriticalStrike = bCriticalStrike,
-		}
+		})
 	end
 end
 
 -- 意外摔伤 会触发这个日志
 local function OnCommonHealthLog(dwCharacterID, nDeltaLife)
 	-- 过滤非玩家和治疗日志
-	if not IsPlayer(dwCharacterID) or nDeltaLife > 0 then
+	if not IsPlayer(dwCharacterID) or nDeltaLife >= 0 then
 		return
 	end
 	local p = GetPlayer(dwCharacterID)
@@ -87,38 +103,50 @@ local function OnCommonHealthLog(dwCharacterID, nDeltaLife)
 		return
 	end
 	if JH_IsParty(dwCharacterID) or dwCharacterID == PLAYER_ID then
-		DAMAGE_LOG[dwCharacterID == PLAYER_ID and "self" or dwCharacterID] = {
-			nCount = nDeltaLife * -1,
-		}
+		local key = dwCharacterID == PLAYER_ID and "self" or dwCharacterID
+		if not DAMAGE_LOG[key] then
+			DAMAGE_LOG[key] = {}
+		elseif DAMAGE_LOG[key][MAX_COUNT] then
+			DAMAGE_LOG[key][MAX_COUNT] = nil
+		end
+		tinsert(DAMAGE_LOG[key], 1, { nCurrentTime = GetCurrentTime(), nCount = nDeltaLife * -1 })
 	end
 end
 
 local function OnSkill(dwCaster, dwSkillID, dwLevel)
 	local p = GetPlayer(dwCaster)
-	if not p then
-		return
+	if not p then return end
+
+	local key = dwCaster == PLAYER_ID and "self" or dwCaster
+	if not DAMAGE_LOG[key] then
+		DAMAGE_LOG[key] = {}
+	elseif DAMAGE_LOG[key][MAX_COUNT] then
+		DAMAGE_LOG[key][MAX_COUNT] = nil
 	end
-	DAMAGE_LOG[dwCaster == PLAYER_ID and "self" or dwCaster] = {
-		szCaster = p.szName,
-		szSkill  = JH_GetSkillName(dwSkillID, dwLevel),
-	}
+	tinsert(DAMAGE_LOG[key], 1, {
+		nCurrentTime = GetCurrentTime(),
+		szKiller     = p.szName,
+		szSkill      = JH_GetSkillName(dwSkillID, dwLevel),
+	})
 end
 -- 这里的szKiller有个很大的坑
 -- 因为策划不喜欢写模板名称 导致NPC名字全是空的 摔死和淹死也是空
 -- 这就特别郁闷
 local function OnDeath(dwCharacterID, szKiller)
-	local me = GetClientPlayer()
-	if IsPlayer(dwCharacterID) and (JH_IsParty(dwCharacterID) or dwCharacterID == me.dwID) then
-		dwCharacterID = dwCharacterID == me.dwID and "self" or dwCharacterID
+	if IsPlayer(dwCharacterID) and (JH_IsParty(dwCharacterID) or dwCharacterID == PLAYER_ID) then
+		dwCharacterID = dwCharacterID == PLAYER_ID and "self" or dwCharacterID
 		DEATH_LOG[dwCharacterID] = DEATH_LOG[dwCharacterID] or {}
-		local nCurrentTime = GetCurrentTime()
 		if DAMAGE_LOG[dwCharacterID] then
-			DAMAGE_LOG[dwCharacterID].nCurrentTime = nCurrentTime
-			tinsert(DEATH_LOG[dwCharacterID], DAMAGE_LOG[dwCharacterID])
+			tinsert(DEATH_LOG[dwCharacterID], {
+				nCurrentTime = GetCurrentTime(),
+				data         = DAMAGE_LOG[dwCharacterID],
+				szKiller     = szKiller
+			})
 		else
 			tinsert(DEATH_LOG[dwCharacterID], {
-				nCurrentTime = nCurrentTime,
-				szCaster     = szKiller ~= "" and szKiller or nil
+				nCurrentTime = GetCurrentTime(),
+				data         = { szCaster = szKiller },
+				szKiller     = szKiller
 			})
 		end
 		DAMAGE_LOG[dwCharacterID] = nil

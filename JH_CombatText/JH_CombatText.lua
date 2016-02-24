@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-17 21:32:21
+-- @Last Modified time: 2016-02-24 22:43:19
 
 -- 战斗浮动文字设计思路
 --[[
@@ -261,7 +261,7 @@ function JH_CombatText.OnEvent(szEvent)
 			CombatText.OnBuffImmunity(arg0)
 		end
 	elseif szEvent == "SKILL_MISS" then
-		if arg0 == COMBAT_TEXT_PLAYERID then
+		if arg0 == COMBAT_TEXT_PLAYERID or arg1 == COMBAT_TEXT_PLAYERID then
 			CombatText.OnSkillMiss(arg1)
 		end
 	elseif szEvent == "UI_SCALED" then

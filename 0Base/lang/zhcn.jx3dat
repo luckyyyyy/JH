@@ -81,6 +81,7 @@ data = {
 	["FadeOut time"] = "淡出时间",
 	["preview"] = "预览",
 	-- RaidTools --
+	["last 5 skill damage"] = "最近5次伤害",
 	["Team Info"] = "团队概况",
 	["Battle Info"] = "战斗信息",
 	["Equip Score"] = "装备得分",

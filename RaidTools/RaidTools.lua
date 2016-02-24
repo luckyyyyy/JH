@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-24 00:21:43
+-- @Last Modified time: 2016-02-24 23:14:59
 
 local _L = JH.LoadLangPack
 
@@ -283,7 +283,9 @@ function RaidTools.OnEvent(szEvent)
 		local team = GetClientTeam()
 		local dwID = team.GetAuthorityInfo(TEAM_AUTHORITY_TYPE.LEADER)
 		local info = team.GetMemberInfo(dwID)
-		this:Lookup("", "Text_Title"):SetText(_L("%s's Team", info.szName) .. " (" .. team.GetTeamSize() .. "/" .. team.nGroupNum * 5  .. ")")
+		if info then
+			this:Lookup("", "Text_Title"):SetText(_L("%s's Team", info.szName) .. " (" .. team.GetTeamSize() .. "/" .. team.nGroupNum * 5  .. ")")
+		end
 	end
 end
 
@@ -1058,21 +1060,37 @@ function RaidTools.OnShowDeathInfo()
 	end
 	local tDeath = RaidTools.GetDeathLog()
 	if tDeath[dwID] and tDeath[dwID][i] then
-		local data = tDeath[dwID][i]
-		if data.tResult and data.szSkill then
-			local xml = {
-				GetFormatText("[" .. data.szSkill .. "]" .. (data.bCriticalStrike and g_tStrings.STR_SKILL_CRITICALSTRIKE or "") .. "\n" , 41, 255, 128, 0),
-			}
-			for k, v in pairs(data.tResult) do
-				if v > 0 then
-					tinsert(xml, GetFormatText(_L[RT_SKILL_TYPE[k]] .. g_tStrings.STR_COLON, 157))
-					tinsert(xml, GetFormatText(v .. "\n", 41))
-				end
+		local tab = tDeath[dwID][i]
+		local xml = {}
+		tinsert(xml, GetFormatText(_L["last 5 skill damage"] .. "\n\n" , 59))
+		for k, v in ipairs(tab.data) do
+			if v.szKiller then
+				tinsert(xml, GetFormatText(v.szKiller .. g_tStrings.STR_COLON, 41, 255, 128, 0))
+			else
+				tinsert(xml, GetFormatText(_L["OUTER GUEST"] .. g_tStrings.STR_COLON, 41, 255, 128, 0))
 			end
-			local x, y = this:GetAbsPos()
-			local w, h = this:GetSize()
-			OutputTip(table.concat(xml), 400, { x, y, w, h })
+			if v.szSkill then
+				tinsert(xml, GetFormatText(v.szSkill .. (v.bCriticalStrike and g_tStrings.STR_SKILL_CRITICALSTRIKE or ""), 41, 255, 128, 0))
+			else
+				tinsert(xml, GetFormatText(g_tStrings.STR_UNKOWN_SKILL, 41, 255, 128, 0))
+			end
+			local t = TimeToDate(v.nCurrentTime)
+			tinsert(xml, GetFormatText("\t" .. string.format("%02d:%02d:%02d", t.hour, t.minute, t.second), 41))
+			if v.tResult then
+				for kk, vv in pairs(v.tResult) do
+					if vv > 0 then
+						tinsert(xml, GetFormatText(_L[RT_SKILL_TYPE[kk]] .. g_tStrings.STR_COLON, 157))
+						tinsert(xml, GetFormatText(vv .. "\n", 41))
+					end
+				end
+			elseif v.nCount then
+				tinsert(xml, GetFormatText(_L["EFFECTIVE_DAMAGE"] .. g_tStrings.STR_COLON, 157))
+				tinsert(xml, GetFormatText(v.nCount .. "\n", 41))
+			end
 		end
+		local x, y = this:GetAbsPos()
+		local w, h = this:GetSize()
+		OutputTip(table.concat(xml), 400, { x, y, w, h })
 	end
 end
 
@@ -1137,13 +1155,10 @@ function RT.UpdatetDeathMsg(dwID)
 			local r, g, b = JH.GetForceColor(info and info.dwForceID or me.dwForceID)
 			tinsert(xml, GetFormatText("[" .. (info and info.szName or me.szName) .."]", 10, r, g, b, 16, "this.OnItemLButtonClick = function() OnItemLinkDown(this) end", "namelink"))
 			tinsert(xml, GetFormatText(g_tStrings.TRADE_BE, 10, 255, 255, 255))
-			tinsert(xml, GetFormatText("[" .. (v.szCaster or _L["OUTER GUEST"]) .."]", 10, 255, 128, 0, 16, "this.OnItemLButtonClick = function() OnItemLinkDown(this) end", "namelink"))
-			if v.szSkill then
-				tinsert(xml, GetFormatText(g_tStrings.STR_PET_SKILL_LOG, 10, 255, 255, 255))
-				tinsert(xml, GetFormatText("[" .. v.szSkill .. "]", 10, 50, 150, 255, 256, "this.OnItemMouseEnter = RaidTools.OnShowDeathInfo; this.OnItemMouseLeave = function() HideTip() end", key .. "_" .. v.nIndex))
-			elseif v.nCount then
-				tinsert(xml, GetFormatText(g_tStrings.STR_PET_SKILL_LOG, 10, 255, 255, 255))
-				tinsert(xml, GetFormatText("[" .. g_tStrings.STR_UNKOWN_SKILL ..  " -" .. v.nCount .. "]", 10, 50, 150, 255, 256))
+			if szKiller == "" and v.data[1].szKiller ~= "" then
+				tinsert(xml, GetFormatText("[" .. _L["OUTER GUEST"] .. g_tStrings.STR_OR .. v.data[1].szKiller .."]", 10, 13, 150, 70, 256, "this.OnItemMouseEnter = RaidTools.OnShowDeathInfo", key .. "_" .. v.nIndex))
+			else
+				tinsert(xml, GetFormatText("[" .. (v.szKiller ~= "" and v.szKiller or  _L["OUTER GUEST"]) .."]", 10, 255, 128, 0, 256, "this.OnItemMouseEnter = RaidTools.OnShowDeathInfo", key .. "_" .. v.nIndex))
 			end
 			tinsert(xml, GetFormatText(g_tStrings.STR_KILL .. g_tStrings.STR_FULL_STOP, 10, 255, 255, 255))
 			tinsert(xml, GetFormatText("\n"))
