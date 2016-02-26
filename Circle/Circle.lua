@@ -1,9 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-18 11:44:31
+-- @Last Modified time: 2016-02-25 14:04:46
 -- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
 local _L = JH.LoadLangPack
+local pairs, ipairs = pairs, ipairs
 local type, unpack, pcall = type, unpack, pcall
 local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber

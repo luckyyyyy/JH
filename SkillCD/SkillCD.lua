@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-23 22:43:35
+-- @Last Modified time: 2016-02-26 01:35:18
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -64,6 +64,7 @@ local aSkillList = {
 	[14963] = 105,  -- 奶花免死
 	[14081] = 180,  -- 孤影化双
 	[14073] = 80,   -- 笑傲光阴
+	[3981]  = 45,   -- 归集到
 }
 
 function SkillCD.OnFrameCreate()
@@ -476,6 +477,9 @@ function SC.AddSkill()
 			if SkillCD.tCustom[id] then
 				return JH.Alert(_L["same data Exist"])
 			else
+				if not GetSkill(id, 1) then
+					return JH.Alert(g_tStrings.STR_ERROR_SKILL_INVALID_SKILL)
+				end
 				SkillCD.tCustom[id]  = cd
 				aSkillList[id]       = cd
 				JH.OpenPanel(_L["SkillCD"])
@@ -533,27 +537,35 @@ function PS.OnPanelActive(frame)
 		return t
 	end):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Monitor"], font = 27 }):Pos_()
-	local i = 0
+	local tab = {}
 	for k, v in pairs(aSkillList) do
-		ui:Append("Box", { x = (i % 13) * 40, y = nY + floor(i / 13 ) * 40 + 15, w = 36, h = 36 }):BoxInfo(UI_OBJECT_SKILL, k, 1)
-		:Enable(SkillCD.tMonitor[k] or false):Click(function(bCheck)
-			if SkillCD.tMonitor[k] then
-				SkillCD.tMonitor[k] = nil
+		tab[#tab + 1] = { dwID = k, nCD = v }
+	end
+	table.sort(tab, function(a, b)
+		return a.dwID < b.dwID
+	end)
+	for k, v in ipairs(tab) do
+		local i = k - 1
+		local dwMaxLevel = GetSkill(v.dwID, 1) and GetSkill(v.dwID, 1).dwMaxLevel or 1
+		ui:Append("Box", { x = (i % 13) * 40, y = nY + floor(i / 13 ) * 40 + 15, w = 36, h = 36 }):BoxInfo(UI_OBJECT_SKILL, v.dwID, dwMaxLevel)
+		:Enable(SkillCD.tMonitor[v.dwID] or false):Click(function(bCheck)
+			if SkillCD.tMonitor[v.dwID] then
+				SkillCD.tMonitor[v.dwID] = nil
 			else
-				SkillCD.tMonitor[k] = true
+				SkillCD.tMonitor[v.dwID] = true
 			end
-			this:EnableObject(SkillCD.tMonitor[k] or false)
+			this:EnableObject(SkillCD.tMonitor[v.dwID] or false)
 			SC.UpdateMonitorCache()
 			if SC.IsPanelOpened() then
 				SC.UpdateCount()
 			end
 		end).self.OnItemRButtonClick = function()
 			local menu = {}
-			table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL .. " " .. JH.GetSkillName(k, 1), rgb = { 255, 0, 0 }, fnAction = function()
-				if SkillCD.tCustom[k] then
-					SkillCD.tCustom[k]  = nil
-					SkillCD.tMonitor[k] = nil
-					aSkillList[k]       = nil
+			table.insert(menu, { szOption = g_tStrings.STR_FRIEND_DEL .. " " .. JH.GetSkillName(v.dwID, 1), rgb = { 255, 0, 0 }, fnAction = function()
+				if SkillCD.tCustom[v.dwID] then
+					SkillCD.tCustom[v.dwID]  = nil
+					SkillCD.tMonitor[v.dwID] = nil
+					aSkillList[v.dwID]       = nil
 					JH.OpenPanel(_L["SkillCD"])
 					SC.UpdateMonitorCache()
 					if SC.IsPanelOpened() then
@@ -565,7 +577,6 @@ function PS.OnPanelActive(frame)
 			end })
 			PopupMenu(menu)
 		end
-		i = i + 1
 	end
 end
 GUI.RegisterPanel(_L["SkillCD"], 889, _L["Dungeon"], PS)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-20 23:42:36
+-- @Last Modified time: 2016-02-26 18:04:08
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -90,8 +90,8 @@ local function GetLang()
 end
 local _L = GetLang()
 
-local _VERSION_   = 0x1030100
-local _BUILD_     = "20160216"
+local _VERSION_   = 0x1030200
+local _BUILD_     = "20160225"
 local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 
@@ -2739,6 +2739,7 @@ function _GUI.Wnd:Autocomplete(fnTable, fnCallBack, fnRecovery, nMaxOption)
 		local Autocomplete = function()
 			local tList, tTab  = {}, {}
 			local szText = this:GetText()
+			szText = string.gsub(szText, "[%[%]]", "") -- ¹ýÂË [xxx] Îª xxx
 			if type(fnTable) == "function" then
 				tTab = fnTable(szText)
 			else

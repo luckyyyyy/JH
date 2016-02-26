@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-23 20:10:54
+-- @Last Modified time: 2016-02-25 18:06:55
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -218,6 +218,13 @@ function GKP_Loot_Base.OnItemLButtonClick()
 		local dwDoodadID = frame.dwDoodadID
 		local doodad     = GetDoodad(dwDoodadID)
 		-- if data.bDist or JH.bDebugClient then
+		if not data.bDist and not data.bBidding then
+			if doodad.CanDialog(me) then
+				OpenDoodad(me, doodad)
+			else
+				JH.Topmsg(g_tStrings.TIP_TOO_FAR)
+			end
+		end
 		if data.bDist then
 			if not doodad then
 				JH.Debug("Doodad does not exist!")
@@ -239,11 +246,6 @@ function GKP_Loot_Base.OnItemLButtonClick()
 		elseif data.bNeedRoll then
 			JH.Topmsg(g_tStrings.ERROR_LOOT_ROLL)
 		else -- 左键摸走
-			if doodad.CanDialog(me) then
-				OpenDoodad(me, doodad)
-			else
-				JH.Topmsg(g_tStrings.TIP_TOO_FAR)
-			end
 			LootItem(frame.dwDoodadID, data.dwID)
 		end
 	end
