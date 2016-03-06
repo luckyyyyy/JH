@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-09 22:12:02
+-- @Last Modified time: 2016-03-07 06:58:51
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -269,7 +269,7 @@ function W.AppendItem(data, k)
 				W.DoanloadData(data)
 			end
 			btn2.OnLButtonClick = function()
-				local url = ROOT_URL .. "#file/".. data.tid
+				local url = ROOT_URL .. "config/detail/".. data.tid
 				if data.url then
 					url = "http://" .. data.url
 				end

@@ -786,4 +786,27 @@ data = {
 	["critical beaten"] = "受伤会心",
 	["critical heaten"] = "治疗会心",
 	["ZuiWu Effect"] = "自己的醉舞提示正在接受治疗的目标",
+	-- JH.Achievement.lua --
+	["achievement encyclopedia"] = "成就百科",
+	["Reference Link"] = "链接",
+	["Click for achievement Encyclopedia"] = "点击查看成就百科",
+	["Please exit edit mode"] = "请先退出编辑模式",
+	["ACHI_TIPS"] = "游戏内编辑会破坏文本格式，审核很难通过，您确定要编辑吗？\n建议点击左下角打开网页，到网页中编辑。",
+	["perfection"] = "完善百科",
+	["game limit"] = "游戏限制，字符太长或太短，建议您到网页提交",
+	["Version"] = "版本",
+	["Author"] = "贡献者",
+	["Open URL"] = "打开页面",
+	["Change time"] = "贡献时间",
+	["Achi Default Templates"] = [[◆成就难度 ★★★★★
+◆花费时长 ★★★★★
+
+◆成就攻略
+
+请修改默认模板内容，这里填写攻略。
+尽可能遵循模板，优化阅读体验。
+贡献者和时间会自动生成，请勿填写。
+
+不要太长，游戏内提交限制字数在200！
+网页上提交支持富文本，没有字数限制。]],
 }
