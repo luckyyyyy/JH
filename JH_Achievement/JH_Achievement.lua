@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-07 06:50:11
+-- @Last Modified time: 2016-03-08 17:07:31
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -56,6 +56,13 @@ end
 function JH_Achievement.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		Achievement.UpdateAnchor(this)
+	end
+end
+
+function JH_Achievement.OnEditChanged()
+	local szName = this:GetName()
+	if szName == "Edit_EditMode" then
+		this:GetRoot().szText = this:GetText()
 	end
 end
 
