@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-08 17:07:31
+-- @Last Modified time: 2016-03-16 10:06:25
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -86,7 +86,7 @@ function JH_Achievement.OnLButtonClick()
 	elseif szName == "Btn_Send" then
 		JH.Confirm(_L["Confirm?"], Achievement.Send)
 	elseif szName == "Btn_Open" then
-		OpenInternetExplorer(this:GetRoot().link:GetText())
+		OpenInternetExplorer(ACHI_ROOT_URL .. "detail/" .. this:GetRoot().dwAchievement)
 		Achievement.ClosePanel()
 	end
 end
