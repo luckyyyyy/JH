@@ -804,4 +804,19 @@ data = {
 请修改默认模板内容，这里填写攻略，尽可能遵循模板，优化阅读体验。
 贡献者和时间会自动生成，请勿填写，不要太长，游戏内提交限制字数在200！
 建议在网页上提交，支持图片和格式，也没有字数限制。]],
+	-- JH_Block.lua --
+	["Kill MessageBox"] = "消息框屏蔽",
+	["Kill Team invite"] = "屏蔽组队邀请（无队伍时）",
+	["Kill Team Apply"] = "屏蔽组队申请（有队伍时）",
+	["Kill Add Foe"] = "屏蔽仇人提示框",
+	["Kill Add Friend"] = "屏蔽好友提示框",
+	["Kill Trading invite"] = "屏蔽交易申请",
+	["Kill Corps invite"]  = "屏蔽竞技场邀请提示框",
+	["Kill Duel invite"] = "屏蔽切磋提示框",
+	["Kill Tong invite"] = "屏蔽帮派邀请提示框",
+	["Kill Apprentice invite"] = "屏蔽师徒提示框",
+	["Kill tong banner invite"] = "屏蔽帮会大旗和聚义令提示框",
+	["Kill Emotion Action"] = "屏蔽抱抱表情动作",
+	["Kill Invite Follow"] = "屏蔽双人同骑",
+	["Kill Tips"] = "小提示：本功能主要用于攻防指挥，小退失效。查看情缘在海鳗屏蔽。"
 }
