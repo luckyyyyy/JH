@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-03-16 18:13:51
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-16 21:56:08
+-- @Last Modified time: 2016-03-17 10:46:14
 
 local _L = JH.LoadLangPack
 
@@ -21,10 +21,11 @@ local Black = {
 }
 
 local function Black_Commom()
+	local szName = tostring(arg0)
 	for k, v in ipairs(Black) do
 		if v[3] then
-			if arg0:sub(0, v[1]:len()) == v[1] then
-				JH.DoMessageBox(arg0, 2)
+			if szName:sub(0, v[1]:len()) == v[1] then
+				JH.DoMessageBox(szName, 2)
 			end
 		end
 	end
