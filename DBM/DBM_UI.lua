@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-23 15:41:11
+-- @Last Modified time: 2016-03-23 17:59:23
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -908,19 +908,23 @@ function DBMUI.GetSearchCache(data)
 end
 
 function DBMUI.CheckSearch(szType, data)
-	local szName = DBMUI.GetDataName(szType, data)
-	if tostring(szName):find(DBMUI_SEARCH, nil, true)
-		or (data.szNote         and tostring(data.szNote):find(DBMUI_SEARCH, nil, true))
-		or (data.key            and tostring(data.key):find(DBMUI_SEARCH, nil, true)) -- 画圈圈
-		or (data.dwID           and tostring(data.dwID):find(DBMUI_SEARCH, nil, true))
-		or (data.dwMapID        and DBMUI.GetMapName(data.dwMapID):find(DBMUI_SEARCH, nil, true))
-		or (data.szTarget       and tostring(data.szTarget):find(DBMUI_SEARCH, nil, true))
-		or (DBMUI_GLOBAL_SEARCH and DBMUI.GetSearchCache(data):find(DBMUI_SEARCH, nil, true))
-	then
-		return true
+	if DBMUI_GLOBAL_SEARCH then
+		if DBMUI.GetSearchCache(data):find(DBMUI_SEARCH, nil, true) then
+			return true
+		end
 	else
-		return false
+		local szName = DBMUI.GetDataName(szType, data)
+		if tostring(szName):find(DBMUI_SEARCH, nil, true)
+			or (data.szNote   and tostring(data.szNote):find(DBMUI_SEARCH, nil, true))
+			or (data.key      and tostring(data.key):find(DBMUI_SEARCH, nil, true)) -- 画圈圈
+			or (data.dwID     and tostring(data.dwID):find(DBMUI_SEARCH, nil, true))
+			or (data.dwMapID  and DBMUI.GetMapName(data.dwMapID):find(DBMUI_SEARCH, nil, true))
+			or (data.szTarget and tostring(data.szTarget):find(DBMUI_SEARCH, nil, true))
+		then
+			return true
+		end
 	end
+	return false
 end
 
 function DBMUI.GetDataName(szType, data)

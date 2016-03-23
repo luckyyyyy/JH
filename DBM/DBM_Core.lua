@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-23 15:41:01
+-- @Last Modified time: 2016-03-23 17:38:43
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1144,14 +1144,14 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 				local team = GetClientTeam()
 				local c = content
 				for kk, vv in ipairs(team.GetTeamMemberList()) do
-					if szContent:find(c:gsub("$team", team.GetClientTeamMemberName(vv)), nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+					if wstring.find(szContent, c:gsub("$team", team.GetClientTeamMemberName(vv))) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 						tInfo = { dwID = vv, szName = team.GetClientTeamMemberName(vv) }
 						data = v
 						break
 					end
 				end
 			else
-				if szContent:find(content, nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+				if wstring.find(szContent, content) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 					data = v
 					break
 				end

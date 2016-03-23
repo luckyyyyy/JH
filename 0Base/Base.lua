@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-23 15:41:09
+-- @Last Modified time: 2016-03-23 17:40:06
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -2747,7 +2747,7 @@ function _GUI.Wnd:Autocomplete(fnTable, fnCallBack, fnRecovery, nMaxOption)
 			end
 			for k, v in ipairs(tTab) do
 				local txt = type(v) ~= "table" and tostring(v) or v.bRichText and v.option or v.szOption
-				if txt and txt:find(szText, nil, true) and (txt ~= szText or type(v) == "table" and v.self) then
+				if txt and wstring.find(txt, szText) and (txt ~= szText or type(v) == "table" and v.self) then
 					table.insert(tList, v)
 				elseif type(v) == "table" and v.bDevide then
 					table.insert(tList, v)
