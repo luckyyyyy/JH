@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-24 22:43:19
+-- @Last Modified time: 2016-03-19 00:18:43
 
 -- 战斗浮动文字设计思路
 --[[
@@ -168,7 +168,7 @@ local CombatText = {}
 JH_CombatText = {
 	bEnable      = true,
 	bRender      = true,
-	nStyle       = 2, -- default
+	nStyle       = 1, -- default
 	nMaxAlpha    = 240,
 	nTime        = 40,
 	nFadeIn      = 4,

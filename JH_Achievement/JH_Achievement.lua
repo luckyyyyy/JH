@@ -212,7 +212,7 @@ function Achievement.SelectVersiont(result)
 		frame.pedia:AppendItemFromString(GetFormatText(dat.desc, 6))
 		frame.szText = dat.desc
 		frame.pedia:AppendItemFromString(GetFormatText("\n\n", 6))
-		frame.pedia:AppendItemFromString(GetFormatText(_L["Version"], 172))
+		frame.pedia:AppendItemFromString(GetFormatText(_L["revise"], 172))
 		frame.pedia:AppendItemFromString(GetFormatText(" " .. dat.ver .. "\n", 6))
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Author"], 172))
 		frame.pedia:AppendItemFromString(GetFormatText(" " .. dat.author .. "\n", 6))

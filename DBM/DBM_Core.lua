@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-23 23:08:09
+-- @Last Modified time: 2016-03-23 15:41:01
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1110,6 +1110,7 @@ end
 -- 系统和NPC喊话处理
 function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 	-- 近期记录
+	szContent = tostring(szContent)
 	local me = GetClientPlayer()
 	local key = (szNpcName or "sys") .. "::" .. szContent
 	local tWeak, tTemp = CACHE.TEMP.TALK, D.TEMP.TALK
@@ -1134,7 +1135,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		end
 	end
 	if not data then
-		for k, v in ipairs(cache.OTHER) do
+		for k, v in JH.bpairs(cache.OTHER) do
 			local content = v.szContent
 			if v.szContent:find("$me") then
 				content = v.szContent:gsub("$me", me.szName) -- 转换me是自己名字
@@ -1143,14 +1144,14 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 				local team = GetClientTeam()
 				local c = content
 				for kk, vv in ipairs(team.GetTeamMemberList()) do
-					if szContent:match(c:gsub("$team", team.GetClientTeamMemberName(vv))) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+					if szContent:find(c:gsub("$team", team.GetClientTeamMemberName(vv)), nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 						tInfo = { dwID = vv, szName = team.GetClientTeamMemberName(vv) }
 						data = v
 						break
 					end
 				end
 			else
-				if szContent:match(content) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+				if szContent:find(content, nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 					data = v
 					break
 				end
@@ -1267,13 +1268,11 @@ function D.OnNpcFight(dwTemplateID, bFight)
 	if data then
 		if bFight then
 			D.CountdownEvent(data, DBM_TYPE.NPC_FIGHT)
-		else
-			if data.tCountdown then
-				for k, v in ipairs(data.tCountdown) do
-					if v.nClass == DBM_TYPE.NPC_FIGHT then
-						local class = v.key and DBM_TYPE.COMMON or v.nClass
-						FireUIEvent("JH_ST_DEL", class, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
-					end
+		elseif data.tCountdown then
+			for k, v in ipairs(data.tCountdown) do
+				if v.nClass == DBM_TYPE.NPC_FIGHT then
+					local class = v.key and DBM_TYPE.COMMON or v.nClass
+					FireUIEvent("JH_ST_DEL", class, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
 				end
 			end
 		end

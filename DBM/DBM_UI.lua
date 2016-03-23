@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-23 17:37:43
+-- @Last Modified time: 2016-03-23 15:41:11
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -115,7 +115,16 @@ function DBM_UI.OnFrameCreate()
 			txt:SetFontColor(192, 192, 192)
 		end
 	end
-	ui:Append("WndComboBox", { x = 800, y = 52, txt = g_tStrings.SYS_MENU }):Menu(DBMUI.GetMenu)
+	ui:Append("WndButton4", { x = 895, y = 52, txt = g_tStrings.SYS_MENU }):Click(function()
+		local menu = {}
+		table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBMUI.OpenImportPanel() end }) -- 有传惨 不要改
+		local szLang = select(3, GetVersion())
+		if szLang == "zhcn" or szLang == "zhtw" then
+			table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.TogglePanel })
+		end
+		table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
+		PopupMenu(menu)
+	end)
 	-- debug
 	if JH.bDebugClient then
 		ui:Append("WndButton", { txt = "debug", x = 10, y = 10 }):Click(ReloadUIAddon)
@@ -370,6 +379,9 @@ function DBMUI.UpdateTree()
 				item:Expand()
 			else
 				item:Collapse()
+			end
+			if tCount[item] == 0 then
+				item:Lookup(1):SetFontColor(222, 222, 222)
 			end
 			n = n + 1
 		end
@@ -856,17 +868,6 @@ function DBMUI.OpenExportPanel()
 	end)
 end
 
-function DBMUI.GetMenu()
-	local menu = {}
-	table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBMUI.OpenImportPanel() end }) -- 有传惨 不要改
-	local szLang = select(3, GetVersion())
-	if szLang == "zhcn" or szLang == "zhtw" then
-		table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.TogglePanel })
-	end
-	table.insert(menu, { szOption = _L["Export Data"], fnAction = DBMUI.OpenExportPanel })
-	return menu
-end
-
 function DBMUI.MoveData( ... )
 	DBM_API.MoveData(DBMUI_SELECT_TYPE, ... )
 end
@@ -908,13 +909,13 @@ end
 
 function DBMUI.CheckSearch(szType, data)
 	local szName = DBMUI.GetDataName(szType, data)
-	if tostring(szName):find(DBMUI_SEARCH)
-		or (data.szNote         and tostring(data.szNote):find(DBMUI_SEARCH))
-		or (data.key            and tostring(data.key):find(DBMUI_SEARCH)) -- 画圈圈
-		or (data.dwID           and tostring(data.dwID):find(DBMUI_SEARCH))
-		or (data.dwMapID        and DBMUI.GetMapName(data.dwMapID):find(DBMUI_SEARCH))
-		or (data.szTarget       and tostring(data.szTarget):find(DBMUI_SEARCH))
-		or (DBMUI_GLOBAL_SEARCH and DBMUI.GetSearchCache(data):find(DBMUI_SEARCH))
+	if tostring(szName):find(DBMUI_SEARCH, nil, true)
+		or (data.szNote         and tostring(data.szNote):find(DBMUI_SEARCH, nil, true))
+		or (data.key            and tostring(data.key):find(DBMUI_SEARCH, nil, true)) -- 画圈圈
+		or (data.dwID           and tostring(data.dwID):find(DBMUI_SEARCH, nil, true))
+		or (data.dwMapID        and DBMUI.GetMapName(data.dwMapID):find(DBMUI_SEARCH, nil, true))
+		or (data.szTarget       and tostring(data.szTarget):find(DBMUI_SEARCH, nil, true))
+		or (DBMUI_GLOBAL_SEARCH and DBMUI.GetSearchCache(data):find(DBMUI_SEARCH, nil, true))
 	then
 		return true
 	else
