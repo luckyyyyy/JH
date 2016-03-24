@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-23 17:40:06
+-- @Last Modified time: 2016-03-24 16:51:02
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -138,10 +138,10 @@ local _JH = {
 -- (string, number) JH.GetVersion() -- 获取插件版本号
 function _JH.GetVersion()
 	local v = _VERSION_
-	local szVersion = sformat("%d.%d.%d", v/0x1000000,
-		floor(v/0x10000)%0x100, floor(v/0x100)%0x100)
-	if  v%0x100 ~= 0 then
-		szVersion = szVersion .. "b" .. tostring(v%0x100)
+	local szVersion = sformat("%d.%d.%d", v / 0x1000000,
+		floor(v / 0x10000) % 0x100, floor(v / 0x100) % 0x100)
+	if v % 0x100 ~= 0 then
+		szVersion = szVersion .. "b" .. tostring(v % 0x100)
 	end
 	return szVersion, v
 end
@@ -243,8 +243,7 @@ function JH.OnCheckBoxCheck()
 end
 
 function _JH.UpdatePage(fn)
-	_JH.CloseAddonPanel()
-	JH_PANEL_SELECT = nil
+	_JH.CloseAddonPanel(true)
 	local frame = _JH.GetFrame()
 	if not frame.hPage:IsVisible() then
 		frame.hPage:Show()
@@ -262,8 +261,7 @@ function _JH.UpdatePage(fn)
 end
 
 function _JH.BackHome()
-	_JH.CloseAddonPanel()
-	JH_PANEL_SELECT = nil
+	_JH.CloseAddonPanel(true)
 	local frame = _JH.GetFrame()
 	if not frame.hHome:IsVisible() then
 		JH.Animate(frame.hHome):FadeIn(300, function()
@@ -313,9 +311,12 @@ function _JH.CreateAddonFrame(tAddon)
 	return tAddon.fn.OnPanelActive(frame.hContainer)
 end
 
-function _JH.CloseAddonPanel()
+function _JH.CloseAddonPanel(bClear)
 	if JH_PANEL_SELECT and JH_PANEL_SELECT.fn and JH_PANEL_SELECT.fn.OnPanelDeactive then
 		JH_PANEL_SELECT.fn.OnPanelDeactive()
+		if bClear then
+			JH_PANEL_SELECT = nil
+		end
 	end
 end
 
@@ -618,55 +619,6 @@ JH.IsOpened    = _JH.IsOpened
 JH.ClosePanel  = _JH.ClosePanel
 JH.TogglePanel = _JH.TogglePanel
 
--- parse emotion in talking message
-function _JH.ParseFaceIcon(t)
-	if not _JH.tFaceIcon then
-		_JH.tFaceIcon = {}
-		for i = 1, g_tTable.FaceIcon:GetRowCount() do
-			local tLine = g_tTable.FaceIcon:GetRow(i)
-			_JH.tFaceIcon[tLine.szCommand] = tLine.dwID
-		end
-	end
-	local t2 = {}
-	for _, v in ipairs(t) do
-		if v.type ~= "text" then
-			if v.type == "emotion" then
-				v.type = "text"
-			end
-			tinsert(t2, v)
-		else
-			local nOff, nLen = 1, slen(v.text)
-			while nOff <= nLen do
-				local szFace, dwFaceID = nil, nil
-				local nPos = StringFindW(v.text, "#", nOff)
-				if not nPos then
-					nPos = nLen
-				else
-					for i = nPos + 7, nPos + 2, -1 do
-						if i <= nLen then
-							local szTest = ssub(v.text, nPos, i)
-							if _JH.tFaceIcon[szTest] then
-								szFace, dwFaceID = szTest, _JH.tFaceIcon[szTest]
-								nPos = nPos - 1
-								break
-							end
-						end
-					end
-				end
-				if nPos >= nOff then
-					tinsert(t2, { type = "text", text = ssub(v.text, nOff, nPos) })
-					nOff = nPos + 1
-				end
-				if szFace and dwFaceID then
-					tinsert(t2, { type = "emotion", text = szFace, id = dwFaceID })
-					nOff = nOff + slen(szFace)
-				end
-			end
-		end
-	end
-	return t2
-end
-
 --------------------------------------- * 常用函数 * ---------------------------------------
 
 -- (void) JH.SetHotKey()               -- 打开快捷键设置面板
@@ -850,6 +802,55 @@ function JH.SwitchChat(nChannel)
 	end
 end
 
+-- parse emotion in talking message
+local function ParseFaceIcon(t)
+	if not _JH.tFaceIcon then
+		_JH.tFaceIcon = {}
+		for i = 1, g_tTable.FaceIcon:GetRowCount() do
+			local tLine = g_tTable.FaceIcon:GetRow(i)
+			_JH.tFaceIcon[tLine.szCommand] = tLine.dwID
+		end
+	end
+	local t2 = {}
+	for _, v in ipairs(t) do
+		if v.type ~= "text" then
+			if v.type == "emotion" then
+				v.type = "text"
+			end
+			tinsert(t2, v)
+		else
+			local nOff, nLen = 1, slen(v.text)
+			while nOff <= nLen do
+				local szFace, dwFaceID = nil, nil
+				local nPos = StringFindW(v.text, "#", nOff)
+				if not nPos then
+					nPos = nLen
+				else
+					for i = nPos + 7, nPos + 2, -1 do
+						if i <= nLen then
+							local szTest = ssub(v.text, nPos, i)
+							if _JH.tFaceIcon[szTest] then
+								szFace, dwFaceID = szTest, _JH.tFaceIcon[szTest]
+								nPos = nPos - 1
+								break
+							end
+						end
+					end
+				end
+				if nPos >= nOff then
+					tinsert(t2, { type = "text", text = ssub(v.text, nOff, nPos) })
+					nOff = nPos + 1
+				end
+				if szFace and dwFaceID then
+					tinsert(t2, { type = "emotion", text = szFace, id = dwFaceID })
+					nOff = nOff + slen(szFace)
+				end
+			end
+		end
+	end
+	return t2
+end
+
 function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 	local szTarget, me = "", GetClientPlayer()
 	-- channel
@@ -890,7 +891,7 @@ function JH.Talk(nChannel, szText, szUUID, bNoEmotion, bSaveDeny, bNotLimit)
 		tSay = {{ type = "text", text = szText .. "\n"}}
 	end
 	if not bNoEmotion then
-		tSay = _JH.ParseFaceIcon(tSay)
+		tSay = ParseFaceIcon(tSay)
 	end
 	-- add addon msg header
 	if not tSay[1] or (

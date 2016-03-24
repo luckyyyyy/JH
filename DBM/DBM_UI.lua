@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-23 17:59:23
+-- @Last Modified time: 2016-03-24 18:29:51
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1762,54 +1762,71 @@ function DBMUI.OpenSettingPanel(data, szType)
 	nY = nY + 10
 	for k, v in ipairs(data.tCountdown or {}) do
 		nX = ui:Append("WndComboBox", "Countdown" .. k, { x = 30, w = 155, h = 25, y = nY, color = v.key and { 255, 255, 0 }, txt = v.nClass == -1 and _L["Please Select Type"] or _L["Countdown TYPE " ..  v.nClass] }):Menu(function()
-			if IsCtrlKeyDown() then
-				GetUserInput(_L["Countdown Key"], function(szKey)
-					if JH.Trim(szKey) == "" then
-						v.key = nil
-					else
-						v.key = JH.Trim(szKey)
-					end
-					DBMUI.OpenSettingPanel(data, szType)
-				end, nil, nil, nil, v.key)
-				return {}
-			end
 			local menu = {}
-			table.insert(menu, { szOption = _L["Please Select Type"], bDisable = true, bChecked = v.nClass == -1 })
-			table.insert(menu, { bDevide = true })
-			if szType == "BUFF" or szType == "DEBUFF" then
-				for kk, vv in ipairs({ DBM_TYPE.BUFF_GET, DBM_TYPE.BUFF_LOSE }) do
-					table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
-						SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
-					end })
-				end
-			elseif szType == "CASTING" then
-				table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_END], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_END, fnAction = function()
-					SetCountdownType(v, DBM_TYPE.SKILL_END, ui:Fetch("Countdown" .. k))
-				end })
-				if tSkillInfo and tSkillInfo.CastTime ~= 0 then
-					table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_BEGIN], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_BEGIN, fnAction = function()
-						SetCountdownType(v, DBM_TYPE.SKILL_BEGIN, ui:Fetch("Countdown" .. k))
-					end })
-				end
-			elseif szType == "NPC" then
-				for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE, --[[DBM_TYPE.NPC_MANA]] }) do
-					table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
-						SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
-						if vv == DBM_TYPE.NPC_LIFE or vv == DBM_TYPE.NPC_MANA then
-							JH.Alert(_L["Npc Life/Mana Alarm, different format, Recommended reading Help!"])
+			if IsCtrlKeyDown() then
+				table.insert(menu, { szOption = _L["Set Countdown Key"], rgb = { 255, 255, 0 } , fnAction = function()
+					GetUserInput(_L["Countdown Key"], function(szKey)
+						if JH.Trim(szKey) == "" then
+							v.key = nil
+						else
+							v.key = JH.Trim(szKey)
 						end
-					end })
-				end
-			elseif szType == "DOODAD" then
-				for kk, vv in ipairs({ DBM_TYPE.DOODAD_ENTER, DBM_TYPE.DOODAD_LEAVE, DBM_TYPE.DOODAD_ALLLEAVE }) do
-					table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
-						SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
-					end })
-				end
-			elseif szType == "TALK" then
-				table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.TALK_MONITOR], bMCheck = true, bChecked = v.nClass == DBM_TYPE.TALK_MONITOR, fnAction = function()
-					SetCountdownType(v, DBM_TYPE.TALK_MONITOR, ui:Fetch("Countdown" .. k))
+						DBMUI.OpenSettingPanel(data, szType)
+					end, nil, nil, nil, v.key)
 				end })
+				table.insert(menu, { bDevide = true })
+				table.insert(menu, { szOption = _L["Color Picker"], bDisable = true })
+				-- Color Picker
+				for i = 0, 8 do
+					table.insert(menu, {
+						bMCheck = true,
+						bChecked = v.nFrame == i,
+						fnAction = function()
+							v.nFrame = i
+						end,
+						szIcon = JH.GetAddonInfo().szRootPath .. "DBM/image/ST_UI.uitex",
+						nFrame = i,
+						szLayer = "ICON_FILL",
+					})
+				end
+			else
+				table.insert(menu, { szOption = _L["Please Select Type"], bDisable = true, bChecked = v.nClass == -1 })
+				table.insert(menu, { bDevide = true })
+				if szType == "BUFF" or szType == "DEBUFF" then
+					for kk, vv in ipairs({ DBM_TYPE.BUFF_GET, DBM_TYPE.BUFF_LOSE }) do
+						table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
+							SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
+						end })
+					end
+				elseif szType == "CASTING" then
+					table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_END], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_END, fnAction = function()
+						SetCountdownType(v, DBM_TYPE.SKILL_END, ui:Fetch("Countdown" .. k))
+					end })
+					if tSkillInfo and tSkillInfo.CastTime ~= 0 then
+						table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_BEGIN], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_BEGIN, fnAction = function()
+							SetCountdownType(v, DBM_TYPE.SKILL_BEGIN, ui:Fetch("Countdown" .. k))
+						end })
+					end
+				elseif szType == "NPC" then
+					for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE, --[[DBM_TYPE.NPC_MANA]] }) do
+						table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
+							SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
+							if vv == DBM_TYPE.NPC_LIFE or vv == DBM_TYPE.NPC_MANA then
+								JH.Alert(_L["Npc Life/Mana Alarm, different format, Recommended reading Help!"])
+							end
+						end })
+					end
+				elseif szType == "DOODAD" then
+					for kk, vv in ipairs({ DBM_TYPE.DOODAD_ENTER, DBM_TYPE.DOODAD_LEAVE, DBM_TYPE.DOODAD_ALLLEAVE }) do
+						table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()
+							SetCountdownType(v, vv, ui:Fetch("Countdown" .. k))
+						end })
+					end
+				elseif szType == "TALK" then
+					table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.TALK_MONITOR], bMCheck = true, bChecked = v.nClass == DBM_TYPE.TALK_MONITOR, fnAction = function()
+						SetCountdownType(v, DBM_TYPE.TALK_MONITOR, ui:Fetch("Countdown" .. k))
+					end })
+				end
 			end
 			return menu
 		end):Pos_()

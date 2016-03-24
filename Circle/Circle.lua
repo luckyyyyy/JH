@@ -1,8 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-25 14:04:46
--- 数据结构和缓存的设计方法是逼于无奈，避免滥用。
+-- @Last Modified time: 2016-03-24 18:29:41
+-- 方案已废弃 需要合并到 DBM 但由于目前数据结构问题 和DBM部分不兼容
+-- 避免玩家重做数据 暂时不做修改
 local _L = JH.LoadLangPack
 local pairs, ipairs = pairs, ipairs
 local type, unpack, pcall = type, unpack, pcall

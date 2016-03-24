@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-23 17:38:43
+-- @Last Modified time: 2016-03-24 18:04:19
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -20,7 +20,7 @@ local DBM_CORE_PLAYERID = 0
 local DBM_CORE_NAME     = 0
 
 local DBM_MAX_INTERVAL  = 300
-local DBM_MAX_CACHE     = 2000 -- 最大的cache数量 主要是UI的问题
+local DBM_MAX_CACHE     = 3000 -- 最大的cache数量 主要是UI的问题
 local DBM_DEL_CACHE     = 1000 -- 每次清理的数量 然后会做一次gc
 local DBM_INIFILE       = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM.ini"
 
@@ -72,6 +72,7 @@ local CACHE = {
 	SKILL_LIST  = {},
 	INTERVAL    = {},
 	DUNGEON     = {},
+	STR         = {},
 }
 
 local D = {
@@ -447,6 +448,7 @@ function D.CreateData(szEvent)
 	if szEvent ~= "DBM_CREATE_CACHE" then
 		CACHE.NPC_LIST   = {}
 		CACHE.SKILL_LIST = {}
+		CACHE.STR        = {}
 		D.Log("collectgarbage(\"count\") " .. collectgarbage("count"))
 		collectgarbage("collect")
 		D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
@@ -1134,6 +1136,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 			data = cache.HIT[szContent]["%"]
 		end
 	end
+	-- 不适用wstring 性能考虑为前提
 	if not data then
 		for k, v in JH.bpairs(cache.OTHER) do
 			local content = v.szContent
@@ -1144,14 +1147,14 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 				local team = GetClientTeam()
 				local c = content
 				for kk, vv in ipairs(team.GetTeamMemberList()) do
-					if wstring.find(szContent, c:gsub("$team", team.GetClientTeamMemberName(vv))) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+					if string.find(szContent, c:gsub("$team", team.GetClientTeamMemberName(vv)), nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 						tInfo = { dwID = vv, szName = team.GetClientTeamMemberName(vv) }
 						data = v
 						break
 					end
 				end
 			else
-				if wstring.find(szContent, content) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
+				if string.find(szContent, content, nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
 					data = v
 					break
 				end
@@ -1268,7 +1271,7 @@ function D.OnNpcFight(dwTemplateID, bFight)
 	if data then
 		if bFight then
 			D.CountdownEvent(data, DBM_TYPE.NPC_FIGHT)
-		elseif data.tCountdown then
+		elseif data.tCountdown then -- 脱离的时候清空下
 			for k, v in ipairs(data.tCountdown) do
 				if v.nClass == DBM_TYPE.NPC_FIGHT then
 					local class = v.key and DBM_TYPE.COMMON or v.nClass
@@ -1279,51 +1282,65 @@ function D.OnNpcFight(dwTemplateID, bFight)
 	end
 end
 
--- NPC 血量倒计时处理 这个很可能以后会是 最大的性能消耗 格外留意
+function D.GetStringStru(szString)
+	if CACHE.STR[szString] then
+		return CACHE.STR[szString]
+	else
+		local data = {}
+		for k, v in ipairs(JH_Split(szString, ";")) do
+			local line = JH_Split(v, ",")
+			if line[1] and line[2] and tonumber(JH_Trim(line[1])) and JH_Trim(line[2]) ~= "" then
+				line[1] = tonumber(JH_Trim(line[1]))
+				line[2] = JH_Trim(line[2])
+				tinsert(data, line)
+			end
+		end
+		CACHE.STR[szString] = data
+		return data
+	end
+end
+
 function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data and data.tCountdown then
 		local dwType = szEvent == "DBM_NPC_LIFE_CHANGE" and DBM_TYPE.NPC_LIFE or DBM_TYPE.NPC_MANA
 		for k, v in ipairs(data.tCountdown) do
 			if v.nClass == dwType then
-				local t = JH_Split(v.nTime, ";")
-				for kk, vv in ipairs(t) do
-					local time = JH_Split(vv, ",")
-					if time[1] and time[2] and tonumber(JH_Trim(time[1])) and JH_Trim(time[2]) ~= "" then
-						local nVper = tonumber(JH_Trim(time[1])) * 100
-						if nVper == nPer then -- hit
-							local szName = v.szName or JH.GetTemplateName(dwTemplateID)
-							local xml = {}
-							tinsert(xml, DBM_LEFT_LINE)
-							tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
-							tinsert(xml, DBM_RIGHT_LINE)
-							tinsert(xml, GetFormatText(dwType == DBM_TYPE.NPC_LIFE and _L["life has left"] or _L["mana has reached"], 44, 255, 255, 255))
-							tinsert(xml, GetFormatText(" " .. nVper .. "%", 44, 255, 255, 0))
-							tinsert(xml, GetFormatText(" " .. time[2], 44, 255, 255, 255))
-							local txt = GetPureText(tconcat(xml))
-							if DBM.bPushCenterAlarm then
-								FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
-							end
-							if DBM.bPushBigFontAlarm then
-								FireUIEvent("JH_LARGETEXT", txt, data.col or { 255, 128, 0 })
-							end
-							if DBM.bPushTeamChannel and v.bTeamChannel then
-								D.Talk(txt)
-							end
-							if time[3] and tonumber(time[3]) then
-								local szKey = k .. "." .. dwTemplateID .. "." .. kk
-								local tParam = {
-									key    = v.key,
-									nFrame = v.nFrame,
-									nTime  = tonumber(JH_Trim(time[3])),
-									szName = time[2],
-									nIcon  = v.nIcon,
-									bTalk  = v.bTeamChannel
-								}
-								D.FireCountdownEvent(v.nClass, szKey, tParam)
-							end
-							break
+				local tLife = D.GetStringStru(v.nTime)
+				for kk, vv in ipairs(tLife) do
+					local nVper = vv[1] * 100
+					if nVper == nPer then -- hit
+						local szName = v.szName or JH.GetTemplateName(dwTemplateID)
+						local xml = {}
+						tinsert(xml, DBM_LEFT_LINE)
+						tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
+						tinsert(xml, DBM_RIGHT_LINE)
+						tinsert(xml, GetFormatText(dwType == DBM_TYPE.NPC_LIFE and _L["life has left"] or _L["mana has reached"], 44, 255, 255, 255))
+						tinsert(xml, GetFormatText(" " .. nVper .. "%", 44, 255, 255, 0))
+						tinsert(xml, GetFormatText(" " .. vv[2], 44, 255, 255, 255))
+						local txt = GetPureText(tconcat(xml))
+						if DBM.bPushCenterAlarm then
+							FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 						end
+						if DBM.bPushBigFontAlarm then
+							FireUIEvent("JH_LARGETEXT", txt, data.col or { 255, 128, 0 })
+						end
+						if DBM.bPushTeamChannel and v.bTeamChannel then
+							D.Talk(txt)
+						end
+						if vv[3] and tonumber(JH_Trim(vv[3])) then
+							local szKey = k .. "." .. dwTemplateID .. "." .. kk
+							local tParam = {
+								key    = v.key,
+								nFrame = v.nFrame,
+								nTime  = tonumber(JH_Trim(vv[3])),
+								szName = vv[2],
+								nIcon  = v.nIcon,
+								bTalk  = v.bTeamChannel
+							}
+							D.FireCountdownEvent(v.nClass, szKey, tParam)
+						end
+						break
 					end
 				end
 			end

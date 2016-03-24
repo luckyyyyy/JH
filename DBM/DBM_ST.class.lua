@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-22 08:54:43
+-- @Last Modified time: 2016-03-24 18:38:49
 -- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
@@ -77,9 +77,15 @@ local function CreateCountdown(nType, szKey, tParam)
 	if cache and tParam.nRefresh and (nTime - cache) / 1000 < tParam.nRefresh then
 		return
 	end
-	local ui = ST_CACHE[nType][szKey]
 	ST_TIME_CACHE[nType][szKey] = nTime
-	ST:ctor(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
+	if tTime.nTime > 0 then
+		ST:ctor(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
+	else
+		local ui = ST_CACHE[nType][szKey]
+		if ui and ui:IsValid() then
+			ui.obj:RemoveItem()
+		end
+	end
 end
 
 ST_UI = {
