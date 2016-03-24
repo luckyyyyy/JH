@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-19 00:18:43
+-- @Last Modified time: 2016-03-24 20:59:28
 
 -- 战斗浮动文字设计思路
 --[[
@@ -221,7 +221,6 @@ function JH_CombatText.OnFrameCreate()
 		end
 	end
 	CombatText.FreeQueue()
-	JH.BreatheCall("COMBAT_TEXT", CombatText.ExecQueue, 50)
 	COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
 	COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
 	JH.BreatheCall("COMBAT_TEXT_CACHE", function()
@@ -426,6 +425,21 @@ function CombatText.OnFrameRender()
 			COMBAT_TEXT_SHADOW[k] = nil
 		end
 	end
+	for k, v in pairs(COMBAT_TEXT_QUEUE) do
+		for kk, vv in pairs(v) do
+			if #vv > 0 then
+				local dat = tremove(vv, 1)
+				if dat.dat.szPoint == "TOP" then
+					local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
+					CombatText.RandomTrajectory(dat.dat, nSort)
+				end
+				dat.dat.nTime = GetTime()
+				COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
+			else
+				COMBAT_TEXT_QUEUE[k][kk] = nil
+			end
+		end
+	end
 end
 
 JH_CombatText.OnFrameBreathe = CombatText.OnFrameRender
@@ -512,25 +526,6 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 	else
 		COMBAT_TEXT_QUEUE[szPoint][dwTargetID] = COMBAT_TEXT_QUEUE[szPoint][dwTargetID] or {}
 		tinsert(COMBAT_TEXT_QUEUE[szPoint][dwTargetID], { shadow = shadow, dat = dat })
-	end
-end
-
-
-function CombatText.ExecQueue()
-	for k, v in pairs(COMBAT_TEXT_QUEUE) do
-		for kk, vv in pairs(v) do
-			if #vv > 0 then
-				local dat = tremove(vv, 1)
-				if dat.dat.szPoint == "TOP" then
-					local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
-					CombatText.RandomTrajectory(dat.dat, nSort)
-				end
-				dat.dat.nTime = GetTime()
-				COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
-			else
-				COMBAT_TEXT_QUEUE[k][kk] = nil
-			end
-		end
 	end
 end
 
@@ -796,7 +791,6 @@ function CombatText.CheckEnable()
 		if ui then
 			CombatText.FreeQueue()
 			Wnd.CloseWindow(ui)
-			JH.UnBreatheCall("COMBAT_TEXT")
 			JH.UnBreatheCall("COMBAT_TEXT_CACHE")
 			collectgarbage("collect")
 		end
