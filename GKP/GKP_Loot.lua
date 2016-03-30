@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-25 18:06:55
+-- @Last Modified time: 2016-03-30 08:08:50
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -525,7 +525,7 @@ function Loot.GetDistributeMenu(dwDoodadID, data)
 			fnAutoClose = function()
 				return not frame or false
 			end,
-			szLayer = "ICON_RIGHT",
+			szLayer = "ICON_RIGHTMOST",
 			fnAction = function()
 				if data.nQuality >= 3 then
 					Loot.GetMessageBox(v.dwID, dwDoodadID, data.dwID, data, szName and true)

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-12 03:10:20
+-- @Last Modified time: 2016-03-29 20:57:57
 local _L = JH.LoadLangPack
 JH_Love = {
 	bQuiet = false,				-- 免打扰（拒绝其它人的查看请求）
@@ -770,7 +770,7 @@ end
 
 -- 上线，下线通知：bOnLine, szName, bFoe
 _JH_Love.OnFriendLogin = function()
-	if not  arg2 and arg1 == _JH_Love.szName then
+	if not arg2 and arg1 == _HM_Love.szName and _HM_Love.szName ~= "" then
 		local szMsg = _L["Warm tip: Your "] .. _JH_Love.GetLoverType() .. _L["Lover <link0>"]
 		if arg0 then
 			szMsg = szMsg .. _L["online, hurry doing needy doing.\n"]

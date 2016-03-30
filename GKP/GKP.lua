@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-23 22:32:32
+-- @Last Modified time: 2016-03-30 07:52:51
 
 -- 早期代码 需要重写
 
@@ -10,13 +10,12 @@ local _L = JH.LoadLangPack
 
 GKP = {
 	bDebug2              = false,
-	bOn                  = true,  -- 是分配者就开启
+	bOn                  = true,  -- enable
 	bMoneyTalk           = false, -- 金钱变动喊话
 	bAlertMessage        = true,  -- 进入副本提醒清空数据
 	bMoneySystem         = false, -- 记录系统金钱变动
 	bDisplayEmptyRecords = true,  -- show 0 record
 	bAutoSync            = true,  -- 自动接收分配者的同步信息
-	bLootStyle           = true,
 	bShowGoldBrick       = true,
 }
 JH.RegisterCustomData("GKP")
@@ -491,8 +490,8 @@ function PS.OnPanelActive(frame)
 	:Click(function(bChecked)
 		GKP.bAutoSync = bChecked
 	end):Pos_()
-	nX, nY = ui:Append("WndComboBox", { x = 10, y = nY, txt = _L["Edit Allowance Protocols"] }):Menu(_GKP.GetSubsidiesMenu):Pos_()
-	nX, nY = ui:Append("WndComboBox", { x = 10, y = nY, txt = _L["Edit Auction Protocols"] }):Menu(_GKP.GetSchemeMenu):Pos_()
+	nX = ui:Append("WndComboBox", { x = 10, y = nY + 5, txt = _L["Edit Allowance Protocols"] }):Menu(_GKP.GetSubsidiesMenu):Pos_()
+	nX, nY = ui:Append("WndComboBox", { x = nX + 10, y = nY + 5, txt = _L["Edit Auction Protocols"] }):Menu(_GKP.GetSchemeMenu):Pos_()
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Money Record"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 12, checked = GKP.bMoneySystem, txt = _L["Track Money Trend in the System"] })
 	:Click(function(bChecked)
@@ -503,7 +502,7 @@ function PS.OnPanelActive(frame)
 		GKP.bMoneyTalk = bChecked
 	end):Pos_()
 	if JH.bDebugClient then
-		ui:Append("WndCheckBox", { x = 360, y = nY, txt = "Debug Mode", checked = GKP.bDebug2 })
+		ui:Append("WndCheckBox", { x = 10, y = nY, txt = "Enable Debug", checked = GKP.bDebug2 })
 		:Click(function(bChecked)
 			GKP.bDebug2 = bChecked
 		end)
@@ -716,7 +715,7 @@ function GKP.GetTeamMemberMenu(fnAction, bDisable, bSelf)
 			local szIcon, nFrame = GetForceImage(v.dwForce)
 			table.insert(menu, {
 				szOption = v.szName,
-				szLayer  = "ICON_RIGHT",
+				szLayer  = "ICON_RIGHTMOST",
 				bDisable = bDisable and not v.bIsOnLine,
 				szIcon   = szIcon,
 				nFrame   = nFrame,
@@ -830,7 +829,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 				end
 				local ui = GUI.CreateFrame(szFrameName, { w = 760, h = 350, title = _L["GKP Golden Team Record"], close = true }):Point()
 				ui:Append("Text", { x = 0, y = 50, w = 760, h = 30, txt = _L[data[3]], align = 1, font = 236, color = { 255, 255, 0 } })
-				ui:Append("WndButton2", "ScreenShot", { x = 590, y = 50, txt = _L["Print Ticket"], font = 41 }):Toggle(false):Click(function()
+				ui:Append("WndButton3", "ScreenShot", { x = 590, y = 50, txt = _L["Print Ticket"] }):Toggle(false):Click(function()
 					local scale         = Station.GetUIScale()
 					local left, top     = ui:Pos()
 					local right, bottom = ui:Pos_()
@@ -926,9 +925,11 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 						local handle = ui:Append("Handle", { w = 230, h = 20, x = 30, y = 120 + 30 * n + 5 }):Type(3):Raw()
 						handle:AppendItemFromString(GetFormatText(_L["Total Auction:"], 41) .. _GKP.GetMoneyTipText(tonumber(data[4])))
 						handle:FormatAllItemPos()
-						ui:Append("WndButton4", { w = 91, h = 26, x = 620, y = 120 + 30 * n + 5, txt = _L["salary"] }):Click(function()
-							JH.Confirm(_L["Confirm?"], _GKP.Bidding)
-						end)
+						if JH.IsDistributer() then
+							ui:Append("WndButton4", { w = 91, h = 26, x = 620, y = 120 + 30 * n + 5, txt = _L["salary"] }):Click(function()
+								JH.Confirm(_L["Confirm?"], _GKP.Bidding)
+							end)
+						end
 						if data[5] and tonumber(data[5]) then
 							local nTime = tonumber(data[5])
 							ui:Append("Text", { w = 725, h = 30, x = 0, y = 120 + 30 * n + 5, txt = _L("Spend time approx %d:%d", nTime / 3600, nTime % 3600 / 60), align = 1 })
@@ -941,7 +942,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 								{ 100000,  0 }, -- 背锅
 								{ 250000,  2 }, -- 脸帅
 								{ 500000,  6 }, -- 自称小红手
-								{ 3000000, 3 }, -- 特别红
+								{ 5000000, 3 }, -- 特别红
 								{ 5000000, 5 }, -- 玄晶专用r
 							}
 							local nFrame = 4
@@ -961,7 +962,7 @@ JH.RegisterBgMsg("GKP", function(nChannel, dwID, szName, data, bIsSelf)
 							JH.Animate(img, 200):Scale(4)
 						end
 						frm.done = true
-					elseif  szFrameName == "GKP_Debt" and not frm:IsVisible() then
+					elseif szFrameName == "GKP_Debt" and not frm:IsVisible() then
 						Wnd.CloseWindow(frm)
 					end
 				end
@@ -985,14 +986,14 @@ function _GKP.Recovery()
 	local menu = {}
 	table.insert(menu,{
 		szOption = _L("Loading Data of the Character's name: %s (edit by clicking)",_GKP.szName),
-		rgb = {255,255,0},
+		rgb = { 255, 255, 0 },
 		fnAction = function()
 			GetUserInput(_L["Modify to Lead the Character's name"],function(szText)
 				_GKP.szName = szText
 			end)
 		end
 	})
-	for i = 0 , 19 do
+	for i = 0, 21 do
 		local nTime = GetCurrentTime() - i * 86400
 		local szPath = JH.GetAddonInfo().szDataPath .. "GKP/" .. _GKP.szName .. "/" .. FormatTime("%Y-%m-%d",nTime) .. ".gkp"
 		table.insert(menu,{
@@ -1503,8 +1504,8 @@ RegisterEvent("MONEY_UPDATE",function() --金钱变动
 	_GKP.MoneyUpdate(arg0, arg1, arg2)
 end)
 
-JH.PlayerAddonMenu({ szOption = _L["GKP Golden Team Record"], fnAction = _GKP.OpenPanel })
-JH.AddHotKey("JH_GKP", _L["Open/Close Golden Team Record"], _GKP.TogglePanel)
+JH.PlayerAddonMenu({ szOption = _L["Open Golden Team Record"], fnAction = _GKP.OpenPanel })
+JH.AddHotKey("JH_GKP", _L["Open Golden Team Record"], _GKP.TogglePanel)
 
 RegisterEvent("LOADING_END",function()
 	if JH.IsInDungeon() and GKP.bAlertMessage then

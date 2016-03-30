@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-24 20:59:28
+-- @Last Modified time: 2016-03-30 08:09:08
 
 -- 战斗浮动文字设计思路
 --[[
@@ -168,6 +168,7 @@ local CombatText = {}
 JH_CombatText = {
 	bEnable      = true,
 	bRender      = true,
+	fScale       = 1,
 	nStyle       = 1, -- default
 	nMaxAlpha    = 240,
 	nTime        = 40,
@@ -311,6 +312,7 @@ function CombatText.OnFrameRender()
 	local nMaxAlpha = JH_CombatText.nMaxAlpha
 	local nFont     = JH_CombatText.nFont
 	local nDelay    = JH_CombatText.nTime
+	local g_fScale  = JH_CombatText.fScale
 	for k, v in pairs(COMBAT_TEXT_SHADOW) do
 		local nFrame = (nTime - v.nTime) / nDelay + 1 -- 每一帧是多少毫秒 这里越小 动画越快
 		local nBefore = floor(nFrame)
@@ -333,7 +335,7 @@ function CombatText.OnFrameRender()
 			-- 坐标
 			if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
-				nTop = -60 + v.nSort * -40 - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
+				nTop = (-60 * g_fScale) + v.nSort * (-40 * g_fScale) - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
 				if v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 					if v.szPoint == "TOP_LEFT" then
 						nLeft = -250
@@ -379,6 +381,9 @@ function CombatText.OnFrameRender()
 					end
 				elseif v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then -- 左右缩小
 					fScale = fScale * 0.85
+				end
+				if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
+					fScale = fScale * g_fScale
 				end
 			end
 			-- draw
@@ -430,8 +435,9 @@ function CombatText.OnFrameRender()
 			if #vv > 0 then
 				local dat = tremove(vv, 1)
 				if dat.dat.szPoint == "TOP" then
-					local nSort = CombatText.GetTrajectory(dat.dat.dwTargetID)
-					CombatText.RandomTrajectory(dat.dat, nSort)
+					local nSort, szPoint = CombatText.GetTrajectory(dat.dat.dwTargetID)
+					dat.dat.nSort   = nSort
+					dat.dat.szPoint = szPoint
 				end
 				dat.dat.nTime = GetTime()
 				COMBAT_TEXT_SHADOW[dat.shadow] = dat.dat
@@ -476,23 +482,12 @@ function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	end
 	tsort(tSort, TrajectorySort)
 	local nSort = tSort[1].nSort - 1
-	if tSort[1].nCount == 1 then -- 决定了是否去两边 会心伤害不走 随机 roll
-		-- if bCriticalStrike then
-		-- 	return Random(COMBAT_TEXT_TRAJECTORY + 1) - 1
-		-- else
-			return COMBAT_TEXT_TRAJECTORY + 1
-		-- end
+	local szPoint = "TOP"
+	if tSort[1].nCount == 1 then
+		szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
+		nSort = 0
 	end
-	return nSort
-end
-
-function CombatText.RandomTrajectory(dat, nSort)
-	if nSort > COMBAT_TEXT_TRAJECTORY then
-		dat.szPoint = Random(2) == 1 and "TOP_LEFT" or "TOP_RIGHT"
-		dat.nSort = 0
-	else
-		dat.nSort = nSort
-	end
+	return nSort, szPoint
 end
 
 function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCriticalStrike, col)
@@ -518,8 +513,9 @@ function CombatText.CreateText(shadow, dwTargetID, szText, szPoint, nType, bCrit
 	}
 	if dat.bCriticalStrike then
 		if szPoint == "TOP" then
-			local nSort = CombatText.GetTrajectory(dat.dwTargetID, true)
-			CombatText.RandomTrajectory(dat, nSort)
+			local nSort, point = CombatText.GetTrajectory(dat.dwTargetID, true)
+			dat.nSort = nSort
+			dat.szPoint = point
 		end
 		dat.nTime = GetTime()
 		COMBAT_TEXT_SHADOW[shadow] = dat
@@ -841,6 +837,11 @@ function PS.OnPanelActive(frame)
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["Frame"] }):Range(0, 15, 15):Value(JH_CombatText.nFadeOut):Change(function(nVal)
 		JH_CombatText.nFadeOut = nVal
 	end):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["Font Size"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["times"] }):Range(0.5, 2, 15):Value(JH_CombatText.fScale):Change(function(nVal)
+		JH_CombatText.fScale = nVal
+	end):Pos_()
+
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Circle Style"], font = 27 }):Pos_()
 	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["hit feel"], group = "style", checked = JH_CombatText.nStyle == 0 })
 	:Click(function()
