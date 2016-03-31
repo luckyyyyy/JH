@@ -8,7 +8,7 @@ releases
 docs
 CombatTime
 @Data
-developer
+JH_Developer
 About.ini
 Team
 AutoTeam

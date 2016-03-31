@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-30 08:09:19
+-- @Last Modified time: 2016-04-01 06:30:47
 local _L = JH.LoadLangPack
 
 SkillCD = {
@@ -30,7 +30,7 @@ local GetPlayer, IsPlayer, UI_GetClientPlayerID = GetPlayer, IsPlayer, UI_GetCli
 local GetClientPlayer, GetClientTeam = GetClientPlayer, GetClientTeam
 local GetLogicFrameCount, GetFormatText = GetLogicFrameCount, GetFormatText
 local SC = {
-	szIniFile = JH.GetAddonInfo().szRootPath .. "SkillCD/ui/SkillCD.ini",
+	szIniFile = JH.GetAddonInfo().szRootPath .. "SkillCD/ui/JH_CooldownMon.ini",
 	tCD = {},
 	tIgnore = {},
 }
@@ -83,14 +83,31 @@ function SkillCD.OnFrameCreate()
     SC.UpdateAnchor(this)
 	SC.frame = this
 	SC.handle = this:Lookup("Wnd_List"):Lookup("", "")
-	GUI(this):Title(_L["SkillCD"]):Fetch("Check_Minimize"):Click(function(bChecked)
-		SC.SwitchPanel(bChecked)
-	end):Check(SkillCD.bMini)
-	this:Lookup("Btn_Setting").OnLButtonClick = function()
-		JH.OpenPanel(_L["SkillCD"])
-	end
+	this:Lookup("", "Text_Title"):SetText(_L["Skill Cooldown"])
+	this:Lookup("Check_Minimize"):Check(SkillCD.bMini)
 	SC.UpdateMonitorCache()
 	SC.UpdateCount()
+end
+
+function SkillCD.OnLButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Setting" then
+		JH.OpenPanel(_L["Skill Cooldown"])
+	end
+end
+
+function SkillCD.OnCheckBoxCheck()
+	local szName = this:GetName()
+	if szName == "Check_Minimize" then
+		SC.SwitchPanel(true)
+	end
+end
+
+function SkillCD.OnCheckBoxUncheck()
+	local szName = this:GetName()
+	if szName == "Check_Minimize" then
+		SC.SwitchPanel(false)
+	end
 end
 
 function SkillCD.OnEvent(szEvent)
@@ -483,7 +500,7 @@ function SC.AddSkill()
 				end
 				SkillCD.tCustom[id]  = cd
 				aSkillList[id]       = cd
-				JH.OpenPanel(_L["SkillCD"])
+				JH.OpenPanel(_L["Skill Cooldown"])
 				ui:Remove()
 			end
 		end
@@ -506,8 +523,8 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	ui:Append("WndButton3", { x = 350, y = 10, txt = _L["Add"] }):Click(SC.AddSkill)
-	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["SkillCD"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = SkillCD.bEnable, txt = _L["Enable SkillCD"] }):Click(function(bChecked)
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Skill Cooldown"], font = 27 }):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = SkillCD.bEnable, txt = _L["Enable Skill Cooldown Mon"] }):Click(function(bChecked)
 		SkillCD.bEnable = bChecked
 		ui:Fetch("bInDungeon"):Enable(bChecked)
 		SC.CheckOpen()
@@ -567,7 +584,7 @@ function PS.OnPanelActive(frame)
 					SkillCD.tCustom[v.dwID]  = nil
 					SkillCD.tMonitor[v.dwID] = nil
 					aSkillList[v.dwID]       = nil
-					JH.OpenPanel(_L["SkillCD"])
+					JH.OpenPanel(_L["Skill Cooldown"])
 					SC.UpdateMonitorCache()
 					if SC.IsPanelOpened() then
 						SC.UpdateCount()
@@ -580,7 +597,7 @@ function PS.OnPanelActive(frame)
 		end
 	end
 end
-GUI.RegisterPanel(_L["SkillCD"], 889, _L["Dungeon"], PS)
+GUI.RegisterPanel(_L["Skill Cooldown"], 889, _L["Dungeon"], PS)
 JH.RegisterEvent("LOADING_END", SC.CheckOpen)
 JH.RegisterEvent("LOGIN_GAME", function()
 	for k, v in pairs(SkillCD.tCustom) do
@@ -589,7 +606,7 @@ JH.RegisterEvent("LOGIN_GAME", function()
 end)
 JH.AddonMenu(function()
 	return {
-		szOption = _L["SkillCD"], bCheck = true, bChecked = SC.IsPanelOpened(), fnAction = function()
+		szOption = _L["Skill Cooldown"], bCheck = true, bChecked = SC.IsPanelOpened(), fnAction = function()
 			SkillCD.bInDungeon = false
 			if SC.IsPanelOpened() then
 				SkillCD.bEnable = false

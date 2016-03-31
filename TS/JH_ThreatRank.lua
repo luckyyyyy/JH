@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-13 08:41:16
+-- @Last Modified time: 2016-04-01 06:19:52
 local _L = JH.LoadLangPack
 
 TS = {
@@ -31,88 +31,30 @@ local GetBuff, GetBuffName, GetEndTime, GetObjName, GetForceColor =
 local GetNpcIntensity = GetNpcIntensity
 local GetTime = GetTime
 
+local TS_INIFILE = JH.GetAddonInfo().szRootPath .. "TS/ui/JH_ThreatRank.ini"
+
 local _TS = {
 	tStyle = LoadLUAData(JH.GetAddonInfo().szRootPath .. "TS/ui/style.jx3dat"),
-	szIniFile = JH.GetAddonInfo().szRootPath .. "TS/ui/TS.ini",
-	dwTargetID = 0,
-	dwLockTargetID = 0,
-	bSelfTreatRank = 0,
-	dwDropTargetPlayerID = 0,
-	DPS_TIME  = 0,
-	DPS_TOTAL = 0
 }
-
-function _TS.CheckOpen()
-	if TS.bInDungeon then
-		if JH.IsInDungeon(true) then
-			_TS.OpenPanel()
-		else
-			_TS.ClosePanel()
-		end
-	else
-		_TS.OpenPanel()
-	end
-end
-
-function _TS.OpenPanel()
-	local frame = _TS.frame or Wnd.OpenWindow(_TS.szIniFile, "TS")
-	local dwType = Target_GetTargetData()
-	if dwType ~= TARGET.NPC then
-		frame:Hide()
-	end
-	return frame
-end
-
-function _TS.ClosePanel()
-	if _TS.frame then
-		Wnd.CloseWindow(_TS.frame)
-		JH.UnBreatheCall("TS")
-		-- 释放变量
-		_TS.frame = nil
-		_TS.bg = nil
-		_TS.handle = nil
-		_TS.txt = nil
-		_TS.CastBar = nil
-		_TS.Life = nil
-		_TS.dwLockTargetID = 0
-		_TS.dwTargetID = 0
-		_TS.bSelfTreatRank = 0
-		_TS.dwDropTargetPlayerID = 0
-	end
-end
 
 function TS.OnFrameCreate()
 	this:RegisterEvent("CHARACTER_THREAT_RANKLIST")
 	this:RegisterEvent("UI_SCALED")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("FIGHT_HINT")
-	this.hItemData = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar")
-
+	this:RegisterEvent("LOADING_END")
+	this.hItemData      = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "TS/ui/Handle_ThreatBar.ini", "Handle_ThreatBar")
+	this.dwTargetID     = 0
+	this.nTime          = 0
+	this.bSelfTreatRank = 0
+	this.bg         = this:Lookup("", "Image_Background")
+	this.bg:SetAlpha(255 * TS.nBGAlpha / 100)
+	this.handle     = this:Lookup("", "Handle_List")
+	this.txt        = this:Lookup("", "Handle_TargetInfo"):Lookup("Text_Name")
+	this.CastBar    = this:Lookup("", "Handle_TargetInfo"):Lookup("Image_Cast_Bar")
+	this.Life       = this:Lookup("", "Handle_TargetInfo"):Lookup("Image_Life")
+	this:Lookup("", "Text_Title"):SetText(g_tStrings.HATRED_COLLECT)
 	_TS.UpdateAnchor(this)
-	_TS.frame = this
-	_TS.bg = this:Lookup("", "Image_Background")
-	_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
-	_TS.handle = this:Lookup("", "Handle_List")
-	_TS.txt = this:Lookup("","Handle_TargetInfo"):Lookup("Text_Name")
-	_TS.CastBar = this:Lookup("","Handle_TargetInfo"):Lookup("Image_Cast_Bar")
-	_TS.Life = this:Lookup("","Handle_TargetInfo"):Lookup("Image_Life")
-	local ui = GUI(this)
-	ui:Title(g_tStrings.HATRED_COLLECT):Fetch("CheckBox_ScrutinyLock"):Click(function(bChecked)
-		local dwType, dwID = Target_GetTargetData()
-		if bChecked then
-			_TS.dwLockTargetID = _TS.dwTargetID
-		else
-			_TS.dwLockTargetID = 0
-			if dwID then
-				_TS.dwTargetID = dwID
-			else
-				_TS.UnBreathe()
-			end
-		end
-	end)
-	ui:Fetch("Btn_Setting"):Click(function()
-		JH.OpenPanel(g_tStrings.HATRED_COLLECT)
-	end)
 	TS.OnEvent("TARGET_CHANGE")
 end
 
@@ -123,9 +65,9 @@ function TS.OnEvent(szEvent)
 		local dwType, dwID = Target_GetTargetData()
 		local dwTargetID
 		-- check tar
-		if dwType == TARGET.NPC or GetNpc(_TS.dwLockTargetID) then
-			if GetNpc(_TS.dwLockTargetID) then
-				dwTargetID = _TS.dwLockTargetID
+		if dwType == TARGET.NPC or GetNpc(this.dwLockTargetID) then
+			if GetNpc(this.dwLockTargetID) then
+				dwTargetID = this.dwLockTargetID
 			else
 				dwTargetID = dwID
 			end
@@ -137,44 +79,41 @@ function TS.OnEvent(szEvent)
 		end
 		-- so ...
 		if dwTargetID then
-			_TS.dwTargetID = dwTargetID
-			_TS.frame.nCount = 0
-			JH.BreatheCall("TS", _TS.OnBreathe)
+			this.dwTargetID = dwTargetID
 			this:Show()
 		else
 			_TS.UnBreathe()
 		end
 	elseif szEvent == "CHARACTER_THREAT_RANKLIST" then
-		if arg0 == _TS.dwTargetID then
+		if arg0 == this.dwTargetID then
 			_TS.UpdateThreatBars(arg1, arg2, arg0)
 		end
 	elseif szEvent == "FIGHT_HINT" then
 		if not arg0 then
-			_TS.dwDropTargetPlayerID = GetTime()
+			this.nTime = GetTime()
 		end
+	elseif szEvent == "LOADING_END" then
+		this.dwTargetID     = 0
+		this.nTime          = 0
+		this.bSelfTreatRank = 0
 	end
 end
 
-function TS.OnFrameDragEnd()
-	this:CorrectPos()
-	TS.tAnchor = GetFrameAnchor(this)
-end
-
-function _TS.OnBreathe()
-	local p = GetNpc(_TS.dwTargetID)
+function TS.OnFrameBreathe()
+	local p = GetNpc(this.dwTargetID)
 	if p then
-		ApplyCharacterThreatRankList(_TS.dwTargetID)
+		ApplyCharacterThreatRankList(this.dwTargetID)
 		local bIsPrepare, dwSkillID, dwSkillLevel, per = p.GetSkillPrepareState()
 		if bIsPrepare then
-			_TS.CastBar:Show()
-			_TS.CastBar:SetPercentage(per)
+			this.CastBar:Show()
+			this.CastBar:SetPercentage(per)
 			local szName = JH.GetSkillName(dwSkillID, dwSkillLevel)
-			_TS.txt:SetText(szName)
+			this.txt:SetText(szName)
 		else
 			local lifeper = p.nCurrentLife / p.nMaxLife
-			_TS.CastBar:Hide()
-			_TS.txt:SetText(GetObjName(p, true) .. string.format(" (%0.1f%%)", lifeper * 100))
-			_TS.Life:SetPercentage(lifeper)
+			this.CastBar:Hide()
+			this.txt:SetText(GetObjName(p, true) .. string.format(" (%0.1f%%)", lifeper * 100))
+			this.Life:SetPercentage(lifeper)
 		end
 
 		-- 无威胁提醒
@@ -186,7 +125,7 @@ function _TS.OnBreathe()
 			[4101] = 0,
 			[8422] = 0
 		})
-		local hText = _TS.frame:Lookup("", "Text_Title")
+		local hText = this:Lookup("", "Text_Title")
 		local szText = hText.szText or ""
 		if KBuff then
 			local szName = GetBuffName(KBuff.dwID, KBuff.nLevel)
@@ -199,10 +138,10 @@ function _TS.OnBreathe()
 		end
 
 		-- 开怪提醒
-		if _TS.dwDropTargetPlayerID >= 0 and GetTime() - _TS.dwDropTargetPlayerID > 1000 * 7 and GetNpcIntensity(p) > 2 then
+		if this.nTime >= 0 and GetTime() - this.nTime > 1000 * 7 and GetNpcIntensity(p) > 2 then
 			local me = GetClientPlayer()
 			if not me.bFightState then return end
-			_TS.dwDropTargetPlayerID = -1
+			this.nTime = -1
 			JH.DelayCall(function()
 				if not me.IsInParty() then return end
 				if p and p.dwDropTargetPlayerID and p.dwDropTargetPlayerID ~= 0 then
@@ -217,21 +156,92 @@ function _TS.OnBreathe()
 			end, 1000)
 		end
 	else
-		_TS.frame:Hide()
+		this:Hide()
+	end
+end
+
+function TS.OnLButtonClick()
+	local szName = this:GetName()
+	if szName == "Btn_Setting" then
+		JH.OpenPanel(g_tStrings.HATRED_COLLECT)
+	end
+end
+
+function TS.OnCheckBoxCheck()
+	local szName = this:GetName()
+	if szName == "CheckBox_ScrutinyLock" then
+		local dwType, dwID = Target_GetTargetData()
+		local frame = this:GetRoot()
+		frame.dwLockTargetID = frame.dwTargetID
+	end
+end
+
+function TS.OnCheckBoxUncheck()
+	local szName = this:GetName()
+	if szName == "CheckBox_ScrutinyLock" then
+		local dwType, dwID = Target_GetTargetData()
+		local frame = this:GetRoot()
+		frame.dwLockTargetID = 0
+		if dwID then
+			frame.dwTargetID = dwID
+		else
+			_TS.UnBreathe()
+		end
+	end
+end
+
+function TS.OnFrameDragEnd()
+	this:CorrectPos()
+	TS.tAnchor = GetFrameAnchor(this)
+end
+
+function _TS.GetFrame()
+	return Station.Lookup("Normal/TS")
+end
+
+function _TS.CheckOpen()
+	if TS.bEnable then
+		if TS.bInDungeon then
+			if JH.IsInDungeon(true) then
+				_TS.OpenPanel()
+			else
+				_TS.ClosePanel()
+			end
+		else
+			_TS.OpenPanel()
+		end
+	else
+		_TS.ClosePanel()
+	end
+end
+
+function _TS.OpenPanel()
+	local frame = _TS.GetFrame()
+	if not frame then
+		frame = Wnd.OpenWindow(TS_INIFILE, "TS")
+		local dwType = Target_GetTargetData()
+		if dwType ~= TARGET.NPC then
+			frame:Hide()
+		end
+	end
+	return frame
+end
+
+function _TS.ClosePanel()
+	if _TS.GetFrame() then
+		Wnd.CloseWindow(_TS.GetFrame())
 	end
 end
 
 function _TS.UnBreathe()
-	JH.UnBreatheCall("TS")
-	_TS.frame:Hide()
-	_TS.dwTargetID = 0
-	_TS.handle:Clear()
-	_TS.bg:SetSize(240, 55)
-	_TS.txt:SetText(_L["Loading..."])
-	_TS.Life:SetPercentage(0)
-	-- 取消DPS的统计
-	JH.UnBreatheCall("TS_DPS")
-	_TS.frame:Lookup("", "Text_Title").szText = ""
+	local frame = _TS.GetFrame()
+	frame:Hide()
+	frame.dwTargetID = 0
+	frame.handle:Clear()
+	frame.bg:SetSize(240, 55)
+	frame.txt:SetText(_L["Loading..."])
+	frame.Life:SetPercentage(0)
+	frame:Lookup("", "Text_Title").szText = ""
 end
 
 function _TS.UpdateAnchor(frame)
@@ -274,8 +284,8 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			tMyRank = v
 		end
 	end
-	_TS.bg:SetH(55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
-	_TS.handle:Clear()
+	this.bg:SetH(55 + 24 * math.min(#tThreat, TS.nMaxBarCount))
+	this.handle:Clear()
 	local KGnpc = GetNpc(dwApplyID)
 	if #tThreat > 0 and KGnpc then
 		this:Show()
@@ -302,20 +312,20 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			if k > TS.nMaxBarCount then break end
 			if UI_GetClientPlayerID() == v.id then
 				if TS.nOTAlertLevel > 0 and GetNpcIntensity(KGnpc) > 2 then
-					if _TS.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
+					if this.bSelfTreatRank < TS.nOTAlertLevel and v.val / nTopRank >= TS.nOTAlertLevel then
 						JH.Topmsg(_L("** You Threat more than %d, 120% is Out of Taunt! **", TS.nOTAlertLevel * 100))
 						if TS.bOTAlertSound then
 							PlaySound(SOUND.UI_SOUND, _L["SOUND_nat_view2"])
 						end
 					end
 				end
-				_TS.bSelfTreatRank = v.val / nTopRank
+				this.bSelfTreatRank = v.val / nTopRank
 				show = true
 			elseif k == TS.nMaxBarCount and not show and tList[UI_GetClientPlayerID()] then -- 始终显示自己的
 				v = tMyRank
 			end
 
-			local item = _TS.handle:AppendItemFromData(this.hItemData, k)
+			local item = this.handle:AppendItemFromData(this.hItemData, k)
 			local nThreatPercentage, fDiff = 0, 0
 			if v.val ~= 0 then
 				fDiff = v.val / nTopRank
@@ -394,8 +404,8 @@ function _TS.UpdateThreatBars(tList, dwTargetID, dwApplyID)
 			item:Lookup("Image_Treat_Bar"):SetPercentage(nThreatPercentage)
 			item:Show()
 		end
-		_TS.handle:FormatAllItemPos()
-		_TS.handle:SetSizeByAllItemSize()
+		this.handle:FormatAllItemPos()
+		this.handle:SetSizeByAllItemSize()
 	-- else
 		-- this:Hide()
 	end
@@ -404,15 +414,11 @@ end
 local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX,nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.HATRED_COLLECT, font = 27 }):Pos_()
-	nX,nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = TS.bEnable, txt = _L["Enable ThreatScrutiny"] }):Click(function(bChecked)
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.HATRED_COLLECT, font = 27 }):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, checked = TS.bEnable, txt = _L["Enable ThreatScrutiny"] }):Click(function(bChecked)
 		TS.bEnable = bChecked
 		ui:Fetch("bInDungeon"):Enable(bChecked)
-		if bChecked then
-			_TS.CheckOpen()
-		else
-			_TS.ClosePanel()
-		end
+		_TS.CheckOpen()
 	end):Pos_()
 	nX,nY = ui:Append("WndCheckBox", "bInDungeon", { x = 25, y = nY, checked = TS.bInDungeon })
 	:Enable(TS.bEnable):Text(_L["Only in the map type is Dungeon Enable plug-in"]):Click(function(bChecked)
@@ -486,37 +492,28 @@ function PS.OnPanelActive(frame)
 		return t
 	end):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = g_tStrings.STR_RAID_MENU_BG_ALPHA }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L[" alpha"] })
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = "" })
 	:Range(0, 100, 100):Value(TS.nBGAlpha):Change(function(nVal)
 		TS.nBGAlpha = nVal
-		if _TS.frame then
-			_TS.bg:SetAlpha(255 * TS.nBGAlpha / 100)
+		local frame = _TS.GetFrame()
+		if frame then
+			frame.bg:SetAlpha(255 * TS.nBGAlpha / 100)
 		end
 	end):Pos_()
 end
 
 GUI.RegisterPanel(g_tStrings.HATRED_COLLECT, 632, g_tStrings.CHANNEL_CHANNEL, PS)
-
-JH.RegisterEvent("LOADING_END", function()
-	if not TS.bEnable then return end
-	_TS.CheckOpen()
-	_TS.dwLockTargetID = 0
-	_TS.dwTargetID = 0
-	_TS.bSelfTreatRank = 0
-	_TS.dwDropTargetPlayerID = 0
-end)
-
+JH.RegisterEvent("LOADING_END", _TS.CheckOpen)
 JH.AddonMenu(function()
 	return {
-		szOption = g_tStrings.HATRED_COLLECT, bCheck = true, bChecked = type(_TS.frame) ~= "nil", fnAction = function()
+		szOption = g_tStrings.HATRED_COLLECT, bCheck = true, bChecked = _TS.GetFrame(), fnAction = function()
 			TS.bInDungeon = false
-			if type(_TS.frame) == "nil" then -- 这样才对嘛  按按钮应该强制开启和关闭
+			if not _TS.GetFrame() then -- 这样才对嘛  按按钮应该强制开启和关闭
 				TS.bEnable = true
-				_TS.OpenPanel()
 			else
 				TS.bEnable = false
-				_TS.ClosePanel()
 			end
+			_TS.CheckOpen()
 		end
 	}
 end)

@@ -2,9 +2,7 @@
 data = {
 	-- TS.lua --
 	["Well done! %s in %d group first to attack %s!!"] = "%d小队的 %s 率先攻击了 %s！获取不一定准确，仅供参考！",
-	["Loading..."] = "Loading...",
 	["** You Threat more than %d, 120% is Out of Taunt! **"] = "** 你的仇恨超过了 %d％ 达到 120％ 则ＯＴ！**",
-	["SOUND_nat_view2"] = "data/sound/场景/view/nat_view2.wav",
 	["Enable ThreatScrutiny"] = "开启仇恨统计",
 	["Only in the map type is Dungeon Enable plug-in"] = "只有地图类型是副本时才启用",
 	["Alert Setting"] = "报警设置",
@@ -50,7 +48,7 @@ data = {
 	["Enable KG3DEngineDX11 better effect"] = "启用 KG3DEngineDX11 可获得更清晰的效果",
 	["TargetFace"] = "目标辅助",
 	-- SkillCD.lua --
-	["SkillCD"] = "技能监控",
+	["Skill Cooldown"] = "技能监控",
 	["Skill ID:"] = "技能ID:",
 	["Cool Down:"] = "CD时间:",
 	["Can not delete default data"] = "这不是你添加的，不能删除默认的技能。",
@@ -58,7 +56,7 @@ data = {
 	["s"] = "秒",
 	["%dm%ds"] = "%d分%d秒",
 	["Team %s info"] = "团队 %s 情况",
-	["Enable SkillCD"] = "启用团队技能CD监控",
+	["Enable Skill Cooldown Mon"] = "启用团队技能CD监控",
 	["only Monitor self"] = "只监控自己",
 	["Monitor"] = "监控",
 	["Show Countdown"] = "显示倒计时",
@@ -380,7 +378,6 @@ data = {
 	["Banquet Allowance"] = "宴席补贴",
 	["Fines"] = "犯错罚款",
 	["Other"] = "其他",
-	["Expression"] = "（ˉ﹃ˉ）",
 	["[Team]"] = "%[团队%]",
 	["No open doodad"] = "没有打开Doodad",
 	["Userdata is overdue, distribut failed, please try again."] = "userdata过期，分配失败，清重新尝试。",

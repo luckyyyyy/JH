@@ -1336,8 +1336,8 @@ function JH.SetTarget(dwType, dwID)
 end
 
 -- 根据BUFF ID 或者 KBUFF 对象 如不传 nLevel 或 nLevel 等于0 代表忽略 nLevel
--- (KBUFF) HM.GetBuff(dwBuffID, [nLevel[, KObject me]])
--- (KBUFF) HM.GetBuff(tBuff, [nLevel[, KObject me]])
+-- (KBUFF) JH.GetBuff(dwBuffID, [nLevel[, KObject me]])
+-- (KBUFF) JH.GetBuff(tBuff, [nLevel[, KObject me]])
 -- KBUFF_LIST_NODE
 -- DECLARE_LUA_CLASS(KBUFF_LIST_NODE);
 -- DECLARE_LUA_STRUCT_INTEGER(Index, nIndex);

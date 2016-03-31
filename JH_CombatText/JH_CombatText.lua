@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-30 08:09:08
+-- @Last Modified time: 2016-03-31 21:52:57
 
 -- 战斗浮动文字设计思路
 --[[
@@ -223,7 +223,7 @@ function JH_CombatText.OnFrameCreate()
 	end
 	CombatText.FreeQueue()
 	COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
-	COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
+	COMBAT_TEXT_TRAJECTORY = CombatText.TrajectoryCount()
 	JH.BreatheCall("COMBAT_TEXT_CACHE", function()
 		local count = 0
 		for k, v in pairs(COMBAT_TEXT_LEAVE) do
@@ -266,7 +266,7 @@ function JH_CombatText.OnEvent(szEvent)
 		end
 	elseif szEvent == "UI_SCALED" then
 		COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
-		COMBAT_TEXT_TRAJECTORY = floor(3.5 / COMBAT_TEXT_UI_SCALE)
+		COMBAT_TEXT_TRAJECTORY = CombatText.TrajectoryCount()
 	elseif szEvent == "SKILL_DODGE" then
 		if arg0 == COMBAT_TEXT_PLAYERID then
 			CombatText.OnSkillDodge(arg1)
@@ -450,6 +450,15 @@ end
 
 JH_CombatText.OnFrameBreathe = CombatText.OnFrameRender
 JH_CombatText.OnFrameRender  = CombatText.OnFrameRender
+
+function CombatText.TrajectoryCount()
+	if JH_CombatText.fScale < 1.5 then
+		return floor(3.5 / COMBAT_TEXT_UI_SCALE / JH_CombatText.fScale)
+	else
+		return floor(3.5 / COMBAT_TEXT_UI_SCALE)
+	end
+end
+
 
 local function TrajectorySort(a, b)
 	if a.nCount == b.nCount then
@@ -840,8 +849,8 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("Text", { x = 10, y = nY - 1, txt = _L["Font Size"], color = { 255, 255, 200 } }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 5, y = nY + 1, txt = _L["times"] }):Range(0.5, 2, 15):Value(JH_CombatText.fScale):Change(function(nVal)
 		JH_CombatText.fScale = nVal
+		COMBAT_TEXT_TRAJECTORY = CombatText.TrajectoryCount()
 	end):Pos_()
-
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Circle Style"], font = 27 }):Pos_()
 	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = _L["hit feel"], group = "style", checked = JH_CombatText.nStyle == 0 })
 	:Click(function()

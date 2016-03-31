@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-07 06:58:51
+-- @Last Modified time: 2016-04-01 00:53:04
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -11,6 +11,7 @@ DBM_RemoteRequest = {
 
 JH.RegisterCustomData("DBM_RemoteRequest")
 local ROOT_URL = "http://game.j3ui.com/"
+-- local ROOT_URL = "http://10.0.20.20/"
 local _, _, CLIENT_LANG = GetVersion()
 local W = {
 	szIniFile   = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_RemoteRequest.ini",
