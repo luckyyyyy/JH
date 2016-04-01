@@ -67,7 +67,7 @@ local function GetUIStru(ui)
 	return data
 end
 
-local UI_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_Developer/UIEditor.ini"
+local UI_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_Developer/JH_UIEditor.ini"
 local UI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local UI = {}
 UIEditor = {}

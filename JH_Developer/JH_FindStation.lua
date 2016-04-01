@@ -136,7 +136,7 @@ end
 ---------------------------------------------------------------------
 -- init panel
 _JH_FindStation.OnPanelActive = function(frame)
-	local ui = HM.UI(frame)
+	local ui = GUI(frame)
 	ui:Append("Text", { txt = "控件查找", x = 0, y = 0, font = 27 })
 	ui:Append("WndCheckBox", { x = 10, y = 28, checked = _JH_FindStation.bButton })
 	:Text("启用按钮查找，鼠标移上会显示控件路径"):Click(_JH_FindStation.UpdateButton)
