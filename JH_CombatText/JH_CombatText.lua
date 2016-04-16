@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-31 21:52:57
+-- @Last Modified time: 2016-04-02 07:18:00
 
 -- 战斗浮动文字设计思路
 --[[
@@ -966,7 +966,7 @@ local function GetPlayerID()
 	local me = GetClientPlayer()
 	if me then
 		COMBAT_TEXT_PLAYERID = me.dwID
-		JH.Debug("CombatText get player id " .. me.dwID)
+		-- JH.Debug("CombatText get player id " .. me.dwID)
 	else
 		JH.Sysmsg2("CombatText get player id failed!!! try again")
 		JH.DelayCall(GetPlayerID, 1000)

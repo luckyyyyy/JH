@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-24 16:51:02
+-- @Last Modified time: 2016-04-15 16:43:09
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1677,7 +1677,7 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	_JH.OpenPanel()
 	_JH.tGlobalValue = JH.LoadLUAData("dev/GlobalValue.jx3dat") or {}
 	-- ×¢²á¿ì½Ý¼ü
-	Hotkey.AddBinding("JH_Total", _L["JH Plugin"], _JH.szTitle, _JH.TogglePanel , nil)
+	Hotkey.AddBinding("JH_Total", _L["JH Plugin"], _L["JH Plugin"], _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do
 		Hotkey.AddBinding(v.szName, v.szTitle, "", v.fnAction, nil)
 	end

@@ -1,14 +1,49 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-16 10:06:25
+-- @Last Modified time: 2016-04-16 22:11:18
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local ACHI_ROOT_URL = "http://game.j3ui.com/wiki/"
 -- local ACHI_ROOT_URL = "http://10.37.210.22:8088/wiki/"
--- local ACHI_ROOT_URL = "http://10.0.20.20/wiki/"
+-- local ACHI_ROOT_URL = "http://10.0.20.20:8090/wiki/"
 local AHCI_CLIENT_LANG = select(3, GetVersion())
+
+-- 获取玩家成就完成信息 2byte存8个 无法获取带进度的
+local sformat = string.format
+local tinsert = table.insert
+
+local function Bitmap2Number(t)
+	local n = 0
+	for i, v in ipairs(t) do
+		if v and v ~= 0 then
+			n = n + 2 ^ (i - 1)
+		end
+	end
+	return sformat("%02x", n)
+end
+
+local function GetAchievementList()
+	local me    = GetClientPlayer()
+	local data  = {}
+	local count = g_tTable.Achievement:GetRowCount()
+	local max   = g_tTable.Achievement:GetRow(count).dwID
+	for i = 1, max do
+		data[i] = me.IsAchievementAcquired(i)
+	end
+	local bitmap = {}
+	local i = 1
+	repeat
+		local tt = {}
+		for a = i, i + 8 do
+			tinsert(tt, data[a])
+		end
+		tinsert(bitmap, Bitmap2Number(tt))
+		i = i + 8
+	until i > max
+	return bitmap, data
+end
 
 JH_Achievement = {}
 
@@ -17,13 +52,11 @@ function JH_Achievement.OnFrameCreate()
 	JH.RegisterGlobalEsc("Achievement", Achievement.IsOpened, Achievement.ClosePanel)
 	local handle = this:Lookup("", "")
 	this.pedia   = this:Lookup("WndScroll_Pedia", "")
-	this.link    = this:Lookup("Edit_Link")
+	this.link    = handle:Lookup("Text_Link")
 	this.title   = handle:Lookup("Text_Title")
+	this.desc    = handle:Lookup("Text_Desc")
 	this.box     = handle:Lookup("Box_Icon")
 	this:Lookup("Btn_Edit"):Lookup("", "Text_Edit"):SetText(_L["perfection"])
-	handle:Lookup("Text_AchievementPedia"):SetText(_L["achievement encyclopedia"])
-	handle:Lookup("Text_Link"):SetText(_L["Reference Link"])
-	this:Lookup("Btn_Open"):Lookup("", "Text_Open"):SetText(_L["Open URL"])
 	Achievement.UpdateAnchor(this)
 end
 
@@ -36,8 +69,10 @@ function JH_Achievement.OnItemMouseEnter()
 		local w, h  = this:GetSize()
 		local xml   = {}
 		table.insert(xml, GetFormatText(frame.title:GetText() .. "\n", 27))
-		table.insert(xml, GetFormatText(frame.desc, 41))
+		table.insert(xml, GetFormatText(frame.desc:GetText(), 41))
 		OutputTip(table.concat(xml), 300, { x, y, w, h })
+	elseif szName == "Text_Link" then
+		this:SetFontScheme(35)
 	end
 end
 
@@ -46,6 +81,8 @@ function JH_Achievement.OnItemMouseLeave()
 	if szName == "Box_Icon" then
 		this:SetObjectMouseOver(false)
 		HideTip()
+	elseif szName == "Text_Link" then
+		this:SetFontScheme(172)
 	end
 end
 
@@ -63,6 +100,7 @@ function JH_Achievement.OnEditChanged()
 	local szName = this:GetName()
 	if szName == "Edit_EditMode" then
 		this:GetRoot().szText = this:GetText()
+		this:GetRoot():Lookup("Btn_Send"):Enable(true)
 	end
 end
 
@@ -85,9 +123,17 @@ function JH_Achievement.OnLButtonClick()
 		Achievement.EditMode(false)
 	elseif szName == "Btn_Send" then
 		JH.Confirm(_L["Confirm?"], Achievement.Send)
-	elseif szName == "Btn_Open" then
-		OpenInternetExplorer(ACHI_ROOT_URL .. "detail/" .. this:GetRoot().dwAchievement)
-		Achievement.ClosePanel()
+	end
+end
+
+function JH_Achievement.OnItemLButtonClick()
+	local szName = this:GetName()
+	if szName == "Text_Link" then
+		local frame = this:GetRoot()
+		OpenInternetExplorer(ACHI_ROOT_URL .. "detail/" .. frame.dwAchievement)
+		if not frame.bEdit then
+			Achievement.ClosePanel()
+		end
 	end
 end
 
@@ -137,6 +183,7 @@ function Achievement.EditMode(bEnter)
 				frame.szText = _L["Achi Default Templates"]
 			end
 			frame:Lookup("Edit_EditMode"):SetText(frame.szText)
+			frame:Lookup("Btn_Send"):Enable(false)
 		else
 			frame:Lookup("WndScroll_Pedia"):Show()
 			frame:Lookup("Btn_Edit"):Show()
@@ -170,6 +217,20 @@ function Achievement.GetFrame()
 	return Achievement.IsOpened()
 end
 
+function Achievement.GetLinkScript(szLink)
+	return [[
+		this.OnItemLButtonClick = function()
+			OpenInternetExplorer(]] .. EncodeComponentsString(szLink) .. [[)
+		end
+		this.OnItemMouseEnter = function()
+			this:SetFontColor(255, 0, 0)
+		end
+		this.OnItemMouseLeave = function()
+			this:SetFontColor(20, 150, 220)
+		end
+	]]
+end
+
 function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 	local frame = Achievement.GetFrame()
 	if frame.bEdit then
@@ -180,14 +241,15 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 		frame:BringToTop()
 		frame.title:SetText(szTitle)
 		frame.box:SetObjectIcon(dwIcon)
-		frame.desc = szDesc
+		frame.desc:SetText(szDesc)
 		frame:Lookup("Btn_Edit"):Enable(false)
 		frame.pedia:Clear()
-		frame.link:SetText(ACHI_ROOT_URL .. "detail/" .. dwID)
+		frame.link:SetText(_L("Link(Open URL):%s", ACHI_ROOT_URL .. "detail/" .. dwID))
+		frame.link:AutoSize()
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
 		frame.pedia:FormatAllItemPos()
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
-		JH.RemoteRequest(ACHI_ROOT_URL .. "game/" .. dwID .. "?_" .. GetCurrentTime() .. "&lang=" .. AHCI_CLIENT_LANG, function(szTitle, szDoc)
+		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=game&aid=" .. dwID .. "&_" .. GetCurrentTime() .. "&lang=" .. AHCI_CLIENT_LANG, function(szTitle, szDoc)
 			if Achievement.IsOpened() then
 				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 				if err then
@@ -195,7 +257,7 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 				else
 					frame:Lookup("Btn_Edit"):Enable(true)
 					if tonumber(result['id']) == frame.dwAchievement then
-						Achievement.SelectVersiont(result)
+						Achievement.RemoteCallBack(result)
 					end
 				end
 			end
@@ -203,14 +265,47 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 	end
 end
 
-function Achievement.SelectVersiont(result)
+function Achievement.RemoteCallBack(result)
 	local frame = Achievement.GetFrame()
 	frame.result = result -- 菜单用
 	frame.pedia:Clear()
 	if result.data then
 		local dat = result.data
-		frame.pedia:AppendItemFromString(GetFormatText(dat.desc, 6))
-		frame.szText = dat.desc
+		local xml = {}
+		for k, v in ipairs(dat.desc) do
+			if v.type == "text" then
+				tinsert(xml, GetFormatText(v.text, 6))
+			elseif v.type == "span" then
+				local r, g, b = unpack(v.text[1])
+				tinsert(xml, GetFormatText(v.text[2], 6, r, g, b))
+			elseif v.type == "image" then
+				tinsert(xml, "<image>script=".. EncodeComponentsString("this.src=" .. EncodeComponentsString(v.text[1]))  .." </image>")
+			elseif v.type == "a" then
+				tinsert(xml, GetFormatText(v.text[2], 6, 20, 150, 220, 272, Achievement.GetLinkScript(v.text[1])))
+			end
+		end
+		frame.pedia:AppendItemFromString(table.concat(xml))
+		for i = frame.pedia:GetItemCount() - 1, 0, -1 do
+			local item = frame.pedia:Lookup(i)
+			if item and item:GetType() == 'Image' and item.FromRemoteFile then
+				item:FromRemoteFile(item.src, true, function(e, a, b, c)
+					e:AutoSize()
+					JH.DelayCall(function()
+						if item and item:IsValid() then
+							local w, h = item:GetSize()
+							if w > 670 then
+								local f = 670 / w
+								item:SetSize(w * f, h * f)
+							end
+						end
+						if frame and frame.pedia and frame.pedia:IsValid() then
+							frame.pedia:FormatAllItemPos()
+						end
+					end, 100)
+				end)
+			end
+		end
+		frame.szText = GetPureText(table.concat(xml))
 		frame.pedia:AppendItemFromString(GetFormatText("\n\n", 6))
 		frame.pedia:AppendItemFromString(GetFormatText(_L["revise"], 172))
 		frame.pedia:AppendItemFromString(GetFormatText(" " .. dat.ver .. "\n", 6))
@@ -242,7 +337,7 @@ function Achievement.AppendBoxEvent(handle)
 						local x, y = this:GetAbsPos()
 						local w, h = this:GetSize()
 						local xml   = {}
-						table.insert(xml, GetFormatText(_L["Click for achievement Encyclopedia"], 41))
+						table.insert(xml, GetFormatText(_L["Click for Achievepedia"], 41))
 						if IsCtrlKeyDown() then
 							table.insert(xml, GetFormatText("\n\n" .. g_tStrings.DEBUG_INFO_ITEM_TIP .. "\n", 102))
 							table.insert(xml, GetFormatText("dwAchievement: " .. dwID, 102))
@@ -278,6 +373,15 @@ function Achievement.OnFrameBreathe()
 		Achievement.AppendBoxEvent(handle3)
 	end
 end
+
+-- local PS = {}
+-- function PS.OnPanelActive(frame)
+-- 	local ui, nX, nY = GUI(frame), 10, 0
+-- 	local bitmap, data = GetAchievementList()
+-- 	ui:Append("Text", { x = 0, y = 0, txt = _L["Achievepedia"], font = 27 })
+
+-- end
+-- GUI.RegisterPanel(_L["Achievepedia"], { "ui/Image/UICommon/Achievement8.uitex", 16 }, g_tStrings.CHANNEL_CHANNEL, PS)
 
 -- kill AchievementPanel
 if Station and Station.Lookup("Normal/AchievementPanel") then
