@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-15 16:43:09
+-- @Last Modified time: 2016-04-18 18:04:36
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -2402,7 +2402,9 @@ end
 
 function _GUI.Frm2:BackGround( ... )
 	local shadow = self.self:Lookup("", "Shadow_Bg")
+	local title  = self.self:Lookup("", "Shadow_Title")
 	if ... then
+		title:SetColorRGB( ... )
 		shadow:SetColorRGB( ... )
 		return self
 	else

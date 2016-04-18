@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-30 08:08:50
+-- @Last Modified time: 2016-04-17 20:41:18
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -379,13 +379,16 @@ function Loot.AuthCheck(dwID)
 	local nLootMode      = team.nLootMode
 	local dwBelongTeamID = doodad.GetBelongTeamID()
 	if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then -- 需要分配者模式
-		return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
+		OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
+		return false
 	end
 	if not JH.IsDistributer() and not JH.bDebugClient then -- 需要自己是分配者
-		return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
+		OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
+		return false
 	end
 	if dwBelongTeamID ~= team.dwTeamID then
-		return OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
+		OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
+		return false
 	end
 	return true
 end

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-16 22:11:18
+-- @Last Modified time: 2016-04-18 18:18:44
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -73,6 +73,10 @@ function JH_Achievement.OnItemMouseEnter()
 		OutputTip(table.concat(xml), 300, { x, y, w, h })
 	elseif szName == "Text_Link" then
 		this:SetFontScheme(35)
+	elseif szName == "Image_Wechat" then
+		local x, y = this:GetAbsPos()
+		local w, h = this:GetSize()
+		OutputTip(GetFormatImage(JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga", nil, 200, 200), 200, { x, y, w, h })
 	end
 end
 
@@ -83,6 +87,8 @@ function JH_Achievement.OnItemMouseLeave()
 		HideTip()
 	elseif szName == "Text_Link" then
 		this:SetFontScheme(172)
+	elseif szName == "Image_Wechat" then
+		HideTip()
 	end
 end
 
@@ -289,19 +295,52 @@ function Achievement.RemoteCallBack(result)
 			local item = frame.pedia:Lookup(i)
 			if item and item:GetType() == 'Image' and item.FromRemoteFile then
 				item:FromRemoteFile(item.src, true, function(e, a, b, c)
-					e:AutoSize()
-					JH.DelayCall(function()
-						if item and item:IsValid() then
-							local w, h = item:GetSize()
-							if w > 670 then
-								local f = 670 / w
-								item:SetSize(w * f, h * f)
+					if e and e:IsValid() then
+						e:AutoSize()
+						JH.DelayCall(function()
+							if item and item:IsValid() then
+								local w, h = item:GetSize()
+								if w > 670 then -- fixed size
+									local f = 670 / w
+									item:SetSize(w * f, h * f)
+								end
+								item:RegisterEvent(16)
+								item.OnItemLButtonClick = function()
+									local fScale = Station.GetUIScale()
+									local fw, fh = w / fScale, h / fScale
+									local ui = GUI.CreateFrame("JH_ImageView", { w = fw + 20, h = fh + 40, nStyle = 2, title = "Image View" }):BackGround(222, 210, 190)
+									local hImageview = ui:Raw():GetRoot()
+									hImageview.fScale = 1
+									local img = ui:Append("Image", { x = 10, y = 0, w = fw, h = fh, file = b  }):Click(function()
+										JH.Animate(hImageview, 200):Pos({0, -50}, true):FadeOut(function()
+											ui:Remove()
+										end)
+									end)
+									JH.Animate(hImageview, 200):Pos({0, -50}):FadeIn()
+									hImageview:RegisterEvent(2048)
+									hImageview.OnMouseWheel = function()
+										local nDelta = Station.GetMessageWheelDelta()
+										if nDelta < 0 then
+											if hImageview.fScale < 1.3 then
+												hImageview.fScale = hImageview.fScale + 0.05
+											end
+										else
+											if hImageview.fScale > 0.3 then
+												hImageview.fScale = hImageview.fScale - 0.05
+											end
+										end
+										local nW, nH = fw * hImageview.fScale, fh * hImageview.fScale
+										ui:Size(math.max(nW + 20, 150), nH + 40)
+										img:Size(nW, nH)
+										return true
+									end
+								end
 							end
-						end
-						if frame and frame.pedia and frame.pedia:IsValid() then
-							frame.pedia:FormatAllItemPos()
-						end
-					end, 100)
+							if frame and frame.pedia and frame.pedia:IsValid() then
+								frame.pedia:FormatAllItemPos()
+							end
+						end, 100)
+					end
 				end)
 			end
 		end
