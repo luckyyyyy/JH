@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-18 18:18:44
+-- @Last Modified time: 2016-04-22 19:01:26
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -14,7 +14,7 @@ local AHCI_CLIENT_LANG = select(3, GetVersion())
 local sformat = string.format
 local tinsert = table.insert
 
-local function Bitmap2Number(t)
+function Bitmap2Number(t)
 	local n = 0
 	for i, v in ipairs(t) do
 		if v and v ~= 0 then
@@ -27,22 +27,29 @@ end
 local function GetAchievementList()
 	local me    = GetClientPlayer()
 	local data  = {}
-	local count = g_tTable.Achievement:GetRowCount()
-	local max   = g_tTable.Achievement:GetRow(count).dwID
+	local max   = g_tTable.Achievement:GetRow(g_tTable.Achievement:GetRowCount()).dwID
+	local nPoint = 0
 	for i = 1, max do
-		data[i] = me.IsAchievementAcquired(i)
+		local bCheck = me.IsAchievementAcquired(i) or false
+		data[i] = bCheck
+		if bCheck then
+			local row = g_tTable.AchievementInfo:Search(i)
+			if row and row.nPoint then
+				nPoint = nPoint + row.nPoint
+			end
+		end
 	end
 	local bitmap = {}
 	local i = 1
-	repeat
+	while i < max do
 		local tt = {}
-		for a = i, i + 8 do
+		for a = i, i + 7 do
 			tinsert(tt, data[a])
 		end
 		tinsert(bitmap, Bitmap2Number(tt))
 		i = i + 8
-	until i > max
-	return bitmap, data
+	end
+	return bitmap, data, nPoint
 end
 
 JH_Achievement = {}
@@ -140,6 +147,61 @@ function JH_Achievement.OnItemLButtonClick()
 		if not frame.bEdit then
 			Achievement.ClosePanel()
 		end
+	end
+end
+-- OnItemUpdateSize autosize callback
+function JH_Achievement.OnItemUpdateSize()
+	local item = this
+	if item and item:IsValid() and item.src then
+		local w, h = item:GetSize()
+		if w > 670 then -- fixed size
+			local f = 670 / w
+			item:SetSize(w * f, h * f)
+		end
+		item:RegisterEvent(16)
+		item.OnItemLButtonClick = function()
+			local fScale = Station.GetUIScale()
+			local fW, fH = w / fScale, h / fScale
+			local sW, sH = fW + 20, fH + 40
+			local ui = GUI.CreateFrame("JH_ImageView", { w = sW, h = sH, nStyle = 2, title = "Image View" }):BackGround(222, 210, 190)
+			local hImageview = ui:Raw():GetRoot()
+			hImageview.fScale = 1
+			local img = ui:Append("Image", { x = 10, y = 0, w = fW, h = fH, file = item.localsrc }):Click(function()
+				if hImageview.lock then
+					hImageview.lock = nil
+				else
+					JH.Animate(hImageview, 200):Pos({0, -50}, true):FadeOut(function()
+						ui:Remove()
+					end)
+				end
+			end)
+			JH.Animate(hImageview, 200):Pos({0, -50}):FadeIn()
+			hImageview:RegisterEvent(2048)
+			hImageview:SetDragArea(0, 0, sW, sH)
+			hImageview:EnableDrag(true)
+			hImageview.OnFrameDragEnd = function()
+				this.lock = true
+			end
+			hImageview.OnMouseWheel = function()
+				local nDelta = Station.GetMessageWheelDelta()
+				if nDelta < 0 then
+					if hImageview.fScale < 1.3 then
+						hImageview.fScale = hImageview.fScale + 0.05
+					end
+				else
+					if hImageview.fScale > 0.3 then
+						hImageview.fScale = hImageview.fScale - 0.05
+					end
+				end
+				local nW, nH = fW * hImageview.fScale, fH * hImageview.fScale
+				ui:Size(math.max(nW + 20, 150), nH + 40)
+				img:Size(nW, nH)
+				hImageview:SetDragArea(0, 0, nW, nH)
+				hImageview:EnableDrag(true)
+				return true
+			end
+		end
+		item:GetParent():FormatAllItemPos()
 	end
 end
 
@@ -296,50 +358,8 @@ function Achievement.RemoteCallBack(result)
 			if item and item:GetType() == 'Image' and item.FromRemoteFile then
 				item:FromRemoteFile(item.src, true, function(e, a, b, c)
 					if e and e:IsValid() then
+						e.localsrc = b
 						e:AutoSize()
-						JH.DelayCall(function()
-							if item and item:IsValid() then
-								local w, h = item:GetSize()
-								if w > 670 then -- fixed size
-									local f = 670 / w
-									item:SetSize(w * f, h * f)
-								end
-								item:RegisterEvent(16)
-								item.OnItemLButtonClick = function()
-									local fScale = Station.GetUIScale()
-									local fw, fh = w / fScale, h / fScale
-									local ui = GUI.CreateFrame("JH_ImageView", { w = fw + 20, h = fh + 40, nStyle = 2, title = "Image View" }):BackGround(222, 210, 190)
-									local hImageview = ui:Raw():GetRoot()
-									hImageview.fScale = 1
-									local img = ui:Append("Image", { x = 10, y = 0, w = fw, h = fh, file = b  }):Click(function()
-										JH.Animate(hImageview, 200):Pos({0, -50}, true):FadeOut(function()
-											ui:Remove()
-										end)
-									end)
-									JH.Animate(hImageview, 200):Pos({0, -50}):FadeIn()
-									hImageview:RegisterEvent(2048)
-									hImageview.OnMouseWheel = function()
-										local nDelta = Station.GetMessageWheelDelta()
-										if nDelta < 0 then
-											if hImageview.fScale < 1.3 then
-												hImageview.fScale = hImageview.fScale + 0.05
-											end
-										else
-											if hImageview.fScale > 0.3 then
-												hImageview.fScale = hImageview.fScale - 0.05
-											end
-										end
-										local nW, nH = fw * hImageview.fScale, fh * hImageview.fScale
-										ui:Size(math.max(nW + 20, 150), nH + 40)
-										img:Size(nW, nH)
-										return true
-									end
-								end
-							end
-							if frame and frame.pedia and frame.pedia:IsValid() then
-								frame.pedia:FormatAllItemPos()
-							end
-						end, 100)
 					end
 				end)
 			end
@@ -413,14 +433,120 @@ function Achievement.OnFrameBreathe()
 	end
 end
 
--- local PS = {}
--- function PS.OnPanelActive(frame)
--- 	local ui, nX, nY = GUI(frame), 10, 0
--- 	local bitmap, data = GetAchievementList()
--- 	ui:Append("Text", { x = 0, y = 0, txt = _L["Achievepedia"], font = 27 })
+function Achievement.SyncAchiList(btn, fnCallBack)
+	local me = GetClientPlayer()
+	local id = me.GetGlobalID()
+	if IsRemotePlayer(me.dwID) then
+		return JH.Alert(g_tStrings.STR_REMOTE_NOT_TIP)
+	end
+	if btn then btn:Enable(false) end
+	local bitmap, data, nPoint = GetAchievementList()
+	local code = table.concat(bitmap)
+	local nMax = 480
+	local len  = math.ceil(code:len() / nMax)
+	local tParam = {
+		op     = 'sync',
+		gid    = id,
+		len    = len,
+		name   = GetUserRoleName(),
+		school = me.dwForceID,
+		camp   = me.nCamp,
+		point  = nPoint,
+		server = select(2, GetUserServer()),
+		_      = GetCurrentTime(),
+		lang   = AHCI_CLIENT_LANG
+	}
+	local t = {}
+	for k, v in pairs(tParam) do
+		tinsert(t, k .. "=" .. JH.UrlEncode(tostring(v)))
+	end
+	JH.RemoteRequest(ACHI_ROOT_URL .. "api?" .. table.concat(t, "&"), function(szTitle, szDoc)
+		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+		if result.code == 200 then
+			for i = 1, len do -- 队列发送 不用管顺序
+				local c = string.sub(code, (i - 1) * nMax + 1, i * nMax)
+				local tParam = {
+					op   = 'sync',
+					i    = i,
+					gid  = id,
+					code = c,
+					_    = GetCurrentTime(),
+					lang = AHCI_CLIENT_LANG
+				}
+				local t = {}
+				for kk, vv in pairs(tParam) do
+					tinsert(t, kk .. "=" .. JH.UrlEncode(tostring(vv)))
+				end
+				if i ~= len then
+					JH.RemoteRequest(ACHI_ROOT_URL .. "api?" .. table.concat(t, "&"))
+				else
+					JH.RemoteRequest(ACHI_ROOT_URL .. "api?" .. table.concat(t, "&"), function(szTitle, szDoc)
+						local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+						if result.code == 200 then
+							if fnCallBack then
+								fnCallBack()
+							end
+						end
+					end)
+				end
+			end
+		end
+	end)
+end
 
--- end
--- GUI.RegisterPanel(_L["Achievepedia"], { "ui/Image/UICommon/Achievement8.uitex", 16 }, g_tStrings.CHANNEL_CHANNEL, PS)
+local PS = {}
+function PS.OnPanelActive(frame)
+	local ui, nX, nY = GUI(frame), 10, 0
+	local me = GetClientPlayer()
+	local id = me.GetGlobalID()
+	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Achievepedia"], font = 27 }):Pos_()
+	ui:Append("Text", { x = 0, y = nY + 5, w = 520, h = 120 , multi = true, txt = _L["Achievepedia About"] })
+	-- zhcn版本可用
+	nY = 140
+	if AHCI_CLIENT_LANG == "zhcn" then
+		nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Sync Game Info"], font = 27 }):Pos_()
+		-- name
+		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Role Nmae:"], color = { 255, 255, 200 } }):Pos_()
+		nX, nY = ui:Append("Text", { x = nX + 5, y = nY + 5 , txt = GetUserRoleName() }):Pos_()
+		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Last Sync Time:"], color = { 255, 255, 200 } }):Pos_()
+		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
+		-- get
+		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=check&code=" .. id .. "&_" .. GetCurrentTime() .. "&lang=" .. AHCI_CLIENT_LANG, function(szTitle, szDoc)
+			if ui then
+				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+				if err then
+					ui:Fetch('time'):Text(_L["request failed"])
+				else
+					if result.code == 200 then
+						ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.data.time)))
+					else
+						ui:Fetch('time'):Text(_L["No Record"])
+					end
+					ui:Fetch("sync"):Enable(true)
+				end
+			end
+		end)
+		nX, nY = ui:Append("WndButton3", "sync", { x = 0, y = nY + 15 , txt = _L["sync Achievement"], enable = false }):Click(function()
+			Achievement.SyncAchiList(ui:Fetch('sync'), function()
+				GetUserInput(_L["Synchronization Complete, Please copy the id."], nil, nil, nil, nil, id);
+				ui:Fetch('sync'):Enable(true)
+				ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", GetCurrentTime()))
+			end)
+		end):Pos_()
+	end
+	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Other"], font = 27 }):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY + 10 , txt = _L["Achievepedia Website"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 10 , txt = "http://www.j3ui.com/wiki" }):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["QQ Group"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 5 , txt = "256907822" }):Pos_()
+	nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Global ID"], color = { 255, 255, 200 } }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 5 , txt = id }):Pos_()
+	-- wechat
+	ui:Append("Image", { x = 340, y = 260, h = 150, w = 150, file = JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga" })
+end
+
+
+GUI.RegisterPanel(_L["Achievepedia"], 3151, g_tStrings.CHANNEL_CHANNEL, PS)
 
 -- kill AchievementPanel
 if Station and Station.Lookup("Normal/AchievementPanel") then

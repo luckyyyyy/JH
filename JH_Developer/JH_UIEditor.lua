@@ -70,9 +70,9 @@ end
 local UI_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_Developer/JH_UIEditor.ini"
 local UI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local UI = {}
-UIEditor = {}
+KG_UIEditor = {}
 
-function UIEditor.OnFrameCreate()
+function KG_UIEditor.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
 	this.hNode    = this:CreateItemData(UI_INIFILE, "TreeLeaf_Node")
 	this.hContent = this:CreateItemData(UI_INIFILE, "TreeLeaf_Content")
@@ -83,18 +83,18 @@ function UIEditor.OnFrameCreate()
 	this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 end
 
-function UIEditor.OnEvent(szEvent)
+function KG_UIEditor.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		local a = UI_ANCHOR
 		this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 	end
 end
 
-function UIEditor.OnFrameDragEnd()
+function KG_UIEditor.OnFrameDragEnd()
 	UI_ANCHOR = GetFrameAnchor(this)
 end
 
-function UIEditor.OnLButtonClick()
+function KG_UIEditor.OnLButtonClick()
 	local szName = this:GetName()
 	if szName == "Btn_Select" then
 		local menu = UI.GetMeun()
@@ -110,7 +110,7 @@ function UIEditor.OnLButtonClick()
 	end
 end
 
-function UIEditor.OnItemLButtonClick()
+function KG_UIEditor.OnItemLButtonClick()
 	local szName = this:GetName()
 	if szName == "TreeLeaf_Node" or szName == "TreeLeaf_Content" then
 		if szName == "TreeLeaf_Node" then
@@ -131,7 +131,7 @@ function UIEditor.OnItemLButtonClick()
 	end
 end
 
-function UIEditor.OnItemMouseEnter()
+function KG_UIEditor.OnItemMouseEnter()
 	local szName = this:GetName()
 	if szName == "TreeLeaf_Node" or szName == "TreeLeaf_Content" then
 		local ui = this.dat.___id
@@ -148,7 +148,7 @@ function UIEditor.OnItemMouseEnter()
 	end
 end
 -- ReloadUIAddon()
-function UIEditor.OnItemMouseLeave()
+function KG_UIEditor.OnItemMouseLeave()
 	local szName = this:GetName()
 	if szName == "TreeLeaf_Node" or szName == "TreeLeaf_Content" then
 		HideTip()
@@ -199,15 +199,15 @@ function UI.GetTipInfo(ui)
 end
 
 function UI.OpenFrame()
-	return Wnd.OpenWindow(UI_INIFILE, "UIEditor")
+	return Wnd.OpenWindow(UI_INIFILE, "KG_UIEditor")
 end
 
 function UI.CloseFrame()
-	return Wnd.CloseWindow("UIEditor")
+	return Wnd.CloseWindow("KG_UIEditor")
 end
 
 function UI.GetFrame()
-	return Station.Lookup("Topmost/UIEditor")
+	return Station.Lookup("Topmost/KG_UIEditor")
 end
 UI.IsOpened = UI.GetFrame
 function UI.ToggleFrame()
@@ -278,4 +278,4 @@ function UI.UpdateTree(ui)
 	handle:FormatAllItemPos()
 end
 
-TraceButton_AppendAddonMenu({{ szOption = "UIEditor", fnAction = UI.ToggleFrame }})
+TraceButton_AppendAddonMenu({{ szOption = "KG_UIEditor", fnAction = UI.ToggleFrame }})
