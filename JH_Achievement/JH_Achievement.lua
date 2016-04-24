@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-22 19:01:26
+-- @Last Modified time: 2016-04-24 14:38:02
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -14,7 +14,7 @@ local AHCI_CLIENT_LANG = select(3, GetVersion())
 local sformat = string.format
 local tinsert = table.insert
 
-function Bitmap2Number(t)
+local function Bitmap2Number(t)
 	local n = 0
 	for i, v in ipairs(t) do
 		if v and v ~= 0 then
@@ -154,14 +154,16 @@ function JH_Achievement.OnItemUpdateSize()
 	local item = this
 	if item and item:IsValid() and item.src then
 		local w, h = item:GetSize()
-		if w > 670 then -- fixed size
-			local f = 670 / w
-			item:SetSize(w * f, h * f)
+		local fScale = Station.GetUIScale()
+		local fW, fH = w / fScale, h / fScale
+		if fW > 670 then -- fixed size
+			local f = 670 / fW
+			item:SetSize(fW * f, fH * f)
+		else
+			item:SetSize(fW, fH)
 		end
 		item:RegisterEvent(16)
 		item.OnItemLButtonClick = function()
-			local fScale = Station.GetUIScale()
-			local fW, fH = w / fScale, h / fScale
 			local sW, sH = fW + 20, fH + 40
 			local ui = GUI.CreateFrame("JH_ImageView", { w = sW, h = sH, nStyle = 2, title = "Image View" }):BackGround(222, 210, 190)
 			local hImageview = ui:Raw():GetRoot()
@@ -436,9 +438,9 @@ end
 function Achievement.SyncAchiList(btn, fnCallBack)
 	local me = GetClientPlayer()
 	local id = me.GetGlobalID()
-	if IsRemotePlayer(me.dwID) then
-		return JH.Alert(g_tStrings.STR_REMOTE_NOT_TIP)
-	end
+	-- if IsRemotePlayer(me.dwID) then
+	-- 	return JH.Alert(g_tStrings.STR_REMOTE_NOT_TIP)
+	-- end
 	if btn then btn:Enable(false) end
 	local bitmap, data, nPoint = GetAchievementList()
 	local code = table.concat(bitmap)
