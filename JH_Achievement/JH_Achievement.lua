@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-24 14:38:02
+-- @Last Modified time: 2016-04-26 18:33:45
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -505,7 +505,7 @@ function PS.OnPanelActive(frame)
 	ui:Append("Text", { x = 0, y = nY + 5, w = 520, h = 120 , multi = true, txt = _L["Achievepedia About"] })
 	-- zhcn版本可用
 	nY = 140
-	if AHCI_CLIENT_LANG == "zhcn" then
+	if AHCI_CLIENT_LANG == "zhcn" or AHCI_CLIENT_LANG == "zhtw" then
 		nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Sync Game Info"], font = 27 }):Pos_()
 		-- name
 		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Role Nmae:"], color = { 255, 255, 200 } }):Pos_()
