@@ -1,14 +1,14 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-26 18:33:45
+-- @Last Modified time: 2016-04-26 18:41:14
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local ACHI_ROOT_URL = "http://game.j3ui.com/wiki/"
 -- local ACHI_ROOT_URL = "http://10.37.210.22:8088/wiki/"
 -- local ACHI_ROOT_URL = "http://10.0.20.20:8090/wiki/"
-local AHCI_CLIENT_LANG = select(3, GetVersion())
+local ACHI_CLIENT_LANG = select(3, GetVersion())
 
 -- 获取玩家成就完成信息 2byte存8个 无法获取带进度的
 local sformat = string.format
@@ -122,7 +122,7 @@ function JH_Achievement.OnLButtonClick()
 	if szName == "Btn_Close" then
 		Achievement.ClosePanel()
 	elseif szName == "Btn_Edit" then
-		if AHCI_CLIENT_LANG ~= "zhcn" and AHCI_CLIENT_LANG ~= "zhtw" then
+		if ACHI_CLIENT_LANG ~= "zhcn" and ACHI_CLIENT_LANG ~= "zhtw" then
 			return JH.Alert(_L["Sorry, Does not support this function"])
 		end
 		if this:GetRoot().szText == "" or this:GetRoot().szText == _L["Achi Default Templates"] then
@@ -220,7 +220,7 @@ function Achievement.Send()
 			desc   = desc,
 			author = GetUserRoleName() .. "@" .. select(2, GetUserServer()), -- 每天跌停@长白山
 			_      = GetCurrentTime(),
-			lang   = AHCI_CLIENT_LANG
+			lang   = ACHI_CLIENT_LANG
 		}
 		local t = {}
 		for k, v in pairs(tParam) do
@@ -319,7 +319,7 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
 		frame.pedia:FormatAllItemPos()
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
-		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=game&aid=" .. dwID .. "&_" .. GetCurrentTime() .. "&lang=" .. AHCI_CLIENT_LANG, function(szTitle, szDoc)
+		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=game&aid=" .. dwID .. "&_" .. GetCurrentTime() .. "&lang=" .. ACHI_CLIENT_LANG, function(szTitle, szDoc)
 			if Achievement.IsOpened() then
 				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 				if err then
@@ -456,7 +456,7 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 		point  = nPoint,
 		server = select(2, GetUserServer()),
 		_      = GetCurrentTime(),
-		lang   = AHCI_CLIENT_LANG
+		lang   = ACHI_CLIENT_LANG
 	}
 	local t = {}
 	for k, v in pairs(tParam) do
@@ -473,7 +473,7 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 					gid  = id,
 					code = c,
 					_    = GetCurrentTime(),
-					lang = AHCI_CLIENT_LANG
+					lang = ACHI_CLIENT_LANG
 				}
 				local t = {}
 				for kk, vv in pairs(tParam) do
@@ -505,7 +505,7 @@ function PS.OnPanelActive(frame)
 	ui:Append("Text", { x = 0, y = nY + 5, w = 520, h = 120 , multi = true, txt = _L["Achievepedia About"] })
 	-- zhcn版本可用
 	nY = 140
-	if AHCI_CLIENT_LANG == "zhcn" or AHCI_CLIENT_LANG == "zhtw" then
+	if ACHI_CLIENT_LANG == "zhcn" or ACHI_CLIENT_LANG == "zhtw" then
 		nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Sync Game Info"], font = 27 }):Pos_()
 		-- name
 		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Role Nmae:"], color = { 255, 255, 200 } }):Pos_()
@@ -513,7 +513,7 @@ function PS.OnPanelActive(frame)
 		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Last Sync Time:"], color = { 255, 255, 200 } }):Pos_()
 		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
 		-- get
-		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=check&code=" .. id .. "&_" .. GetCurrentTime() .. "&lang=" .. AHCI_CLIENT_LANG, function(szTitle, szDoc)
+		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=check&code=" .. id .. "&_" .. GetCurrentTime() .. "&lang=" .. ACHI_CLIENT_LANG, function(szTitle, szDoc)
 			if ui then
 				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 				if err then
