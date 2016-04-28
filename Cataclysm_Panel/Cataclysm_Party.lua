@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-11 20:14:25
+-- @Last Modified time: 2016-04-28 16:54:52
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -575,8 +575,8 @@ function CTM:RefreshMark()
 		if v:IsValid() then
 			if tPartyMark[k] then
 				local nMarkID = tPartyMark[k]
-				if nMarkID then
-					assert(nMarkID > 0 and nMarkID <= #PARTY_MARK_ICON_FRAME_LIST)
+				if nMarkID and PARTY_MARK_ICON_FRAME_LIST[nMarkID] then
+					-- assert(nMarkID > 0 and nMarkID <= #PARTY_MARK_ICON_FRAME_LIST)
 					nIconFrame = PARTY_MARK_ICON_FRAME_LIST[nMarkID]
 				end
 				v:Lookup("Image_MarkImage"):FromUITex(PARTY_MARK_ICON_PATH, nIconFrame)

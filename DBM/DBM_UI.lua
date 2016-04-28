@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-24 18:29:51
+-- @Last Modified time: 2016-04-28 16:53:38
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1285,13 +1285,13 @@ function DBMUI.OpenSettingPanel(data, szType)
 	local function GetMarkMenu(nClass)
 		local menu = {}
 		local tMarkName = { _L["Cloud"], _L["Sword"], _L["Ax"], _L["Hook"], _L["Drum"], _L["Shear"], _L["Stick"], _L["Jade"], _L["Dart"], _L["Fan"] }
-		for k, v in ipairs(PARTY_MARK_ICON_FRAME_LIST) do
+		for k, v in ipairs_c(PARTY_MARK_ICON_FRAME_LIST) do
 			table.insert(menu, { szOption = tMarkName[k], szIcon = PARTY_MARK_ICON_PATH, nFrame = v, szLayer = "ICON_RIGHT", bCheck = true, bChecked = data[nClass] and data[nClass].tMark and data[nClass].tMark[k], fnAction = function(_, bCheck)
 				if bCheck then
 					data[nClass] = data[nClass] or {}
 					if not data[nClass].tMark then
 						data[nClass].tMark = {}
-						for kk, vv in ipairs(PARTY_MARK_ICON_FRAME_LIST) do
+						for kk, vv in ipairs_c(PARTY_MARK_ICON_FRAME_LIST) do
 							data[nClass].tMark[kk] = false
 						end
 					end

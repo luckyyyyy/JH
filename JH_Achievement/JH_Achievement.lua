@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-26 18:41:14
+-- @Last Modified time: 2016-04-28 14:19:49
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -218,7 +218,7 @@ function Achievement.Send()
 		local tParam = {
 			aid    = frame.dwAchievement,
 			desc   = desc,
-			author = GetUserRoleName() .. "@" .. select(2, GetUserServer()), -- 每天跌停@长白山
+			author = GetUserRoleName() .. "@" .. select(6, GetUserServer()), -- 每天跌停@长白山
 			_      = GetCurrentTime(),
 			lang   = ACHI_CLIENT_LANG
 		}
@@ -454,7 +454,7 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 		school = me.dwForceID,
 		camp   = me.nCamp,
 		point  = nPoint,
-		server = select(2, GetUserServer()),
+		server = select(6, GetUserServer()),
 		_      = GetCurrentTime(),
 		lang   = ACHI_CLIENT_LANG
 	}

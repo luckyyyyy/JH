@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 14:35:16
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 15:13:17
+-- @Last Modified time: 2016-04-28 16:55:19
 
 local _L = JH.LoadLangPack
 local MARK = {}
@@ -53,7 +53,7 @@ function MARK.AppendMark()
 			tMark[v] = true
 		end
 		arg0.tMark = {}
-		for k, v in ipairs(PARTY_MARK_ICON_FRAME_LIST) do
+		for k, v in ipairs_c(PARTY_MARK_ICON_FRAME_LIST) do
 			Mark:AppendItemFromString(GetFormatImage(PARTY_MARK_ICON_PATH, v, 33, 33, 816, "Mark" ..k))
 			local img = Mark:Lookup("Mark" ..k)
 			if tMark[k] and tMark[k] ~= 0 then
