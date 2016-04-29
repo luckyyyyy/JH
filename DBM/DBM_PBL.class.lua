@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-01 07:05:47
+-- @Last Modified time: 2016-04-29 09:34:36
 
 -- 这个需要重写 构思已有 就是没时间。。
 local _L = JH.LoadLangPack
@@ -35,13 +35,6 @@ function PartyBuffList.OnFrameCreate()
 	PBL.UpdateAnchor(this)
 end
 
-function PartyBuffList.OnLButtonClick()
-	local szName = this:GetName()
-	if szName == "Btn_Close" then
-		PBL.handle:Clear()
-		PBL.SwitchPanel(0)
-	end
-end
 function PartyBuffList.OnEvent(event)
 	if event == "UI_SCALED" then
 		PBL.UpdateAnchor(this)
@@ -117,6 +110,9 @@ function PartyBuffList.OnLButtonClick()
 			end }
 		}
 		PopupMenu(menu)
+	elseif szName == "Btn_Close" then
+		PBL.handle:Clear()
+		PBL.SwitchPanel(0)
 	end
 end
 
