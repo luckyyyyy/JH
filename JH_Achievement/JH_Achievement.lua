@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-28 14:19:49
+-- @Last Modified time: 2016-05-08 12:55:51
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -25,19 +25,13 @@ local function Bitmap2Number(t)
 end
 
 local function GetAchievementList()
-	local me    = GetClientPlayer()
-	local data  = {}
-	local max   = g_tTable.Achievement:GetRow(g_tTable.Achievement:GetRowCount()).dwID
-	local nPoint = 0
+	local me     = GetClientPlayer()
+	local data   = {}
+	local max    = g_tTable.Achievement:GetRow(g_tTable.Achievement:GetRowCount()).dwID
+	local nPoint = me.GetAchievementRecord()
 	for i = 1, max do
 		local bCheck = me.IsAchievementAcquired(i) or false
 		data[i] = bCheck
-		if bCheck then
-			local row = g_tTable.AchievementInfo:Search(i)
-			if row and row.nPoint then
-				nPoint = nPoint + row.nPoint
-			end
-		end
 	end
 	local bitmap = {}
 	local i = 1
