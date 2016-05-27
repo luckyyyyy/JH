@@ -35,6 +35,7 @@ local JH_EVENT        = {}
 local JH_BGMSG        = {}
 local JH_REQUEST      = {}
 -- call
+local JH_CALL_AJAX    = {}
 local JH_CALL_BREATHE = {}
 local JH_CALL_DELAY   = {}
 -- cache
@@ -1468,6 +1469,101 @@ function JH.RemoteRequest(szUrl, fnAction)
 	tinsert(JH_REQUEST, { szUrl = szUrl, fnAction = fnAction })
 end
 
+local function ConvertToUTF8(data)
+	if type(data) == "table" then
+		local t = {}
+		for k, v in pairs(data) do
+			if type(k) == "string" then
+				t[ConvertToUTF8(k)] = ConvertToUTF8(v)
+			else
+				t[k] = ConvertToUTF8(v)
+			end
+		end
+		return t
+	elseif type(data) == "string" then
+		return AnsiToUTF8(data)
+	else
+		return data
+	end
+end
+
+local function EncodePostData(data, t, prefix)
+	if type(data) == "table" then
+		local first = true
+		for k, v in pairs(data) do
+			if first then
+				first = false
+			else
+				tinsert(t, "&")
+			end
+			if prefix == "" then
+				EncodePostData(v, t, k)
+			else
+				EncodePostData(v, t, prefix .. "[" .. k .. "]")
+			end
+		end
+	else
+		if prefix ~= "" then
+			tinsert(t, prefix)
+			tinsert(t, "=")
+		end
+		tinsert(t, data)
+	end
+end
+
+function JH.EncodePostData(data)
+	local t = {}
+	EncodePostData(data, t, "")
+	local text = tconcat(t)
+	return text
+end
+
+do
+	-- JH.Ajax({ url = "http://www.baidu.com" })
+	local set_default = {
+		charset = 'utf8',
+		type    = 'post',
+		data    = {},
+		ssl     = false,
+		timeout = 10000,
+		success = function(szContent, dwBufferSize, set)
+			JH.Debug("RemoteRequest # " .. set.url .. ' - SUCCESS')
+		end,
+		error = function(errMsg, dwBufferSize, set)
+			JH.Debug("RemoteRequest # " .. set.url .. ' - ERROR')
+		end,
+	}
+	set_default.__index = set_default
+
+	function JH.Ajax(set)
+		assert(set and set.url)
+		setmetatable(set, set_default)
+		local szKey = GetTickCount() * 100
+		while JH_CALL_AJAX["JH_AJAX_" .. szKey] do
+			szKey = szKey + 1
+		end
+		szKey = "JH_AJAX_" .. szKey
+		JH_CALL_AJAX[szKey] = set
+		local url, data = set.url, set.data
+		if set.charset == "utf8" then
+			url  = ConvertToUTF8(url)
+			data = ConvertToUTF8(data)
+		end
+		if set.type == "post" then
+			CURL_HttpPost(szKey, url, data, set.ssl, set.timeout)
+		elseif set.type == "get" then
+			data = JH.EncodePostData(data)
+			if not url:find("?") then
+				url = url .. "?"
+			elseif url:sub(-1) ~= "&" then
+				url = url .. "&"
+			end
+			url = url .. data
+			CURL_HttpRqst(szKey, url, set.ssl, set.timeout)
+		end
+	end
+end
+
 function JH.DelayCall(fnAction, nDelay)
 	if not nDelay then
 		if #JH_CALL_DELAY > 0 then
@@ -1710,6 +1806,32 @@ JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 	end
 end)
 
+JH.RegisterEvent("CURL_REQUEST_RESULT.AJAX", function()
+	local szKey        = arg0
+	local bSuccess     = arg1
+	local szContent    = arg2
+	local dwBufferSize = arg3
+	if JH_CALL_AJAX[szKey] then
+		local set = JH_CALL_AJAX[szKey]
+		if bSuccess then
+			if set.success then
+				local status, err = pcall(set.success, szContent, dwBufferSize, set)
+				if not status then
+					JH.Debug("RemoteRequest # " .. set.url .. ' - SUCCESS - PCALL ERROR - ' .. err)
+				end
+			end
+		else
+			if set.error then
+				local status, err = pcall(set.error, "failed", dwBufferSize, set)
+				if not status then
+					JH.Debug("RemoteRequest # " .. set.url .. ' - ERROR - PCALL ERROR - ' .. err)
+				end
+			end
+		end
+		JH_CALL_AJAX[szKey] = nil
+	end
+end)
+
 JH.RegisterEvent("PLAYER_ENTER_SCENE", function() JH_LIST_PLAYER[arg0] = true end)
 JH.RegisterEvent("PLAYER_LEAVE_SCENE", function() JH_LIST_PLAYER[arg0] = nil  end)
 JH.RegisterEvent("NPC_ENTER_SCENE",    function() JH_LIST_NPC[arg0]    = true end)
@@ -1875,7 +1997,7 @@ function JH.OutputBuffTip(dwID, nLevel, Rect, nTime)
 		tinsert(t, XML_LINE_BREAKER)
 		tinsert(t, GetFormatText("IconID: " .. tostring(Table_GetBuffIconID(dwID, nLevel)), 102))
 	end
-	OutputTip(table.concat(t), 300, Rect)
+	OutputTip(tconcat(t), 300, Rect)
 end
 
 ---------------------------------------------------------------------
