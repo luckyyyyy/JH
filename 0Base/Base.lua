@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-24 14:56:37
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-05-29 01:28:29
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1521,15 +1521,16 @@ end
 do
 	-- JH.Ajax({ url = "http://www.baidu.com" })
 	local set_default = {
-		charset = 'utf8',
-		type    = 'post',
-		data    = {},
-		ssl     = false,
-		timeout = 10000,
-		success = function(szContent, dwBufferSize, set)
+		charset  = 'utf8',
+		type     = 'post',
+		data     = {},
+		dataType = "text",
+		ssl      = false,
+		timeout  = 3,
+		success  = function(szContent, dwBufferSize, set)
 			JH.Debug("RemoteRequest # " .. set.url .. ' - SUCCESS')
 		end,
-		error = function(errMsg, dwBufferSize, set)
+		error    = function(errMsg, dwBufferSize, set)
 			JH.Debug("RemoteRequest # " .. set.url .. ' - ERROR')
 		end,
 	}
@@ -1545,13 +1546,13 @@ do
 		szKey = "JH_AJAX_" .. szKey
 		JH_CALL_AJAX[szKey] = set
 		local url, data = set.url, set.data
-		if set.charset == "utf8" then
+		if set.charset:lower() == "utf8" then
 			url  = ConvertToUTF8(url)
 			data = ConvertToUTF8(data)
 		end
-		if set.type == "post" then
+		if set.type:lower() == "post" then
 			CURL_HttpPost(szKey, url, data, set.ssl, set.timeout)
-		elseif set.type == "get" then
+		elseif set.type:lower() == "get" then
 			data = JH.EncodePostData(data)
 			if not url:find("?") then
 				url = url .. "?"
@@ -1813,19 +1814,27 @@ JH.RegisterEvent("CURL_REQUEST_RESULT.AJAX", function()
 	local dwBufferSize = arg3
 	if JH_CALL_AJAX[szKey] then
 		local set = JH_CALL_AJAX[szKey]
+		local fnError = set.error
+		local bError  = not bSuccess
 		if bSuccess then
-			if set.success then
-				local status, err = pcall(set.success, szContent, dwBufferSize, set)
-				if not status then
-					JH.Debug("RemoteRequest # " .. set.url .. ' - SUCCESS - PCALL ERROR - ' .. err)
+			if set.dataType == "json" then
+				local result, err = JH.JsonDecode(szContent)
+				if result then
+					szContent = result
+				else
+					JH.Debug("RemoteRequest # JsonDecode ERROR")
+					bError = true
 				end
 			end
-		else
-			if set.error then
-				local status, err = pcall(set.error, "failed", dwBufferSize, set)
-				if not status then
-					JH.Debug("RemoteRequest # " .. set.url .. ' - ERROR - PCALL ERROR - ' .. err)
-				end
+			local status, err = pcall(set.success, szContent, dwBufferSize, set)
+			if not status then
+				JH.Debug("RemoteRequest # " .. set.url .. ' - SUCCESS - PCALL ERROR - ' .. err)
+			end
+		end
+		if bError then
+			local status, err = pcall(fnError, "failed", dwBufferSize, set)
+			if not status then
+				JH.Debug("RemoteRequest # " .. set.url .. ' - ERROR - PCALL ERROR - ' .. err)
 			end
 		end
 		JH_CALL_AJAX[szKey] = nil

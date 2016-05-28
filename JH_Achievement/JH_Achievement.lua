@@ -1,13 +1,14 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-05-08 12:55:51
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-05-29 01:33:33
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local ACHI_ROOT_URL = "http://game.j3ui.com/wiki/"
 -- local ACHI_ROOT_URL = "http://10.37.210.22:8088/wiki/"
 -- local ACHI_ROOT_URL = "http://10.0.20.20:8090/wiki/"
+-- local ACHI_ROOT_URL = "http://localhost/wiki/"
 local ACHI_CLIENT_LANG = select(3, GetVersion())
 
 -- 获取玩家成就完成信息 2byte存8个 无法获取带进度的
@@ -438,56 +439,31 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 	if btn then btn:Enable(false) end
 	local bitmap, data, nPoint = GetAchievementList()
 	local code = table.concat(bitmap)
-	local nMax = 480
-	local len  = math.ceil(code:len() / nMax)
+	-- local nMax = 480
+	-- local len  = math.ceil(code:len() / nMax)
 	local tParam = {
-		op     = 'sync',
 		gid    = id,
-		len    = len,
 		name   = GetUserRoleName(),
 		school = me.dwForceID,
 		camp   = me.nCamp,
 		point  = nPoint,
 		server = select(6, GetUserServer()),
-		_      = GetCurrentTime(),
-		lang   = ACHI_CLIENT_LANG
+		lang   = ACHI_CLIENT_LANG,
+		code   = code
 	}
-	local t = {}
-	for k, v in pairs(tParam) do
-		tinsert(t, k .. "=" .. JH.UrlEncode(tostring(v)))
-	end
-	JH.RemoteRequest(ACHI_ROOT_URL .. "api?" .. table.concat(t, "&"), function(szTitle, szDoc)
-		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-		if result.code == 200 then
-			for i = 1, len do -- 队列发送 不用管顺序
-				local c = string.sub(code, (i - 1) * nMax + 1, i * nMax)
-				local tParam = {
-					op   = 'sync',
-					i    = i,
-					gid  = id,
-					code = c,
-					_    = GetCurrentTime(),
-					lang = ACHI_CLIENT_LANG
-				}
-				local t = {}
-				for kk, vv in pairs(tParam) do
-					tinsert(t, kk .. "=" .. JH.UrlEncode(tostring(vv)))
-				end
-				if i ~= len then
-					JH.RemoteRequest(ACHI_ROOT_URL .. "api?" .. table.concat(t, "&"))
-				else
-					JH.RemoteRequest(ACHI_ROOT_URL .. "api?" .. table.concat(t, "&"), function(szTitle, szDoc)
-						local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-						if result.code == 200 then
-							if fnCallBack then
-								fnCallBack()
-							end
-						end
-					end)
+	JH.Ajax({
+		url      = ACHI_ROOT_URL .. "api?op=sync",
+		type     = "post",
+		dataType = "json",
+		data     = tParam,
+		success = function(result, dwBufferSize, set)
+			if result.code == 200 then
+				if fnCallBack then
+					fnCallBack()
 				end
 			end
 		end
-	end)
+	})
 end
 
 local PS = {}
@@ -507,12 +483,12 @@ function PS.OnPanelActive(frame)
 		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Last Sync Time:"], color = { 255, 255, 200 } }):Pos_()
 		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
 		-- get
-		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=check&code=" .. id .. "&_" .. GetCurrentTime() .. "&lang=" .. ACHI_CLIENT_LANG, function(szTitle, szDoc)
-			if ui then
-				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-				if err then
-					ui:Fetch('time'):Text(_L["request failed"])
-				else
+		JH.Ajax({
+			url = ACHI_ROOT_URL .. "api?op=check&code=" .. id,
+			type = 'get',
+			dataType = 'json',
+			success = function(result)
+				if ui then
 					if result.code == 200 then
 						ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.data.time)))
 					else
@@ -520,8 +496,13 @@ function PS.OnPanelActive(frame)
 					end
 					ui:Fetch("sync"):Enable(true)
 				end
+			end,
+			error = function()
+				if ui then
+					ui:Fetch('time'):Text(_L["request failed"]):Color(255, 0, 0)
+				end
 			end
-		end)
+		})
 		nX, nY = ui:Append("WndButton3", "sync", { x = 0, y = nY + 15 , txt = _L["sync Achievement"], enable = false }):Click(function()
 			Achievement.SyncAchiList(ui:Fetch('sync'), function()
 				GetUserInput(_L["Synchronization Complete, Please copy the id."], nil, nil, nil, nil, id);
