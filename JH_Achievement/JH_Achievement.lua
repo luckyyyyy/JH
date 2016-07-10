@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-07-10 20:22:38
+-- @Last Modified time: 2016-07-10 20:41:02
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -512,7 +512,7 @@ function PS.OnPanelActive(frame)
 				end
 			end
 		})
-		nX, nY = ui:Append("WndCheckBox", { x = 5, y = nY + 12, txt = _L["sync Achievement"], checked = JH_Achievement.bAutoSync }):Click(function(bCheck)
+		nX, nY = ui:Append("WndCheckBox", "sync", { x = 5, y = nY + 12, txt = _L["sync Achievement"], checked = JH_Achievement.bAutoSync }):Click(function(bCheck)
 			if bCheck then
 				Achievement.SyncAchiList(ui:Fetch('sync'), function()
 					GetUserInput(_L["Synchronization Complete, Please copy the id."], nil, nil, nil, nil, id);
