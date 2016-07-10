@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-05-29 01:33:33
+-- @Last Modified time: 2016-07-10 20:22:38
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -47,7 +47,10 @@ local function GetAchievementList()
 	return bitmap, data, nPoint
 end
 
-JH_Achievement = {}
+JH_Achievement = {
+	bAutoSync = false
+}
+JH.RegisterCustomData("JH_Achievement")
 
 function JH_Achievement.OnFrameCreate()
 	this:RegisterEvent("UI_SCALED")
@@ -357,6 +360,12 @@ function Achievement.RemoteCallBack(result)
 					if e and e:IsValid() then
 						e.localsrc = b
 						e:AutoSize()
+						if not IsMultiThread() then
+							local _this = this
+							this = e
+							JH_Achievement.OnItemUpdateSize()
+							this = _this
+						end
 					end
 				end)
 			end
@@ -475,7 +484,7 @@ function PS.OnPanelActive(frame)
 	ui:Append("Text", { x = 0, y = nY + 5, w = 520, h = 120 , multi = true, txt = _L["Achievepedia About"] })
 	-- zhcn版本可用
 	nY = 140
-	if ACHI_CLIENT_LANG == "zhcn" or ACHI_CLIENT_LANG == "zhtw" then
+	if ACHI_CLIENT_LANG == "zhcn" then
 		nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Sync Game Info"], font = 27 }):Pos_()
 		-- name
 		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Role Nmae:"], color = { 255, 255, 200 } }):Pos_()
@@ -494,7 +503,7 @@ function PS.OnPanelActive(frame)
 					else
 						ui:Fetch('time'):Text(_L["No Record"])
 					end
-					ui:Fetch("sync"):Enable(true)
+					-- ui:Fetch("sync"):Enable(true)
 				end
 			end,
 			error = function()
@@ -503,12 +512,15 @@ function PS.OnPanelActive(frame)
 				end
 			end
 		})
-		nX, nY = ui:Append("WndButton3", "sync", { x = 0, y = nY + 15 , txt = _L["sync Achievement"], enable = false }):Click(function()
-			Achievement.SyncAchiList(ui:Fetch('sync'), function()
-				GetUserInput(_L["Synchronization Complete, Please copy the id."], nil, nil, nil, nil, id);
-				ui:Fetch('sync'):Enable(true)
-				ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", GetCurrentTime()))
-			end)
+		nX, nY = ui:Append("WndCheckBox", { x = 5, y = nY + 12, txt = _L["sync Achievement"], checked = JH_Achievement.bAutoSync }):Click(function(bCheck)
+			if bCheck then
+				Achievement.SyncAchiList(ui:Fetch('sync'), function()
+					GetUserInput(_L["Synchronization Complete, Please copy the id."], nil, nil, nil, nil, id);
+					ui:Fetch('sync'):Enable(true)
+					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", GetCurrentTime()))
+				end)
+			end
+			JH_Achievement.bAutoSync = bCheck
 		end):Pos_()
 	end
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Other"], font = 27 }):Pos_()
@@ -543,5 +555,11 @@ JH.RegisterEvent("ON_FRAME_CREATE.ACHIVEEMENT", function()
 		end
 		JH.BreatheCall("ACHIVEEMENT", Achievement.OnFrameBreathe)
 		JH.UnRegisterEvent("ON_FRAME_CREATE.ACHIVEEMENT")
+	end
+end)
+
+JH.RegisterEvent({"FIRST_LOADING_END", "UPDATE_ACHIEVEMENT_POINT", --[[ UPDATE_ACHIEVEMENT_COUNT ]]}, function()
+	if JH_Achievement.bAutoSync then
+		Achievement.SyncAchiList()
 	end
 end)

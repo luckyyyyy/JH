@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-05-29 01:28:29
+-- @Last Modified time: 2016-07-10 20:33:49
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -91,8 +91,8 @@ local function GetLang()
 end
 local _L = GetLang()
 
-local _VERSION_   = 0x1040000
-local _BUILD_     = "20160424"
+local _VERSION_   = 0x1040100
+local _BUILD_     = "20160710"
 local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 
@@ -680,7 +680,7 @@ end
 -- szEvent		-- 事件，可在后面加一个点并紧跟一个标识字符串用于防止重复或取消绑定，如 LOADING_END.xxx
 -- fnAction		-- 事件处理函数，arg0 ~ arg9，传入 nil 相当于取消该事件
 --特别注意：当 fnAction 为 nil 并且 szKey 也为 nil 时会取消所有通过本函数注册的事件处理器
-function JH.RegisterEvent(szEvent, fnAction)
+local function JH_RegisterEvent(szEvent, fnAction)
 	local szKey = nil
 	local nPos = StringFindW(szEvent, ".")
 	if nPos then
@@ -710,6 +710,17 @@ function JH.RegisterEvent(szEvent, fnAction)
 		end
 	end
 end
+
+function JH.RegisterEvent(szEvent, fnAction)
+	if type(szEvent) == "table" then
+		for _, v in ipairs(szEvent) do
+			JH_RegisterEvent(v, fnAction)
+		end
+	else
+		JH_RegisterEvent(szEvent, fnAction)
+	end
+end
+
 -- 取消事件处理函数
 -- (void) JH.UnRegisterEvent(string szEvent)
 function JH.UnRegisterEvent(szEvent)
