@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-01 00:53:04
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-07-16 23:13:47
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -15,11 +15,11 @@ local ROOT_URL = "http://game.j3ui.com/"
 local _, _, CLIENT_LANG = GetVersion()
 local W = {
 	szIniFile   = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_RemoteRequest.ini",
-	szFileList  = ROOT_URL .. "data/top/",
-	szFileList2 = ROOT_URL .. "data/other/",
-	szSearch    = ROOT_URL .. "data/search/",
-	szUser      = ROOT_URL .. "data/user/",
-	szDownload  = ROOT_URL .. "down/json/",
+	szFileList  = ROOT_URL .. "DBM/top/",
+	szFileList2 = ROOT_URL .. "DBM/other/",
+	szSearch    = ROOT_URL .. "DBM/search/",
+	szUser      = ROOT_URL .. "DBM/user/",
+	szDownload  = ROOT_URL .. "down/json2/",
 	szLoginUrl  = ROOT_URL .. "user/login/",
 }
 
@@ -156,9 +156,21 @@ function W.MyData()
 		end
 	end)
 end
+
 function W.CallMyData()
-	W.RequestList(W.szUser)
+	W.Loading()
+	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 得益于IE缓存 1分钟一次
+	JH.RemoteRequest(W.szUser .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+		if err then
+			JH.Debug(err)
+			JH.Sysmsg2(_L["request failed"])
+		else
+			W.ListCallBack(result)
+		end
+	end)
 end
+
 function W.Search()
 	GetUserInput(_L["Enter thread ID"], function(szNum)
 		if not tonumber(szNum) then
@@ -179,15 +191,24 @@ function W.RequestList(szUrl)
 	szUrl = szUrl or W.szFileList
 	W.Loading()
 	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 得益于IE缓存 1分钟一次
-	JH.RemoteRequest(szUrl .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-		if err then
-			JH.Debug(err)
-			JH.Sysmsg2(_L["request failed"])
-		else
-			W.ListCallBack(result)
-		end
-	end)
+	JH.Ajax({
+		url      = szUrl,
+		charset  = 'utf8',
+		type     = 'post',
+		dataType = "text",
+		ssl      = false,
+		timeout  = 3,
+		success  = function(szContent, dwBufferSize, set)
+			local data = JH.JsonToTable(szContent)
+			if CLIENT_LANG == "zhcn" then
+				data = JH.ConvertToAnsi(data)
+			end
+			W.ListCallBack(data)
+		end,
+		error   = function(errMsg, dwBufferSize, set)
+			JH.Sysmsg2(_L["request failed"] .. errMsg)
+		end,
+	})
 end
 
 function W.ListCallBack(result)
@@ -320,15 +341,30 @@ function W.CallDoanloadData(data, szPath, szFileName)
 		fnAction(szFileName)
 	else -- 否则 remote request
 		JH.Topmsg(_L["Loading..., please wait."])
-		JH.RemoteRequest(W.szDownload .. data.tid .. "/" .. data.md5 .."?lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-			local tab, err = JH.JsonToTable(szDoc)
-			if err then
-				JH.SaveLUAData("log/error/err_" .. data.tid, err)
-				return JH.Alert(_L["update failed! Please try again."])
-			end
-			SaveLUAData(szPath .. szFileName, tab, nil, false) -- 缓存文件
-			fnAction(szFileName)
-		end)
+		JH.Ajax({
+			url      = W.szDownload .. data.tid .. "/" .. data.md5,
+			charset  = 'utf8',
+			type     = 'post',
+			data     = {},
+			dataType = "text",
+			ssl      = false,
+			timeout  = 3,
+			success  = function(szContent, dwBufferSize, set)
+				local tab = JH.JsonToTable(szContent)
+				if not tab then
+					JH.SaveLUAData("log/error/err_" .. data.tid, err)
+					return JH.Alert(_L["update failed! Please try again."])
+				end
+				if CLIENT_LANG == "zhcn" then
+					tab = JH.ConvertToAnsi(tab)
+				end
+				SaveLUAData(szPath .. szFileName, tab, nil, false) -- 缓存文件
+				fnAction(szFileName)
+			end,
+			error    = function(errMsg, dwBufferSize, set)
+				JH.Sysmsg2(_L["request failed"] .. errMsg)
+			end,
+		})
 	end
 end
 

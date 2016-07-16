@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-07-10 20:33:49
+-- @Last Modified time: 2016-07-16 23:17:23
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1136,7 +1136,7 @@ end
 
 
 function JH.JsonToTable(szJson)
-	local result, err = JH.JsonDecode(JH.UrlDecode(szJson))
+	local result, err = JH.JsonDecode(szJson)
 	if err then
 		JH.Debug(err)
 		return false, err
@@ -1575,6 +1575,25 @@ do
 		end
 	end
 end
+
+local function ConvertToAnsi(data)
+	if type(data) == "table" then
+		local t = {}
+		for k, v in pairs(data) do
+			if type(k) == "string" then
+				t[ConvertToAnsi(k)] = ConvertToAnsi(v)
+			else
+				t[k] = ConvertToAnsi(v)
+			end
+		end
+		return t
+	elseif type(data) == "string" then
+		return UTF8ToAnsi(data)
+	else
+		return data
+	end
+end
+JH.ConvertToAnsi = ConvertToAnsi
 
 function JH.DelayCall(fnAction, nDelay)
 	if not nDelay then
