@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-07-16 23:17:23
+-- @Last Modified time: 2016-07-16 23:39:30
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1135,7 +1135,7 @@ function JH.IsInParty()
 end
 
 
-function JH.JsonToTable(szJson)
+function JH.JsonToTable(szJson, bUrlEncode)
 	local result, err = JH.JsonDecode(szJson)
 	if err then
 		JH.Debug(err)
