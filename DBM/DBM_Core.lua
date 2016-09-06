@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-06 23:59:03
+-- @Last Modified time: 2016-09-07 00:32:42
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -564,7 +564,8 @@ function D.CountdownEvent(data, nClass)
 					nRefresh = v.nRefresh,
 					szName   = v.szName or data.szName,
 					nIcon    = v.nIcon or data.nIcon,
-					bTalk    = v.bTeamChannel
+					bTalk    = v.bTeamChannel,
+					bHold    = v.bHold
 				}
 				D.FireCountdownEvent(nClass, szKey, tParam)
 			end
@@ -1190,7 +1191,8 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 						nRefresh = vv.nRefresh,
 						szName   = vv.szName or data.szNote,
 						nIcon    = vv.nIcon or 340,
-						bTalk    = vv.bTeamChannel
+						bTalk    = vv.bTeamChannel,
+						bHold    = vv.bHold
 					}
 					D.FireCountdownEvent(vv.nClass, szKey, tParam)
 				end
@@ -1354,7 +1356,8 @@ function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 								nTime  = tonumber(JH_Trim(vv[3])),
 								szName = vv[2],
 								nIcon  = v.nIcon,
-								bTalk  = v.bTeamChannel
+								bTalk  = v.bTeamChannel,
+								bHold  = v.bHold
 							}
 							D.FireCountdownEvent(v.nClass, szKey, tParam)
 						end

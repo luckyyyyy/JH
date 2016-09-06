@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-24 18:38:49
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-09-07 00:38:26
 -- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
@@ -130,7 +130,13 @@ function ST_UI.OnEvent(szEvent)
 	elseif szEvent == "ON_ENTER_CUSTOM_UI_MODE" or szEvent == "ON_LEAVE_CUSTOM_UI_MODE" then
 		UpdateCustomModeWindow(this, _L["Countdown"])
 	elseif szEvent == "LOADING_END" then
-		_ST_UI.handle:Clear()
+		for k, v in pairs(ST_CACHE) do
+			for kk, vv in pairs(v) do
+				if vv and vv:IsValid() and not vv.bHold then
+					vv.obj:RemoveItem()
+				end
+			end
+		end
 	end
 end
 
@@ -246,6 +252,7 @@ function ST:ctor(nType, szKey, tParam)
 		oo.ui.nRefresh       = tParam.nRefresh or 1
 		oo.ui.bTalk          = tParam.bTalk
 		oo.ui.nFrame         = tParam.nFrame
+		oo.ui.bHold          = tParam.bHold
 		-- 杂项
 		oo.ui.nAlpha         = 30
 		-- ui

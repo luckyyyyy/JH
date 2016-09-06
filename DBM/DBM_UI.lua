@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-06 23:34:40
+-- @Last Modified time: 2016-09-07 00:31:21
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1826,6 +1826,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 						end
 						DBMUI.OpenSettingPanel(data, szType)
 					end, nil, nil, nil, v.key)
+				end })
+				table.insert(menu, { szOption = _L["Hold Countdown"], bCheck = true, bChecked = v.bHold, fnAction = function()
+					v.bHold = not v.bHold
 				end })
 				table.insert(menu, { bDevide = true })
 				table.insert(menu, { szOption = _L["Color Picker"], bDisable = true })
