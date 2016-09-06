@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-06 23:26:40
+-- @Last Modified time: 2016-09-06 23:59:03
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -421,7 +421,7 @@ function D.CreateData(szEvent)
 			end
 			for k, v in ipairs(talk) do
 				if v.szContent then
-					if v.szContent:find("$me") or v.szContent:find("$team") or v.bSearch then
+					if v.szContent:find("$me") or v.szContent:find("$team") or v.bSearch or v.bReg then
 						tinsert(cache.OTHER, v)
 					else
 						cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
@@ -1162,9 +1162,17 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 					end
 				end
 			else
-				if string.find(szContent, content, nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
-					data = v
-					break
+				if v.szTarget == szNpcName or v.szTarget == "%" then
+					if v.bReg then
+						if string.find(szContent, content) then
+							data = v
+						end
+					else
+						if string.find(szContent, content, nil, true) then
+							data = v
+						end
+					end
+					if data then break end
 				end
 			end
 		end
