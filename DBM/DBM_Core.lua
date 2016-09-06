@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-03-24 18:04:19
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-09-06 23:26:40
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -31,7 +31,7 @@ local DBM_MARK_FREE   = true -- 标记空闲
 local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
 ----
-local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "TALK" }
+local DBM_TYPE_LIST = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "TALK", "CHAT" }
 
 local DBM_EVENTS = {
 	"NPC_ENTER_SCENE",
@@ -90,9 +90,9 @@ do
 		CACHE.MAP[v]      = {}
 		CACHE.INTERVAL[v] = {}
 		CACHE.TEMP[v]     = setmetatable({}, { __mode = "v" })
-		if v == "TALK" then -- init talk stru
-			CACHE.MAP.TALK.HIT   = {}
-			CACHE.MAP.TALK.OTHER = {}
+		if v == "TALK" or v == "CHAT" then -- init talk stru
+			CACHE.MAP[v].HIT   = {}
+			CACHE.MAP[v].OTHER = {}
 		end
 	end
 end
@@ -252,13 +252,13 @@ function DBM.OnEvent(szEvent)
 		if not IsPlayer(arg1) then
 			local szText = GetPureText(arg0)
 			if szText and szText ~= "" then
-				D.OnCallMessage(szText, arg1, arg3 == "" and "%" or arg3)
+				D.OnCallMessage("TALK", szText, arg1, arg3 == "" and "%" or arg3)
 			else
 				JH.Debug("GetPureText ERROR: " .. arg0)
 			end
 		end
 	elseif szEvent == "ON_WARNING_MESSAGE" then
-		D.OnCallMessage(arg1)
+		D.OnCallMessage("TALK", arg1)
 	elseif szEvent == "DOODAD_ENTER_SCENE" or szEvent == "DBM_DOODAD_ENTER_SCENE" then
 		local doodad = GetDoodad(arg0)
 		if doodad then
@@ -401,32 +401,39 @@ function D.CreateData(szEvent)
 	end
 	-- 单独重建TALK数据
 	do
-		local data  = D.FILE.TALK
-		local talk  = D.DATA.TALK
-		CACHE.MAP.TALK = {
-			HIT   = {},
-			OTHER = {},
-		}
-		local cache = CACHE.MAP.TALK
-		if data[-1] then -- 通用数据
-			for k, v in ipairs(data[-1]) do
-				talk[#talk + 1] = v
+		for _, vType in ipairs({ "TALK", "CHAT" }) do
+			local data  = D.FILE[vType]
+			local talk  = D.DATA[vType]
+			CACHE.MAP[vType] = {
+				HIT   = {},
+				OTHER = {},
+			}
+			local cache = CACHE.MAP[vType]
+			if data[-1] then -- 通用数据
+				for k, v in ipairs(data[-1]) do
+					talk[#talk + 1] = v
+				end
 			end
-		end
-		if data[dwMapID] then -- 本地图数据
-			for k, v in ipairs(data[dwMapID]) do
-				talk[#talk + 1] = v
+			if data[dwMapID] then -- 本地图数据
+				for k, v in ipairs(data[dwMapID]) do
+					talk[#talk + 1] = v
+				end
 			end
-		end
-		for k, v in ipairs(talk) do
-			if v.szContent:find("$me") or v.szContent:find("$team") or v.bSearch then
-				tinsert(cache.OTHER, v)
-			else
-				cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
-				cache.HIT[v.szContent][v.szTarget or "sys"] = v
+			for k, v in ipairs(talk) do
+				if v.szContent then
+					if v.szContent:find("$me") or v.szContent:find("$team") or v.bSearch then
+						tinsert(cache.OTHER, v)
+					else
+						cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
+						cache.HIT[v.szContent][v.szTarget or "sys"] = v
+					end
+				else
+					JH.Sysmsg2("[Warning] " .. vType .. " data is not szContent #" .. k .. ", please do check it!")
+				end
 			end
+			D.Log("create " .. vType .. " data success!")
 		end
-		D.Log("create TALK data success!")
+
 	end
 	if DBM.bPushTeamPanel then
 		local tBuff = {}
@@ -1110,12 +1117,13 @@ function D.OnDoodadAllLeave(dwTemplateID)
 	end
 end
 -- 系统和NPC喊话处理
-function D.OnCallMessage(szContent, dwNpcID, szNpcName)
+-- OutputMessage("MSG_SYS", 1.."\n")
+function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 	-- 近期记录
 	szContent = tostring(szContent)
 	local me = GetClientPlayer()
 	local key = (szNpcName or "sys") .. "::" .. szContent
-	local tWeak, tTemp = CACHE.TEMP.TALK, D.TEMP.TALK
+	local tWeak, tTemp = CACHE.TEMP[szEvent], D.TEMP[szEvent]
 	if not tWeak[key] then
 		local t = {
 			dwMapID      = me.GetMapID(),
@@ -1125,10 +1133,10 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		}
 		tWeak[key] = t
 		tTemp[#tTemp + 1] = tWeak[key]
-		FireUIEvent("DBMUI_TEMP_UPDATE", "TALK", t)
+		FireUIEvent("DBMUI_TEMP_UPDATE", szEvent, t)
 	end
 	local tInfo, data
-	local cache = CACHE.MAP.TALK
+	local cache = CACHE.MAP[szEvent]
 	if cache.HIT[szContent] then
 		if cache.HIT[szContent][szNpcName or "sys"] then
 			data = cache.HIT[szContent][szNpcName or "sys"]
@@ -1162,9 +1170,10 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		end
 	end
 	if data then
+		local szType = szEvent == "TALK" and DBM_TYPE.TALK_MONITOR or DBM_TYPE.CHAT_MONITOR
 		if data.tCountdown then
 			for kk, vv in ipairs(data.tCountdown) do
-				if vv.nClass == DBM_TYPE.TALK_MONITOR then
+				if vv.nClass == szType then
 					local szKey = data.nIndex .. "." .. kk
 					local tParam = {
 						key      = vv.key,
@@ -1179,7 +1188,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 				end
 			end
 		end
-		local cfg = data[DBM_TYPE.TALK_MONITOR]
+		local cfg = data[szType]
 		if cfg then
 			if data.szContent:find("$me") then
 				tInfo = { dwID = me.dwID, szName = me.szName }
@@ -1226,7 +1235,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 			end
 			if DBM.bPushFullScreen and cfg.bFullScreen then
 				if (tInfo and tInfo.dwID == me.dwID) or not tInfo then
-					FireUIEvent("JH_FS_CREATE", "TALK", { nTime  = 3, col = data.col or { 0, 255, 0 }, bFlash = true })
+					FireUIEvent("JH_FS_CREATE", szEvent, { nTime  = 3, col = data.col or { 0, 255, 0 }, bFlash = true })
 				end
 			end
 			if DBM.bPushTeamChannel and cfg.bTeamChannel then
@@ -1240,6 +1249,7 @@ function D.OnCallMessage(szContent, dwNpcID, szNpcName)
 		end
 	end
 end
+
 -- NPC死亡事件 触发倒计时
 function D.OnDeath(dwCharacterID, szKiller)
 	local npc = GetNpc(dwCharacterID)
@@ -1367,15 +1377,26 @@ function D.Open()
 			frame:UnRegisterEvent(v)
 			frame:RegisterEvent(v)
 		end
+		JH.RegisterMsgMonitor("DBM_MON", function(szMsg, nFont, bRich)
+			if not GetClientPlayer() then
+				return
+			end
+			if bRich then
+				szMsg = GetPureText(szMsg)
+			end
+			D.OnCallMessage("CHAT", szMsg:gsub("\r", ""))
+		end, { "MSG_SYS" })
 	end
 end
-
+-- DBM.OnCallMessage = D.OnCallMessage
+-- DBM.OnCallMessage("CHAT", "1")
 function D.Close()
 	local frame = D.GetFrame()
 	if frame then
 		for k, v in ipairs(DBM_EVENTS) do
 			frame:UnRegisterEvent(v)  -- kill all event
 		end
+		JH.RegisterMsgMonitor("DBM_MON")
 		FireUIEvent("JH_ST_CLEAR")
 		CACHE.NPC_LIST = {}
 		CACHE.SKILL_LIST = {}

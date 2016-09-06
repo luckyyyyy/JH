@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-07-16 23:39:30
+-- @Last Modified time: 2016-09-06 22:28:39
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -34,6 +34,7 @@ local ADDON_ROOT_PATH   = "Interface/JH/"
 local JH_EVENT        = {}
 local JH_BGMSG        = {}
 local JH_REQUEST      = {}
+local JH_MONMSG       = {}
 -- call
 local JH_CALL_AJAX    = {}
 local JH_CALL_BREATHE = {}
@@ -1228,6 +1229,36 @@ function JH.RegisterGlobalEsc(szID, fnCondition, fnAction, bTopmost)
 		RegisterGlobalEsc("JH_" .. szID, fnCondition, fnAction, bTopmost)
 	else
 		UnRegisterGlobalEsc("JH_" .. szID, bTopmost)
+	end
+end
+
+-- Register:   JH.Chat.RegisterMsgMonitor(string szKey, function fnAction, table tChannels)
+--             JH.Chat.RegisterMsgMonitor(function fnAction, table tChannels)
+-- Unregister: JH.Chat.RegisterMsgMonitor(string szKey)
+function JH.RegisterMsgMonitor(arg0, arg1, arg2)
+	local szKey, fnAction, tChannels
+	local tp0, tp1, tp2 = type(arg0), type(arg1), type(arg2)
+	if tp0 == "string" and tp1 == "function" and tp2 == "table" then
+		szKey, fnAction, tChannels = arg0, arg1, arg2
+	elseif tp0 == "function" and tp1 == "table" then
+		fnAction, tChannels = arg0, arg1
+	elseif tp0 == "string" and not arg1 then
+		szKey = arg0
+	end
+
+	if szKey and JH_MONMSG[szKey] then
+		UnRegisterMsgMonitor(JH_MONMSG[szKey].fn)
+		JH_MONMSG[szKey] = nil
+	end
+	if fnAction and tChannels then
+		JH_MONMSG[szKey] = { fn = function(szMsg, nFont, bRich, r, g, b, szChannel)
+			-- filter addon comm.
+			-- if StringFindW(szMsg, "eventlink") and StringFindW(szMsg, _L["Addon comm."]) then
+			-- 	return
+			-- end
+			fnAction(szMsg, nFont, bRich, r, g, b, szChannel)
+		end, ch = tChannels }
+		RegisterMsgMonitor(JH_MONMSG[szKey].fn, JH_MONMSG[szKey].ch)
 	end
 end
 

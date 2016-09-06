@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-06 17:59:16
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-09-06 22:39:17
 
 DBM_TYPE = {
 	OTHER           = 0,
@@ -24,6 +24,7 @@ DBM_TYPE = {
 	DOODAD_ENTER    = 17,
 	DOODAD_LEAVE    = 18,
 	DOODAD_ALLLEAVE = 19,
+	CHAT_MONITOR    = 20,
 }
 DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3, TARGET = 4 }
 

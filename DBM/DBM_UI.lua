@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-28 16:53:38
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-09-06 23:34:40
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -12,7 +12,7 @@ local DBMUI_ITEM_L      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_L.ini
 local DBMUI_TALK_L      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_TALK_L.ini"
 local DBMUI_ITEM_R      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_R.ini"
 local DBMUI_TALK_R      = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_TALK_R.ini"
-local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "CIRCLE", "TALK" }
+local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "CIRCLE", "TALK", "CHAT" }
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
 local DBMUI_TREE_EXPAND = { true } -- 默认第一项展开
@@ -275,7 +275,7 @@ function DBMUI.UpdateBG()
 	-- background
 	local frame = DBMUI.GetFrame()
 	local info = g_tTable.DungeonInfo:Search(DBMUI_SELECT_MAP)
-	if DBMUI_SELECT_TYPE ~= "TALK" and info and info.szDungeonImage2 then
+	if DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "CHAT" and info and info.szDungeonImage2 then
 		frame:Lookup("", "Handle_BG"):Show()
 		frame:Lookup("", "Handle_BG/Image_BG"):FromUITex(info.szDungeonImage2, 0)
 		frame:Lookup("", "Handle_BG/Text_BgTitle"):SetText(info.szLayer3Name .. g_tStrings.STR_CONNECT .. info.szOtherName)
@@ -494,7 +494,7 @@ function DBM_UI.OnItemRButtonClick()
 		local t = this.dat
 		local menu = {}
 		local name = this:Lookup("Text") and this:Lookup("Text"):GetText() or t.szContent
-		if DBMUI_SELECT_TYPE ~= "TALK" then -- 太长
+		if DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "CHAT" then -- 太长
 			table.insert(menu, { szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. name, bDisable = true })
 		end
 		table.insert(menu, { szOption = _L["Class"] .. g_tStrings.STR_COLON .. (DBMUI.GetMapName(t.dwMapID) or t.dwMapID), bDisable = true })
@@ -546,14 +546,14 @@ function DBM_UI.OnItemRButtonClick()
 		-- table.insert(menu, { szOption = _L["Add to monitor list"], fnAction = function() DBMUI.OpenAddPanel(DBMUI_SELECT_TYPE, t) end })
 		-- table.insert(menu, { bDevide = true })
 		table.insert(menu, { szOption = g_tStrings.STR_DATE .. g_tStrings.STR_COLON .. FormatTime("%Y%m%d %H:%M:%S",t.nCurrentTime) , bDisable = true })
-		if DBMUI_SELECT_TYPE ~= "TALK" then
+		if DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "CHAT" then
 			table.insert(menu, { szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. szName, bDisable = true })
 		end
 		table.insert(menu, { szOption = g_tStrings.MAP_TALK .. g_tStrings.STR_COLON .. Table_GetMapName(t.dwMapID), bDisable = true })
 		if DBMUI_SELECT_TYPE ~= "NPC" and DBMUI_SELECT_TYPE ~= "CIRCLE" and DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "DOODAD" then
 			table.insert(menu, { szOption = g_tStrings.STR_SKILL_H_CAST_TIME .. (t.szSrcName or g_tStrings.STR_CRAFT_NONE) .. (t.bIsPlayer and _L["(player)"] or ""), bDisable = true })
 		end
-		if DBMUI_SELECT_TYPE ~= "TALK" then
+		if DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "CHAT" then
 			local cmenu = { szOption = _L["Interval Time"] }
 			local tInterval
 			if t.nLevel then
@@ -587,7 +587,7 @@ function DBM_UI.OnItemMouseLeave()
 			this:Lookup(0):Hide()
 		end
 	elseif szName == "Handle_L" or szName == "Handle_R" then
-		if DBMUI_SELECT_TYPE == "TALK" then
+		if DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT" then
 			if this:Lookup("Image_Light") and this:Lookup("Image_Light"):IsValid() then
 				this:Lookup("Image_Light"):Hide()
 			end
@@ -628,7 +628,7 @@ function DBM_UI.OnItemMouseEnter()
 			OutputTip(szXml, 300, { x, y, w, h })
 		end
 	elseif szName == "Handle_L" or szName == "Handle_R" then
-		if DBMUI_SELECT_TYPE == "TALK" then
+		if DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT" then
 			this:Lookup("Image_Light"):Show()
 		else
 			this:Lookup("Image"):SetFrame(8)
@@ -717,6 +717,8 @@ function DBM_UI.OnScrollBarPosChanged()
 						DBMUI.SetNpcItemAction(h)
 					elseif DBMUI_SELECT_TYPE == "TALK" then
 						DBMUI.SetTalkItemAction(h)
+					elseif DBMUI_SELECT_TYPE == "CHAT" then
+						DBMUI.SetChatItemAction(h)
 					end
 				end
 			else
@@ -737,6 +739,8 @@ function DBMUI.OutputTip(szType, data, rect)
 		JH.OutputDoodadTip(data.dwID, rect)
 	elseif szType == "TALK" then
 		OutputTip(GetFormatText((data.szTarget or _L["Warning Box"]) .. "\t", 41, 255, 255, 0) .. GetFormatText((DBMUI.GetMapName(data.dwMapID) or data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
+	elseif szType == "CHAT" then
+		OutputTip(GetFormatText(_L["CHAT"] .. "\t", 41, 255, 255, 0) .. GetFormatText((DBMUI.GetMapName(data.dwMapID) or data.dwMapID) .. "\n", 41, 255, 255, 255) .. GetFormatText(data.szContent, 41, 255, 255, 255), 300, rect)
 	elseif szType == "CIRCLE" then
 		Circle.OutputTip(data, rect)
 	end
@@ -774,7 +778,7 @@ function DBMUI.InsertDungeonMenu(menu, fnAction)
 end
 
 function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
-	local ui = GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Import Data"], close = true })
+	local ui = GUI.CreateFrame("DBM_DatatPanel", { w = 720, h = 300, title = _L["Import Data"], close = true })
 	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
 	for k, v in ipairs(DBMUI_TYPE) do
@@ -829,7 +833,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 end
 
 function DBMUI.OpenExportPanel()
-	local ui = GUI.CreateFrame("DBM_DatatPanel", { w = 620, h = 300, title = _L["Export Data"], close = true })
+	local ui = GUI.CreateFrame("DBM_DatatPanel", { w = 720, h = 300, title = _L["Export Data"], close = true })
 	local nX, nY = ui:Append("Text", { x = 20, y = 50, txt = _L["includes"], font = 27 }):Pos_()
 	nX = 25
 	for k, v in ipairs(DBMUI_TYPE) do
@@ -940,7 +944,7 @@ function DBMUI.GetDataName(szType, data)
 		local doodad = GetDoodadTemplate(data.dwID)
 		szName = doodad.szName ~= "" and doodad.szName or data.dwID
 		nIcon  = DBMUI_DOODAD_ICON[doodad.nKind]
-	elseif szType == "TALK" then
+	elseif szType == "TALK" or szType == "CHAT" then
 		szName = data.szContent
 	else
 		szName, nIcon = JH.GetBuffName(data.dwID, data.nLevel)
@@ -1049,6 +1053,17 @@ function DBMUI.SetTalkItemAction(h)
 	h.bDraw = true
 end
 
+function DBMUI.SetChatItemAction(h)
+	local dat = h.dat
+	h:Lookup("Text_Name"):SetText(_L["CHAT"])
+	h:Lookup("Text_Name"):SetFontColor(255, 255, 0)
+	h:Lookup("Text_Content"):SetText(dat.szContent)
+	if dat.col then
+		h:Lookup("Text_Content"):SetFontColor(unpack(dat.col))
+	end
+	h.bDraw = true
+end
+
 function DBMUI.GetMapName(dwMapID)
 	if dwMapID == _L["All Data"] then
 		return dwMapID
@@ -1078,7 +1093,7 @@ function DBMUI.DrawTableL(data)
 	local frame = DBMUI.GetFrame()
 	local page = frame.hPageSet:GetActivePage()
 	local handle = page:Lookup("WndScroll_" .. DBMUI_SELECT_TYPE .. "_L", "Handle_" .. DBMUI_SELECT_TYPE .. "_List_L")
-	local hItemData = DBMUI_SELECT_TYPE == "TALK" and frame.hTalkL or frame.hItemL
+	local hItemData = (DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT") and frame.hTalkL or frame.hItemL
 	handle:Clear()
 	if #data > 0 then
 		for k, v in JH.bpairs(data) do
@@ -1117,7 +1132,7 @@ function DBMUI.DrawTableR(data, bInsert)
 	local handle = page:Lookup("WndScroll_" .. DBMUI_SELECT_TYPE .. "_R", "Handle_" .. DBMUI_SELECT_TYPE .. "_List_R")
 	if not bInsert then
 		handle:Clear()
-		local hItemData = DBMUI_SELECT_TYPE == "TALK" and frame.hTalkR or frame.hItemR
+		local hItemData = (DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT") and frame.hTalkR or frame.hItemR
 		if #data > 0 then
 			for k, v in JH.bpairs(data) do
 				local h = handle:AppendItemFromData(hItemData, "Handle_R")
@@ -1126,8 +1141,8 @@ function DBMUI.DrawTableR(data, bInsert)
 		end
 	else
 		-- 少一个 InsertItemFromData
-		local szIniFile = DBMUI_SELECT_TYPE == "TALK" and DBMUI_TALK_R or DBMUI_ITEM_R
-		local szSectionName = DBMUI_SELECT_TYPE == "TALK" and "Handle_TALK_R" or "Handle_R"
+		local szIniFile = (DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT") and DBMUI_TALK_R or DBMUI_ITEM_R
+		local szSectionName = (DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT") and "Handle_TALK_R" or "Handle_R"
 		if not DBMUI_SEARCH or DBMUI.CheckSearch(DBMUI_SELECT_TYPE, data) then
 			handle:InsertItemFromIni(0, false, szIniFile, szSectionName, "Handle_R")
 			local h = handle:Lookup(0)
@@ -1143,8 +1158,8 @@ function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
 		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetDataName("NPC", data), TARGET.NPC, Table_GetMapName(data.dwMapID), DBMUI_SELECT_MAP)
 	else
-		local szName, nIcon = _L["TALK"], 340
-		if szType ~= "TALK" then
+		local szName, nIcon = _L[szType], 340
+		if szType ~= "TALK" and szType ~= "CHAT" then
 			szName, nIcon = DBMUI.GetDataName(szType, data)
 		end
 		local ui = GUI.CreateFrame("DBM_NewData", { w = 380, h = 250, title = szName, focus = true, close = true })
@@ -1369,9 +1384,11 @@ function DBMUI.OpenSettingPanel(data, szType)
 	local tSkillInfo
 	local me = GetClientPlayer()
 	local file = "ui/Image/UICommon/Feedanimials.uitex"
-	local szName, nIcon = _L["TALK"], 340
-	if szType ~= "TALK" then
+	local szName, nIcon = _L[szType], 340
+	if szType ~= "TALK" and szType ~= "CHAT" then
 		szName, nIcon = DBMUI.GetDataName(szType, data)
+	elseif szType == "CHAT" then
+		nIcon = 439
 	end
 	local ui = GUI.CreateFrame("DBM_SettingPanel", { w = 770, h = 450, title = szName, close = true, focus = true })
 	local frame = Station.Lookup("Normal/DBM_SettingPanel")
@@ -1384,7 +1401,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 	local nX, nY, _ = 0, 0, 0
 	local function fnClickBox()
 		local menu, box = {}, this
-		if szType ~= "TALK" then
+		if szType ~= "TALK" and szType ~= "CHAT" then
 			table.insert(menu, { szOption = _L["Edit Name"], fnAction = function()
 				GetUserInput(_L["Edit Name"], function(szText)
 					if JH.Trim(szText) == "" then
@@ -1398,7 +1415,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end})
 			table.insert(menu, { bDevide = true })
 		end
-		if szType ~= "NPC" and szType ~= "TALK" then
+		if szType ~= "NPC" and szType ~= "TALK" and szType ~= "CHAT" then
 			table.insert(menu, { szOption = _L["Edit Iocn"], fnAction = function()
 				GUI.OpenIconPanel(function(nIcon)
 					data.nIcon = nIcon
@@ -1745,8 +1762,44 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.TALK_MONITOR, "bFullScreen", bCheck)
 		end):Pos_()
+	elseif szType == "CHAT" then
+		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Alert Content"], font = 27 }):Pos_()
+		nX, nY = ui:Append("WndEdit", { x = nX + 5, y = nY + 8, txt = data.szNote, w = 650, h = 25 }):Change(function(txt)
+			local szText = JH.Trim(txt)
+			if szText == "" then
+				data.szNote = nil
+			else
+				data.szNote = szText
+			end
+		end):Pos_()
+		nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Chat Content"], font = 27 }):Pos_()
+		_, nY = ui:Append("WndEdit", { x = nX + 5, y = nY + 8, txt = data.szContent, w = 650, h = 85, multi = true }):Change(function(txt)
+			data.szContent = txt:gsub("\r", "")
+			FireUIEvent("DBM_CREATE_CACHE")
+		end):Pos_()
+		nX, nY = ui:Append("Text", { x = nX, y = nY, txt = _L["Tips:$me behalf of self, $team behalf of team, Only allow a time"], alpha = 200 }):Pos_()
+		nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Trigger Chat"], font = 27 }):Pos_()
+		local cfg = data[DBM_TYPE.CHAT_MONITOR] or {}
+		nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.CHAT_MONITOR, "bTeamChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bWhisperChannel, txt = _L["Whisper Channel Alarm"], color = GetMsgFontColor("MSG_WHISPER", true) }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.CHAT_MONITOR, "bWhisperChannel", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bCenterAlarm, txt = _L["Center Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.CHAT_MONITOR, "bCenterAlarm", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bBigFontAlarm, txt = _L["Big Font Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.CHAT_MONITOR, "bBigFontAlarm", bCheck)
+		end):Pos_()
+		nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bScreenHead, txt = _L["Screen Head Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.CHAT_MONITOR, "bScreenHead", bCheck)
+		end):Pos_()
+		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.CHAT_MONITOR, "bFullScreen", bCheck)
+		end):Pos_()
 	end
-	if szType ~= "TALK" then
+	if szType ~= "TALK" and szType ~= "CHAT" then
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["Add Content"], font = 27 }):Pos_()
 		nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, txt = data.szNote, w = 650, h = 25, limit = 10 }):Change(function(txt)
 			local szText = JH.Trim(txt)
@@ -1825,6 +1878,10 @@ function DBMUI.OpenSettingPanel(data, szType)
 				elseif szType == "TALK" then
 					table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.TALK_MONITOR], bMCheck = true, bChecked = v.nClass == DBM_TYPE.TALK_MONITOR, fnAction = function()
 						SetCountdownType(v, DBM_TYPE.TALK_MONITOR, ui:Fetch("Countdown" .. k))
+					end })
+				elseif szType == "CHAT" then
+					table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.CHAT_MONITOR], bMCheck = true, bChecked = v.nClass == DBM_TYPE.CHAT_MONITOR, fnAction = function()
+						SetCountdownType(v, DBM_TYPE.CHAT_MONITOR, ui:Fetch("Countdown" .. k))
 					end })
 				end
 			end
