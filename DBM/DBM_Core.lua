@@ -1545,17 +1545,13 @@ function D.LoadUserData()
 		local szLang = select(3, GetVersion())
 		local config = {
 			nMode = 1,
-			tList = {
-				BUFF    = true,
-				DEBUFF  = true,
-				CASTING = true,
-				NPC     = true,
-				TALK    = true,
-				CIRCLE  = true,
-				DOODAD  = true,
-			},
+			tList = {},
 			szFileName = szLang ..  "_default.jx3dat",
 		}
+		-- default data
+		for _, v in ipairs(DBM_TYPE_LIST) do
+			config.tList[v] = true
+		end
 		D.LoadConfigureFile(config)
 	end
 	D.Log("load custom data success!")
