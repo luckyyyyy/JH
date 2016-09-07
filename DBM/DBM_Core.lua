@@ -138,11 +138,11 @@ end
 function DBM.OnFrameBreathe()
 	local me = GetClientPlayer()
 	if not me then return end
-	local dwType, dwID = me.GetTarget()
+	-- local dwType, dwID = me.GetTarget()
 	for k, v in pairs(CACHE.NPC_LIST) do
 		local data = D.GetData("NPC", k)
 		if data then
-			local bTempTarget = false
+			-- local bTempTarget = false
 			-- for kk, vv in ipairs(data.tCountdown or {}) do
 			-- 	if vv.nClass == DBM_TYPE.NPC_MANA then
 			-- 		bTempTarget = true
@@ -152,14 +152,14 @@ function DBM.OnFrameBreathe()
 			local bFightFlag = false
 			local fLifePer = 1
 			local fManaPer = 1
-			TargetPanel_SetOpenState(true)
+			-- TargetPanel_SetOpenState(true)
 			for kk, vv in ipairs(v.tList) do
 				local npc = GetNpc(vv)
 				if npc then
-					if bTempTarget then
-						JH.SetTarget(TARGET.NPC, vv)
-						JH.SetTarget(dwType, dwID)
-					end
+					-- if bTempTarget then
+					-- 	JH.SetTarget(TARGET.NPC, vv)
+					-- 	JH.SetTarget(dwType, dwID)
+					-- end
 					local fLife = npc.nCurrentLife / npc.nMaxLife
 					local fMana = npc.nCurrentMana / npc.nMaxMana
 					if fLife < fLifePer then -- 取血量最少的NPC
@@ -175,7 +175,7 @@ function DBM.OnFrameBreathe()
 					end
 				end
 			end
-			TargetPanel_SetOpenState(false)
+			-- TargetPanel_SetOpenState(false)
 			if bFightFlag ~= v.bFightState then
 				CACHE.NPC_LIST[k].bFightState = bFightFlag
 			else
@@ -192,17 +192,17 @@ function DBM.OnFrameBreathe()
 					FireUIEvent("DBM_NPC_LIFE_CHANGE", k, v.nLife - i)
 				end
 			end
-			if bTempTarget then
-				if v.nMana < fManaPer then
-					local nCount, step = fManaPer - v.nMana, 1
-					if nCount > 50 then
-						step = 2
-					end
-					for i = 1, nCount, step do
-						FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana + i)
-					end
-				end
-			end
+			-- if bTempTarget then
+			-- 	if v.nMana < fManaPer then
+			-- 		local nCount, step = fManaPer - v.nMana, 1
+			-- 		if nCount > 50 then
+			-- 			step = 2
+			-- 		end
+			-- 		for i = 1, nCount, step do
+			-- 			FireUIEvent("DBM_NPC_MANA_CHANGE", k, v.nMana + i)
+			-- 		end
+			-- 	end
+			-- end
 			v.nLife = fLifePer
 			-- v.nMana = fManaPer
 			if bFightFlag then
@@ -1147,13 +1147,14 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 	end
 	-- 不适用wstring 性能考虑为前提
 	if not data then
+		local bInParty = me.IsInParty()
+		local team     = GetClientTeam()
 		for k, v in JH.bpairs(cache.OTHER) do
 			local content = v.szContent
 			if v.szContent:find("$me") then
 				content = v.szContent:gsub("$me", me.szName) -- 转换me是自己名字
 			end
-			if me.IsInParty() and content:find("$team") then
-				local team = GetClientTeam()
+			if bInParty and content:find("$team") then
 				local c = content
 				for kk, vv in ipairs(team.GetTeamMemberList()) do
 					if string.find(szContent, c:gsub("$team", team.GetClientTeamMemberName(vv)), nil, true) and (v.szTarget == szNpcName or v.szTarget == "%") then -- hit
@@ -1164,16 +1165,12 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 				end
 			else
 				if v.szTarget == szNpcName or v.szTarget == "%" then
-					if v.bReg then
-						if string.find(szContent, content) then
-							data = v
-						end
-					else
-						if string.find(szContent, content, nil, true) then
-							data = v
-						end
+					if (v.bReg and string.find(szContent, content)) or
+						(not v.bReg and string.find(szContent, content, nil, true))
+					then
+						data = v
+						break
 					end
-					if data then break end
 				end
 			end
 		end
