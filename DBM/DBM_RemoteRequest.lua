@@ -12,7 +12,7 @@ DBM_RemoteRequest = {
 JH.RegisterCustomData("DBM_RemoteRequest")
 local ROOT_URL = "http://game.j3ui.com/"
 -- local ROOT_URL = "http://10.0.20.20/"
-local _, _, CLIENT_LANG = GetVersion()
+local CLIENT_LANG = select(3, GetVersion())
 local W = {
 	szIniFile   = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_RemoteRequest.ini",
 	szFileList  = ROOT_URL .. "DBM/top/",
@@ -345,7 +345,9 @@ function W.CallDoanloadData(data, szPath, szFileName)
 			url      = W.szDownload .. data.tid .. "/" .. data.md5,
 			charset  = 'utf8',
 			type     = 'post',
-			data     = {},
+			data     = {
+				lang = CLIENT_LANG
+			},
 			dataType = "text",
 			ssl      = false,
 			timeout  = 3,
