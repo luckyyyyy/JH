@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-07 00:53:26
+-- @Last Modified time: 2016-09-12 00:25:44
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1084,14 +1084,12 @@ function JH.GetMapID(bFix)
 	end
 end
 
--- 判断是不是副本地图
-function JH.IsInDungeon(bType)
+-- battle map
+function JH.IsInBattleField()
 	local me = GetClientPlayer()
-	local dwMapID = me.GetMapID()
-	return JH.IsDungeon(dwMapID, bType)
+	return me ~= nil and g_tTable.BattleField:Search(GetClientPlayer().GetScene().dwMapID) ~= nil
 end
 
--- JJC地图
 function JH.IsInArena()
 	local me = GetClientPlayer()
 	local dwMapID = me.GetMapID()
@@ -1099,6 +1097,7 @@ function JH.IsInArena()
 	return nMapType and nMapType == MAP_TYPE.BATTLE_FIELD
 end
 
+-- 判断是不是副本地图
 function JH.IsMapExist(param)
 	if not JH_LIST_MAP[-1] then
 		local tMapListByID   = {

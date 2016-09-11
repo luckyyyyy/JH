@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-11 22:54:03
+-- @Last Modified time: 2016-09-12 00:25:55
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -386,7 +386,7 @@ function D.CreateData(szEvent)
 	for k, v in pairs(CACHE.MAP) do
 		CACHE.MAP[k] = {}
 	end
-	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
+	if JH.IsInBattleField() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
 		return D.Log("MAPID: " .. dwMapID ..  " create data Failed:" .. GetTime() - nTime  .. "ms")
 	end
