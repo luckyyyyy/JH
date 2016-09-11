@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-10 01:03:07
+-- @Last Modified time: 2016-09-11 22:54:03
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1392,7 +1392,10 @@ function D.Open()
 			if bRich then
 				szMsg = GetPureText(szMsg)
 			end
-			pcall(D.OnCallMessage, "CHAT", szMsg:gsub("\r", ""))
+			local res, err = pcall(D.OnCallMessage, "CHAT", szMsg:gsub("\r", ""))
+			if not res then
+				return JH.Sysmsg2(err)
+			end
 			-- D.OnCallMessage("CHAT", szMsg:gsub("\r", ""))
 		end, { "MSG_SYS" })
 	end
