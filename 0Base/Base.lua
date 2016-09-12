@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-12 00:25:44
+-- @Last Modified by:   陈威
+-- @Last Modified time: 2016-09-12 10:03:49
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1098,6 +1098,12 @@ function JH.IsInArena()
 end
 
 -- 判断是不是副本地图
+function JH.IsInDungeon(bType)
+	local me = GetClientPlayer()
+	local dwMapID = me.GetMapID()
+	return JH.IsDungeon(dwMapID, bType)
+end
+
 function JH.IsMapExist(param)
 	if not JH_LIST_MAP[-1] then
 		local tMapListByID   = {
