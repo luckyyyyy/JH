@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-12 00:25:55
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2016-09-14 23:49:34
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1138,6 +1138,9 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 	end
 	local tInfo, data
 	local cache = CACHE.MAP[szEvent]
+	if not cache and not cache.HIT then -- 不知道什么BUG
+		D.Log('ERROR' .. (szEvent and "NULL"))
+	end
 	if cache.HIT[szContent] then
 		if cache.HIT[szContent][szNpcName or "sys"] then
 			data = cache.HIT[szContent][szNpcName or "sys"]
@@ -1393,9 +1396,9 @@ function D.Open()
 				szMsg = GetPureText(szMsg)
 			end
 			local res, err = pcall(D.OnCallMessage, "CHAT", szMsg:gsub("\r", ""))
-			if not res then
-				return JH.Sysmsg2(err)
-			end
+			-- if not res then
+			-- 	return JH.Sysmsg2(err)
+			-- end
 			-- D.OnCallMessage("CHAT", szMsg:gsub("\r", ""))
 		end, { "MSG_SYS" })
 	end
