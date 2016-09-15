@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   陈威
--- @Last Modified time: 2016-09-12 10:03:49
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2016-09-15 12:46:21
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1090,12 +1090,18 @@ function JH.IsInBattleField()
 	return me ~= nil and g_tTable.BattleField:Search(GetClientPlayer().GetScene().dwMapID) ~= nil
 end
 
+
 function JH.IsInArena()
 	local me = GetClientPlayer()
-	local dwMapID = me.GetMapID()
-	local nMapType = select(2, GetMapParams(dwMapID))
-	return nMapType and nMapType == MAP_TYPE.BATTLE_FIELD
+	return me ~= nil and me.GetScene().bIsArenaMap
 end
+
+-- function JH.IsInArena()
+-- 	local me = GetClientPlayer()
+-- 	local dwMapID = me.GetMapID()
+-- 	local nMapType = select(2, GetMapParams(dwMapID))
+-- 	return nMapType and nMapType == MAP_TYPE.BATTLE_FIELD
+-- end
 
 -- 判断是不是副本地图
 function JH.IsInDungeon(bType)

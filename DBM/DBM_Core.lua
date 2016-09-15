@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-09-14 23:49:34
+-- @Last Modified time: 2016-09-15 13:28:30
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -76,9 +76,9 @@ local CACHE = {
 }
 
 local D = {
-	FILE = {}, -- 文件原始数据
-	TEMP = {}, -- 近期事件记录
-	DATA = {}  -- 需要监控的数据合集
+	FILE  = {}, -- 文件原始数据
+	TEMP  = {}, -- 近期事件记录
+	DATA  = {},  -- 需要监控的数据合集
 }
 
 -- 初始化table 虽然写法没有直接写来得好 但是为了方便以后改动
@@ -385,71 +385,76 @@ function D.CreateData(szEvent)
 	end
 	for k, v in pairs(CACHE.MAP) do
 		CACHE.MAP[k] = {}
+		if k == "TALK" or k == "CHAT" then
+			CACHE.MAP[k].HIT   = {}
+			CACHE.MAP[k].OTHER = {}
+		end
 	end
-	if JH.IsInBattleField() and szLang == "zhcn" and not JH.bDebugClient then
+	pcall(Raid_MonitorBuffs) -- clear
+	-- 判断战场使用条件
+	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
-		return D.Log("MAPID: " .. dwMapID ..  " create data Failed:" .. GetTime() - nTime  .. "ms")
-	end
-	-- 重建MAP
-	for _, v in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD" }) do
-		if D.FILE[v][dwMapID] then -- 本地图数据
-			CreateCache(v, D.FILE[v][dwMapID])
-		end
-		if D.FILE[v][-1] then -- 通用数据
-			CreateCache(v, D.FILE[v][-1])
-		end
-	end
-	-- 单独重建TALK数据
-	do
-		for _, vType in ipairs({ "TALK", "CHAT" }) do
-			local data  = D.FILE[vType]
-			local talk  = D.DATA[vType]
-			CACHE.MAP[vType] = {
-				HIT   = {},
-				OTHER = {},
-			}
-			local cache = CACHE.MAP[vType]
-			if data[-1] then -- 通用数据
-				for k, v in ipairs(data[-1]) do
-					talk[#talk + 1] = v
-				end
-			end
-			if data[dwMapID] then -- 本地图数据
-				for k, v in ipairs(data[dwMapID]) do
-					talk[#talk + 1] = v
-				end
-			end
-			for k, v in ipairs(talk) do
-				if v.szContent then
-					if v.szContent:find("$me") or v.szContent:find("$team") or v.bSearch or v.bReg then
-						tinsert(cache.OTHER, v)
-					else
-						cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
-						cache.HIT[v.szContent][v.szTarget or "sys"] = v
-					end
-				else
-					JH.Sysmsg2("[Warning] " .. vType .. " data is not szContent #" .. k .. ", please do check it!")
-				end
-			end
-			D.Log("create " .. vType .. " data success!")
-		end
-
-	end
-	if DBM.bPushTeamPanel then
-		local tBuff = {}
-		for k, v in ipairs(D.DATA.BUFF) do
-			if v[DBM_TYPE.BUFF_GET] and v[DBM_TYPE.BUFF_GET].bTeamPanel then
-				tinsert(tBuff, v.dwID)
-			end
-		end
-		for k, v in ipairs(D.DATA.DEBUFF) do
-			if v[DBM_TYPE.BUFF_GET] and v[DBM_TYPE.BUFF_GET].bTeamPanel then
-				tinsert(tBuff, v.dwID)
-			end
-		end
-		pcall(Raid_MonitorBuffs, tBuff)
+		D.Log("MAPID: " .. dwMapID ..  " create data Failed:" .. GetTime() - nTime  .. "ms")
 	else
-		pcall(Raid_MonitorBuffs) -- clear
+		-- 重建MAP
+		for _, v in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD" }) do
+			if D.FILE[v][dwMapID] then -- 本地图数据
+				CreateCache(v, D.FILE[v][dwMapID])
+			end
+			if D.FILE[v][-1] then -- 通用数据
+				CreateCache(v, D.FILE[v][-1])
+			end
+		end
+		-- 单独重建TALK数据
+		do
+			for _, vType in ipairs({ "TALK", "CHAT" }) do
+				local data  = D.FILE[vType]
+				local talk  = D.DATA[vType]
+				CACHE.MAP[vType] = {
+					HIT   = {},
+					OTHER = {},
+				}
+				local cache = CACHE.MAP[vType]
+				if data[-1] then -- 通用数据
+					for k, v in ipairs(data[-1]) do
+						talk[#talk + 1] = v
+					end
+				end
+				if data[dwMapID] then -- 本地图数据
+					for k, v in ipairs(data[dwMapID]) do
+						talk[#talk + 1] = v
+					end
+				end
+				for k, v in ipairs(talk) do
+					if v.szContent then
+						if v.szContent:find("$me") or v.szContent:find("$team") or v.bSearch or v.bReg then
+							tinsert(cache.OTHER, v)
+						else
+							cache.HIT[v.szContent] = cache.HIT[v.szContent] or {}
+							cache.HIT[v.szContent][v.szTarget or "sys"] = v
+						end
+					else
+						JH.Sysmsg2("[Warning] " .. vType .. " data is not szContent #" .. k .. ", please do check it!")
+					end
+				end
+				D.Log("create " .. vType .. " data success!")
+			end
+		end
+		if DBM.bPushTeamPanel then
+			local tBuff = {}
+			for k, v in ipairs(D.DATA.BUFF) do
+				if v[DBM_TYPE.BUFF_GET] and v[DBM_TYPE.BUFF_GET].bTeamPanel then
+					tinsert(tBuff, v.dwID)
+				end
+			end
+			for k, v in ipairs(D.DATA.DEBUFF) do
+				if v[DBM_TYPE.BUFF_GET] and v[DBM_TYPE.BUFF_GET].bTeamPanel then
+					tinsert(tBuff, v.dwID)
+				end
+			end
+			pcall(Raid_MonitorBuffs, tBuff)
+		end
+		D.Log("MAPID: " .. dwMapID ..  " create data success:" .. GetTime() - nTime  .. "ms")
 	end
 	-- gc
 	if szEvent ~= "DBM_CREATE_CACHE" then
@@ -461,7 +466,6 @@ function D.CreateData(szEvent)
 		D.Log("collectgarbage(\"collect\") " .. collectgarbage("count"))
 	end
 	FireUIEvent("DBMUI_FREECACHE")
-	D.Log("MAPID: " .. dwMapID ..  " create data success:" .. GetTime() - nTime  .. "ms")
 end
 
 function D.FreeCache(szType)
@@ -1138,9 +1142,6 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 	end
 	local tInfo, data
 	local cache = CACHE.MAP[szEvent]
-	if not cache and not cache.HIT then -- 不知道什么BUG
-		D.Log('ERROR' .. (szEvent and "NULL"))
-	end
 	if cache.HIT[szContent] then
 		if cache.HIT[szContent][szNpcName or "sys"] then
 			data = cache.HIT[szContent][szNpcName or "sys"]
@@ -1376,6 +1377,27 @@ function D.OnNpcAllLeave(dwTemplateID)
 	end
 end
 
+-- RegisterMsgMonitor
+function D.RegisterMessage(bEnable)
+	if bEnable then
+		JH.RegisterMsgMonitor("DBM_MON", function(szMsg, nFont, bRich)
+			if not GetClientPlayer() then
+				return
+			end
+			if bRich then
+				szMsg = GetPureText(szMsg)
+			end
+			-- local res, err = pcall(D.OnCallMessage, "CHAT", szMsg:gsub("\r", ""))
+			-- if not res then
+			-- 	return JH.Sysmsg2(err)
+			-- end
+			D.OnCallMessage("CHAT", szMsg:gsub("\r", ""))
+		end, { "MSG_SYS" })
+	else
+		JH.RegisterMsgMonitor("DBM_MON")
+	end
+end
+
 -- UI操作
 function D.GetFrame()
 	return Station.Lookup("Normal/DBM")
@@ -1388,19 +1410,7 @@ function D.Open()
 			frame:UnRegisterEvent(v)
 			frame:RegisterEvent(v)
 		end
-		JH.RegisterMsgMonitor("DBM_MON", function(szMsg, nFont, bRich)
-			if not GetClientPlayer() then
-				return
-			end
-			if bRich then
-				szMsg = GetPureText(szMsg)
-			end
-			local res, err = pcall(D.OnCallMessage, "CHAT", szMsg:gsub("\r", ""))
-			-- if not res then
-			-- 	return JH.Sysmsg2(err)
-			-- end
-			-- D.OnCallMessage("CHAT", szMsg:gsub("\r", ""))
-		end, { "MSG_SYS" })
+		D.RegisterMessage(true)
 	end
 end
 -- DBM.OnCallMessage = D.OnCallMessage
@@ -1411,7 +1421,7 @@ function D.Close()
 		for k, v in ipairs(DBM_EVENTS) do
 			frame:UnRegisterEvent(v)  -- kill all event
 		end
-		JH.RegisterMsgMonitor("DBM_MON")
+		D.RegisterMessage(false)
 		FireUIEvent("JH_ST_CLEAR")
 		CACHE.NPC_LIST = {}
 		CACHE.SKILL_LIST = {}
