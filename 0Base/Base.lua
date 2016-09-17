@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-09-15 12:46:21
+-- @Last Modified by:   ³ÂÍþ
+-- @Last Modified time: 2016-09-17 08:14:57
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -92,8 +92,8 @@ local function GetLang()
 end
 local _L = GetLang()
 
-local _VERSION_   = 0x1050000
-local _BUILD_     = "20160907"
+local _VERSION_   = 0x1050100
+local _BUILD_     = "20160917"
 local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 
