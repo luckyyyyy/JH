@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-05 17:20:59
+-- @Last Modified time: 2016-10-05 18:02:34
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1148,6 +1148,9 @@ end
 
 
 function JH.JsonToTable(szJson, bUrlEncode)
+	if bUrlEncode then
+		szJson = JH.UrlDecode(szJson)
+	end
 	local result, err = JH.JsonDecode(szJson)
 	if err then
 		JH.Debug(err)
