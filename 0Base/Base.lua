@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   ³ÂÍþ
--- @Last Modified time: 2016-09-17 08:14:57
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-10-05 17:20:59
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -4119,7 +4119,7 @@ end
 local ICON_PAGE
 -- iconÑ¡ÔñÆ÷
 function GUI.OpenIconPanel(fnAction)
-	local nMaxIocn, boxs, txts = 8074, {}, {}
+	local nMaxIocn, boxs, txts = 8587, {}, {}
 	local ui = GUI.CreateFrame("JH_IconPanel", { w = 920, h = 650, title = _L["Icon Picker"], nStyle = 2 , close = true, focus = true })
 	local function GetPage(nPage, bInit)
 		if nPage == ICON_PAGE and not bInit then

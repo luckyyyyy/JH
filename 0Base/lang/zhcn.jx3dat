@@ -615,6 +615,7 @@ data = {
 	["KUNGFU_10389"] = "衣",
 	["KUNGFU_10448"] = "相",
 	["KUNGFU_10447"] = "莫",
+	["KUNGFU_10464"] = "刀",
 	["KUNGFU_0"] = "侠",
 	["take back all permissions"] = "收回所有权限",
 	-- AutoTeam.lua --

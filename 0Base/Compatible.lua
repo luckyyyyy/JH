@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-06 22:39:17
+-- @Last Modified time: 2016-10-05 17:18:47
 
 DBM_TYPE = {
 	OTHER           = 0,
@@ -57,7 +57,7 @@ JH_KUNGFU_LIST = {
 	{ 10015, "ui/Image/icon/skill_chunyang13.UITex", 0 }, -- ±∏Ã•Ω£“‚
 	{ 10026, "ui/Image/icon/skill_tiance02.UITex", 0 }, -- ∞¡—©
 	{ 10268, "ui/Image/icon/skill_GB_30.UITex", 0 }, -- –¶≥æ
-
+	{ 10464, "ui/Image/icon/daoj_16_8_25_16.UITex", 0 }, -- ∞‘µ∂
 }
 
 setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)
@@ -81,7 +81,8 @@ JH_FORCE_COLOR = {
 	[9]  = { 205, 133, 63  },
 	[10] = { 240, 70,  96  },
 	[21] = { 180, 60,  0   },
-	[22] = { 100, 250, 180 }
+	[22] = { 100, 250, 180 },
+	[23] = { 71 , 140, 210 },
 }
 
 setmetatable(JH_FORCE_COLOR, {

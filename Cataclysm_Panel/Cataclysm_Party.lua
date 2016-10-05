@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-28 16:54:52
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-10-05 17:16:54
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -223,8 +223,9 @@ local CTM_KUNGFU_TEXT = {
 	[10268] = _L["KUNGFU_10268"], -- "丐",
 	[10390] = _L["KUNGFU_10390"], -- "分",
 	[10389] = _L["KUNGFU_10389"], -- "衣",
-	[10448] = _L["KUNGFU_10448"], -- "衣",
-	[10447] = _L["KUNGFU_10447"], -- "衣",
+	[10448] = _L["KUNGFU_10448"], -- "相",
+	[10447] = _L["KUNGFU_10447"], -- "莫",
+	[10447] = _L["KUNGFU_10464"], -- "刀",
 }
 setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, __metatable = true })
 
