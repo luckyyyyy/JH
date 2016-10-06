@@ -1,7 +1,7 @@
 -- @Author: ChenWei-31027
 -- @Date:   2015-06-19 16:31:21
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-24 23:14:59
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-10-06 19:12:32
 
 local _L = JH.LoadLangPack
 
@@ -679,14 +679,14 @@ function RT.UpdateList()
 						local tEnchant = GetItemEnchantAttrib(vv.dwTemporaryEnchantID)
 						if tEnchant then
 							for kkk, vvv in pairs(tEnchant) do
-								if vvv.nID == 319 then -- ATTRIBUTE_TYPE.SKILL_EVENT_HANDLER
+								if vvv.nID == ATTRIBUTE_TYPE.SKILL_EVENT_HANDLER then -- ATTRIBUTE_TYPE.SKILL_EVENT_HANDLER
 									local skillEvent = g_tTable.SkillEvent:Search(vvv.nValue1)
 									if skillEvent then
 										desc = desc .. FormatString(skillEvent.szDesc, vvv.nValue1, vvv.nValue2)
 									else
 										desc = desc .. "<text>text=\"unknown skill event id:".. vvv.nValue1.."\"</text>"
 									end
-								elseif vvv.nID == 473 then -- ATTRIBUTE_TYPE.SET_EQUIPMENT_RECIPE
+								elseif vvv.nID == ATTRIBUTE_TYPE.SET_EQUIPMENT_RECIPE then -- ATTRIBUTE_TYPE.SET_EQUIPMENT_RECIPE
 									local tRecipeSkillAtrri = g_tTable.EquipmentRecipe:Search(vvv.nValue1, vvv.nValue2)
 									if tRecipeSkillAtrri then
 										desc = desc .. tRecipeSkillAtrri.szDesc
@@ -871,7 +871,7 @@ function RT.GetEquipCache(p)
 					-- 黄字装备
 					local aMagicAttrib = item.GetMagicAttrib()
 					for _, tAttrib in ipairs(aMagicAttrib) do
-						if tAttrib.nID == 319 then
+						if tAttrib.nID == ATTRIBUTE_TYPE.SKILL_EVENT_HANDLER then
 							tinsert(aInfo.tEquip, CreateItemTable(item, dwBox, dwX))
 							break
 						end
