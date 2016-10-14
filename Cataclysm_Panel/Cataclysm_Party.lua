@@ -225,7 +225,7 @@ local CTM_KUNGFU_TEXT = {
 	[10389] = _L["KUNGFU_10389"], -- "ÒÂ",
 	[10448] = _L["KUNGFU_10448"], -- "Ïà",
 	[10447] = _L["KUNGFU_10447"], -- "Äª",
-	[10447] = _L["KUNGFU_10464"], -- "µ¶",
+	[10464] = _L["KUNGFU_10464"], -- "µ¶",
 }
 setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, __metatable = true })
 

@@ -100,7 +100,7 @@ local RT_SELECT_PAGE  = 0
 local RT_SELECT_KUNGFU
 local RT_SELECT_DEATH
 --
-local RT_SCORE_FULL = 25000
+local RT_SCORE_FULL = 30000
 local RT = {
 	tAnchor = {},
 	tDamage = {},
