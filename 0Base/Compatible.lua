@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-05 17:18:47
+-- @Last Modified time: 2016-10-18 13:02:32
 
 DBM_TYPE = {
 	OTHER           = 0,
@@ -69,20 +69,20 @@ setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)
 end })
 
 JH_FORCE_COLOR = {
-	[0]  = { 255, 255, 255 },
-	[1]  = { 255, 178, 95  },
-	[2]  = { 196, 152, 255 },
-	[3]  = { 255, 111, 83  },
-	[4]  = { 89,  224, 232 },
-	[5]  = { 255, 129, 176 },
-	[6]  = { 55,  147, 255 },
-	[7]  = { 121, 183, 54  },
-	[8]  = { 214, 249, 93  },
-	[9]  = { 205, 133, 63  },
-	[10] = { 240, 70,  96  },
-	[21] = { 180, 60,  0   },
-	[22] = { 100, 250, 180 },
-	[23] = { 71 , 140, 210 },
+	[FORCE_TYPE.JIANG_HU ] = { 255, 255, 255 }, -- 江湖
+	[FORCE_TYPE.SHAO_LIN ] = { 255, 178, 95  }, -- 少林
+	[FORCE_TYPE.WAN_HUA  ] = { 196, 152, 255 }, -- 万花
+	[FORCE_TYPE.TIAN_CE  ] = { 255, 111, 83  }, -- 天策
+	[FORCE_TYPE.CHUN_YANG] = { 89 , 224, 232 }, -- 纯阳
+	[FORCE_TYPE.QI_XIU   ] = { 255, 129, 176 }, -- 七秀
+	[FORCE_TYPE.WU_DU    ] = { 55 , 147, 255 }, -- 五毒
+	[FORCE_TYPE.TANG_MEN ] = { 121, 183, 54  }, -- 唐门
+	[FORCE_TYPE.CANG_JIAN] = { 214, 249, 93  }, -- 藏剑
+	[FORCE_TYPE.GAI_BANG ] = { 205, 133, 63  }, -- 丐帮
+	[FORCE_TYPE.MING_JIAO] = { 240, 70 , 96  }, -- 明教
+	[FORCE_TYPE.CANG_YUN ] = { 180, 60 , 0   }, -- 苍云
+	[FORCE_TYPE.CHANG_GE ] = { 100, 250, 180 }, -- 长歌
+	[FORCE_TYPE.BA_DAO   ] = { 106 ,108, 189 }, -- 霸刀
 }
 
 setmetatable(JH_FORCE_COLOR, {
@@ -113,52 +113,6 @@ JH_MAP_NAME_FIX = {
 	[195] = 196,
 }
 
-if not PEEK_OTHER_PLAYER_RESPOND then
-	PEEK_OTHER_PLAYER_RESPOND = {
-		INVALID = 0,
-		SUCCESS = 1,
-		FAILED = 2,
-		CAN_NOT_FIND_PLAYER = 3,
-		TOO_FAR = 4
-	}
-end
-if not BATTLE_FIELD_NOTIFY_TYPE then
-	BATTLE_FIELD_NOTIFY_TYPE = {
-		LEAVE_BLACK_LIST = 5,
-		IN_BLACK_LIST = 4,
-		LEAVE_BATTLE_FIELD = 3,
-		JOIN_BATTLE_FIELD = 2,
-		QUEUE_INFO = 1,
-		INVALID = 0
-	}
-end
-
-if not ARENA_NOTIFY_TYPE then
-	ARENA_NOTIFY_TYPE = {
-		IN_BLACK_LIST = 5,
-		LEAVE_BLACK_LIST = 4,
-		LOG_OUT_ARENA_MAP = 3,
-		LOG_IN_ARENA_MAP = 2,
-		ARENA_QUEUE_INFO = 1,
-	}
-end
-if not ACTION_STATE then
-	ACTION_STATE = {
-		NONE = 1,
-		PREPARE = 2,
-		DONE = 3,
-		BREAK = 4,
-		FADE = 5,
-	}
-end
-GLOBAL_HEAD_CLIENTPLAYER = GLOBAL_HEAD_CLIENTPLAYER or 0
-GLOBAL_HEAD_OTHERPLAYER = GLOBAL_HEAD_OTHERPLAYER or 1
-GLOBAL_HEAD_NPC = GLOBAL_HEAD_NPC or 2
-
-GLOBAL_HEAD_LEFE = GLOBAL_HEAD_LEFE or 0
-GLOBAL_HEAD_GUILD = GLOBAL_HEAD_GUILD or 1
-GLOBAL_HEAD_TITLE = GLOBAL_HEAD_TITLE or 2
-GLOBAL_HEAD_NAME = GLOBAL_HEAD_NAME or 3
 BigBagPanel_nCount = 6
 
 --帮会仓库界面虚拟一个背包位置
