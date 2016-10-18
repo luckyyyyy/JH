@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-18 13:02:32
+-- @Last Modified time: 2016-10-18 13:06:20
 
 DBM_TYPE = {
 	OTHER           = 0,
@@ -26,38 +26,38 @@ DBM_TYPE = {
 	DOODAD_ALLLEAVE = 19,
 	CHAT_MONITOR    = 20,
 }
-DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3, TARGET = 4 }
+DBM_SCRUTINY_TYPE = { SELF = 1, TEAM = 2, ENEMY = 3, TARGET = 4 }
 
 -- skillid, uitex, frame
 JH_KUNGFU_LIST = {
 	-- MT
-	{ 10062, "ui/Image/icon/skill_tiance01.UITex", 0 }, -- 铁牢
-	{ 10243, "ui/Image/icon/mingjiao_taolu_7.UITex", 0 }, -- 明尊
-	{ 10389, "ui/Image/icon/Skill_CangY_33.UITex", 0 }, -- 铁骨
-	{ 10002, "ui/Image/icon/skill_shaolin14.UITex", 0 }, -- 少林
+	{ 10062, "ui/Image/icon/skill_tiance01.UITex",     0 }, -- 铁牢
+	{ 10243, "ui/Image/icon/mingjiao_taolu_7.UITex",   0 }, -- 明尊
+	{ 10389, "ui/Image/icon/Skill_CangY_33.UITex",     0 }, -- 铁骨
+	{ 10002, "ui/Image/icon/skill_shaolin14.UITex",    0 }, -- 少林
 	-- 治疗
-	{ 10080, "ui/Image/icon/skill_qixiu02.UITex", 0 }, -- 云裳
-	{ 10176, "ui/Image/icon/wudu_neigong_2.UITex", 0 }, -- 补天
-	{ 10028, "ui/Image/icon/skill_wanhua23.UITex", 0 }, -- 离经
-	{ 10448, "ui/Image/icon/skill_0514_23.UITex", 0 }, -- 相知
+	{ 10080, "ui/Image/icon/skill_qixiu02.UITex",      0 }, -- 云裳
+	{ 10176, "ui/Image/icon/wudu_neigong_2.UITex",     0 }, -- 补天
+	{ 10028, "ui/Image/icon/skill_wanhua23.UITex",     0 }, -- 离经
+	{ 10448, "ui/Image/icon/skill_0514_23.UITex",      0 }, -- 相知
 	-- 内功
-	{ 10225, "ui/Image/icon/skill_tangm_20.UITex", 0 }, -- 天罗
-	{ 10081, "ui/Image/icon/skill_qixiu03.UITex", 0 }, -- 冰心
-	{ 10175, "ui/Image/icon/wudu_neigong_1.UITex", 0 }, -- 毒经
-	{ 10242, "ui/Image/icon/mingjiao_taolu_8.UITex", 0 }, -- 焚影
-	{ 10014, "ui/Image/icon/skill_chunyang21.UITex", 0 }, -- 紫霞
-	{ 10021, "ui/Image/icon/skill_wanhua17.UITex", 0 }, -- 花间
-	{ 10003, "ui/Image/icon/skill_shaolin10.UITex", 0 }, -- 易经
-	{ 10447, "ui/Image/icon/skill_0514_27.UITex", 0 }, -- 莫问
+	{ 10225, "ui/Image/icon/skill_tangm_20.UITex",     0 }, -- 天罗
+	{ 10081, "ui/Image/icon/skill_qixiu03.UITex",      0 }, -- 冰心
+	{ 10175, "ui/Image/icon/wudu_neigong_1.UITex",     0 }, -- 毒经
+	{ 10242, "ui/Image/icon/mingjiao_taolu_8.UITex",   0 }, -- 焚影
+	{ 10014, "ui/Image/icon/skill_chunyang21.UITex",   0 }, -- 紫霞
+	{ 10021, "ui/Image/icon/skill_wanhua17.UITex",     0 }, -- 花间
+	{ 10003, "ui/Image/icon/skill_shaolin10.UITex",    0 }, -- 易经
+	{ 10447, "ui/Image/icon/skill_0514_27.UITex",      0 }, -- 莫问
 	-- 外功
-	{ 10390, "ui/Image/icon/Skill_CangY_32.UITex", 0 }, -- 分山
-	{ 10224, "ui/Image/icon/skill_tangm_01.UITex", 0 }, -- 鲸鱼
+	{ 10390, "ui/Image/icon/Skill_CangY_32.UITex",     0 }, -- 分山
+	{ 10224, "ui/Image/icon/skill_tangm_01.UITex",     0 }, -- 鲸鱼
 	{ 10144, "ui/Image/icon/cangjian_neigong_1.UITex", 0 }, -- 问水
 	{ 10145, "ui/Image/icon/cangjian_neigong_2.UITex", 0 }, -- 山居
-	{ 10015, "ui/Image/icon/skill_chunyang13.UITex", 0 }, -- 备胎剑意
-	{ 10026, "ui/Image/icon/skill_tiance02.UITex", 0 }, -- 傲雪
-	{ 10268, "ui/Image/icon/skill_GB_30.UITex", 0 }, -- 笑尘
-	{ 10464, "ui/Image/icon/daoj_16_8_25_16.UITex", 0 }, -- 霸刀
+	{ 10015, "ui/Image/icon/skill_chunyang13.UITex",   0 }, -- 备胎剑意
+	{ 10026, "ui/Image/icon/skill_tiance02.UITex",     0 }, -- 傲雪
+	{ 10268, "ui/Image/icon/skill_GB_30.UITex",        0 }, -- 笑尘
+	{ 10464, "ui/Image/icon/daoj_16_8_25_16.UITex",    0 }, -- 霸刀
 }
 
 setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)

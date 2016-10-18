@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-05 17:16:54
+-- @Last Modified time: 2016-10-19 02:36:38
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -676,7 +676,7 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 		local img = h:Lookup("Image_Icon")
 		if CFG.nShowIcon ~= 4 then
 			if CFG.nShowIcon == 2 then
-				local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 0)
+				local _, nIconID = JH.GetSkillName(info.dwMountKungfuID, 1)
 				if nIconID == 1435 then nIconID = 889 end
 				img:FromIconID(nIconID)
 			elseif CFG.nShowIcon == 1 then
