@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-07-10 20:41:02
+-- @Last Modified time: 2016-10-21 23:52:59
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -120,16 +120,17 @@ function JH_Achievement.OnLButtonClick()
 	if szName == "Btn_Close" then
 		Achievement.ClosePanel()
 	elseif szName == "Btn_Edit" then
-		if ACHI_CLIENT_LANG ~= "zhcn" and ACHI_CLIENT_LANG ~= "zhtw" then
-			return JH.Alert(_L["Sorry, Does not support this function"])
-		end
-		if this:GetRoot().szText == "" or this:GetRoot().szText == _L["Achi Default Templates"] then
-			Achievement.EditMode(true)
-		else
-			JH.Confirm(_L["ACHI_TIPS"], function()
-				Achievement.EditMode(true)
-			end)
-		end
+		JH.Alert(_L["ACHI_TIPS"])
+		-- if ACHI_CLIENT_LANG ~= "zhcn" and ACHI_CLIENT_LANG ~= "zhtw" then
+		-- 	return JH.Alert(_L["Sorry, Does not support this function"])
+		-- end
+		-- if this:GetRoot().szText == "" or this:GetRoot().szText == _L["Achi Default Templates"] then
+		-- 	Achievement.EditMode(true)
+		-- else
+		-- 	JH.Confirm(_L["ACHI_TIPS"], function()
+		-- 		Achievement.EditMode(true)
+		-- 	end)
+		-- end
 	elseif szName == "Btn_Cancel" then
 		Achievement.EditMode(false)
 	elseif szName == "Btn_Send" then

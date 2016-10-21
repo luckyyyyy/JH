@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-22 22:59:34
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-10-21 01:42:00
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer

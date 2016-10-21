@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-29 09:34:36
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-10-21 21:54:01
 
 -- 这个需要重写 构思已有 就是没时间。。
 local _L = JH.LoadLangPack
