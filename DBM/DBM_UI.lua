@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-09-07 00:31:21
+-- @Last Modified time: 2016-11-10 21:07:06
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -807,7 +807,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["Merge Priority old file"], group = "type" }):Click(function()
 		nType = 2
 	end):Pos_()
-	ui:Append("WndButton3", { x = 205, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
+	ui:Append("WndButton3", { x = 285, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
 		local config = {
 			bFullPath  = not szDefault,
 			szFileName = szDefault or ui:Fetch("FilePtah"):Text(),
@@ -854,7 +854,7 @@ function DBMUI.OpenExportPanel()
 		nType = 2
 	end):Pos_()
 	ui:Append("WndCheckBox", "Format", { x = 20, y = nY + 50, txt = _L["Format content"] })
-	ui:Append("WndButton3", { x = 205, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
+	ui:Append("WndButton3", { x = 285, y = nY + 30, txt = g_tStrings.STR_HOTKEY_SURE }):Click(function()
 		local config = {
 			bFormat = ui:Fetch("Format"):Check(),
 			szFileName = szFileName,
