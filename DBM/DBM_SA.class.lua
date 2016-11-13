@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-21 01:42:00
+-- @Last Modified time: 2016-11-13 15:18:08
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
@@ -10,11 +10,12 @@ local tinsert = table.insert
 local mmax = math.max
 local UI_SCALED = 1
 DBM_SA = {
-	bAlert    = false,
-	bOnlySelf = true,
-	fLifePer  = 0.3,
-	fManaPer  = 0.1,
-	nFont     = 203,
+	bAlert     = false,
+	bOnlySelf  = true,
+	fLifePer   = 0.3,
+	fManaPer   = 0.1,
+	nFont      = 203,
+	bDrawColor = false,
 }
 JH.RegisterCustomData("DBM_SA")
 
@@ -313,8 +314,7 @@ function SA:DrawText( ... )
 			if self.dwType == TARGET.DOODAD then
 				self.Text:AppendDoodadID(self.dwID, r, g, b, 240, { 0, 0, 0, 0, top }, DBM_SA.nFont, v, 1, 1)
 			else
-				--  职业门派颜色区分 自用 不适合公开太乱
-				if JH.bDebugClient and self.dwType == TARGET.PLAYER and k ~= 1 then
+				if DBM_SA.bDrawColor and self.dwType == TARGET.PLAYER and k ~= 1 then
 					local p = select(2, ScreenArrow.GetObject(self.szClass, self.dwID))
 					if p then
 						r, g, b = JH.GetForceColor(p.dwForceID)
@@ -473,12 +473,12 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Screen Head Alarm"], font = 27 }):Pos_()
-	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT }):Click(function()
-		GUI.OpenFontTablePanel(function(nFont)
-			DBM_SA.nFont = nFont
-		end)
-	end)
-	nX = ui:Append("WndCheckBox",{ x = 10, y = nY + 10, txt = _L["less life/mana HeadAlert"], checked = DBM_SA.bAlert }):Click(function(bChecked)
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Draw School Color"], checked = DBM_SA.bDrawColor, enable = DBM_SA.bAlert })
+	:Click(function(bChecked)
+		DBM_SA.bDrawColor = bChecked
+	end):Pos_()
+	nX, nY = ui:Append("Text", { x = 0, y = nY + 5, txt = _L["less life/mana HeadAlert"], font = 27 }):Pos_()
+	nX = ui:Append("WndCheckBox",{ x = 10, y = nY + 10, txt = _L["Enable"], checked = DBM_SA.bAlert }):Click(function(bChecked)
 		DBM_SA.bAlert = bChecked
 		ui:Fetch("Track_MP"):Enable(bChecked)
 		ui:Fetch("Track_HP"):Enable(bChecked)
@@ -501,7 +501,13 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("Text", { txt = _L["While MP less than"], x = 10, y = nY }):Pos_()
 	nX,nY = ui:Append("WndTrackBar", "Track_MP", { x = nX + 10, y = nY + 3, enable = DBM_SA.bAlert })
 	:Range(0, 100, 100):Value(DBM_SA.fManaPer * 100):Change(function(nVal) DBM_SA.fManaPer = nVal / 100 end):Pos_()
-	ui:Append("WndButton2", { txt = _L["preview"], x = 10, y = nY + 5 }):Click(function()
+
+	nX = ui:Append("WndButton2", { x = 10, y = nY + 5, txt = g_tStrings.FONT }):Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			DBM_SA.nFont = nFont
+		end)
+	end):Pos_()
+	ui:Append("WndButton2", { txt = _L["preview"], x = nX + 10, y = nY + 5 }):Click(function()
 		CreateScreenArrow("TIME", GetClientPlayer().dwID, { txt = _L("%s are welcome to use JH plug-in", GetUserRoleName()) })
 	end)
 end

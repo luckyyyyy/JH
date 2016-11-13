@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2015-12-10 04:50:42
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-11-13 15:26:28
 local _L = JH.LoadLangPack
 
 DBM_LT = {
@@ -89,12 +89,6 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["LargeText"], font = 27 }):Pos_()
-	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.FONT }):Click(function()
-		GUI.OpenFontTablePanel(function(nFont)
-			DBM_LT.dwFontScheme = nFont
-			ui:Fetch("preview"):Font(DBM_LT.dwFontScheme):Scale(DBM_LT.fScale)
-		end)
-	end)
 	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY + 10 }):Pos_()
 	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 13, txt = "" }):Range(1, 2, 10):Value(DBM_LT.fScale):Change(function(nVal)
 		DBM_LT.fScale = nVal
@@ -111,7 +105,13 @@ function PS.OnPanelActive(frame)
 		DBM_LT.fFadeOut = nVal
 	end):Pos_()
 
-	ui:Append("WndButton2", { txt = _L["preview"], x = 10, y = nY + 5 }):Click(function()
+	nX = ui:Append("WndButton2", { x = 10, y = nY + 5, txt = g_tStrings.FONT }):Click(function()
+		GUI.OpenFontTablePanel(function(nFont)
+			DBM_LT.dwFontScheme = nFont
+			ui:Fetch("preview"):Font(DBM_LT.dwFontScheme):Scale(DBM_LT.fScale)
+		end)
+	end):Pos_()
+	ui:Append("WndButton2", { txt = _L["preview"], x = nX + 10, y = nY + 5 }):Click(function()
 		LT.UpdateText(_L("%s are welcome to use JH plug-in", GetUserRoleName()))
 	end)
 	ui:Append("Text", "preview", { x = 20, y = nY + 50, txt = _L["JX3"], font = DBM_LT.dwFontScheme}):Scale(DBM_LT.fScale)
