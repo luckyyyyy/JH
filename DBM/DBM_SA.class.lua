@@ -1,13 +1,14 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-13 15:53:40
+-- @Last Modified time: 2016-11-13 16:12:58
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
 local PostThreadCall = PostThreadCall
 local tinsert = table.insert
 local mmax = math.max
+local TARGET = TARGET
 DBM_SA = {
 	bAlert     = false,
 	bOnlySelf  = true,

@@ -123,6 +123,7 @@ data = {
 	-- DBM_UI.lua --
 	["Set Countdown Key"] = "设置倒计时唯一标识",
 	["Hold Countdown"] = "倒计时过图不消失",
+	["Hold Fight Countdown"] = "倒计时脱战不消失",
 	["Countdown Key"] = "倒计时Key",
 
 	["Clear this map data"] = "清空分类下数据（小心）",

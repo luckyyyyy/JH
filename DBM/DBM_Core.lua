@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-09-15 13:28:30
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-11-13 16:28:15
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1294,7 +1294,7 @@ function D.OnNpcFight(dwTemplateID, bFight)
 			D.CountdownEvent(data, DBM_TYPE.NPC_FIGHT)
 		elseif data.tCountdown then -- 脱离的时候清空下
 			for k, v in ipairs(data.tCountdown) do
-				if v.nClass == DBM_TYPE.NPC_FIGHT then
+				if v.nClass == DBM_TYPE.NPC_FIGHT and not v.bFightHold then
 					local class = v.key and DBM_TYPE.COMMON or v.nClass
 					FireUIEvent("JH_ST_DEL", class, v.key or (k .. "."  .. data.dwID .. "." .. (data.nLevel or 0)), true) -- try kill
 				end

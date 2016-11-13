@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-13 15:54:21
+-- @Last Modified time: 2016-11-13 16:29:10
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1826,9 +1826,16 @@ function DBMUI.OpenSettingPanel(data, szType)
 						DBMUI.OpenSettingPanel(data, szType)
 					end, nil, nil, nil, v.key)
 				end })
+				table.insert(menu, { bDevide = true })
 				table.insert(menu, { szOption = _L["Hold Countdown"], bCheck = true, bChecked = v.bHold, fnAction = function()
 					v.bHold = not v.bHold
 				end })
+				if v.nClass == DBM_TYPE.NPC_FIGHT then
+					table.insert(menu, { szOption = _L["Hold Fight Countdown"], bCheck = true, bChecked = v.bFightHold, fnAction = function()
+						v.bFightHold = not v.bFightHold
+					end })
+				end
+
 				table.insert(menu, { bDevide = true })
 				table.insert(menu, { szOption = _L["Color Picker"], bDisable = true })
 				-- Color Picker

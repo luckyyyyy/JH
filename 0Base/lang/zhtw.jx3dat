@@ -66,6 +66,7 @@ data = {
 	["Draw School Color"] = "繪制門派顏色",
 	["less life/mana HeadAlert"] = "戰鬥中低血藍頭頂報警",
 	["Enable"] = "啟用",
+	["[%s]"] = "【%s】",
 	["While HP less than"] = "血量低於",
 	["While MP less than"] = "藍量低於",
 	["Manually add (One per line)"] = "手動添加BUFF名稱（每行壹個）",
@@ -122,6 +123,7 @@ data = {
 	-- DBM_UI.lua --
 	["Set Countdown Key"] = "設置倒計時唯壹標識",
 	["Hold Countdown"] = "倒計時過圖不消失",
+	["Hold Fight Countdown"] = "倒計時脫戰不消失",
 	["Countdown Key"] = "倒計時Key",
 
 	["Clear this map data"] = "清空分類下數據（小心）",
