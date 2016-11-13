@@ -1,11 +1,10 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 14:35:16
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-28 16:55:19
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-11-13 15:55:37
 
 local _L = JH.LoadLangPack
 local MARK = {}
-local MARK_NAME = { _L["Cloud"], _L["Sword"], _L["Ax"], _L["Hook"], _L["Drum"], _L["Shear"], _L["Stick"], _L["Jade"], _L["Dart"], _L["Fan"] }
 
 JH_AppendMark = {
 	bEnable = true,
@@ -91,11 +90,3 @@ function JH_AppendMark.GetEvent()
 	end
 end
 
-do
-	for k, v in ipairs(MARK_NAME) do
-		JH.AddHotKey("AutoSetTeam" .. k, _L["Mark"] .. " [" .. v .. "]", function()
-			local dwID = select(2, Target_GetTargetData())
-			GetClientTeam().SetTeamMark(k, dwID)
-		end)
-	end
-end

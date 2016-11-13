@@ -1,14 +1,13 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-13 15:18:08
+-- @Last Modified time: 2016-11-13 15:53:40
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
 local PostThreadCall = PostThreadCall
 local tinsert = table.insert
 local mmax = math.max
-local UI_SCALED = 1
 DBM_SA = {
 	bAlert     = false,
 	bOnlySelf  = true,
@@ -20,6 +19,8 @@ DBM_SA = {
 JH.RegisterCustomData("DBM_SA")
 
 local _L = JH.LoadLangPack
+local UI_SCALED = 1
+local JH_MARK_NAME = JH_MARK_NAME
 local HANDLE
 local CACHE = {
 	[TARGET.DOODAD] = {},
@@ -99,6 +100,8 @@ end
 function ScreenArrow.OnBreathe()
 	local me = GetClientPlayer()
 	if not me then return end
+	local team = GetClientTeam()
+	local tTeamMark = team.GetTeamMark() or {}
 	for dwType, tab in pairs(CACHE) do
 		for dwID, v in pairs(tab) do
 			local object, tInfo = select(2, ScreenArrow.GetObject(dwType, dwID))
@@ -113,6 +116,9 @@ function ScreenArrow.OnBreathe()
 					szName = JH.GetTemplateName(object)
 				end
 				szName = obj.szName or szName
+				if tTeamMark[dwID] then
+					szName = szName .. _L("[%s]", MARK_NAME[tTeamMark[dwID]])
+				end
 				local txt = ""
 				if obj.szClass == "BUFF" or obj.szClass == "DEBUFF" then
 					local KBuff = JH.GetBuff(obj.dwBuffID, object) -- 只判断dwID 反正不可能同时获得不同lv

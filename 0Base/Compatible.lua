@@ -1,7 +1,9 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-18 13:06:20
+-- @Last Modified time: 2016-11-13 15:53:46
+
+local _L = JH.LoadLangPack
 
 DBM_TYPE = {
 	OTHER           = 0,
@@ -112,6 +114,8 @@ JH_MAP_NAME_FIX = {
 	[146] = 147,
 	[195] = 196,
 }
+
+JH_MARK_NAME = { _L["Cloud"], _L["Sword"], _L["Ax"], _L["Hook"], _L["Drum"], _L["Shear"], _L["Stick"], _L["Jade"], _L["Dart"], _L["Fan"] }
 
 BigBagPanel_nCount = 6
 

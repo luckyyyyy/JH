@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-05 18:02:34
+-- @Last Modified time: 2016-11-13 15:57:31
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -1852,6 +1852,12 @@ JH.RegisterEvent("PLAYER_ENTER_GAME", function()
 	Hotkey.AddBinding("JH_Total", _L["JH Plugin"], _L["JH Plugin"], _JH.TogglePanel , nil)
 	for _, v in ipairs(_JH.tHotkey) do
 		Hotkey.AddBinding(v.szName, v.szTitle, "", v.fnAction, nil)
+	end
+	for k, v in ipairs(JH_MARK_NAME) do
+		Hotkey.AddBinding("JH_AutoSetTeam" .. k, _L["Mark"] .. " [" .. v .. "]", "", function()
+			local dwID = select(2, Target_GetTargetData())
+			GetClientTeam().SetTeamMark(k, dwID)
+		end, nil)
 	end
 	-- ×¢²áÍæ¼ÒÍ·Ïñ²Ëµ¥
 	Player_AppendAddonMenu({ _JH.GetPlayerAddonMenu })

@@ -66,6 +66,7 @@ data = {
 	["Draw School Color"] = "绘制门派颜色",
 	["less life/mana HeadAlert"] = "战斗中低血蓝头顶报警",
 	["Enable"] = "启用",
+	["[%s]"] = "【%s】",
 	["While HP less than"] = "血量低于",
 	["While MP less than"] = "蓝量低于",
 	["Manually add (One per line)"] = "手动添加BUFF名称（每行一个）",
