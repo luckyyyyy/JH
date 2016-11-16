@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-13 16:12:58
+-- @Last modified by:   Zhai Yiming
+-- @Last modified time: 2016-11-16 20:48:20
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
@@ -118,7 +118,7 @@ function ScreenArrow.OnBreathe()
 				end
 				szName = obj.szName or szName
 				if tTeamMark[dwID] then
-					szName = szName .. _L("[%s]", MARK_NAME[tTeamMark[dwID]])
+					szName = szName .. _L("[%s]", JH_MARK_NAME[tTeamMark[dwID]])
 				end
 				local txt = ""
 				if obj.szClass == "BUFF" or obj.szClass == "DEBUFF" then
