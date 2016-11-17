@@ -480,7 +480,7 @@ local PS = {}
 function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Screen Head Alarm"], font = 27 }):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Draw School Color"], checked = DBM_SA.bDrawColor, enable = DBM_SA.bAlert })
+	nX, nY = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = _L["Draw School Color"], checked = DBM_SA.bDrawColor })
 	:Click(function(bChecked)
 		DBM_SA.bDrawColor = bChecked
 	end):Pos_()
