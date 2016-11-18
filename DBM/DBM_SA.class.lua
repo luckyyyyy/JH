@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-04 20:17:03
 -- @Last modified by:   Zhai Yiming
--- @Last modified time: 2016-11-16 20:48:20
+-- @Last modified time: 2016-11-18 10:46:37
 
 local pairs, ipairs, select = pairs, ipairs, select
 local GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer = GetClientPlayer, GetPlayer, GetNpc, GetDoodad, IsPlayer
@@ -102,7 +102,7 @@ function ScreenArrow.OnBreathe()
 	local me = GetClientPlayer()
 	if not me then return end
 	local team = GetClientTeam()
-	local tTeamMark = team.GetTeamMark() or {}
+	local tTeamMark = team.dwTeamID > 0 and team.GetTeamMark() or EMPTY_TABLE
 	for dwType, tab in pairs(CACHE) do
 		for dwID, v in pairs(tab) do
 			local object, tInfo = select(2, ScreenArrow.GetObject(dwType, dwID))
