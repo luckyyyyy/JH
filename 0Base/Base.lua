@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-13 15:57:31
+-- @Last Modified time: 2016-11-21 20:01:48
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -36,7 +36,6 @@ local JH_BGMSG        = {}
 local JH_REQUEST      = {}
 local JH_MONMSG       = {}
 -- call
-local JH_CALL_AJAX    = {}
 local JH_CALL_BREATHE = {}
 local JH_CALL_DELAY   = {}
 -- cache
@@ -1525,102 +1524,6 @@ function JH.RemoteRequest(szUrl, fnAction)
 	tinsert(JH_REQUEST, { szUrl = szUrl, fnAction = fnAction })
 end
 
-local function ConvertToUTF8(data)
-	if type(data) == "table" then
-		local t = {}
-		for k, v in pairs(data) do
-			if type(k) == "string" then
-				t[ConvertToUTF8(k)] = ConvertToUTF8(v)
-			else
-				t[k] = ConvertToUTF8(v)
-			end
-		end
-		return t
-	elseif type(data) == "string" then
-		return AnsiToUTF8(data)
-	else
-		return data
-	end
-end
-
-local function EncodePostData(data, t, prefix)
-	if type(data) == "table" then
-		local first = true
-		for k, v in pairs(data) do
-			if first then
-				first = false
-			else
-				tinsert(t, "&")
-			end
-			if prefix == "" then
-				EncodePostData(v, t, k)
-			else
-				EncodePostData(v, t, prefix .. "[" .. k .. "]")
-			end
-		end
-	else
-		if prefix ~= "" then
-			tinsert(t, prefix)
-			tinsert(t, "=")
-		end
-		tinsert(t, data)
-	end
-end
-
-function JH.EncodePostData(data)
-	local t = {}
-	EncodePostData(data, t, "")
-	local text = tconcat(t)
-	return text
-end
-
-do
-	-- JH.Ajax({ url = "http://www.baidu.com" })
-	local set_default = {
-		charset  = 'utf8',
-		type     = 'post',
-		data     = {},
-		dataType = "text",
-		ssl      = false,
-		timeout  = 3,
-		success  = function(szContent, dwBufferSize, set)
-			JH.Debug("RemoteRequest # " .. set.url .. ' - SUCCESS')
-		end,
-		error    = function(errMsg, dwBufferSize, set)
-			JH.Debug("RemoteRequest # " .. set.url .. ' - ERROR')
-		end,
-	}
-	set_default.__index = set_default
-
-	function JH.Ajax(set)
-		assert(set and set.url)
-		setmetatable(set, set_default)
-		local szKey = GetTickCount() * 100
-		while JH_CALL_AJAX["JH_AJAX_" .. szKey] do
-			szKey = szKey + 1
-		end
-		szKey = "JH_AJAX_" .. szKey
-		JH_CALL_AJAX[szKey] = set
-		local url, data = set.url, set.data
-		if set.charset:lower() == "utf8" then
-			url  = ConvertToUTF8(url)
-			data = ConvertToUTF8(data)
-		end
-		if set.type:lower() == "post" then
-			CURL_HttpPost(szKey, url, data, set.ssl, set.timeout)
-		elseif set.type:lower() == "get" then
-			data = JH.EncodePostData(data)
-			if not url:find("?") then
-				url = url .. "?"
-			elseif url:sub(-1) ~= "&" then
-				url = url .. "&"
-			end
-			url = url .. data
-			CURL_HttpRqst(szKey, url, set.ssl, set.timeout)
-		end
-	end
-end
-
 local function ConvertToAnsi(data)
 	if type(data) == "table" then
 		local t = {}
@@ -1885,40 +1788,6 @@ JH.RegisterEvent("ON_BG_CHANNEL_MSG", function()
 		if not res then
 			JH.Debug("BG_MSG#" .. arg0 .. "# ERROR:" .. err)
 		end
-	end
-end)
-
-JH.RegisterEvent("CURL_REQUEST_RESULT.AJAX", function()
-	local szKey        = arg0
-	local bSuccess     = arg1
-	local szContent    = arg2
-	local dwBufferSize = arg3
-	if JH_CALL_AJAX[szKey] then
-		local set = JH_CALL_AJAX[szKey]
-		local fnError = set.error
-		local bError  = not bSuccess
-		if bSuccess then
-			if set.dataType == "json" then
-				local result, err = JH.JsonDecode(szContent)
-				if result then
-					szContent = result
-				else
-					JH.Debug("RemoteRequest # JsonDecode ERROR")
-					bError = true
-				end
-			end
-			local status, err = pcall(set.success, szContent, dwBufferSize, set)
-			if not status then
-				JH.Debug("RemoteRequest # " .. set.url .. ' - SUCCESS - PCALL ERROR - ' .. err)
-			end
-		end
-		if bError then
-			local status, err = pcall(fnError, "failed", dwBufferSize, set)
-			if not status then
-				JH.Debug("RemoteRequest # " .. set.url .. ' - ERROR - PCALL ERROR - ' .. err)
-			end
-		end
-		JH_CALL_AJAX[szKey] = nil
 	end
 end)
 

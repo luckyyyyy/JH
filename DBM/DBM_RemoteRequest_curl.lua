@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-21 18:43:15
+-- @Last Modified time: 2016-11-21 20:25:55
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -190,24 +190,19 @@ end
 function W.RequestList(szUrl)
 	szUrl = szUrl or W.szFileList
 	W.Loading()
-	JH.Ajax({
-		url      = szUrl,
-		charset  = 'utf8',
-		type     = 'post',
-		dataType = "text",
-		ssl      = false,
-		timeout  = 3,
-		success  = function(szContent, dwBufferSize, set)
-			local data = JH.JsonToTable(szContent)
-			if CLIENT_LANG == "zhcn" then
-				data = JH.ConvertToAnsi(data)
-			end
-			W.ListCallBack(data)
-		end,
-		error   = function(errMsg, dwBufferSize, set)
-			JH.Sysmsg2(_L["request failed"] .. errMsg)
-		end,
+	JH.Curl({
+		url = szUrl,
 	})
+	:done(function(szContent, dwBufferSize)
+		local data = JH.JsonToTable(szContent)
+		if CLIENT_LANG == "zhcn" then
+			data = JH.ConvertToAnsi(data)
+		end
+		W.ListCallBack(data)
+	end)
+	:fail(function(errMsg, dwBufferSize)
+		JH.Sysmsg2(_L["request failed"] .. errMsg)
+	end)
 end
 
 function W.ListCallBack(result)
@@ -340,32 +335,27 @@ function W.CallDoanloadData(data, szPath, szFileName)
 		fnAction(szFileName)
 	else -- 否则 remote request
 		JH.Topmsg(_L["Loading..., please wait."])
-		JH.Ajax({
-			url      = W.szDownload .. data.tid .. "/" .. data.md5,
-			charset  = 'utf8',
-			type     = 'post',
-			data     = {
+		JH.Curl({
+			url = W.szDownload .. data.tid .. "/" .. data.md5,
+			data = {
 				lang = CLIENT_LANG
 			},
-			dataType = "text",
-			ssl      = false,
-			timeout  = 3,
-			success  = function(szContent, dwBufferSize, set)
-				local tab = JH.JsonToTable(szContent)
-				if not tab then
-					JH.SaveLUAData("log/error/err_" .. data.tid, err)
-					return JH.Alert(_L["update failed! Please try again."])
-				end
-				if CLIENT_LANG == "zhcn" then
-					tab = JH.ConvertToAnsi(tab)
-				end
-				SaveLUAData(szPath .. szFileName, tab, nil, false) -- 缓存文件
-				fnAction(szFileName)
-			end,
-			error    = function(errMsg, dwBufferSize, set)
-				JH.Sysmsg2(_L["request failed"] .. errMsg)
-			end,
 		})
+		:done(function(szContent, dwBufferSize, set)
+			local tab = JH.JsonToTable(szContent)
+			if not tab then
+				JH.SaveLUAData("log/error/err_" .. data.tid, err)
+				return JH.Alert(_L["update failed! Please try again."])
+			end
+			if CLIENT_LANG == "zhcn" then
+				tab = JH.ConvertToAnsi(tab)
+			end
+			SaveLUAData(szPath .. szFileName, tab, nil, false) -- 缓存文件
+			fnAction(szFileName)
+		end)
+		:fail(function(errMsg, dwBufferSize, set)
+			JH.Sysmsg2(_L["request failed"] .. errMsg)
+		end)
 	end
 end
 

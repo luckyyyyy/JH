@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-21 23:52:59
+-- @Last Modified time: 2016-11-21 20:31:59
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -449,31 +449,27 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 	if btn then btn:Enable(false) end
 	local bitmap, data, nPoint = GetAchievementList()
 	local code = table.concat(bitmap)
-	-- local nMax = 480
-	-- local len  = math.ceil(code:len() / nMax)
-	local tParam = {
-		gid    = id,
-		name   = GetUserRoleName(),
-		school = me.dwForceID,
-		camp   = me.nCamp,
-		point  = nPoint,
-		server = select(6, GetUserServer()),
-		lang   = ACHI_CLIENT_LANG,
-		code   = code
-	}
-	JH.Ajax({
+	JH.Curl({
 		url      = ACHI_ROOT_URL .. "api?op=sync",
-		type     = "post",
 		dataType = "json",
-		data     = tParam,
-		success = function(result, dwBufferSize, set)
-			if result.code == 200 then
-				if fnCallBack then
-					fnCallBack()
-				end
+		data     = {
+			gid    = id,
+			name   = GetUserRoleName(),
+			school = me.dwForceID,
+			camp   = me.nCamp,
+			point  = nPoint,
+			server = select(6, GetUserServer()),
+			lang   = ACHI_CLIENT_LANG,
+			code   = code
+		},
+	})
+	:done(function(result, dwBufferSize, set)
+		if result.code == 200 then
+			if fnCallBack then
+				fnCallBack()
 			end
 		end
-	})
+	end)
 end
 
 local PS = {}
@@ -493,26 +489,25 @@ function PS.OnPanelActive(frame)
 		nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Last Sync Time:"], color = { 255, 255, 200 } }):Pos_()
 		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
 		-- get
-		JH.Ajax({
+		JH.Curl({
 			url = ACHI_ROOT_URL .. "api?op=check&code=" .. id,
 			type = 'get',
 			dataType = 'json',
-			success = function(result)
-				if ui then
-					if result.code == 200 then
-						ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.data.time)))
-					else
-						ui:Fetch('time'):Text(_L["No Record"])
-					end
-					-- ui:Fetch("sync"):Enable(true)
-				end
-			end,
-			error = function()
-				if ui then
-					ui:Fetch('time'):Text(_L["request failed"]):Color(255, 0, 0)
+		})
+		:done(function(result)
+			if ui then
+				if result.code == 200 then
+					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.data.time)))
+				else
+					ui:Fetch('time'):Text(_L["No Record"])
 				end
 			end
-		})
+		end)
+		:fail(function()
+			if ui then
+				ui:Fetch('time'):Text(_L["request failed"]):Color(255, 0, 0)
+			end
+		end)
 		nX, nY = ui:Append("WndCheckBox", "sync", { x = 5, y = nY + 12, txt = _L["sync Achievement"], checked = JH_Achievement.bAutoSync }):Click(function(bCheck)
 			if bCheck then
 				Achievement.SyncAchiList(ui:Fetch('sync'), function()
