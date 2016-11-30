@@ -5,7 +5,7 @@
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-local ACHI_ROOT_URL = "http://game.j3ui.com/wiki/"
+local ACHI_ROOT_URL = "http://haimanchajian.com"
 -- local ACHI_ROOT_URL = "http://10.37.210.22:8088/wiki/"
 -- local ACHI_ROOT_URL = "http://10.0.20.20:8090/wiki/"
 -- local ACHI_ROOT_URL = "http://localhost/wiki/"
@@ -48,7 +48,8 @@ local function GetAchievementList()
 end
 
 JH_Achievement = {
-	bAutoSync = false
+	bAutoSync = false,
+	nSyncPoint = 0,
 }
 JH.RegisterCustomData("JH_Achievement")
 
@@ -142,7 +143,7 @@ function JH_Achievement.OnItemLButtonClick()
 	local szName = this:GetName()
 	if szName == "Text_Link" then
 		local frame = this:GetRoot()
-		OpenInternetExplorer(ACHI_ROOT_URL .. "detail/" .. frame.dwAchievement)
+		OpenInternetExplorer(ACHI_ROOT_URL .. "/wiki/view/" .. frame.dwAchievement)
 		if not frame.bEdit then
 			Achievement.ClosePanel()
 		end
@@ -313,22 +314,22 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 		frame.desc:SetText(szDesc)
 		frame:Lookup("Btn_Edit"):Enable(false)
 		frame.pedia:Clear()
-		frame.link:SetText(_L("Link(Open URL):%s", ACHI_ROOT_URL .. "detail/" .. dwID))
+		frame.link:SetText(_L("Link(Open URL):%s", ACHI_ROOT_URL .. "/wiki/view/" .. dwID))
 		frame.link:AutoSize()
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
 		frame.pedia:FormatAllItemPos()
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
-		JH.RemoteRequest(ACHI_ROOT_URL .. "api?op=game&aid=" .. dwID .. "&_" .. GetCurrentTime() .. "&lang=" .. ACHI_CLIENT_LANG, function(szTitle, szDoc)
-			if Achievement.IsOpened() then
-				local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-				if err then
-					JH.Sysmsg2(_L["request failed"])
-				else
-					frame:Lookup("Btn_Edit"):Enable(true)
-					if tonumber(result['id']) == frame.dwAchievement then
-						Achievement.RemoteCallBack(result)
-					end
-				end
+		JH.Curl({
+			url      = ACHI_ROOT_URL .. "/api/wiki/" .. dwID .. "?__lang=s" .. ACHI_CLIENT_LANG,
+			type = "get",
+			dataType = "json",
+		})
+		:done(function(result, dwBufferSize, set)
+			frame:Lookup("Btn_Edit"):Enable(true)
+			if result.aid then
+				Achievement.RemoteCallBack(result)
+			elseif result.errmsg then
+				JH.Alert(result.errmsg)
 			end
 		end)
 	end
@@ -338,19 +339,23 @@ function Achievement.RemoteCallBack(result)
 	local frame = Achievement.GetFrame()
 	frame.result = result -- 菜单用
 	frame.pedia:Clear()
-	if result.data then
-		local dat = result.data
+	if type(result.desc) == "table" then
 		local xml = {}
-		for k, v in ipairs(dat.desc) do
+		for k, v in ipairs(result.desc) do
 			if v.type == "text" then
-				tinsert(xml, GetFormatText(v.text, 6))
-			elseif v.type == "span" then
-				local r, g, b = unpack(v.text[1])
-				tinsert(xml, GetFormatText(v.text[2], 6, r, g, b))
+				local r, g, b = nil, nil, nil
+				if v.color then
+					r, g, b = unpack(v.color)
+				end
+				tinsert(xml, GetFormatText(v.text, 6, r, g, b))
 			elseif v.type == "image" then
-				tinsert(xml, "<image>script=".. EncodeComponentsString("this.src=" .. EncodeComponentsString(v.text[1]))  .." </image>")
-			elseif v.type == "a" then
-				tinsert(xml, GetFormatText(v.text[2], 6, 20, 150, 220, 272, Achievement.GetLinkScript(v.text[1])))
+				tinsert(xml, "<image>script=".. EncodeComponentsString("this.src=" .. EncodeComponentsString(v.url))  .." </image>")
+			elseif v.type == "link" then
+				local r, g, b = 20, 150, 220
+				if v.color then
+					r, g, b = unpack(v.color)
+				end
+				tinsert(xml, GetFormatText(v.text, 6, r, g, b, 272, Achievement.GetLinkScript(v.url)))
 			end
 		end
 		frame.pedia:AppendItemFromString(table.concat(xml))
@@ -374,11 +379,11 @@ function Achievement.RemoteCallBack(result)
 		frame.szText = GetPureText(table.concat(xml))
 		frame.pedia:AppendItemFromString(GetFormatText("\n\n", 6))
 		frame.pedia:AppendItemFromString(GetFormatText(_L["revise"], 172))
-		frame.pedia:AppendItemFromString(GetFormatText(" " .. dat.ver .. "\n", 6))
+		frame.pedia:AppendItemFromString(GetFormatText(" " .. result.ver .. "\n", 6))
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Author"], 172))
-		frame.pedia:AppendItemFromString(GetFormatText(" " .. dat.author .. "\n", 6))
+		frame.pedia:AppendItemFromString(GetFormatText(" " .. table.concat(result.authors, ", ") .. "\n", 6))
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Change time"], 172))
-		local date = FormatTime("%Y/%m/%d %H:%M", tonumber(dat.dateline))
+		local date = FormatTime("%Y/%m/%d %H:%M", tonumber(result.time_create))
 		frame.pedia:AppendItemFromString(GetFormatText(" " .. date, 6))
 	else
 		frame.pedia:AppendItemFromString(GetFormatText(result.desc, 6))
@@ -450,7 +455,7 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 	local bitmap, data, nPoint = GetAchievementList()
 	local code = table.concat(bitmap)
 	JH.Curl({
-		url      = ACHI_ROOT_URL .. "api?op=sync",
+		url      = ACHI_ROOT_URL .. "/api/wiki/data",
 		dataType = "json",
 		data     = {
 			gid    = id,
@@ -459,15 +464,14 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 			camp   = me.nCamp,
 			point  = nPoint,
 			server = select(6, GetUserServer()),
-			lang   = ACHI_CLIENT_LANG,
+			__lang = ACHI_CLIENT_LANG,
 			code   = code
 		},
 	})
 	:done(function(result, dwBufferSize, set)
-		if result.code == 200 then
-			if fnCallBack then
-				fnCallBack()
-			end
+		JH_Achievement.nSyncPoint = nPoint
+		if fnCallBack then
+			fnCallBack(result)
 		end
 	end)
 end
@@ -490,14 +494,14 @@ function PS.OnPanelActive(frame)
 		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
 		-- get
 		JH.Curl({
-			url = ACHI_ROOT_URL .. "api?op=check&code=" .. id,
+			url = ACHI_ROOT_URL .. "/api/wiki/data/" .. id,
 			type = 'get',
 			dataType = 'json',
 		})
 		:done(function(result)
 			if ui then
-				if result.code == 200 then
-					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.data.time)))
+				if result.time_update then
+					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.time_update)))
 				else
 					ui:Fetch('time'):Text(_L["No Record"])
 				end
@@ -521,7 +525,7 @@ function PS.OnPanelActive(frame)
 	end
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Other"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 10 , txt = _L["Achievepedia Website"], color = { 255, 255, 200 } }):Pos_()
-	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 10 , txt = "http://www.j3ui.com/wiki" }):Pos_()
+	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 10 , txt = ACHI_ROOT_URL .. "/wiki" }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["QQ Group"], color = { 255, 255, 200 } }):Pos_()
 	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 5 , txt = "256907822" }):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Global ID"], color = { 255, 255, 200 } }):Pos_()
@@ -556,6 +560,9 @@ end)
 
 JH.RegisterEvent({"FIRST_LOADING_END", "UPDATE_ACHIEVEMENT_POINT", --[[ UPDATE_ACHIEVEMENT_COUNT ]]}, function()
 	if JH_Achievement.bAutoSync then
-		Achievement.SyncAchiList()
+		local nPoint = GetClientPlayer().GetAchievementRecord()
+		if JH_Achievement.nSyncPoint ~= nPoint then
+			Achievement.SyncAchiList()
+		end
 	end
 end)

@@ -153,6 +153,9 @@ JH.RegisterEvent("CURL_REQUEST_RESULT.AJAX", function()
 			end
 		end
 		if bSuccess then
+			if option.charset:lower() == "utf8" and szContent ~= nil then
+				szContent = UTF8ToAnsi(szContent)
+			end
 			if option.dataType == "json" then
 				local result, err = JH.JsonDecode(szContent)
 				if result then
