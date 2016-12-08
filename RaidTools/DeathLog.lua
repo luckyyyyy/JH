@@ -132,10 +132,12 @@ end
 -- 这里的szKiller有个很大的坑
 -- 因为策划不喜欢写模板名称 导致NPC名字全是空的 摔死和淹死也是空
 -- 这就特别郁闷
-local function OnDeath(dwCharacterID, szKiller)
+local function OnDeath(dwCharacterID, dwKiller)
 	if IsPlayer(dwCharacterID) and (JH_IsParty(dwCharacterID) or dwCharacterID == PLAYER_ID) then
 		dwCharacterID = dwCharacterID == PLAYER_ID and "self" or dwCharacterID
 		DEATH_LOG[dwCharacterID] = DEATH_LOG[dwCharacterID] or {}
+		local killer = (IsPlayer(dwKiller) and GetPlayer(dwKiller)) or (not IsPlayer(dwKiller) and GetNpc(dwKiller))
+		local szKiller = killer and killer.szName or ""
 		if DAMAGE_LOG[dwCharacterID] then
 			tinsert(DEATH_LOG[dwCharacterID], {
 				nCurrentTime = GetCurrentTime(),
@@ -161,7 +163,7 @@ end)
 
 RegisterEvent("SYS_MSG", function()
 	if arg0 == "UI_OME_DEATH_NOTIFY" then -- 死亡记录
-		OnDeath(arg1, arg3)
+		OnDeath(arg1, arg2)
 	elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then -- 技能记录
 		OnSkillEffectLog(arg1, arg2, arg4, arg5, arg6, arg7, arg8, arg9)
 	elseif arg0 == "UI_OME_COMMON_HEALTH_LOG" then

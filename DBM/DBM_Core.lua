@@ -224,7 +224,7 @@ function DBM.OnEvent(szEvent)
 	elseif szEvent == "SYS_MSG" then
 		if arg0 == "UI_OME_DEATH_NOTIFY" then
 			if not IsPlayer(arg1) then
-				D.OnDeath(arg1, arg3)
+				D.OnDeath(arg1, arg2)
 			end
 		elseif arg0 == "UI_OME_SKILL_CAST_LOG" then
 			D.OnSkillCast(arg1, arg2, arg3, arg0)
@@ -1262,7 +1262,7 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 end
 
 -- NPC死亡事件 触发倒计时
-function D.OnDeath(dwCharacterID, szKiller)
+function D.OnDeath(dwCharacterID, dwKiller)
 	local npc = GetNpc(dwCharacterID)
 	if npc then
 		local data = D.GetData("NPC", npc.dwTemplateID)
