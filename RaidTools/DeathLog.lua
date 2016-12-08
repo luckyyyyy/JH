@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-24 00:09:06
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-24 22:45:50
+-- @Last modified by:   Zhai Yiming
+-- @Last modified time: 2016-12-08 17:55:51
 
 local _L = JH.LoadLangPack
 
@@ -137,7 +137,7 @@ local function OnDeath(dwCharacterID, dwKiller)
 		dwCharacterID = dwCharacterID == PLAYER_ID and "self" or dwCharacterID
 		DEATH_LOG[dwCharacterID] = DEATH_LOG[dwCharacterID] or {}
 		local killer = (IsPlayer(dwKiller) and GetPlayer(dwKiller)) or (not IsPlayer(dwKiller) and GetNpc(dwKiller))
-		local szKiller = killer and killer.szName or ""
+		local szKiller = killer and JH.GetTemplateName(killer, true) or ""
 		if DAMAGE_LOG[dwCharacterID] then
 			tinsert(DEATH_LOG[dwCharacterID], {
 				nCurrentTime = GetCurrentTime(),
