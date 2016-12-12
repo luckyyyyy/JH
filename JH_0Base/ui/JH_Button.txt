@@ -1,0 +1,4 @@
+Farme	Group	GroupIndex	GroupFrameDelay	Left	Top	Width	Height	Name
+0	3	1		0	0	50	52	菊花-按下.tga
+1	1	1		50	0	50	52	菊花-普通.tga
+2	2	1		100	0	50	52	菊花-鼠标.tga
