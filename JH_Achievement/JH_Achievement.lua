@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-21 20:31:59
+-- @Last Modified time: 2016-12-12 20:59:38
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -320,7 +320,7 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 		frame.pedia:FormatAllItemPos()
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 		JH.Curl({
-			url      = ACHI_ROOT_URL .. "/api/wiki/" .. dwID .. "?__lang=s" .. ACHI_CLIENT_LANG,
+			url      = ACHI_ROOT_URL .. "/api/wiki/" .. dwID .. "?__lang=" .. ACHI_CLIENT_LANG,
 			type = "get",
 			dataType = "json",
 		})
