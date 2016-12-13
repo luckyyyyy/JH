@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-22 18:24:47
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-12-13 01:42:35
 local _L = JH.LoadLangPack
 local _JH_About = {
 	INFO = {},
@@ -21,7 +21,7 @@ end
 function _JH_About.ShowInfo(dwID, dat)
 	_JH_About.INFO[dwID] = dat
 	local me = GetClientPlayer()
-	local ini = "interface/JH/0Base/About.ini"
+	local ini = "interface/JH/JH_0Base/About.ini"
 	local frame = Wnd.OpenWindow(ini, "JH_ABOUT")
 	if not frame then return end
 	GUI(frame):Point():RegisterClose(function() Wnd.CloseWindow(frame) end)
@@ -95,7 +95,7 @@ end
 
 function Panel.About.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
-	nX, nY = ui:Append("Image", "Animate0", { x = 5, y = 0, w = 730, h = 150}):File("interface/JH/0Base/background.tga"):Pos_()
+	nX, nY = ui:Append("Image", "Animate0", { x = 5, y = 0, w = 730, h = 150}):File("interface/JH/JH_0Base/background.tga"):Pos_()
 	nX, nY = ui:Append("Text", "Animate1", { x = 10, y = nY + 5, txt = _L["Free & open source, Utility, Focus on PVE!"], font = 27 }):Toggle(false):Pos_()
 	nX, nY = ui:Append("Text", "Animate2", { x = 20, y = nY + 10, w = 720 , h = 70, multi = true, txt = _L["ABOUT_TIPS"] }):Toggle(false):Pos_()
 	nY = nY + 70

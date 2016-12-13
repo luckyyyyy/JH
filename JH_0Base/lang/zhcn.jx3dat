@@ -548,7 +548,7 @@ data = {
 	["Check Employer"] = "检查归属权(仅自己才生效)",
 	-- Cataclysm_Main.lua --
 	["Interface settings"] = "界面设置",
-	["Cataclysm"] = "Cataclysm",
+	["Cataclysm"] = "团队面板",
 	["Please hold down Ctrl, change it"] = "请按住Ctrl来更改分配模式。",
 	["Enable Cataclysm Team Panel"] = "启用Cataclysm团队面板",
 	["Only in team"] = "只在团队中显示",

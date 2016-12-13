@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-26 17:59:37
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-12-13 02:29:40
 
 local _L = JH.LoadLangPack
 local CRAFT_RESULT_CODE_SUCCESS = 1
@@ -354,7 +354,7 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("WndButton2", "Copy", { x = nX + 5, y = nY + 12, txt = _L["Start Copy"] }):Click(Book.CheckCopy):Pos_()
 	nX, nY = ui:Append("WndButton2", "go_on", { x = nX + 5, y = nY + 12, txt = _L["go on"] }):Toggle(false):Click(Book.Copy):Pos_()
 	nX = ui:Append("Text", { x = 10, y = nY, txt = _L["Copy Count"] }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", "Count", { x = nX + 5, y = nY + 5, txt = "" }):Range(0, 1000, 1000):Value(JH_CopyBook.nCopyNum):Pos_()
+	nX, nY = ui:Append("WndTrackBar", "Count", { x = nX + 5, y = nY + 5, txt = "" }):Pos_()
 	nX, nY = ui:Append("Handle", "Books", { x = 0, y = nY, h = 40, w = 500 }):Pos_()
 	nX, nY = ui:Append("Handle", "Require", { x = 0, y = nY + 5, h = 200, w = 500 })
 	-- item cache

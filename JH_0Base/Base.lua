@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 01:11:48
+-- @Last Modified time: 2016-12-13 03:08:50
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -2732,7 +2732,10 @@ function _GUI.Wnd:Range(nMin, nMax, nStep)
 		end
 		if nMin then scroll.nMin = nMin end
 		if nMax then scroll.nMax = nMax end
-		if nStep then scroll:SetStepCount(nStep) end
+		if nStep then
+			scroll:SetStepCount(nStep)
+			-- scroll.SetDragStep(nStep)
+		end
 		self:Value(scroll.nVal)
 	end
 	return self
@@ -2748,7 +2751,10 @@ function _GUI.Wnd:Value(nVal)
 			return scroll.nVal
 		end
 		scroll.nVal = mmin(mmax(nVal, scroll.nMin), scroll.nMax)
-		scroll:SetScrollPos(mceil((scroll.nVal - scroll.nMin) / (scroll.nMax - scroll.nMin) * scroll:GetStepCount()))
+		local onChange = scroll.OnScrollBarPosChanged
+		scroll.OnScrollBarPosChanged = nil
+		scroll:SetScrollPos((scroll.nVal - scroll.nMin) / (scroll.nMax - scroll.nMin) * scroll:GetStepCount())
+		scroll.OnScrollBarPosChanged = onChange
 		self.txt:SetText(scroll.nVal .. scroll.szText)
 	end
 	return self
