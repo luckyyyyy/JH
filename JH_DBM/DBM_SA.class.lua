@@ -156,9 +156,7 @@ function ScreenArrow.OnBreathe()
 					else
 						return obj:Free()
 					end
-				elseif obj.szClass == "NPC" then
-					txt = obj.txt or _L["aim"]
-				elseif obj.szClass == "DOODAD" then
+				elseif obj.szClass == "NPC" or obj.szClass == "DOODAD" then
 					txt = obj.txt or txt
 				elseif obj.szClass == "TIME" then
 					if (GetTime() - obj.nNow) / 1000 > 5 then
@@ -316,7 +314,7 @@ function SA:DrawText( ... )
 	local r, g, b = unpack(SA_COLOR.FONT[self.szClass])
 	local i = 1
 	for k, v in ipairs({ ... }) do
-		if v ~= "" then
+		if v and v ~= "" then
 			local top = nTop + i * -23 * UI_SCALED
 			if self.dwType == TARGET.DOODAD then
 				self.Text:AppendDoodadID(self.dwID, r, g, b, 240, { 0, 0, 0, 0, top }, DBM_SA.nFont, v, 1, 1)
