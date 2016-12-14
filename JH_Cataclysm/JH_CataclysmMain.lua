@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-02-14 18:52:18
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-12-14 21:46:28
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -111,7 +111,7 @@ local function CreateControlBar()
 	local nRollQuality = team.nRollQuality
 	local frame        = GetFrame()
 	local hContainer   = frame:Lookup("Container_Main")
-	local szIniFile    = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Button.ini"
+	local szIniFile    = JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/Cataclysm_Button.ini"
 	hContainer:Clear()
 	-- 分配模式
 	local line = 22
@@ -235,7 +235,7 @@ end
 
 local function OpenCataclysmPanel()
 	if not GetFrame() then
-		Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Main.ini", "Cataclysm_Main")
+		Wnd.OpenWindow(JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/Cataclysm_Main.ini", "Cataclysm_Main")
 	end
 end
 
@@ -333,8 +333,8 @@ function Cataclysm_Main.OnFrameCreate()
 	CreateControlBar()
 	this:EnableDrag(Cataclysm_Main.bDrag)
 	-- 中间层数据 常用的
-	this.hMember = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/item.ini", "Handle_RoleDummy")
-	this.hBuff   = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Item_Buff.ini", "Handle_Buff")
+	this.hMember = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/item.ini", "Handle_RoleDummy")
+	this.hBuff   = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/Item_Buff.ini", "Handle_Buff")
 
 end
 -------------------------------------------------

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-19 02:36:38
+-- @Last Modified time: 2016-12-14 21:45:47
 local _L = JH.LoadLangPack
 -----------------------------------------------
 -- 重构 @ 2015 赶时间 很多东西写的很粗略
@@ -31,7 +31,7 @@ local CTM_BOX_HEIGHT         = 42    -- 注意::受限ini 这里只是作用于动态修改
 local CTM_GROUP_COUNT        = 5 - 1 -- 防止以后开个什么40人本 估计不太可能 就和剑三这还得好几年
 local CTM_MEMBER_COUNT       = 5
 local CTM_DRAG               = false
-local CTM_INIFILE            = JH.GetAddonInfo().szRootPath .. "Cataclysm_Panel/ui/Cataclysm_Party.ini"
+local CTM_INIFILE            = JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/Cataclysm_Party.ini"
 local CTM_DRAG_ID
 local CTM_TARGET
 local CTM_TTARGET

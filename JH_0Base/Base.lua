@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 03:08:50
+-- @Last Modified time: 2016-12-13 22:02:55
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -2753,7 +2753,7 @@ function _GUI.Wnd:Value(nVal)
 		scroll.nVal = mmin(mmax(nVal, scroll.nMin), scroll.nMax)
 		local onChange = scroll.OnScrollBarPosChanged
 		scroll.OnScrollBarPosChanged = nil
-		scroll:SetScrollPos((scroll.nVal - scroll.nMin) / (scroll.nMax - scroll.nMin) * scroll:GetStepCount())
+		scroll:SetScrollPos((scroll.nVal - scroll.nMin) / (scroll.nMax - scroll.nMin) * scroll:GetStepCount(), WNDEVENT_FIRETYPE.FORCE)
 		scroll.OnScrollBarPosChanged = onChange
 		self.txt:SetText(scroll.nVal .. scroll.szText)
 	end
