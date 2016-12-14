@@ -445,7 +445,7 @@ function Achievement.OnFrameBreathe()
 	end
 end
 
-function Achievement.SyncAchiList(btn, fnCallBack)
+function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 	local me = GetClientPlayer()
 	local id = me.GetGlobalID()
 	-- if IsRemotePlayer(me.dwID) then
@@ -464,6 +464,9 @@ function Achievement.SyncAchiList(btn, fnCallBack)
 			camp   = me.nCamp,
 			point  = nPoint,
 			server = select(6, GetUserServer()),
+			body = me.nRoleType,
+			avatar = me.dwMiniAvatarID,
+			__qrcode = __qrcode,
 			__lang = ACHI_CLIENT_LANG,
 			code   = code
 		},
@@ -512,7 +515,7 @@ function PS.OnPanelActive(frame)
 				ui:Fetch('time'):Text(_L["request failed"]):Color(255, 0, 0)
 			end
 		end)
-		nX, nY = ui:Append("WndCheckBox", "sync", { x = 5, y = nY + 12, txt = _L["sync Achievement"], checked = JH_Achievement.bAutoSync }):Click(function(bCheck)
+		nX = ui:Append("WndCheckBox", "sync", { x = 5, y = nY + 12, txt = _L["sync Achievement"], checked = JH_Achievement.bAutoSync }):Click(function(bCheck)
 			if bCheck then
 				Achievement.SyncAchiList(ui:Fetch('sync'), function()
 					GetUserInput(_L["Synchronization Complete, Please copy the id."], nil, nil, nil, nil, id);
@@ -521,6 +524,21 @@ function PS.OnPanelActive(frame)
 				end)
 			end
 			JH_Achievement.bAutoSync = bCheck
+		end):Pos_()
+		nX, nY = ui:Append("WndButton", "wechat", { x = nX + 10, y = nY + 14, txt = _L["View in Wechat"] }):AutoSize(8):Click(function()
+			local btn = ui:Fetch("wechat")
+			Achievement.SyncAchiList(btn, function(res)
+				btn:Enable(true)
+				ui:Fetch("time"):Text(FormatTime("%Y/%m/%d %H:%M:%S", GetCurrentTime()))
+				if res and res.qrcode then
+					local fW, fH = 240, 240
+					local sW, sH = fW + 20, fH + 40
+					local frm = GUI.CreateFrame("JH_ImageView", { w = sW, h = sH, nStyle = 2, title = _L["View your achievements"] }):BackGround(222, 210, 190)
+					frm:Append("Image", { x = 10, y = 0, w = fW, h = fH }):Raw():FromRemoteFile(res.qrcode:gsub("https:", "http:"), true)
+					frm:Raw():GetRoot():SetPoint("CENTER", 0, 0, "CENTER", 0, 0)
+					ui:Fetch("Image_Wechat"):Toggle(false)
+				end
+			end, 1)
 		end):Pos_()
 	end
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Other"], font = 27 }):Pos_()
@@ -531,7 +549,7 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Global ID"], color = { 255, 255, 200 } }):Pos_()
 	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 5 , txt = id }):Pos_()
 	-- wechat
-	ui:Append("Image", { x = 340, y = 260, h = 150, w = 150, file = JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga" })
+	ui:Append("Image", "Image_Wechat", { x = 340, y = 260, h = 150, w = 150, file = JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga" })
 end
 
 
