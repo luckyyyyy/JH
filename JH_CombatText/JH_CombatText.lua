@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
 -- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-02 07:18:00
+-- @Last Modified time: 2016-12-17 15:19:16
 
 -- 战斗浮动文字设计思路
 --[[
@@ -268,7 +268,7 @@ function JH_CombatText.OnEvent(szEvent)
 		COMBAT_TEXT_UI_SCALE   = Station.GetUIScale()
 		COMBAT_TEXT_TRAJECTORY = CombatText.TrajectoryCount()
 	elseif szEvent == "SKILL_DODGE" then
-		if arg0 == COMBAT_TEXT_PLAYERID then
+		if arg0 == COMBAT_TEXT_PLAYERID or arg1 == COMBAT_TEXT_PLAYERID then
 			CombatText.OnSkillDodge(arg1)
 		end
 	elseif szEvent == "NPC_ENTER_SCENE" then
