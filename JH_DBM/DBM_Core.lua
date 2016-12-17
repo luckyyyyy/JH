@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 01:08:13
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2016-12-17 13:46:53
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1320,7 +1320,7 @@ function D.GetStringStru(szString)
 		return data
 	end
 end
-
+-- 不该放在倒计时中 需要重构
 function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data and data.tCountdown then

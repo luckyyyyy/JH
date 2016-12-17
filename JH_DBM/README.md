@@ -399,15 +399,3 @@ DBM_TYPE = {
 -- 监控类型null则为All
 DBM_SCRUTINY_TYPE = { SELF  = 1, TEAM  = 2, ENEMY = 3, TARGET = 4 }
 ```
-
-----
-
-## 原团队事件监控数据转换DBM数据方法
-
-* 如果您没有自己的数据，无须理会。
-* 必要条件：请准备好体验服客户端。
-* 打开体服 `interface/JH/DBM/info.ini` 删除里面的`;`，然后登陆客户端。
-* 将导出的所有数据文件放到`体服`interface任意文件夹下，如果没有来得及导出数据但是已无团队事件监控插件，可以尝试在询问朋友获取或者看看interface下有无以前可用的副本。
-* 然后在聊天框输入 `/ RGESToDBM("szPath")` 请将`szPath`转换为相对路径，例如`/ RGESToDBM("interface/abc.jx3dat")`
-* 执行后根据提示找到对应文件，打开DBM面板，导入即可。
-

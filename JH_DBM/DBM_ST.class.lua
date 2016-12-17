@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 00:51:03
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2016-12-17 13:41:24
 -- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
@@ -19,12 +19,12 @@ local GetClientPlayer, GetTime, IsEmpty = GetClientPlayer, GetTime, IsEmpty
 local ST_UI_NOMAL   = 5
 local ST_UI_WARNING = 2
 local ST_UI_ALPHA   = 180
-local ST_TIME_CACHE = {}
+local ST_TIME_EXPIRE = {}
 local ST_CACHE = {}
 do
 	for k, v in pairs(DBM_TYPE) do
 		ST_CACHE[v] = setmetatable({}, { __mode = "v" })
-		ST_TIME_CACHE[v] = {}
+		ST_TIME_EXPIRE[v] = {}
 	end
 end
 
@@ -73,19 +73,19 @@ local function CreateCountdown(nType, szKey, tParam)
 			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tParam.nTime)
 		end
 	end
-	local cache =  ST_TIME_CACHE[nType][szKey]
-	if cache and tParam.nRefresh and (nTime - cache) / 1000 < tParam.nRefresh then
-		return
-	end
-	ST_TIME_CACHE[nType][szKey] = nTime
-	if tTime.nTime > 0 then
-		ST:ctor(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
-	else
+	if tTime.nTime == 0 then
 		local ui = ST_CACHE[nType][szKey]
 		if ui and ui:IsValid() then
-			ui.obj:RemoveItem()
+			ST_TIME_EXPIRE[nType][szKey] = nil
+			return ui.obj:RemoveItem()
 		end
 	end
+	local nExpire =  ST_TIME_EXPIRE[nType][szKey]
+	if nExpire and nExpire > nTime then
+		return
+	end
+	ST_TIME_EXPIRE[nType][szKey] = nTime + (tParam.nRefresh or 0) * 1000
+	ST:ctor(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
 end
 
 ST_UI = {
@@ -117,13 +117,13 @@ function ST_UI.OnEvent(szEvent)
 		if ui and ui:IsValid() then
 			if arg2 then -- 强制无条件删除
 				ui.obj:RemoveItem()
-				ST_TIME_CACHE[arg0][arg1] = nil
+				ST_TIME_EXPIRE[arg0][arg1] = nil
 			end
 		end
 	elseif szEvent == "JH_ST_CLEAR" then
 		_ST_UI.handle:Clear()
-		for k, v in pairs(ST_TIME_CACHE) do
-			ST_TIME_CACHE[k] = {}
+		for k, v in pairs(ST_TIME_EXPIRE) do
+			ST_TIME_EXPIRE[k] = {}
 		end
 	elseif szEvent == "UI_SCALED" then
 		_ST_UI.UpdateAnchor(this)

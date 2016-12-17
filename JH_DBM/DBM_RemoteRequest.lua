@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-10-05 18:02:20
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2016-12-17 13:03:12
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -11,14 +11,15 @@ DBM_RemoteRequest = {
 
 JH.RegisterCustomData("DBM_RemoteRequest")
 local ROOT_URL = "http://game.j3ui.com/"
-local _, _, CLIENT_LANG = GetVersion()
+-- local ROOT_URL = "http://10.0.20.20/"
+local CLIENT_LANG = select(3, GetVersion())
 local W = {
-	szIniFile   = JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_RemoteRequest.ini",
-	szFileList  = ROOT_URL .. "data/top/",
-	szFileList2 = ROOT_URL .. "data/other/",
-	szSearch    = ROOT_URL .. "data/search/",
-	szUser      = ROOT_URL .. "data/user/",
-	szDownload  = ROOT_URL .. "down/json/",
+	szIniFile   = JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/DBM_RemoteRequest.ini",
+	szFileList  = ROOT_URL .. "DBM/top/",
+	szFileList2 = ROOT_URL .. "DBM/other/",
+	szSearch    = ROOT_URL .. "DBM/search/",
+	szUser      = ROOT_URL .. "DBM/user/",
+	szDownload  = ROOT_URL .. "down/json2/",
 	szLoginUrl  = ROOT_URL .. "user/login/",
 }
 
@@ -28,7 +29,7 @@ end
 
 W.IsOpened = W.GetFrame
 
--- ÊâìÂºÄÁïåÈù¢
+-- ¥Úø™ΩÁ√Ê
 function W.OpenPanel()
 	local frame = W.GetFrame() or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
 	frame:BringToTop()
@@ -115,7 +116,7 @@ function W.Logout()
 end
 
 function W.CallLogin(uid, pw, fnAction)
-	-- web‰º†ÂèÇ‰∏çÂÆâÂÖ® ‰ΩÜÊòØÂè™ËÉΩËøôÊ†∑
+	-- web¥´≤Œ≤ª∞≤»´ µ´ «÷ªƒ‹’‚—˘
 	if string.len(pw) ~= 32 then
 		pw = JH.MD5(pw)
 	end
@@ -155,9 +156,21 @@ function W.MyData()
 		end
 	end)
 end
+
 function W.CallMyData()
-	W.RequestList(W.szUser)
+	W.Loading()
+	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- µ√“Ê”⁄IEª∫¥Ê 1∑÷÷”“ª¥Œ
+	JH.RemoteRequest(W.szUser .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+		if err then
+			JH.Debug(err)
+			JH.Sysmsg2(_L["request failed"])
+		else
+			W.ListCallBack(result)
+		end
+	end)
 end
+
 function W.Search()
 	GetUserInput(_L["Enter thread ID"], function(szNum)
 		if not tonumber(szNum) then
@@ -173,19 +186,22 @@ function W.Loading()
 	W.AppendItem({ title = "", author = "loading..." }, 1)
 end
 
--- ÂàóË°®ËØ∑Ê±Ç
+-- ¡–±Ì«Î«Û
 function W.RequestList(szUrl)
 	szUrl = szUrl or W.szFileList
 	W.Loading()
-	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- ÂæóÁõä‰∫éIEÁºìÂ≠ò 1ÂàÜÈíü‰∏ÄÊ¨°
-	JH.RemoteRequest(szUrl .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-		if err then
-			JH.Debug(err)
-			JH.Sysmsg2(_L["request failed"])
-		else
-			W.ListCallBack(result)
+	JH.Curl({
+		url = szUrl,
+	})
+	:done(function(szContent, dwBufferSize)
+		local data = JH.JsonToTable(szContent)
+		if CLIENT_LANG == "zhcn" then
+			data = JH.ConvertToAnsi(data)
 		end
+		W.ListCallBack(data)
+	end)
+	:fail(function(errMsg, dwBufferSize)
+		JH.Sysmsg2(_L["request failed"] .. errMsg)
 	end)
 end
 
@@ -227,7 +243,7 @@ function W.MenuTip(hItem, szXml)
 end
 
 function W.AppendItem(data, k)
-	local wnd = W.Container:AppendContentFromIni(JH.GetAddonInfo().szRootPath .. "DBM/ui/DBM_ITEM_RR.ini", "WndWindow")
+	local wnd = W.Container:AppendContentFromIni(JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/DBM_ITEM_RR.ini", "WndWindow")
 	local item = wnd:Lookup("", "")
 	if item then
 		item.data = data
@@ -269,7 +285,7 @@ function W.AppendItem(data, k)
 				W.DoanloadData(data)
 			end
 			btn2.OnLButtonClick = function()
-				local url = ROOT_URL .. "#file/".. data.tid
+				local url = ROOT_URL .. "config/detail/".. data.tid
 				if data.url then
 					url = "http://" .. data.url
 				end
@@ -299,8 +315,8 @@ end
 
 function W.DoanloadData(data)
 	if data.tid then
-		-- ÁÆÄÂçïÊú¨Âú∞ÁºìÂ≠ò‰∏Ä‰∏ã
-		local szPath = JH.GetAddonInfo().szRootPath .. "DBM/data/"
+		-- ºÚµ•±æµÿª∫¥Ê“ªœ¬
+		local szPath = JH.GetAddonInfo().szRootPath .. "JH_DBM/data/"
 		local szFileName = "DBM-Remote_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
 		W.CallDoanloadData(data, szPath, szFileName)
 	end
@@ -315,18 +331,30 @@ function W.CallDoanloadData(data, szPath, szFileName)
 		end)
 	end
 
-	if IsFileExist(szPath .. szFileName) then -- Êú¨Âú∞Êñá‰ª∂Â≠òÂú®Âàô‰ºòÂÖà
+	if IsFileExist(szPath .. szFileName) then -- ±æµÿŒƒº˛¥Ê‘⁄‘Ú”≈œ»
 		fnAction(szFileName)
-	else -- Âê¶Âàô remote request
+	else -- ∑Ò‘Ú remote request
 		JH.Topmsg(_L["Loading..., please wait."])
-		JH.RemoteRequest(W.szDownload .. data.tid .. "/" .. data.md5 .."?lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-			local tab, err = JH.JsonToTable(szDoc, true)
-			if err then
+		JH.Curl({
+			url = W.szDownload .. data.tid .. "/" .. data.md5,
+			data = {
+				lang = CLIENT_LANG
+			},
+		})
+		:done(function(szContent, dwBufferSize, set)
+			local tab = JH.JsonToTable(szContent)
+			if not tab then
 				JH.SaveLUAData("log/error/err_" .. data.tid, err)
 				return JH.Alert(_L["update failed! Please try again."])
 			end
-			SaveLUAData(szPath .. szFileName, tab, nil, false) -- ÁºìÂ≠òÊñá‰ª∂
+			if CLIENT_LANG == "zhcn" then
+				tab = JH.ConvertToAnsi(tab)
+			end
+			SaveLUAData(szPath .. szFileName, tab, nil, false) -- ª∫¥ÊŒƒº˛
 			fnAction(szFileName)
+		end)
+		:fail(function(errMsg, dwBufferSize, set)
+			JH.Sysmsg2(_L["request failed"] .. errMsg)
 		end)
 	end
 end
