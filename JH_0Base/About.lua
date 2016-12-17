@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 01:42:35
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2016-12-17 18:14:12
 local _L = JH.LoadLangPack
 local _JH_About = {
 	INFO = {},
@@ -87,7 +87,7 @@ end)
 
 local Panel = {
 	About    = {},
-	Fadeback = {},
+	Feedback = {},
 }
 function Panel.GetMemory()
 	return string.format("Memory:%.1fMB", collectgarbage("count") / 1024)
@@ -135,6 +135,74 @@ function Panel.About.OnPanelActive(frame)
 		end)
 	end)
 end
+function Panel.Feedback.OnPanelActive(frame)
+	local ui, nX, nY = GUI(frame), 10, 0
+	local szServer   = select(6, GetUserServer())
+	local szName     = GetUserRoleName()
+	local szSystem   = "Windows 7 x64"
+	local szType     = "bug"
+	local szDesc     = ""
+	local szEmail    = ""
+	nX, nY = ui:Append("Image", { x = 5, y = 0, w = 730, h = 150}):File("interface/JH/JH_0Base/feedback.tga"):Pos_()
+	nX, nY = ui:Append("Text", { x = 10, y = 160, txt = _L["Fadeback"], font = 27 }):Pos_()
+	-- player name
+	nX = ui:Append("Text", { txt = _L["Name"], x = 20, y = nY + 10 }):Pos_()
+	nX, nY = ui:Append("WndEdit", { txt = szName .. "@" .. szServer, x = nX + 5, y = nY + 12, enable = false }):Pos_()
 
+	nX = ui:Append("Text", { txt = _L["OS"], x = 20, y = nY + 10 }):Pos_()
+	nX = ui:Append("WndComboBox", "System",  { txt = szSystem, x = nX + 5, y = nY + 12 }):Menu(function()
+		local menu = {}
+		for k, v in ipairs({
+			"Windows 7 x64",
+			"Windows 7 x86",
+			"Windows 8 x64",
+			"Windows 8 x86",
+			"Windows 10 x64",
+			"Windows 10 x86",
+			"Windows XP x86",
+			"Other"
+		}) do
+			table.insert(menu, {
+				szOption = v,
+				bChecked = szSystem == v,
+				fnAction = function()
+					szSystem = v
+					ui:Fetch("System"):Text(v)
+				end
+			})
+		end
+		return menu
+	end):Pos_()
+	nX = ui:Append("Text", { txt = _L["Label"], x = nX + 10, y = nY + 10 }):Pos_()
+	nX = ui:Append("WndComboBox", "Type",  { txt = szType, x = nX + 5, y = nY + 12 }):Menu(function()
+		local menu = {}
+		for k, v in ipairs({
+			"bug",
+			"Issues",
+			"enhancement",
+			"question",
+		}) do
+			table.insert(menu, {
+				szOption = v,
+				bChecked = szType == v,
+				fnAction = function()
+					szSystem = v
+					ui:Fetch("Type"):Text(v)
+				end
+			})
+		end
+		return menu
+	end):Pos_()
+	nX = ui:Append("Text", { txt = _L["Email"], x = nX + 10, y = nY + 10 }):Pos_()
+	nX, nY = ui:Append("WndEdit", { txt = szEmail, x = nX + 5, y = nY + 12, enable = false }):Change(function(szEmail)
+		szEmail = szText
+	end):Pos_()
+	-- description
+	nX, nY = ui:Append("WndEdit", { multi = true, txt = "description...", x = 20, y = nY + 12, w = 700, h = 100 }):Change(function(szText)
+		szDesc = szText
+	end)
+	ui:Append("WndButton2", { x = 630, y = 390, txt = _L["feedback"] }):Click(function()
+	end)
+end
 -- public
 JH_Panel = setmetatable({}, { __metatable = true, __index = Panel, __newindex = function() end } )

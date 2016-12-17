@@ -677,7 +677,6 @@ data = {
 	["Party limit"] = "必须和对方组队",
 	-- About.lua --
 	["Home"] = "首页",
-	["Fadeback"] = "建议与BUG反馈",
 	["Checking command sent, please see talk channel"] = "检查指令已发送，请查看聊天框。",
 	["I have installed JH plug-in v"] = "我安装了菊花插件集 v",
 	["About"] = "关于本插件",

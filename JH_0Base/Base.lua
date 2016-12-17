@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 22:02:55
+-- @Last Modified by:   Webster
+-- @Last Modified time: 2016-12-17 20:36:52
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -222,7 +222,7 @@ function JH.OnCheckBoxCheck()
 	local szName = this:GetName()
 	if szName == "WndCheck_Home"
 		or szName == "WndCheck_About"
-		or szName == "WndCheck_Fadeback"
+		or szName == "WndCheck_Issues"
 	then
 		local frame = _JH.GetFrame()
 		for i = 0, frame.hTab:GetAllContentCount() -1 do
@@ -237,8 +237,8 @@ function JH.OnCheckBoxCheck()
 			_JH.BackHome()
 		elseif szName == "WndCheck_About" then
 			_JH.UpdatePage(JH_Panel.About)
-		elseif szName == "WndCheck_Fadeback" then
-			-- _JH.UpdatePage(JH_Panel.Fadeback)
+		elseif szName == "WndCheck_Issues" then
+			_JH.UpdatePage(JH_Panel.Feedback)
 		end
 	end
 end
@@ -491,7 +491,7 @@ end
 function _JH.UpdateTabBox()
 	local frame = _JH.GetFrame()
 	frame.hTab:Clear()
-	for k, v in ipairs({ "Home", "About", --[["Fadeback"]] }) do
+	for k, v in ipairs({ "Home", "About", "Issues" }) do
 		local hCheck = frame.hTab:AppendContentFromIni(JH_PANEL_INIFILE, "Wnd_TabBox", "WndCheck_" .. v)
 		local txt = hCheck:Lookup("", "Text_TabBox")
 		txt:SetText(_L[v])
@@ -640,9 +640,15 @@ function JH.GetAddonInfo()
 		szBuildDate = _BUILD_,
 	}
 end
-
+local JH_NPC_TAB
 local function JH_GetNpcName(dwTemplateID)
-	local szName = Table_GetNpcTemplateName(dwTemplateID)
+	local szName
+	if JH_NPC_TAB and JH_NPC_TAB[dwTemplateID] then
+		szName = JH_NPC_TAB[dwTemplateID]
+	end
+	if not szName then
+		szName = Table_GetNpcTemplateName(dwTemplateID)
+	end
 	if JH.Trim(szName) == "" then
 		szName = tostring(dwTemplateID)
 	end
@@ -4056,3 +4062,288 @@ function GUI.OpenIconPanel(fnAction)
 	end)
 	GetPage(ICON_PAGE or 21, true)
 end
+--[[
+do
+	local t = {
+		{ f = "i", t = "ID" },
+		{ f = "s", t = "Name" },
+		{ f = "s", t = "Title" },
+		{ f = "s", t = "Model" },
+		{ f = "s", t = "Kind" },
+		{ f = "s", t = "CampRequire" },
+		{ f = "s", t = "ForceID" },
+		{ f = "s", t = "MoveMode" },
+		{ f = "s", t = "Species" },
+		{ f = "s", t = "DropClassID" },
+		{ f = "s", t = "Level" },
+		{ f = "s", t = "AdjustLevel" },
+		{ f = "s", t = "Height" },
+		{ f = "s", t = "TouchRange" },
+		{ f = "s", t = "Intensity" },
+		{ f = "s", t = "IsSelectable" },
+		{ f = "s", t = "CanSeeLifeBar" },
+		{ f = "s", t = "AlarmRange" },
+		{ f = "s", t = "ReviveTime" },
+		{ f = "s", t = "MaxLife" },
+		{ f = "s", t = "LifeReplenish" },
+		{ f = "s", t = "LifeReplenishPercent" },
+		{ f = "s", t = "MaxMana" },
+		{ f = "s", t = "ManaReplenish" },
+		{ f = "s", t = "ManaReplenishPercent" },
+		{ f = "s", t = "MaxRage" },
+		{ f = "s", t = "WalkSpeed" },
+		{ f = "s", t = "RunSpeed" },
+		{ f = "s", t = "PhysicsAttackHit" },
+		{ f = "s", t = "SolarMagicHit" },
+		{ f = "s", t = "NeutralMagicHit" },
+		{ f = "s", t = "LunarMagicHit" },
+		{ f = "s", t = "PoisonMagicHit" },
+		{ f = "s", t = "Dodge" },
+		{ f = "s", t = "PhysicsCriticalStrike" },
+		{ f = "s", t = "SolarCriticalStrike" },
+		{ f = "s", t = "NeutralCriticalStrike" },
+		{ f = "s", t = "LunarCriticalStrike" },
+		{ f = "s", t = "PoisonCriticalStrike" },
+		{ f = "s", t = "PhysicsDefenceMax" },
+		{ f = "s", t = "PhysicsShieldBase" },
+		{ f = "s", t = "SolarMagicDefence" },
+		{ f = "s", t = "NeutralMagicDefence" },
+		{ f = "s", t = "LunarMagicDefence" },
+		{ f = "s", t = "PoisonMagicDefence" },
+		{ f = "s", t = "NpcDialogID" },
+		{ f = "s", t = "AIType" },
+		{ f = "s", t = "AIParamTemplateID" },
+		{ f = "s", t = "MeleeWeaponDamageBase" },
+		{ f = "s", t = "MeleeWeaponDamageRand" },
+		{ f = "s", t = "RangeWeaponDamageBase" },
+		{ f = "s", t = "RangeWeaponDamageRand" },
+		{ f = "s", t = "SkillID1" },
+		{ f = "s", t = "SkillLevel1" },
+		{ f = "s", t = "SkillInterval1" },
+		{ f = "s", t = "SkillFirstInterval1" },
+		{ f = "s", t = "SkillType1" },
+		{ f = "s", t = "SkillRate1" },
+		{ f = "s", t = "SkillAniFrame1" },
+		{ f = "s", t = "SkillRestFrame1" },
+		{ f = "s", t = "SkillID2" },
+		{ f = "s", t = "SkillLevel2" },
+		{ f = "s", t = "SkillInterval2" },
+		{ f = "s", t = "SkillFirstInterval2" },
+		{ f = "s", t = "SkillType2" },
+		{ f = "s", t = "SkillRate2" },
+		{ f = "s", t = "SkillAniFrame2" },
+		{ f = "s", t = "SkillRestFrame2" },
+		{ f = "s", t = "SkillID3" },
+		{ f = "s", t = "SkillLevel3" },
+		{ f = "s", t = "SkillInterval3" },
+		{ f = "s", t = "SkillFirstInterval3" },
+		{ f = "s", t = "SkillType3" },
+		{ f = "s", t = "SkillRate3" },
+		{ f = "s", t = "SkillAniFrame3" },
+		{ f = "s", t = "SkillRestFrame3" },
+		{ f = "s", t = "SkillID4" },
+		{ f = "s", t = "SkillLevel4" },
+		{ f = "s", t = "SkillInterval4" },
+		{ f = "s", t = "SkillFirstInterval4" },
+		{ f = "s", t = "SkillType4" },
+		{ f = "s", t = "SkillRate4" },
+		{ f = "s", t = "SkillAniFrame4" },
+		{ f = "s", t = "SkillRestFrame4" },
+		{ f = "s", t = "ThreatTime" },
+		{ f = "s", t = "ThreatPercent" },
+		{ f = "s", t = "OverThreatPercent" },
+		{ f = "s", t = "Drop1" },
+		{ f = "s", t = "Count1" },
+		{ f = "s", t = "Drop2" },
+		{ f = "s", t = "Count2" },
+		{ f = "s", t = "Drop3" },
+		{ f = "s", t = "Count3" },
+		{ f = "s", t = "Drop4" },
+		{ f = "s", t = "Count4" },
+		{ f = "s", t = "RepresentID1" },
+		{ f = "s", t = "RepresentID2" },
+		{ f = "s", t = "RepresentID3" },
+		{ f = "s", t = "RepresentID4" },
+		{ f = "s", t = "RepresentID5" },
+		{ f = "s", t = "RepresentID6" },
+		{ f = "s", t = "RepresentID7" },
+		{ f = "s", t = "RepresentID8" },
+		{ f = "s", t = "RepresentID9" },
+		{ f = "s", t = "RepresentID10" },
+		{ f = "s", t = "CorpseDoodadID" },
+		{ f = "s", t = "MoneyMin" },
+		{ f = "s", t = "MoneyMax" },
+		{ f = "s", t = "MoneyDropRate" },
+		{ f = "s", t = "MapName" },
+		{ f = "s", t = "MasterID" },
+		{ f = "s", t = "CraftMasterID" },
+		{ f = "s", t = "RaceClass" },
+		{ f = "s", t = "CombatType" },
+		{ f = "s", t = "IsSpecial" },
+		{ f = "s", t = "JumpSpeed" },
+		{ f = "s", t = "IdleDialog1" },
+		{ f = "s", t = "IdleDialogRate1" },
+		{ f = "s", t = "IdleDialog2" },
+		{ f = "s", t = "IdleDialogRate2" },
+		{ f = "s", t = "IdleDialog3" },
+		{ f = "s", t = "IdleDialogRate3" },
+		{ f = "s", t = "IdleDialogAfterQuest" },
+		{ f = "s", t = "IdleDialogQuestID" },
+		{ f = "s", t = "HasBank" },
+		{ f = "s", t = "HasMailBox" },
+		{ f = "s", t = "ScriptName" },
+		{ f = "s", t = "MailOptionText" },
+		{ f = "s", t = "BankOptionText" },
+		{ f = "s", t = "SkillMasterOptionText" },
+		{ f = "s", t = "CraftMasterOptionText" },
+		{ f = "s", t = "ReputeID1" },
+		{ f = "s", t = "ReputeValue1" },
+		{ f = "s", t = "ReputeID2" },
+		{ f = "s", t = "ReputeValue2" },
+		{ f = "s", t = "ReputeID3" },
+		{ f = "s", t = "ReputeValue3" },
+		{ f = "s", t = "ReputeID4" },
+		{ f = "s", t = "ReputeValue4" },
+		{ f = "s", t = "Parry" },
+		{ f = "s", t = "ParryValue" },
+		{ f = "s", t = "Sense" },
+		{ f = "s", t = "HitBase" },
+		{ f = "s", t = "PursuitRange" },
+		{ f = "s", t = "ShopRequireReputeLevel" },
+		{ f = "s", t = "MasterRequireReputeLevel" },
+		{ f = "s", t = "CraftMasterRequireReputeLevel" },
+		{ f = "s", t = "BankRequireReputeLevel" },
+		{ f = "s", t = "MailBoxRequireReputeLevel" },
+		{ f = "s", t = "QuestRequireReputeLevel" },
+		{ f = "s", t = "CanSeeName" },
+		{ f = "s", t = "AIDefaultMode" },
+		{ f = "s", t = "ImmunityMask" },
+		{ f = "s", t = "DropNotQuestItemFlag" },
+		{ f = "s", t = "_NormalDpsCof" },
+		{ f = "s", t = "DailyQuestCycle" },
+		{ f = "s", t = "DailyQuestOffset" },
+		{ f = "s", t = "_Intensity" },
+		{ f = "s", t = "_EquipLevel" },
+		{ f = "s", t = "NpcExp" },
+		{ f = "s", t = "ProgressID" },
+		{ f = "s", t = "HasAuction" },
+		{ f = "s", t = "AuctionOptionText" },
+		{ f = "s", t = "AuctionRequireReputeLevel" },
+		{ f = "s", t = "AchievementID" },
+		{ f = "s", t = "CampLootPrestige" },
+		{ f = "s", t = "Prestige" },
+		{ f = "s", t = "CoinType1" },
+		{ f = "s", t = "CoinAmount1" },
+		{ f = "s", t = "Contribution" },
+		{ f = "s", t = "Drop5" },
+		{ f = "s", t = "Count5" },
+		{ f = "s", t = "Drop6" },
+		{ f = "s", t = "Count6" },
+		{ f = "s", t = "Drop7" },
+		{ f = "s", t = "Count7" },
+		{ f = "s", t = "Drop8" },
+		{ f = "s", t = "Count8" },
+		{ f = "s", t = "Drop9" },
+		{ f = "s", t = "Count9" },
+		{ f = "s", t = "Drop10" },
+		{ f = "s", t = "Count10" },
+		{ f = "s", t = "SkillID5" },
+		{ f = "s", t = "SkillID6" },
+		{ f = "s", t = "SkillID7" },
+		{ f = "s", t = "SkillID8" },
+		{ f = "s", t = "SkillLevel5" },
+		{ f = "s", t = "SkillLevel6" },
+		{ f = "s", t = "SkillLevel7" },
+		{ f = "s", t = "SkillLevel8" },
+		{ f = "s", t = "SkillInterval5" },
+		{ f = "s", t = "SkillFirstInterval5" },
+		{ f = "s", t = "SkillInterval6" },
+		{ f = "s", t = "SkillFirstInterval6" },
+		{ f = "s", t = "SkillInterval7" },
+		{ f = "s", t = "SkillFirstInterval7" },
+		{ f = "s", t = "SkillInterval8" },
+		{ f = "s", t = "SkillFirstInterval8" },
+		{ f = "s", t = "SkillType5" },
+		{ f = "s", t = "SkillType6" },
+		{ f = "s", t = "SkillType7" },
+		{ f = "s", t = "SkillType8" },
+		{ f = "s", t = "SkillRate5" },
+		{ f = "s", t = "SkillRate6" },
+		{ f = "s", t = "SkillRate7" },
+		{ f = "s", t = "SkillRate8" },
+		{ f = "s", t = "SkillAniFrame5" },
+		{ f = "s", t = "SkillAniFrame6" },
+		{ f = "s", t = "SkillAniFrame7" },
+		{ f = "s", t = "SkillAniFrame8" },
+		{ f = "s", t = "SkillRestFrame5" },
+		{ f = "s", t = "SkillRestFrame6" },
+		{ f = "s", t = "SkillRestFrame7" },
+		{ f = "s", t = "SkillRestFrame8" },
+		{ f = "s", t = "GuardForceID" },
+		{ f = "s", t = "HasTongRepertory" },
+		{ f = "s", t = "TongRepertoryOptionText" },
+		{ f = "s", t = "TongRepertoryRequireReputeLevel" },
+		{ f = "s", t = "DynamicReviveMinTime" },
+		{ f = "s", t = "KnockedBackRate" },
+		{ f = "s", t = "KnockedDownRate" },
+		{ f = "s", t = "KnockedOffRate" },
+		{ f = "s", t = "RepulsedRate" },
+		{ f = "s", t = "PullRate" },
+		{ f = "s", t = "AddCampScore" },
+		{ f = "s", t = "BattleFieldID" },
+		{ f = "s", t = "BattleFieldSide" },
+		{ f = "s", t = "ReputeLevel1" },
+		{ f = "s", t = "ReputeLevel2" },
+		{ f = "s", t = "ReputeLevel3" },
+		{ f = "s", t = "ReputeLevel4" },
+		{ f = "s", t = "LogLootFlag" },
+		{ f = "s", t = "TitlePoint" },
+		{ f = "s", t = "Train" },
+		{ f = "s", t = "DropJustice" },
+		{ f = "s", t = "DropExamPrint" },
+		{ f = "s", t = "DropActivityAward" },
+		{ f = "s", t = "ValidReputeLootBuff" },
+		{ f = "s", t = "BuffReputeValue" },
+		{ f = "s", t = "BuffReputeLevel" },
+		{ f = "s", t = "HasGameCard" },
+		{ f = "s", t = "GameCardSaleOptionText" },
+		{ f = "s", t = "GameCardBuyOptionText" },
+		{ f = "s", t = "GameCardOrderOptionText" },
+		{ f = "s", t = "GameCardOrderBuyOptionText" },
+		{ f = "s", t = "CounterStealth" },
+		{ f = "s", t = "CounterStealthRange" },
+		{ f = "s", t = "HasCubPackage" },
+		{ f = "s", t = "CubPackageOptionText" },
+		{ f = "s", t = "CubPackageRequireReputeLevel" },
+		{ f = "s", t = "ForceDrop" },
+		{ f = "s", t = "IndependentDrop" },
+		{ f = "s", t = "IndependentDropCount" },
+		{ f = "s", t = "IndependentDropType" },
+		{ f = "s", t = "IsCostMana" },
+		{ f = "s", t = "CriticalDamagePowerBase" },
+		{ f = "s", t = "DisableSkillMove" },
+		{ f = "s", t = "HideLevel" },
+		{ f = "s", t = "DecreaseDamagePercent" },
+		{ f = "s", t = "ReturnNotRecoveryBlood" },
+		{ f = "s", t = "CanShareNpcKillByQuestEvent" },
+		{ f = "s", t = "IdentityVisiableID" },
+	}
+	local tab = KG_Table.Load("Settings/NpcTemplate.tab", t)
+	if tab then
+		JH_NPC_TAB = {}
+		local step = 500
+		local count = tab:GetRowCount()
+		for i = 1, math.ceil(count / step) do
+			JH.DelayCall(function()
+				for ii = 1 + (i - 1) * step, i * step do
+					local line = tab:Search(ii)
+					if line then
+						JH_NPC_TAB[line.ID] = line.Name
+					end
+				end
+				JH.Debug("Load Npc Name " .. i .."/" .. math.ceil(count / step))
+			end, i * 1000)
+		end
+	end
+end
+]]
