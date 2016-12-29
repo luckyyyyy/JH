@@ -1,11 +1,11 @@
 #!/bin/sh
 # @Author: Webster
 # @Date:   2015-07-18 14:20:46
-# @Last Modified by:   Webster
-# @Last Modified time: 2015-12-15 13:32:37
+# @Last Modified by:   Administrator
+# @Last Modified time: 2016-12-21 21:41:13
 # 方便在OSX下打包
 
-VERSION=$(grep "local _VERSION_" 0Base/Base.lua | awk '{print $4}')
+VERSION=$(grep "local _VERSION_" JH_0Base/Base.lua | awk '{print $4}')
 DATE=$(date +%Y%m%d%H%M)
 
 FILE=releases/JH_${DATE}_${VERSION}.7z

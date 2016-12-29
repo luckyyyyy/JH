@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 20:36:52
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-12-21 21:36:41
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -91,8 +91,8 @@ local function GetLang()
 end
 local _L = GetLang()
 
-local _VERSION_   = 0x1050100
-local _BUILD_     = "20160917"
+local _VERSION_   = 0x1060000
+local _BUILD_     = "20161221"
 local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 
@@ -491,7 +491,7 @@ end
 function _JH.UpdateTabBox()
 	local frame = _JH.GetFrame()
 	frame.hTab:Clear()
-	for k, v in ipairs({ "Home", "About", "Issues" }) do
+	for k, v in ipairs({ "Home", "About", --[["Issues"]] }) do
 		local hCheck = frame.hTab:AppendContentFromIni(JH_PANEL_INIFILE, "Wnd_TabBox", "WndCheck_" .. v)
 		local txt = hCheck:Lookup("", "Text_TabBox")
 		txt:SetText(_L[v])

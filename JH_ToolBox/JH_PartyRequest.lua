@@ -1,12 +1,12 @@
 -- @Author: Webster
 -- @Date:   2016-01-04 12:57:33
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-01-04 23:16:52
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2016-12-29 11:13:26
 
 local _L = JH.LoadLangPack
 local PR = {}
 local PR_MAX_LEVEL = 95
-local PR_INI_PATH      = JH.GetAddonInfo().szRootPath .. "AutoSetTeam/ui/JH_PartyRequest.ini"
+local PR_INI_PATH      = JH.GetAddonInfo().szRootPath .. "JH_ToolBox/ui/JH_PartyRequest.ini"
 local PR_EQUIP_REQUEST = {}
 local PR_MT = { __call = function(me, szName)
 	for k, v in ipairs(me) do
