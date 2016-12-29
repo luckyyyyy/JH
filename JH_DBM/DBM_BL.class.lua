@@ -1,10 +1,10 @@
 -- @Author: Webster
 -- @Date:   2015-05-24 08:26:53
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-06-26 02:05:24
+-- @Last Modified by:   William Chan
+-- @Last Modified time: 2016-12-29 12:08:45
 
 local _L = JH.LoadLangPack
-local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "DBM/ui/BL_UI.ini"
+local BL_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/BL_UI.ini"
 local GetBuff = JH.GetBuff
 local BL = {}
 BL_UI = {
