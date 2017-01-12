@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-14 21:46:28
+-- @Last Modified by:   William Chan
+-- @Last Modified time: 2017-01-10 14:53:49
 local _L = JH.LoadLangPack
 local Station, UI_GetClientPlayerID, Table_BuffIsVisible = Station, UI_GetClientPlayerID, Table_BuffIsVisible
 local GetBuffName = JH.GetBuffName
@@ -9,7 +9,7 @@ local tostring = tostring
 
 local CTM_CONFIG = {
 	bDrag                = true,
-	bRaidEnable          = true,
+	bRaidEnable          = false,
 	bShowInRaid          = false,
 	bEditMode            = false,
 	bShowAllGrid         = false,
