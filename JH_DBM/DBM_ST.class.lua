@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 13:41:24
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2017-01-12 22:00:49
 -- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
@@ -79,13 +79,14 @@ local function CreateCountdown(nType, szKey, tParam)
 			ST_TIME_EXPIRE[nType][szKey] = nil
 			return ui.obj:RemoveItem()
 		end
+	else
+		local nExpire =  ST_TIME_EXPIRE[nType][szKey]
+		if nExpire and nExpire > nTime then
+			return
+		end
+		ST_TIME_EXPIRE[nType][szKey] = nTime + (tParam.nRefresh or 0) * 1000
+		ST:ctor(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
 	end
-	local nExpire =  ST_TIME_EXPIRE[nType][szKey]
-	if nExpire and nExpire > nTime then
-		return
-	end
-	ST_TIME_EXPIRE[nType][szKey] = nTime + (tParam.nRefresh or 0) * 1000
-	ST:ctor(nType, szKey, tParam):SetInfo(tTime, tParam.nIcon or 13):Switch(false)
 end
 
 ST_UI = {
