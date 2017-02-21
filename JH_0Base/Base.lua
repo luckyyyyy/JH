@@ -92,7 +92,7 @@ end
 local _L = GetLang()
 
 local _VERSION_   = 0x1060000
-local _BUILD_     = "20161221"
+local _BUILD_     = "20170221"
 local _DEBUG_     = IsFileExist(ADDON_DATA_PATH .. "EnableDebug")
 local _LOGLV_     = 2
 

@@ -1,0 +1,6 @@
+# export ignore
+7zip.sh              export-ignore 
+zip.sh               export-ignore 
+7zipignore.txt       export-ignore 
+JH_Developer         export-ignore 
+JH_0Base/About.ini   export-ignore 
