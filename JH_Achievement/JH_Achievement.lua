@@ -5,7 +5,7 @@
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
-local ACHI_ROOT_URL = "http://haimanchajian.com"
+local ACHI_ROOT_URL = "https://haimanchajian.com"
 -- local ACHI_ROOT_URL = "http://10.37.210.22:8088/wiki/"
 -- local ACHI_ROOT_URL = "http://10.0.20.20:8090/wiki/"
 -- local ACHI_ROOT_URL = "http://localhost/wiki/"
@@ -82,7 +82,8 @@ function JH_Achievement.OnItemMouseEnter()
 	elseif szName == "Image_Wechat" then
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
-		OutputTip(GetFormatImage(JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga", nil, 200, 200), 200, { x, y, w, h })
+		--OutputTip(GetFormatImage(JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga", nil, 200, 200), 200, { x, y, w, h })
+		OutputTip(GetFormatImage("interface\\HM\\HM_0Base\\image.UiTex", 2, 200, 200), 200, { x, y, w, h })
 	end
 end
 
@@ -320,7 +321,8 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 		frame.pedia:FormatAllItemPos()
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 		JH.Curl({
-			url      = ACHI_ROOT_URL .. "/api/wiki/" .. dwID .. "?__lang=" .. ACHI_CLIENT_LANG,
+			url = ACHI_ROOT_URL .. "/api/wiki/" .. dwID .. "?__lang=" .. ACHI_CLIENT_LANG,
+			ssl = true,
 			type = "get",
 			dataType = "json",
 		})
@@ -457,6 +459,7 @@ function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 	JH.Curl({
 		url      = ACHI_ROOT_URL .. "/api/wiki/data",
 		dataType = "json",
+		ssl = true,
 		data     = {
 			gid    = id,
 			name   = GetUserRoleName(),
@@ -466,6 +469,8 @@ function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 			server = select(6, GetUserServer()),
 			body = me.nRoleType,
 			avatar = me.dwMiniAvatarID,
+			pet = me.GetAcquiredFellowPetScore(),
+			score = me.GetTotalEquipScore(),
 			__qrcode = __qrcode,
 			__lang = ACHI_CLIENT_LANG,
 			code   = code
@@ -498,6 +503,7 @@ function PS.OnPanelActive(frame)
 		-- get
 		JH.Curl({
 			url = ACHI_ROOT_URL .. "/api/wiki/data/" .. id,
+			ssl = true,
 			type = 'get',
 			dataType = 'json',
 		})
@@ -549,7 +555,8 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("Text", { x = 10, y = nY + 5 , txt = _L["Global ID"], color = { 255, 255, 200 } }):Pos_()
 	nX, nY = ui:Append("WndEdit", { x = 120, y = nY + 5 , txt = id }):Pos_()
 	-- wechat
-	ui:Append("Image", "Image_Wechat", { x = 340, y = 260, h = 150, w = 150, file = JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga" })
+	ui:Append("Image", "Image_Wechat", { x = 340, y = 260, h = 150, w = 150, file = "interface\\HM\\HM_0Base\\image.UiTex", num =2 })
+	-- OutputTip(GetFormatImage("interface\\HM\\HM_0Base\\image.UiTex", 2, 200, 200), 200, { x, y, w, h })
 end
 
 
