@@ -62,6 +62,8 @@ function JH_Achievement.OnFrameCreate()
 	this.title   = handle:Lookup("Text_Title")
 	this.desc    = handle:Lookup("Text_Desc")
 	this.box     = handle:Lookup("Box_Icon")
+	this.warn  = handle:Lookup("Text_Warn")
+	this.view   = this:Lookup("Btn_View")
 	this:Lookup("Btn_Edit"):Lookup("", "Text_Edit"):SetText(_L["perfection"])
 	Achievement.UpdateAnchor(this)
 end
@@ -83,7 +85,7 @@ function JH_Achievement.OnItemMouseEnter()
 		local x, y = this:GetAbsPos()
 		local w, h = this:GetSize()
 		--OutputTip(GetFormatImage(JH.GetAddonInfo().szRootPath .. "JH_Achievement/ui/qrcode_for_j3wikis.tga", nil, 200, 200), 200, { x, y, w, h })
-		OutputTip(GetFormatImage("interface\\HM\\HM_0Base\\image.UiTex", 2, 200, 200), 200, { x, y, w, h })
+		--OutputTip(GetFormatImage("interface\\HM\\HM_0Base\\image.UiTex", 2, 200, 200), 200, { x, y, w, h })
 	end
 end
 
@@ -137,6 +139,26 @@ function JH_Achievement.OnLButtonClick()
 		Achievement.EditMode(false)
 	elseif szName == "Btn_Send" then
 		JH.Confirm(_L["Confirm?"], Achievement.Send)
+	elseif szName == "Btn_View" then
+		local frame = Achievement.GetFrame()
+		frame.warn:Hide()
+		frame.view:Hide()
+		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
+		frame.pedia:FormatAllItemPos()
+		JH.Curl({
+			url = ACHI_ROOT_URL .. "/api/wiki/" .. frame.dwAchievement .. "?__lang=" .. ACHI_CLIENT_LANG,
+			ssl = true,
+			type = "get",
+			dataType = "json",
+		})
+		:done(function(result, dwBufferSize, set)
+			frame:Lookup("Btn_Edit"):Enable(true)
+			if result.aid then
+				Achievement.RemoteCallBack(result)
+			elseif result.errmsg then
+				JH.Alert(result.errmsg)
+			end
+		end)
 	end
 end
 
@@ -317,23 +339,9 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 		frame.pedia:Clear()
 		frame.link:SetText(_L("Link(Open URL):%s", ACHI_ROOT_URL .. "/wiki/view/" .. dwID))
 		frame.link:AutoSize()
-		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
-		frame.pedia:FormatAllItemPos()
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
-		JH.Curl({
-			url = ACHI_ROOT_URL .. "/api/wiki/" .. dwID .. "?__lang=" .. ACHI_CLIENT_LANG,
-			ssl = true,
-			type = "get",
-			dataType = "json",
-		})
-		:done(function(result, dwBufferSize, set)
-			frame:Lookup("Btn_Edit"):Enable(true)
-			if result.aid then
-				Achievement.RemoteCallBack(result)
-			elseif result.errmsg then
-				JH.Alert(result.errmsg)
-			end
-		end)
+		frame.warn:Show()
+		frame.view:Show()
 	end
 end
 
