@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-12-06 02:44:30
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 15:19:16
+-- @Last Modified by:   William Chan
+-- @Last Modified time: 2017-04-21 15:32:37
 
 -- 战斗浮动文字设计思路
 --[[
@@ -206,6 +206,7 @@ function JH_CombatText.OnFrameCreate()
 	for k, v in ipairs(COMBAT_TEXT_EVENT) do
 		this:RegisterEvent(v)
 	end
+	this:ShowWhenUIHide()
 	this:RegisterEvent("SYS_MSG")
 	this:RegisterEvent("FIGHT_HINT")
 	this:RegisterEvent("UI_SCALED")
@@ -973,3 +974,14 @@ local function GetPlayerID()
 	end
 end
 JH.RegisterEvent("LOADING_END", GetPlayerID) -- 很重要的优化
+JH.RegisterEvent("ON_PVP_SHOW_SELECT_PLAYER", function()
+	COMBAT_TEXT_PLAYERID = arg0
+end)
+
+
+
+
+
+
+
+
