@@ -850,7 +850,7 @@ function DBMUI.OpenExportPanel()
 	nX = ui:Append("WndRadioBox", { x = 30, y = nY + 10, txt = _L["LUA TABLE"], group = "type", checked = true }):Click(function()
 		nType = 1
 	end):Pos_()
-	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["JSON"], group = "type" }):Click(function()
+	nX, nY = ui:Append("WndRadioBox", { x = nX + 5, y = nY + 10, txt = _L["JSON"], group = "type", enable = false }):Click(function()
 		nType = 2
 	end):Pos_()
 	ui:Append("WndCheckBox", "Format", { x = 20, y = nY + 50, txt = _L["Format content"] })

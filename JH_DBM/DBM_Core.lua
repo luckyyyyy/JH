@@ -1651,6 +1651,13 @@ function D.SaveConfigureFile(config)
 			data["CIRCLE"] = Circle.GetData()
 		end
 	end
+	-- HM.20170504: add meta data
+	data["__meta"] = {
+		szLang = select(3, GetVersion()),
+		szAuthor = GetUserRoleName(),
+		szServer = select(4, GetUserServer()),
+		nTimeStamp = GetCurrentTime()
+	}
 	local root, path = GetRootPath(), "/" .. JH.GetAddonInfo().szRootPath .. "JH_DBM/data/" .. config.szFileName
 	root = root:gsub("\\", "/")
 	if config.bJson then

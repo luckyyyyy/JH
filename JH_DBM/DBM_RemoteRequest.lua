@@ -10,14 +10,14 @@ DBM_RemoteRequest = {
 }
 
 JH.RegisterCustomData("DBM_RemoteRequest")
-local ROOT_URL = "http://game.j3ui.com/"
+local ROOT_URL = "https://haimanchajian.com/" -- http://game.j3ui.com/"
 -- local ROOT_URL = "http://10.0.20.20/"
 local CLIENT_LANG = select(3, GetVersion())
 local W = {
 	szIniFile   = JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/DBM_RemoteRequest.ini",
-	szFileList  = ROOT_URL .. "DBM/top/",
-	szFileList2 = ROOT_URL .. "DBM/other/",
-	szSearch    = ROOT_URL .. "DBM/search/",
+	szFileList  = ROOT_URL .. "api/jx3/plugin-data/dbm?state=2",
+	szFileList2 = ROOT_URL .. "api/jx3/plugin-data/dbm?state=1",
+	szSearch    = ROOT_URL .. "api/jx3/plugin-data/dbm?kw=",
 	szUser      = ROOT_URL .. "DBM/user/",
 	szDownload  = ROOT_URL .. "down/json2/",
 	szLoginUrl  = ROOT_URL .. "user/login/",
@@ -95,6 +95,8 @@ function DBM_RemoteRequest.OnFrameCreate()
 end
 
 function W.Login()
+	return OpenInternetExplorer(ROOT_URL .. "jx3/plugin-data")
+	--[[
 	GetUserInput(_L["Enter User ID"], function(szNum)
 		if not tonumber(szNum) then
 			JH.Alert(_L["Please enter numbers"])
@@ -107,6 +109,7 @@ function W.Login()
 			end)
 		end
 	end)
+	--]]
 end
 
 function W.Logout()
@@ -181,9 +184,9 @@ function W.Search()
 	end)
 end
 
-function W.Loading()
+function W.Loading(szTitle)
 	W.Container:Clear()
-	W.AppendItem({ title = "", author = "loading..." }, 1)
+	W.AppendItem({ title = szTitle or "", author = "loading..." }, 1)
 end
 
 -- 列表请求
@@ -195,9 +198,6 @@ function W.RequestList(szUrl)
 	})
 	:done(function(szContent, dwBufferSize)
 		local data = JH.JsonToTable(szContent)
-		if CLIENT_LANG == "zhcn" then
-			data = JH.ConvertToAnsi(data)
-		end
 		W.ListCallBack(data)
 	end)
 	:fail(function(errMsg, dwBufferSize)
@@ -209,12 +209,24 @@ function W.ListCallBack(result)
 	if not W.IsOpened() then return end
 	W.Container:Clear()
 	W.UseData = nil
-	if result["msg"] then
+
+	if result.errcode and result.errcode ~= 0 then
+		return JH.Alert(result.errmsg)
+	end
+	for k, v in ipairs(result) do
+		v.tid = v.id
+		W.AppendItem(v, k)
+	end
+	if IsEmpty(result) then
+		W.Loading("no result.")
+	end
+	--[[if result["msg"] then
 		return JH.Alert(result["msg"])
 	end
 	for k, v in ipairs(result["data"]) do
 		W.AppendItem(v, k)
 	end
+	--]]
 	W.Container:FormatAllContentPos()
 end
 
@@ -285,10 +297,13 @@ function W.AppendItem(data, k)
 				W.DoanloadData(data)
 			end
 			btn2.OnLButtonClick = function()
+				local url = data.url or ROOT_URL .. "jx3/plugin-data/".. data.tid
+				--[[
 				local url = ROOT_URL .. "config/detail/".. data.tid
 				if data.url then
 					url = "http://" .. data.url
 				end
+				--]]
 				OpenInternetExplorer(url)
 			end
 			if data.url then
@@ -336,6 +351,25 @@ function W.CallDoanloadData(data, szPath, szFileName)
 	else -- 否则 remote request
 		JH.Topmsg(_L["Loading..., please wait."])
 		JH.Curl({
+			type = "get",
+			url = ROOT_URL .. "jx3/plugin-data/" .. data.tid .. "/get?lang=" .. CLIENT_LANG .. "&cdn=url",
+		}):done(function(szContent)
+			JH.Debug("#DBM# download url: " .. szContent)
+			JH.Curl({
+				type = "get",
+				url = szContent,
+			}):done(function(szContent)
+				JH.Debug("#DBM# downloaded size: " .. string.len(szContent))
+				Log(szPath .. szFileName, szContent, "close")
+				fnAction(szFileName)
+			end):fail(function(errMsg, dwBufferSize, set)
+				JH.Sysmsg2(_L["request failed"] .. errMsg)
+			end)	
+		end)	:fail(function(errMsg, dwBufferSize, set)
+			JH.Sysmsg2(_L["request failed"] .. errMsg)
+		end)
+		--[[
+		JH.Curl({
 			url = W.szDownload .. data.tid .. "/" .. data.md5,
 			data = {
 				lang = CLIENT_LANG
@@ -356,6 +390,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 		:fail(function(errMsg, dwBufferSize, set)
 			JH.Sysmsg2(_L["request failed"] .. errMsg)
 		end)
+		--]]
 	end
 end
 

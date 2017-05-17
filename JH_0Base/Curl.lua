@@ -3,6 +3,7 @@
 -- @Last Modified by:   Administrator
 -- @Last Modified time: 2016-11-21 20:32:55
 
+local CLIENT_LANG = select(3, GetVersion())
 local JH_CALL_AJAX = {}
 local JH_AJAX_TAG  = "JH_AJAX#" -- event CURL_REQUEST_RESULT arg0
 local tinsert, tconcat = table.insert, table.concat
@@ -96,6 +97,9 @@ function Curl:ctor(option)
 		url  = ConvertToUTF8(url)
 		data = ConvertToUTF8(data)
 	end
+	if string.sub(url, 1, 6) == "https:" then
+		option.ssl = true
+	end
 	if option.type:lower() == "post" then
 		CURL_HttpPost(szKey, url, data, option.ssl, option.timeout)
 	elseif option.type:lower() == "get" then
@@ -153,7 +157,7 @@ JH.RegisterEvent("CURL_REQUEST_RESULT.AJAX", function()
 			end
 		end
 		if bSuccess then
-			if option.charset:lower() == "utf8" and szContent ~= nil then
+			if option.charset:lower() == "utf8" and szContent ~= nil and CLIENT_LANG == "zhcn" then
 				szContent = UTF8ToAnsi(szContent)
 			end
 			if option.dataType == "json" then
