@@ -298,6 +298,7 @@ data = {
 	["You are not team leader."] = "你不是队长，无法执行这个操作。",
 	["Confirm?"] = "确定执行这个操作？",
 	["%s use %s data"] = "%s 使用了 %s。",
+	["Team leader request download: %s"] = "队长建议下载：%s",
 	["Download"] = "下载",
 	-- Love.lua --
 	["Singleton"] = "单身中",

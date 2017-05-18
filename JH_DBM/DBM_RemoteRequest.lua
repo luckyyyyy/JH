@@ -214,7 +214,8 @@ function W.ListCallBack(result)
 		return JH.Alert(result.errmsg)
 	end
 	for k, v in ipairs(result) do
-		v.tid = v.id
+		v.tid = v.tid or v.id
+		v.id = nil
 		W.AppendItem(v, k)
 	end
 	if IsEmpty(result) then
@@ -332,7 +333,7 @@ function W.DoanloadData(data)
 	if data.tid then
 		-- 简单本地缓存一下
 		local szPath = JH.GetAddonInfo().szRootPath .. "JH_DBM/data/"
-		local szFileName = "DBM-Remote_".. data.tid .."_" .. CLIENT_LANG .. "_" .. data.md5 .. ".jx3dat"
+		local szFileName = "DBM_Remote-" .. CLIENT_LANG .. "-" .. data.tid .. FormatTime("-%Y%m%d_%H.%M", data.dateline) .. ".jx3dat"
 		W.CallDoanloadData(data, szPath, szFileName)
 	end
 end
@@ -357,10 +358,12 @@ function W.CallDoanloadData(data, szPath, szFileName)
 			JH.Debug("#DBM# download url: " .. szContent)
 			JH.Curl({
 				type = "get",
+				charset = "",
 				url = szContent,
 			}):done(function(szContent)
-				JH.Debug("#DBM# downloaded size: " .. string.len(szContent))
-				Log(szPath .. szFileName, szContent, "close")
+				JH.Debug("#DBM# download size: " .. string.len(szContent))
+				Log(szPath .. szFileName .. ".log", szContent, "close")
+				CPath.Move(szPath .. szFileName .. ".log", szPath .. szFileName)
 				fnAction(szFileName)
 			end):fail(function(errMsg, dwBufferSize, set)
 				JH.Sysmsg2(_L["request failed"] .. errMsg)
@@ -413,7 +416,10 @@ end
 
 JH.RegisterBgMsg("DBM_RemoteRequest", function(nChannel, dwID, szName, data, bIsSelf)
 	if data[1] == "WebSyncTean" then
-		W.DoanloadData(data[2])
+		local t = data[2]
+		JH.Confirm(_L("Team leader request download: %s", t.title .. " - " .. t.author), function()
+			W.DoanloadData(t)
+		end)
 	elseif data[1] == "Load" then
 		JH.Sysmsg(_L("%s use %s data", szName, data[2]))
 	end

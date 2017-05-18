@@ -820,6 +820,7 @@ function DBMUI.OpenImportPanel(szDefault, szTitle, fnAction)
 			end
 		end
 		local bStatus, szMsg = DBM_API.LoadConfigureFile(config)
+		JH.Debug("#DBM# load config: " .. tostring(szMsg))
 		if bStatus then
 			JH.Alert(_L("Import success %s", szTitle or szMsg))
 			ui:Remove()
@@ -840,7 +841,7 @@ function DBMUI.OpenExportPanel()
 		nX = ui:Append("WndCheckBox", v, { x = nX + 5, y = nY + 5, checked = true, txt = _L[v] }):Pos_()
 	end
 	nY = 100
-	local szFileName = "DBM-" .. select(3, GetVersion()) .. FormatTime("-%Y-%m-%d_%H.%M.%S", GetCurrentTime()) .. ".jx3dat"
+	local szFileName = "DBM-" .. select(3, GetVersion()) .. FormatTime("-%Y%m%d_%H.%M", GetCurrentTime()) .. ".jx3dat"
 	nX, nY = ui:Append("Text", { x = 20, y = nY, txt = _L["File Name"], font = 27 }):Pos_()
 	nX, nY = ui:Append("WndEdit", { x = 30, y = nY + 10, w = 500, h = 25, txt = szFileName }):Change(function(szText)
 		szFileName = szText
