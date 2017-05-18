@@ -1587,7 +1587,6 @@ function D.LoadConfigureFile(config)
 	if not IsFileExist(szFilePath) then
 		return false, "the file does not exist"
 	end
-	Output(szFilePath)
 	local data = LoadLUAData(szFilePath)
 	if not data then
 		return false, "can not read data file."
