@@ -294,6 +294,7 @@ function W.AppendItem(data, k)
 			end
 			local btn = wnd:Lookup("WndButton")
 			local btn2 = wnd:Lookup("WndButton2")
+			btn:Enable(data.md5 ~= "")
 			btn.OnLButtonClick = function()
 				W.DoanloadData(data)
 			end
@@ -404,6 +405,9 @@ function W.SyncTeam()
 	local me = GetClientPlayer()
 	if not me.IsInParty() then
 		return JH.Alert(_L["You are not in the team."])
+	end
+	if me.GetScene().nType == MAP_TYPE.BATTLE_FIELD then
+		return JH.Alert(g_tStrings.STR_REMOTE_NOT_TIP)
 	end
 	if not JH.IsLeader() and not JH.bDebugClient then
 		return JH.Alert(_L["You are not team leader."])

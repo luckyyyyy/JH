@@ -270,9 +270,14 @@ function ScreenArrow.OnBreatheFight()
 end
 
 function SA:ctor(szClass, dwID, tArgs)
+	local dwType, object = ScreenArrow.GetObject(szClass, dwID)
+	if not JH.IsInDungeon(true) then
+		if dwType == TARGET.NPC and object.bDialogFlag then
+			return
+		end
+	end
 	local oo = {}
 	setmetatable(oo, self)
-	local dwType, object = ScreenArrow.GetObject(szClass, dwID)
 	local ui      = HANDLE:New()
 	oo.szName   = tArgs.szName
 	oo.txt      = tArgs.txt
