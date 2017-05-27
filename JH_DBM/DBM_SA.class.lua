@@ -271,7 +271,7 @@ end
 
 function SA:ctor(szClass, dwID, tArgs)
 	local dwType, object = ScreenArrow.GetObject(szClass, dwID)
-	if not JH.IsInDungeon(true) then
+	if not JH.bDebugClient and not JH.IsInDungeon(true) then
 		if dwType == TARGET.NPC and object.bDialogFlag then
 			return
 		end
