@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 13:46:53
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2017-05-27 16:00:59
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -558,8 +558,13 @@ end
 -- 倒计时处理 支持定义无限的倒计时
 function D.CountdownEvent(data, nClass)
 	if data.tCountdown then
+		local i = 1
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
+				if i > 2 then
+					break;
+				end
+				i = i + 1
 				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)
 				local tParam = {
 					key      = v.key,

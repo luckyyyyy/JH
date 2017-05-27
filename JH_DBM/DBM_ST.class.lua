@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-01-12 22:00:49
+-- @Last Modified time: 2017-05-27 15:59:12
 -- JX3_Client 倒计时类
 local _L = JH.LoadLangPack
 -- ST class
@@ -272,7 +272,11 @@ end
 -- 设置倒计时的名称和时间 用于动态改变分段倒计时
 function ST:SetInfo(tTime, nIcon)
 	if tTime.szName then
-		self.ui.txt:SetText(tTime.szName)
+		if wstring.len(tTime.szName) > 6 then
+			self.ui.txt:SetText("disabled")
+		else
+			self.ui.txt:SetText(tTime.szName)
+		end
 	end
 	if tTime.nTime then
 		self.ui:SetUserData(math.floor(tTime.nTime))

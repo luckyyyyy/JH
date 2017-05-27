@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 01:18:13
+-- @Last Modified time: 2017-05-27 16:13:04
 local _L = JH.LoadLangPack
 
 DBM_LT = {
@@ -90,7 +90,7 @@ function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["LargeText"], font = 27 }):Pos_()
 	nX = ui:Append("Text", { txt = _L["Font Scale"], x = 10, y = nY + 10 }):Pos_()
-	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 13, txt = "" }):Range(1, 2, 10):Value(DBM_LT.fScale):Change(function(nVal)
+	nX, nY = ui:Append("WndTrackBar", { x = nX + 10, y = nY + 13, txt = "" }):Range(1, 1.5, 5):Value(DBM_LT.fScale):Change(function(nVal)
 		DBM_LT.fScale = nVal
 		ui:Fetch("preview"):Font(DBM_LT.dwFontScheme):Scale(DBM_LT.fScale)
 	end):Pos_()
