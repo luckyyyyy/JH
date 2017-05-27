@@ -79,6 +79,7 @@ function KG_UIEditor.OnFrameCreate()
 	this.hList    = this:Lookup("WndScroll_Tree", "")
 	this.hUIPos   = this:Lookup("", "Image_UIPos")
 	this.hList:Clear()
+	this:ShowWhenUIHide()
 	local a = UI_ANCHOR
 	this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 end
