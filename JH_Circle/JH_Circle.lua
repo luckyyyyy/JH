@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-27 16:19:39
+-- @Last Modified time: 2017-05-27 16:21:26
 -- 方案已废弃 需要合并到 DBM 但由于目前数据结构问题 和DBM部分不兼容
 -- 避免玩家重做数据 暂时不做修改
 local _L = JH.LoadLangPack
@@ -529,7 +529,7 @@ function C.OnBreathe()
 							end
 						end
 					end
-				-- end
+				end
 			end
 			if data.bDrawName then
 				local tSelectObject = Scene_SelectObject("nearest")
