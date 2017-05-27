@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-27 16:21:26
+-- @Last Modified time: 2017-05-27 16:35:30
 -- 方案已废弃 需要合并到 DBM 但由于目前数据结构问题 和DBM部分不兼容
 -- 避免玩家重做数据 暂时不做修改
 local _L = JH.LoadLangPack
@@ -531,30 +531,30 @@ function C.OnBreathe()
 					end
 				end
 			end
-			if data.bDrawName then
-				local tSelectObject = Scene_SelectObject("nearest")
-				if (KGNpc.CanSeeName() and tSelectObject[1]["ID"] == KGNpc.dwID) or not KGNpc.CanSeeName() then
-					tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
-				end
-			end
+			-- if data.bDrawName then
+			-- 	local tSelectObject = Scene_SelectObject("nearest")
+			-- 	if (KGNpc.CanSeeName() and tSelectObject[1]["ID"] == KGNpc.dwID) or not KGNpc.CanSeeName() then
+			-- 		tinsert(C.tDrawText, { KGNpc.dwID, data.szNote or data.key, { 255, 255, 0 }, TARGET.NPC, true })
+			-- 	end
+			-- end
 			if data.bTarget then
 				local sha = C.tCache[TARGET.NPC][k].Line
 				local dwType, dwID = KGNpc.GetTarget()
 				local tar = JH.GetTarget(dwType, dwID)
-				if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and (not sha.item or sha.item and sha.item.dwID ~= dwID) and tar then
-					if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
-						sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-						sha.item.dwID = dwID
-						local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
-						C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
-					elseif sha.item then
-						C.shLine:RemoveItem(sha.item)
-						C.tCache[TARGET.NPC][k].Line = {}
-					end
-				elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
-					C.shLine:RemoveItem(sha.item)
-					C.tCache[TARGET.NPC][k].Line = {}
-				end
+				-- if data.bDrawLine and dwID ~= 0 and dwType == TARGET.PLAYER and (not sha.item or sha.item and sha.item.dwID ~= dwID) and tar then
+				-- 	if not data.bDrawLineSelf or data.bDrawLineSelf and dwID == me.dwID then
+				-- 		sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
+				-- 		sha.item.dwID = dwID
+				-- 		local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
+				-- 		C.DrawLine(KGNpc, tar, sha.item, col, data.dwType)
+				-- 	elseif sha.item then
+				-- 		C.shLine:RemoveItem(sha.item)
+				-- 		C.tCache[TARGET.NPC][k].Line = {}
+				-- 	end
+				-- elseif (not data.bDrawLine or dwID == 0 or dwType ~= TARGET.PLAYER or not tar) and sha.item then
+				-- 	C.shLine:RemoveItem(sha.item)
+				-- 	C.tCache[TARGET.NPC][k].Line = {}
+				-- end
 				if dwID ~= 0 and dwType == TARGET.PLAYER then
 					local col = dwID == me.dwID and { 255, 0, 128 } or { 255, 255, 0 }
 					tinsert(C.tDrawText, { KGNpc.dwID, JH.GetTemplateName(tar), col })
@@ -639,16 +639,16 @@ function C.OnBreathe()
 			end
 		end
 		local sha = C.tCache[TARGET.DOODAD][k].Line
-		if data.bDoodadLine and not sha.item then
-			sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
-			C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
-		elseif not data.bDoodadLine and sha.item then
-			C.shLine:RemoveItem(sha.item)
-			C.tCache[TARGET.DOODAD][k].Line = {}
-		end
-		if data.bDrawName then
-			tinsert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
-		end
+		-- if data.bDoodadLine and not sha.item then
+		-- 	sha.item = sha.item or C.shLine:AppendItemFromIni(SHADOW, "shadow", k)
+		-- 	C.DrawLine(KGDoodad, me, sha.item, { 255, 128, 0 }, data.dwType)
+		-- elseif not data.bDoodadLine and sha.item then
+		-- 	C.shLine:RemoveItem(sha.item)
+		-- 	C.tCache[TARGET.DOODAD][k].Line = {}
+		-- end
+		-- if data.bDrawName then
+		-- 	tinsert(C.tDrawText, { KGDoodad.dwID, data.szNote or data.key, { 255, 128, 0 }, TARGET.DOODAD })
+		-- end
 	end
 	if C.shName then
 		C.shName:ClearTriangleFanPoint()
@@ -820,8 +820,8 @@ function C.OpenDataPanel(data)
 		ui:Fetch("bWhisperChat"):Enable(bChecked)
 		ui:Fetch("bScreenHead"):Enable(bChecked)
 		ui:Fetch("bFlash"):Enable(bChecked)
-		ui:Fetch("bDrawLine"):Enable(bChecked)
-		ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
+		-- ui:Fetch("bDrawLine"):Enable(bChecked)
+		-- ui:Fetch("bDrawLineSelf"):Enable(bChecked and data.bDrawLine)
 		FireUIEvent("CIRCLE_RELOAD")
 		C.OpenDataPanel(data)
 	end):Pos_()
@@ -837,38 +837,38 @@ function C.OpenDataPanel(data)
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bScreenHead = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bFlash", { x = nX + 5, y = nY, checked = data.bFlash, txt = _L["Center Alarm"] })
+	nX, nY = ui:Append("WndCheckBox", "bFlash", { x = nX + 5, y = nY, checked = data.bFlash, txt = _L["Center Alarm"] })
 	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bFlash = bChecked
 	end):Pos_()
-	nX = ui:Append("WndCheckBox", "bDrawLine", { x = nX + 5, y = nY, checked = data.bDrawLine, txt = _L["Draw Line"] })
-	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
-		data.bDrawLine = bChecked
-		ui:Fetch("bDrawLineSelf"):Enable(bChecked)
-		FireUIEvent("CIRCLE_RELOAD")
-		C.OpenDataPanel(data)
-	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
-	:Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC and data.bDrawLine == true):Click(function(bChecked)
-		data.bDrawLineSelf = bChecked
-		FireUIEvent("CIRCLE_RELOAD")
-		C.OpenDataPanel(data)
-	end):Pos_()
-	nX, nY = ui:Append("Text", { x = 15, y = nY, txt = _L["Other"], font = 27 }):Pos_()
-	nX = ui:Append("WndCheckBox", { x = 25, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
-	:Click(function(bChecked)
-		data.bDrawName = bChecked
-	end):Pos_()
-	nX = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bEmployer, txt = _L["Check Employer"] })
+	-- nX = ui:Append("WndCheckBox", "bDrawLine", { x = nX + 5, y = nY, checked = data.bDrawLine, txt = _L["Draw Line"] })
+	-- :Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC):Click(function(bChecked)
+	-- 	data.bDrawLine = bChecked
+	-- 	ui:Fetch("bDrawLineSelf"):Enable(bChecked)
+	-- 	FireUIEvent("CIRCLE_RELOAD")
+	-- 	C.OpenDataPanel(data)
+	-- end):Pos_()
+	-- nX, nY = ui:Append("WndCheckBox", "bDrawLineSelf", { x = nX + 5, y = nY, checked = data.bDrawLineSelf, txt = _L["Draw Line Only Self"] })
+	-- :Enable(type(data.bTarget) ~= "nil" and data.bTarget and data.dwType == TARGET.NPC and data.bDrawLine == true):Click(function(bChecked)
+	-- 	data.bDrawLineSelf = bChecked
+	-- 	FireUIEvent("CIRCLE_RELOAD")
+	-- 	C.OpenDataPanel(data)
+	-- end):Pos_()
+	-- nX, nY = ui:Append("Text", { x = 15, y = nY, txt = _L["Other"], font = 27 }):Pos_()
+	-- nX = ui:Append("WndCheckBox", { x = 25, y = nY + 10, checked = data.bDrawName, txt = _L["Draw Self Name"] })
+	-- :Click(function(bChecked)
+	-- 	data.bDrawName = bChecked
+	-- end):Pos_()
+	nX, nY = ui:Append("WndCheckBox", { x = 15 + 10, y = nY, checked = data.bEmployer, txt = _L["Check Employer"] })
 	:Enable(data.dwType == TARGET.NPC):Click(function(bChecked)
 		data.bEmployer = bChecked
 		FireUIEvent("CIRCLE_RELOAD")
 		C.OpenDataPanel(data)
 	end):Pos_()
-	nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bDoodadLine, txt = _L["Draw Doodad Line"] })
-	:Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
-		data.bDoodadLine = bChecked
-	end):Pos_()
+	-- nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY + 10, checked = data.bDoodadLine, txt = _L["Draw Doodad Line"] })
+	-- :Enable(data.dwType == TARGET.DOODAD):Click(function(bChecked)
+	-- 	data.bDoodadLine = bChecked
+	-- end):Pos_()
 	nX, nY = ui:Append("Text", { x = 15, y = nY, txt = g_tStrings.STR_GUILD_REMARK, font = 27 }):Pos_()
 	ui:Append("WndEdit", { x = 25, y = nY + 10, w = 720, h = 24 ,txt = data.szNote or g_tStrings.STR_FRIEND_REMARK, limit = 30, })
 	:Focus(function(bFocus)
