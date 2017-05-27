@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 01:06:05
+-- @Last Modified time: 2017-05-27 16:40:42
 -- JX3_Client 全屏泛光类
 local FS = {}
 FS.__index = FS
@@ -66,13 +66,13 @@ function FS_UI.OnFrameRender()
 			if nLeft > 0 then
 				if v.bFlash then
 					local nTimeLeft = nTime * 1000 % 750
-					local nAlpha = 150 * nTimeLeft / 750
+					local nAlpha = 100 * nTimeLeft / 750
 					if floor(nTime / 0.75) % 2 == 1 then
-						nAlpha = 150 - nAlpha
+						nAlpha = 100 - nAlpha
 					end
 					v.obj:DrawFullScreen(floor(nAlpha))
 				else
-					local nAlpha = 150 - 150 * nTime / v.nTime
+					local nAlpha = 100 - 100 * nTime / v.nTime
 					v.obj:DrawFullScreen(nAlpha)
 				end
 			else

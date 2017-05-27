@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-27 16:00:59
+-- @Last Modified time: 2017-05-27 16:53:02
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -663,7 +663,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 			if not KObject then
 				return -- D.Log("ERROR " .. szType .. " object:" .. dwCaster .. " does not exist!")
 			end
-			szName = data.szName or szName
+			-- szName = data.szName or szName
 			nIcon  = data.nIcon or nIcon
 			local szSrcName = JH.GetTemplateName(KObject)
 			local xml = {}
@@ -673,9 +673,9 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 			if nClass == DBM_TYPE.BUFF_GET then
 				tinsert(xml, GetFormatText(_L["Get Buff"], 44, 255, 255, 255))
 				tinsert(xml, GetFormatText(szName .. " x" .. nCount, 44, 255, 255, 0))
-				if data.szNote then
-					tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
-				end
+				-- if data.szNote then
+				-- 	tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
+				-- end
 			else
 				tinsert(xml, GetFormatText(_L["Lose Buff"], 44, 255, 255, 255))
 				tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
@@ -791,7 +791,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		if not KObject then
 			return -- D.Log("ERROR CASTING object:" .. dwCaster .. " does not exist!")
 		end
-		szName = data.szName or szName
+		-- szName = data.szName or szName
 		nIcon  = data.nIcon or nIcon
 		local szSrcName = JH.GetTemplateName(KObject)
 		local dwTargetType, dwTargetID = KObject.GetTarget()
@@ -817,7 +817,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				tinsert(xml, GetFormatText(_L["Building"], 44, 255, 255, 255))
 			end
 			tinsert(xml, DBM_LEFT_LINE)
-			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
 			tinsert(xml, DBM_RIGHT_LINE)
 			if data.bMonTarget and szTargetName then
 				tinsert(xml, GetFormatText(g_tStrings.TARGET, 44, 255, 255, 255))
@@ -825,9 +825,9 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 				tinsert(xml, GetFormatText(szTargetName == DBM_CORE_NAME and g_tStrings.STR_YOU or szTargetName, 44, 255, 255, 0))
 				tinsert(xml, DBM_RIGHT_LINE)
 			end
-			if data.szNote then
-				tinsert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
-			end
+			-- if data.szNote then
+			-- 	tinsert(xml, " " .. GetFormatText(data.szNote, 44, 255, 255, 255))
+			-- end
 			local txt = GetPureText(tconcat(xml))
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
 				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
@@ -844,7 +844,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			end
 			-- 头顶报警
 			if DBM.bPushScreenHead and cfg.bScreenHead then
-				FireUIEvent("JH_SA_CREATE", "CASTING", dwCaster, { txt = data.szName or szName, col = data.col })
+				FireUIEvent("JH_SA_CREATE", "CASTING", dwCaster, { txt = szName, col = data.col })
 			end
 			-- 全屏泛光
 			if DBM.bPushFullScreen and cfg.bFullScreen then
@@ -957,16 +957,16 @@ function D.OnNpcEvent(npc, bEnter)
 			local szName = JH.GetTemplateName(npc)
 			local xml = {}
 			tinsert(xml, DBM_LEFT_LINE)
-			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
 			tinsert(xml, DBM_RIGHT_LINE)
 			if nClass == DBM_TYPE.NPC_ENTER then
 				tinsert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
 				if nCount > 1 then
 					tinsert(xml, GetFormatText(" x" .. nCount, 44, 255, 255, 0))
 				end
-				if data.szNote then
-					tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
-				end
+				-- if data.szNote then
+				-- 	tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
+				-- end
 			else
 				tinsert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
 			end
@@ -1081,16 +1081,16 @@ function D.OnDoodadEvent(doodad, bEnter)
 			local szName = doodad.szName
 			local xml = {}
 			tinsert(xml, DBM_LEFT_LINE)
-			tinsert(xml, GetFormatText(data.szName or szName, 44, 255, 255, 0))
+			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
 			tinsert(xml, DBM_RIGHT_LINE)
 			if nClass == DBM_TYPE.DOODAD_ENTER then
 				tinsert(xml, GetFormatText(_L["Appear"], 44, 255, 255, 255))
 				if nCount > 1 then
 					tinsert(xml, GetFormatText(" x" .. nCount, 44, 255, 255, 0))
 				end
-				if data.szNote then
-					tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
-				end
+				-- if data.szNote then
+				-- 	tinsert(xml, GetFormatText(" " .. data.szNote, 44, 255, 255, 255))
+				-- end
 			else
 				tinsert(xml, GetFormatText(_L["leave"], 44, 255, 255, 255))
 			end

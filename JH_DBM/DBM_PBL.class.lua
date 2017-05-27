@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 01:05:03
+-- @Last Modified time: 2017-05-27 16:58:02
 
 -- 这个需要重写 构思已有 就是没时间。。
 local _L = JH.LoadLangPack
@@ -212,6 +212,9 @@ function PBL.GetPlayer(dwID)
 end
 
 function PBL.OnTableInsert(dwID, dwBuffID, nLevel, nIcon)
+	if PBL.handle and PBL.handle:GetItemCount() > 7 then
+		return
+	end
 	local team = GetClientTeam()
 	local p, info = PBL.GetPlayer(dwID)
 	if not p or not info then
