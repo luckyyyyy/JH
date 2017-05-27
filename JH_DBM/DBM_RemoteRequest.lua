@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 13:03:12
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2017-05-27 16:27:45
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -344,7 +344,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 		DBM_UI.OpenImportPanel(szFile, data.title .. " - " .. data.author, function()
 			DBM_RemoteRequest.tData = data
 			local me = GetClientPlayer()
-			if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_RemoteRequest", "Load", data.title) end
+			-- if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_RemoteRequest", "Load", data.title) end
 		end)
 	end
 
@@ -368,7 +368,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 				fnAction(szFileName)
 			end):fail(function(errMsg, dwBufferSize, set)
 				JH.Sysmsg2(_L["request failed"] .. errMsg)
-			end)	
+			end)
 		end)	:fail(function(errMsg, dwBufferSize, set)
 			JH.Sysmsg2(_L["request failed"] .. errMsg)
 		end)
