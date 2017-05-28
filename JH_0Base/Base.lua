@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   William Chan
--- @Last Modified time: 2017-02-06 09:53:37
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2017-05-28 17:55:09
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -287,6 +287,15 @@ function JH.OnLButtonClick()
 		JH.Animate(btn):Scale(2, true):FadeOut(function()
 			JH.Animate(btn):FadeIn()
 		end)
+		if not _DEBUG_ then
+			Station.Lookup("Normal/Player", "Text_Player"):SetFontColor(32, 255, 166)
+			_DEBUG_ = true
+			JH.Sysmsg("Enable Debug!!")
+		else
+			Station.Lookup("Normal/Player", "Text_Player"):SetFontColor(255, 255, 0)
+			_DEBUG_ = false
+			JH.Sysmsg("Disable Debug!!")
+		end
 	end
 end
 
