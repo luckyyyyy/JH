@@ -116,7 +116,8 @@ function ScreenArrow.OnBreathe()
 				else
 					szName = JH.GetTemplateName(object)
 				end
-				szName = obj.szName or szName
+				-- szName = obj.szNam or szName
+				szName = object.szNam or szName
 				if tTeamMark[dwID] then
 					szName = szName .. _L("[%s]", JH_MARK_NAME[tTeamMark[dwID]])
 				end
@@ -126,9 +127,11 @@ function ScreenArrow.OnBreathe()
 					if KBuff then
 						local nSec = JH.GetEndTime(KBuff.GetEndTime())
 						if KBuff.nStackNum > 1 then
-							txt = string.format("%s(%d)_%s", obj.txt or JH.GetBuffName(KBuff.dwID, KBuff.nLevel), KBuff.nStackNum, JH.FormatTimeString(nSec, 1, true))
+							-- txt = string.format("%s(%d)_%s", obj.txt or JH.GetBuffName(KBuff.dwID, KBuff.nLevel), KBuff.nStackNum, JH.FormatTimeString(nSec, 1, true))
+							txt = string.format("%s(%d)_%s", JH.GetBuffName(KBuff.dwID, KBuff.nLevel), KBuff.nStackNum, JH.FormatTimeString(nSec, 1, true))
 						else
-							txt = string.format("%s_%s", obj.txt or JH.GetBuffName(KBuff.dwID, KBuff.nLevel), JH.FormatTimeString(nSec, 1, true))
+							-- txt = string.format("%s_%s", obj.txt or JH.GetBuffName(KBuff.dwID, KBuff.nLevel), JH.FormatTimeString(nSec, 1, true))
+							txt = string.format("%s_%s", JH.GetBuffName(KBuff.dwID, KBuff.nLevel), JH.FormatTimeString(nSec, 1, true))
 						end
 					else
 						return obj:Free()
@@ -151,18 +154,19 @@ function ScreenArrow.OnBreathe()
 				elseif obj.szClass == "CASTING" then
 					local bIsPrepare, dwSkillID, dwSkillLevel, fPer = object.GetSkillPrepareState()
 					if bIsPrepare then
-						txt = obj.txt or JH.GetSkillName(dwSkillID, dwSkillLevel)
+						-- txt = obj.txt or JH.GetSkillName(dwSkillID, dwSkillLevel)
+						txt = JH.GetSkillName(dwSkillID, dwSkillLevel)
 						fManaPer = fPer
 					else
 						return obj:Free()
 					end
 				elseif obj.szClass == "NPC" or obj.szClass == "DOODAD" then
-					txt = obj.txt or txt
+					-- txt = obj.txt or txt
 				elseif obj.szClass == "TIME" then
 					if (GetTime() - obj.nNow) / 1000 > 5 then
 						return obj:Free()
 					end
-					txt = obj.txt or _L["Call Alert"]
+					-- txt = obj.txt or _L["Call Alert"]
 				end
 				if not obj.init then
 					obj:DrawBackGround()
