@@ -1,7 +1,7 @@
 -- @Author: Admin
 -- @Date:   2015-12-13 09:39:52
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-04-01 06:43:19
+-- @Last modified by:   Zhai Yiming
+-- @Last modified time: 2017-05-09 17:45:34
 local tinsert = table.insert
  -- stack overflow
 local function GetUIStru(ui)
@@ -182,8 +182,14 @@ function UI.GetTipInfo(ui)
 	}
 	tinsert(xml, GetFormatText("Type: ", 67))
 	tinsert(xml, GetFormatText(ui:GetType() .. "\n", 44))
+	tinsert(xml, GetFormatText("Visible: ", 67))
+	tinsert(xml, GetFormatText(tostring(ui:IsVisible()) .. "\n", 44))
 	tinsert(xml, GetFormatText("Size: ", 67))
 	tinsert(xml, GetFormatText(table.concat({ ui:GetSize() }, ", ") .. "\n", 44))
+	tinsert(xml, GetFormatText("RelPos: ", 67))
+	tinsert(xml, GetFormatText(table.concat({ ui:GetRelPos() }, ", ") .. "\n", 44))
+	tinsert(xml, GetFormatText("AbsPos: ", 67))
+	tinsert(xml, GetFormatText(table.concat({ ui:GetAbsPos() }, ", ") .. "\n", 44))
 	local szPath1, szPath2 = ui:GetTreePath()
 	tinsert(xml, GetFormatText("Path1: ", 67))
 	tinsert(xml, GetFormatText(szPath1 .. "\n", 44))
