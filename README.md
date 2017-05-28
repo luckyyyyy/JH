@@ -2,22 +2,18 @@
 ==================
 本插件适用于国产网游```《剑侠情缘网络版叁》```，由于游戏版本较多，本插件基于```zhcn```版本编译，所有的功能以及API针对于```zhcn```版本，其他版本需要做一些兼容性的修改，可以参考下文的兼容性修改部分。
 
-* 插件官网：http://www.j3ui.com
-* 作者微博：http://weibo.com/techvicky
-* 建议反馈：可以通过微博私信反馈您的建议，当然欢迎各位直接pull request
-* 许可协议：https://github.com/Webster-jx3/JH/blob/master/LICENSE
-
-开发资料
------------------------
-* 事件查询：http://www.j3ui.com/dev
+* 建议反馈：欢迎各位直接pull request，或者打开新的issues，除此之外不接受任何反馈。
+* LICENSE：MIT
+* 分支说明：`master`分支为大改版之前的版本，建议台服等其他服使用，`dev`分支用于国服，`normal`分支为开发自用版本主开发版本，
+* 其他说明：本人已很少维护本插件，本插件接受所有合理的pull request，如果您有建议可直接开issues讨论。
 
 使用方法
 -----------------------
 在```./bin/{ version }/interface/```目录下载仓库所有文件，但是请注意，目前```zhcn```版本需要key验证，否则会被判为非法插件。
 ```
-git clone git@github.com:Webster-jx3/JH.git
+git clone git@github.com:luckyyyyy/JH.git
 或者也可以直接下载所有文件，文件夹名称为JH。
-https://github.com/Webster-jx3/JH/archive/master.zip
+https://github.com/luckyyyyy/JH/archive/dev.zip
 ```
 
 兼容性修改
