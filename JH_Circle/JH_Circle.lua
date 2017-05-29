@@ -1,7 +1,8 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-29 16:35:42
+-- @Last Modified time: 2017-05-29 16:53:52
+
 -- 方案已废弃 需要合并到 DBM 但由于目前数据结构问题 和DBM部分不兼容
 -- 避免玩家重做数据 暂时不做修改
 local _L = JH.LoadLangPack
@@ -898,7 +899,7 @@ function C.OpenDataPanel(data)
 		C.RemoveData(data.dwMapID, data.nIndex, not IsAltKeyDown())
 	end)
 	ui:Append("WndButton2", { x = 640, y = 340, txt = g_tStrings.HELP_PANEL }):Click(function()
-		OpenInternetExplorer("http://www.j3ui.com/DBM/")
+		OpenInternetExplorer("https://github.com/luckyyyyy/JH/blob/dev/JH_DBM/README.md")
 	end)
 end
 

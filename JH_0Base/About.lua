@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 18:14:12
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2017-05-29 02:23:38
 local _L = JH.LoadLangPack
 local _JH_About = {
 	INFO = {},
@@ -104,14 +104,14 @@ function Panel.About.OnPanelActive(frame)
 	local txt = info.szName .. " v" ..  info.szVersion .. " (Build: " .. info.szBuildDate .. ")"
 	nX, nY = ui:Append("Text", "Animate4", { x = 20, y = nY + 5, txt = txt }):Toggle(false):Pos_()
 	nX, nY = ui:Append("Text", "Animate5", { x = 10, y = nY + 5, txt = _L["Other"], font = 27 }):Toggle(false):Pos_()
-	nX, nY = ui:Append("Text", "Animate6", { x = 20, y = nY + 5, txt = _L["WeiBo"] .. " http://weibo.com/2128637385", w = 250, h = 28 }):Click(function()
-		OpenInternetExplorer("http://weibo.com/2128637385")
-	end, { 255, 255, 255 }):Toggle(false):Pos_()
-	nX, nY = ui:Append("Text", "Animate7", { x = 20, y = nY + 5, txt = _L["official website"] .. " http://www.j3ui.com", w = 250, h = 28 }):Click(function()
-		OpenInternetExplorer("http://www.j3ui.com")
-	end, { 255, 255, 255 }):Toggle(false):Pos_()
+	-- nX, nY = ui:Append("Text", "Animate6", { x = 20, y = nY + 5, txt = _L["WeiBo"] .. " http://weibo.com/2128637385", w = 250, h = 28 }):Click(function()
+	-- 	OpenInternetExplorer("http://weibo.com/2128637385")
+	-- end, { 255, 255, 255 }):Toggle(false):Pos_()
+	-- nX, nY = ui:Append("Text", "Animate7", { x = 20, y = nY + 5, txt = _L["official website"] .. " http://www.j3ui.com", w = 250, h = 28 }):Click(function()
+	-- 	OpenInternetExplorer("http://www.j3ui.com")
+	-- end, { 255, 255, 255 }):Toggle(false):Pos_()
 	nX, nY = ui:Append("Text", "Animate8", { x = 20, y = nY + 5, txt = _L["GitHub"] .. " https://github.com/Webster-jx3/JH", w = 270, h = 28 }):Click(function()
-		OpenInternetExplorer("https://github.com/Webster-jx3/JH")
+		OpenInternetExplorer("https://github.com/Luckyyyyy/JH")
 	end, { 255, 255, 255 }):Toggle(false):Pos_()
 	if JH.bDebugClient then
 		nX = ui:Append("WndButton4", { x = 130, y = 400, txt = _L["Check Install"] }):Click(_JH_About.CheckInstall):Pos_()
@@ -129,8 +129,8 @@ function Panel.About.OnPanelActive(frame)
 		JH.Animate(ui:Fetch("Animate3").self):FadeIn():Pos({ -20, 0 })
 		JH.Animate(ui:Fetch("Animate4").self):FadeIn():Pos({ -20, 0 }, function()
 			JH.Animate(ui:Fetch("Animate5").self):FadeIn():Pos({ -20, 0 })
-			JH.Animate(ui:Fetch("Animate6").self):FadeIn():Pos({ -20, 0 })
-			JH.Animate(ui:Fetch("Animate7").self):FadeIn():Pos({ -20, 0})
+			-- JH.Animate(ui:Fetch("Animate6").self):FadeIn():Pos({ -20, 0 })
+			-- JH.Animate(ui:Fetch("Animate7").self):FadeIn():Pos({ -20, 0})
 			JH.Animate(ui:Fetch("Animate8").self):FadeIn():Pos({ -20, 0 })
 		end)
 	end)

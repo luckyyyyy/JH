@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-25 13:13:46
--- @Last Modified by:   Webster
--- @Last Modified time: 2015-09-19 06:55:00
+-- @Last Modified by:   Administrator
+-- @Last Modified time: 2017-05-29 02:26:30
 
 local _L = JH.LoadLangPack
 local PS = {}
@@ -10,7 +10,7 @@ function PS.OnPanelActive(frame)
 	local ui, nX, nY = GUI(frame), 10, 0
 
 	ui:Append("WndButton2", { x = 400, y = 20, txt = g_tStrings.HELP_PANEL }):Click(function()
-		OpenInternetExplorer("http://www.j3ui.com/DBM/")
+		OpenInternetExplorer("https://github.com/luckyyyyy/JH/blob/dev/JH_DBM/README.md")
 	end)
 
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Master switch"], font = 27 }):Pos_()
