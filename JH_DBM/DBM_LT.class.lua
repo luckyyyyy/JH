@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-27 16:24:28
+-- @Last Modified time: 2017-05-29 16:25:51
 local _L = JH.LoadLangPack
 
 DBM_LT = {
@@ -62,6 +62,9 @@ function LT.Init()
 end
 
 function LT.UpdateText(txt, col)
+	if wstring.len(txt) > 10 then
+		return
+	end
 	if not col then
 		col = { 255, 128, 0 }
 	end
