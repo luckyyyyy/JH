@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-27 16:53:02
+-- @Last Modified time: 2017-05-29 16:34:27
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -612,32 +612,33 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 	local key = dwBuffID .. "_" .. nBuffLevel
 	local data = D.GetData(szType, dwBuffID, nBuffLevel)
 	local nTime = GetTime()
+	if Table_BuffIsVisible(dwBuffID, nBuffLevel) and not JH.bDebugClient then
+		return
+	end
 	if not bDelete then
 		-- 近期记录
-		if Table_BuffIsVisible(dwBuffID, nBuffLevel) or JH.bDebugClient then
-			local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
-			if not tWeak[key] then
-				local t = {
-					dwMapID      = JH.GetMapID(),
-					dwID         = dwBuffID,
-					nLevel       = nBuffLevel,
-					bIsPlayer    = dwSkillSrcID ~= 0 and IsPlayer(dwSkillSrcID),
-					szSrcName    = D.GetSrcName(dwSkillSrcID),
-					nCurrentTime = GetCurrentTime()
-				}
-				tWeak[key] = t
-				tTemp[#tTemp + 1] = tWeak[key]
-				FireUIEvent("DBMUI_TEMP_UPDATE", szType, t)
-			end
-			-- 记录时间
-			CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
-			if #CACHE.INTERVAL[szType][key] > 0 then
-				if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
-					CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
-				end
-			else
+		local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
+		if not tWeak[key] then
+			local t = {
+				dwMapID      = JH.GetMapID(),
+				dwID         = dwBuffID,
+				nLevel       = nBuffLevel,
+				bIsPlayer    = dwSkillSrcID ~= 0 and IsPlayer(dwSkillSrcID),
+				szSrcName    = D.GetSrcName(dwSkillSrcID),
+				nCurrentTime = GetCurrentTime()
+			}
+			tWeak[key] = t
+			tTemp[#tTemp + 1] = tWeak[key]
+			FireUIEvent("DBMUI_TEMP_UPDATE", szType, t)
+		end
+		-- 记录时间
+		CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
+		if #CACHE.INTERVAL[szType][key] > 0 then
+			if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
 				CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
 			end
+		else
+			CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key] + 1] = nTime
 		end
 	end
 	if data then
@@ -759,25 +760,26 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		end
 	end
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
-	if Table_IsSkillShow(dwCastID, dwLevel) or JH.bDebugClient then
-		local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
-		if not tWeak[key] then
-			local t = {
-				dwMapID      = JH.GetMapID(),
-				dwID         = dwCastID,
-				nLevel       = dwLevel,
-				bIsPlayer    = IsPlayer(dwCaster),
-				szSrcName    = D.GetSrcName(dwCaster),
-				nCurrentTime = GetCurrentTime()
-			}
-			tWeak[key] = t
-			tTemp[#tTemp + 1] = tWeak[key]
-			FireUIEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
-		end
-		CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
-		CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
-		CACHE.SKILL_LIST[dwCaster][key] = nTime
+	if Table_IsSkillShow(dwCastID, dwLevel) and not JH.bDebugClient then
+		return
 	end
+	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
+	if not tWeak[key] then
+		local t = {
+			dwMapID      = JH.GetMapID(),
+			dwID         = dwCastID,
+			nLevel       = dwLevel,
+			bIsPlayer    = IsPlayer(dwCaster),
+			szSrcName    = D.GetSrcName(dwCaster),
+			nCurrentTime = GetCurrentTime()
+		}
+		tWeak[key] = t
+		tTemp[#tTemp + 1] = tWeak[key]
+		FireUIEvent("DBMUI_TEMP_UPDATE", "CASTING", t)
+	end
+	CACHE.INTERVAL.CASTING[key] = CACHE.INTERVAL.CASTING[key] or {}
+	CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
+	CACHE.SKILL_LIST[dwCaster][key] = nTime
 	-- 监控数据
 	if data then
 		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- 监控对象检查
