@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-29 16:34:27
+-- @Last Modified time: 2017-05-29 16:39:34
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -612,7 +612,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 	local key = dwBuffID .. "_" .. nBuffLevel
 	local data = D.GetData(szType, dwBuffID, nBuffLevel)
 	local nTime = GetTime()
-	if Table_BuffIsVisible(dwBuffID, nBuffLevel) and not JH.bDebugClient then
+	if not Table_BuffIsVisible(dwBuffID, nBuffLevel) and not JH.bDebugClient then
 		return
 	end
 	if not bDelete then
@@ -760,7 +760,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		end
 	end
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
-	if Table_IsSkillShow(dwCastID, dwLevel) and not JH.bDebugClient then
+	if not Table_IsSkillShow(dwCastID, dwLevel) and not JH.bDebugClient then
 		return
 	end
 	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
