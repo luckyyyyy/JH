@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-29 16:53:52
+-- @Last Modified time: 2017-06-01 16:01:30
 
 -- 方案已废弃 需要合并到 DBM 但由于目前数据结构问题 和DBM部分不兼容
 -- 避免玩家重做数据 暂时不做修改
@@ -17,8 +17,9 @@ local TARGET = TARGET
 
 local SHADOW              = JH.GetAddonInfo().szShadowIni
 local CIRCLE_ALPHA_STEP   = 2.5
-local CIRCLE_MAX_RADIUS   = 30    -- 最大的半径
+local CIRCLE_MAX_RADIUS   = 15    -- 最大的半径
 local CIRCLE_LINE_ALPHA   = 30   -- 线和边框最大透明度
+local CIRCLE_ALPHA        = 13   -- 圈圈透明度
 local CIRCLE_MAX_CIRCLE   = 1
 local CIRCLE_RESERT_DRAW  = false -- 全局重绘
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
@@ -45,7 +46,6 @@ local function GetDataPath()
 end
 
 Circle = {
-	nMaxAlpha = 15,
 	bEnable = true,
 	bBorder = true, -- 全局的边框模式 边框会造成卡
 }
@@ -372,19 +372,7 @@ function C.DrawShape(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	if nAngle == 360 then
 		dwRad2 = dwRad2 + pi / 20
 	end
-	-- nAlpha 补偿
-	local nAlpha = Circle.nMaxAlpha
-	local ap = CIRCLE_ALPHA_STEP * (nRadius / 64)
-	if ap > 35 then
-		nAlpha = 15
-	else
-		nAlpha = nAlpha - ap
-	end
-	nAlpha = nAlpha + (360 - nAngle) / 6
-	if nAlpha > Circle.nMaxAlpha then nAlpha = Circle.nMaxAlpha end
-	if __Alpha then -- circle 2
-		nAlpha = nAlpha - (__Alpha / 360 * nAlpha / 2)
-	end
+	local nAlpha = CIRCLE_ALPHA
 	local r, g, b = unpack(col)
 	-- orgina point
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
