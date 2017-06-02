@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2017-06-01 19:58:22
+-- @Last Modified by:   William Chan
+-- @Last Modified time: 2017-06-02 14:03:23
 
 -- 方案已废弃 需要合并到 DBM 但由于目前数据结构问题 和DBM部分不兼容
 -- 避免玩家重做数据 暂时不做修改
@@ -18,8 +18,8 @@ local TARGET = TARGET
 local SHADOW              = JH.GetAddonInfo().szShadowIni
 local CIRCLE_ALPHA_STEP   = 2.5
 local CIRCLE_MAX_RADIUS   = 30   -- 最大的半径
-local CIRCLE_LINE_ALPHA   = 30   -- 线和边框最大透明度
-local CIRCLE_ALPHA        = 18   -- 圈圈透明度
+local CIRCLE_LINE_ALPHA   = 45   -- 线和边框最大透明度
+local CIRCLE_ALPHA        = 30   -- 圈圈透明度
 local CIRCLE_MAX_CIRCLE   = 1
 local CIRCLE_RESERT_DRAW  = false -- 全局重绘
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
