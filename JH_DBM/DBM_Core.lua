@@ -561,7 +561,9 @@ function D.CountdownEvent(data, nClass)
 		local i = 1
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				if i > 2 then
+				if v.nTime == 0 then
+					i = i + 1
+				elseif i > 2 then
 					break;
 				end
 				i = i + 1
