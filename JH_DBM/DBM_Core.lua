@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
--- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-29 16:39:34
+-- @Last Modified by:   William Chan
+-- @Last Modified time: 2017-06-02 17:55:25
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -561,12 +561,13 @@ function D.CountdownEvent(data, nClass)
 		local i = 1
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				if v.nTime == 0 then
-					i = i + 1
-				elseif i > 2 then
-					break;
+				if v.nTime ~= 0 then
+					if i > 2 then
+						break
+					else
+						i = i + 1
+					end
 				end
-				i = i + 1
 				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)
 				local tParam = {
 					key      = v.key,
