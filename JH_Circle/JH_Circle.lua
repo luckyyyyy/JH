@@ -12,7 +12,7 @@ local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
 local tinsert, tconcat = table.insert, table.concat
-local crazynpc --部分NPC可能严重干扰秘境特效和面向的判断，在NPC达到一定数量的情况下，给予透明度补偿
+local crazynpc = 0 --部分NPC可能严重干扰副本内的特效和面向判断，在NPC达到一定数量的情况下，给予透明度补偿
 local GetClientPlayer = GetClientPlayer
 local TARGET = TARGET
 
@@ -22,7 +22,7 @@ local CIRCLE_MAX_RADIUS   = 30   -- 最大的半径
 local CIRCLE_LINE_ALPHA   = 45   -- 线和边框最大透明度
 local CIRCLE_ALPHA        = 30   -- 圈圈透明度
 local CIRCLE_ALPHA_EXTRA  = 20   -- 特殊条件下的透明度补正
-local CIRCLE_CRAZY_COUNT  = 2    -- 触发透明度补正的NPC个数
+local CIRCLE_CRAZY_COUNT  = 2    -- 超过时触发透明度补偿的NPC数量
 local CIRCLE_MAX_CIRCLE   = 1
 local CIRCLE_RESERT_DRAW  = false -- 全局重绘
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
@@ -381,7 +381,9 @@ function C.DrawShape(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	end
 	local nAlpha = CIRCLE_ALPHA
 	if crazynpc > CIRCLE_CRAZY_COUNT then
-		nAlpha = nAlpha + CIRCLE_ALPHA_EXTRA
+		if JH.IsInDungeon(true) then --仅在副本地图生效
+			nAlpha = nAlpha + CIRCLE_ALPHA_EXTRA
+		end
 	end
 	local r, g, b = unpack(col)
 	-- orgina point
@@ -935,7 +937,6 @@ function C.Init()
 			CIRCLE_RESERT_DRAW = true
 		end }
 	)
-	crazynpc = 0
 end
 
 function C.UnInit()
