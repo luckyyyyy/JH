@@ -41,7 +41,7 @@ local CIRCLE_COLOR = {
 local CTAZY_NPC_LIST = {
 	53233, -- 霸刀西楚悲歌,坚壁清野特效
 	51009, -- 长歌风雷引琴特效,只选取其中一个
-} --可能出现的会严重遮挡地面特效显示的NPC列表
+} --可能出现会严重遮挡地面特效显示的NPC列表
 
 -- 获取数据路径
 local function GetDataPath()
