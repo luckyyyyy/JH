@@ -3,8 +3,8 @@
 -- @Last Modified by:   William Chan
 -- @Last Modified time: 2017-06-02 14:03:23
 
--- ·½°¸ÒÑ·ÏÆú ĞèÒªºÏ²¢µ½ DBM µ«ÓÉÓÚÄ¿Ç°Êı¾İ½á¹¹ÎÊÌâ ºÍDBM²¿·Ö²»¼æÈİ
--- ±ÜÃâÍæ¼ÒÖØ×öÊı¾İ ÔİÊ±²»×öĞŞ¸Ä
+-- æ–¹æ¡ˆå·²åºŸå¼ƒ éœ€è¦åˆå¹¶åˆ° DBM ä½†ç”±äºç›®å‰æ•°æ®ç»“æ„é—®é¢˜ å’ŒDBMéƒ¨åˆ†ä¸å…¼å®¹
+-- é¿å…ç©å®¶é‡åšæ•°æ® æš‚æ—¶ä¸åšä¿®æ”¹
 local _L = JH.LoadLangPack
 local pairs, ipairs = pairs, ipairs
 local type, unpack, pcall = type, unpack, pcall
@@ -12,19 +12,19 @@ local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
 local tinsert, tconcat = table.insert, table.concat
-local crazynpc = 0 --²¿·ÖNPC¿ÉÄÜÑÏÖØ¸ÉÈÅ¸±±¾ÄÚµÄÌØĞ§ºÍÃæÏòÅĞ¶Ï£¬ÔÚNPC´ïµ½Ò»¶¨ÊıÁ¿µÄÇé¿öÏÂ£¬¸øÓèÍ¸Ã÷¶È²¹³¥
+local crazynpc = 0 --éƒ¨åˆ†NPCå¯èƒ½ä¸¥é‡å¹²æ‰°å‰¯æœ¬å†…çš„ç‰¹æ•ˆå’Œé¢å‘åˆ¤æ–­ï¼Œåœ¨NPCè¾¾åˆ°ä¸€å®šæ•°é‡çš„æƒ…å†µä¸‹ï¼Œç»™äºˆé€æ˜åº¦è¡¥å¿
 local GetClientPlayer = GetClientPlayer
 local TARGET = TARGET
 
 local SHADOW              = JH.GetAddonInfo().szShadowIni
 local CIRCLE_ALPHA_STEP   = 2.5
-local CIRCLE_MAX_RADIUS   = 30   -- ×î´óµÄ°ë¾¶
-local CIRCLE_LINE_ALPHA   = 45   -- ÏßºÍ±ß¿ò×î´óÍ¸Ã÷¶È
-local CIRCLE_ALPHA        = 30   -- È¦È¦Í¸Ã÷¶È
-local CIRCLE_ALPHA_EXTRA  = 20   -- ÌØÊâÌõ¼şÏÂµÄÍ¸Ã÷¶È²¹Õı
-local CIRCLE_CRAZY_COUNT  = 2    -- ³¬¹ıÊ±´¥·¢Í¸Ã÷¶È²¹³¥µÄNPCÊıÁ¿
+local CIRCLE_MAX_RADIUS   = 30   -- æœ€å¤§çš„åŠå¾„
+local CIRCLE_LINE_ALPHA   = 45   -- çº¿å’Œè¾¹æ¡†æœ€å¤§é€æ˜åº¦
+local CIRCLE_ALPHA        = 30   -- åœˆåœˆé€æ˜åº¦
+local CIRCLE_ALPHA_EXTRA  = 15   -- ç‰¹æ®Šæ¡ä»¶ä¸‹çš„é€æ˜åº¦è¡¥æ­£
+local CIRCLE_CRAZY_COUNT  = 2    -- è¶…è¿‡æ—¶è§¦å‘é€æ˜åº¦è¡¥å¿çš„NPCæ•°é‡
 local CIRCLE_MAX_CIRCLE   = 1
-local CIRCLE_RESERT_DRAW  = false -- È«¾ÖÖØ»æ
+local CIRCLE_RESERT_DRAW  = false -- å…¨å±€é‡ç»˜
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
 local CIRCLE_PANEL_ANCHOR = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local CIRCLE_COLOR = {
@@ -39,11 +39,11 @@ local CIRCLE_COLOR = {
 	{ r = 255, g = 128, b = 0   },
 }
 local CTAZY_NPC_LIST = {
-	53233, -- °Ôµ¶Î÷³ş±¯¸è,¼á±ÚÇåÒ°ÌØĞ§
-	51009, -- ³¤¸è·çÀ×ÒıÇÙÌØĞ§,Ö»Ñ¡È¡ÆäÖĞÒ»¸ö
-} --¿ÉÄÜ³öÏÖµÄ»áÑÏÖØÕÚµ²µØÃæÌØĞ§ÏÔÊ¾µÄNPCÁĞ±í
+	53233, -- éœ¸åˆ€è¥¿æ¥šæ‚²æ­Œ,åšå£æ¸…é‡ç‰¹æ•ˆ
+	51009, -- é•¿æ­Œé£é›·å¼•ç´ç‰¹æ•ˆ,åªé€‰å–å…¶ä¸­ä¸€ä¸ª
+} --å¯èƒ½å‡ºç°çš„ä¼šä¸¥é‡é®æŒ¡åœ°é¢ç‰¹æ•ˆæ˜¾ç¤ºçš„NPCåˆ—è¡¨
 
--- »ñÈ¡Êı¾İÂ·¾¶
+-- è·å–æ•°æ®è·¯å¾„
 local function GetDataPath()
 	if DBM.bCommon then
 		return JH.GetAddonInfo().szDataPath .. "Circle/Common/Circle.jx3dat"
@@ -54,7 +54,7 @@ end
 
 Circle = {
 	bEnable = true,
-	bBorder = true, -- È«¾ÖµÄ±ß¿òÄ£Ê½ ±ß¿ò»áÔì³É¿¨
+	bBorder = true, -- å…¨å±€çš„è¾¹æ¡†æ¨¡å¼ è¾¹æ¡†ä¼šé€ æˆå¡
 }
 JH.RegisterCustomData("Circle")
 
@@ -85,7 +85,7 @@ function C.SaveFile()
 	SaveLUAData(GetDataPath(), { Circle = C.tData })
 end
 
--- ¼ÓÔØ±¾µØÎÄ¼şÊ¹ÓÃ
+-- åŠ è½½æœ¬åœ°æ–‡ä»¶ä½¿ç”¨
 function C.LoadFile(szFullPath, bMsg)
 	szFullPath = szFullPath or GetDataPath()
 	local code = LoadLUAData(szFullPath)
@@ -159,7 +159,7 @@ function C.Release()
 	}
 
 	C.tTarget = {} -- clear
-	-- È¡µÃÈİÆ÷
+	-- å–å¾—å®¹å™¨
 	C.shCircle = JH.GetShadowHandle("Handle_Shadow_Circle")
 	C.shLine = JH.GetShadowHandle("Handle_Shadow_Line")
 	C.shName = JH.GetShadowHandle("Handle_Shadow_Name")
@@ -168,7 +168,7 @@ function C.Release()
 	C.shName:Clear()
 	C.shName = C.shName:AppendItemFromIni(SHADOW, "shadow", "Circle_NAME")
 	C.shName:SetTriangleFan(GEOMETRY_TYPE.TEXT)
-	-- ÖØ½¨ËùÓĞÊı¾İµÄmetatable
+	-- é‡å»ºæ‰€æœ‰æ•°æ®çš„metatable
 	for k, v in pairs(C.tData) do
 		for kk, vv in ipairs(v) do
 			setmetatable(vv, { __index = function(_, val)
@@ -197,11 +197,11 @@ function C.Release()
 	}
 	setmetatable(C.tData, mt)
 end
--- ¹¹½¨data table
+-- æ„å»ºdata table
 function C.CreateData()
 	pcall(C.Release)
 	local mapid = JH.GetMapID(true)
-	-- È«µØÍ¼Êı¾İ
+	-- å…¨åœ°å›¾æ•°æ®
 	if C.tData[-1] then
 		for k, v in ipairs(C.tData[-1]) do
 			C.tList[v.dwType][v.key] = C.tData[-1][k]
@@ -359,7 +359,7 @@ function C.DrawLine(tar, ttar, sha, col, dwType)
 		sha:AppendDoodadID(tar.dwID, r, g, b, CIRCLE_LINE_ALPHA)
 	elseif dwType == TARGET.NPC then
 		sha:AppendCharacterID(tar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
-	elseif dwType == "Point" then -- ¿ÉÄÜĞèÒªÓÃµ½
+	elseif dwType == "Point" then -- å¯èƒ½éœ€è¦ç”¨åˆ°
 		sha:AppendTriangleFan3DPoint(tar.nX, tar.nY, tar.nZ, r, g, b, CIRCLE_LINE_ALPHA)
 	end
 	sha:AppendCharacterID(ttar.dwID, true, r, g, b, CIRCLE_LINE_ALPHA)
@@ -381,7 +381,7 @@ function C.DrawShape(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 	end
 	local nAlpha = CIRCLE_ALPHA
 	if crazynpc > CIRCLE_CRAZY_COUNT then
-		if JH.IsInDungeon(true) then --½öÔÚ¸±±¾µØÍ¼ÉúĞ§
+		if JH.IsInDungeon(true) then --ä»…åœ¨å‰¯æœ¬åœ°å›¾ç”Ÿæ•ˆ
 			nAlpha = nAlpha + CIRCLE_ALPHA_EXTRA
 		end
 	end
@@ -503,7 +503,7 @@ function C.OnDoodadLeave()
 end
 
 function C.OnBreathe()
-	-- NPCÃæÏò»æÖÆ
+	-- NPCé¢å‘ç»˜åˆ¶
 	local me = GetClientPlayer()
 	if not me then return end
 	for k, v in pairs(C.tScrutiny[TARGET.NPC]) do
@@ -529,7 +529,7 @@ function C.OnBreathe()
 						if not sha[kk] then
 							sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
 						end
-						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
+						if sha[kk].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
 							sha[kk].nFaceDirection = KGNpc.nFaceDirection
 							local __Alpha
 							if #data.tCircles == 2 then
@@ -542,7 +542,7 @@ function C.OnBreathe()
 							if not sha[key] then
 								sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
 							end
-							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
+							if sha[key].nFaceDirection ~= KGNpc.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
 								sha[key].nFaceDirection = KGNpc.nFaceDirection
 								C.DrawBorder(KGNpc, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 							end
@@ -620,7 +620,7 @@ function C.OnBreathe()
 			end
 		end
 	end
-	-- DOODADÃæÏò»æÖÆ
+	-- DOODADé¢å‘ç»˜åˆ¶
 	for k, v in pairs(C.tScrutiny[TARGET.DOODAD]) do
 		local data = v
 		local KGDoodad = GetDoodad(k)
@@ -643,7 +643,7 @@ function C.OnBreathe()
 					if not sha[kk] then
 						sha[kk] = C.shCircle:AppendItemFromIni(SHADOW, "shadow")
 					end
-					if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
+					if sha[kk].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
 						sha[kk].nFaceDirection = KGDoodad.nFaceDirection
 						local __Alpha = #data.tCircles == 2 and data.tCircles[1].nAngle or nil
 						C.DrawShape(KGDoodad, sha[kk], vv.nAngle, vv.nRadius, vv.col, data.dwType, __Alpha)
@@ -653,7 +653,7 @@ function C.OnBreathe()
 						if not sha[key] then
 							sha[key] = C.shCircle:AppendItemFromIni(SHADOW, "shadow", k .. key)
 						end
-						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- ÃæÏò²»¶Ô ÖØ»æ
+						if sha[key].nFaceDirection ~= KGDoodad.nFaceDirection or CIRCLE_RESERT_DRAW then -- é¢å‘ä¸å¯¹ é‡ç»˜
 							sha[key].nFaceDirection = KGDoodad.nFaceDirection
 							C.DrawBorder(KGDoodad, sha[key], vv.nAngle, vv.nRadius, vv.col, data.dwType)
 						end
@@ -972,7 +972,7 @@ JH.RegisterEvent("LOGIN_GAME", function()
 	JH.RegisterEvent("CIRCLE_RELOAD", C.CreateData)
 end)
 
--- ×¢²áÍ·ÏñÓÒ¼ü²Ëµ¥
+-- æ³¨å†Œå¤´åƒå³é”®èœå•
 Target_AppendAddonMenu({ function(dwID, dwType)
 	if dwType == TARGET.NPC then
 		local p = GetNpc(dwID)
