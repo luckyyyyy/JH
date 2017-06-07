@@ -69,6 +69,25 @@ local SA_POINT = {
 	{ 15, 25, 180 },
 }
 
+local PVP_NPC_LIST = {
+	16905, 7786, 7776, 16898, 16904, 7785, 7775, 16897, -- 王遗风, 谢渊, 莫雨, 影
+	16903, 7784, 7770, 16896, 16902, 7783, 7766, 16893, -- 烟, 月弄痕, 肖药儿, 司空仲平
+	16900, 7779, 7765, 16892, 16899, 7777, 7767, 16894, -- 米丽古丽, 可人, 陶寒亭, 张桎辕
+	17239, 8957, 8953, 17235, 17238, 8956, 8954, 17234, -- 张一洋, 周峰, 吕沛杰, 陶杰
+	17240, 8955, 8952, 17236, 17237, 6233, 6230, 17233, -- 陶国栋, 郑鸥, 顾延恶, 谢烟客
+	30310, 30322, -- 小攻防据点大将
+	46268, -- 大攻防物资车
+} -- 大小攻防需要头顶显示的NPC列表
+
+local function IsPVPNpc(npc)
+	for k, v in pairs(PVP_NPC_LIST) do
+		if npc.dwTemplateID == v then
+			return true
+		end
+	end
+	return false
+end
+
 -- for i=1, 2 do FireUIEvent("JH_SA_CREATE", "TIME", GetClientPlayer().dwID, { col = { 255, 255, 255 }, txt = "test" })end
 local function CreateScreenArrow(szClass, dwID, tArgs)
 	tArgs = tArgs or {}
@@ -276,7 +295,7 @@ end
 function SA:ctor(szClass, dwID, tArgs)
 	local dwType, object = ScreenArrow.GetObject(szClass, dwID)
 	if not JH.bDebugClient and not JH.IsInDungeon(true) then
-		if dwType == TARGET.NPC and object.bDialogFlag then
+		if dwType == TARGET.NPC and object.bDialogFlag and not IsPVPNpc(object) then
 			return
 		end
 	end
