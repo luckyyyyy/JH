@@ -69,24 +69,33 @@ local SA_POINT = {
 	{ 15, 25, 180 },
 }
 
-local PVP_NPC_LIST = {
-	16905, 7786, 7776, 16898, 16904, 7785, 7775, 16897, -- 王遗风, 谢渊, 莫雨, 影
-	16903, 7784, 7770, 16896, 16902, 7783, 7766, 16893, -- 烟, 月弄痕, 肖药儿, 司空仲平
-	16900, 7779, 7765, 16892, 16899, 7777, 7767, 16894, -- 米丽古丽, 可人, 陶寒亭, 张桎辕
-	17239, 8957, 8953, 17235, 17238, 8956, 8954, 17234, -- 张一洋, 周峰, 吕沛杰, 陶杰
-	17240, 8955, 8952, 17236, 17237, 6233, 6230, 17233, -- 陶国栋, 郑鸥, 顾延恶, 谢烟客
-	30310, 30322, -- 小攻防据点大将
-	46268, -- 大攻防物资车
-} -- 大小攻防需要头顶显示的NPC列表
-
-local function IsPVPNpc(npc)
-	for k, v in pairs(PVP_NPC_LIST) do
-		if npc.dwTemplateID == v then
-			return true
-		end
-	end
-	return false
-end
+-- 一些例外需要显示头顶的NPC模板ID
+local SPECIAL_NPC = {
+	-- 大小攻防需要头顶显示的NPC列表
+	[7786] = true, [16905] = true, -- 王遗风
+	[7776] = true, [16898] = true, -- 谢渊
+	[7785] = true, [16904] = true, -- 莫雨
+	[7775] = true, [16897] = true, -- 影
+	[7784] = true, [16903] = true, -- 烟
+	[7770] = true, [16896] = true, -- 月弄痕
+	[7783] = true, [16902] = true, -- 肖药儿
+	[7766] = true, [16893] = true, -- 司空仲平
+	[7779] = true, [16900] = true, -- 米丽古丽
+	[7765] = true, [16892] = true, -- 可人
+	[7777] = true, [16899] = true, -- 陶寒亭
+	[7767] = true, [16894] = true, -- 张桎辕
+	[8957] = true, [17239] = true, -- 张一洋
+	[8953] = true, [17235] = true, -- 周峰
+	[8956] = true, [17238] = true, -- 吕沛杰
+	[8954] = true, [17234] = true, -- 陶杰
+	[8955] = true, [17240] = true, -- 陶国栋
+	[8952] = true, [17236] = true, -- 郑鸥
+	[6233] = true, [17237] = true, -- 顾延恶
+	[6230] = true, [17233] = true, -- 谢烟客
+	[30310] = true, -- 小攻防 恶人谷大将
+	[30322] = true, -- 小攻防 浩气盟大将
+	[46268] = true, -- 大攻防 物资车
+}
 
 -- for i=1, 2 do FireUIEvent("JH_SA_CREATE", "TIME", GetClientPlayer().dwID, { col = { 255, 255, 255 }, txt = "test" })end
 local function CreateScreenArrow(szClass, dwID, tArgs)
@@ -295,7 +304,7 @@ end
 function SA:ctor(szClass, dwID, tArgs)
 	local dwType, object = ScreenArrow.GetObject(szClass, dwID)
 	if not JH.bDebugClient and not JH.IsInDungeon(true) then
-		if dwType == TARGET.NPC and object.bDialogFlag and not IsPVPNpc(object) then
+		if dwType == TARGET.NPC and object.bDialogFlag and not SPECIAL_NPC[object.dwTemplateID] then
 			return
 		end
 	end
