@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-13 16:06:53
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 13:46:53
+-- @Last Modified by:   William Chan@local.3
+-- @Last Modified time: 2017-06-11 23:25:43
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -560,14 +560,14 @@ function D.CountdownEvent(data, nClass)
 	if data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)
+				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0) .. "." .. (data.nIndex or 0)
 				local tParam = {
 					key      = v.key,
 					nFrame   = v.nFrame,
 					nTime    = v.nTime,
 					nRefresh = v.nRefresh,
 					szName   = v.szName or data.szName,
-					nIcon    = v.nIcon or data.nIcon,
+					nIcon    = v.nIcon or data.nIcon or 340,
 					bTalk    = v.bTeamChannel,
 					bHold    = v.bHold
 				}
@@ -1180,26 +1180,9 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 		end
 	end
 	if data then
-		local szType = szEvent == "TALK" and DBM_TYPE.TALK_MONITOR or DBM_TYPE.CHAT_MONITOR
-		if data.tCountdown then
-			for kk, vv in ipairs(data.tCountdown) do
-				if vv.nClass == szType then
-					local szKey = data.nIndex .. "." .. kk
-					local tParam = {
-						key      = vv.key,
-						nFrame   = vv.nFrame,
-						nTime    = vv.nTime,
-						nRefresh = vv.nRefresh,
-						szName   = vv.szName or data.szNote,
-						nIcon    = vv.nIcon or 340,
-						bTalk    = vv.bTeamChannel,
-						bHold    = vv.bHold
-					}
-					D.FireCountdownEvent(vv.nClass, szKey, tParam)
-				end
-			end
-		end
-		local cfg = data[szType]
+		local nClass = szEvent == "TALK" and DBM_TYPE.TALK_MONITOR or DBM_TYPE.CHAT_MONITOR
+		D.CountdownEvent(data, nClass)
+		local cfg = data[nClass]
 		if cfg then
 			if data.szContent:find("$me") then
 				tInfo = { dwID = me.dwID, szName = me.szName }
