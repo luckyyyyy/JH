@@ -12,6 +12,7 @@ local setmetatable = setmetatable
 local tostring, tonumber = tostring, tonumber
 local ceil, cos, sin, pi = math.ceil, math.cos, math.sin, math.pi
 local tinsert, tconcat = table.insert, table.concat
+local crazynpc = 0 --部分NPC可能严重干扰副本内的特效和面向判断，在NPC达到一定数量的情况下，给予透明度补偿
 local GetClientPlayer = GetClientPlayer
 local TARGET = TARGET
 
@@ -20,6 +21,8 @@ local CIRCLE_ALPHA_STEP   = 2.5
 local CIRCLE_MAX_RADIUS   = 30   -- 最大的半径
 local CIRCLE_LINE_ALPHA   = 45   -- 线和边框最大透明度
 local CIRCLE_ALPHA        = 30   -- 圈圈透明度
+local CIRCLE_ALPHA_EXTRA  = 15   -- 特殊条件下的透明度补正
+local CIRCLE_CRAZY_COUNT  = 2    -- 超过时触发透明度补偿的NPC数量
 local CIRCLE_MAX_CIRCLE   = 1
 local CIRCLE_RESERT_DRAW  = false -- 全局重绘
 local CIRCLE_DEFAULT_DATA = { bEnable = true, nAngle = 80, nRadius = 4, col = { 0, 255, 0 }, bBorder = true }
@@ -35,6 +38,10 @@ local CIRCLE_COLOR = {
 	{ r = 255, g = 255, b = 255 },
 	{ r = 255, g = 128, b = 0   },
 }
+local CTAZY_NPC_LIST = {
+	53233, -- 霸刀西楚悲歌,坚壁清野特效
+	51009, -- 长歌风雷引琴特效,只选取其中一个
+} --可能出现的会严重遮挡地面特效显示的NPC列表
 
 -- 获取数据路径
 local function GetDataPath()
@@ -373,6 +380,11 @@ function C.DrawShape(tar, sha, nAngle, nRadius, col, dwType, __Alpha)
 		dwRad2 = dwRad2 + pi / 20
 	end
 	local nAlpha = CIRCLE_ALPHA
+	if crazynpc > CIRCLE_CRAZY_COUNT then
+		if JH.IsInDungeon(true) then --仅在副本地图生效
+			nAlpha = nAlpha + CIRCLE_ALPHA_EXTRA
+		end
+	end
 	local r, g, b = unpack(col)
 	-- orgina point
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
@@ -432,6 +444,11 @@ end
 
 function C.OnNpcEnter(szEvent)
 	local npc = GetNpc(arg0)
+	for k, v in pairs(CTAZY_NPC_LIST) do
+		if npc.dwTemplateID == v then
+			crazynpc = crazynpc + 1
+		end
+	end
 	local t = C.tList[TARGET.NPC][npc.dwTemplateID] or C.tList[TARGET.NPC][JH.GetTemplateName(npc)]
 	if t then
 		C.tScrutiny[TARGET.NPC][arg0] = t
@@ -439,6 +456,15 @@ function C.OnNpcEnter(szEvent)
 end
 
 function C.OnNpcLeave()
+	local npc = GetNpc(arg0)
+	for k, v in pairs(CTAZY_NPC_LIST) do
+		if npc.dwTemplateID == v then
+			crazynpc = crazynpc - 1
+		end
+	end
+	if crazynpc < 0 then
+		crazynpc = 0
+	end
 	if C.tScrutiny[TARGET.NPC][arg0] then
 		if C.tCache[TARGET.NPC][arg0] then
 			for k, v in pairs(C.tCache[TARGET.NPC][arg0].Circle) do
