@@ -561,14 +561,13 @@ function D.CountdownEvent(data, nClass)
 		local i = 1
 		for k, v in ipairs(data.tCountdown) do
 			if nClass == v.nClass then
-				if v.nTime ~= 0 then
-					if i > 2 then
+				if v.nTime ~= 0 and v.nRefresh ~= 0 then
+				    if i > 2 then
 						break
 					else
 						i = i + 1
 					end
-				end
-				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0) .. "." .. (data.nIndex or 0)
+				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0) .. "." .. (data.nIndex or 0)--局部冲突类型(+13)
 				local tParam = {
 					key      = v.key,
 					nFrame   = v.nFrame,
@@ -579,7 +578,26 @@ function D.CountdownEvent(data, nClass)
 					bTalk    = v.bTeamChannel,
 					bHold    = v.bHold
 				}
+				D.FireCountdownEvent(nClass, szKey, tParam)				
+				else
+				local szKey = k .. "." .. (data.dwID or 0) .. "." .. (data.nLevel or 0)
+				local tParam = {
+					key      = v.key,
+					nFrame   = v.nFrame,
+					nTime    = v.nTime+0.01,
+					nRefresh = v.nRefresh,
+					szName   = v.szName or data.szName,
+					nIcon    = v.nIcon or data.nIcon,
+					bTalk    = v.bTeamChannel,
+					bHold    = v.bHold
+				}
 				D.FireCountdownEvent(nClass, szKey, tParam)
+					if i > 2 then
+						break
+					else
+						i = i + 1
+					end
+				end
 			end
 		end
 	end
