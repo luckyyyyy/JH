@@ -477,7 +477,7 @@ function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 			server = select(6, GetUserServer()),
 			body = me.nRoleType,
 			avatar = me.dwMiniAvatarID,
-			pet = me.GetAcquiredFellowPetScore(),
+			pet = me.GetAcquiredFellowPetScore() + me.GetAcquiredFellowPetMedalScore(),
 			score = me.GetTotalEquipScore(),
 			__qrcode = __qrcode,
 			__lang = ACHI_CLIENT_LANG,
