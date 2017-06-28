@@ -202,6 +202,30 @@ function UI.GetTipInfo(ui)
 		tinsert(xml, GetFormatText(k .. ": ", 67))
 		tinsert(xml, GetFormatText(tostring(v) .. "\n", 44))
 	end
+	if ui:GetType() == "WndFrame" then
+		local G
+		if ui:IsAddOn() then
+			G = GetAddonEnv and GetAddonEnv() or _G
+		else
+			G = _G
+		end
+		if G and G[ui:GetName()] then
+			tinsert(xml, GetFormatText("\n ---------- UI Global --------- \n\n", 67))
+			for k, v in pairs(G[ui:GetName()]) do
+				tinsert(xml, GetFormatText(k .. ": ", 67))
+				tinsert(xml, GetFormatText(tostring(v) .. "\n", 44))
+				if debug and type(v) == "function" then
+					local d = debug.getinfo(v)
+					local t = {}
+					for g, v in pairs(d) do
+						t[g] = v;
+					end
+					t.func = nil
+					tinsert(xml, GetFormatText(var2str(t, "\t") .. "\n", 44))
+				end
+			end
+		end
+	end
 	return xml
 end
 
