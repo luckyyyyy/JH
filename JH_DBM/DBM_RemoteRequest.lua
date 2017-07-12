@@ -198,7 +198,7 @@ function W.RequestList(szUrl)
 		dataType = "json",
 	})
 	:done(function(szContent, dwBufferSize)
-		W.ListCallBack(szContent.data)
+		W.ListCallBack(szContent)
 	end)
 	:fail(function(errMsg, dwBufferSize)
 		JH.Sysmsg2(_L["request failed"] .. errMsg)
@@ -210,15 +210,15 @@ function W.ListCallBack(result)
 	W.Container:Clear()
 	W.UseData = nil
 
-	if result.errcode and result.errcode ~= 0 then
+	if result.errcode ~= 0 or not result.data then
 		return JH.Alert(result.errmsg)
 	end
-	for k, v in ipairs(result) do
+	for k, v in ipairs(result.data) do
 		v.tid = v.tid or v.id
 		v.id = nil
 		W.AppendItem(v, k)
 	end
-	if IsEmpty(result) then
+	if IsEmpty(result.data) then
 		W.Loading("no result.")
 	end
 	--[[if result["msg"] then
