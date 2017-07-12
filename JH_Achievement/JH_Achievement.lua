@@ -146,15 +146,15 @@ function JH_Achievement.OnLButtonClick()
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
 		frame.pedia:FormatAllItemPos()
 		JH.Curl({
-			url = ACHI_ROOT_URL .. "/api/wiki/" .. frame.dwAchievement .. "?__lang=" .. ACHI_CLIENT_LANG,
+			url = ACHI_ROOT_URL .. "/api/wiki/details/" .. frame.dwAchievement .. "?__lang=" .. ACHI_CLIENT_LANG,
 			ssl = true,
 			type = "get",
 			dataType = "json",
 		})
 		:done(function(result, dwBufferSize, set)
 			frame:Lookup("Btn_Edit"):Enable(true)
-			if result.aid then
-				Achievement.RemoteCallBack(result)
+			if result.errcode == 0 then
+				Achievement.RemoteCallBack(result.data)
 			elseif result.errmsg then
 				JH.Alert(result.errmsg)
 			end
@@ -465,15 +465,15 @@ function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 	local bitmap, data, nPoint = GetAchievementList()
 	local code = table.concat(bitmap)
 	JH.Curl({
-		url      = ACHI_ROOT_URL .. "/api/wiki/data",
+		url = ACHI_ROOT_URL .. "/api/wiki/game-data",
 		dataType = "json",
 		ssl = true,
-		data     = {
-			gid    = id,
-			name   = GetUserRoleName(),
+		data = HM.JsonEncode({
+			gid = id,
+			name = GetUserRoleName(),
 			school = me.dwForceID,
-			camp   = me.nCamp,
-			point  = nPoint,
+			camp = me.nCamp,
+			point = nPoint,
 			server = select(6, GetUserServer()),
 			body = me.nRoleType,
 			avatar = me.dwMiniAvatarID,
@@ -482,12 +482,12 @@ function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 			__qrcode = __qrcode,
 			__lang = ACHI_CLIENT_LANG,
 			code   = code
-		},
+		}),
 	})
 	:done(function(result, dwBufferSize, set)
 		JH_Achievement.nSyncPoint = nPoint
 		if fnCallBack then
-			fnCallBack(result)
+			fnCallBack(result.data)
 		end
 	end)
 end
@@ -510,15 +510,15 @@ function PS.OnPanelActive(frame)
 		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
 		-- get
 		JH.Curl({
-			url = ACHI_ROOT_URL .. "/api/wiki/data/" .. id,
+			url = ACHI_ROOT_URL .. "/api/wiki/game-data/" .. id,
 			ssl = true,
 			type = 'get',
 			dataType = 'json',
 		})
 		:done(function(result)
 			if ui then
-				if result.time_update then
-					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.time_update)))
+				if result.data and result.data.time_update then
+					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.data.time_update)))
 				else
 					ui:Fetch('time'):Text(_L["No Record"])
 				end
