@@ -751,6 +751,8 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 end
 -- 技能事件
 function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
+	local me = GetClientPlayer()
+	if not me then return end
 	local key = dwCastID .. "_" .. dwLevel
 	local nTime = GetTime()
 	CACHE.SKILL_LIST[dwCaster] = CACHE.SKILL_LIST[dwCaster] or {}
@@ -763,8 +765,12 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		end
 	end
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
-	if not Table_IsSkillShow(dwCastID, dwLevel) and not JH.bDebugClient then
-		return
+	local tRecipeKey = me.GetSkillRecipeKey(dwCastID, dwLevel)
+	local tSkillInfo = GetSkillInfo(tRecipeKey)
+	if tSkillInfo and tSkillInfo.CastTime == 0 then
+		if not Table_IsSkillShow(dwCastID, dwLevel) and not JH.bDebugClient then
+			return
+		end
 	end
 	local tWeak, tTemp = CACHE.TEMP.CASTING, D.TEMP.CASTING
 	if not tWeak[key] then
@@ -1084,6 +1090,9 @@ function D.OnDoodadEvent(doodad, bEnter)
 		D.CountdownEvent(data, nClass)
 		if cfg then
 			local szName = doodad.szName
+			if szName == "" then 
+				szName = doodad.dwTemplateID 
+			end
 			local xml = {}
 			tinsert(xml, DBM_LEFT_LINE)
 			tinsert(xml, GetFormatText(szName, 44, 255, 255, 0))
@@ -1226,7 +1235,7 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 					D.Talk(txt, true)
 				end
 				if DBM.bPushScreenHead and cfg.bScreenHead then
-					FireUIEvent("JH_SA_CREATE", "TIME", dwNpcID or me.dwID, { txt = txt })
+					--FireUIEvent("JH_SA_CREATE", "TIME", dwNpcID or me.dwID, { txt = txt })
 				end
 			end
 			-- 中央报警

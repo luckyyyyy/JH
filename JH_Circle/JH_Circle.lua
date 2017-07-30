@@ -556,7 +556,7 @@ function C.OnBreathe()
 					local szName = JH.GetTemplateName(tar)
 					C.tTarget[KGNpc.dwID] = dwID
 					if data.bScreenHead then
-						FireUIEvent("JH_SA_CREATE", "TIME", tar.dwID, { txt = _L("Staring %s", data.szNote or data.key)})
+						FireUIEvent("JH_SA_CREATE", "TIME", tar.dwID, { txt = _L("Staring %s", JH.GetTemplateName(data.key) or data.key)})
 					end
 					if me.IsInRaid() then
 						if DBM.bPushWhisperChannel and data.bWhisperChat then
