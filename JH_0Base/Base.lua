@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-28 17:55:09
+-- @Last Modified by:   WilliamChan
+-- @Last Modified time: 2017-07-31 15:13:10
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -3446,10 +3446,15 @@ function _GUI.Item:ItemInfo( ... )
 end
 function _GUI.Item:BoxInfo(nType, ...)
 	if self.type == "Box" then
-		if IsEmpty({ ... }) then
+		local data = { ... }
+		if IsEmpty(data) then
 			UpdataItemBoxObject(self.self)
 		else
-			local res, err = pcall(UpdateBoxObject, self.self, nType, ...) -- 防止itemtab不一样
+			local KItemInfo = GetItemInfo(data[1], data[2])
+			if KItemInfo.nGenre == ITEM_GENRE.BOOK and #data == 3 then -- 西山居BUG
+				table.insert(data, 99999, 3)
+			end
+			local res, err = pcall(UpdateBoxObject, self.self, nType, ...) -- 防止itemtab内外网不一样
 			if not res then
 				JH.Debug(err)
 			end
