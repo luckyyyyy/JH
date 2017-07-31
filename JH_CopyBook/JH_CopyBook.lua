@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-10-08 12:47:40
--- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-29 02:29:47
+-- @Last Modified by:   WilliamChan
+-- @Last Modified time: 2017-07-31 14:48:15
 
 local _L = JH.LoadLangPack
 local CRAFT_RESULT_CODE_SUCCESS = 1
@@ -199,7 +199,7 @@ function Book.UpdateInfo(szName)
 			local nCount  = Book.GetBookCount(dwRecipeID)
 			nX = hBooks:Append("Box", { x = nX + 10, y = 5, w = 32, h = 32 }):ToGray(not tCheck[k])
 			:Enable(not JH_CopyBook.tIgnore[k] and true or false)
-			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, dwRecipeID)
+			:ItemInfo(GLOBAL.CURRENT_ITEM_VERSION, v.dwTabType, v.dwIndex, 9999, dwRecipeID)
 			:OverText(ITEM_POSITION.RIGHT_BOTTOM, nCount)
 			:Staring(Book.nBook == k and Book.bEnable)
 			:Click(function()
