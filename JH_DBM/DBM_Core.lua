@@ -751,8 +751,6 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 end
 -- 技能事件
 function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
-	local me = GetClientPlayer()
-	if not me then return end
 	local key = dwCastID .. "_" .. dwLevel
 	local nTime = GetTime()
 	CACHE.SKILL_LIST[dwCaster] = CACHE.SKILL_LIST[dwCaster] or {}
@@ -765,9 +763,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		end
 	end
 	local data = D.GetData("CASTING", dwCastID, dwLevel)
-	local tRecipeKey = me.GetSkillRecipeKey(dwCastID, dwLevel)
-	local tSkillInfo = GetSkillInfo(tRecipeKey)
-	if tSkillInfo and tSkillInfo.CastTime == 0 then
+	if szEvent ~= "UI_OME_SKILL_CAST_LOG" then
 		if not Table_IsSkillShow(dwCastID, dwLevel) and not JH.bDebugClient then
 			return
 		end
