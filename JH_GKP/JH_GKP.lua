@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2017-07-31 14:57:29
+-- @Last Modified time: 2017-07-31 22:11:16
 
 -- 早期代码 需要重写
 
@@ -640,7 +640,11 @@ function _GKP.DrawRecord(key, sort)
 				box:SetObject(UI_OBJECT_NOT_NEED_KNOWN)
 				box:SetObjectIcon(582)
 			else
-				UpdataItemInfoBoxObject(box, v.nVersion, v.dwTabType, v.dwIndex, v.nBookID or v.nStackNum)
+				if v.nBookID then
+					UpdataItemInfoBoxObject(box, v.nVersion, v.dwTabType, v.dwIndex, 99999, v.nBookID)
+				else
+					UpdataItemInfoBoxObject(box, v.nVersion, v.dwTabType, v.dwIndex, v.nStackNum)
+				end
 			end
 			local hItemName = item:Lookup("Text_ItemName")
 			for kk, vv in ipairs({"OnItemMouseEnter", "OnItemMouseLeave", "OnItemLButtonDown", "OnItemLButtonUp"}) do
