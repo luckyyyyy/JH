@@ -141,6 +141,7 @@ function ScreenArrow.OnBreathe()
 				local szName
 				if dwType == TARGET.DOODAD then
 					szName = tInfo.szName
+					if szName == "" then szName = object.dwTemplateID end
 				else
 					szName = JH.GetTemplateName(object)
 				end
@@ -191,10 +192,10 @@ function ScreenArrow.OnBreathe()
 				elseif obj.szClass == "NPC" or obj.szClass == "DOODAD" then
 					-- txt = obj.txt or txt
 				elseif obj.szClass == "TIME" then
-					if (GetTime() - obj.nNow) / 1000 > 5 then
+					if (GetTime() - obj.nNow) / 1000 > 3 then
 						return obj:Free()
 					end
-					-- txt = obj.txt or _L["Call Alert"]
+					txt = obj.txt or _L["Call Alert"]
 				end
 				if not obj.init then
 					obj:DrawBackGround()
