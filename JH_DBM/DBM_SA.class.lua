@@ -145,8 +145,8 @@ function ScreenArrow.OnBreathe()
 				else
 					szName = JH.GetTemplateName(object)
 				end
-				-- szName = obj.szNam or szName
-				szName = object.szNam or szName
+				-- szName = obj.szName or szName
+				szName = object.szName or szName
 				if tTeamMark[dwID] then
 					szName = szName .. _L("[%s]", JH_MARK_NAME[tTeamMark[dwID]])
 				end
