@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2017-07-31 22:10:49
+-- @Last Modified time: 2017-08-27 17:57:09
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -3451,7 +3451,7 @@ function _GUI.Item:ItemInfo( ... )
 end
 function _GUI.Item:BoxInfo(nType, ...)
 	if self.type == "Box" then
-		if IsEmpty(data) then
+		if IsEmpty({ ... }) then
 			UpdataItemBoxObject(self.self)
 		else
 			local res, err = pcall(UpdateBoxObject, self.self, nType, ...) -- 防止itemtab内外网不一样
