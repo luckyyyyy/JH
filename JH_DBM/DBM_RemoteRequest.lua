@@ -15,9 +15,9 @@ local ROOT_URL = "https://haimanchajian.com/" -- http://game.j3ui.com/"
 local CLIENT_LANG = select(3, GetVersion())
 local W = {
 	szIniFile   = JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/DBM_RemoteRequest.ini",
-	szFileList  = ROOT_URL .. "api/jx3/plugin-data/list-dbm?state=2",
-	szFileList2 = ROOT_URL .. "api/jx3/plugin-data/list-dbm?state=1",
-	szSearch    = ROOT_URL .. "api/jx3/plugin-data/list-dbm?kw=",
+	szFileList  = ROOT_URL .. "api/jx3/plugin-data/dbm?state=2",
+	szFileList2 = ROOT_URL .. "api/jx3/plugin-data/dbm?state=1",
+	szSearch    = ROOT_URL .. "api/jx3/plugin-data/dbm?kw=",
 	szUser      = ROOT_URL .. "DBM/user/",
 	szDownload  = ROOT_URL .. "down/json2/",
 	szLoginUrl  = ROOT_URL .. "user/login/",
