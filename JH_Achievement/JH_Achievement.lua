@@ -146,7 +146,7 @@ function JH_Achievement.OnLButtonClick()
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
 		frame.pedia:FormatAllItemPos()
 		JH.Curl({
-			url = ACHI_ROOT_URL .. "/api/wiki/details/" .. frame.dwAchievement .. "?__lang=" .. ACHI_CLIENT_LANG,
+			url = ACHI_ROOT_URL .. "/api/jx3/wiki/details/" .. frame.dwAchievement .. "?__lang=" .. ACHI_CLIENT_LANG,
 			ssl = true,
 			type = "get",
 			dataType = "json",
@@ -166,7 +166,7 @@ function JH_Achievement.OnItemLButtonClick()
 	local szName = this:GetName()
 	if szName == "Text_Link" then
 		local frame = this:GetRoot()
-		OpenInternetExplorer(ACHI_ROOT_URL .. "/wiki/details/" .. frame.dwAchievement)
+		OpenInternetExplorer(ACHI_ROOT_URL .. "/jx3/wiki/details/" .. frame.dwAchievement)
 		if not frame.bEdit then
 			Achievement.ClosePanel()
 		end
@@ -465,7 +465,7 @@ function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 	local bitmap, data, nPoint = GetAchievementList()
 	local code = table.concat(bitmap)
 	JH.Curl({
-		url = ACHI_ROOT_URL .. "/api/wiki/game-data",
+		url = ACHI_ROOT_URL .. "/api/jx3/wiki/data",
 		dataType = "json",
 		ssl = true,
 		data = HM.JsonEncode({
@@ -510,7 +510,7 @@ function PS.OnPanelActive(frame)
 		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
 		-- get
 		JH.Curl({
-			url = ACHI_ROOT_URL .. "/api/wiki/game-data/" .. id,
+			url = ACHI_ROOT_URL .. "/api/jx3/wiki/data/" .. id,
 			ssl = true,
 			type = 'get',
 			dataType = 'json',
