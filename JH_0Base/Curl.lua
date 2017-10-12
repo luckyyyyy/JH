@@ -1,7 +1,7 @@
 -- @Author: Administrator
 -- @Date:   2016-11-21 19:15:01
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-11-21 20:32:55
+-- @Last Modified by:   WilliamChan
+-- @Last Modified time: 2017-10-09 22:56:05
 
 local CLIENT_LANG = select(3, GetVersion())
 local JH_CALL_AJAX = {}

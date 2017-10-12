@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-05-14 13:59:19
--- @Last Modified by:   Administrator
--- @Last Modified time: 2017-05-29 02:26:11
+-- @Last Modified by:   WilliamChan
+-- @Last Modified time: 2017-10-12 10:46:47
 
 local _L = JH.LoadLangPack
 local ipairs, pairs, select = ipairs, pairs, select
@@ -1980,7 +1980,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		DBMUI.RemoveData(data.dwMapID, data.nIndex, szName or _L["This data"])
 	end)
 	nX, nY = ui:Append("WndButton2", { x = 640, y = nY + 10, txt = g_tStrings.HELP_PANEL }):Click(function()
-		OpenInternetExplorer("https://github.com/luckyyyyy/JH/blob/dev/JH_DBM/README.md")
+		OpenBrowse("https://github.com/luckyyyyy/JH/blob/dev/JH_DBM/README.md")
 	end):Pos_()
 	local w, h = ui:Size()
 	local a = DBMUI_PANEL_ANCHOR
