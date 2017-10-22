@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2017-10-12 10:45:43
+-- @Last Modified time: 2017-10-22 15:47:26
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -95,7 +95,7 @@ function DBM_RemoteRequest.OnFrameCreate()
 end
 
 function W.Login()
-	return OpenBrowse("http://jx3-plugin.kingsoft.com/DBM")
+	return OpenBrowser("http://jx3-plugin.kingsoft.com/DBM")
 	--[[
 	GetUserInput(_L["Enter User ID"], function(szNum)
 		if not tonumber(szNum) then
@@ -308,7 +308,7 @@ function W.AppendItem(data, k)
 					url = "http://" .. data.url
 				end
 				--]]
-				OpenBrowse(url)
+				OpenBrowser(url)
 			end
 			if data.url then
 				btn2:Lookup("", "Text_Default2"):SetText(_L["details"])

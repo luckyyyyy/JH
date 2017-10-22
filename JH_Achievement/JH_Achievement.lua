@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2017-10-12 10:46:52
+-- @Last Modified time: 2017-10-22 15:47:26
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -166,7 +166,7 @@ function JH_Achievement.OnItemLButtonClick()
 	local szName = this:GetName()
 	if szName == "Text_Link" then
 		local frame = this:GetRoot()
-		OpenBrowse(ACHI_ROOT_URL .. "/jx3/wiki/details/" .. frame.dwAchievement)
+		OpenBrowser(ACHI_ROOT_URL .. "/jx3/wiki/details/" .. frame.dwAchievement)
 		if not frame.bEdit then
 			Achievement.ClosePanel()
 		end
@@ -313,7 +313,7 @@ end
 function Achievement.GetLinkScript(szLink)
 	return [[
 		this.OnItemLButtonClick = function()
-			OpenBrowse(]] .. EncodeComponentsString(szLink) .. [[)
+			OpenBrowser(]] .. EncodeComponentsString(szLink) .. [[)
 		end
 		this.OnItemMouseEnter = function()
 			this:SetFontColor(255, 0, 0)
