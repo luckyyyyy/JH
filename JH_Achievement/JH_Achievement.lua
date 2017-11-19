@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-12 20:59:38
+-- @Last Modified by:   WilliamChan
+-- @Last Modified time: 2017-11-19 21:52:54
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
@@ -146,15 +146,15 @@ function JH_Achievement.OnLButtonClick()
 		frame.pedia:AppendItemFromString(GetFormatText(_L["Loading..."], 6))
 		frame.pedia:FormatAllItemPos()
 		JH.Curl({
-			url = ACHI_ROOT_URL .. "/api/wiki/" .. frame.dwAchievement .. "?__lang=" .. ACHI_CLIENT_LANG,
+			url = ACHI_ROOT_URL .. "/api/jx3/wiki/details/" .. frame.dwAchievement .. "?__lang=" .. ACHI_CLIENT_LANG,
 			ssl = true,
 			type = "get",
 			dataType = "json",
 		})
 		:done(function(result, dwBufferSize, set)
 			frame:Lookup("Btn_Edit"):Enable(true)
-			if result.aid then
-				Achievement.RemoteCallBack(result)
+			if result.errcode == 0 then
+				Achievement.RemoteCallBack(result.data)
 			elseif result.errmsg then
 				JH.Alert(result.errmsg)
 			end
@@ -166,7 +166,7 @@ function JH_Achievement.OnItemLButtonClick()
 	local szName = this:GetName()
 	if szName == "Text_Link" then
 		local frame = this:GetRoot()
-		OpenInternetExplorer(ACHI_ROOT_URL .. "/wiki/view/" .. frame.dwAchievement)
+		OpenBrowser(ACHI_ROOT_URL .. "/jx3/wiki/details/" .. frame.dwAchievement)
 		if not frame.bEdit then
 			Achievement.ClosePanel()
 		end
@@ -313,7 +313,7 @@ end
 function Achievement.GetLinkScript(szLink)
 	return [[
 		this.OnItemLButtonClick = function()
-			OpenInternetExplorer(]] .. EncodeComponentsString(szLink) .. [[)
+			OpenBrowser(]] .. EncodeComponentsString(szLink) .. [[)
 		end
 		this.OnItemMouseEnter = function()
 			this:SetFontColor(255, 0, 0)
@@ -337,7 +337,7 @@ function Achievement.OpenEncyclopedia(dwID, dwIcon, szTitle, szDesc)
 		frame.desc:SetText(szDesc)
 		frame:Lookup("Btn_Edit"):Enable(false)
 		frame.pedia:Clear()
-		frame.link:SetText(_L("Link(Open URL):%s", ACHI_ROOT_URL .. "/wiki/view/" .. dwID))
+		frame.link:SetText(_L("Link(Open URL):%s", ACHI_ROOT_URL .. "/wiki/details/" .. dwID))
 		frame.link:AutoSize()
 		PlaySound(SOUND.UI_SOUND, g_sound.OpenFrame)
 		frame.warn:Show()
@@ -465,29 +465,29 @@ function Achievement.SyncAchiList(btn, fnCallBack, __qrcode)
 	local bitmap, data, nPoint = GetAchievementList()
 	local code = table.concat(bitmap)
 	JH.Curl({
-		url      = ACHI_ROOT_URL .. "/api/wiki/data",
+		url = ACHI_ROOT_URL .. "/api/jx3/wiki/data",
 		dataType = "json",
 		ssl = true,
-		data     = {
-			gid    = id,
-			name   = GetUserRoleName(),
+		data = HM.JsonEncode({
+			gid = id,
+			name = GetUserRoleName(),
 			school = me.dwForceID,
-			camp   = me.nCamp,
-			point  = nPoint,
+			camp = me.nCamp,
+			point = nPoint,
 			server = select(6, GetUserServer()),
 			body = me.nRoleType,
 			avatar = me.dwMiniAvatarID,
-			pet = me.GetAcquiredFellowPetScore(),
+			pet = me.GetAcquiredFellowPetScore() + me.GetAcquiredFellowPetMedalScore(),
 			score = me.GetTotalEquipScore(),
 			__qrcode = __qrcode,
 			__lang = ACHI_CLIENT_LANG,
 			code   = code
-		},
+		}),
 	})
 	:done(function(result, dwBufferSize, set)
 		JH_Achievement.nSyncPoint = nPoint
 		if fnCallBack then
-			fnCallBack(result)
+			fnCallBack(result.data)
 		end
 	end)
 end
@@ -510,15 +510,15 @@ function PS.OnPanelActive(frame)
 		nX, nY = ui:Append("Text", "time", { x = nX + 5, y = nY + 5 , txt = _L["loading..."] }):Pos_()
 		-- get
 		JH.Curl({
-			url = ACHI_ROOT_URL .. "/api/wiki/data/" .. id,
+			url = ACHI_ROOT_URL .. "/api/jx3/wiki/data/" .. id,
 			ssl = true,
 			type = 'get',
 			dataType = 'json',
 		})
 		:done(function(result)
 			if ui then
-				if result.time_update then
-					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.time_update)))
+				if result.data and result.data.time_update then
+					ui:Fetch('time'):Text(FormatTime("%Y/%m/%d %H:%M:%S", tonumber(result.data.time_update)))
 				else
 					ui:Fetch('time'):Text(_L["No Record"])
 				end

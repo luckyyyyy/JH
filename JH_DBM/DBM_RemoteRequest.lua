@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
--- @Last Modified by:   Webster
--- @Last Modified time: 2016-12-17 13:03:12
+-- @Last Modified by:   WilliamChan
+-- @Last Modified time: 2017-11-19 21:51:47
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -10,14 +10,14 @@ DBM_RemoteRequest = {
 }
 
 JH.RegisterCustomData("DBM_RemoteRequest")
-local ROOT_URL = "https://haimanchajian.com/" -- http://game.j3ui.com/"
+local ROOT_URL = "http://jx3-plugin.kingsoft.com/api/"
 -- local ROOT_URL = "http://10.0.20.20/"
 local CLIENT_LANG = select(3, GetVersion())
 local W = {
 	szIniFile   = JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/DBM_RemoteRequest.ini",
-	szFileList  = ROOT_URL .. "api/jx3/plugin-data/dbm?state=2",
-	szFileList2 = ROOT_URL .. "api/jx3/plugin-data/dbm?state=1",
-	szSearch    = ROOT_URL .. "api/jx3/plugin-data/dbm?kw=",
+	szFileList  = ROOT_URL .. "DBM/file/game_top",
+	szFileList2 = ROOT_URL .. "DBM/file/game_default",
+	szSearch    = ROOT_URL .. "DBM/file/search/",
 	szUser      = ROOT_URL .. "DBM/user/",
 	szDownload  = ROOT_URL .. "down/json2/",
 	szLoginUrl  = ROOT_URL .. "user/login/",
@@ -29,7 +29,7 @@ end
 
 W.IsOpened = W.GetFrame
 
--- 打开界面
+-- 麓貌驴陋陆莽脙忙
 function W.OpenPanel()
 	local frame = W.GetFrame() or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
 	frame:BringToTop()
@@ -56,21 +56,21 @@ end
 
 function DBM_RemoteRequest.OnFrameCreate()
 	local ui = GUI(this)
-	if DBM_RemoteRequest.bLogin then
-		JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-			local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-			if result and result["status"] == 401 then
-				return W.Logout()
-			end
-			if err then
-				JH.Sysmsg2(_L["request failed"])
-			else
-				if result['username'] then
-					ui:Append("Text", { x = 0, y = 50, w = 980, h = 30, align = 2, txt = result['username'], color = { 255, 255, 0 } })
-				end
-			end
-		end)
-	end
+	-- if DBM_RemoteRequest.bLogin then
+	-- 	JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+	-- 		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+	-- 		if result and result["status"] == 401 then
+	-- 			return W.Logout()
+	-- 		end
+	-- 		if err then
+	-- 			JH.Sysmsg2(_L["request failed"])
+	-- 		else
+	-- 			if result['username'] then
+	-- 				ui:Append("Text", { x = 0, y = 50, w = 980, h = 30, align = 2, txt = result['username'], color = { 255, 255, 0 } })
+	-- 			end
+	-- 		end
+	-- 	end)
+	-- end
 	ui:Append("WndButton3", { x = 30, y = 630, txt = _L["sync team"] })
 	:Click(W.SyncTeam)
 	ui:Append("WndButton3", { x = 180, y = 630, txt = _L["standard data"] })
@@ -95,7 +95,7 @@ function DBM_RemoteRequest.OnFrameCreate()
 end
 
 function W.Login()
-	return OpenInternetExplorer(ROOT_URL .. "jx3/plugin-data")
+	return OpenBrowser("http://jx3-plugin.kingsoft.com/DBM")
 	--[[
 	GetUserInput(_L["Enter User ID"], function(szNum)
 		if not tonumber(szNum) then
@@ -119,59 +119,58 @@ function W.Logout()
 end
 
 function W.CallLogin(uid, pw, fnAction)
-	-- web传参不安全 但是只能这样
 	if string.len(pw) ~= 32 then
 		pw = JH.MD5(pw)
 	end
 
-	JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG .. "&username=" .. uid .. "&password=" .. pw, function(szTitle, szDoc)
-		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-		if err then
-			JH.Sysmsg2(_L["request failed"])
-		else
-			JH.Debug("#DBM# LOGIN " .. result['uid'])
-			if tonumber(result['uid']) > 0 then
-				DBM_RemoteRequest.bLogin = true
-				W.ClosePanel()
-				W.OpenPanel()
-				if fnAction then pcall(fnAction) end
-			else
-				W.Logout()
-				JH.Alert(result["info"])
-			end
-		end
-	end)
+	-- JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG .. "&username=" .. uid .. "&password=" .. pw, function(szTitle, szDoc)
+	-- 	local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+	-- 	if err then
+	-- 		JH.Sysmsg2(_L["request failed"])
+	-- 	else
+	-- 		JH.Debug("#DBM# LOGIN " .. result['uid'])
+	-- 		if tonumber(result['uid']) > 0 then
+	-- 			DBM_RemoteRequest.bLogin = true
+	-- 			W.ClosePanel()
+	-- 			W.OpenPanel()
+	-- 			if fnAction then pcall(fnAction) end
+	-- 		else
+	-- 			W.Logout()
+	-- 			JH.Alert(result["info"])
+	-- 		end
+	-- 	end
+	-- end)
 end
 
 function W.MyData()
-	JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-		if err then
-			JH.Sysmsg2(_L["request failed"])
-		else
-			if tonumber(result['uid']) > 0 then
-				W.CallMyData()
-			else
-				DBM_RemoteRequest.bLogin = false
-				W.ClosePanel()
-				W.OpenPanel()
-			end
-		end
-	end)
+	-- JH.RemoteRequest(W.szLoginUrl .. "?_" .. GetCurrentTime() .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+	-- 	local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+	-- 	if err then
+	-- 		JH.Sysmsg2(_L["request failed"])
+	-- 	else
+	-- 		if tonumber(result['uid']) > 0 then
+	-- 			W.CallMyData()
+	-- 		else
+	-- 			DBM_RemoteRequest.bLogin = false
+	-- 			W.ClosePanel()
+	-- 			W.OpenPanel()
+	-- 		end
+	-- 	end
+	-- end)
 end
 
 function W.CallMyData()
 	W.Loading()
-	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 得益于IE缓存 1分钟一次
-	JH.RemoteRequest(W.szUser .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
-		local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
-		if err then
-			JH.Debug(err)
-			JH.Sysmsg2(_L["request failed"])
-		else
-			W.ListCallBack(result)
-		end
-	end)
+	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 碌脙脪忙脫脷IE禄潞麓忙 1路脰脰脫脪禄麓脦
+	-- JH.RemoteRequest(W.szUser .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
+	-- 	local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
+	-- 	if err then
+	-- 		JH.Debug(err)
+	-- 		JH.Sysmsg2(_L["request failed"])
+	-- 	else
+	-- 		W.ListCallBack(result)
+	-- 	end
+	-- end)
 end
 
 function W.Search()
@@ -189,16 +188,15 @@ function W.Loading(szTitle)
 	W.AppendItem({ title = szTitle or "", author = "loading..." }, 1)
 end
 
--- 列表请求
 function W.RequestList(szUrl)
 	szUrl = szUrl or W.szFileList
 	W.Loading()
 	JH.Curl({
 		url = szUrl,
+		dataType = "json",
 	})
 	:done(function(szContent, dwBufferSize)
-		local data = JH.JsonToTable(szContent)
-		W.ListCallBack(data)
+		W.ListCallBack(szContent)
 	end)
 	:fail(function(errMsg, dwBufferSize)
 		JH.Sysmsg2(_L["request failed"] .. errMsg)
@@ -210,15 +208,15 @@ function W.ListCallBack(result)
 	W.Container:Clear()
 	W.UseData = nil
 
-	if result.errcode and result.errcode ~= 0 then
+	if result.errcode ~= 0 or not result.data then
 		return JH.Alert(result.errmsg)
 	end
-	for k, v in ipairs(result) do
+	for k, v in ipairs(result.data) do
 		v.tid = v.tid or v.id
 		v.id = nil
 		W.AppendItem(v, k)
 	end
-	if IsEmpty(result) then
+	if IsEmpty(result.data) then
 		W.Loading("no result.")
 	end
 	--[[if result["msg"] then
@@ -260,21 +258,24 @@ function W.AppendItem(data, k)
 	local item = wnd:Lookup("", "")
 	if item then
 		item.data = data
-		item:Lookup("Text_Author"):SetText(data.author)
+		if data.user then
+			item:Lookup("Text_Author"):SetText(data.user.username)
+		end
 		item:Lookup("Text_Title"):SetText(data.title)
-		if data.tid then
+		if data.fid then
 			local nTime = GetCurrentTime()
-			local szDate = W.TimeToDate(data.dateline)
-			item:Lookup("Text_Download"):SetText(szDate)
-			if (nTime - data.dateline) < 3600 then
-				item:Lookup("Text_Download"):SetFontColor(0, 255, 0)
-			elseif (nTime - data.dateline) < 86400 then
-				item:Lookup("Text_Download"):SetFontColor(255, 255, 0)
-			end
+			-- local szDate = W.TimeToDate(data.dateline)
+			-- item:Lookup("Text_Download"):SetText(szDate)
+			-- if (nTime - data.dateline) < 3600 then
+			-- 	item:Lookup("Text_Download"):SetFontColor(0, 255, 0)
+			-- elseif (nTime - data.dateline) < 86400 then
+			-- 	item:Lookup("Text_Download"):SetFontColor(255, 255, 0)
+			-- end
 			item.OnItemMouseEnter = function()
 				item:Lookup("Image_Line"):SetFrame(8)
-				local szXml = GetFormatText(data.author .. "\n", 47, 255, 255, 0)
-				szXml = szXml ..GetFormatText(data.title, 47, 255, 255, 255)
+				local szXml = GetFormatText(data.user.username .. "\n", 47, 255, 255, 0)
+				szXml = szXml ..GetFormatText(data.title .. "\n", 47, 255, 255, 255)
+				szXml = szXml ..GetFormatText(data.update_time, 47, 255, 255, 255)
 				W.MenuTip(item:Lookup("Text_Author"), szXml)
 			end
 			item.OnItemMouseLeave = function()
@@ -299,20 +300,21 @@ function W.AppendItem(data, k)
 				W.DoanloadData(data)
 			end
 			btn2.OnLButtonClick = function()
-				local url = data.url or ROOT_URL .. "jx3/plugin-data/".. data.tid
+				local url = data.url or "https://jx3-plugin.kingsoft.com/DBM/" .. data.fid
+				--ROOT_URL .. "jx3/plugin-data/".. data.tid
 				--[[
 				local url = ROOT_URL .. "config/detail/".. data.tid
 				if data.url then
 					url = "http://" .. data.url
 				end
 				--]]
-				OpenInternetExplorer(url)
+				OpenBrowser(url)
 			end
 			if data.url then
 				btn2:Lookup("", "Text_Default2"):SetText(_L["details"])
 				btn:Hide()
 			end
-			if DBM_RemoteRequest.tData.tid and DBM_RemoteRequest.tData.tid == data.tid then
+			if DBM_RemoteRequest.tData.fid and DBM_RemoteRequest.tData.fid == data.fid then
 				item:Lookup("Text_Title"):SetFontColor(255, 255, 0)
 				if DBM_RemoteRequest.tData.md5 == data.md5 then
 					btn:Lookup("", "Text_Default"):SetText(_L["select"])
@@ -331,36 +333,36 @@ function W.AppendItem(data, k)
 end
 
 function W.DoanloadData(data)
-	if data.tid then
-		-- 简单本地缓存一下
+	if data.fid then
 		local szPath = JH.GetAddonInfo().szRootPath .. "JH_DBM/data/"
-		local szFileName = "DBM_Remote-" .. CLIENT_LANG .. "-" .. data.tid .. FormatTime("-%Y%m%d_%H.%M", data.dateline) .. ".jx3dat"
+		local szFileName = "DBM_Remote-" .. CLIENT_LANG .. "-" .. data.fid .. FormatTime("-%Y%m%d_%H.%M", data.dateline) .. ".jx3dat"
 		W.CallDoanloadData(data, szPath, szFileName)
 	end
 end
 
 function W.CallDoanloadData(data, szPath, szFileName)
 	local function fnAction(szFile)
-		DBM_UI.OpenImportPanel(szFile, data.title .. " - " .. data.author, function()
+		DBM_UI.OpenImportPanel(szFile, data.title .. " - " .. data.user.username, function()
 			DBM_RemoteRequest.tData = data
 			local me = GetClientPlayer()
-			if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_RemoteRequest", "Load", data.title) end
+			-- if me.IsInParty() then JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "DBM_RemoteRequest", "Load", data.title) end
 		end)
 	end
 
-	if IsFileExist(szPath .. szFileName) then -- 本地文件存在则优先
+	if IsFileExist(szPath .. szFileName) then
 		fnAction(szFileName)
-	else -- 否则 remote request
+	else
 		JH.Topmsg(_L["Loading..., please wait."])
 		JH.Curl({
 			type = "get",
-			url = ROOT_URL .. "jx3/plugin-data/" .. data.tid .. "/get?lang=" .. CLIENT_LANG .. "&cdn=url",
-		}):done(function(szContent)
-			JH.Debug("#DBM# download url: " .. szContent)
+			dataType = "json",
+			url = ROOT_URL .. "dbm/file/down/" .. data.fid .. "?type=" .. (CLIENT_LANG == 'zhcn' and 'gbk' or 'utf8'),
+		}):done(function(data)
+			JH.Debug("#DBM# download url: " .. data.data)
 			JH.Curl({
 				type = "get",
 				charset = "",
-				url = szContent,
+				url = data.data,
 			}):done(function(szContent)
 				JH.Debug("#DBM# download size: " .. string.len(szContent))
 				Log(szPath .. szFileName .. ".log", szContent, "close")
@@ -368,7 +370,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 				fnAction(szFileName)
 			end):fail(function(errMsg, dwBufferSize, set)
 				JH.Sysmsg2(_L["request failed"] .. errMsg)
-			end)	
+			end)
 		end)	:fail(function(errMsg, dwBufferSize, set)
 			JH.Sysmsg2(_L["request failed"] .. errMsg)
 		end)
@@ -388,7 +390,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 			if CLIENT_LANG == "zhcn" then
 				tab = JH.ConvertToAnsi(tab)
 			end
-			SaveLUAData(szPath .. szFileName, tab, nil, false) -- 缓存文件
+			SaveLUAData(szPath .. szFileName, tab, nil, false) -- 禄潞麓忙脦脛录镁
 			fnAction(szFileName)
 		end)
 		:fail(function(errMsg, dwBufferSize, set)
@@ -421,7 +423,7 @@ end
 JH.RegisterBgMsg("DBM_RemoteRequest", function(nChannel, dwID, szName, data, bIsSelf)
 	if data[1] == "WebSyncTean" then
 		local t = data[2]
-		JH.Confirm(_L("Team leader request download: %s", t.title .. " - " .. t.author), function()
+		JH.Confirm(_L("Team leader request download: %s", t.title .. " - " .. t.user.username), function()
 			W.DoanloadData(t)
 		end)
 	elseif data[1] == "Load" then
