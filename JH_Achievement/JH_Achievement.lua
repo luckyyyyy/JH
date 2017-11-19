@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2016-02-26 23:33:04
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2017-10-22 15:47:26
+-- @Last Modified time: 2017-11-19 21:52:54
 local _L = JH.LoadLangPack
 local Achievement = {}
 local ACHI_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }

@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2017-10-22 15:47:26
+-- @Last Modified time: 2017-11-19 21:51:47
 local _L = JH.LoadLangPack
 
 DBM_RemoteRequest = {
@@ -29,7 +29,7 @@ end
 
 W.IsOpened = W.GetFrame
 
--- ´ò¿ª½çÃæ
+-- Â´Ã²Â¿ÂªÂ½Ã§ÃƒÃ¦
 function W.OpenPanel()
 	local frame = W.GetFrame() or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
 	frame:BringToTop()
@@ -390,7 +390,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 			if CLIENT_LANG == "zhcn" then
 				tab = JH.ConvertToAnsi(tab)
 			end
-			SaveLUAData(szPath .. szFileName, tab, nil, false) -- »º´æÎÄ¼þ
+			SaveLUAData(szPath .. szFileName, tab, nil, false) -- Â»ÂºÂ´Ã¦ÃŽÃ„Â¼Ã¾
 			fnAction(szFileName)
 		end)
 		:fail(function(errMsg, dwBufferSize, set)
