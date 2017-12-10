@@ -84,6 +84,10 @@ function KG_UIEditor.OnFrameCreate()
 	this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 end
 
+-- function KG_UIEditor.OnFrameBreathe()
+-- 	this:BringToTop()
+-- end
+
 function KG_UIEditor.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		local a = UI_ANCHOR
@@ -238,7 +242,7 @@ function UI.CloseFrame()
 end
 
 function UI.GetFrame()
-	return Station.Lookup("Topmost/KG_UIEditor")
+	return Station.Lookup("Topmost1/KG_UIEditor")
 end
 UI.IsOpened = UI.GetFrame
 function UI.ToggleFrame()
