@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2017-08-27 17:57:09
+-- @Last Modified time: 2018-01-01 15:30:16
 
 ---------------------------------------
 --          JH Plugin - Base         --
@@ -106,7 +106,7 @@ local JH_PANEL_ANCHOR      = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 -- 插件开始
 ---------------------------------------------------------------------
 JH = {
-	bDebugClient = false, -- 测试客户端版本
+	bDebugClient = true, -- 测试客户端版本
 	nChannel     = PLAYER_TALK_CHANNEL.RAID, -- JH.Talk默认频道
 	LoadLangPack = _L,
 }

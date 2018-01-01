@@ -1,12 +1,13 @@
 -- @Author: Webster
 -- @Date:   2016-01-20 09:31:57
--- @Last Modified by:   Administrator
--- @Last Modified time: 2016-12-13 01:08:57
+-- @Last Modified by:   WilliamChan
+-- @Last Modified time: 2018-01-02 00:19:43
 
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local GKP_LOOT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_GKP/ui/GKP_Loot.ini"
 local GKP_LOOT_BOSS -- 散件老板
+local GKP_ALL_FRAME = {}
 
 local GKP_LOOT_HUANGBABA = {
 	[JH.GetItemName(72592)]  = true,
@@ -56,7 +57,13 @@ function GKP_Loot_Base.OnFrameCreate()
 	this.dwDoodadID = arg0
 	local a = GKP_LOOT_ANCHOR
 	this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
+	GKP_ALL_FRAME[arg0] = this
 end
+
+function GKP_Loot_Base.OnFrameDestroy()
+	GKP_ALL_FRAME[this.dwDoodadID] = nil
+end
+
 
 function GKP_Loot_Base.OnEvent(szEvent)
 	if szEvent == "DOODAD_LEAVE_SCENE" then
@@ -725,10 +732,10 @@ JH.RegisterEvent("OPEN_DOODAD", function()
 			end
 		end
 		JH.Debug("Open Doodad: " .. arg0)
-		local hLoot = Station.Lookup("Normal/LootList")
-		if hLoot then
-			hLoot:SetAbsPos(4096, 4096)
-		end
+		-- local hLoot = Station.Lookup("Normal/LootList")
+		-- if hLoot then
+		-- 	hLoot:SetAbsPos(4096, 4096)
+		-- end
 		-- Wnd.CloseWindow("LootList")
 	end
 end)
@@ -768,6 +775,42 @@ JH.RegisterEvent("GKP_LOOT_BOSS", function()
 		end
 	end
 end)
+
+local function pubg()
+	local me = GetClientPlayer()
+	for k, v in pairs(GKP_ALL_FRAME) do
+		if v and v:IsValid() and v.dwDoodadID then
+			local dwDoodadID = v.dwDoodadID
+			local doodad     = GetDoodad(dwDoodadID)
+			Output(44)
+			if doodad.CanDialog(me) then
+				local szName, data = Loot.GetDoodad(v.dwDoodadID)
+				for kk, vv in ipairs(data) do
+					-- 自动减白色以上装备 或者不是装备的道具
+					if (
+						vv.item.nGenre == ITEM_GENRE.EQUIPMENT and
+						vv.item.nQuality > 1
+					) or
+						vv.item.nGenre ~= ITEM_GENRE.EQUIPMENT
+					then
+						LootItem(v.dwDoodadID, vv.item.dwID)
+					end
+				end
+			else
+				-- JH.Topmsg(g_tStrings.TIP_TOO_FAR)
+			end
+		end
+	end
+end
+
+JH.RegisterEvent("LOADING_END", function()
+	if GetClientPlayer().GetMapID() == 296 then
+		JH.BreatheCall("gkp-pubg", pubg)
+	else
+		JH.UnBreatheCall("gkp-pubg")
+	end
+end)
+
 
 local ui = {
 	GetMessageBox   = Loot.GetMessageBox,
