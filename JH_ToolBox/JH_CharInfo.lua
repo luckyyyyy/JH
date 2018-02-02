@@ -11,13 +11,13 @@ JH.RegisterCustomData("JH_CharInfo")
 
 local CharInfo = {}
 
--- Ëé∑ÂèñÁöÑÊòØ‰∏Ä‰∏™Ë°® data[1] ‰∏ÄÂÆöÊòØË£ÖÂ§áÂàÜ
+-- ªÒ»°µƒ «“ª∏ˆ±Ì data[1] “ª∂® «◊∞±∏∑÷
 function CharInfo.GetInfo()
 	local data = { GetClientPlayer().GetTotalEquipScore() }
 	local frame = Station.Lookup("Normal/CharInfo")
 	if not frame or not frame:IsVisible() then
 		if frame then
-			Wnd.CloseWindow("CharInfo") -- Âº∫Âà∂kill
+			Wnd.CloseWindow("CharInfo") -- «ø÷∆kill
 		end
 		Wnd.OpenWindow("CharInfo"):Hide()
 	end
@@ -38,7 +38,7 @@ function CharInfo.CreateFrame(dwID, szName, info)
 	local ui = GUI.CreateFrame("JH_CharInfo" .. dwID, { w = 240, h = 400, title = g_tStrings.STR_EQUIP_ATTR, close = true })
 	local frame = Station.Lookup("Normal/JH_CharInfo" .. dwID)
 	local nX, nY = ui:Append("Image", { x = 20, y = 50, w = 30, h = 30, icon = select(2, JH.GetSkillName(info.dwMountKungfuID, 1)) }):Pos_()
-	ui:Append("Text", { x = nX + 5, y = 52, txt = wstring.sub(szName, 1, 6), color = { JH.GetForceColor(info.dwForceID) } }) -- UIË∂Ö‰∫Ü
+	ui:Append("Text", { x = nX + 5, y = 52, txt = wstring.sub(szName, 1, 6), color = { JH.GetForceColor(info.dwForceID) } }) -- UI≥¨¡À
 	ui:Append("WndButton2", "LOOKUP", { x = 70, y = 360, txt = g_tStrings.STR_LOOKUP }):Click(function()
 		ViewInviteToPlayer(dwID)
 	end)
@@ -93,7 +93,7 @@ function CharInfo.CreateComplete(dwID)
 				end
 				return { 255, 255, 255 }
 			end
-			-- ÈÅøÂÖçÂ§ßÂ∞è‰∏çÂ§ü
+			-- ±‹√‚¥Û–°≤ªπª
 			ui:Size(240, 60 + 65 + (#data - 1) * 25)
 			ui:Fetch("LOOKUP"):Pos(70, 60 + #data * 25)
 			for i = 2, #data do

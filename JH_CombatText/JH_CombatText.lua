@@ -3,18 +3,18 @@
 -- @Last Modified by:   William Chan
 -- @Last Modified time: 2017-04-21 15:32:37
 
--- ÊàòÊñóÊµÆÂä®ÊñáÂ≠óËÆæËÆ°ÊÄùË∑Ø
+-- ’Ω∂∑∏°∂ØŒƒ◊÷…Ëº∆Àº¬∑
 --[[
-	ÂÅúÁïôÊó∂Èó¥Ôºö‰ΩøÁî®ÔºàÊÄªÂ∏ßÊï∞ * ÊØèÂ∏ßÊó∂Èó¥ÔºâÊù•ÂÜ≥ÂÆöÊÄªÂÅúÁïôÊó∂Èó¥Ôºå
-	alphaÔºö   ‰ΩøÁî®Â∏ßÊï∞Êù•ÂÜ≥ÂÆöfadeinÂíåfadeout„ÄÇ
-	ÊéíÂ∫èÔºö    È°∂ÈÉ®‰ΩøÁî®ÁÆÄÊòìËßÅÁºùÊèíÈíàÔºåÂàÜÈÖçÁ©∫Èó≤ËΩ®ËøπÔºåÊúÄÂ§ßÁ®ãÂ∫¶‰∏ä‰øùËØÅÊÄßËÉΩÂíåÊµÆÂä®Êï∞ÂÄºÊ∏ÖÊô∞„ÄÇ
-	ÂùêÊ†áËΩ®ËøπÔºö‰ΩøÁî®ÂÖ≥ÈîÆÂ∏ßÂΩ¢ÂºèÔºå‰∏ÄÂÖ±32ÂÖ≥ÈîÆÂ∏ßÔºåÈÉ®ÂàÜÁ±ªÂûãÊúâÂª∂ÈïøÂ∏ß„ÄÇ
-	Âá∫Áé∞Ôºö    ÂØπÂá∫Áé∞ÂÅö1Â∏ßÁöÑÂª∂ËøüÂ§ÑÁêÜÔºåÂç≥1Â∏ßÂá∫Áé∞5Ê¨°‰º§ÂÆ≥ÂàôÂàÜ5Â∏ß‰æùÊ¨°Âá∫Áé∞„ÄÇ
+	Õ£¡Ù ±º‰£∫ π”√£®◊‹÷° ˝ * √ø÷° ±º‰£©¿¥æˆ∂®◊‹Õ£¡Ù ±º‰£¨
+	alpha£∫    π”√÷° ˝¿¥æˆ∂®fadein∫Õfadeout°£
+	≈≈–Ú£∫    ∂•≤ø π”√ºÚ“◊º˚∑Ï≤Â’Î£¨∑÷≈‰ø’œ–πÏº££¨◊Ó¥Û≥Ã∂»…œ±£÷§–‘ƒ‹∫Õ∏°∂Ø ˝÷µ«ÂŒ˙°£
+	◊¯±ÍπÏº££∫ π”√πÿº¸÷°–Œ Ω£¨“ªπ≤32πÿº¸÷°£¨≤ø∑÷¿‡–Õ”–—”≥§÷°°£
+	≥ˆœ÷£∫    ∂‘≥ˆœ÷◊ˆ1÷°µƒ—”≥Ÿ¥¶¿Ì£¨º¥1÷°≥ˆœ÷5¥Œ…À∫¶‘Ú∑÷5÷°“¿¥Œ≥ˆœ÷°£
 	-------------------------------------------------------------------------------
-	ÂàùÂßãÂùêÊ†áÁ±ªÂûãÔºöÂàÜ‰∏∫ È°∂ÈÉ® Â∑¶ Âè≥ Â∑¶‰∏ã Âè≥‰∏ã ‰∏≠ÂøÉ
-	È°∂ÈÉ®ÔºöYËΩ¥ËΩ®ËøπÊï∞ ‰ª• floor(3.5 / UIÁº©Êîæ) ÂÜ≥ÂÆöÔºåÂÖ∂ÂàùÂßãYËΩ¥È´òÂ∫¶‰∏çÂêå„ÄÇ
-		  Âú®ËΩ®ËøπÂÖ®ÈÉ®Ë¢´Âç†Áî®Âêé‰ºöÈöèÊú∫ÂàÜÊëäÂà∞Â±èÂπïÈ°∂ÈÉ®Â∑¶Âè≥‰∏§Ëæπ„ÄÇ
-	ÂÖ∂‰ªñÁ±ªÂûãÔºö‰ΩøÁî®ËΩ®ËøπÂêàÂπ∂16-32Â∏ßÔºåÂêéÊù•ÁöÑÊñáÊú¨‰ºöÈ°∂Ëµ∞ÂâçÈù¢ÁöÑÊñáÊú¨Ôºå‰ªéËÄåË∑≥ËøáËøôÈÉ®ÂàÜÂÅúÁïôÁöÑÂ∏ßÊï∞„ÄÇ
+	≥ı º◊¯±Í¿‡–Õ£∫∑÷Œ™ ∂•≤ø ◊Û ”“ ◊Ûœ¬ ”“œ¬ ÷––ƒ
+	∂•≤ø£∫Y÷·πÏº£ ˝ “‘ floor(3.5 / UIÀı∑≈) æˆ∂®£¨∆‰≥ı ºY÷·∏ﬂ∂»≤ªÕ¨°£
+		  ‘⁄πÏº£»´≤ø±ª’º”√∫Ûª·ÀÊª˙∑÷ÃØµΩ∆¡ƒª∂•≤ø◊Û”“¡Ω±ﬂ°£
+	∆‰À˚¿‡–Õ£∫ π”√πÏº£∫œ≤¢16-32÷°£¨∫Û¿¥µƒŒƒ±æª·∂•◊ﬂ«∞√ÊµƒŒƒ±æ£¨¥”∂¯Ã¯π˝’‚≤ø∑÷Õ£¡Ùµƒ÷° ˝°£
 ]]
 
 local _L = JH.LoadLangPack
@@ -32,9 +32,9 @@ local COMBAT_TEXT_CONFIG         = JH.GetAddonInfo().szRootPath .. "JH_CombatTex
 local COMBAT_TEXT_PLAYERID       = 0
 local COMBAT_TEXT_TOTAL          = 32
 local COMBAT_TEXT_UI_SCALE       = 1
-local COMBAT_TEXT_TRAJECTORY     = 4   -- È°∂ÈÉ®YËΩ¥ËΩ®ËøπÊï∞Èáè Ê†πÊçÆÁº©ÊîæÂ§ßÂ∞èÂèòÂåñ 0.8Â∞±ÊòØ5Êù°‰∫Ü Â±èÂπïÂ∞èÊõ¥Â§ö
-local COMBAT_TEXT_MAX_COUNT      = 100 -- ÊúÄÂ§öÂêåÂ±èÊòæÁ§∫100‰∏™ ÂÜçÂ§öÈÉ®ÂàÜÊú∫Âô®ÂêÉ‰∏çÊ∂à‰∫Ü
-local COMBAT_TEXT_CRITICAL = { -- ÈúÄË¶Å‰ºöÂøÉË∑≥Â∏ßÁöÑ‰º§ÂÆ≥Á±ªÂûã
+local COMBAT_TEXT_TRAJECTORY     = 4   -- ∂•≤øY÷·πÏº£ ˝¡ø ∏˘æ›Àı∑≈¥Û–°±‰ªØ 0.8æÕ «5Ãı¡À ∆¡ƒª–°∏¸∂‡
+local COMBAT_TEXT_MAX_COUNT      = 100 -- ◊Ó∂‡Õ¨∆¡œ‘ æ100∏ˆ ‘Ÿ∂‡≤ø∑÷ª˙∆˜≥‘≤ªœ˚¡À
+local COMBAT_TEXT_CRITICAL = { -- –Ë“™ª·–ƒÃ¯÷°µƒ…À∫¶¿‡–Õ
 	[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = true,
 	[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = true,
 	[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = true,
@@ -48,13 +48,13 @@ local COMBAT_TEXT_CRITICAL = { -- ÈúÄË¶Å‰ºöÂøÉË∑≥Â∏ßÁöÑ‰º§ÂÆ≥Á±ªÂûã
 local COMBAT_TEXT_IGNORE_TYPE = {}
 local COMBAT_TEXT_IGNORE = {}
 local COMBAT_TEXT_EVENT  = { "COMMON_HEALTH_TEXT", "SKILL_EFFECT_TEXT", "SKILL_MISS", "SKILL_DODGE", "SKILL_BUFF", "BUFF_IMMUNITY" }
-local COMBAT_TEXT_STRING = { -- ÈúÄË¶ÅÂèòÊàêÁâπÂÆöÂ≠óÁ¨¶‰∏≤ÁöÑ‰º§ÂÆ≥Á±ªÂûã
+local COMBAT_TEXT_STRING = { -- –Ë“™±‰≥…Ãÿ∂®◊÷∑˚¥Æµƒ…À∫¶¿‡–Õ
 	[SKILL_RESULT_TYPE.SHIELD_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
 	[SKILL_RESULT_TYPE.ABSORB_DAMAGE]  = g_tStrings.STR_MSG_ABSORB,
 	[SKILL_RESULT_TYPE.PARRY_DAMAGE]   = g_tStrings.STR_MSG_COUNTERACT,
 	[SKILL_RESULT_TYPE.INSIGHT_DAMAGE] = g_tStrings.STR_MSG_INSIGHT,
 }
-local COMBAT_TEXT_COLOR = { --‰∏çÈúÄË¶Å‰øÆÊîπÁöÑÂÜÖÂÆöÈ¢úËâ≤
+local COMBAT_TEXT_COLOR = { --≤ª–Ë“™–ﬁ∏ƒµƒƒ⁄∂®—’…´
 	YELLOW = { 255, 255, 0   },
 	RED    = { 255, 0,   0   },
 	PURPLE = { 255, 0,   255 },
@@ -96,8 +96,8 @@ local COMBAT_TEXT_STYLES = {
 	}
 }
 
-local COMBAT_TEXT_SCALE = { -- ÂêÑÁßç‰º§ÂÆ≥ÁöÑÁº©ÊîæÂ∏ßÊï∞ ‰∏ÄÂÖ±32Â∏ß
-	CRITICAL = { -- ‰ºöÂøÉ
+local COMBAT_TEXT_SCALE = { -- ∏˜÷÷…À∫¶µƒÀı∑≈÷° ˝ “ªπ≤32÷°
+	CRITICAL = { -- ª·–ƒ
 		2, 4.5, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
@@ -105,7 +105,7 @@ local COMBAT_TEXT_SCALE = { -- ÂêÑÁßç‰º§ÂÆ≥ÁöÑÁº©ÊîæÂ∏ßÊï∞ ‰∏ÄÂÖ±32Â∏ß
 		2, 2, 2, 2, 2, 2, 2, 2,
 		2, 2, 2, 2, 2, 2, 2, 2,
 	},
-	NORMAL = { -- ÊôÆÈÄö‰º§ÂÆ≥
+	NORMAL = { -- ∆’Õ®…À∫¶
 		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
 		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
 		1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
@@ -116,13 +116,13 @@ local COMBAT_TEXT_SCALE = { -- ÂêÑÁßç‰º§ÂÆ≥ÁöÑÁº©ÊîæÂ∏ßÊï∞ ‰∏ÄÂÖ±32Â∏ß
 }
 
 local COMBAT_TEXT_POINT = {
-	TOP = { -- ‰º§ÂÆ≥ ÂæÄ‰∏äÁöÑ ÂàÜÂõõÁªÑ ÊôÆÈÄö ÊÖ¢ ÊÖ¢ Âùó~~
+	TOP = { -- …À∫¶ Õ˘…œµƒ ∑÷Àƒ◊È ∆’Õ® ¬˝ ¬˝ øÈ~~
 		0,   6,   12,  18,  24,  30,  36,  42,
 		45,  48,  51,  54,  57,  60,  63,  66,
 		69,  72,  75,  78,  81,  84,  87,  90,
 		100, 110, 120, 130, 140, 150, 160, 170,
 	},
-	RIGHT = { -- ‰ªéÂ∑¶ÂæÄÂè≥ÁöÑ
+	RIGHT = { -- ¥”◊ÛÕ˘”“µƒ
 		8,   16,  24,  32,  40,  48,  56,  64,
 		72,  80,  88,  96,  104, 112, 120, 128,
 		136, 136, 136, 136, 136, 136, 136, 136,
@@ -130,7 +130,7 @@ local COMBAT_TEXT_POINT = {
 		139, 142, 145, 148, 151, 154, 157, 160,
 		163, 166, 169, 172, 175, 178, 181, 184,
 	},
-	LEFT = { -- ‰ªéÂè≥Âà∞Â∑¶
+	LEFT = { -- ¥””“µΩ◊Û
 		8,   16,  24,  32,  40,  48,  56,  64,
 		72,  80,  88,  96,  104, 112, 120, 128,
 		136, 136, 136, 136, 136, 136, 136, 136,
@@ -138,7 +138,7 @@ local COMBAT_TEXT_POINT = {
 		139, 142, 145, 148, 151, 154, 157, 160,
 		163, 166, 169, 172, 175, 178, 181, 184,
 	},
-	BOTTOM_LEFT = { -- Â∑¶‰∏ãËßí
+	BOTTOM_LEFT = { -- ◊Ûœ¬Ω«
 		5,   10,  15,  20,  25,  30,  35,  40,
 		45,  50,  55,  60,  65,  70,  75,  80,
 		80,  80,  80,  80,  80,  80,  80,  80,
@@ -159,7 +159,7 @@ local COMBAT_TEXT_LEAVE  = {}
 local COMBAT_TEXT_FREE   = {}
 local COMBAT_TEXT_SHADOW = {}
 local COMBAT_TEXT_QUEUE  = {}
-local COMBAT_TEXT_CACHE  = { -- buffÁöÑÂêçÂ≠ócache
+local COMBAT_TEXT_CACHE  = { -- buffµƒ√˚◊÷cache
 	BUFF   = {},
 	DEBUFF = {},
 }
@@ -180,22 +180,22 @@ JH_CombatText = {
 	tCriticalC   = { 255, 255, 255 },
 	tCriticalH   = { 0,   255, 0   },
 	tCriticalB   = { 255, 0,   0   },
-	-- $name ÂêçÂ≠ó $sn   ÊäÄËÉΩÂêç $crit ‰ºöÂøÉ $val  Êï∞ÂÄº
+	-- $name √˚◊÷ $sn   ººƒ‹√˚ $crit ª·–ƒ $val   ˝÷µ
 	szSkill      = "$sn" .. g_tStrings.STR_COLON .. "$crit $val",
 	szTherapy    = "$sn" .. g_tStrings.STR_COLON .. "$crit +$val",
 	szDamage     = "$sn" .. g_tStrings.STR_COLON .. "$crit -$val",
 	bCasterNotI  = false,
 	bSnShorten2  = false,
 	bTherEffOnly = false,
-	col = { -- È¢úËâ≤Âëó
-		["DAMAGE"]                               = { 255, 0,   0   }, -- Ëá™Â∑±ÂèóÂà∞ÁöÑ‰º§ÂÆ≥
-		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- Ê≤ªÁñó
-		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- Â§ñÂÖ¨
-		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- Èò≥
-		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- Ê∑∑ÂÖÉ
-		[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = { 12,  242, 255 }, -- Èò¥
-		[SKILL_RESULT_TYPE.POISON_DAMAGE]        = { 128, 255, 128 }, -- ÊúâÊØíÂïä
-		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = { 255, 128, 128 }, -- ÂèçÂºπ ÔºüÔºü
+	col = { -- —’…´ﬂ¬
+		["DAMAGE"]                               = { 255, 0,   0   }, -- ◊‘º∫ ‹µΩµƒ…À∫¶
+		[SKILL_RESULT_TYPE.THERAPY]              = { 0,   255, 0   }, -- ÷Œ¡∆
+		[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]       = { 255, 255, 255 }, -- Õ‚π´
+		[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]   = { 255, 128, 128 }, -- —Ù
+		[SKILL_RESULT_TYPE.NEUTRAL_MAGIC_DAMAGE] = { 255, 255, 0   }, -- ªÏ‘™
+		[SKILL_RESULT_TYPE.LUNAR_MAGIC_DAMAGE]   = { 12,  242, 255 }, -- “ı
+		[SKILL_RESULT_TYPE.POISON_DAMAGE]        = { 128, 255, 128 }, -- ”–∂æ∞°
+		[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE]    = { 255, 128, 128 }, -- ∑¥µØ £ø£ø
 	}
 }
 JH.RegisterCustomData("JH_CombatText", 2)
@@ -243,7 +243,7 @@ end
 -- FireUIEvent("SKILL_MISS", UI_GetClientPlayerID(), UI_GetClientPlayerID())
 -- FireUIEvent("SYS_MSG", "UI_OME_EXP_LOG", UI_GetClientPlayerID(), UI_GetClientPlayerID())
 function JH_CombatText.OnEvent(szEvent)
-	if szEvent == "FIGHT_HINT" then -- ËøõÂá∫ÊàòÊñóÊñáÂ≠ó
+	if szEvent == "FIGHT_HINT" then -- Ω¯≥ˆ’Ω∂∑Œƒ◊÷
 		if arg0 then
 			OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.STR_MSG_ENTER_FIGHT)
 		else
@@ -315,7 +315,7 @@ function CombatText.OnFrameRender()
 	local nDelay    = JH_CombatText.nTime
 	local g_fScale  = JH_CombatText.fScale
 	for k, v in pairs(COMBAT_TEXT_SHADOW) do
-		local nFrame = (nTime - v.nTime) / nDelay + 1 -- ÊØè‰∏ÄÂ∏ßÊòØÂ§öÂ∞ëÊØ´Áßí ËøôÈáåË∂äÂ∞è Âä®ÁîªË∂äÂø´
+		local nFrame = (nTime - v.nTime) / nDelay + 1 -- √ø“ª÷° «∂‡…Ÿ∫¡√Î ’‚¿Ô‘Ω–° ∂Øª≠‘ΩøÏ
 		local nBefore = floor(nFrame)
 		local nAfter  = ceil(nFrame)
 		local fDiff   = nFrame - nBefore
@@ -333,7 +333,7 @@ function CombatText.OnFrameRender()
 			elseif nFrame > nTotal - nFadeOut then
 				nAlpha = nMaxAlpha * (nTotal - nFrame) / nFadeOut
 			end
-			-- ÂùêÊ†á
+			-- ◊¯±Í
 			if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
 				local tTop = COMBAT_TEXT_POINT[v.szPoint]
 				nTop = (-60 * g_fScale) + v.nSort * (-40 * g_fScale) - (tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff)
@@ -364,7 +364,7 @@ function CombatText.OnFrameRender()
 				nTop = 50 + tTop[nBefore] + (tTop[nAfter] - tTop[nBefore]) * fDiff
 				fScale = 1.5
 			end
-			-- Áº©Êîæ
+			-- Àı∑≈
 			if COMBAT_TEXT_CRITICAL[v.nType] then
 				local tScale  = v.bCriticalStrike and COMBAT_TEXT_SCALE.CRITICAL or COMBAT_TEXT_SCALE.NORMAL
 				fScale  = tScale[nBefore]
@@ -373,14 +373,14 @@ function CombatText.OnFrameRender()
 				elseif tScale[nBefore] < tScale[nAfter] then
 					fScale = fScale + ((tScale[nAfter] - tScale[nBefore]) * fDiff)
 				end
-				if v.nType == SKILL_RESULT_TYPE.THERAPY then -- Ê≤ªÁñóÁº©Â∞è
+				if v.nType == SKILL_RESULT_TYPE.THERAPY then -- ÷Œ¡∆Àı–°
 					if v.bCriticalStrike then
 						fScale = max(fScale * 0.7, COMBAT_TEXT_SCALE.NORMAL[#COMBAT_TEXT_SCALE.NORMAL] + 0.1)
 					end
 					if v.dwTargetID == COMBAT_TEXT_PLAYERID then
 						fScale = fScale * 0.95
 					end
-				elseif v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then -- Â∑¶Âè≥Áº©Â∞è
+				elseif v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then -- ◊Û”“Àı–°
 					fScale = fScale * 0.85
 				end
 				if v.szPoint == "TOP" or v.szPoint == "TOP_LEFT" or v.szPoint == "TOP_RIGHT" then
@@ -393,7 +393,7 @@ function CombatText.OnFrameRender()
 				k:AppendCharacterID(v.dwTargetID, bTop, r, g, b, nAlpha, { 0, 0, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, nFont, v.szText, 1, fScale)
 				if v.object and v.object.nX then
 					v.tPoint = { v.object.nX, v.object.nY, v.object.nZ }
-				else -- DEBUG  JX3Client   [Script index] pointer invalid. call stack: ÊöÇÊó†ÂÆåÁæéËß£ÂÜ≥ÊñπÊ°à ÈÉΩ‰ºöÈÄ†ÊàêÂÜÖÂ≠òÊ≥ÑÈú≤
+				else -- DEBUG  JX3Client   [Script index] pointer invalid. call stack: ‘›ŒﬁÕÍ√¿Ω‚æˆ∑Ω∞∏ ∂ºª·‘Ï≥…ƒ⁄¥Ê–π¬∂
 					if not COMBAT_TEXT_LEAVE[v.dwTargetID] then
 						COMBAT_TEXT_LEAVE[v.dwTargetID] = true
 					end
@@ -402,7 +402,7 @@ function CombatText.OnFrameRender()
 				local x, y, z = unpack(v.tPoint)
 				k:AppendTriangleFan3DPoint(x, y, z, r, g, b, nAlpha, { 0, 1.65 * 64, 0, nLeft * COMBAT_TEXT_UI_SCALE, nTop * COMBAT_TEXT_UI_SCALE}, nFont, v.szText, 1, fScale)
 			end
-			-- ÂêàÂπ∂‰º§ÂÆ≥ ÂêéÈ°∂Ââç
+			-- ∫œ≤¢…À∫¶ ∫Û∂•«∞
 			if not v.bJump and v.szPoint ~= "TOP" and nFrame >= 16 and nFrame <= 32 then
 				for kk, vv in pairs(COMBAT_TEXT_SHADOW) do
 					if k ~= kk
@@ -469,7 +469,7 @@ local function TrajectorySort(a, b)
 	end
 end
 
--- ÊúÄÂ§ßÁ®ãÂ∫¶‰∏ä‰ΩøÁî®ËßÅÁºùÊèíÈíàÊïàÊûú Áº∫Â∞ëÁºìÂ≠ò ÂæÖË°•ÂÖÖ
+-- ◊Ó¥Û≥Ã∂»…œ π”√º˚∑Ï≤Â’Î–ßπ˚ »±…Ÿª∫¥Ê ¥˝≤π≥‰
 function CombatText.GetTrajectory(dwTargetID, bCriticalStrike)
 	local tSort = {}
 	local fRange = 1 / COMBAT_TEXT_TRAJECTORY
@@ -542,7 +542,7 @@ local tTherapyType = {
 }
 
 function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, nValue, dwSkillID, dwSkillLevel, nEffectType)
-	-- ËøáÊª§ ÊúâÊïàÊ≤ªÁñó ÊúâÊïà‰º§ÂÆ≥ Ë•øÂå∫ÂÜÖÂäõ ÂåñËß£Ê≤ªÁñó
+	-- π˝¬À ”––ß÷Œ¡∆ ”––ß…À∫¶ Œ˜«¯ƒ⁄¡¶ ªØΩ‚÷Œ¡∆
 	if nType == SKILL_RESULT_TYPE.EFFECTIVE_DAMAGE
 --	or nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY
 	or (nType == SKILL_RESULT_TYPE.EFFECTIVE_THERAPY and not JH_CombatText.bTherEffOnly)
@@ -558,7 +558,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	then
 		return
 	end
-	-- ÊääÊ≤ªÁñóÂΩíÁ±ª‰∏∫‰∏ÄÁßç Êñπ‰æøÂ§ÑÁêÜ
+	-- ∞—÷Œ¡∆πÈ¿‡Œ™“ª÷÷ ∑Ω±„¥¶¿Ì
 	local bStealLife = nType == SKILL_RESULT_TYPE.STEAL_LIFE and true
 	nType = tTherapyType[nType] and SKILL_RESULT_TYPE.THERAPY or nType
 	if nType == SKILL_RESULT_TYPE.THERAPY and nValue == 0 then
@@ -569,15 +569,15 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	local employer, dwEmployerID
 	if not bIsPlayer and p then
 		dwEmployerID = p.dwEmployer
-		if dwEmployerID ~= 0 then -- NPCË¶ÅÁÆóÂΩíÂ±ûÂúà
+		if dwEmployerID ~= 0 then -- NPC“™À„πÈ Ù»¶
 			employer = GetPlayer(dwEmployerID)
 		end
 	end
-	if dwCasterID ~= COMBAT_TEXT_PLAYERID and dwTargetID ~= COMBAT_TEXT_PLAYERID and dwEmployerID ~= COMBAT_TEXT_PLAYERID then -- ÂíåÊàëÊ≤°‰ªÄ‰πàÂçµÂÖ≥Á≥ª
+	if dwCasterID ~= COMBAT_TEXT_PLAYERID and dwTargetID ~= COMBAT_TEXT_PLAYERID and dwEmployerID ~= COMBAT_TEXT_PLAYERID then -- ∫ÕŒ“√ª ≤√¥¬—πÿœµ
 		return
 	end
 	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- Ê≤°ÊúâÁ©∫Èó≤ÁöÑshadow
+	if not shadow then -- √ª”–ø’œ–µƒshadow
 		return
 	end
 
@@ -585,7 +585,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 	-- skill name
 	if not bStealLife then
 		szName = nEffectType == SKILL_EFFECT_TYPE.BUFF and Table_GetBuffName(dwSkillID, dwSkillLevel) or Table_GetSkillName(dwSkillID, dwSkillLevel)
-	else -- Âê∏Ë°ÄÊäÄËÉΩÂÅ∑ÂèñÈÅøÂÖçÈáçÂ§çËé∑Âèñ Êµ™Ë¥πÊÄßËÉΩ
+	else -- Œ¸—™ººƒ‹Õµ»°±‹√‚÷ÿ∏¥ªÒ»° ¿À∑—–‘ƒ‹
 		szName = g_tStrings.SKILL_STEAL_LIFE
 	end
 	-- replace
@@ -615,8 +615,8 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 			szPoint = "BOTTOM_LEFT"
 		end
 	end
-	if szPoint == "BOTTOM_LEFT" then -- Â∑¶‰∏ãËßíËÇØÂÆöÊòØ‰º§ÂÆ≥
-		 -- Ëãç‰∫ëÂèçÂºπÊäÄËÉΩ‰øÆÊ≠£È¢úËâ≤
+	if szPoint == "BOTTOM_LEFT" then -- ◊Ûœ¬Ω«øœ∂® «…À∫¶
+		 -- ≤‘‘∆∑¥µØººƒ‹–ﬁ’˝—’…´
 		if p and p.dwID ~= COMBAT_TEXT_PLAYERID and  p.dwForceID == 21 and nEffectType ~= SKILL_EFFECT_TYPE.BUFF then
 			local hSkill = GetSkill(dwSkillID, dwSkillLevel)
 			if hSkill and hSkill.dwBelongSchool ~= 18 and hSkill.dwBelongSchool ~= 0 then
@@ -636,7 +636,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 		col = JH_CombatText.tCriticalC
 	end
 	-- draw text
-	if not szText then -- ËøòÊú™Ë¢´ÂÆö‰πâÁöÑ
+	if not szText then -- ªπŒ¥±ª∂®“Âµƒ
 		local szCasterName = ""
 		if p then
 			if employer then
@@ -649,7 +649,7 @@ function CombatText.OnSkillText(dwCasterID, dwTargetID, bCriticalStrike, nType, 
 			szCasterName = ""
 		end
 		if JH_CombatText.bSnShorten2 then
-			szName = wstring.sub(szName, 1, 2) -- wstringÊòØÂÖºÂÆπÂè∞ÊúçÁöÑ Âè∞Êúçutf-8
+			szName = wstring.sub(szName, 1, 2) -- wstring «ºÊ»›Ã®∑˛µƒ Ã®∑˛utf-8
 		end
 		szText = szReplaceText
 		szText = szText:gsub("(%s?)$crit(%s?)", (bCriticalStrike and "%1".. g_tStrings.STR_CS_NAME .. "%2" or ""))
@@ -673,7 +673,7 @@ function CombatText.OnSkillBuff(dwCharacterID, bCanCancel, dwID, nLevel)
 		return
 	end
 	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- Ê≤°ÊúâÁ©∫Èó≤ÁöÑshadow
+	if not shadow then -- √ª”–ø’œ–µƒshadow
 		return
 	end
 	tCache[szBuffName] = true
@@ -683,7 +683,7 @@ end
 
 function CombatText.OnSkillMiss(dwTargetID)
 	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- Ê≤°ÊúâÁ©∫Èó≤ÁöÑshadow
+	if not shadow then -- √ª”–ø’œ–µƒshadow
 		return
 	end
 	local szPoint = dwTargetID == COMBAT_TEXT_PLAYERID and "LEFT" or "TOP"
@@ -692,7 +692,7 @@ end
 
 function CombatText.OnBuffImmunity(dwTargetID)
 	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- Ê≤°ÊúâÁ©∫Èó≤ÁöÑshadow
+	if not shadow then -- √ª”–ø’œ–µƒshadow
 		return
 	end
 	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_IMMUNITY, "LEFT", "BUFF_IMMUNITY", false, COMBAT_TEXT_COLOR.WHITE)
@@ -703,7 +703,7 @@ function CombatText.OnCommonHealth(dwCharacterID, nDeltaLife)
 		return
 	end
 	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- Ê≤°ÊúâÁ©∫Èó≤ÁöÑshadow
+	if not shadow then -- √ª”–ø’œ–µƒshadow
 		return
 	end
 	local szPoint = "BOTTOM_LEFT"
@@ -721,7 +721,7 @@ end
 
 function CombatText.OnSkillDodge(dwTargetID)
 	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- Ê≤°ÊúâÁ©∫Èó≤ÁöÑshadow
+	if not shadow then -- √ª”–ø’œ–µƒshadow
 		return
 	end
 	CombatText.CreateText(shadow, dwTargetID, g_tStrings.STR_MSG_DODGE, "LEFT", "SKILL_DODGE", false, COMBAT_TEXT_COLOR.RED)
@@ -729,7 +729,7 @@ end
 
 function CombatText.OnExpLog(dwCharacterID, nExp)
 	local shadow = CombatText.GetFreeShadow()
-	if not shadow then -- Ê≤°ÊúâÁ©∫Èó≤ÁöÑshadow
+	if not shadow then -- √ª”–ø’œ–µƒshadow
 		return
 	end
 	CombatText.CreateText(shadow, dwCharacterID, g_tStrings.STR_COMBATMSG_EXP .. nExp, "CENTER", "EXP", true, COMBAT_TEXT_COLOR.PURPLE)
@@ -880,7 +880,7 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.szSkill = szText
 	end):Pos_()
 	if JH_CombatText.tCritical then
-		nX = ui:Append("Text", { x = nX + 15, y = nY2 + 10, txt = _L["critical beat"]}):Pos_() --‰ºöÂøÉ‰º§ÂÆ≥
+		nX = ui:Append("Text", { x = nX + 15, y = nY2 + 10, txt = _L["critical beat"]}):Pos_() --ª·–ƒ…À∫¶
 		ui:Append("Shadow", { x = nX + 5, y = nY2 + 10 + 6, color = JH_CombatText.tCriticalC, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
@@ -895,7 +895,7 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.szDamage = szText
 	end):Pos_()
 	if JH_CombatText.tCritical then
-		nX = ui:Append("Text", { x = nX+15, y = nY2 + 2, txt = _L["critical beaten"]}):Pos_() --‰ºöÂøÉÊâø‰º§
+		nX = ui:Append("Text", { x = nX+15, y = nY2 + 2, txt = _L["critical beaten"]}):Pos_() --ª·–ƒ≥–…À
 		nX = ui:Append("Shadow", { x = nX + 5, y = nY2 + 2 + 6, color = JH_CombatText.tCriticalB, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
@@ -910,7 +910,7 @@ function PS.OnPanelActive(frame)
 		JH_CombatText.szTherapy = szText
 	end):Pos_()
 	if JH_CombatText.tCritical then
-		nX = ui:Append("Text", { x = nX+15, y = nY2 + 2, txt = _L["critical heaten"]}):Pos_() --‰ºöÂøÉÊâøÁñó
+		nX = ui:Append("Text", { x = nX+15, y = nY2 + 2, txt = _L["critical heaten"]}):Pos_() --ª·–ƒ≥–¡∆
 		nX = ui:Append("Shadow", { x = nX + 5, y = nY2 + 2 + 6, color = JH_CombatText.tCriticalH, w = 15, h = 15 }):Click(function()
 			local ui = this
 			GUI.OpenColorTablePanel(function(r, g, b)
@@ -973,7 +973,7 @@ local function GetPlayerID()
 		JH.DelayCall(GetPlayerID, 1000)
 	end
 end
-JH.RegisterEvent("LOADING_END", GetPlayerID) -- ÂæàÈáçË¶ÅÁöÑ‰ºòÂåñ
+JH.RegisterEvent("LOADING_END", GetPlayerID) -- ∫‹÷ÿ“™µƒ”≈ªØ
 JH.RegisterEvent("ON_PVP_SHOW_SELECT_PLAYER", function()
 	COMBAT_TEXT_PLAYERID = arg0
 end)

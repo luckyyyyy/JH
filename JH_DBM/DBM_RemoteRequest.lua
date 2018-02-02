@@ -29,7 +29,7 @@ end
 
 W.IsOpened = W.GetFrame
 
--- 麓貌驴陋陆莽脙忙
+-- 打开界面
 function W.OpenPanel()
 	local frame = W.GetFrame() or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
 	frame:BringToTop()
@@ -161,7 +161,7 @@ end
 
 function W.CallMyData()
 	W.Loading()
-	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 碌脙脪忙脫脷IE禄潞麓忙 1路脰脰脫脪禄麓脦
+	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- 得益于IE缓存 1分钟一次
 	-- JH.RemoteRequest(W.szUser .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 	-- 	local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 	-- 	if err then
@@ -390,7 +390,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 			if CLIENT_LANG == "zhcn" then
 				tab = JH.ConvertToAnsi(tab)
 			end
-			SaveLUAData(szPath .. szFileName, tab, nil, false) -- 禄潞麓忙脦脛录镁
+			SaveLUAData(szPath .. szFileName, tab, nil, false) -- 缓存文件
 			fnAction(szFileName)
 		end)
 		:fail(function(errMsg, dwBufferSize, set)

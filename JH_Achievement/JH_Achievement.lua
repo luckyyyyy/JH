@@ -11,7 +11,7 @@ local ACHI_ROOT_URL = "https://haimanchajian.com"
 -- local ACHI_ROOT_URL = "http://localhost/wiki/"
 local ACHI_CLIENT_LANG = select(3, GetVersion())
 
--- è·å–ç©å®¶æˆå°±å®Œæˆä¿¡æ¯ 2byteå­˜8ä¸ª æ— æ³•è·å–å¸¦è¿›åº¦çš„
+-- »ñÈ¡Íæ¼Ò³É¾ÍÍê³ÉĞÅÏ¢ 2byte´æ8¸ö ÎŞ·¨»ñÈ¡´ø½ø¶ÈµÄ
 local sformat = string.format
 local tinsert = table.insert
 
@@ -241,7 +241,7 @@ function Achievement.Send()
 		local tParam = {
 			aid    = frame.dwAchievement,
 			desc   = desc,
-			author = GetUserRoleName() .. "@" .. select(6, GetUserServer()), -- æ¯å¤©è·Œåœ@é•¿ç™½å±±
+			author = GetUserRoleName() .. "@" .. select(6, GetUserServer()), -- Ã¿ÌìµøÍ£@³¤°×É½
 			_      = GetCurrentTime(),
 			lang   = ACHI_CLIENT_LANG
 		}
@@ -347,7 +347,7 @@ end
 
 function Achievement.RemoteCallBack(result)
 	local frame = Achievement.GetFrame()
-	frame.result = result -- èœå•ç”¨
+	frame.result = result -- ²Ëµ¥ÓÃ
 	frame.pedia:Clear()
 	if type(result.desc) == "table" then
 		local xml = {}
@@ -499,7 +499,7 @@ function PS.OnPanelActive(frame)
 	local id = me.GetGlobalID()
 	nX, nY = ui:Append("Text", { x = 0, y = 0, txt = _L["Achievepedia"], font = 27 }):Pos_()
 	ui:Append("Text", { x = 0, y = nY + 5, w = 520, h = 120 , multi = true, txt = _L["Achievepedia About"] })
-	-- zhcnç‰ˆæœ¬å¯ç”¨
+	-- zhcn°æ±¾¿ÉÓÃ
 	nY = 140
 	if ACHI_CLIENT_LANG == "zhcn" then
 		nX, nY = ui:Append("Text", { x = 0, y = nY, txt = _L["Sync Game Info"], font = 27 }):Pos_()

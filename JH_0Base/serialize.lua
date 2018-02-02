@@ -6,8 +6,8 @@
   http://hurring.com/scott/code/python/serialize/v0.4
 
   @version v0.1 BETA
-  @author Fernando P. GarcÃ­a; fernando at develcuy dot com
-  @copyright Copyright (c) 2009 Fernando P. GarcÃ­a
+  @author Fernando P. Garc¨ªa; fernando at develcuy dot com
+  @copyright Copyright (c) 2009 Fernando P. Garc¨ªa
   @license http://opensource.org/licenses/gpl-license.php GNU Public License
 
   $Id$

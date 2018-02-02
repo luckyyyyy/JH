@@ -69,32 +69,32 @@ local SA_POINT = {
 	{ 15, 25, 180 },
 }
 
--- ä¸€äº›ä¾‹å¤–éœ€è¦æ˜¾ç¤ºå¤´é¡¶çš„NPCæ¨¡æ¿ID
+-- Ò»Ğ©ÀıÍâĞèÒªÏÔÊ¾Í·¶¥µÄNPCÄ£°åID
 local SPECIAL_NPC = {
-	-- å¤§å°æ”»é˜²éœ€è¦å¤´é¡¶æ˜¾ç¤ºçš„NPCåˆ—è¡¨
-	[7786] = true, [16905] = true, -- ç‹é—é£
-	[7776] = true, [16898] = true, -- è°¢æ¸Š
-	[7785] = true, [16904] = true, -- è«é›¨
-	[7775] = true, [16897] = true, -- å½±
-	[7784] = true, [16903] = true, -- çƒŸ
-	[7770] = true, [16896] = true, -- æœˆå¼„ç—•
-	[7783] = true, [16902] = true, -- è‚–è¯å„¿
-	[7766] = true, [16893] = true, -- å¸ç©ºä»²å¹³
-	[7779] = true, [16900] = true, -- ç±³ä¸½å¤ä¸½
-	[7765] = true, [16892] = true, -- å¯äºº
-	[7777] = true, [16899] = true, -- é™¶å¯’äº­
-	[7767] = true, [16894] = true, -- å¼ æ¡è¾•
-	[8957] = true, [17239] = true, -- å¼ ä¸€æ´‹
-	[8953] = true, [17235] = true, -- å‘¨å³°
-	[8956] = true, [17238] = true, -- å•æ²›æ°
-	[8954] = true, [17234] = true, -- é™¶æ°
-	[8955] = true, [17240] = true, -- é™¶å›½æ ‹
-	[8952] = true, [17236] = true, -- éƒ‘é¸¥
-	[6233] = true, [17237] = true, -- é¡¾å»¶æ¶
-	[6230] = true, [17233] = true, -- è°¢çƒŸå®¢
-	[30310] = true, -- å°æ”»é˜² æ¶äººè°·å¤§å°†
-	[30322] = true, -- å°æ”»é˜² æµ©æ°”ç›Ÿå¤§å°†
-	[46268] = true, -- å¤§æ”»é˜² ç‰©èµ„è½¦
+	-- ´óĞ¡¹¥·ÀĞèÒªÍ·¶¥ÏÔÊ¾µÄNPCÁĞ±í
+	[7786] = true, [16905] = true, -- ÍõÒÅ·ç
+	[7776] = true, [16898] = true, -- Ğ»Ô¨
+	[7785] = true, [16904] = true, -- ÄªÓê
+	[7775] = true, [16897] = true, -- Ó°
+	[7784] = true, [16903] = true, -- ÑÌ
+	[7770] = true, [16896] = true, -- ÔÂÅªºÛ
+	[7783] = true, [16902] = true, -- Ğ¤Ò©¶ù
+	[7766] = true, [16893] = true, -- Ë¾¿ÕÖÙÆ½
+	[7779] = true, [16900] = true, -- Ã×Àö¹ÅÀö
+	[7765] = true, [16892] = true, -- ¿ÉÈË
+	[7777] = true, [16899] = true, -- ÌÕº®Í¤
+	[7767] = true, [16894] = true, -- ÕÅèäÔ¯
+	[8957] = true, [17239] = true, -- ÕÅÒ»Ñó
+	[8953] = true, [17235] = true, -- ÖÜ·å
+	[8956] = true, [17238] = true, -- ÂÀÅæ½Ü
+	[8954] = true, [17234] = true, -- ÌÕ½Ü
+	[8955] = true, [17240] = true, -- ÌÕ¹ú¶°
+	[8952] = true, [17236] = true, -- Ö£Å¸
+	[6233] = true, [17237] = true, -- ¹ËÑÓ¶ñ
+	[6230] = true, [17233] = true, -- Ğ»ÑÌ¿Í
+	[30310] = true, -- Ğ¡¹¥·À ¶ñÈË¹È´ó½«
+	[30322] = true, -- Ğ¡¹¥·À ºÆÆøÃË´ó½«
+	[46268] = true, -- ´ó¹¥·À Îï×Ê³µ
 }
 
 -- for i=1, 2 do FireUIEvent("JH_SA_CREATE", "TIME", GetClientPlayer().dwID, { col = { 255, 255, 255 }, txt = "test" })end
@@ -152,7 +152,7 @@ function ScreenArrow.OnBreathe()
 				end
 				local txt = ""
 				if obj.szClass == "BUFF" or obj.szClass == "DEBUFF" then
-					local KBuff = JH.GetBuff(obj.dwBuffID, object) -- åªåˆ¤æ–­dwID åæ­£ä¸å¯èƒ½åŒæ—¶è·å¾—ä¸åŒlv
+					local KBuff = JH.GetBuff(obj.dwBuffID, object) -- Ö»ÅĞ¶ÏdwID ·´Õı²»¿ÉÄÜÍ¬Ê±»ñµÃ²»Í¬lv
 					if KBuff then
 						local nSec = JH.GetEndTime(KBuff.GetEndTime())
 						if KBuff.nStackNum > 1 then
@@ -345,7 +345,7 @@ function SA:ctor(szClass, dwID, tArgs)
 	return oo
 end
 
--- ä»ä¸‹è‡³ä¸Š ä¾æ¬¡ç»˜åˆ¶
+-- ´ÓÏÂÖÁÉÏ ÒÀ´Î»æÖÆ
 function SA:DrawText( ... )
 	self.Text:ClearTriangleFanPoint()
 	local nTop = -62

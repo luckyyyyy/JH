@@ -51,7 +51,7 @@ function Chat.GetFrame()
 	return Station.Lookup("Normal/GKP_Chat")
 end
 
--- 鐐瑰嚮閿ゅ瓙鍥炬爣棰勮 涓ユ牸鍒ゆ柇
+-- 点击锤子图标预览 严格判断
 function GKP.DistributionItem()
 	local h, i = this:GetParent(), this:GetIndex()
 	if not h or not i then

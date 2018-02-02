@@ -61,7 +61,7 @@ function TI.CreateFrame(a, b)
 			end
 		end
 		if yy ~= "" then
-			for i = 0, 2 do -- å‘ä¸‰æ¬¡
+			for i = 0, 2 do -- ·¢Èı´Î
 				JH.Talk(yy)
 			end
 		end
@@ -87,7 +87,7 @@ function TI.CreateFrame(a, b)
 	TI.szYY   = ui:Fetch("YY"):Text()
 	TI.szNote = ui:Fetch("Message"):Text()
 	ui:Setting(function() JH.OpenPanel(_L["AutoSetTeam"]) end)
-	-- æ³¨å†Œäº‹ä»¶
+	-- ×¢²áÊÂ¼ş
 	local frame = TI.GetFrame()
 	frame.OnFrameKeyDown = nil -- esc close --> nil
 	frame:RegisterEvent("PARTY_DISBAND")
@@ -119,7 +119,7 @@ function JH_TeamNotice.GetEvent()
 				end
 			end },
 			{ "FIRST_LOADING_END", function()
-				-- ä¸å­˜åœ¨é˜Ÿé•¿ä¸é˜Ÿé•¿çš„é—®é¢˜äº†
+				-- ²»´æÔÚ¶Ó³¤²»¶Ó³¤µÄÎÊÌâÁË
 				local me = GetClientPlayer()
 				if me.IsInRaid() then
 					JH.BgTalk(PLAYER_TALK_CHANNEL.RAID, "TI", "ASK")

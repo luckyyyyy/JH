@@ -2,7 +2,7 @@
 -- @Date:   2015-04-28 16:41:08
 -- @Last Modified by:   Administrator
 -- @Last Modified time: 2017-06-02 23:48:31
--- JX3_Client å€’è®¡æ—¶ç±»
+-- JX3_Client µ¹¼ÆÊ±Àà
 local _L = JH.LoadLangPack
 -- ST class
 local ST = {}
@@ -28,7 +28,7 @@ do
 	end
 end
 
--- è§£æåˆ†æ®µå€’è®¡æ—¶
+-- ½âÎö·Ö¶Îµ¹¼ÆÊ±
 local function GetCountdown(tTime)
 	local tab = {}
 	local t = JH_Split(tTime, ";")
@@ -45,18 +45,18 @@ local function GetCountdown(tTime)
 		return tab
 	end
 end
--- å€’è®¡æ—¶æ¨¡å— äº‹ä»¶åç§° JH_ST_CREATE
--- nType å€’è®¡æ—¶ç±»å‹ Compatible.lua ä¸­çš„ DBM_TYPE
--- szKey åŒä¸€ç±»å‹å†…å”¯ä¸€æ ‡è¯†ç¬¦
+-- µ¹¼ÆÊ±Ä£¿é ÊÂ¼şÃû³Æ JH_ST_CREATE
+-- nType µ¹¼ÆÊ±ÀàĞÍ Compatible.lua ÖĞµÄ DBM_TYPE
+-- szKey Í¬Ò»ÀàĞÍÄÚÎ¨Ò»±êÊ¶·û
 -- tParam {
---      szName   -- å€’è®¡æ—¶åç§° å¦‚æœæ˜¯åˆ†æ®µå°±ä¸éœ€è¦ä¼ åç§°
---      nTime    -- æ—¶é—´  ä¾‹ 10,æµ‹è¯•;25,æµ‹è¯•2; æˆ– 30
---      nRefresh -- å¤šå°‘æ—¶é—´å†…ç¦æ­¢é‡å¤åˆ·æ–°
---      nIcon    -- å€’è®¡æ—¶å›¾æ ‡ID
---      bTalk    -- æ˜¯å¦å‘å¸ƒå€’è®¡æ—¶ 5ç§’å†…èŠå¤©æ¡†æç¤º ã€szNameã€‘ å‰©ä½™ n ç§’ã€‚
+--      szName   -- µ¹¼ÆÊ±Ãû³Æ Èç¹ûÊÇ·Ö¶Î¾Í²»ĞèÒª´«Ãû³Æ
+--      nTime    -- Ê±¼ä  Àı 10,²âÊÔ;25,²âÊÔ2; »ò 30
+--      nRefresh -- ¶àÉÙÊ±¼äÄÚ½ûÖ¹ÖØ¸´Ë¢ĞÂ
+--      nIcon    -- µ¹¼ÆÊ±Í¼±êID
+--      bTalk    -- ÊÇ·ñ·¢²¼µ¹¼ÆÊ± 5ÃëÄÚÁÄÌì¿òÌáÊ¾ ¡¾szName¡¿ Ê£Óà n Ãë¡£
 -- }
--- ä¾‹å­ï¼šFireUIEvent("JH_ST_CREATE", 0, "test", { nTime = "5,test;15,æµ‹è¯•;25,c", szName = "demo" })
--- æ€§èƒ½æµ‹è¯•ï¼šfor i = 1, 200 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = Random(5, 15), nIcon = i }) end
+-- Àı×Ó£ºFireUIEvent("JH_ST_CREATE", 0, "test", { nTime = "5,test;15,²âÊÔ;25,c", szName = "demo" })
+-- ĞÔÄÜ²âÊÔ£ºfor i = 1, 200 do FireUIEvent("JH_ST_CREATE", 0, i, { nTime = Random(5, 15), nIcon = i }) end
 local function CreateCountdown(nType, szKey, tParam)
 	assert(type(tParam) == "table", "CreateCountdown failed!")
 	local tTime = {}
@@ -68,7 +68,7 @@ local function CreateCountdown(nType, szKey, tParam)
 		if tCountdown then
 			tTime = tCountdown[1]
 			tParam.nTime = tCountdown
-			tParam.nRefresh = tParam.nRefresh or tCountdown[#tCountdown].nTime - 3 -- æœ€å¤§æ—¶é—´å†…é˜²æ­¢é‡å¤åˆ·æ–° ä½†æ˜¯è„±ç¦»æˆ˜æ–—çš„NPCéœ€è¦æ‰‹åŠ¨åˆ é™¤
+			tParam.nRefresh = tParam.nRefresh or tCountdown[#tCountdown].nTime - 3 -- ×î´óÊ±¼äÄÚ·ÀÖ¹ÖØ¸´Ë¢ĞÂ µ«ÊÇÍÑÀëÕ½¶·µÄNPCĞèÒªÊÖ¶¯É¾³ı
 		else
 			return JH.Sysmsg2(_L["Countdown format Error"] .. " TYPE: " .. _L["Countdown TYPE " .. nType] .. " KEY:" .. szKey .. " Content:" .. tParam.nTime)
 		end
@@ -116,7 +116,7 @@ function ST_UI.OnEvent(szEvent)
 	elseif szEvent == "JH_ST_DEL" then
 		local ui = ST_CACHE[arg0][arg1]
 		if ui and ui:IsValid() then
-			if arg2 then -- å¼ºåˆ¶æ— æ¡ä»¶åˆ é™¤
+			if arg2 then -- Ç¿ÖÆÎŞÌõ¼şÉ¾³ı
 				ui.obj:RemoveItem()
 				ST_TIME_EXPIRE[arg0][arg1] = nil
 			end
@@ -224,7 +224,7 @@ function _ST_UI.Init()
 	local frame = Wnd.OpenWindow(ST_INIFILE, "ST_UI")
 end
 
--- æ„é€ å‡½æ•°
+-- ¹¹Ôìº¯Êı
 function ST:ctor(nType, szKey, tParam)
 	if not ST_CACHE[nType] then
 		return
@@ -242,11 +242,11 @@ function ST:ctor(nType, szKey, tParam)
 		oo.ui.nRefresh  = tParam.nRefresh or 1
 		oo.ui.bTalk     = tParam.bTalk
 		oo.ui.nFrame    = tParam.nFrame
-	else -- æ²¡æœ‰uiçš„æƒ…å†µä¸‹ åˆ›å»º
+	else -- Ã»ÓĞuiµÄÇé¿öÏÂ ´´½¨
 		oo = {}
 		setmetatable(oo, self)
 		oo.ui                = _ST_UI.handle:AppendItemFromData(_ST_UI.hItem)
-		-- å‚æ•°
+		-- ²ÎÊı
 		oo.ui.nCreate        = nTime
 		oo.ui.nLeft          = nTime
 		oo.ui.countdown      = tParam.nTime
@@ -254,7 +254,7 @@ function ST:ctor(nType, szKey, tParam)
 		oo.ui.bTalk          = tParam.bTalk
 		oo.ui.nFrame         = tParam.nFrame
 		oo.ui.bHold          = tParam.bHold
-		-- æ‚é¡¹
+		-- ÔÓÏî
 		oo.ui.nAlpha         = 30
 		-- ui
 		oo.ui.time           = oo.ui:Lookup("TimeLeft")
@@ -269,7 +269,7 @@ function ST:ctor(nType, szKey, tParam)
 	end
 	return oo
 end
--- è®¾ç½®å€’è®¡æ—¶çš„åç§°å’Œæ—¶é—´ ç”¨äºåŠ¨æ€æ”¹å˜åˆ†æ®µå€’è®¡æ—¶
+-- ÉèÖÃµ¹¼ÆÊ±µÄÃû³ÆºÍÊ±¼ä ÓÃÓÚ¶¯Ì¬¸Ä±ä·Ö¶Îµ¹¼ÆÊ±
 function ST:SetInfo(tTime, nIcon)
 	if tTime.szName then
 		self.ui.txt:SetText(wstring.sub(tTime.szName, 1, 7))
@@ -285,7 +285,7 @@ function ST:SetInfo(tTime, nIcon)
 	end
 	return self
 end
--- è®¾ç½®è¿›åº¦æ¡
+-- ÉèÖÃ½ø¶ÈÌõ
 function ST:SetPercentage(fPercentage)
 	self.ui.img:SetPercentage(fPercentage)
 	self.ui.sfx:SetRelX(32 + 300 * fPercentage)
@@ -294,7 +294,7 @@ function ST:SetPercentage(fPercentage)
 	self.ui:FormatAllItemPos()
 	return self
 end
--- æ”¹å˜æ ·å¼ å¦‚æœtrueåˆ™æ›´æ”¹ä¸ºç¬¬äºŒæ ·å¼ ç”¨äºæ—¶é—´å°äº5ç§’çš„æ—¶å€™
+-- ¸Ä±äÑùÊ½ Èç¹ûtrueÔò¸ü¸ÄÎªµÚ¶şÑùÊ½ ÓÃÓÚÊ±¼äĞ¡ÓÚ5ÃëµÄÊ±ºò
 function ST:Switch(bSwitch)
 	if bSwitch then
 		self.ui.txt:SetFontColor(255, 255, 255)
@@ -321,7 +321,7 @@ end
 function ST:GetName()
 	return self.ui.txt:GetText()
 end
--- åˆ é™¤å€’è®¡æ—¶
+-- É¾³ıµ¹¼ÆÊ±
 function ST:RemoveItem()
 	_ST_UI.handle:RemoveItem(self.ui)
 	_ST_UI.handle:FormatAllItemPos()

@@ -15,18 +15,18 @@ local SKILL_RESULT_TYPE = SKILL_RESULT_TYPE
 local JH_IsParty, JH_GetSkillName, JH_GetBuffName = JH.IsParty, JH.GetSkillName, JH.GetBuffName
 local RT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_TeamTools/ui/RaidTools1.ini"
 local RT_EQUIP_TOTAL = {
-	"MELEE_WEAPON", -- è½»å‰‘ è—å‰‘å– BIG_SWORD é‡å‰‘
-	"RANGE_WEAPON", -- è¿œç¨‹æ­¦å™¨
-	"CHEST",        -- è¡£æœ
-	"HELM",         -- å¸½å­
-	"AMULET",       -- é¡¹é“¾
-	"LEFT_RING",    -- æˆ’æŒ‡
-	"RIGHT_RING",   -- æˆ’æŒ‡
-	"WAIST",        -- è…°å¸¦
-	"PENDANT",      -- è…°å 
-	"PANTS",        -- è£¤å­
-	"BOOTS",        -- é‹å­
-	"BANGLE",       -- æŠ¤è…•
+	"MELEE_WEAPON", -- Çá½£ ²Ø½£È¡ BIG_SWORD ÖØ½£
+	"RANGE_WEAPON", -- Ô¶³ÌÎäÆ÷
+	"CHEST",        -- ÒÂ·ş
+	"HELM",         -- Ã±×Ó
+	"AMULET",       -- ÏîÁ´
+	"LEFT_RING",    -- ½äÖ¸
+	"RIGHT_RING",   -- ½äÖ¸
+	"WAIST",        -- Ñü´ø
+	"PENDANT",      -- Ñü×¹
+	"PANTS",        -- ¿ã×Ó
+	"BOOTS",        -- Ğ¬×Ó
+	"BANGLE",       -- »¤Íó
 }
 
 local RT_SKILL_TYPE = {
@@ -48,7 +48,7 @@ local RT_SKILL_TYPE = {
 	[15] = "TRANSFER_LIFE",
 	[16] = "TRANSFER_MANA",
 }
--- å‰¯æœ¬è¯„åˆ† æ™šç‚¹åœ¨åšå§
+-- ¸±±¾ÆÀ·Ö ÍíµãÔÚ×ö°É
 -- local RT_DUNGEON_TOTAL = {}
 local RT_SCORE = {
 	Equip   = _L["Equip Score"],
@@ -72,23 +72,23 @@ local RT_FOOD_TYPE = {
 	[19] = true,
 	[20] = true
 }
--- éœ€è¦ç›‘æ§çš„BUFF
+-- ĞèÒª¼à¿ØµÄBUFF
 local RT_BUFF_ID = {
-	-- å¸¸è§„èŒä¸šBUFF
+	-- ³£¹æÖ°ÒµBUFF
 	[362]  = true,
 	[673]  = true,
 	[112]  = true,
 	[382]  = true,
 	[2837] = true,
-	-- çº¢ç¯®çƒ
+	-- ºìÀºÇò
 	[6329] = true,
 	[6330] = true,
-	-- å¸®ä¼šèœç›˜
+	-- °ï»á²ËÅÌ
 	[2564] = true,
 	[2563] = true,
-	-- ä¸ƒç§€æ‰‡å­
+	-- ÆßĞãÉÈ×Ó
 	[3098] = true,
-	-- ç¼é’ˆ / å‡¤å‡°è°·
+	-- ·ìÕë / ·ï»Ë¹È
 	[2313] = true,
 	[5970] = true,
 }
@@ -121,16 +121,16 @@ function RaidTools.OnFrameCreate()
 	this:RegisterEvent("PARTY_DELETE_MEMBER")
 	this:RegisterEvent("PARTY_SET_MEMBER_ONLINE_FLAG")
 	this:RegisterEvent("LOADING_END")
-	-- å›¢é•¿å˜æ›´ é‡æ–°è¯·æ±‚æ ‡ç­¾
+	-- ÍÅ³¤±ä¸ü ÖØĞÂÇëÇó±êÇ©
 	this:RegisterEvent("TEAM_AUTHORITY_CHANGED")
-	-- è‡ªå®šä¹‰äº‹ä»¶
+	-- ×Ô¶¨ÒåÊÂ¼ş
 	this:RegisterEvent("JH_RAIDTOOLS_SUCCESS")
 	this:RegisterEvent("JH_RAIDTOOLS_DEATH")
-	-- é‡ç½®å¿ƒæ³•é€‰æ‹©
+	-- ÖØÖÃĞÄ·¨Ñ¡Ôñ
 	RT_SELECT_KUNGFU = nil
-	-- æ³¨å†Œå…³é—­
+	-- ×¢²á¹Ø±Õ
 	JH.RegisterGlobalEsc("RaidTools", RT.IsOpened, RT.ClosePanel)
-	-- æ ‡é¢˜ä¿®æ”¹
+	-- ±êÌâĞŞ¸Ä
 	local title = _L["Raid Tools"]
 	if JH.IsInParty() then
 		local team = GetClientTeam()
@@ -146,7 +146,7 @@ function RaidTools.OnFrameCreate()
 	this.hDeatMsg     = this.hPageSet:Lookup("Page_Death/Scroll_Death_Info", "")
 
 	this.tScore       = {}
-	-- æ’åº
+	-- ÅÅĞò
 	local hTitle  = this.hPageSet:Lookup("Page_Info", "Handle_Player_BG")
 	for k, v in ipairs({ "dwForceID", "tFood", "tBuff", "tEquip", "nEquipScore", "nFightState" }) do
 		local txt = hTitle:Lookup("Text_Title_" .. k)
@@ -170,10 +170,10 @@ function RaidTools.OnFrameCreate()
 			frame.hList:FormatAllItemPos()
 		end
 	end
-	-- è£…å¤‡åˆ†
+	-- ×°±¸·Ö
 	this.hTotalScore = this.hPageSet:Lookup("Page_Info", "Handle_Score/Text_TotalScore")
 	this.hProgress   = this.hPageSet:Lookup("Page_Info", "Handle_Progress")
-	-- å‰¯æœ¬ä¿¡æ¯
+	-- ¸±±¾ĞÅÏ¢
 	local hDungeon = this.hPageSet:Lookup("Page_Info", "Handle_Dungeon")
 	RT.UpdateDungeonInfo(hDungeon)
 	this.hKungfuList = this.hPageSet:Lookup("Page_Info", "Handle_Kungfu/Handle_Kungfu_List")
@@ -215,10 +215,10 @@ function RaidTools.OnFrameCreate()
 		end
 	end
 	this.hKungfuList:FormatAllItemPos()
-	-- ui ä¸´æ—¶å˜é‡
-	this.tViewInvite = {} -- è¯·æ±‚è£…å¤‡é˜Ÿåˆ—
-	this.tDataCache  = {} -- ä¸´æ—¶æ•°æ®
-	-- è¿½åŠ å‘¼å¸
+	-- ui ÁÙÊ±±äÁ¿
+	this.tViewInvite = {} -- ÇëÇó×°±¸¶ÓÁĞ
+	this.tDataCache  = {} -- ÁÙÊ±Êı¾İ
+	-- ×·¼ÓºôÎü
 	this.hPageSet:ActivePage(RT_SELECT_PAGE)
 	RT.UpdateAnchor(this)
 	-- lang
@@ -237,7 +237,7 @@ function RaidTools.OnEvent(szEvent)
 	if szEvent == "PEEK_OTHER_PLAYER" then
 		if arg0 == PEEK_OTHER_PLAYER_RESPOND.SUCCESS then
 			if this.tViewInvite[arg1] then
-				RT.GetEquipCache(GetPlayer(arg1)) -- æŠ“å–æ‰€æœ‰æ•°æ®
+				RT.GetEquipCache(GetPlayer(arg1)) -- ×¥È¡ËùÓĞÊı¾İ
 			end
 		else
 			this.tViewInvite[arg1] = nil
@@ -258,7 +258,7 @@ function RaidTools.OnEvent(szEvent)
 		this.tDataCache = {}
 		this.hList:Clear()
 		RT.UpdatetDeathPage()
-		-- å‰¯æœ¬ä¿¡æ¯
+		-- ¸±±¾ĞÅÏ¢
 		local hDungeon = this.hPageSet:Lookup("Page_Info", "Handle_Dungeon")
 		RT.UpdateDungeonInfo(hDungeon)
 	elseif szEvent == "UI_SCALED" then
@@ -457,7 +457,7 @@ function RT.ViewInviteToPlayer(dwID)
 		ViewInviteToPlayer(dwID)
 	end
 end
--- åˆ†æ•°è®¡ç®—
+-- ·ÖÊı¼ÆËã
 function RT.CountScore(tab, tScore)
 	tScore.Food = tScore.Food + #tab.tFood * 100
 	tScore.Buff = tScore.Buff + #tab.tBuff * 20
@@ -476,7 +476,7 @@ function RT.CountScore(tab, tScore)
 		end
 	end
 end
--- æ›´æ–°UI æ²¡ä»€ä¹ˆç‰¹æ®Šæƒ…å†µ ä¸è¦clear
+-- ¸üĞÂUI Ã»Ê²Ã´ÌØÊâÇé¿ö ²»Òªclear
 function RT.UpdateList()
 	local me = GetClientPlayer()
 	if not me then return end
@@ -512,7 +512,7 @@ function RT.UpdateList()
 			nCountB = -2
 		end
 
-		if RT_SORT_MODE == "ASC" then -- å‡åº
+		if RT_SORT_MODE == "ASC" then -- ÉıĞò
 			return nCountA < nCountB
 		else
 			return nCountA > nCountB
@@ -520,7 +520,7 @@ function RT.UpdateList()
 	end)
 
 	for k, v in ipairs(aTeam) do
-		-- å¿ƒæ³•ç»Ÿè®¡
+		-- ĞÄ·¨Í³¼Æ
 		tKungfu[v.dwMountKungfuID] = tKungfu[v.dwMountKungfuID] or {}
 		tinsert(tKungfu[v.dwMountKungfuID], v)
 		RT.CountScore(v, tScore)
@@ -585,7 +585,7 @@ function RT.UpdateList()
 				hBuff:Show()
 				hBox:Show()
 				h:Lookup("Text_Toofar1"):Hide()
-				-- å°è¯UIå¤„ç†
+				-- Ğ¡Ò©UI´¦Àí
 				local handle_food = h.hHandle_Food.self
 				for kk, vv in ipairs(v.tFood) do
 					local szName = vv.dwID .. "_" .. vv.nLevel
@@ -624,7 +624,7 @@ function RT.UpdateList()
 					end
 				end
 				handle_food:FormatAllItemPos()
-				-- BUFF UIå¤„ç†
+				-- BUFF UI´¦Àí
 				if v.tBuff and #v.tBuff > 0 then
 					hBuff:EnableObject(true)
 					hBuff:SetOverTextPosition(0, ITEM_POSITION.RIGHT_BOTTOM)
@@ -675,7 +675,7 @@ function RT.UpdateList()
 					if vv.CommonEnchant then
 						desc = Table_GetCommonEnchantDesc(vv.dwTemporaryEnchantID)
 					else
-						-- ... å®˜æ–¹æçš„å¤ªéº»çƒ¦äº†
+						-- ... ¹Ù·½¸ãµÄÌ«Âé·³ÁË
 						local tEnchant = GetItemEnchantAttrib(vv.dwTemporaryEnchantID)
 						if tEnchant then
 							for kkk, vvv in pairs(tEnchant) do
@@ -714,7 +714,7 @@ function RT.UpdateList()
 			else
 				h:Lookup("Box_Enchant"):Hide()
 			end
-			-- è£…å¤‡å¤„ç†
+			-- ×°±¸´¦Àí
 			if v.tEquip and #v.tEquip > 0 then
 				local handle_equip = h.hHandle_Equip.self
 				for kk, vv in ipairs(v.tEquip) do
@@ -773,7 +773,7 @@ function RT.UpdateList()
 			end
 		end
 	end
-	-- åˆ†æ•°
+	-- ·ÖÊı
 	frame.tScore = tScore
 	local nScore = 0
 	for k, v in pairs(tScore) do
@@ -784,7 +784,7 @@ function RT.UpdateList()
 	local nAvgScore = nScore / nNum
 	frame.hProgress:Lookup("Image_Progress"):SetPercentage(nAvgScore / RT_SCORE_FULL)
 	frame.hProgress:Lookup("Text_Progress"):SetText(_L("Team strength(%d/%d)", math.floor(nAvgScore), RT_SCORE_FULL))
-	-- å¿ƒæ³•ç»Ÿè®¡
+	-- ĞÄ·¨Í³¼Æ
 	for k, v in pairs(JH_KUNGFU_LIST) do
 		local h = frame.hKungfuList:Lookup(k - 1)
 		local img = h:Lookup("Image_Force")
@@ -849,10 +849,10 @@ function RT.GetEquipCache(p)
 		tPermanentEnchant = {},
 		tTemporaryEnchant = {}
 	}
-	-- è£…å¤‡ Output(GetClientPlayer().GetItem(0,0).GetMagicAttrib())
+	-- ×°±¸ Output(GetClientPlayer().GetItem(0,0).GetMagicAttrib())
 	for _, equip in ipairs(RT_EQUIP_TOTAL) do
 		-- if #aInfo.tEquip >= 3 then break end
-		-- è—å‰‘åªçœ‹é‡å‰‘
+		-- ²Ø½£Ö»¿´ÖØ½£
 		if p.dwForceID == 8 and EQUIPMENT_INVENTORY[equip] == EQUIPMENT_INVENTORY.MELEE_WEAPON then
 			equip = "BIG_SWORD"
 		end
@@ -865,10 +865,10 @@ function RT.GetEquipCache(p)
 					if desc and (desc:find(_L["use"] .. g_tStrings.STR_COLON) or desc:find(_L["Use:"]) or desc:find("15" .. g_tStrings.STR_TIME_SECOND)) then
 						tinsert(aInfo.tEquip, CreateItemTable(item, dwBox, dwX))
 					end
-				-- elseif item.nQuality == 5 then -- æ©™è‰²è£…å¤‡
+				-- elseif item.nQuality == 5 then -- ³ÈÉ«×°±¸
 				-- 	tinsert(aInfo.tEquip, CreateItemTable(item))
 				else
-					-- é»„å­—è£…å¤‡
+					-- »Æ×Ö×°±¸
 					local aMagicAttrib = item.GetMagicAttrib()
 					for _, tAttrib in ipairs(aMagicAttrib) do
 						if tAttrib.nID == ATTRIBUTE_TYPE.SKILL_EVENT_HANDLER then
@@ -878,13 +878,13 @@ function RT.GetEquipCache(p)
 					end
 				end
 			end
-			-- æ°¸ä¹…çš„é™„é­” ç”¨äºè¯„åˆ†
+			-- ÓÀ¾ÃµÄ¸½Ä§ ÓÃÓÚÆÀ·Ö
 			if item.dwPermanentEnchantID and item.dwPermanentEnchantID ~= 0 then
 				tinsert(aInfo.tPermanentEnchant, {
 					dwPermanentEnchantID = item.dwPermanentEnchantID,
 				})
 			end
-			-- å¤§é™„é­” / ä¸´æ—¶é™„é­” ç”¨äºè¯„åˆ†
+			-- ´ó¸½Ä§ / ÁÙÊ±¸½Ä§ ÓÃÓÚÆÀ·Ö
 			if item.dwTemporaryEnchantID and item.dwTemporaryEnchantID ~= 0 then
 				local dat = {
  					dwTemporaryEnchantID         = item.dwTemporaryEnchantID,
@@ -897,7 +897,7 @@ function RT.GetEquipCache(p)
 			end
 		end
 	end
-	-- è¿™äº›éƒ½æ˜¯ä¸€æ¬¡æ€§çš„ç¼“å­˜æ•°æ®
+	-- ÕâĞ©¶¼ÊÇÒ»´ÎĞÔµÄ»º´æÊı¾İ
 	frame.tDataCache[p.dwID] = {
 		tEquip            = aInfo.tEquip,
 		tPermanentEnchant = aInfo.tPermanentEnchant,
@@ -907,7 +907,7 @@ function RT.GetEquipCache(p)
 	frame.tViewInvite[p.dwID] = nil
 	if IsEmpty(frame.tViewInvite) then
 		if p.dwID ~= me.dwID then
-			FireUIEvent("JH_RAIDTOOLS_SUCCESS") -- è£…å¤‡è¯·æ±‚å®Œæ¯•
+			FireUIEvent("JH_RAIDTOOLS_SUCCESS") -- ×°±¸ÇëÇóÍê±Ï
 		end
 	else
 		ViewInviteToPlayer(next(frame.tViewInvite), true)
@@ -922,7 +922,7 @@ function RT.GetTotalEquipScore(dwID)
 	end
 end
 
--- è·å–å›¢é˜Ÿå¤§éƒ¨åˆ†æƒ…å†µ éç¼“å­˜
+-- »ñÈ¡ÍÅ¶Ó´ó²¿·ÖÇé¿ö ·Ç»º´æ
 function RT.GetTeam()
 	local me    = GetClientPlayer()
 	local team  = GetClientTeam()
@@ -936,23 +936,23 @@ function RT.GetTeam()
 			p                 = p,
 			szName            = p and p.szName or info.szName or _L["Loading..."],
 			dwID              = v,  -- ID
-			dwForceID         = p and p.dwForceID or info.dwForceID, -- é—¨æ´¾ID
-			dwMountKungfuID   = info and info.dwMountKungfuID or UI_GetPlayerMountKungfuID(), -- å†…åŠŸ
-			-- tPermanentEnchant = {}, -- é™„é­”
-			-- tTemporaryEnchant = {}, -- ä¸´æ—¶é™„é­”
-			-- tEquip            = {}, -- ç‰¹æ•ˆè£…å¤‡
-			tBuff             = {}, -- å¢ç›ŠBUFF
-			tFood             = {}, -- å°åƒå’Œé™„é­”
-			-- nEquipScore       = -1,  -- è£…å¤‡åˆ†
-			nFightState       = p and p.bFightState and 1 or 0, -- æˆ˜æ–—çŠ¶æ€
+			dwForceID         = p and p.dwForceID or info.dwForceID, -- ÃÅÅÉID
+			dwMountKungfuID   = info and info.dwMountKungfuID or UI_GetPlayerMountKungfuID(), -- ÄÚ¹¦
+			-- tPermanentEnchant = {}, -- ¸½Ä§
+			-- tTemporaryEnchant = {}, -- ÁÙÊ±¸½Ä§
+			-- tEquip            = {}, -- ÌØĞ§×°±¸
+			tBuff             = {}, -- ÔöÒæBUFF
+			tFood             = {}, -- Ğ¡³ÔºÍ¸½Ä§
+			-- nEquipScore       = -1,  -- ×°±¸·Ö
+			nFightState       = p and p.bFightState and 1 or 0, -- Õ½¶·×´Ì¬
 			bIsOnLine         = true,
-			bGrandpa          = false, -- å¤§çˆ·
+			bGrandpa          = false, -- ´óÒ¯
 		}
 		if info and info.bIsOnLine ~= nil then
 			aInfo.bIsOnLine = info.bIsOnLine
 		end
 		if p then
-			-- å°åƒå’Œbuff
+			-- Ğ¡³ÔºÍbuff
 			for _, tBuff in ipairs(JH.GetBuffList(p)) do
 				local nType = GetBuffInfo(tBuff.dwID, tBuff.nLevel, {}).nDetachType or 0
 				if RT_FOOD_TYPE[nType] then
@@ -977,7 +977,7 @@ end
 
 function RT.GetEquip()
 	local hView = RT.GetPlayerView()
-	if hView and hView:IsVisible() then -- æŸ¥çœ‹è£…å¤‡çš„æ—¶å€™åœæ­¢è¯·æ±‚
+	if hView and hView:IsVisible() then -- ²é¿´×°±¸µÄÊ±ºòÍ£Ö¹ÇëÇó
 		return
 	end
 	local me = GetClientPlayer()
@@ -994,7 +994,7 @@ function RT.GetEquip()
 	end
 end
 
--- è·å–å›¢é˜Ÿæˆå‘˜åˆ—è¡¨
+-- »ñÈ¡ÍÅ¶Ó³ÉÔ±ÁĞ±í
 function RT.GetTeamMemberList(bIsOnLine)
 	local me   = GetClientPlayer()
 	local team = GetClientTeam()
@@ -1016,7 +1016,7 @@ function RT.GetTeamMemberList(bIsOnLine)
 	end
 end
 
--- é‡ä¼¤è®°å½•
+-- ÖØÉË¼ÇÂ¼
 function RT.UpdatetDeathPage()
 	local frame = RT.GetFrame()
 	local team  = GetClientTeam()
@@ -1168,7 +1168,7 @@ function RT.UpdatetDeathMsg(dwID)
 	frame.hDeatMsg:FormatAllItemPos()
 end
 
--- UIæ“ä½œ æƒ¯ä¾‹
+-- UI²Ù×÷ ¹ßÀı
 function RT.SetStyle()
 	RT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_TeamTools/ui/RaidTools" .. RaidTools.nStyle .. ".ini"
 end

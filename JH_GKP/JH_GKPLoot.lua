@@ -6,7 +6,7 @@
 local _L = JH.LoadLangPack
 local GKP_LOOT_ANCHOR  = { s = "CENTER", r = "CENTER", x = 0, y = 0 }
 local GKP_LOOT_INIFILE = JH.GetAddonInfo().szRootPath .. "JH_GKP/ui/GKP_Loot.ini"
-local GKP_LOOT_BOSS -- æ•£ä»¶è€æ¿
+local GKP_LOOT_BOSS -- É¢¼şÀÏ°å
 
 local GKP_LOOT_HUANGBABA = {
 	[JH.GetItemName(72592)]  = true,
@@ -15,15 +15,15 @@ local GKP_LOOT_HUANGBABA = {
 	[JH.GetItemName(153897)] = true,
 }
 local GKP_LOOT_AUTO = {}
-local GKP_LOOT_AUTO_LIST = { -- è®°å½•åˆ†é…ä¸Šæ¬¡çš„ç‰©å“
-	-- ææ–™
+local GKP_LOOT_AUTO_LIST = { -- ¼ÇÂ¼·ÖÅäÉÏ´ÎµÄÎïÆ·
+	-- ²ÄÁÏ
 	[153532] = true,
 	[153533] = true,
 	[153534] = true,
 	[153535] = true,
-	-- äº”è¡ŒçŸ³
+	-- ÎåĞĞÊ¯
 	[153190] = true,
-	-- äº”å½©çŸ³
+	-- Îå²ÊÊ¯
 	[150241] = true,
 	[150242] = true,
 	[150243] = true,
@@ -61,7 +61,7 @@ end
 function GKP_Loot_Base.OnEvent(szEvent)
 	if szEvent == "DOODAD_LEAVE_SCENE" then
 		if arg0 == this.dwDoodadID then
-			Wnd.CloseWindow(this) -- ä¸åŠ åŠ¨ç”» æ˜¯ç³»ç»Ÿå…³é—­è€Œä¸æ˜¯æ‰‹åŠ¨
+			Wnd.CloseWindow(this) -- ²»¼Ó¶¯»­ ÊÇÏµÍ³¹Ø±Õ¶ø²»ÊÇÊÖ¶¯
 			PlaySound(SOUND.UI_SOUND, g_sound.CloseFrame)
 		end
 	elseif szEvent == "PARTY_LOOT_MODE_CHANGED" then
@@ -204,7 +204,7 @@ function GKP_Loot_Base.OnItemMouseLeave()
 	end
 end
 
--- åˆ†é…èœå•
+-- ·ÖÅä²Ëµ¥
 function GKP_Loot_Base.OnItemLButtonClick()
 	local szName = this:GetName()
 	if IsCtrlKeyDown() or IsAltKeyDown() then
@@ -245,12 +245,12 @@ function GKP_Loot_Base.OnItemLButtonClick()
 			JH.Sysmsg(_L["GKP does not support bidding, please re open loot list."])
 		elseif data.bNeedRoll then
 			JH.Topmsg(g_tStrings.ERROR_LOOT_ROLL)
-		else -- å·¦é”®æ‘¸èµ°
+		else -- ×ó¼üÃş×ß
 			LootItem(frame.dwDoodadID, data.dwID)
 		end
 	end
 end
--- å³é”®æ‹å–
+-- ÓÒ¼üÅÄÂô
 function GKP_Loot_Base.OnItemRButtonClick()
 	local szName = this:GetName()
 	if szName == "Handle_Item" or szName == "Box_Item" then
@@ -317,7 +317,7 @@ function Loot.GetBossAction(dwDoodadID, bMenu)
 				and v.item.nSub ~= EQUIPMENT_SUB.R_SHOULDER_EXTEND
 				and v.item.nSub ~= EQUIPMENT_SUB.BACK_CLOAK_EXTEND
 				and v.bDist
-			then -- æŒ‰ä½Ctrlçš„æƒ…å†µä¸‹ æ— è§†åˆ†ç±» å¦åˆ™åªç»™è£…å¤‡
+			then -- °´×¡CtrlµÄÇé¿öÏÂ ÎŞÊÓ·ÖÀà ·ñÔòÖ»¸ø×°±¸
 				table.insert(tEquipment, v.item)
 			end
 		end
@@ -326,7 +326,7 @@ function Loot.GetBossAction(dwDoodadID, bMenu)
 		end
 		local aPartyMember = Loot.GetaPartyMember(GetDoodad(dwDoodadID))
 		local p = aPartyMember(GKP_LOOT_BOSS)
-		if p and p.bOnlineFlag then  -- è¿™ä¸ªäººå­˜åœ¨å›¢é˜Ÿçš„æƒ…å†µä¸‹
+		if p and p.bOnlineFlag then  -- Õâ¸öÈË´æÔÚÍÅ¶ÓµÄÇé¿öÏÂ
 			local szXml = GetFormatText(_L["Are you sure you want the following item\n"], 162, 255, 255, 255)
 			local r, g, b = JH.GetForceColor(p.dwForceID)
 			for k, v in ipairs(tEquipment) do
@@ -378,11 +378,11 @@ function Loot.AuthCheck(dwID)
 	end
 	local nLootMode      = team.nLootMode
 	local dwBelongTeamID = doodad.GetBelongTeamID()
-	if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then -- éœ€è¦åˆ†é…è€…æ¨¡å¼
+	if nLootMode ~= PARTY_LOOT_MODE.DISTRIBUTE and not JH.bDebugClient then -- ĞèÒª·ÖÅäÕßÄ£Ê½
 		OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.GOLD_CHANGE_DISTRIBUTE_LOOT)
 		return false
 	end
-	if not JH.IsDistributer() and not JH.bDebugClient then -- éœ€è¦è‡ªå·±æ˜¯åˆ†é…è€…
+	if not JH.IsDistributer() and not JH.bDebugClient then -- ĞèÒª×Ô¼ºÊÇ·ÖÅäÕß
 		OutputMessage("MSG_ANNOUNCE_RED", g_tStrings.ERROR_LOOT_DISTRIBUTE)
 		return false
 	end
@@ -392,7 +392,7 @@ function Loot.AuthCheck(dwID)
 	end
 	return true
 end
--- æ‹¾å–å¯¹è±¡
+-- Ê°È¡¶ÔÏó
 function Loot.GetaPartyMember(doodad)
 	local team = GetClientTeam()
 	local aPartyMember = doodad.GetLooterList()
@@ -413,7 +413,7 @@ function Loot.GetaPartyMember(doodad)
 	end })
 	return aPartyMember
 end
--- ä¸¥æ ¼åˆ¤æ–­
+-- ÑÏ¸ñÅĞ¶Ï
 function Loot.DistributeItem(dwID, dwDoodadID, dwItemID, info, bShift)
 	local doodad = GetDoodad(dwDoodadID)
 	if not Loot.AuthCheck(dwDoodadID) then
@@ -437,13 +437,13 @@ function Loot.DistributeItem(dwID, dwDoodadID, dwItemID, info, bShift)
 	local player       = team.GetMemberInfo(dwID)
 	local aPartyMember = Loot.GetaPartyMember(doodad)
 	if item then
-		if not player or (player and not player.bIsOnLine) then -- ä¸åœ¨çº¿
+		if not player or (player and not player.bIsOnLine) then -- ²»ÔÚÏß
 			return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 		end
-		if not aPartyMember(dwID) then -- ç»™ä¸äº†
+		if not aPartyMember(dwID) then -- ¸ø²»ÁË
 			return JH.Alert(_L["No Pick up Object, may due to Network off - line"])
 		end
-		if player.dwMapID ~= me.GetMapID() then -- ä¸åœ¨åŒä¸€åœ°å›¾
+		if player.dwMapID ~= me.GetMapID() then -- ²»ÔÚÍ¬Ò»µØÍ¼
 			return JH.Alert(_L["No Pick up Object, Please confirm that in the Dungeon."])
 		end
 		local tab = {
@@ -468,7 +468,7 @@ function Loot.DistributeItem(dwID, dwDoodadID, dwItemID, info, bShift)
 		end
 		if GKP.bOn then
 			GKP.Record(tab, item, IsShiftKeyDown() or bShift)
-		else -- å…³é—­çš„æƒ…å†µæ‰€æœ‰ä¸œè¥¿å…¨éƒ¨ç»•è¿‡
+		else -- ¹Ø±ÕµÄÇé¿öËùÓĞ¶«Î÷È«²¿ÈÆ¹ı
 			tab.nMoney = 0
 			GKP("GKP_Record", tab)
 		end
@@ -562,7 +562,7 @@ function Loot.DrawLootList(dwID)
 		end
 		return JH.Debug("Doodad does not exist!")
 	end
-	-- ä¿®æ”¹UIå¤§å°
+	-- ĞŞ¸ÄUI´óĞ¡
 	local handle = frame:Lookup("", "Handle_Box")
 	handle:Clear()
 	if GKP_Loot.bVertical then
@@ -656,7 +656,7 @@ function Loot.OpenFrame(dwID)
 		Loot.DrawLootList(dwID)
 	end)
 end
--- æ‰‹åŠ¨å…³é—­ ä¸é€‚ç”¨è‡ªå®šå…³é—­
+-- ÊÖ¶¯¹Ø±Õ ²»ÊÊÓÃ×Ô¶¨¹Ø±Õ
 function Loot.CloseFrame(dwID)
 	local frame = Loot.GetFrame(dwID)
 	if frame then
@@ -669,7 +669,7 @@ function Loot.CloseFrame(dwID)
 	end
 end
 
--- æ£€æŸ¥ç‰©å“
+-- ¼ì²éÎïÆ·
 function Loot.GetDoodad(dwID)
 	local me   = GetClientPlayer()
 	local d    = GetDoodad(dwID)
@@ -694,7 +694,7 @@ function Loot.GetDoodad(dwID)
 	return szName, data, bSpecial
 end
 
--- æ‘¸ç®±å­
+-- ÃşÏä×Ó
 JH.RegisterEvent("OPEN_DOODAD", function()
 	if arg1 == UI_GetClientPlayerID() then
 		local team = GetClientTeam()
@@ -733,7 +733,7 @@ JH.RegisterEvent("OPEN_DOODAD", function()
 	end
 end)
 
--- åˆ·æ–°ç®±å­
+-- Ë¢ĞÂÏä×Ó
 JH.RegisterEvent("SYNC_LOOT_LIST", function()
 	local frame = Loot.GetFrame(arg0)
 	if (GKP.bDebug2 and JH.bDebugClient) or frame then

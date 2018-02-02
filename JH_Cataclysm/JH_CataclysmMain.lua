@@ -23,7 +23,7 @@ local CTM_CONFIG = {
 	nShowIcon            = 2,
 	bShowDistance        = false,
 	bEnableDistance      = true,
-	nBGClolrMode         = 1, -- 0 ä¸ç€è‰² 1 æ ¹æ®è·ç¦» 2 æ ¹æ®é—¨æ´¾
+	nBGClolrMode         = 1, -- 0 ²»×ÅÉ« 1 ¸ù¾İ¾àÀë 2 ¸ù¾İÃÅÅÉ
 	bShowTargetTargetAni = false,
 	nFont                = 40,
 	nLifeFont            = 15,
@@ -44,16 +44,16 @@ local CTM_CONFIG = {
 	bShowBuffTime        = false,
 	bShowBuffNum         = false,
 	bShowGropuNumber     = true,
-	bShowEffect          = false, -- äº”æ¯’é†‰èˆæç¤º ä¸‡èŠ±è·ç¦»æç¤º æ™šç‚¹åš
-	tBuffList = { -- ç»“æ„çš„è¯ å°±è¿™æ ·å§ä¸è¿‡é¢œè‰²ä¸è®©è®¾ç½®
-		-- ["è°ƒæ¯"] = { bSelf = true, col = 255, 255, 255}
+	bShowEffect          = false, -- Îå¶¾×íÎèÌáÊ¾ Íò»¨¾àÀëÌáÊ¾ Ííµã×ö
+	tBuffList = { -- ½á¹¹µÄ»° ¾ÍÕâÑù°É²»¹ıÑÕÉ«²»ÈÃÉèÖÃ
+		-- ["µ÷Ï¢"] = { bSelf = true, col = 255, 255, 255}
 	},
 	tDistanceCol = {
-		{ 0,   180, 52  }, -- ç»¿
-		{ 0,   180, 52  }, -- ç»¿
-		-- å…å¾—è¢«è¯´ä¹±
-		-- { 230, 170, 40  }, -- é»„
-		{ 230, 80,  80  }, -- çº¢
+		{ 0,   180, 52  }, -- ÂÌ
+		{ 0,   180, 52  }, -- ÂÌ
+		-- ÃâµÃ±»ËµÂÒ
+		-- { 230, 170, 40  }, -- »Æ
+		{ 230, 80,  80  }, -- ºì
 	},
 	tOtherCol = {
 		{ 255, 255, 255 },
@@ -113,7 +113,7 @@ local function CreateControlBar()
 	local hContainer   = frame:Lookup("Container_Main")
 	local szIniFile    = JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/Cataclysm_Button.ini"
 	hContainer:Clear()
-	-- åˆ†é…æ¨¡å¼
+	-- ·ÖÅäÄ£Ê½
 	local line = 22
 	local hLootMode = hContainer:AppendContentFromIni(szIniFile, "Wnd_LootMode")
 	hLootMode:Lookup("", "Image_LootMode"):FromUITex(unpack(CTM_LOOT_MODE[nLootMode]))
@@ -125,7 +125,7 @@ local function CreateControlBar()
 		local hGKP = hContainer:AppendContentFromIni(szIniFile, "Wnd_GKP")
 		hGKP:SetRelX((hContainer:GetAllContentCount() - 1) * line)
 	end
-	-- ä¸–ç•Œæ ‡è®°
+	-- ÊÀ½ç±ê¼Ç
 	if JH.IsLeader() then
 		local hWorldMark = hContainer:AppendContentFromIni(szIniFile, "Btn_WorldMark")
 		hWorldMark:SetRelX((hContainer:GetAllContentCount() - 1) * line)
@@ -176,7 +176,7 @@ local function RaidPanel_Switch(bOpen)
 		end
 	else
 		if frame then
-			-- æœ‰ä¸€ç‚¹é—®é¢˜ ä¼šè¢«åŠ å‘¼å¸ æ ¹æ®åˆ¤æ–­
+			-- ÓĞÒ»µãÎÊÌâ »á±»¼ÓºôÎü ¸ù¾İÅĞ¶Ï
 			if not GetTeammateFrame() then
 				Wnd.OpenWindow("Teammate")
 			end
@@ -282,7 +282,7 @@ local function UpdateAnchor(frame)
 end
 
 -------------------------------------------------
--- ç•Œé¢åˆ›å»º äº‹ä»¶æ³¨å†Œ
+-- ½çÃæ´´½¨ ÊÂ¼ş×¢²á
 -------------------------------------------------
 Cataclysm_Main = {
 	GetFrame            = GetFrame,
@@ -316,9 +316,9 @@ function Cataclysm_Main.OnFrameCreate()
 	this:RegisterEvent("LOADING_END")
 	this:RegisterEvent("TARGET_CHANGE")
 	this:RegisterEvent("BUFF_UPDATE")
-	-- æ‹å›¢éƒ¨åˆ† arg0 0=Täºº 1=åˆ†å·¥èµ„
+	-- ÅÄÍÅ²¿·Ö arg0 0=TÈË 1=·Ö¹¤×Ê
 	this:RegisterEvent("TEAM_VOTE_REQUEST")
-	-- arg0 å›åº”çŠ¶æ€ arg1 dwID arg2 åŒæ„=1 åå¯¹=0
+	-- arg0 »ØÓ¦×´Ì¬ arg1 dwID arg2 Í¬Òâ=1 ·´¶Ô=0
 	this:RegisterEvent("TEAM_VOTE_RESPOND")
 	-- this:RegisterEvent("TEAM_INCOMEMONEY_CHANGE_NOTIFY")
 	this:RegisterEvent("SYS_MSG")
@@ -332,13 +332,13 @@ function Cataclysm_Main.OnFrameCreate()
 	SetFrameSize()
 	CreateControlBar()
 	this:EnableDrag(Cataclysm_Main.bDrag)
-	-- ä¸­é—´å±‚æ•°æ® å¸¸ç”¨çš„
+	-- ÖĞ¼ä²ãÊı¾İ ³£ÓÃµÄ
 	this.hMember = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/item.ini", "Handle_RoleDummy")
 	this.hBuff   = this:CreateItemData(JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/Item_Buff.ini", "Handle_Buff")
 
 end
 -------------------------------------------------
--- æ‹–åŠ¨çª—ä½“ OnFrameDrag
+-- ÍÏ¶¯´°Ìå OnFrameDrag
 -------------------------------------------------
 
 function Cataclysm_Main.OnFrameDragSetPosEnd()
@@ -352,7 +352,7 @@ function Cataclysm_Main.OnFrameDragEnd()
 end
 
 -------------------------------------------------
--- äº‹ä»¶å¤„ç†
+-- ÊÂ¼ş´¦Àí
 -------------------------------------------------
 function Cataclysm_Main.OnEvent(szEvent)
 	if szEvent == "RENDER_FRAME_UPDATE" then
@@ -466,7 +466,7 @@ function Cataclysm_Main.OnEvent(szEvent)
 	elseif szEvent == "JH_KUNGFU_SWITCH" then
 		Grid_CTM:KungFuSwitch(arg0)
 	elseif szEvent == "TARGET_CHANGE" then
-		-- oldidï¼Œ oldtype, newid, newtype
+		-- oldid£¬ oldtype, newid, newtype
 		Grid_CTM:RefreshTarget(arg0, arg1, arg2, arg3)
 	elseif szEvent == "JH_RAID_REC_BUFF" then
 		Grid_CTM:RecBuff(arg0, arg1)
@@ -489,7 +489,7 @@ function Cataclysm_Main.OnEvent(szEvent)
 	elseif szEvent == "UI_SCALED" then
 		UpdateAnchor(this)
 		Grid_CTM:AutoLinkAllPanel()
-	elseif szEvent == "LOADING_END" then -- å‹¿åˆ 
+	elseif szEvent == "LOADING_END" then -- ÎğÉ¾
 		ReloadCataclysmPanel()
 		RaidPanel_Switch(DEBUG)
 		TeammatePanel_Switch(false)
@@ -516,23 +516,23 @@ function Cataclysm_Main.OnLButtonClick()
 		local me = GetClientPlayer()
 		local menu = {}
 		if me.IsInRaid() then
-			-- å›¢é˜Ÿå°±ä½
+			-- ÍÅ¶Ó¾ÍÎ»
 			table.insert(menu, { szOption = g_tStrings.STR_RAID_MENU_READY_CONFIRM,
 				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_START, bDisable = not JH.IsLeader(), fnAction = function() Grid_CTM:Send_RaidReadyConfirm() end },
 				{ szOption = g_tStrings.STR_RAID_READY_CONFIRM_RESET, bDisable = not JH.IsLeader(), fnAction = function() Grid_CTM:Clear_RaidReadyConfirm() end }
 			})
 			table.insert(menu, { bDevide = true })
 		end
-		-- åˆ†é…
+		-- ·ÖÅä
 		InsertDistributeMenu(menu, not JH.IsDistributer())
 		table.insert(menu, { bDevide = true })
 		if me.IsInRaid() then
-			-- ç¼–è¾‘æ¨¡å¼
+			-- ±à¼­Ä£Ê½
 			table.insert(menu, { szOption = string.gsub(g_tStrings.STR_RAID_MENU_RAID_EDIT, "Ctrl", "Alt"), bDisable = not JH.IsLeader() or not me.IsInRaid(), bCheck = true, bChecked = Cataclysm_Main.bEditMode, fnAction = function()
 				Cataclysm_Main.bEditMode = not Cataclysm_Main.bEditMode
 				GetPopupMenu():Hide()
 			end })
-			-- äººæ•°ç»Ÿè®¡
+			-- ÈËÊıÍ³¼Æ
 			table.insert(menu, { bDevide = true })
 			InsertForceCountMenu(menu)
 			table.insert(menu, { bDevide = true })
@@ -640,7 +640,7 @@ function PS.OnPanelActive(frame)
 			GetFrame():EnableDrag(not bCheck)
 		end
 	end):Pos_()
-	-- æé†’æ¡†
+	-- ÌáĞÑ¿ò
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.STR_RAID_TIP_IMAGE, font = 27 }):Pos_()
 	nX = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TIP_TARGET, checked = Cataclysm_Main.bShowTargetTargetAni })
 	:Click(function(bCheck)
@@ -674,7 +674,7 @@ function PS.OnPanelActive(frame)
 			Cataclysm_Main.bShowEffect = bCheck
 		end):Pos_()
 	end
-	-- è¡€é‡æ˜¾ç¤º
+	-- ÑªÁ¿ÏÔÊ¾
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.STR_RAID_LIFE_SHOW .. _L["& Icon"], font = 27 }):Pos_()
 	nX = ui:Append("WndRadioBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_LIFE_LEFT, group = "lifemode", checked = Cataclysm_Main.nHPShownMode2 == 2 })
 	:Click(function()
@@ -706,7 +706,7 @@ function PS.OnPanelActive(frame)
 			Grid_CTM:CallDrawHPMP(true, true)
 		end
 	end):Pos_()
-	-- æ•°å€¼
+	-- ÊıÖµ
 	nX = ui:Append("WndRadioBox", "lifval1", { x = 10, y = nY, txt = _L["Show Format value"], group = "lifval", checked = Cataclysm_Main.nHPShownNumMode == 1 })
 	:Enable(Cataclysm_Main.nHPShownMode2 ~= 0):Click(function()
 		Cataclysm_Main.nHPShownNumMode = 1
@@ -762,7 +762,7 @@ function PS.OnPanelActive(frame)
 		end
 	end):Pos_()
 
-	-- å…¶ä»–
+	-- ÆäËû
 	nX, nY = ui:Append("Text", { x = 0, y = nY, txt = g_tStrings.OTHER, font = 27 }):Pos_()
 	nX  = ui:Append("WndCheckBox", { x = 10, y = nY + 10, txt = g_tStrings.STR_RAID_TARGET_ASSIST, checked = Cataclysm_Main.bTempTargetEnable })
 	:Click(function(bCheck)
@@ -828,7 +828,7 @@ function PS2.OnPanelActive(frame)
 		end
 	end):Pos_()
 
-	-- å­—ä½“ä¿®æ”¹
+	-- ×ÖÌåĞŞ¸Ä
 	nX, nY = ui:Append("WndButton2", { x = 400, y = nY + 10, txt = g_tStrings.STR_GUILD_NAME .. g_tStrings.FONT })
 	:Click(function()
 		GUI.OpenFontTablePanel(function(nFont)
@@ -1074,7 +1074,7 @@ function PS3.OnPanelActive(frame)
 end
 GUI.RegisterPanel(_L["Interface settings"], { "ui/Image/UICommon/RaidTotal.uitex", 71 }, _L["Panel"], PS3)
 
--- è§£æ
+-- ½âÎö
 local function GetListText(tab)
 	local tName = {}
 	for k, v in pairs(tab) do
@@ -1143,19 +1143,19 @@ JH.RegisterEvent("CTM_PANEL_RAID", function()
 	RaidPanel_Switch(arg0)
 end)
 
--- å…³äºç•Œé¢æ‰“å¼€å’Œåˆ·æ–°é¢æ¿çš„æ—¶æœº
--- 1) æ™®é€šæƒ…å†µä¸‹ ç»„é˜Ÿä¼šè§¦å‘[PARTY_UPDATE_BASE_INFO]æ‰“å¼€+åˆ·æ–°
--- 2) è¿›å…¥ç«æŠ€åœº/æˆ˜åœºçš„æƒ…å†µä¸‹ ä¸ä¼šè§¦å‘[PARTY_UPDATE_BASE_INFO]äº‹ä»¶
---    éœ€è¦åˆ©ç”¨å¤–é¢æ³¨å†Œçš„[LOADING_END]æ¥æ‰“å¼€+åˆ·æ–°
--- 3) å¦‚æœåœ¨ç«æŠ€åœº/æˆ˜åœºæ‰çº¿é‡ä¸Šçš„æƒ…å†µä¸‹ éœ€è¦ä½¿ç”¨å¤–é¢æ³¨å†Œçš„[LOADING_END]æ¥æ‰“å¼€é¢æ¿
---    ç„¶ååœ¨UIä¸Šæ³¨å†Œçš„[LOADING_END]çš„æ¥åˆ·æ–°ç•Œé¢ï¼Œå¦åˆ™è·å–ä¸åˆ°å›¢é˜Ÿæˆå‘˜ï¼Œåªèƒ½è·å–åˆ°æœ‰å‡ ä¸ªé˜Ÿ
---    UIçš„[LOADING_END]æ™šå¤§çº¦30mï¼Œç„¶åå°±èƒ½è·å–åˆ°å›¢é˜Ÿæˆå‘˜äº†??????
--- 4) ä»ç«æŠ€åœº/æˆ˜åœºå›åˆ°åŸæœä½¿ç”¨å¤–é¢æ³¨å†Œçš„[LOADING_END]æ¥æ‰“å¼€+åˆ·æ–°
--- 5) æ™®é€šæ‰çº¿/è¿‡åœ°å›¾ä½¿ç”¨å¤–é¢æ³¨å†Œçš„[LOADING_END]æ‰“å¼€+åˆ·æ–°ï¼Œé¿å…è¿‡åœ°å›¾æ—¶å€™å›¢é˜Ÿå˜åŠ¨æ²¡æœ‰æ”¶åˆ°äº‹ä»¶çš„æƒ…å†µã€‚
--- 6) ç»¼ä¸Šæ‰€è¿°çš„å„å¼å„æ ·çš„å¥‡è‘©æƒ…å†µ å¯ä»¥åšå¦‚ä¸‹çš„è°ƒæ•´
---    åˆ©ç”¨å¤–é¢çš„æ³¨å†Œçš„[LOADING_END]æ¥æ‰“å¼€
---    åˆ©ç”¨UIæ³¨å†Œçš„[LOADING_END]æ¥åˆ·æ–°
---    é¿å…å¤šæ¬¡é‡å¤åˆ·æ–°é¢æ¿æµªè´¹å¼€é”€
+-- ¹ØÓÚ½çÃæ´ò¿ªºÍË¢ĞÂÃæ°åµÄÊ±»ú
+-- 1) ÆÕÍ¨Çé¿öÏÂ ×é¶Ó»á´¥·¢[PARTY_UPDATE_BASE_INFO]´ò¿ª+Ë¢ĞÂ
+-- 2) ½øÈë¾º¼¼³¡/Õ½³¡µÄÇé¿öÏÂ ²»»á´¥·¢[PARTY_UPDATE_BASE_INFO]ÊÂ¼ş
+--    ĞèÒªÀûÓÃÍâÃæ×¢²áµÄ[LOADING_END]À´´ò¿ª+Ë¢ĞÂ
+-- 3) Èç¹ûÔÚ¾º¼¼³¡/Õ½³¡µôÏßÖØÉÏµÄÇé¿öÏÂ ĞèÒªÊ¹ÓÃÍâÃæ×¢²áµÄ[LOADING_END]À´´ò¿ªÃæ°å
+--    È»ºóÔÚUIÉÏ×¢²áµÄ[LOADING_END]µÄÀ´Ë¢ĞÂ½çÃæ£¬·ñÔò»ñÈ¡²»µ½ÍÅ¶Ó³ÉÔ±£¬Ö»ÄÜ»ñÈ¡µ½ÓĞ¼¸¸ö¶Ó
+--    UIµÄ[LOADING_END]Íí´óÔ¼30m£¬È»ºó¾ÍÄÜ»ñÈ¡µ½ÍÅ¶Ó³ÉÔ±ÁË??????
+-- 4) ´Ó¾º¼¼³¡/Õ½³¡»Øµ½Ô­·şÊ¹ÓÃÍâÃæ×¢²áµÄ[LOADING_END]À´´ò¿ª+Ë¢ĞÂ
+-- 5) ÆÕÍ¨µôÏß/¹ıµØÍ¼Ê¹ÓÃÍâÃæ×¢²áµÄ[LOADING_END]´ò¿ª+Ë¢ĞÂ£¬±ÜÃâ¹ıµØÍ¼Ê±ºòÍÅ¶Ó±ä¶¯Ã»ÓĞÊÕµ½ÊÂ¼şµÄÇé¿ö¡£
+-- 6) ×ÛÉÏËùÊöµÄ¸÷Ê½¸÷ÑùµÄÆæİâÇé¿ö ¿ÉÒÔ×öÈçÏÂµÄµ÷Õû
+--    ÀûÓÃÍâÃæµÄ×¢²áµÄ[LOADING_END]À´´ò¿ª
+--    ÀûÓÃUI×¢²áµÄ[LOADING_END]À´Ë¢ĞÂ
+--    ±ÜÃâ¶à´ÎÖØ¸´Ë¢ĞÂÃæ°åÀË·Ñ¿ªÏú
 
 JH.RegisterEvent("PARTY_UPDATE_BASE_INFO", function()
 	CheckCataclysmEnable()
@@ -1169,7 +1169,7 @@ JH.RegisterEvent("PARTY_LEVEL_UP_RAID", function()
 end)
 JH.RegisterEvent("LOADING_END", CheckCataclysmEnable)
 
--- ä¿å­˜å’Œè¯»å–é…ç½®
+-- ±£´æºÍ¶ÁÈ¡ÅäÖÃ
 JH.RegisterExit(function()
 	JH.SaveLUAData(GetConfigurePath(), CTM_CONFIG_PLAYER)
 end)

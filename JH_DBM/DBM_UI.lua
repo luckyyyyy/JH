@@ -15,7 +15,7 @@ local DBMUI_TALK_R      = JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/DBM_TALK_R.
 local DBMUI_TYPE        = { "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD", "CIRCLE", "TALK", "CHAT" }
 local DBMUI_SELECT_TYPE = DBMUI_TYPE[1]
 local DBMUI_SELECT_MAP  = _L["All Data"]
-local DBMUI_TREE_EXPAND = { true } -- é»˜è®¤ç¬¬ä¸€é¡¹å±•å¼€
+local DBMUI_TREE_EXPAND = { true } -- Ä¬ÈÏµÚÒ»ÏîÕ¹¿ª
 local DBMUI_SEARCH
 local DBMUI_DRAG          = false
 local DBMUI_GLOBAL_SEARCH = false
@@ -25,20 +25,20 @@ local DBMUI_ANCHOR        = {}
 local DBMUI = {}
 
 local DBMUI_DOODAD_ICON = {
-	[DOODAD_KIND.INVALID]      = 1434, -- æ— æ•ˆ
+	[DOODAD_KIND.INVALID]      = 1434, -- ÎŞĞ§
 	[DOODAD_KIND.NORMAL]       = 4956, --
-	[DOODAD_KIND.CORPSE]       = 179,  -- å°¸ä½“
-	[DOODAD_KIND.QUEST]        = 1676, -- ä»»åŠ¡
-	[DOODAD_KIND.READ]         = 243,  -- é˜…è¯»
-	[DOODAD_KIND.DIALOG]       = 3267, -- å¯¹è¯
-	[DOODAD_KIND.ACCEPT_QUEST] = 1678, -- æ¥å—ä»»åŠ¡
-	[DOODAD_KIND.TREASURE]     = 3557, -- å®ç®±
-	[DOODAD_KIND.ORNAMENT]     = 1395, -- è£…é¥°ç‰©
+	[DOODAD_KIND.CORPSE]       = 179,  -- Ê¬Ìå
+	[DOODAD_KIND.QUEST]        = 1676, -- ÈÎÎñ
+	[DOODAD_KIND.READ]         = 243,  -- ÔÄ¶Á
+	[DOODAD_KIND.DIALOG]       = 3267, -- ¶Ô»°
+	[DOODAD_KIND.ACCEPT_QUEST] = 1678, -- ½ÓÊÜÈÎÎñ
+	[DOODAD_KIND.TREASURE]     = 3557, -- ±¦Ïä
+	[DOODAD_KIND.ORNAMENT]     = 1395, -- ×°ÊÎÎï
 	[DOODAD_KIND.CRAFT_TARGET] = 351,
-	[DOODAD_KIND.CHAIR]        = 3912, -- æ¤…å­
+	[DOODAD_KIND.CHAIR]        = 3912, -- ÒÎ×Ó
 	[DOODAD_KIND.CLIENT_ONLY]  = 240,  --
-	[DOODAD_KIND.GUIDE]        = 885,  -- è·¯ç‰Œ
-	[DOODAD_KIND.DOOR]         = 1890, -- é—¨
+	[DOODAD_KIND.GUIDE]        = 885,  -- Â·ÅÆ
+	[DOODAD_KIND.DOOR]         = 1890, -- ÃÅ
 	[DOODAD_KIND.NPCDROP]      = 381,
 }
 setmetatable(DBMUI_DOODAD_ICON, { __index = function(me, key)
@@ -100,7 +100,7 @@ function DBM_UI.OnFrameCreate()
 	this.hTreeC = this:CreateItemData(DBMUI_INIFILE, "TreeLeaf_Content")
 	this.hTreeH = this:Lookup("PageSet_Main/WndScroll_Tree", "Handle_Tree_List")
 
-	DBMUI_SEARCH = nil -- é‡ç½®æœç´¢
+	DBMUI_SEARCH = nil -- ÖØÖÃËÑË÷
 	DBMUI_GLOBAL_SEARCH = false
 	DBMUI_DRAG = false
 
@@ -117,7 +117,7 @@ function DBM_UI.OnFrameCreate()
 	end
 	ui:Append("WndButton4", { x = 895, y = 52, txt = g_tStrings.SYS_MENU }):Click(function()
 		local menu = {}
-		table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBMUI.OpenImportPanel() end }) -- æœ‰ä¼ æƒ¨ ä¸è¦æ”¹
+		table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBMUI.OpenImportPanel() end }) -- ÓĞ´«²Ò ²»Òª¸Ä
 		local szLang = select(3, GetVersion())
 		if szLang == "zhcn" or szLang == "zhtw" then
 			table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.TogglePanel })
@@ -173,7 +173,7 @@ function DBM_UI.OnFrameCreate()
 		end)
 	end)
 	DBMUI.UpdateAnchor(this)
-	-- é¦–æ¬¡åŠ è½½
+	-- Ê×´Î¼ÓÔØ
 	for k, v in ipairs(DBMUI_TYPE) do
 		if DBMUI_SELECT_TYPE == v then
 			this.hPageSet:ActivePage(k - 1)
@@ -215,11 +215,11 @@ function DBMUI.RefreshTable(szRefresh)
 		DBMUI.UpdateRList()
 	end
 end
--- ç”¨äºåˆ·æ–°æ»šåŠ¨æ¡ æ¥åˆ·æ–°å†…å®¹
+-- ÓÃÓÚË¢ĞÂ¹ö¶¯Ìõ À´Ë¢ĞÂÄÚÈİ
 function DBMUI.RefreshScroll(szRefresh)
 	local frame = DBMUI.GetFrame()
 	local hWndScroll = frame.hPageSet:GetActivePage():Lookup(string.format("WndScroll_%s_%s/Btn_%s_%s_ALL", DBMUI_SELECT_TYPE, szRefresh, DBMUI_SELECT_TYPE, szRefresh))
-	-- ä¿®æ”¹æŒ‡é’ˆ
+	-- ĞŞ¸ÄÖ¸Õë
 	local _this = this
 	this = hWndScroll
 	DBM_UI.OnScrollBarPosChanged()
@@ -339,12 +339,12 @@ function DBMUI.UpdateTree()
 	frame.hTreeH:Clear()
 	local hTreeT = frame.hTreeH:AppendItemFromData(frame.hTreeT)
 	hTreeT:Lookup(1):SetText(g_tStrings.STR_GUILD_ALL .. "/" .. g_tStrings.OTHER)
-	-- å…¨éƒ¨ / é€šç”¨
+	-- È«²¿ / Í¨ÓÃ
 	local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
 	Format(hTreeT, hTreeC, _L["All Data"])
 	local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
 	Format(hTreeT, hTreeC, -1)
-	-- å…¶ä»–
+	-- ÆäËû
 	for k, v in pairs(data) do
 		if (k > 0 and not JH.IsDungeon(k, true)) and (tonumber(k) and k > 0) then
 			local hTreeC = frame.hTreeH:AppendItemFromData(frame.hTreeC)
@@ -370,7 +370,7 @@ function DBMUI.UpdateTree()
 		hLocation:Show()
 		hSelect:FormatAllItemPos()
 	end
-	-- è¿˜åŸåˆ—è¡¨å±•å¼€
+	-- »¹Ô­ÁĞ±íÕ¹¿ª
 	local n = 1
 	for i = 0, frame.hTreeH:GetItemCount() - 1 do
 		local item = frame.hTreeH:Lookup(i)
@@ -446,7 +446,7 @@ function DBM_UI.OnItemLButtonClick()
 		end
 		handle:FormatAllItemPos()
 	elseif szName == "TreeLeaf_Content" then
-		-- é‡æ–°ç€è‰²
+		-- ÖØĞÂ×ÅÉ«
 		local handle = this:GetParent()
 		if handle.hSelect and handle.hSelect:IsValid() then
 			handle.hSelect:Lookup(0):Hide()
@@ -456,7 +456,7 @@ function DBM_UI.OnItemLButtonClick()
 		this:Lookup(0):Show()
 		this:Lookup(1):SetFontColor(255, 255, 0)
 		handle.hSelect = this
-		-- åˆ·æ–°æ•°æ®
+		-- Ë¢ĞÂÊı¾İ
 		DBMUI_SELECT_MAP = this.dwMapID
 		DBMUI.UpdateLList()
 		DBMUI.UpdateBG()
@@ -494,7 +494,7 @@ function DBM_UI.OnItemRButtonClick()
 		local t = this.dat
 		local menu = {}
 		local name = this:Lookup("Text") and this:Lookup("Text"):GetText() or t.szContent
-		if DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "CHAT" then -- å¤ªé•¿
+		if DBMUI_SELECT_TYPE ~= "TALK" and DBMUI_SELECT_TYPE ~= "CHAT" then -- Ì«³¤
 			table.insert(menu, { szOption = g_tStrings.CHAT_NAME .. g_tStrings.STR_COLON .. name, bDisable = true })
 		end
 		table.insert(menu, { szOption = _L["Class"] .. g_tStrings.STR_COLON .. (DBMUI.GetMapName(t.dwMapID) or t.dwMapID), bDisable = true })
@@ -684,12 +684,12 @@ function DBM_UI.OnItemLButtonDragEnd()
 			DBMUI.OpenAddPanel(DBMUI_SELECT_TYPE, data)
 		end
 	end
-	JH.DelayCall(function() -- ç”±äº clickåœ¨ dragend ä¹‹å
+	JH.DelayCall(function() -- ÓÉÓÚ clickÔÚ dragend Ö®ºó
 		 DBMUI_DRAG = false
 	end, 50)
 end
 
--- ä¼˜åŒ–æ ¸å¿ƒå‡½æ•° æ ¹æ®æ»šåŠ¨æ¡åŠ è½½å†…å®¹
+-- ÓÅ»¯ºËĞÄº¯Êı ¸ù¾İ¹ö¶¯Ìõ¼ÓÔØÄÚÈİ
 function DBM_UI.OnScrollBarPosChanged()
 	-- print(this:GetName())
 	local hWndScroll = this:GetParent()
@@ -699,7 +699,7 @@ function DBM_UI.OnScrollBarPosChanged()
 		local handle = hWndScroll:Lookup("", string.format("Handle_%s_List_%s", DBMUI_SELECT_TYPE, dir))
 		local nPer = this:GetScrollPos() / math.max(1, this:GetStepCount())
 		local nCount = math.ceil(handle:GetItemCount() * nPer)
-		for i = math.max(0, nCount - 21), nCount + 21, 1 do -- æ¯æ¬¡æ¸²æŸ“ä¸¤é¡µ
+		for i = math.max(0, nCount - 21), nCount + 21, 1 do -- Ã¿´ÎäÖÈ¾Á½Ò³
 			local h = handle:Lookup(i)
 			if h then
 				if not h.bDraw then
@@ -906,7 +906,7 @@ function DBMUI.GetSearchCache(data)
 			tab[data.dwMapID][data.nIndex] = JsonEncode(data)
 			szString = tab[data.dwMapID][data.nIndex]
 		end
-	else -- ä¸´æ—¶è®°å½• æš‚æ—¶è¿˜ä¸åšç¼“å­˜å¤„ç†
+	else -- ÁÙÊ±¼ÇÂ¼ ÔİÊ±»¹²»×ö»º´æ´¦Àí
 		szString = JsonEncode(data)
 	end
 	return szString
@@ -921,7 +921,7 @@ function DBMUI.CheckSearch(szType, data)
 		local szName = DBMUI.GetDataName(szType, data)
 		if tostring(szName):find(DBMUI_SEARCH, nil, true)
 			or (data.szNote   and tostring(data.szNote):find(DBMUI_SEARCH, nil, true))
-			or (data.key      and tostring(data.key):find(DBMUI_SEARCH, nil, true)) -- ç”»åœˆåœˆ
+			or (data.key      and tostring(data.key):find(DBMUI_SEARCH, nil, true)) -- »­È¦È¦
 			or (data.dwID     and tostring(data.dwID):find(DBMUI_SEARCH, nil, true))
 			or (data.dwMapID  and DBMUI.GetMapName(data.dwMapID):find(DBMUI_SEARCH, nil, true))
 			or (data.szTarget and tostring(data.szTarget):find(DBMUI_SEARCH, nil, true))
@@ -1072,7 +1072,7 @@ function DBMUI.GetMapName(dwMapID)
 	return JH.IsMapExist(dwMapID)
 end
 
--- æ›´æ–°ç›‘æ§æ•°æ®
+-- ¸üĞÂ¼à¿ØÊı¾İ
 function DBMUI.UpdateLList()
 	local tab = DBM_API.GetTable(DBMUI_SELECT_TYPE)
 	if tab then
@@ -1106,7 +1106,7 @@ function DBMUI.DrawTableL(data)
 	DBMUI.RefreshScroll("L")
 end
 
--- æ›´æ–°ä¸´æ—¶æ•°æ®
+-- ¸üĞÂÁÙÊ±Êı¾İ
 function DBMUI.UpdateRList(data)
 	if data then
 		DBMUI.DrawTableR(data, true)
@@ -1141,7 +1141,7 @@ function DBMUI.DrawTableR(data, bInsert)
 			end
 		end
 	else
-		-- å°‘ä¸€ä¸ª InsertItemFromData
+		-- ÉÙÒ»¸ö InsertItemFromData
 		local szIniFile = (DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT") and DBMUI_TALK_R or DBMUI_ITEM_R
 		local szSectionName = (DBMUI_SELECT_TYPE == "TALK" or DBMUI_SELECT_TYPE == "CHAT") and "Handle_TALK_R" or "Handle_R"
 		if not DBMUI_SEARCH or DBMUI.CheckSearch(DBMUI_SELECT_TYPE, data) then
@@ -1154,7 +1154,7 @@ function DBMUI.DrawTableR(data, bInsert)
 	DBMUI.RefreshScroll("R")
 end
 
--- æ·»åŠ é¢æ¿
+-- Ìí¼ÓÃæ°å
 function DBMUI.OpenAddPanel(szType, data)
 	if szType == "CIRCLE" then
 		Circle.OpenAddPanel(IsCtrlKeyDown() and data.dwID or DBMUI.GetDataName("NPC", data), TARGET.NPC, Table_GetMapName(data.dwMapID), DBMUI_SELECT_MAP)
@@ -1229,7 +1229,7 @@ function DBMUI.OpenAddPanel(szType, data)
 		end)
 	end
 end
--- æ•°æ®è°ƒè¯•é¢æ¿
+-- Êı¾İµ÷ÊÔÃæ°å
 function DBMUI.OpenJosnPanel(data, fnAction)
 	local ui = GUI.CreateFrame("DBM_JsonPanel", { w = 720,h = 500, title = "DBM DEBUG Panel", close = true }):Event("DBMUI_DATA_RELOAD", "DBMUI_SWITCH_PAGE"):OnEvent(function(szEvent)
 		ui:Remove()
@@ -1254,7 +1254,7 @@ function DBMUI.OpenJosnPanel(data, fnAction)
 	end)
 end
 
--- è®¾ç½®é¢æ¿
+-- ÉèÖÃÃæ°å
 function DBMUI.OpenSettingPanel(data, szType)
 	local function GetScrutinyTypeMenu()
 		local menu = {
@@ -1528,7 +1528,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", "bOnlySelfSrc", { x = nX + 5, y = nY, checked = cfg.bOnlySelfSrc, txt = _L["Only Source Self"] }):Enable(cfg.bTeamPanel == true):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bOnlySelfSrc", bCheck)
 		end):Pos_()
-		-- å¤±å»buff
+		-- Ê§È¥buff
 		local cfg = data[DBM_TYPE.BUFF_LOSE] or {}
 		nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Lose Buff"], font = 27 }):Pos_()
 		nX = ui:Append("WndCheckBox", { x = 30, y = nY + 10, checked = cfg.bTeamChannel, txt = _L["Team Channel Alarm"], color = GetMsgFontColor("MSG_TEAM", true) }):Click(function(bCheck)
@@ -1810,7 +1810,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			end
 		end):Pos_()
 	end
-	-- å€’è®¡æ—¶
+	-- µ¹¼ÆÊ±
 	nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Countdown"], font = 27 }):Pos_()
 	nY = nY + 10
 	for k, v in ipairs(data.tCountdown or {}) do
@@ -2034,7 +2034,7 @@ end)
 JH.PlayerAddonMenu({ szOption = _L["Open DBM Panel"], fnAction = DBMUI.TogglePanel })
 JH.AddHotKey("JH_DBMUI", _L["Open DBM Panel"], DBMUI.TogglePanel)
 
--- å…¬å¼€UI API DBM_UI.xxx
+-- ¹«¿ªUI API DBM_UI.xxx
 local ui = {
 	OpenPanel       = DBMUI.OpenPanel,
 	ClosePanel      = DBMUI.ClosePanel,

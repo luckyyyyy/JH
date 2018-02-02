@@ -2,7 +2,7 @@
 -- @Date:   2015-05-02 06:59:32
 -- @Last Modified by:   Administrator
 -- @Last Modified time: 2017-05-27 16:40:42
--- JX3_Client å…¨å±æ³›å…‰ç±»
+-- JX3_Client È«ÆÁ·º¹âÀà
 local FS = {}
 FS.__index = FS
 

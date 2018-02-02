@@ -3,7 +3,7 @@
 -- @Last Modified by:   Webster
 -- @Last Modified time: 2016-01-04 14:33:35
 local _L = JH.LoadLangPack
--- å·¥èµ„ç»“ç®—
+-- ¹¤×Ê½áËã
 local TEAM_VOTE_REQUEST = {}
 JH.RegisterEvent("TEAM_VOTE_REQUEST", function()
 	if arg0 == 1 then

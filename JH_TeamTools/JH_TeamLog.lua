@@ -18,12 +18,12 @@ local DAMAGE_LOG = {}
 local DEATH_LOG  = {}
 
 local function OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLevel, bCriticalStrike, nCount, tResult)
-	if not tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then -- æ²¡æœ‰åå¼¹çš„æƒ…å†µä¸‹
-		if not IsPlayer(dwTarget) or not JH_IsParty(dwTarget) and dwTarget ~= PLAYER_ID then -- ç›®æ ‡ä¸æ˜¯é˜Ÿå‹ä¹Ÿä¸æ˜¯è‡ªå·±
+	if not tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] then -- Ã»ÓĞ·´µ¯µÄÇé¿öÏÂ
+		if not IsPlayer(dwTarget) or not JH_IsParty(dwTarget) and dwTarget ~= PLAYER_ID then -- Ä¿±ê²»ÊÇ¶ÓÓÑÒ²²»ÊÇ×Ô¼º
 			return
 		end
 	else
-		if not IsPlayer(dwCaster) or not JH_IsParty(dwCaster) and dwCaster ~= PLAYER_ID then -- ç›®æ ‡ä¸æ˜¯é˜Ÿå‹ä¹Ÿä¸æ˜¯è‡ªå·±
+		if not IsPlayer(dwCaster) or not JH_IsParty(dwCaster) and dwCaster ~= PLAYER_ID then -- Ä¿±ê²»ÊÇ¶ÓÓÑÒ²²»ÊÇ×Ô¼º
 			return
 		end
 	end
@@ -31,7 +31,7 @@ local function OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLe
 	local KTarget = IsPlayer(dwTarget) and GetPlayer(dwTarget) or GetNpc(dwTarget)
 
 	local szSkill = nEffectType == SKILL_EFFECT_TYPE.SKILL and JH_GetSkillName(dwSkillID, dwLevel) or JH_GetBuffName(dwSkillID, dwLevel)
-		-- äº”ç±»ä¼¤å®³
+		-- ÎåÀàÉËº¦
 	if IsPlayer(dwTarget)
 		and tResult[SKILL_RESULT_TYPE.PHYSICS_DAMAGE]
 		or tResult[SKILL_RESULT_TYPE.SOLAR_MAGIC_DAMAGE]
@@ -63,7 +63,7 @@ local function OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLe
 			bCriticalStrike = bCriticalStrike,
 		})
 	end
-	-- æœ‰åå¼¹ä¼¤å®³
+	-- ÓĞ·´µ¯ÉËº¦
 	if tResult[SKILL_RESULT_TYPE.REFLECTIED_DAMAGE] and IsPlayer(dwCaster) then
 		local szTarget
 		if KTarget then
@@ -92,9 +92,9 @@ local function OnSkillEffectLog(dwCaster, dwTarget, nEffectType, dwSkillID, dwLe
 	end
 end
 
--- æ„å¤–æ‘”ä¼¤ ä¼šè§¦å‘è¿™ä¸ªæ—¥å¿—
+-- ÒâÍâË¤ÉË »á´¥·¢Õâ¸öÈÕÖ¾
 local function OnCommonHealthLog(dwCharacterID, nDeltaLife)
-	-- è¿‡æ»¤éç©å®¶å’Œæ²»ç–—æ—¥å¿—
+	-- ¹ıÂË·ÇÍæ¼ÒºÍÖÎÁÆÈÕÖ¾
 	if not IsPlayer(dwCharacterID) or nDeltaLife >= 0 then
 		return
 	end
@@ -129,9 +129,9 @@ local function OnSkill(dwCaster, dwSkillID, dwLevel)
 		szSkill      = JH_GetSkillName(dwSkillID, dwLevel),
 	})
 end
--- è¿™é‡Œçš„szKilleræœ‰ä¸ªå¾ˆå¤§çš„å‘
--- å› ä¸ºç­–åˆ’ä¸å–œæ¬¢å†™æ¨¡æ¿åç§° å¯¼è‡´NPCåå­—å…¨æ˜¯ç©ºçš„ æ‘”æ­»å’Œæ·¹æ­»ä¹Ÿæ˜¯ç©º
--- è¿™å°±ç‰¹åˆ«éƒé—·
+-- ÕâÀïµÄszKillerÓĞ¸öºÜ´óµÄ¿Ó
+-- ÒòÎª²ß»®²»Ï²»¶Ğ´Ä£°åÃû³Æ µ¼ÖÂNPCÃû×ÖÈ«ÊÇ¿ÕµÄ Ë¤ËÀºÍÑÍËÀÒ²ÊÇ¿Õ
+-- Õâ¾ÍÌØ±ğÓôÃÆ
 local function OnDeath(dwCharacterID, dwKiller)
 	if IsPlayer(dwCharacterID) and (JH_IsParty(dwCharacterID) or dwCharacterID == PLAYER_ID) then
 		dwCharacterID = dwCharacterID == PLAYER_ID and "self" or dwCharacterID
@@ -162,9 +162,9 @@ RegisterEvent("LOADING_END", function()
 end)
 
 RegisterEvent("SYS_MSG", function()
-	if arg0 == "UI_OME_DEATH_NOTIFY" then -- æ­»äº¡è®°å½•
+	if arg0 == "UI_OME_DEATH_NOTIFY" then -- ËÀÍö¼ÇÂ¼
 		OnDeath(arg1, arg2)
-	elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then -- æŠ€èƒ½è®°å½•
+	elseif arg0 == "UI_OME_SKILL_EFFECT_LOG" then -- ¼¼ÄÜ¼ÇÂ¼
 		OnSkillEffectLog(arg1, arg2, arg4, arg5, arg6, arg7, arg8, arg9)
 	elseif arg0 == "UI_OME_COMMON_HEALTH_LOG" then
 		OnCommonHealthLog(arg1, arg2)
@@ -172,7 +172,7 @@ RegisterEvent("SYS_MSG", function()
 end)
 
 RegisterEvent("DO_SKILL_CAST", function()
-	if arg1 == 608 and IsPlayer(arg0) then -- è‡ªè§‰ç»è„‰
+	if arg1 == 608 and IsPlayer(arg0) then -- ×Ô¾õ¾­Âö
 		OnSkill(arg0, arg1, arg2)
 	end
 end)
