@@ -686,8 +686,11 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 
 			-- 获得处理
 			if nClass == DBM_TYPE.BUFF_GET then
-				if JH.bDebugClient and cfg.bSelect then
+				if cfg.bSelect then
 					SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
+				end
+				if cfg.bAutoCancel and DBM_CORE_PLAYERID == dwCaster then
+					JH.CancelBuff(dwBuffID)
 				end
 				if cfg.tMark then
 					D.SetTeamMark(szType, cfg.tMark, dwCaster, dwBuffID, nBuffLevel)
@@ -718,7 +721,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 					end
 				end
 				-- 添加到团队面板
-				if DBM.bPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == DBM_CORE_PLAYERID) then
+				if DBM.bPushTeamPanelbPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == DBM_CORE_PLAYERID) then
 					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, {
 						dwID      = data.dwID,
 						nStackNum = data.nCount,

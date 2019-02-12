@@ -1528,6 +1528,17 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", "bOnlySelfSrc", { x = nX + 5, y = nY, checked = cfg.bOnlySelfSrc, txt = _L["Only Source Self"] }):Enable(cfg.bTeamPanel == true):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.BUFF_GET, "bOnlySelfSrc", bCheck)
 		end):Pos_()
+		local _ui = ui:Append("WndCheckBox", { x = 30, y = nY, checked = cfg.bSelect, txt = _L["Auto Select"] }):Click(function(bCheck)
+			SetDataClass(DBM_TYPE.BUFF_GET, "bSelect", bCheck)
+		end)
+		nX = _ui:Pos_()
+		if szType == "BUFF" then
+			nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bAutoCancel, txt = _L["Auto Cancel Buff"] }):Click(function(bCheck)
+				SetDataClass(DBM_TYPE.BUFF_GET, "bAutoCancel", bCheck)
+			end):Pos_()
+		else
+			nX, nY = _ui:Pos_()
+		end
 		-- 失去buff
 		local cfg = data[DBM_TYPE.BUFF_LOSE] or {}
 		nX, nY = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Lose Buff"], font = 27 }):Pos_()
@@ -1578,9 +1589,9 @@ function DBMUI.OpenSettingPanel(data, szType)
 		nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
 			SetDataClass(DBM_TYPE.SKILL_END, "bFullScreen", bCheck)
 		end):Pos_()
-		local tRecipeKey = me.GetSkillRecipeKey(data.dwID, data.nLevel)
-		tSkillInfo = GetSkillInfo(tRecipeKey)
-		if tSkillInfo and tSkillInfo.CastTime ~= 0 then
+		-- local tRecipeKey = me.GetSkillRecipeKey(data.dwID, data.nLevel)
+		-- tSkillInfo = GetSkillInfo(tRecipeKey)
+		-- if tSkillInfo and tSkillInfo.CastTime ~= 0 then
 			local cfg = data[DBM_TYPE.SKILL_BEGIN] or {}
 			nX = ui:Append("Text", { x = 20, y = nY + 5, txt = _L["Skills began to release"], font = 27 }):Pos_()
 			nX, nY = ui:Append("WndComboBox", { x = nX + 5, y = nY + 8, w = 60, h = 25, txt = _L["Mark"] }):Menu(function()
@@ -1604,7 +1615,7 @@ function DBMUI.OpenSettingPanel(data, szType)
 			nX, nY = ui:Append("WndCheckBox", { x = nX + 5, y = nY, checked = cfg.bFullScreen, txt = _L["Full Screen Alarm"] }):Click(function(bCheck)
 				SetDataClass(DBM_TYPE.SKILL_BEGIN, "bFullScreen", bCheck)
 			end):Pos_()
-		end
+		-- end
 	elseif szType == "NPC" then
 		nX, nY = ui:Append("Text", { x = 20, y = nY, txt = g_tStrings.CHANNEL_COMMON, font = 27 }):Pos_()
 		nX = ui:Append("WndComboBox", { x = 30, y = nY + 12, txt = _L["Self KungFu require"] }):Menu(function()
@@ -1865,11 +1876,11 @@ function DBMUI.OpenSettingPanel(data, szType)
 					table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_END], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_END, fnAction = function()
 						SetCountdownType(v, DBM_TYPE.SKILL_END, ui:Fetch("Countdown" .. k))
 					end })
-					if tSkillInfo and tSkillInfo.CastTime ~= 0 then
+					-- if tSkillInfo and tSkillInfo.CastTime ~= 0 then
 						table.insert(menu, { szOption = _L["Countdown TYPE " .. DBM_TYPE.SKILL_BEGIN], bMCheck = true, bChecked = v.nClass == DBM_TYPE.SKILL_BEGIN, fnAction = function()
 							SetCountdownType(v, DBM_TYPE.SKILL_BEGIN, ui:Fetch("Countdown" .. k))
 						end })
-					end
+					-- end
 				elseif szType == "NPC" then
 					for kk, vv in ipairs({ DBM_TYPE.NPC_ENTER, DBM_TYPE.NPC_LEAVE, DBM_TYPE.NPC_ALLLEAVE, DBM_TYPE.NPC_FIGHT, DBM_TYPE.NPC_DEATH, DBM_TYPE.NPC_ALLDEATH, DBM_TYPE.NPC_LIFE, --[[DBM_TYPE.NPC_MANA]] }) do
 						table.insert(menu, { szOption = _L["Countdown TYPE " .. vv], bMCheck = true, bChecked = v.nClass == vv, fnAction = function()

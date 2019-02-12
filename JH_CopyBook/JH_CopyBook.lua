@@ -29,7 +29,7 @@ function Book.GetBook(szName)
 	if not Book.tCache.BOOK[szName] then
 		local me = GetClientPlayer()
 		local nCount = g_tTable.BookSegment:GetRowCount() --获取表格总行
-		local nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt = 0, 0, 0, 0, 0, 0
+		local nVigor, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt = 0, 0, 0, 0, 0, 0
 		local tItems, tBooks, tTool = {}, {}, {}
 		local dwBookID, dwBookNumber
 		for i = 1, nCount do
@@ -43,7 +43,7 @@ function Book.GetBook(szName)
 			for i = 1, dwBookNumber do
 				local tRecipe = GetRecipe(12, dwBookID, i)
 				if not JH_CopyBook.tIgnore[i] then
-					nThew           = nThew + tRecipe.nThew
+					nVigor          = nVigor + tRecipe.nVigor
 					nMaxLevel       = math.max(nMaxLevel, tRecipe.dwRequireProfessionLevel) -- 阅读等级
 					nMaxPlayerLevel = math.max(nMaxPlayerLevel, tRecipe.nRequirePlayerLevel) -- 角色等级
 					if nMaxLevelEx < tRecipe.dwRequireProfessionLevelExt then
@@ -78,7 +78,7 @@ function Book.GetBook(szName)
 				nExamPrint = tTable.dwPresentExamPrint
 			end
 		end
-		Book.tCache.BOOK[szName] = { dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool }
+		Book.tCache.BOOK[szName] = { dwBookID, dwBookNumber, nVigor, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool }
 	end
 	return unpack(Book.tCache.BOOK[szName] or {})
 end
@@ -99,9 +99,9 @@ function Book.UpdateRange(szName)
 	local ui = Book.ui
 	if not ui then return end
 	local me = GetClientPlayer()
-	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool = Book.GetBook(szName and szName or JH_CopyBook.szBookName)
-	local nMax = math.max(math.floor(me.nCurrentThew / math.max(nThew, 1)), 1)
-	ui:Fetch("Count"):Change(nil):Enable(nThew ~= 0):Range(0, nMax, math.max(nMax, 0)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
+	local dwBookID, dwBookNumber, nVigor, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool = Book.GetBook(szName and szName or JH_CopyBook.szBookName)
+	local nMax = math.max(math.floor(me.nCurrentThew / math.max(nVigor, 1)), 1)
+	ui:Fetch("Count"):Change(nil):Enable(nVigor ~= 0):Range(0, nMax, math.max(nMax, 0)):Value(JH_CopyBook.nCopyNum):Change(function(nNum)
 		JH_CopyBook.nCopyNum = nNum
 		JH.DelayCall(Book.UpdateInfo)
 	end)
@@ -111,13 +111,13 @@ function Book.UpdateInfo(szName)
 	local ui = Book.ui
 	if not ui then return end
 	local me = GetClientPlayer()
-	local dwBookID, dwBookNumber, nThew, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool = Book.GetBook(szName and szName or JH_CopyBook.szBookName)
+	local dwBookID, dwBookNumber, nVigor, nExamPrint, nMaxLevel, nMaxLevelEx, nMaxPlayerLevel, dwProfessionIDExt, tItems, tBooks, tTool = Book.GetBook(szName and szName or JH_CopyBook.szBookName)
 	if dwBookID then
-		local bCanCopy = nThew > 0 and true or false
+		local bCanCopy = nVigor > 0 and true or false
 		local szUitex = "ui/Image/Minimap/MapMark.UITex"
 		local green, red = { 255, 255, 255 }, { 255, 0, 0 }
 		ui:Fetch("Copy"):Enable(true)
-		local nMax = math.max(math.floor(me.nCurrentThew / math.max(nThew, 1)), 1)
+		local nMax = math.max(math.floor(me.nCurrentThew / math.max(nVigor, 1)), 1)
 		if JH_CopyBook.nCopyNum > nMax and not Book.bEnable then
 			JH_CopyBook.nCopyNum = nMax
 		end
@@ -126,7 +126,7 @@ function Book.UpdateInfo(szName)
 		local nX, nY = 10, 0
 		nX, nY = handle:Append("Text", { x = nX, y = nY, txt = FormatString(g_tStrings.CRAFT_COPY_REWARD_EXAMPRINT, " " .. JH_CopyBook.nCopyNum * nExamPrint), color = { 255, 128, 0 } }):Pos_()
 		-- 计算体力
-		local nNumThew = JH_CopyBook.nCopyNum * nThew
+		local nNumThew = JH_CopyBook.nCopyNum * nVigor
 		local bStatus  = nNumThew <= me.nCurrentThew and true or false
 		bCanCopy = bCanCopy and bStatus
 		nX = handle:Append("Text", { x = 10, y = nY + 5, txt = _L["Need Thew:"]}):Pos_()

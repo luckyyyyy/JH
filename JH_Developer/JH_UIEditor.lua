@@ -251,7 +251,7 @@ end
 
 function UI.GetMeun()
 	local menu = {}
-	for k, v in ipairs({ "Lowest", "Lowest1", "Lowest2", "Normal", "Normal1", "Normal2", "Topmost", "Topmost1", "Topmost2" })do
+	for k, v in ipairs({ "Lowest", "Lowest1", "Lowest2", "Normal", "Normal1", "Normal2", "Topmost", "Topmost1", "Topmost2", "Texture" })do
 		tinsert(menu, { szOption = v })
 		local frame = Station.Lookup(v):GetFirstChild()
 		while frame do

@@ -4,7 +4,7 @@
 -- @Last Modified time: 2016-12-14 21:45:47
 local _L = JH.LoadLangPack
 -----------------------------------------------
--- ÖØ¹¹ @ 2015 ¸ÏÊ±¼ä ºÜ¶à¶«Î÷Ğ´µÄºÜ´ÖÂÔ
+-- é‡æ„ @ 2015 èµ¶æ—¶é—´ å¾ˆå¤šä¸œè¥¿å†™çš„å¾ˆç²—ç•¥
 -----------------------------------------------
 -- global cache
 local pairs, ipairs = pairs, ipairs
@@ -27,8 +27,8 @@ local MOVE_STATE_ON_STAND    = MOVE_STATE.ON_STAND
 local MOVE_STATE_ON_DEATH    = MOVE_STATE.ON_DEATH
 -- local value
 local CTM_ALPHA_STEP         = 15    -- 240 / CTM_ALPHA_STEP
-local CTM_BOX_HEIGHT         = 42    -- ×¢Òâ::ÊÜÏŞini ÕâÀïÖ»ÊÇ×÷ÓÃÓÚ¶¯Ì¬ĞŞ¸Ä
-local CTM_GROUP_COUNT        = 5 - 1 -- ·ÀÖ¹ÒÔºó¿ª¸öÊ²Ã´40ÈË±¾ ¹À¼Æ²»Ì«¿ÉÄÜ ¾ÍºÍ½£ÈıÕâ»¹µÃºÃ¼¸Äê
+local CTM_BOX_HEIGHT         = 42    -- æ³¨æ„::å—é™ini è¿™é‡Œåªæ˜¯ä½œç”¨äºåŠ¨æ€ä¿®æ”¹
+local CTM_GROUP_COUNT        = 5 - 1 -- é˜²æ­¢ä»¥åå¼€ä¸ªä»€ä¹ˆ40äººæœ¬ ä¼°è®¡ä¸å¤ªå¯èƒ½ å°±å’Œå‰‘ä¸‰è¿™è¿˜å¾—å¥½å‡ å¹´
 local CTM_MEMBER_COUNT       = 5
 local CTM_DRAG               = false
 local CTM_INIFILE            = JH.GetAddonInfo().szRootPath .. "JH_Cataclysm/ui/Cataclysm_Party.ini"
@@ -47,24 +47,24 @@ local HIDE_FORCE = {
 	[21] = true,
 }
 local KUNGFU_TYPE = {
-	TIAN_CE   = 1,      -- Ìì²ßÄÚ¹¦
-	WAN_HUA   = 2,      -- Íò»¨ÄÚ¹¦
-	CHUN_YANG = 3,      -- ´¿ÑôÄÚ¹¦
-	QI_XIU    = 4,      -- ÆßĞãÄÚ¹¦
-	SHAO_LIN  = 5,      -- ÉÙÁÖÄÚ¹¦
-	CANG_JIAN = 6,      -- ²Ø½£ÄÚ¹¦
-	GAI_BANG  = 7,      -- Ø¤°ïÄÚ¹¦
-	MING_JIAO = 8,      -- Ã÷½ÌÄÚ¹¦
-	WU_DU     = 9,      -- Îå¶¾ÄÚ¹¦
-	TANG_MEN  = 10,     -- ÌÆÃÅÄÚ¹¦
-	CANG_YUN  = 18,     -- ²ÔÔÆÄÚ¹¦
+	TIAN_CE   = 1,      -- å¤©ç­–å†…åŠŸ
+	WAN_HUA   = 2,      -- ä¸‡èŠ±å†…åŠŸ
+	CHUN_YANG = 3,      -- çº¯é˜³å†…åŠŸ
+	QI_XIU    = 4,      -- ä¸ƒç§€å†…åŠŸ
+	SHAO_LIN  = 5,      -- å°‘æ—å†…åŠŸ
+	CANG_JIAN = 6,      -- è—å‰‘å†…åŠŸ
+	GAI_BANG  = 7,      -- ä¸å¸®å†…åŠŸ
+	MING_JIAO = 8,      -- æ˜æ•™å†…åŠŸ
+	WU_DU     = 9,      -- äº”æ¯’å†…åŠŸ
+	TANG_MEN  = 10,     -- å”é—¨å†…åŠŸ
+	CANG_YUN  = 18,     -- è‹äº‘å†…åŠŸ
 }
 local function IsPlayerManaHide(dwForceID, dwMountType)
 	if dwMountType then
-		if dwMountType == KUNGFU_TYPE.CANG_JIAN or           --²Ø½£
-			dwMountType == KUNGFU_TYPE.TANG_MEN or           --ÌÆÃÅ
-			dwMountType == KUNGFU_TYPE.MING_JIAO or          --Ã÷½Ì
-			dwMountType == KUNGFU_TYPE.CANG_YUN then         --²ÔÔÆ
+		if dwMountType == KUNGFU_TYPE.CANG_JIAN or           --è—å‰‘
+			dwMountType == KUNGFU_TYPE.TANG_MEN or           --å”é—¨
+			dwMountType == KUNGFU_TYPE.MING_JIAO or          --æ˜æ•™
+			dwMountType == KUNGFU_TYPE.CANG_YUN then         --è‹äº‘
 			return true
 		else
 			return false
@@ -120,7 +120,7 @@ local function CloseRaidDragPanel()
 		Wnd.CloseWindow(hFrame)
 	end
 end
--- OutputTeamMemberTip ÏµÍ³µÄAPI²»ºÃÓÃËùÒÔÕâÊÇ¸ÄÉÆ°æ
+-- OutputTeamMemberTip ç³»ç»Ÿçš„APIä¸å¥½ç”¨æ‰€ä»¥è¿™æ˜¯æ”¹å–„ç‰ˆ
 local function OutputTeamMemberTip(dwID, rc)
 	local team = GetClientTeam()
 	local tMemberInfo = team.GetMemberInfo(dwID)
@@ -196,36 +196,36 @@ local CTM_FORCE_COLOR = {
 	-- [21] = { 180, 60 , 0   },
 }
 setmetatable(CTM_FORCE_COLOR, { __index = JH_FORCE_COLOR, __metatable = true })
-local function GetForceColor(dwForceID) --»ñµÃ³ÉÔ±ÑÕÉ«
+local function GetForceColor(dwForceID) --è·å¾—æˆå‘˜é¢œè‰²
 	return unpack(CTM_FORCE_COLOR[dwForceID])
 end
 
--- ÓĞ¸÷¸ö°æ±¾Ö®¼äµÄÎÄ±¾²îÒì£¬ËùÒÔ×öµ½·­ÒëÖĞ
+-- æœ‰å„ä¸ªç‰ˆæœ¬ä¹‹é—´çš„æ–‡æœ¬å·®å¼‚ï¼Œæ‰€ä»¥åšåˆ°ç¿»è¯‘ä¸­
 local CTM_KUNGFU_TEXT = {
-	[10080] = _L["KUNGFU_10080"], -- "ÔÆ",
-	[10081] = _L["KUNGFU_10081"], -- "±ù",
-	[10021] = _L["KUNGFU_10021"], -- "»¨",
-	[10028] = _L["KUNGFU_10028"], -- "Àë",
-	[10026] = _L["KUNGFU_10026"], -- "°Á",
-	[10062] = _L["KUNGFU_10062"], -- "Ìú",
-	[10002] = _L["KUNGFU_10002"], -- "Ï´",
-	[10003] = _L["KUNGFU_10003"], -- "Ò×",
-	[10014] = _L["KUNGFU_10014"], -- "Æø",
-	[10015] = _L["KUNGFU_10015"], -- "½£",
-	[10144] = _L["KUNGFU_10144"], -- "ÎÊ",
-	[10145] = _L["KUNGFU_10145"], -- "É½",
-	[10175] = _L["KUNGFU_10175"], -- "¶¾",
-	[10176] = _L["KUNGFU_10176"], -- "²¹",
-	[10224] = _L["KUNGFU_10224"], -- "Óğ",
-	[10225] = _L["KUNGFU_10225"], -- "¹î",
-	[10242] = _L["KUNGFU_10242"], -- "·Ù",
-	[10243] = _L["KUNGFU_10243"], -- "×ğ",
-	[10268] = _L["KUNGFU_10268"], -- "Ø¤",
-	[10390] = _L["KUNGFU_10390"], -- "·Ö",
-	[10389] = _L["KUNGFU_10389"], -- "ÒÂ",
-	[10448] = _L["KUNGFU_10448"], -- "Ïà",
-	[10447] = _L["KUNGFU_10447"], -- "Äª",
-	[10464] = _L["KUNGFU_10464"], -- "µ¶",
+	[10080] = _L["KUNGFU_10080"], -- "äº‘",
+	[10081] = _L["KUNGFU_10081"], -- "å†°",
+	[10021] = _L["KUNGFU_10021"], -- "èŠ±",
+	[10028] = _L["KUNGFU_10028"], -- "ç¦»",
+	[10026] = _L["KUNGFU_10026"], -- "å‚²",
+	[10062] = _L["KUNGFU_10062"], -- "é“",
+	[10002] = _L["KUNGFU_10002"], -- "æ´—",
+	[10003] = _L["KUNGFU_10003"], -- "æ˜“",
+	[10014] = _L["KUNGFU_10014"], -- "æ°”",
+	[10015] = _L["KUNGFU_10015"], -- "å‰‘",
+	[10144] = _L["KUNGFU_10144"], -- "é—®",
+	[10145] = _L["KUNGFU_10145"], -- "å±±",
+	[10175] = _L["KUNGFU_10175"], -- "æ¯’",
+	[10176] = _L["KUNGFU_10176"], -- "è¡¥",
+	[10224] = _L["KUNGFU_10224"], -- "ç¾½",
+	[10225] = _L["KUNGFU_10225"], -- "è¯¡",
+	[10242] = _L["KUNGFU_10242"], -- "ç„š",
+	[10243] = _L["KUNGFU_10243"], -- "å°Š",
+	[10268] = _L["KUNGFU_10268"], -- "ä¸",
+	[10390] = _L["KUNGFU_10390"], -- "åˆ†",
+	[10389] = _L["KUNGFU_10389"], -- "è¡£",
+	[10448] = _L["KUNGFU_10448"], -- "ç›¸",
+	[10447] = _L["KUNGFU_10447"], -- "è«",
+	[10464] = _L["KUNGFU_10464"], -- "åˆ€",
 }
 setmetatable(CTM_KUNGFU_TEXT, { __index = function() return _L["KUNGFU_0"] end, __metatable = true })
 
@@ -295,7 +295,7 @@ function CTM_Party_Base.OnItemLButtonDown()
 	local info = CTM:GetMemberInfo(this.dwID)
 	if IsCtrlKeyDown() then
 		EditBox_AppendLinkPlayer(info.szName)
-	elseif info.bIsOnLine and GetPlayer(this.dwID) then -- ÓĞ´ı¿¼Ö¤
+	elseif info.bIsOnLine and GetPlayer(this.dwID) then -- æœ‰å¾…è€ƒè¯
 		SetTarget(TARGET.PLAYER, this.dwID)
 		FireUIEvent("JH_TAR_TEMP_UPDATE", this.dwID)
 	end
@@ -325,7 +325,7 @@ function CTM_Party_Base.OnItemMouseLeave()
 	HideTip()
 	if not this.dwID then return end
 	local info = CTM:GetMemberInfo(this.dwID)
-	if not info then return end -- ÍË×âµÄÎÊÌâ
+	if not info then return end -- é€€ç§Ÿçš„é—®é¢˜
 	if info.bIsOnLine and GetPlayer(this.dwID) and CFG.bTempTargetEnable then
 		JH.SetTempTarget(this.dwID, false)
 	end
@@ -399,7 +399,7 @@ function CTM_Party_Base.OnItemRButtonClick()
 	end
 end
 
-function CTM:GetPartyFrame(nIndex) -- »ñµÃ×é¶ÓÃæ°å
+function CTM:GetPartyFrame(nIndex) -- è·å¾—ç»„é˜Ÿé¢æ¿
 	return Station.Lookup("Normal/Cataclysm_Party_" .. nIndex)
 end
 
@@ -419,7 +419,7 @@ function CTM:GetMemberHandle(nGroup, nIndex)
 	end
 end
 
--- ´´½¨Ãæ°å
+-- åˆ›å»ºé¢æ¿
 function CTM:CreatePanel(nIndex)
 	local me = GetClientPlayer()
 	local frame = self:GetPartyFrame(nIndex)
@@ -430,7 +430,7 @@ function CTM:CreatePanel(nIndex)
 	self:AutoLinkAllPanel()
 	self:RefreshGroupText()
 end
--- Ë¢ĞÂÍÅ¶Ó×é±àºÅ
+-- åˆ·æ–°å›¢é˜Ÿç»„ç¼–å·
 function CTM:RefreshGroupText()
 	local team = GetClientTeam()
 	local me = GetClientPlayer()
@@ -446,7 +446,7 @@ function CTM:RefreshGroupText()
 					for k, v in ipairs(tGroup.MemberList) do
 						if v == UI_GetClientPlayerID() then
 							-- TextGroup:SetFontScheme(2)
-							TextGroup:SetFontColor(255, 128, 0) -- ×Ô¼ºËùÔÚµÄĞ¡¶Ó »ÆÉ«
+							TextGroup:SetFontColor(255, 128, 0) -- è‡ªå·±æ‰€åœ¨çš„å°é˜Ÿ é»„è‰²
 							break
 						end
 					end
@@ -457,7 +457,7 @@ function CTM:RefreshGroupText()
 		end
 	end
 end
- -- Á¬½ÓËùÓĞÃæ°å
+ -- è¿æ¥æ‰€æœ‰é¢æ¿
 function CTM:AutoLinkAllPanel()
 	local frameMain = Cataclysm_Main.GetFrame()
 	local nX, nY = frameMain:GetRelPos()
@@ -615,9 +615,9 @@ function CTM:KungFuSwitch(dwID)
 			local img = handle:Lookup("Image_Icon")
 			JH.BreatheCall(key, function()
 				local player = GetPlayer(dwID)
-				if img and img:IsValid() and player and player.GetSkillPrepareState() then
-					local bIsPrepare, dwSkillID, dwSkillLevel, nPer = player.GetSkillPrepareState()
-					local alpha = 255 * (math.abs(math.mod(nPer * 300, 32) - 7) + 4) / 12
+				local nType, dwSkillID, dwSkillLevel, fCastPercent = player.GetSkillOTActionState()
+				if img and img:IsValid() and player and (nType == CHARACTER_OTACTION_TYPE.ACTION_SKILL_PREPARE or nType == CHARACTER_OTACTION_TYPE.ACTION_SKILL_CHANNEL) then
+					local alpha = 255 * (math.abs(math.mod(fCastPercent * 300, 32) - 7) + 4) / 12
 					if alpha <= 255 then
 						img:SetAlpha(alpha)
 					end
@@ -632,11 +632,11 @@ function CTM:KungFuSwitch(dwID)
 	end
 end
 
--- Ë¢ĞÂÍ¼±êºÍÃû×ÖÖ®ÀàµÄĞÅÏ¢
+-- åˆ·æ–°å›¾æ ‡å’Œåå­—ä¹‹ç±»çš„ä¿¡æ¯
 function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bName)
 	-- assert(info)
 	if not info then return end
-	-- Ë¢ĞÂÍÅ¶ÓÈ¨ÏŞ±ê¼Ç
+	-- åˆ·æ–°å›¢é˜Ÿæƒé™æ ‡è®°
 	if type(tSetting) ~= "nil" then
 		local fnAction = function(t)
 			local hTotal = {
@@ -655,13 +655,13 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 			end
 		end
 
-		if type(tSetting) == "table" then -- ¸ù¾İ±íµÄÄÚÈİË¢ĞÂ±ê¼Ç¶Ó³¤µÈĞÅÏ¢
+		if type(tSetting) == "table" then -- æ ¹æ®è¡¨çš„å†…å®¹åˆ·æ–°æ ‡è®°é˜Ÿé•¿ç­‰ä¿¡æ¯
 			fnAction(tSetting)
 		elseif type(tSetting) == "boolean" and tSetting then
 			fnAction(self:GetTeamInfo())
 		end
 	end
-	-- Ë¢ĞÂÕóÑÛ
+	-- åˆ·æ–°é˜µçœ¼
 	if type(bFormationLeader) == "boolean" then
 		if bFormationLeader then
 			local fScale = (CFG.fScaleY + CFG.fScaleX) / 2
@@ -671,8 +671,8 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 			h:Lookup("Handle_Icons/Image_Matrix"):Hide()
 		end
 	end
-	-- Ë¢ĞÂÄÚ¹¦
-	if bIcon then -- Ë¢ĞÂicon
+	-- åˆ·æ–°å†…åŠŸ
+	if bIcon then -- åˆ·æ–°icon
 		local img = h:Lookup("Image_Icon")
 		if CFG.nShowIcon ~= 4 then
 			if CFG.nShowIcon == 2 then
@@ -693,16 +693,16 @@ function CTM:RefreshImages(h, dwID, info, tSetting, bIcon, bFormationLeader, bNa
 			img:SetRelPos(pos, pos)
 			h:FormatAllItemPos()
 			img:Show()
-		else -- ²»ÔÙÓÉicon¿ØÖÆ ×ª½»¸øtextname
+		else -- ä¸å†ç”±iconæ§åˆ¶ è½¬äº¤ç»™textname
 			img:Hide()
 			bName = true
 		end
 	end
-	-- Ë¢ĞÂÃû×Ö
+	-- åˆ·æ–°åå­—
 	if bName then
 		local TextName = h:Lookup("Text_Name")
 		TextName:SetText(info.szName)
-		-- TextName:SetText("²âÊÔ²âÊÔ²âÊÔ")
+		-- TextName:SetText("æµ‹è¯•æµ‹è¯•æµ‹è¯•")
 		TextName:SetFontScheme(CFG.nFont)
 		if CFG.nColoredName == 1 then
 			TextName:SetFontColor(GetForceColor(info.dwForceID))
@@ -772,7 +772,7 @@ function CTM:ReloadParty()
 	CTM_LIFE_CACHE = {}
 end
 
--- °¥ ÊÂ¼şÌ«µ°ÌÛ ¾ÍÕâÑù°É
+-- å“ äº‹ä»¶å¤ªè›‹ç–¼ å°±è¿™æ ·å§
 function CTM:RefresFormation()
 	local team = GetClientTeam()
 	for i = 0, team.nGroupNum - 1 do
@@ -789,7 +789,7 @@ function CTM:RefresFormation()
 	end
 end
 
--- »æÖÆÃæ°å
+-- ç»˜åˆ¶é¢æ¿
 function CTM:DrawParty(nIndex)
 	local team = GetClientTeam()
 	local tGroup = team.GetGroupInfo(nIndex)
@@ -813,16 +813,16 @@ function CTM:DrawParty(nIndex)
 	end
 	handle:FormatAllItemPos()
 	frame.nMemberCount = #tGroup.MemberList
-	-- ÏÈËõ·Åºó»­
+	-- å…ˆç¼©æ”¾åç”»
 	self:FormatFrame(frame, #tGroup.MemberList)
-	self:RefreshDistance() -- Á¢¼´Ë¢ĞÂÒ»´Î
+	self:RefreshDistance() -- ç«‹å³åˆ·æ–°ä¸€æ¬¡
 	for k, v in pairs(CTM_CACHE) do
 		if v:IsValid() and v.nGroup == nIndex then
 			self:CallDrawHPMP(k, true)
 		end
 	end
 	CTM_LIFE_CACHE = {}
-	-- Ë¢ĞÂ
+	-- åˆ·æ–°
 	CTM_TTARGET = nil
 	CTM_TARGET = nil
 	local dwType, dwID = Target_GetTargetData()
@@ -842,9 +842,9 @@ function CTM:Scale(fX, fY, frame)
 		end
 	end
 	self:AutoLinkAllPanel()
-	self:CallRefreshImages(true, true, true, nil, true) -- Ëõ·ÅÆäËûÍ¼±ê
-	self:RefresFormation() -- Ëõ·ÅÕóÑÛ
-	self:RefreshMark() -- Ëõ·Å±ê¼Ç
+	self:CallRefreshImages(true, true, true, nil, true) -- ç¼©æ”¾å…¶ä»–å›¾æ ‡
+	self:RefresFormation() -- ç¼©æ”¾é˜µçœ¼
+	self:RefreshMark() -- ç¼©æ”¾æ ‡è®°
 end
 
 function CTM:FormatFrame(frame, nMemberCount)
@@ -888,7 +888,7 @@ function CTM:FormatFrame(frame, nMemberCount)
 	h:FormatAllItemPos()
 end
 
--- ×¢²ábuff
+-- æ³¨å†Œbuff
 function CTM:RecBuff(dwMemberID, data)
 	CTM_BUFF_CACHE[data.dwID] = data
 end
@@ -975,7 +975,7 @@ function CTM:RefresBuff()
 				else
 					if item then
 						handle:RemoveItem(item)
-						handle:FormatAllItemPos() -- ¸ñÊ½»¯buffµÄÎ»ÖÃ
+						handle:FormatAllItemPos() -- æ ¼å¼åŒ–buffçš„ä½ç½®
 					end
 				end
 			end
@@ -996,10 +996,10 @@ function CTM:RefreshDistance()
 	if CFG.bEnableDistance then
 		for k, v in pairs(CTM_CACHE) do
 			if v:IsValid() then
-				local p = GetPlayer(k) -- info.nPoX Ë¢ĞÂÌ«ÂıÁË ¶ÔÓÚÖÎÁÆÀ´Ëµ Õâ¸öÌ«ÖØÒªÁË
+				local p = GetPlayer(k) -- info.nPoX åˆ·æ–°å¤ªæ…¢äº† å¯¹äºæ²»ç–—æ¥è¯´ è¿™ä¸ªå¤ªé‡è¦äº†
 				local Lsha = v:Lookup("Handle_Common/Shadow_Life")
 				if p then
-					local nDistance = GetDistance(p.nX, p.nY) -- Ö»¼ÆËãÆ½Ãæ
+					local nDistance = GetDistance(p.nX, p.nY) -- åªè®¡ç®—å¹³é¢
 					if CFG.nBGClolrMode == 1 then
 						local find
 						for kk, vv in ipairs(CFG.tDistanceLevel) do
@@ -1012,7 +1012,7 @@ function CTM:RefreshDistance()
 								break
 							end
 						end
-						-- Èç¹ûÉÏÃæ¶¼²»Æ¥ÅäµÄ»° Ä¬ÈÏÈÏÎª³öÁËÍ¬²½·¶Î§ feedback ÇÅÖ®ÓÚË®
+						-- å¦‚æœä¸Šé¢éƒ½ä¸åŒ¹é…çš„è¯ é»˜è®¤è®¤ä¸ºå‡ºäº†åŒæ­¥èŒƒå›´ feedback æ¡¥ä¹‹äºæ°´
 						if not find and Lsha.nLevel then
 							Lsha.nLevel = nil
 							self:CallDrawHPMP(k, true)
@@ -1056,7 +1056,7 @@ function CTM:RefreshDistance()
 	end
 end
 
--- ÑªÁ¿ / ÄÚÁ¦
+-- è¡€é‡ / å†…åŠ›
 function CTM:CallDrawHPMP(dwID, ...)
 	if type(dwID) == "number" then
 		local info = self:GetMemberInfo(dwID)
@@ -1075,7 +1075,7 @@ function CTM:CallDrawHPMP(dwID, ...)
 	end
 end
 
--- Ëõ·Å¶Ô¶¯Ì¬¹¹½¨µÄUI²»»áËõ·Å ËùÒÔĞèÒªºó´¦Àí
+-- ç¼©æ”¾å¯¹åŠ¨æ€æ„å»ºçš„UIä¸ä¼šç¼©æ”¾ æ‰€ä»¥éœ€è¦åå¤„ç†
 function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not info then return end
 	local Lsha = h:Lookup("Handle_Common/Shadow_Life")
@@ -1084,7 +1084,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if CFG.bFasterHP then
 		p = GetPlayer(dwID)
 	end
-	-- ÆøÑª¼ÆËã ÒòÎªsync ±ØĞëÄÃ³öÀ´µ¥¶ÀËã
+	-- æ°”è¡€è®¡ç®— å› ä¸ºsync å¿…é¡»æ‹¿å‡ºæ¥å•ç‹¬ç®—
 	local nLifePercentage, nCurrentLife, nMaxLife
 	if p and p.nMaxLife ~= 1 and p.nCurrentLife ~= 1 and p.nCurrentLife ~= 255 and p.nMaxLife ~= 255 and p.nCurrentLife < 10000000 and p.nCurrentLife > - 1000 then -- p sync err fix
 		nCurrentLife = p.nCurrentLife
@@ -1099,7 +1099,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	if not nLifePercentage or nLifePercentage < 0 or nLifePercentage > 1 then nLifePercentage = 1 end
 
 	local bDeathFlag = info.bDeathFlag
-	-- ÓĞ´ıÑéÖ¤
+	-- æœ‰å¾…éªŒè¯
 	if p then
 		if p.GetKungfuMount() then
 			dwMountType = p.GetKungfuMount().dwMountType
@@ -1120,11 +1120,11 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			end
 		end
 	end
-	-- ÄÚÁ¦
+	-- å†…åŠ›
 	if not bDeathFlag then
 		local nPercentage, nManaShow = 1, 1
 		local mana = h:Lookup("Handle_Common/Text_Mana")
-		if not IsPlayerManaHide(info.dwForceID, dwMountType) then -- ÄÚÁ¦²»ĞèÒªÄÇÃ´×¼
+		if not IsPlayerManaHide(info.dwForceID, dwMountType) then -- å†…åŠ›ä¸éœ€è¦é‚£ä¹ˆå‡†
 			nPercentage = info.nCurrentMana / info.nMaxMana
 			nManaShow = info.nCurrentMana
 			if not CFG.nShowMP then
@@ -1140,11 +1140,11 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 	else
 		Msha:Hide()
 	end
-	-- »º´æ
+	-- ç¼“å­˜
 	if not CFG.bFasterHP or bRefresh or (CFG.bFasterHP and CTM_LIFE_CACHE[dwID] ~= nLifePercentage) then
-		-- ÑÕÉ«¼ÆËã
+		-- é¢œè‰²è®¡ç®—
 		local nNewW = 119 * nLifePercentage
-		local r, g, b = unpack(CFG.tOtherCol[2]) -- ²»ÔÚÏß¾Í»ÒÉ«ÁË
+		local r, g, b = unpack(CFG.tOtherCol[2]) -- ä¸åœ¨çº¿å°±ç°è‰²äº†
 		if info.bIsOnLine then
 			if CFG.nBGClolrMode == 1 then
 				if p or GetPlayer(dwID) then
@@ -1154,10 +1154,10 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 						r, g, b = unpack(CFG.tOtherCol[3])
 					end
 				else
-					r, g, b = unpack(CFG.tOtherCol[3]) -- ÔÚÏßÊ¹ÓÃ°×É«
+					r, g, b = unpack(CFG.tOtherCol[3]) -- åœ¨çº¿ä½¿ç”¨ç™½è‰²
 				end
 			elseif CFG.nBGClolrMode == 0 then
-				r, g, b = unpack(CFG.tDistanceCol[1]) -- Ê¹ÓÃÓÃ»§ÅäÉ«1
+				r, g, b = unpack(CFG.tDistanceCol[1]) -- ä½¿ç”¨ç”¨æˆ·é…è‰²1
 			elseif CFG.nBGClolrMode == 2 then
 				r, g, b = JH.GetForceColor(info.dwForceID)
 			end
@@ -1208,7 +1208,7 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 		else
 			CTM_LIFE_CACHE[dwID] = nLifePercentage
 		end
-		-- ÊıÖµ»æÖÆ
+		-- æ•°å€¼ç»˜åˆ¶
 		local life = h:Lookup("Handle_Common/Text_Life")
 		life:SetFontScheme(CFG.nLifeFont)
 		if CFG.nBGClolrMode ~= 1 then
@@ -1260,13 +1260,13 @@ function CTM:DrawHPMP(h, dwID, info, bRefresh)
 			life:SetFontColor(128, 128, 128)
 			life:SetText(COINSHOP_SOURCE_NULL)
 		end
-		-- if info.dwMountKungfuID == 0 then -- Ã»ÓĞÍ¬²½³É¹¦Ê±ÏÔÊ¾µÄÄÚÈİ
+		-- if info.dwMountKungfuID == 0 then -- æ²¡æœ‰åŒæ­¥æˆåŠŸæ—¶æ˜¾ç¤ºçš„å†…å®¹
 			-- life:SetText("sync ...")
 		-- end
 	end
 end
 
-function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) -- ÖØ»æÈı½ÇÉÈ
+function CTM:DrawShadow(sha, x, y, r, g, b, a, bGradient) -- é‡ç»˜ä¸‰è§’æ‰‡
 	sha:SetTriangleFan(GEOMETRY_TYPE.TRIANGLE)
 	sha:ClearTriangleFanPoint()
 	x = x * CFG.fScaleX

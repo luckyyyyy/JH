@@ -58,8 +58,8 @@ do
 	setmetatable(SA_COLOR.ARROW, mt)
 end
 
-local SA_POINT_C = { 25, 25, 180 }
-local SA_POINT = {
+local BASE_SA_POINT_C = { 25, 25, 180 }
+local BASE_SA_POINT = {
 	{ 15, 0,  100 },
 	{ 35, 0,  100 },
 	{ 35, 25, 180 },
@@ -68,6 +68,43 @@ local SA_POINT = {
 	{ 7,  25, 255 },
 	{ 15, 25, 180 },
 }
+
+local BASE_WIDTH
+local BASE_HEIGHT
+local BASE_PEAK
+local BASE_EDGE
+local SA_POINT_C = {}
+local SA_POINT = {}
+local BASE_POINT_START
+local function setUIScale()
+	local dpi = Station.GetMaxUIScale()
+	UI_SCALED = Station.GetUIScale()
+	BASE_PEAK = -60 * dpi * 0.5
+	BASE_WIDTH = 100 * dpi
+	BASE_HEIGHT = 12 * dpi
+	BASE_EDGE = dpi * 1.2
+	BASE_POINT_START = 15 * dpi
+	SA_POINT_C = {}
+	SA_POINT = {}
+	for k, v in ipairs(BASE_SA_POINT_C) do
+		if k ~= 3 then
+			SA_POINT_C[k] = v * dpi
+		else
+			SA_POINT_C[k] = v
+		end
+	end
+	for k, v in ipairs(BASE_SA_POINT) do
+		SA_POINT[k] = {}
+		for kk, vv in ipairs(v) do
+			if kk ~= 3 then
+				SA_POINT[k][kk] = vv * dpi
+			else
+				SA_POINT[k][kk] = vv
+			end
+		end
+	end
+end
+
 
 -- for i=1, 2 do FireUIEvent("JH_SA_CREATE", "TIME", GetClientPlayer().dwID, { col = { 255, 255, 255 }, txt = "test" })end
 local function CreateScreenArrow(szClass, dwID, tArgs)
@@ -149,10 +186,11 @@ function ScreenArrow.OnBreathe()
 						txt = g_tStrings.STR_SKILL_H_MANA_COST .. string.format("%d/%d", tInfo.nCurrentMana, tInfo.nMaxMana)
 					end
 				elseif obj.szClass == "CASTING" then
-					local bIsPrepare, dwSkillID, dwSkillLevel, fPer = object.GetSkillPrepareState()
-					if bIsPrepare then
+					local nType, dwSkillID, dwSkillLevel, fCastPercent = object.GetSkillOTActionState()
+					if nType == CHARACTER_OTACTION_TYPE.ACTION_SKILL_PREPARE
+					or nType == CHARACTER_OTACTION_TYPE.ACTION_SKILL_CHANNEL then
 						txt = obj.txt or JH.GetSkillName(dwSkillID, dwSkillLevel)
-						fManaPer = fPer
+						fManaPer = fCastPercent
 					else
 						return obj:Free()
 					end
@@ -315,7 +353,7 @@ end
 -- 从下至上 依次绘制
 function SA:DrawText( ... )
 	self.Text:ClearTriangleFanPoint()
-	local nTop = -62
+	local nTop = BASE_PEAK - (BASE_EDGE * 2)
 	local r, g, b = unpack(SA_COLOR.FONT[self.szClass])
 	local i = 1
 	for k, v in ipairs({ ... }) do
@@ -342,48 +380,51 @@ function SA:DrawBackGround()
 	for k, v in pairs({ self.BGB, self.BGI }) do
 		v:ClearTriangleFanPoint()
 	end
-	local bcX, bcY = -50, -60
+	local bcX, bcY = -BASE_WIDTH / 2, BASE_PEAK
+	local doubleEdge = BASE_EDGE * 2
 	if self.dwType == TARGET.DOODAD then
 		self.BGB:AppendDoodadID(self.dwID, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY })
-		self.BGB:AppendDoodadID(self.dwID, 255, 255, 255, 200, { 0, 0, 0, bcX + 100, bcY })
-		self.BGB:AppendDoodadID(self.dwID, 255, 255, 255, 200, { 0, 0, 0, bcX + 100, bcY + 12 })
-		self.BGB:AppendDoodadID(self.dwID, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY + 12 })
-		bcX, bcY = -49, -59
+		self.BGB:AppendDoodadID(self.dwID, 255, 255, 255, 200, { 0, 0, 0, bcX + BASE_WIDTH, bcY })
+		self.BGB:AppendDoodadID(self.dwID, 255, 255, 255, 200, { 0, 0, 0, bcX + BASE_WIDTH, bcY + BASE_HEIGHT })
+		self.BGB:AppendDoodadID(self.dwID, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY + BASE_HEIGHT })
+		bcX, bcY = -BASE_WIDTH / 2 + BASE_EDGE, BASE_PEAK + BASE_EDGE
 		self.BGI:AppendDoodadID(self.dwID, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY })
-		self.BGI:AppendDoodadID(self.dwID, 120, 120, 120, 80, { 0, 0, 0, bcX + 100 - 2, bcY })
-		self.BGI:AppendDoodadID(self.dwID, 120, 120, 120, 80, { 0, 0, 0, bcX + 100 - 2, bcY + 12 - 2 })
-		self.BGI:AppendDoodadID(self.dwID, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY + 12 - 2})
+		self.BGI:AppendDoodadID(self.dwID, 120, 120, 120, 80, { 0, 0, 0, bcX + BASE_WIDTH - doubleEdge, bcY })
+		self.BGI:AppendDoodadID(self.dwID, 120, 120, 120, 80, { 0, 0, 0, bcX + BASE_WIDTH - doubleEdge, bcY + BASE_HEIGHT - doubleEdge })
+		self.BGI:AppendDoodadID(self.dwID, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY + BASE_HEIGHT - doubleEdge})
 	else
 		self.BGB:AppendCharacterID(self.dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY })
-		self.BGB:AppendCharacterID(self.dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX + 100, bcY })
-		self.BGB:AppendCharacterID(self.dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX + 100, bcY + 12 })
-		self.BGB:AppendCharacterID(self.dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY + 12 })
-		bcX, bcY = -49, -59
+		self.BGB:AppendCharacterID(self.dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX + BASE_WIDTH, bcY })
+		self.BGB:AppendCharacterID(self.dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX + BASE_WIDTH, bcY + BASE_HEIGHT })
+		self.BGB:AppendCharacterID(self.dwID, true, 255, 255, 255, 200, { 0, 0, 0, bcX, bcY + BASE_HEIGHT })
+		bcX, bcY = -BASE_WIDTH / 2 + BASE_EDGE, BASE_PEAK + BASE_EDGE
 		self.BGI:AppendCharacterID(self.dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY })
-		self.BGI:AppendCharacterID(self.dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX + 100 - 2, bcY })
-		self.BGI:AppendCharacterID(self.dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX + 100 - 2, bcY + 12 - 2 })
-		self.BGI:AppendCharacterID(self.dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY + 12 - 2})
+		self.BGI:AppendCharacterID(self.dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX + BASE_WIDTH - doubleEdge, bcY })
+		self.BGI:AppendCharacterID(self.dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX + BASE_WIDTH - doubleEdge, bcY + BASE_HEIGHT - doubleEdge })
+		self.BGI:AppendCharacterID(self.dwID, true, 120, 120, 120, 80, { 0, 0, 0, bcX, bcY + BASE_HEIGHT - doubleEdge})
 	end
 	self.init = true
 	return self
 end
 
 function SA:DrawLifeBar(fLifePer, fManaPer)
+	local height = BASE_HEIGHT / 2 - BASE_EDGE
+	local width = BASE_WIDTH - (BASE_EDGE * 2)
 	if fLifePer ~= self.fLifePer then
 		self.Life:ClearTriangleFanPoint()
 		if fLifePer > 0 then
-			local bcX, bcY = -49, -59
+			local bcX, bcY = -BASE_WIDTH / 2 + BASE_EDGE, BASE_PEAK + BASE_EDGE
 			local r, g ,b = 220, 40, 0
 			if self.dwType == TARGET.DOODAD then
 				self.Life:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX, bcY })
-				self.Life:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (98 * fLifePer), bcY })
-				self.Life:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (98 * fLifePer), bcY + 5 })
-				self.Life:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
+				self.Life:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (width * fLifePer), bcY })
+				self.Life:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (width * fLifePer), bcY + height })
+				self.Life:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX, bcY + height })
 			else
 				self.Life:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
-				self.Life:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * fLifePer), bcY })
-				self.Life:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * fLifePer), bcY + 5 })
-				self.Life:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
+				self.Life:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (width * fLifePer), bcY })
+				self.Life:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (width * fLifePer), bcY + height })
+				self.Life:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + height })
 			end
 		end
 		self.fLifePer = fLifePer
@@ -391,21 +432,21 @@ function SA:DrawLifeBar(fLifePer, fManaPer)
 	if fManaPer ~= self.fManaPer then
 		self.Mana:ClearTriangleFanPoint()
 		if fManaPer > 0 then
-			local bcX, bcY = -49, -54
+			local bcX, bcY = -BASE_WIDTH / 2 + BASE_EDGE, BASE_PEAK + height + BASE_EDGE
 			local r, g ,b = 50, 100, 255
 			if self.szClass == "CASTING" then
 				r, g ,b = 255, 128, 0
 			end
 			if self.dwType == TARGET.DOODAD then
 				self.Mana:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX, bcY })
-				self.Mana:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (98 * fManaPer), bcY })
-				self.Mana:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (98 * fManaPer), bcY + 5 })
-				self.Mana:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
+				self.Mana:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (width * fManaPer), bcY })
+				self.Mana:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX + (width * fManaPer), bcY + height })
+				self.Mana:AppendDoodadID(self.dwID, r, g, b, 225, { 0, 0, 0, bcX, bcY + height })
 			else
 				self.Mana:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY })
-				self.Mana:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * fManaPer), bcY })
-				self.Mana:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (98 * fManaPer), bcY + 5 })
-				self.Mana:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + 5 })
+				self.Mana:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (width * fManaPer), bcY })
+				self.Mana:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX + (width * fManaPer), bcY + height })
+				self.Mana:AppendCharacterID(self.dwID, true, r, g, b, 225, { 0, 0, 0, bcX, bcY + height })
 			end
 		end
 		self.fManaPer = fManaPer
@@ -416,7 +457,7 @@ end
 function SA:DrowArrow()
 	local cX, cY, cA = unpack(SA_POINT_C)
 	cX, cY = cX * 0.7, cY * 0.7
-	local fX, fY = 15, 50
+	local fX, fY = BASE_POINT_START, -BASE_PEAK - BASE_HEIGHT
 	if self.bUp then
 		self.nTop = self.nTop + 2
 		if self.nTop >= 10 then
@@ -532,9 +573,7 @@ JH.RegisterInit("DBM_ARROW",
 	{ "Breathe", ScreenArrow.OnBreathe },
 	{ "FIGHT_HINT", ScreenArrow.RegisterFight },
 	{ "LOGIN_GAME", ScreenArrow.Init },
-	{ "UI_SCALED" , function()
-		UI_SCALED = Station.GetUIScale()
-	end },
+	{ "UI_SCALED" , setUIScale},
 	{ "JH_SA_CREATE", function()
 			CreateScreenArrow(arg0, arg1, arg2)
 	end }
