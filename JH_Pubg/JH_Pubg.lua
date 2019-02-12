@@ -8,7 +8,7 @@ local function UpdateTarget(dwID)
 			local mnt = tar.GetKungfuMount()
 			szName = szName .. ' - ' .. tar.GetTotalEquipScore()
 			if mnt then
-				szName = szName .. ' - ' .. string.sub(HM.GetSkillName(mnt.dwSkillID, mnt.dwLevel), 1, 4)
+				szName = szName .. ' - ' .. string.sub(JH.GetSkillName(mnt.dwSkillID, mnt.dwLevel), 1, 4)
 			end
 			text:SetText(szName)
 		end
