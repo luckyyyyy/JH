@@ -157,7 +157,12 @@ end
 
 function JH.OnEvent(szEvent)
 	if szEvent == "CALL_LUA_ERROR" and _DEBUG_ then
-		OutputMessage("MSG_SYS", arg0)
+		if not ECHO_LUA_ERROR then
+			ECHO_LUA_ERROR = { ID = 'JH' }
+		end
+		if ECHO_LUA_ERROR and ECHO_LUA_ERROR.ID == 'JH' then
+			OutputMessage("MSG_SYS", arg0)
+		end
 	elseif szEvent == "UI_SCALED" then
 		local a = JH_PANEL_ANCHOR
 		this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
