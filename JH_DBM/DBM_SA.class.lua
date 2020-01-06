@@ -159,7 +159,7 @@ function ScreenArrow.OnBreathe()
 				end
 				local txt = ""
 				if obj.szClass == "BUFF" or obj.szClass == "DEBUFF" then
-					local KBuff = JH.GetBuff(obj.dwBuffID, object) -- 鍙垽鏂璬wID 鍙嶆涓嶅彲鑳藉悓鏃惰幏寰椾笉鍚宭v
+					local KBuff = JH.GetBuff(obj.dwBuffID, object) -- 只判断dwID 反正不可能同时获得不同lv
 					if KBuff then
 						local nSec = JH.GetEndTime(KBuff.GetEndTime())
 						if KBuff.nStackNum > 1 then
@@ -350,7 +350,7 @@ function SA:ctor(szClass, dwID, tArgs)
 	return oo
 end
 
--- 浠庝笅鑷充笂 渚濇缁樺埗
+-- 从下至上 依次绘制
 function SA:DrawText( ... )
 	self.Text:ClearTriangleFanPoint()
 	local nTop = BASE_PEAK - (BASE_EDGE * 2)

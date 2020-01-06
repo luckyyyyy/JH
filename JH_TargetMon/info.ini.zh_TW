@@ -1,0 +1,8 @@
+[JH_TargetMon]
+name=目標輔助
+desc=顯示自身和目標的面向、連接線等信息。
+package=JH
+dependence=JH_0Base
+version=1.0
+default=1
+lua_0=JH_TargetMon.lua

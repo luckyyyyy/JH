@@ -1,0 +1,8 @@
+[JH_Pubg]
+name=吃雞
+desc=吃雞
+dependence=JH_0Base
+package=JH
+version=1.0
+default=1
+lua_0=JH_Pubg.lua

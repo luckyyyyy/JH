@@ -1,0 +1,8 @@
+[JH_CooldownMon]
+name=技能監控
+desc=顯示戰復等團隊技能CD情況。
+package=JH
+dependence=JH_0Base
+version=1.0
+default=1
+lua_0=JH_CooldownMon.lua

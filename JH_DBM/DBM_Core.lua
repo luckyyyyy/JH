@@ -15,18 +15,18 @@ local GetPureText, GetFormatText, GetHeadTextForceFontColor = GetPureText, GetFo
 local TargetPanel_SetOpenState = TargetPanel_SetOpenState
 local JH_Split, JH_Trim = JH.Split, JH.Trim
 local DBM_TYPE, DBM_SCRUTINY_TYPE = DBM_TYPE, DBM_SCRUTINY_TYPE
--- æ ¸å¿ƒä¼˜åŒ–å˜é‡
+-- ºËĞÄÓÅ»¯±äÁ¿
 local DBM_CORE_PLAYERID = 0
 local DBM_CORE_NAME     = 0
 
 local DBM_MAX_INTERVAL  = 300
-local DBM_MAX_CACHE     = 3000 -- æœ€å¤§çš„cacheæ•°é‡ ä¸»è¦æ˜¯UIçš„é—®é¢˜
-local DBM_DEL_CACHE     = 1000 -- æ¯æ¬¡æ¸…ç†çš„æ•°é‡ ç„¶åä¼šåšä¸€æ¬¡gc
+local DBM_MAX_CACHE     = 3000 -- ×î´óµÄcacheÊıÁ¿ Ö÷ÒªÊÇUIµÄÎÊÌâ
+local DBM_DEL_CACHE     = 1000 -- Ã¿´ÎÇåÀíµÄÊıÁ¿ È»ºó»á×öÒ»´Îgc
 local DBM_INIFILE       = JH.GetAddonInfo().szRootPath .. "JH_DBM/ui/DBM.ini"
 
 local DBM_SHARE_QUEUE = {}
 local DBM_MARK_QUEUE  = {}
-local DBM_MARK_FREE   = true -- æ ‡è®°ç©ºé—²
+local DBM_MARK_FREE   = true -- ±ê¼Ç¿ÕÏĞ
 ----
 local DBM_LEFT_LINE  = GetFormatText(_L["["], 44, 255, 255, 255)
 local DBM_RIGHT_LINE = GetFormatText(_L["]"], 44, 255, 255, 255)
@@ -65,7 +65,7 @@ local function GetDataPath()
 end
 
 local CACHE = {
-	TEMP        = {}, -- è¿‘æœŸäº‹ä»¶è®°å½•MAP è¿™é‡Œç”¨å¼±è¡¨ æ–¹ä¾¿å¤„ç†
+	TEMP        = {}, -- ½üÆÚÊÂ¼ş¼ÇÂ¼MAP ÕâÀïÓÃÈõ±í ·½±ã´¦Àí
 	MAP         = {},
 	NPC_LIST    = {},
 	DOODAD_LIST = {},
@@ -76,12 +76,12 @@ local CACHE = {
 }
 
 local D = {
-	FILE  = {}, -- æ–‡ä»¶åŸå§‹æ•°æ®
-	TEMP  = {}, -- è¿‘æœŸäº‹ä»¶è®°å½•
-	DATA  = {},  -- éœ€è¦ç›‘æ§çš„æ•°æ®åˆé›†
+	FILE  = {}, -- ÎÄ¼şÔ­Ê¼Êı¾İ
+	TEMP  = {}, -- ½üÆÚÊÂ¼ş¼ÇÂ¼
+	DATA  = {},  -- ĞèÒª¼à¿ØµÄÊı¾İºÏ¼¯
 }
 
--- åˆå§‹åŒ–table è™½ç„¶å†™æ³•æ²¡æœ‰ç›´æ¥å†™æ¥å¾—å¥½ ä½†æ˜¯ä¸ºäº†æ–¹ä¾¿ä»¥åæ”¹åŠ¨
+-- ³õÊ¼»¯table ËäÈ»Ğ´·¨Ã»ÓĞÖ±½ÓĞ´À´µÃºÃ µ«ÊÇÎªÁË·½±ãÒÔºó¸Ä¶¯
 do
 	for k, v in ipairs(DBM_TYPE_LIST) do
 		D.FILE[v]         = {}
@@ -103,10 +103,10 @@ DBM = {
 	bPushScreenHead     = true,
 	bPushCenterAlarm    = true,
 	bPushBigFontAlarm   = true,
-	bPushTeamPanel      = true, -- é¢æ¿buffç›‘æ§
-	bPushFullScreen     = true, -- å…¨å±æ³›å…‰
-	bPushTeamChannel    = false, -- å›¢é˜ŸæŠ¥è­¦
-	bPushWhisperChannel = false, -- å¯†èŠæŠ¥è­¦
+	bPushTeamPanel      = true, -- Ãæ°åbuff¼à¿Ø
+	bPushFullScreen     = true, -- È«ÆÁ·º¹â
+	bPushTeamChannel    = false, -- ÍÅ¶Ó±¨¾¯
+	bPushWhisperChannel = false, -- ÃÜÁÄ±¨¾¯
 	bPushBuffList       = true,
 	bPushPartyBuffList  = true,
 }
@@ -162,13 +162,13 @@ function DBM.OnFrameBreathe()
 					-- end
 					local fLife = npc.nCurrentLife / npc.nMaxLife
 					local fMana = npc.nCurrentMana / npc.nMaxMana
-					if fLife < fLifePer then -- å–è¡€é‡æœ€å°‘çš„NPC
+					if fLife < fLifePer then -- È¡ÑªÁ¿×îÉÙµÄNPC
 						fLifePer = fLife
 					end
-					-- if fMana < fManaPer then -- å–è“é‡æœ€å°‘çš„NPC
+					-- if fMana < fManaPer then -- È¡À¶Á¿×îÉÙµÄNPC
 					-- 	fManaPer = fMana
 					-- end
-					-- æˆ˜æ–—æ ‡è®°æ£€æŸ¥
+					-- Õ½¶·±ê¼Ç¼ì²é
 					if npc.bFightState then
 						bFightFlag = true
 						break
@@ -340,17 +340,17 @@ local function CreateCache(szType, tab)
 	end
 	D.Log("create " .. szType .. " data success!")
 end
--- æ ¸å¿ƒå‡½æ•° ç¼“å­˜åˆ›å»º UIç¼“å­˜åˆ›å»º
+-- ºËĞÄº¯Êı »º´æ´´½¨ UI»º´æ´´½¨
 function D.CreateData(szEvent)
 	local nTime   = GetTime()
 	local szLang  = select(3, GetVersion())
 	local dwMapID = JH.GetMapID(true)
 	local me = GetClientPlayer()
-	-- ç”¨äºæ›´æ–° BUFF / CAST / NPC ç¼“å­˜å¤„ç† ä¸éœ€è¦å†è·å–æœ¬åœ°å¯¹è±¡
+	-- ÓÃÓÚ¸üĞÂ BUFF / CAST / NPC »º´æ´¦Àí ²»ĞèÒªÔÙ»ñÈ¡±¾µØ¶ÔÏó
 	DBM_CORE_NAME     = me.szName
 	DBM_CORE_PLAYERID = me.dwID
 	D.Log("get player info cache success!")
-	-- é‡å»ºmetatable è·å–ALLæ•°æ®çš„æ–¹æ³• ä¸»è¦ç”¨äºUI é€»è¾‘ä¸­æ¯«æ— ä½œç”¨
+	-- ÖØ½¨metatable »ñÈ¡ALLÊı¾İµÄ·½·¨ Ö÷ÒªÓÃÓÚUI Âß¼­ÖĞºÁÎŞ×÷ÓÃ
 	for kType, vTable in pairs(D.FILE)  do
 		setmetatable(D.FILE[kType], { __index = function(me, index)
 			if index == _L["All Data"] then
@@ -365,7 +365,7 @@ function D.CreateData(szEvent)
 				return t
 			end
 		end })
-		-- é‡å»ºæ‰€æœ‰æ•°æ®çš„metatable
+		-- ÖØ½¨ËùÓĞÊı¾İµÄmetatable
 		for k, v in pairs(vTable) do
 			for kk, vv in ipairs(v) do
 				setmetatable(vv, { __index = function(_, val)
@@ -379,7 +379,7 @@ function D.CreateData(szEvent)
 		end
 	end
 	D.Log("create metatable success!")
-	-- æ¸…ç©ºå½“å‰æ•°æ®å’ŒMAP
+	-- Çå¿Õµ±Ç°Êı¾İºÍMAP
 	for k, v in pairs(D.DATA) do
 		D.DATA[k] = {}
 	end
@@ -391,21 +391,21 @@ function D.CreateData(szEvent)
 		end
 	end
 	pcall(Raid_MonitorBuffs) -- clear
-	-- åˆ¤æ–­æˆ˜åœºä½¿ç”¨æ¡ä»¶
+	-- ÅĞ¶ÏÕ½³¡Ê¹ÓÃÌõ¼ş
 	if JH.IsInArena() and szLang == "zhcn" and not JH.bDebugClient then
 		JH.Sysmsg(_L["Arena not use the plug."])
 		D.Log("MAPID: " .. dwMapID ..  " create data Failed:" .. GetTime() - nTime  .. "ms")
 	else
-		-- é‡å»ºMAP
+		-- ÖØ½¨MAP
 		for _, v in ipairs({ "BUFF", "DEBUFF", "CASTING", "NPC", "DOODAD" }) do
-			if D.FILE[v][dwMapID] then -- æœ¬åœ°å›¾æ•°æ®
+			if D.FILE[v][dwMapID] then -- ±¾µØÍ¼Êı¾İ
 				CreateCache(v, D.FILE[v][dwMapID])
 			end
-			if D.FILE[v][-1] then -- é€šç”¨æ•°æ®
+			if D.FILE[v][-1] then -- Í¨ÓÃÊı¾İ
 				CreateCache(v, D.FILE[v][-1])
 			end
 		end
-		-- å•ç‹¬é‡å»ºTALKæ•°æ®
+		-- µ¥¶ÀÖØ½¨TALKÊı¾İ
 		do
 			for _, vType in ipairs({ "TALK", "CHAT" }) do
 				local data  = D.FILE[vType]
@@ -415,12 +415,12 @@ function D.CreateData(szEvent)
 					OTHER = {},
 				}
 				local cache = CACHE.MAP[vType]
-				if data[-1] then -- é€šç”¨æ•°æ®
+				if data[-1] then -- Í¨ÓÃÊı¾İ
 					for k, v in ipairs(data[-1]) do
 						talk[#talk + 1] = v
 					end
 				end
-				if data[dwMapID] then -- æœ¬åœ°å›¾æ•°æ®
+				if data[dwMapID] then -- ±¾µØÍ¼Êı¾İ
 					for k, v in ipairs(data[dwMapID]) do
 						talk[#talk + 1] = v
 					end
@@ -503,12 +503,12 @@ function D.CheckKungFu(tKungFu)
 	return false
 end
 
--- æ™ºèƒ½æ ‡è®°é€»è¾‘
+-- ÖÇÄÜ±ê¼ÇÂß¼­
 function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 	if not JH.IsMark() then return end
 	local fnAction = function()
 		local team = GetClientTeam()
-		local tTeamMark, tMarkList = team.GetTeamMark(), {} -- tmd ä»€ä¹ˆé¬¼ç»“æ„ã€‚ã€‚ã€‚
+		local tTeamMark, tMarkList = team.GetTeamMark(), {} -- tmd Ê²Ã´¹í½á¹¹¡£¡£¡£
 		for k, v in pairs(tTeamMark) do
 			tMarkList[v] = k
 		end
@@ -546,7 +546,7 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 				end
 			end
 		end
-		FireUIEvent("DBM_SET_MARK", false) -- æ ‡è®°å¤±è´¥çš„æ¡ˆä¾‹
+		FireUIEvent("DBM_SET_MARK", false) -- ±ê¼ÇÊ§°ÜµÄ°¸Àı
 	end
 	tinsert(DBM_MARK_QUEUE, { fnAction = fnAction })
 	if DBM_MARK_FREE then
@@ -555,7 +555,7 @@ function D.SetTeamMark(szType, tMark, dwCharacterID, dwID, nLevel)
 		pcall(f.fnAction)
 	end
 end
--- å€’è®¡æ—¶å¤„ç† æ”¯æŒå®šä¹‰æ— é™çš„å€’è®¡æ—¶
+-- µ¹¼ÆÊ±´¦Àí Ö§³Ö¶¨ÒåÎŞÏŞµÄµ¹¼ÆÊ±
 function D.CountdownEvent(data, nClass)
 	if data.tCountdown then
 		for k, v in ipairs(data.tCountdown) do
@@ -577,7 +577,7 @@ function D.CountdownEvent(data, nClass)
 	end
 end
 
--- å‘å¸ƒäº‹ä»¶ ä¸ºäº†æ–¹ä¾¿æ—¥åä¿®æ”¹ é›†ä¸­èµ·æ¥
+-- ·¢²¼ÊÂ¼ş ÎªÁË·½±ãÈÕºóĞŞ¸Ä ¼¯ÖĞÆğÀ´
 function D.FireCountdownEvent(nClass, szKey, tParam)
 	tParam.bTalk = DBM.bPushTeamChannel and tParam.bTalk
 	nClass       = tParam.key and DBM_TYPE.COMMON or nClass
@@ -601,14 +601,14 @@ function D.GetSrcName(dwID)
 end
 
 -- local a=GetTime();for i=1, 10000 do FireUIEvent("BUFF_UPDATE",UI_GetClientPlayerID(),false,1,true,i,1,1,1,1,0) end;Output(GetTime()-a)
--- äº‹ä»¶æ“ä½œ
+-- ÊÂ¼ş²Ù×÷
 function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, dwSkillSrcID)
 	local szType = bCanCancel and "BUFF" or "DEBUFF"
 	local key = dwBuffID .. "_" .. nBuffLevel
 	local data = D.GetData(szType, dwBuffID, nBuffLevel)
 	local nTime = GetTime()
 	if not bDelete then
-		-- è¿‘æœŸè®°å½•
+		-- ½üÆÚ¼ÇÂ¼
 		if Table_BuffIsVisible(dwBuffID, nBuffLevel) or JH.bDebugClient then
 			local tWeak, tTemp = CACHE.TEMP[szType], D.TEMP[szType]
 			if not tWeak[key] then
@@ -624,7 +624,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				tTemp[#tTemp + 1] = tWeak[key]
 				FireUIEvent("DBMUI_TEMP_UPDATE", szType, t)
 			end
-			-- è®°å½•æ—¶é—´
+			-- ¼ÇÂ¼Ê±¼ä
 			CACHE.INTERVAL[szType][key] = CACHE.INTERVAL[szType][key] or {}
 			if #CACHE.INTERVAL[szType][key] > 0 then
 				if nTime - CACHE.INTERVAL[szType][key][#CACHE.INTERVAL[szType][key]] > 1000 then
@@ -637,13 +637,13 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 	end
 	if data then
 		local cfg, nClass
-		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- ç›‘æ§å¯¹è±¡æ£€æŸ¥
+		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- ¼à¿Ø¶ÔÏó¼ì²é
 			return
 		end
-		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- è‡ªèº«èº«æ³•éœ€æ±‚æ£€æŸ¥
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- ×ÔÉíÉí·¨ĞèÇó¼ì²é
 			return
 		end
-		if data.nCount and nCount < data.nCount then -- å±‚æ•°æ£€æŸ¥
+		if data.nCount and nCount < data.nCount then -- ²ãÊı¼ì²é
 			return
 		end
 		if bDelete then
@@ -679,12 +679,12 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
 				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
-			-- ç‰¹å¤§æ–‡å­—
+			-- ÌØ´óÎÄ×Ö
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm and (DBM_CORE_PLAYERID == dwCaster or not IsPlayer(dwCaster)) then
 				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(dwCaster, DBM_CORE_PLAYERID) })
 			end
 
-			-- è·å¾—å¤„ç†
+			-- »ñµÃ´¦Àí
 			if nClass == DBM_TYPE.BUFF_GET then
 				if cfg.bSelect then
 					SetTarget(IsPlayer(dwCaster) and TARGET.PLAYER or TARGET.NPC, dwCaster)
@@ -695,11 +695,11 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 				if cfg.tMark then
 					D.SetTeamMark(szType, cfg.tMark, dwCaster, dwBuffID, nBuffLevel)
 				end
-				-- é‡è¦Buffåˆ—è¡¨
+				-- ÖØÒªBuffÁĞ±í
 				if DBM.bPushPartyBuffList and IsPlayer(dwCaster) and cfg.bPartyBuffList and (JH.IsParty(dwCaster) or DBM_CORE_PLAYERID == dwCaster) then
 					FireUIEvent("JH_PARTYBUFFLIST", dwCaster, data.dwID, data.nLevel, data.nIcon)
 				end
-				-- å¤´é¡¶æŠ¥è­¦
+				-- Í·¶¥±¨¾¯
 				if DBM.bPushScreenHead and cfg.bScreenHead then
 					FireUIEvent("JH_SA_CREATE", szType, dwCaster, { dwID = data.dwID, col = data.col, txt = szName })
 				end
@@ -711,7 +711,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 						end
 						FireUIEvent("JH_BL_CREATE", data.dwID, data.nLevel, col, data)
 					end
-					-- å…¨å±æ³›å…‰
+					-- È«ÆÁ·º¹â
 					if DBM.bPushFullScreen and cfg.bFullScreen then
 						FireUIEvent("JH_FS_CREATE", data.dwID .. "_"  .. data.nLevel, {
 							nTime = 3,
@@ -720,7 +720,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 						})
 					end
 				end
-				-- æ·»åŠ åˆ°å›¢é˜Ÿé¢æ¿
+				-- Ìí¼Óµ½ÍÅ¶ÓÃæ°å
 				if DBM.bPushTeamPanelbPushTeamPanel and cfg.bTeamPanel and ( not cfg.bOnlySelfSrc or dwSkillSrcID == DBM_CORE_PLAYERID) then
 					FireUIEvent("JH_RAID_REC_BUFF", dwCaster, {
 						dwID      = data.dwID,
@@ -743,7 +743,7 @@ function D.OnBuff(dwCaster, bDelete, bCanCancel, dwBuffID, nCount, nBuffLevel, d
 		end
 	end
 end
--- æŠ€èƒ½äº‹ä»¶
+-- ¼¼ÄÜÊÂ¼ş
 function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	local key = dwCastID .. "_" .. dwLevel
 	local nTime = GetTime()
@@ -751,7 +751,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	if CACHE.SKILL_LIST[dwCaster][key] and nTime - CACHE.SKILL_LIST[dwCaster][key] < 62.5 then -- 1/16
 		return
 	end
-	if dwCastID == 13165 then -- å†…åŠŸåˆ‡æ¢
+	if dwCastID == 13165 then -- ÄÚ¹¦ÇĞ»»
 		if szEvent == "UI_OME_SKILL_CAST_LOG" then
 			FireUIEvent("JH_KUNGFU_SWITCH", dwCaster)
 		end
@@ -776,12 +776,12 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 		CACHE.INTERVAL.CASTING[key][#CACHE.INTERVAL.CASTING[key] + 1] = nTime
 		CACHE.SKILL_LIST[dwCaster][key] = nTime
 	end
-	-- ç›‘æ§æ•°æ®
+	-- ¼à¿ØÊı¾İ
 	if data then
-		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- ç›‘æ§å¯¹è±¡æ£€æŸ¥
+		if data.nScrutinyType and not D.CheckScrutinyType(data.nScrutinyType, dwCaster) then -- ¼à¿Ø¶ÔÏó¼ì²é
 			return
 		end
-		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- è‡ªèº«èº«æ³•éœ€æ±‚æ£€æŸ¥
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- ×ÔÉíÉí·¨ĞèÇó¼ì²é
 			return
 		end
 		local szName, nIcon = JH.GetSkillName(dwCastID, dwLevel)
@@ -830,7 +830,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
 				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
-			-- ç‰¹å¤§æ–‡å­—
+			-- ÌØ´óÎÄ×Ö
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
 				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(dwCaster, DBM_CORE_PLAYERID) })
 			end
@@ -840,11 +840,11 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 			if cfg.tMark then
 				D.SetTeamMark("CASTING", cfg.tMark, dwCaster, dwSkillID, dwLevel)
 			end
-			-- å¤´é¡¶æŠ¥è­¦
+			-- Í·¶¥±¨¾¯
 			if DBM.bPushScreenHead and cfg.bScreenHead then
 				FireUIEvent("JH_SA_CREATE", "CASTING", dwCaster, { txt = data.szName or szName, col = data.col })
 			end
-			-- å…¨å±æ³›å…‰
+			-- È«ÆÁ·º¹â
 			if DBM.bPushFullScreen and cfg.bFullScreen then
 				FireUIEvent("JH_FS_CREATE", data.dwID .. "#SKILL#"  .. data.nLevel, { nTime = 3, col = data.col})
 			end
@@ -863,7 +863,7 @@ function D.OnSkillCast(dwCaster, dwCastID, dwLevel, szEvent)
 	end
 end
 
--- NPCäº‹ä»¶
+-- NPCÊÂ¼ş
 function D.OnNpcEvent(npc, bEnter)
 	local data = D.GetData("NPC", npc.dwTemplateID)
 	local nTime = GetTime()
@@ -918,7 +918,7 @@ function D.OnNpcEvent(npc, bEnter)
 	end
 	if data then
 		local cfg, nClass, nCount
-		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- è‡ªèº«èº«æ³•éœ€æ±‚æ£€æŸ¥
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- ×ÔÉíÉí·¨ĞèÇó¼ì²é
 			return
 		end
 		if bEnter then
@@ -932,7 +932,7 @@ function D.OnNpcEvent(npc, bEnter)
 				return
 			end
 		else
-			-- åœºåœ°ä¸Šçš„NPCæ•°é‡æ²¡è¾¾åˆ°é¢„æœŸæ•°é‡
+			-- ³¡µØÉÏµÄNPCÊıÁ¿Ã»´ïµ½Ô¤ÆÚÊıÁ¿
 			if data.nCount and nCount < data.nCount then
 				return
 			end
@@ -944,7 +944,7 @@ function D.OnNpcEvent(npc, bEnter)
 					FireUIEvent("JH_SA_CREATE", "NPC", npc.dwID, { txt = data.szNote, col = data.col, szName = data.szName })
 				end
 			end
-			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5ç§’å†…è¿›å…¥ç›¸åŒçš„NPCç›´æ¥å¿½ç•¥
+			if nTime - CACHE.NPC_LIST[npc.dwTemplateID].nTime < 500 then -- 0.5ÃëÄÚ½øÈëÏàÍ¬µÄNPCÖ±½ÓºöÂÔ
 				return -- D.Log("IGNORE NPC ENTER SCENE ID:" .. npc.dwTemplateID .. " TIME:" .. nTime .. " TIME2:" .. CACHE.NPC_LIST[npc.dwTemplateID].nTime)
 			else
 				CACHE.NPC_LIST[npc.dwTemplateID].nTime = nTime
@@ -973,7 +973,7 @@ function D.OnNpcEvent(npc, bEnter)
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
 				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
-			-- ç‰¹å¤§æ–‡å­—
+			-- ÌØ´óÎÄ×Ö
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
 				FireUIEvent("JH_LARGETEXT", txt, data.col or { GetHeadTextForceFontColor(npc.dwID, DBM_CORE_PLAYERID) })
 			end
@@ -997,7 +997,7 @@ function D.OnNpcEvent(npc, bEnter)
 	end
 end
 
--- DOODADäº‹ä»¶
+-- DOODADÊÂ¼ş
 function D.OnDoodadEvent(doodad, bEnter)
 	local data = D.GetData("DOODAD", doodad.dwTemplateID)
 	local nTime = GetTime()
@@ -1045,7 +1045,7 @@ function D.OnDoodadEvent(doodad, bEnter)
 	end
 	if data then
 		local cfg, nClass, nCount
-		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- è‡ªèº«èº«æ³•éœ€æ±‚æ£€æŸ¥
+		if data.tKungFu and not D.CheckKungFu(data.tKungFu) then -- ×ÔÉíÉí·¨ĞèÇó¼ì²é
 			return
 		end
 		if bEnter then
@@ -1059,7 +1059,7 @@ function D.OnDoodadEvent(doodad, bEnter)
 				return
 			end
 		else
-			-- åœºåœ°ä¸Šçš„DOODADæ•°é‡æ²¡è¾¾åˆ°é¢„æœŸæ•°é‡
+			-- ³¡µØÉÏµÄDOODADÊıÁ¿Ã»´ïµ½Ô¤ÆÚÊıÁ¿
 			if data.nCount and nCount < data.nCount then
 				return
 			end
@@ -1097,7 +1097,7 @@ function D.OnDoodadEvent(doodad, bEnter)
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
 				FireUIEvent("JH_CA_CREATE", tconcat(xml), 3, true)
 			end
-			-- ç‰¹å¤§æ–‡å­—
+			-- ÌØ´óÎÄ×Ö
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
 				FireUIEvent("JH_LARGETEXT", txt, data.col or { 255, 255, 0 })
 			end
@@ -1124,10 +1124,10 @@ function D.OnDoodadAllLeave(dwTemplateID)
 		D.CountdownEvent(data, DBM_TYPE.DOODAD_ALLLEAVE)
 	end
 end
--- ç³»ç»Ÿå’ŒNPCå–Šè¯å¤„ç†
+-- ÏµÍ³ºÍNPCº°»°´¦Àí
 -- OutputMessage("MSG_SYS", 1.."\n")
 function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
-	-- è¿‘æœŸè®°å½•
+	-- ½üÆÚ¼ÇÂ¼
 	szContent = tostring(szContent)
 	local me = GetClientPlayer()
 	local key = (szNpcName or "sys") .. "::" .. szContent
@@ -1152,14 +1152,14 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 			data = cache.HIT[szContent]["%"]
 		end
 	end
-	-- ä¸é€‚ç”¨wstring æ€§èƒ½è€ƒè™‘ä¸ºå‰æ
+	-- ²»ÊÊÓÃwstring ĞÔÄÜ¿¼ÂÇÎªÇ°Ìá
 	if not data then
 		local bInParty = me.IsInParty()
 		local team     = GetClientTeam()
 		for k, v in JH.bpairs(cache.OTHER) do
 			local content = v.szContent
 			if v.szContent:find("$me") then
-				content = v.szContent:gsub("$me", me.szName) -- è½¬æ¢meæ˜¯è‡ªå·±åå­—
+				content = v.szContent:gsub("$me", me.szName) -- ×ª»»meÊÇ×Ô¼ºÃû×Ö
 			end
 			if bInParty and content:find("$team") then
 				local c = content
@@ -1222,11 +1222,11 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 					FireUIEvent("JH_SA_CREATE", "TIME", dwNpcID or me.dwID, { txt = txt })
 				end
 			end
-			-- ä¸­å¤®æŠ¥è­¦
+			-- ÖĞÑë±¨¾¯
 			if DBM.bPushCenterAlarm and cfg.bCenterAlarm then
 				FireUIEvent("JH_CA_CREATE", #xml > 0 and tconcat(xml) or txt, 3, #xml > 0)
 			end
-			-- ç‰¹å¤§æ–‡å­—
+			-- ÌØ´óÎÄ×Ö
 			if DBM.bPushBigFontAlarm and cfg.bBigFontAlarm then
 				FireUIEvent("JH_LARGETEXT", txt, data.col or { 255, 128, 0 })
 			end
@@ -1247,7 +1247,7 @@ function D.OnCallMessage(szEvent, szContent, dwNpcID, szNpcName)
 	end
 end
 
--- NPCæ­»äº¡äº‹ä»¶ è§¦å‘å€’è®¡æ—¶
+-- NPCËÀÍöÊÂ¼ş ´¥·¢µ¹¼ÆÊ±
 function D.OnDeath(dwCharacterID, dwKiller)
 	local npc = GetNpc(dwCharacterID)
 	if npc then
@@ -1272,13 +1272,13 @@ function D.OnDeath(dwCharacterID, dwKiller)
 	end
 end
 
--- NPCè¿›å‡ºæˆ˜æ–—äº‹ä»¶ è§¦å‘å€’è®¡æ—¶
+-- NPC½ø³öÕ½¶·ÊÂ¼ş ´¥·¢µ¹¼ÆÊ±
 function D.OnNpcFight(dwTemplateID, bFight)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data then
 		if bFight then
 			D.CountdownEvent(data, DBM_TYPE.NPC_FIGHT)
-		elseif data.tCountdown then -- è„±ç¦»çš„æ—¶å€™æ¸…ç©ºä¸‹
+		elseif data.tCountdown then -- ÍÑÀëµÄÊ±ºòÇå¿ÕÏÂ
 			for k, v in ipairs(data.tCountdown) do
 				if v.nClass == DBM_TYPE.NPC_FIGHT and not v.bFightHold then
 					local class = v.key and DBM_TYPE.COMMON or v.nClass
@@ -1306,7 +1306,7 @@ function D.GetStringStru(szString)
 		return data
 	end
 end
--- ä¸è¯¥æ”¾åœ¨å€’è®¡æ—¶ä¸­ éœ€è¦é‡æ„
+-- ²»¸Ã·ÅÔÚµ¹¼ÆÊ±ÖĞ ĞèÒªÖØ¹¹
 function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data and data.tCountdown then
@@ -1355,7 +1355,7 @@ function D.OnNpcInfoChange(szEvent, dwTemplateID, nPer)
 		end
 	end
 end
--- NPC å…¨éƒ¨æ¶ˆå¤±çš„å€’è®¡æ—¶å¤„ç†
+-- NPC È«²¿ÏûÊ§µÄµ¹¼ÆÊ±´¦Àí
 function D.OnNpcAllLeave(dwTemplateID)
 	local data = D.GetData("NPC", dwTemplateID)
 	if data then
@@ -1384,7 +1384,7 @@ function D.RegisterMessage(bEnable)
 	end
 end
 
--- UIæ“ä½œ
+-- UI²Ù×÷
 function D.GetFrame()
 	return Station.Lookup("Normal/DBM")
 end
@@ -1464,15 +1464,15 @@ function D.GetDungeon()
 	return CACHE.DUNGEON
 end
 
--- è·å–æ•´ä¸ªè¡¨
+-- »ñÈ¡Õû¸ö±í
 function D.GetTable(szType, bTemp)
 	if bTemp then
-		if szType == "CIRCLE" then -- å¦‚æœè¯·æ±‚åœˆåœˆçš„è¿‘æœŸæ•°æ® è¿”å›NPCçš„
+		if szType == "CIRCLE" then -- Èç¹ûÇëÇóÈ¦È¦µÄ½üÆÚÊı¾İ ·µ»ØNPCµÄ
 			szType = "NPC"
 		end
 		return D.TEMP[szType]
 	else
-		if szType == "CIRCLE" then -- å¦‚æœè¯·æ±‚åœˆåœˆ
+		if szType == "CIRCLE" then -- Èç¹ûÇëÇóÈ¦È¦
 			return Circle.GetData()
 		else
 			return D.FILE[szType]
@@ -1499,7 +1499,7 @@ local function GetData(tab, szType, dwID, nLevel)
 	end
 end
 
--- è·å–ç›‘æ§æ•°æ® æ³¨æ„ ä¸æ˜¯è·å–æ–‡ä»¶å†…çš„ å¦‚æœæƒ³æ‰¾æ–‡ä»¶å†…çš„ è¯·ä½¿ç”¨ GetTable
+-- »ñÈ¡¼à¿ØÊı¾İ ×¢Òâ ²»ÊÇ»ñÈ¡ÎÄ¼şÄÚµÄ Èç¹ûÏëÕÒÎÄ¼şÄÚµÄ ÇëÊ¹ÓÃ GetTable
 function D.GetData(szType, dwID, nLevel)
 	local cache = CACHE.MAP[szType][dwID]
 	if cache then
@@ -1610,10 +1610,10 @@ function D.LoadConfigureFile(config)
 					end
 				end
 			end
-			if config.nMode == 2 then -- æºæ–‡ä»¶ä¼˜å…ˆ
+			if config.nMode == 2 then -- Ô´ÎÄ¼şÓÅÏÈ
 				fnMergeData(data)
-			elseif config.nMode == 3 then -- æ–°æ–‡ä»¶ä¼˜å…ˆ
-				-- å…¶å®å°±æ˜¯äº¤æ¢ä¸‹é¡ºåº
+			elseif config.nMode == 3 then -- ĞÂÎÄ¼şÓÅÏÈ
+				-- ÆäÊµ¾ÍÊÇ½»»»ÏÂË³Ğò
 				local tab_data = clone(D.FILE)
 				for k, v in pairs(config.tList) do
 					D.FILE[k] = data[k] or {}
@@ -1656,7 +1656,7 @@ function D.SaveConfigureFile(config)
 	return root .. path
 end
 
--- åˆ é™¤ ç§»åŠ¨ æ·»åŠ  æ¸…ç©º
+-- É¾³ı ÒÆ¶¯ Ìí¼Ó Çå¿Õ
 function D.RemoveData(szType, dwMapID, nIndex)
 	if nIndex then
 		if D.FILE[szType][dwMapID] and D.FILE[szType][dwMapID][nIndex] then
@@ -1719,7 +1719,7 @@ function D.MoveData(szType, dwMapID, nIndex, dwTargetMapID, bCopy)
 		FireUIEvent("DBMUI_DATA_RELOAD")
 	end
 end
--- äº¤æ¢ å…¶å®æ²¡ç”¨ æ»¡è¶³å¼ºè¿«ç—‡
+-- ½»»» ÆäÊµÃ»ÓÃ Âú×ãÇ¿ÆÈÖ¢
 function D.Exchange(szType, dwMapID, nIndex1, nIndex2)
 	if nIndex1 == nIndex2 then
 		return
@@ -1747,7 +1747,7 @@ function D.AddData(szType, dwMapID, data)
 end
 
 function D.ClearTemp(szType)
-	if szType == "CIRCLE" then -- å¦‚æœè¯·æ±‚åœˆåœˆçš„è¿‘æœŸæ•°æ® è¿”å›NPCçš„
+	if szType == "CIRCLE" then -- Èç¹ûÇëÇóÈ¦È¦µÄ½üÆÚÊı¾İ ·µ»ØNPCµÄ
 		szType = "NPC"
 	end
 	CACHE.INTERVAL[szType] = {}
@@ -1758,7 +1758,7 @@ function D.ClearTemp(szType)
 end
 
 function D.GetIntervalData(szType, key)
-	if szType == "CIRCLE" then -- å¦‚æœè¯·æ±‚åœˆåœˆçš„è¿‘æœŸæ•°æ® è¿”å›NPCçš„
+	if szType == "CIRCLE" then -- Èç¹ûÇëÇóÈ¦È¦µÄ½üÆÚÊı¾İ ·µ»ØNPCµÄ
 		szType = "NPC"
 	end
 	if CACHE.INTERVAL[szType] then
@@ -1807,7 +1807,7 @@ function D.OnShare(nChannel, dwID, szName, data, bIsSelf)
 		end
 	end
 end
--- å…¬å¼€æ¥å£
+-- ¹«¿ª½Ó¿Ú
 local ui = {
 	Enable            = D.Enable,
 	GetTable          = D.GetTable,

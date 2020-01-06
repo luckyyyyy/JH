@@ -29,7 +29,6 @@ end
 
 W.IsOpened = W.GetFrame
 
--- ´ò¿ª½çÃæ
 function W.OpenPanel()
 	local frame = W.GetFrame() or Wnd.OpenWindow(W.szIniFile, "DBM_RemoteRequest")
 	frame:BringToTop()
@@ -161,7 +160,7 @@ end
 
 function W.CallMyData()
 	W.Loading()
-	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime()) -- µÃÒæÓÚIE»º´æ 1·ÖÖÓÒ»´Î
+	local szCacheTime = FormatTime("%Y.%m.%d.%H.%M", GetCurrentTime())
 	-- JH.RemoteRequest(W.szUser .. "?_" .. szCacheTime .. "&lang=" .. CLIENT_LANG, function(szTitle, szDoc)
 	-- 	local result, err = JH.JsonDecode(JH.UrlDecode(szDoc))
 	-- 	if err then
@@ -390,7 +389,7 @@ function W.CallDoanloadData(data, szPath, szFileName)
 			if CLIENT_LANG == "zhcn" then
 				tab = JH.ConvertToAnsi(tab)
 			end
-			SaveLUAData(szPath .. szFileName, tab, nil, false) -- »º´æÎÄ¼þ
+			SaveLUAData(szPath .. szFileName, tab, nil, false)
 			fnAction(szFileName)
 		end)
 		:fail(function(errMsg, dwBufferSize, set)

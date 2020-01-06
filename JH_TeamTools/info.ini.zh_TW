@@ -1,0 +1,9 @@
+[JH_TeamTools]
+name=團隊工具
+desc=小吃小藥附魔檢查，團隊評分，重傷記錄。
+package=JH
+version=1.0
+default=1
+dependence=JH_0Base
+lua_0=JH_TeamTools.lua
+lua_1=JH_TeamLog.lua

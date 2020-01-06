@@ -1,0 +1,8 @@
+[JH_Circle]
+name=畫圈圈
+desc=醒目提醒被注視目標以及特效繪製增強。
+package=JH
+version=1.0
+default=1
+dependence=JH_DBM
+lua_0=JH_Circle.lua

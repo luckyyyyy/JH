@@ -34,7 +34,7 @@ local function decoding(data)
     end))
 end
 
--- Х©≥Г╖█Ф√╧ФЁ∙Ф°┴Е╬┬Е╓ Г╪╨И≥╥ Д╦█Х©┤Ф╦╦Ф┬▐Д╫©Г■╗lua 5.1 Ф╡║Ф°┴Ф⌡╢Е╔╫Г └Е┼·ФЁ∙Д╨├
+-- уБжж╥╫╥╗сп╨э╤Юх╠ощ ╡╩╧Щсно╥й╧сцlua 5.1 ц╩сп╦Э╨ц╣д╟Л╥╗ак
 
 JH.Base64_encode = encoding
 JH.Base64_decode = decoding

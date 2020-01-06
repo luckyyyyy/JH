@@ -7,4 +7,6 @@
 7z.exe
 releases
 JH_DBM/data/DBM-*
+JH_DBM/data/DBM_*
 .DS_Store
+JH_DBM/data/DBM_*

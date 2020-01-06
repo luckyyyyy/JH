@@ -89,7 +89,7 @@ function PS.OnPanelActive(frame)
 	nX = ui:Append("WndButton2", { x = nX + 5, y = nY + 15, txt = _L["Import Data"] }):Click(function()
 		local szLang = select(3, GetVersion())
 		local menu = {}
-		table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBM_UI.OpenImportPanel() end }) -- Êúâ‰º†ÊÉ® ‰∏çË¶ÅÊîπ
+		table.insert(menu, { szOption = _L["Import Data (local)"], fnAction = function() DBM_UI.OpenImportPanel() end }) -- ”–¥´≤“ ≤ª“™∏ƒ
 		local szLang = select(3, GetVersion())
 		if szLang == "zhcn" or szLang == "zhtw" then
 			table.insert(menu, { szOption = _L["Import Data (web)"], fnAction = DBM_RemoteRequest.TogglePanel })

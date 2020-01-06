@@ -1,0 +1,8 @@
+[JH_CopyBook]
+name=套書抄錄
+desc=套書抄錄增強。
+package=JH
+version=1.0
+default=1
+dependence=JH_0Base
+lua_0=JH_CopyBook.lua

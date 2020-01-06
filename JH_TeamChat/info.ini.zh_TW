@@ -1,0 +1,8 @@
+[JH_TeamChat]
+name=喊話保存
+desc=保存交易開團等喊話內容。
+package=JH
+dependence=JH_0Base
+version=1.0
+default=1
+lua_0=JH_TeamChat.lua

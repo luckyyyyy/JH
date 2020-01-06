@@ -1,0 +1,18 @@
+[JH_DBM]
+default=1
+desc=Deadly Boss Mods，副本BOSS報警、倒計時。
+lua_0=DBM_Core.lua
+lua_1=DBM_UI.lua
+lua_2=DBM_Setting.lua
+lua_3=DBM_RemoteRequest.lua
+lua_4=DBM_CA.class.lua
+lua_5=DBM_FS.class.lua
+lua_6=DBM_ST.class.lua
+lua_7=DBM_BL.class.lua
+lua_8=DBM_LT.class.lua
+lua_9=DBM_SA.class.lua
+lua_10=DBM_PBL.class.lua
+name=副本報警
+package=JH
+dependence=JH_0Base
+version=1.0

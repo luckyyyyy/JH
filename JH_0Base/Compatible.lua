@@ -1,7 +1,7 @@
 -- @Author: Webster
 -- @Date:   2015-01-21 15:21:19
 -- @Last Modified by:   WilliamChan
--- @Last Modified time: 2018-03-19 19:58:49
+-- @Last Modified time: 2017-10-12 10:47:31
 
 local _L = JH.LoadLangPack
 
@@ -33,33 +33,33 @@ DBM_SCRUTINY_TYPE = { SELF = 1, TEAM = 2, ENEMY = 3, TARGET = 4 }
 -- skillid, uitex, frame
 JH_KUNGFU_LIST = {
 	-- MT
-	{ 10062, "ui/Image/icon/skill_tiance01.UITex",     0 }, -- ÈìÅÁâ¢
-	{ 10243, "ui/Image/icon/mingjiao_taolu_7.UITex",   0 }, -- ÊòéÂ∞ä
-	{ 10389, "ui/Image/icon/Skill_CangY_33.UITex",     0 }, -- ÈìÅÈ™®
-	{ 10002, "ui/Image/icon/skill_shaolin14.UITex",    0 }, -- Â∞ëÊûó
-	-- Ê≤ªÁñó
-	{ 10080, "ui/Image/icon/skill_qixiu02.UITex",      0 }, -- ‰∫ëË£≥
-	{ 10176, "ui/Image/icon/wudu_neigong_2.UITex",     0 }, -- Ë°•Â§©
-	{ 10028, "ui/Image/icon/skill_wanhua23.UITex",     0 }, -- Á¶ªÁªè
-	{ 10448, "ui/Image/icon/skill_0514_23.UITex",      0 }, -- Áõ∏Áü•
-	-- ÂÜÖÂäü
-	{ 10225, "ui/Image/icon/skill_tangm_20.UITex",     0 }, -- Â§©ÁΩó
-	{ 10081, "ui/Image/icon/skill_qixiu03.UITex",      0 }, -- ÂÜ∞ÂøÉ
-	{ 10175, "ui/Image/icon/wudu_neigong_1.UITex",     0 }, -- ÊØíÁªè
-	{ 10242, "ui/Image/icon/mingjiao_taolu_8.UITex",   0 }, -- ÁÑöÂΩ±
-	{ 10014, "ui/Image/icon/skill_chunyang21.UITex",   0 }, -- Á¥´Èúû
-	{ 10021, "ui/Image/icon/skill_wanhua17.UITex",     0 }, -- Ëä±Èó¥
-	{ 10003, "ui/Image/icon/skill_shaolin10.UITex",    0 }, -- ÊòìÁªè
-	{ 10447, "ui/Image/icon/skill_0514_27.UITex",      0 }, -- Ëé´ÈóÆ
-	-- Â§ñÂäü
-	{ 10390, "ui/Image/icon/Skill_CangY_32.UITex",     0 }, -- ÂàÜÂ±±
-	{ 10224, "ui/Image/icon/skill_tangm_01.UITex",     0 }, -- È≤∏È±º
-	{ 10144, "ui/Image/icon/cangjian_neigong_1.UITex", 0 }, -- ÈóÆÊ∞¥
-	{ 10145, "ui/Image/icon/cangjian_neigong_2.UITex", 0 }, -- Â±±Â±Ö
-	{ 10015, "ui/Image/icon/skill_chunyang13.UITex",   0 }, -- Â§áËÉéÂâëÊÑè
-	{ 10026, "ui/Image/icon/skill_tiance02.UITex",     0 }, -- ÂÇ≤Èõ™
-	{ 10268, "ui/Image/icon/skill_GB_30.UITex",        0 }, -- Á¨ëÂ∞ò
-	{ 10464, "ui/Image/icon/daoj_16_8_25_16.UITex",    0 }, -- Èú∏ÂàÄ
+	{ 10062, "ui/Image/icon/skill_tiance01.UITex",     0 }, -- Ã˙¿Œ
+	{ 10243, "ui/Image/icon/mingjiao_taolu_7.UITex",   0 }, -- √˜◊
+	{ 10389, "ui/Image/icon/Skill_CangY_33.UITex",     0 }, -- Ã˙π«
+	{ 10002, "ui/Image/icon/skill_shaolin14.UITex",    0 }, -- …Ÿ¡÷
+	-- ÷Œ¡∆
+	{ 10080, "ui/Image/icon/skill_qixiu02.UITex",      0 }, -- ‘∆…—
+	{ 10176, "ui/Image/icon/wudu_neigong_2.UITex",     0 }, -- ≤πÃÏ
+	{ 10028, "ui/Image/icon/skill_wanhua23.UITex",     0 }, -- ¿Îæ≠
+	{ 10448, "ui/Image/icon/skill_0514_23.UITex",      0 }, -- œ‡÷™
+	-- ƒ⁄π¶
+	{ 10225, "ui/Image/icon/skill_tangm_20.UITex",     0 }, -- ÃÏ¬ﬁ
+	{ 10081, "ui/Image/icon/skill_qixiu03.UITex",      0 }, -- ±˘–ƒ
+	{ 10175, "ui/Image/icon/wudu_neigong_1.UITex",     0 }, -- ∂ææ≠
+	{ 10242, "ui/Image/icon/mingjiao_taolu_8.UITex",   0 }, -- ∑Ÿ”∞
+	{ 10014, "ui/Image/icon/skill_chunyang21.UITex",   0 }, -- ◊œœº
+	{ 10021, "ui/Image/icon/skill_wanhua17.UITex",     0 }, -- ª®º‰
+	{ 10003, "ui/Image/icon/skill_shaolin10.UITex",    0 }, -- “◊æ≠
+	{ 10447, "ui/Image/icon/skill_0514_27.UITex",      0 }, -- ƒ™Œ 
+	-- Õ‚π¶
+	{ 10390, "ui/Image/icon/Skill_CangY_32.UITex",     0 }, -- ∑÷…Ω
+	{ 10224, "ui/Image/icon/skill_tangm_01.UITex",     0 }, -- æ®”„
+	{ 10144, "ui/Image/icon/cangjian_neigong_1.UITex", 0 }, -- Œ ÀÆ
+	{ 10145, "ui/Image/icon/cangjian_neigong_2.UITex", 0 }, -- …Ωæ”
+	{ 10015, "ui/Image/icon/skill_chunyang13.UITex",   0 }, -- ±∏Ã•Ω£“‚
+	{ 10026, "ui/Image/icon/skill_tiance02.UITex",     0 }, -- ∞¡—©
+	{ 10268, "ui/Image/icon/skill_GB_30.UITex",        0 }, -- –¶≥æ
+	{ 10464, "ui/Image/icon/daoj_16_8_25_16.UITex",    0 }, -- ∞‘µ∂
 }
 
 setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)
@@ -71,20 +71,20 @@ setmetatable(JH_KUNGFU_LIST, { __index = function(me, key)
 end })
 
 JH_FORCE_COLOR = {
-	[FORCE_TYPE.JIANG_HU ] = { 255, 255, 255 }, -- Ê±üÊπñ
-	[FORCE_TYPE.SHAO_LIN ] = { 255, 178, 95  }, -- Â∞ëÊûó
-	[FORCE_TYPE.WAN_HUA  ] = { 196, 152, 255 }, -- ‰∏áËä±
-	[FORCE_TYPE.TIAN_CE  ] = { 255, 111, 83  }, -- Â§©Á≠ñ
-	[FORCE_TYPE.CHUN_YANG] = { 89 , 224, 232 }, -- Á∫ØÈò≥
-	[FORCE_TYPE.QI_XIU   ] = { 255, 129, 176 }, -- ‰∏ÉÁßÄ
-	[FORCE_TYPE.WU_DU    ] = { 55 , 147, 255 }, -- ‰∫îÊØí
-	[FORCE_TYPE.TANG_MEN ] = { 121, 183, 54  }, -- ÂîêÈó®
-	[FORCE_TYPE.CANG_JIAN] = { 214, 249, 93  }, -- ËóèÂâë
-	[FORCE_TYPE.GAI_BANG ] = { 205, 133, 63  }, -- ‰∏êÂ∏Æ
-	[FORCE_TYPE.MING_JIAO] = { 240, 70 , 96  }, -- ÊòéÊïô
-	[FORCE_TYPE.CANG_YUN ] = { 180, 60 , 0   }, -- Ëãç‰∫ë
-	[FORCE_TYPE.CHANG_GE ] = { 100, 250, 180 }, -- ÈïøÊ≠å
-	[FORCE_TYPE.BA_DAO   ] = { 106 ,108, 189 }, -- Èú∏ÂàÄ
+	[FORCE_TYPE.JIANG_HU ] = { 255, 255, 255 }, -- Ω≠∫˛
+	[FORCE_TYPE.SHAO_LIN ] = { 255, 178, 95  }, -- …Ÿ¡÷
+	[FORCE_TYPE.WAN_HUA  ] = { 196, 152, 255 }, -- ÕÚª®
+	[FORCE_TYPE.TIAN_CE  ] = { 255, 111, 83  }, -- ÃÏ≤ﬂ
+	[FORCE_TYPE.CHUN_YANG] = { 89 , 224, 232 }, -- ¥ø—Ù
+	[FORCE_TYPE.QI_XIU   ] = { 255, 129, 176 }, -- ∆ﬂ–„
+	[FORCE_TYPE.WU_DU    ] = { 55 , 147, 255 }, -- ŒÂ∂æ
+	[FORCE_TYPE.TANG_MEN ] = { 121, 183, 54  }, -- Ã∆√≈
+	[FORCE_TYPE.CANG_JIAN] = { 214, 249, 93  }, -- ≤ÿΩ£
+	[FORCE_TYPE.GAI_BANG ] = { 205, 133, 63  }, -- ÿ§∞Ô
+	[FORCE_TYPE.MING_JIAO] = { 240, 70 , 96  }, -- √˜ΩÃ
+	[FORCE_TYPE.CANG_YUN ] = { 180, 60 , 0   }, -- ≤‘‘∆
+	[FORCE_TYPE.CHANG_GE ] = { 100, 250, 180 }, -- ≥§∏Ë
+	[FORCE_TYPE.BA_DAO   ] = { 106 ,108, 189 }, -- ∞‘µ∂
 }
 
 setmetatable(JH_FORCE_COLOR, {
@@ -106,7 +106,7 @@ JH_TALK_CHANNEL_HEADER = {
 	[PLAYER_TALK_CHANNEL.CAMP]          = "/c ",
 	[PLAYER_TALK_CHANNEL.WORLD]         = "/h ",
 }
--- Áõ∏ÂêåÂêçÂ≠óÁöÑÂú∞Âõæ ÂÖ®ÈÉ®ÊåáÂêëÂêå‰∏Ä‰∏™ID
+-- œ‡Õ¨√˚◊÷µƒµÿÕº »´≤ø÷∏œÚÕ¨“ª∏ˆID
 JH_MAP_NAME_FIX = {
 	[143] = 147,
 	[144] = 147,
@@ -118,11 +118,17 @@ JH_MAP_NAME_FIX = {
 
 JH_MARK_NAME = { _L["Cloud"], _L["Sword"], _L["Ax"], _L["Hook"], _L["Drum"], _L["Shear"], _L["Stick"], _L["Jade"], _L["Dart"], _L["Fan"] }
 
-BigBagPanel_nCount = 6
+if not BigBagPanel_nCount then
+	BigBagPanel_nCount = 6
+end
 
---Â∏Æ‰ºö‰ªìÂ∫ìÁïåÈù¢ËôöÊãü‰∏Ä‰∏™ËÉåÂåÖ‰ΩçÁΩÆ
-INVENTORY_GUILD_BANK = INVENTORY_GUILD_BANK or INVENTORY_INDEX.TOTAL + 1
-INVENTORY_GUILD_PAGE_SIZE = INVENTORY_GUILD_PAGE_SIZE or 100
+--∞Ôª·≤÷ø‚ΩÁ√Ê–Èƒ‚“ª∏ˆ±≥∞¸Œª÷√
+if not INVENTORY_GUILD_BANK then
+	INVENTORY_GUILD_BANK = INVENTORY_INDEX.TOTAL + 1
+end
+if not INVENTORY_GUILD_PAGE_SIZE then
+	INVENTORY_GUILD_PAGE_SIZE = 100
+end
 
 -- middle map
 if not CloseWorldMap then
@@ -134,7 +140,7 @@ function CloseWorldMap(bDisableSound)
 	if not bDisableSound then
 		PlaySound(SOUND.UI_SOUND,g_sound.CloseFrame)
 	end
-	-- FIXMEÔºöFireDataAnalysisEvent
+	-- FIXME£∫FireDataAnalysisEvent
 end
 end
 if not IsMiddleMapOpened then
@@ -161,7 +167,7 @@ function OpenMiddleMap(dwMapID, nIndex, bTraffic, bDisableSound)
 	if not bDisableSound then
 		PlaySound(SOUND.UI_SOUND,g_sound.OpenFrame)
 	end
-	-- FIXMEÔºöOnClientAddAchievement
+	-- FIXME£∫OnClientAddAchievement
 	MiddleMap.nLastAlpha = MiddleMap.nAlpha
 end
 end
@@ -170,15 +176,15 @@ end
 if not GetTargetLevelFont then
 function GetTargetLevelFont(nLevelDiff)
 	local nFont = 16
-	if nLevelDiff > 4 then	-- Á∫¢
+	if nLevelDiff > 4 then	-- ∫Ï
 		nFont = 159
-	elseif nLevelDiff > 2 then	-- Ê°î
+	elseif nLevelDiff > 2 then	-- Ω€
 		nFont = 168
-	elseif nLevelDiff > -3 then	-- ÈªÑ
+	elseif nLevelDiff > -3 then	-- ª∆
 		nFont = 16
-	elseif nLevelDiff > -6 then	-- Áªø
+	elseif nLevelDiff > -6 then	-- ¬Ã
 		nFont = 167
-	else	-- ÁÅ∞
+	else	-- ª“
 		nFont = 169
 	end
 	return nFont
@@ -322,6 +328,7 @@ end
 end
 
 -- hotkey panel
+if not HotkeyPanel_Open then
 function HotkeyPanel_Open(szGroup)
 	local frame = Station.Lookup("Topmost/HotkeyPanel")
 	if not frame then
@@ -444,6 +451,7 @@ function HotkeyPanel_Open(szGroup)
 		end
 		scroll:SetScrollPos(nStep)
 	end
+end
 end
 
 if not DoAcceptJoinBattleField then

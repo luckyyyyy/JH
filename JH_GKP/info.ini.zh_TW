@@ -1,0 +1,10 @@
+[JH_GKP]
+name=金團記錄
+desc=團隊拍賣記賬，好團長必備。
+package=JH
+version=1.0
+default=1
+dependence=JH_0Base
+lua_0=JH_GKP.lua
+lua_1=JH_GKPLoot.lua
+lua_2=JH_GKPChat.lua

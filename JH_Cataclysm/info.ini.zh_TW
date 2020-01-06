@@ -1,0 +1,9 @@
+[JH_Cataclysm]
+name=團隊面板
+desc=Cataclysm框架，治療以及指揮首選的團隊面板。
+package=JH
+version=1.0
+default=1
+dependence=JH_0Base
+lua_0=JH_CataclysmMain.lua
+lua_1=JH_CataclysmParty.lua
