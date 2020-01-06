@@ -116,9 +116,13 @@ local function GetMeun(ui)
 			end
 		})
 	end
-	return { menu }
+	return menu
 end
 
-for k, v in ipairs({ "Lowest", "Lowest1", "Lowest2", "Normal", "Normal1", "Normal2", "Topmost", "Topmost1", "Topmost2" })do
-	TraceButton_AppendAddonMenu({function() return GetMeun(v) end})
-end
+TraceButton_AppendAddonMenu({function()
+	local menu = { szOption = 'KG_UIManager' }
+	for k, v in ipairs({ "Lowest", "Lowest1", "Lowest2", "Normal", "Normal1", "Normal2", "Topmost", "Topmost1", "Topmost2" })do
+		table.insert(menu, GetMeun(v))
+	end
+	return {menu}
+end})
