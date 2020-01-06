@@ -4,7 +4,7 @@ JH_FindStation = {}
 ---------------------------------------------------------------------
 -- 本地函数和变量
 ---------------------------------------------------------------------
-_JH_FindStation = {
+local _JH_FindStation = {
 	bButton = false,
 	szQuery = "",
 	szResult = "",
@@ -159,4 +159,3 @@ _JH_FindStation.OnPanelActive = function(frame)
 end
 
 GUI.RegisterPanel("界面控件查找", 2791, "开发", _JH_FindStation)
-
