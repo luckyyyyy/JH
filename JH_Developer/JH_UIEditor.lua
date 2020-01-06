@@ -84,6 +84,10 @@ function KG_UIEditor.OnFrameCreate()
 	this:SetPoint(a.s, 0, 0, a.r, a.x, a.y)
 end
 
+-- function KG_UIEditor.OnFrameBreathe()
+-- 	this:BringToTop()
+-- end
+
 function KG_UIEditor.OnEvent(szEvent)
 	if szEvent == "UI_SCALED" then
 		local a = UI_ANCHOR
@@ -238,7 +242,7 @@ function UI.CloseFrame()
 end
 
 function UI.GetFrame()
-	return Station.Lookup("Topmost/KG_UIEditor")
+	return Station.Lookup("Topmost1/KG_UIEditor")
 end
 UI.IsOpened = UI.GetFrame
 function UI.ToggleFrame()
@@ -251,7 +255,7 @@ end
 
 function UI.GetMeun()
 	local menu = {}
-	for k, v in ipairs({ "Lowest", "Lowest1", "Lowest2", "Normal", "Normal1", "Normal2", "Topmost", "Topmost1", "Topmost2", "Texture" })do
+	for k, v in ipairs({ "Lowest", "Lowest1", "Lowest2", "Normal", "Normal1", "Normal2", "Topmost", "Topmost1", "Topmost2" })do
 		tinsert(menu, { szOption = v })
 		local frame = Station.Lookup(v):GetFirstChild()
 		while frame do
